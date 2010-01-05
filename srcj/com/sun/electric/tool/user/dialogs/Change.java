@@ -268,6 +268,223 @@ public class Change extends EModelessDialog implements HighlightListener
 			if (geomToChange instanceof ArcInst)
 				changeNodesWithArcs.setEnabled(true);
 		}
+		updateChangeCount();
+	}
+
+	/**
+	 * Method to count the number of arcs that will be considered when changing arc "oldAi".
+	 * @param connected true to, replace all such arcs connected to this.
+	 * @param thiscell true to replace all such arcs in the cell.
+	 */
+	private void countAllArcs(Cell cell, List<Geometric> highs, ArcInst oldAi, boolean connected, boolean thiscell,
+		Set<Geometric> changedAlready)
+	{
+		List<NodeInst> changePins = new ArrayList<NodeInst>();
+
+		for(Geometric geom : highs)
+		{
+			if (!(geom instanceof ArcInst)) continue;
+			ArcInst ai = (ArcInst)geom;
+			if (ai.getProto() != oldAi.getProto()) continue;
+			changedAlready.add(ai);
+		}
+		if (connected)
+		{
+			Netlist netlist = cell.getUserNetlist();
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = it.next();
+				if (ai.getProto() != oldAi.getProto()) continue;
+				if (!netlist.sameNetwork(ai, oldAi)) continue;
+				changedAlready.add(ai);
+			}
+		}
+		if (thiscell)
+		{
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = it.next();
+				if (ai.getProto() != oldAi.getProto()) continue;
+				changedAlready.add(ai);
+			}
+		}
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+			if (ni.isCellInstance()) continue;
+			if (!ni.getFunction().isPin()) continue;
+			boolean allArcs = true;
+			for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
+			{
+				Connection con = cIt.next();
+				if (!changedAlready.contains(con.getArc())) { allArcs = false;   break; }
+			}
+			if (ni.hasConnections() && allArcs)
+				changePins.add(ni);
+		}
+	}
+
+	private void updateChangeCount()
+	{
+		Set<Geometric> changedAlready = new HashSet<Geometric>();
+		Cell cell = WindowFrame.getCurrentCell();
+		String toChange = "";
+		for (Geometric geomToChange : geomsToChange)
+		{
+			// count node replacement
+			if (geomToChange instanceof NodeInst)
+			{
+				// get node to be replaced
+				toChange = "nodes";
+				NodeInst ni = (NodeInst)geomToChange;
+				NodeProto oldNType = ni.getProto();
+				changedAlready.add(ni);
+
+				// count additional replacements if requested
+				if (changeEverywhere.isSelected())
+				{
+					// replace in all cells of library if requested
+					for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library lib = it.next();
+						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+						{
+							Cell c = cIt.next();
+							for(Iterator<NodeInst> nIt = c.getNodes(); nIt.hasNext(); )
+							{
+								NodeInst lNi = nIt.next();
+								if (lNi.getProto() == oldNType) changedAlready.add(lNi);
+							}
+						}
+					}
+				} else if (changeInLibrary.isSelected())
+				{
+					// replace throughout the library containing "this cell" if requested
+					Library lib = cell.getLibrary();
+					for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+					{
+						Cell c = cIt.next();
+						for(Iterator<NodeInst> nIt = c.getNodes(); nIt.hasNext(); )
+						{
+							NodeInst lNi = nIt.next();
+							if (lNi.getProto() == oldNType) changedAlready.add(lNi);
+						}
+					}
+				} else if (changeInCell.isSelected())
+				{
+					// replace throughout this cell if requested
+					for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
+					{
+						NodeInst lNi = nIt.next();
+						if (lNi.getProto() == oldNType) changedAlready.add(lNi);
+					}
+				} else if (changeConnected.isSelected())
+				{
+					// replace all connected to this in the cell if requested
+					Netlist netlist = cell.getUserNetlist();
+					for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+					{
+						NodeInst lNi = it.next();
+						if (lNi.getProto() != oldNType) continue;
+
+						boolean found = false;
+						for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
+						{
+							PortInst pi = pIt.next();
+							for(Iterator<PortInst> lPIt = lNi.getPortInsts(); lPIt.hasNext(); )
+							{
+								PortInst lPi = lPIt.next();
+								if (netlist.sameNetwork(pi.getNodeInst(), pi.getPortProto(), lPi.getNodeInst(), lPi.getPortProto()))
+								{
+									found = true;
+									break;
+								}
+							}
+							if (found) break;
+						}
+						if (found) changedAlready.add(lNi);
+					}
+				}
+			} else
+			{
+				// count arc replacement
+				toChange = "arcs";
+				ArcInst ai = (ArcInst)geomToChange;
+				ArcProto oldAType = ai.getProto();
+
+				// special case when replacing nodes, too
+				if (changeNodesWithArcs.isSelected())
+				{
+					List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
+					if (changeInLibrary.isSelected())
+					{
+						for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+						{
+							Cell e = it.next();
+							countAllArcs(e, highs, ai, false, true, changedAlready);
+						}
+					} else
+					{
+						countAllArcs(ai.getParent(), highs, ai, changeConnected.isSelected(), changeInCell.isSelected(), changedAlready);
+					}
+				} else
+				{
+					// replace the arcinst
+					changedAlready.add(ai);
+
+					// do additional replacements if requested
+					if (changeEverywhere.isSelected())
+					{
+						// replace in all cells of library if requested
+						for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+						{
+							Library lib = it.next();
+							for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+							{
+								Cell c = cIt.next();
+								for(Iterator<ArcInst> nIt = c.getArcs(); nIt.hasNext(); )
+								{
+									ArcInst lAi = nIt.next();
+									if (lAi.getProto() == oldAType) changedAlready.add(lAi);
+								}
+							}
+						}
+					} else if (changeInLibrary.isSelected())
+					{
+						// replace throughout this library if requested
+						Library lib = Library.getCurrent();
+						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+						{
+							Cell c = cIt.next();
+							for(Iterator<ArcInst> nIt = c.getArcs(); nIt.hasNext(); )
+							{
+								ArcInst lAi = nIt.next();
+								if (lAi.getProto() == oldAType) changedAlready.add(lAi);
+							}
+						}
+					} else if (changeInCell.isSelected())
+					{
+						// replace throughout this cell if requested
+						for(Iterator<ArcInst> nIt = cell.getArcs(); nIt.hasNext(); )
+						{
+							ArcInst lAi = nIt.next();
+							if (lAi.getProto() == oldAType) changedAlready.add(lAi);
+						}
+					} else if (changeConnected.isSelected())
+					{
+						// replace all connected to this if requested
+						Netlist netlist = cell.getUserNetlist();
+						for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+						{
+							ArcInst lAi = it.next();
+							if (netlist.sameNetwork(ai, lAi)) changedAlready.add(lAi);
+						}
+					}
+				}
+			}
+		}
+		int num = changedAlready.size();
+		changeCount.setText("Selected " + num + " " + toChange);
 	}
 
 	private static final Pattern dummyName = Pattern.compile("(.*?)FROM(.*?)\\{(.*)");
@@ -549,6 +766,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			}
 			changeList.setSelectedIndex(0);
  		}
+		updateChangeCount();
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() { EDialog.centerSelection(changeList); }});
 	}
@@ -715,7 +933,7 @@ public class Change extends EModelessDialog implements HighlightListener
 							" nodes in all libraries replaced with " + np);
 					} else if (changeInLibrary)
 					{
-						// replace throughout the library containing "this cell"if requested
+						// replace throughout the library containing "this cell" if requested
 						Library lib = cell.getLibrary();
 						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 						{
@@ -753,7 +971,7 @@ public class Change extends EModelessDialog implements HighlightListener
 							" nodes in " + lib + " replaced with " + np);
 					} else if (changeInCell)
 					{
-						// replace throughout this cell if "requested
+						// replace throughout this cell if requested
 						boolean found = true;
 						while (found)
 						{
@@ -1317,8 +1535,8 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-	private void initComponents()//GEN-BEGIN:initComponents
-    {
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         changeOption = new javax.swing.ButtonGroup();
@@ -1337,46 +1555,38 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         jLabel1 = new javax.swing.JLabel();
         librariesPopup = new javax.swing.JComboBox();
         allowMissingPorts = new javax.swing.JCheckBox();
-
-        getContentPane().setLayout(new java.awt.GridBagLayout());
+        changeCount = new javax.swing.JLabel();
 
         setTitle("Change");
-        setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        setName(""); // NOI18N
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
+        getContentPane().setLayout(new java.awt.GridBagLayout());
 
         done.setText("Done");
-        done.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        done.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 done(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(done, gridBagConstraints);
 
-        apply.setText("Apply");
-        apply.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        apply.setText("Change");
+        apply.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 apply(evt);
             }
         });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(apply, gridBagConstraints);
 
@@ -1386,15 +1596,15 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 10;
+        gridBagConstraints.gridheight = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(listPane, gridBagConstraints);
 
-        changeSelected.setText("Change selected ones only");
         changeOption.add(changeSelected);
+        changeSelected.setText("Change selected ones only");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -1403,8 +1613,8 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         getContentPane().add(changeSelected, gridBagConstraints);
 
-        changeConnected.setText("Change all connected to this");
         changeOption.add(changeConnected);
+        changeConnected.setText("Change all connected to this");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -1413,8 +1623,8 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(changeConnected, gridBagConstraints);
 
-        changeInCell.setText("Change all in this cell");
         changeOption.add(changeInCell);
+        changeInCell.setText("Change all in this cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
@@ -1423,8 +1633,8 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(changeInCell, gridBagConstraints);
 
-        changeInLibrary.setText("Change all in this library");
         changeOption.add(changeInLibrary);
+        changeInLibrary.setText("Change all in this library");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
@@ -1433,8 +1643,8 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         getContentPane().add(changeInLibrary, gridBagConstraints);
 
-        changeEverywhere.setText("Change all in all libraries");
         changeOption.add(changeEverywhere);
+        changeEverywhere.setText("Change all in all libraries");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
@@ -1446,7 +1656,7 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         changeNodesWithArcs.setText("Change nodes with arcs");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(10, 4, 4, 4);
@@ -1455,7 +1665,7 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         showPrimitives.setText("Show primitives");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -1464,7 +1674,7 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         showCells.setText("Show cells");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -1473,7 +1683,7 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         ignorePortNames.setText("Ignore port names");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -1482,12 +1692,11 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         jLabel1.setText("Library:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         getContentPane().add(jLabel1, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(librariesPopup, gridBagConstraints);
@@ -1495,14 +1704,22 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         allowMissingPorts.setText("Allow missing ports");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(allowMissingPorts, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(changeCount, gridBagConstraints);
 
         pack();
-    }//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	private void done(java.awt.event.ActionEvent evt)//GEN-FIRST:event_done
 	{//GEN-HEADEREND:event_done
@@ -1528,6 +1745,7 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
     private javax.swing.JCheckBox allowMissingPorts;
     private javax.swing.JButton apply;
     private javax.swing.JRadioButton changeConnected;
+    private javax.swing.JLabel changeCount;
     private javax.swing.JRadioButton changeEverywhere;
     private javax.swing.JRadioButton changeInCell;
     private javax.swing.JRadioButton changeInLibrary;

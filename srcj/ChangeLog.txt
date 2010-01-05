@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+IMP/MAN: (01/05/10, SMR) "Change" dialog now reports the number of changes to make (Bug #2583).
+
 BUG: (01/05/10, SMR) Duplicating cells may crash (Bug #2576).
 FIX: Keep a separate copy of the cell group before exploring it.
 
