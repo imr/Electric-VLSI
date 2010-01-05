@@ -1184,7 +1184,6 @@ public class CellChangeJobs
 			trans.transform(tailLoc, tailLoc);
 
 			ArcProto ap = ai.getProto();
-			double wid = ai.getLambdaBaseWidth();
 			String name = null;
 			if (ai.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false, fromRight);
@@ -1192,7 +1191,6 @@ public class CellChangeJobs
             ImmutableArcInst a = ai.getD();
             ArcInst newAi = ArcInst.newInstance(destCell, ap, name, a.nameDescriptor,
                 newHeadPi, newTailPi, EPoint.snap(headLoc), EPoint.snap(tailLoc), a.getGridExtendOverMin(), a.getAngle(), a.flags);
-//			ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, newHeadPi, newTailPi, headLoc, tailLoc, name);
 			if (newAi == null)
 			{
 				System.out.println("Error: arc " + ai.describe(false) + " in cell " + cell.describe(false) +
@@ -1294,12 +1292,13 @@ public class CellChangeJobs
 			System.out.println("Duplicated cell "+cell+".  New cell is "+dupCell+".");
 
 			// examine all other cells in the group
-			Cell.CellGroup group = cell.getCellGroup();
-			for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
+			List<Cell> othersInGroup = new ArrayList<Cell>();
+			for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); ) othersInGroup.add(it.next());
+			for(Cell otherCell : othersInGroup)
 			{
-				Cell otherCell = it.next();
 				if (otherCell == cell) continue;
-				// Only when copy an schematic, we should copy the icon if entireGroup == false
+
+				// When copy a schematic, we should copy the icon if entireGroup == false
 				if (!entireGroup && !(cell.isSchematic() && otherCell.isIcon())) continue;
 				Cell copyCell = Cell.copyNodeProto(otherCell, otherCell.getLibrary(),
 					newName + otherCell.getView().getAbbreviationExtension(), false);

@@ -4,18 +4,21 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/05/10, SMR) Duplicating cells may crash (Bug #2576).
+FIX: Keep a separate copy of the cell group before exploring it.
+
 BUG: (01/05/10, GVG) exporting preferences to xml and re-importing causes some 
-keybindings to disappear (Bug #2336)
+     keybindings to disappear (Bug #2336)
 FIX: Trying "UTF-8" instead on MacOSX (Snow Leopard)
 
 BUG: (01/05/10) Wiring problem (Bug #2569).
 FIX: In LayoutCell.doMoveArcInst() use proper ArcInst constructor for arc "ar3".
 
-IMP/MAN: (01/04/10, GVG) Analog flag reported as "Vertical NPN Transistor pbase" preference (Bug #2581)
-Manual might need to be reviewed.
+IMP/MAN: (01/04/10, GVG) Analog flag reported as "Vertical NPN Transistor pbase"
+     preference (Bug #2581).  Manual might need to be reviewed.
 
-IMP/MAN: (01/04/10, GVG) Calling the default PSubstrate process instead of PWell. This goes aligned
-with the changes done for Bug #2561. Figure in 7-1-2 needs to be updated.
+IMP/MAN: (01/04/10, GVG) Calling the default PSubstrate process instead of PWell.
+     This goes aligned with the changes done for Bug #2561. Figure in 7-1-2 needs to be updated.
 
 IMP: (01/04/10, GVG) Fix "AlgorithmName is accessed from Place cells" (Bug #2580)
 
