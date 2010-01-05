@@ -968,8 +968,9 @@ public class CellChangeJobs
 		private boolean fromRight;
 		private int depth;
         private Set<NodeInst> expandedNodes = new HashSet<NodeInst>();
+        private boolean startNow;
 
-		public ExtractCellInstances(Cell cell, List<NodeInst> highlighted, int depth, boolean copyExports,
+        public ExtractCellInstances(Cell cell, List<NodeInst> highlighted, int depth, boolean copyExports,
 			boolean fromRight, boolean startNow)
 		{
 			super("Extract Cell Instances", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -978,7 +979,8 @@ public class CellChangeJobs
 			this.copyExports = copyExports;
 			this.fromRight = fromRight;
 			this.depth = depth;
-			if (!startNow)
+            this.startNow = startNow;
+            if (!startNow)
 				startJob();
 			else
 			{
@@ -990,7 +992,8 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
 			doArbitraryExtraction(cell, expandedNodes, nodes, copyExports, depth, fromRight);
-            fieldVariableChanged("expandedNodes");
+            if (!startNow)
+                fieldVariableChanged("expandedNodes");
 			return true;
 		}
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/05/10, GVG) Exception in CellChangeJobs if it is executed from another job (Bug #2585)
+FIX: Detect the case when this job is started by another one.
+
 IMP/MAN: (01/05/10, SMR) "Change" dialog now reports the number of changes to make (Bug #2583).
 
 BUG: (01/05/10, SMR) Duplicating cells may crash (Bug #2576).
