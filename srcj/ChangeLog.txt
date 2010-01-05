@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/05/10, GVG) exporting preferences to xml and re-importing causes some 
+keybindings to disappear (Bug #2336)
+FIX: Trying "UTF-8" instead on MacOSX (Snow Leopard)
+
 BUG: (01/05/10) Wiring problem (Bug #2569).
 FIX: In LayoutCell.doMoveArcInst() use proper ArcInst constructor for arc "ar3".
 
