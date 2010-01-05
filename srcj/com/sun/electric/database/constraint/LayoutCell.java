@@ -971,7 +971,7 @@ class LayoutCell {
 //        ar2.copyPropertiesFrom(ai);
 
         int flags3 = ImmutableArcInst.HEAD_NEGATED.set(arcFlags, false);
-        ArcInst ar3 = ArcInst.newInstanceBase(ap, wid, no1pi, tpi, no1Pt, tailPt, null, flags3);
+        ArcInst ar3 = ArcInst.newInstanceBase(ap, wid, no1pi, tpi, no1Pt, tailPt, null, 0, flags3);
         if (ar3 == null) {
             return;
         }

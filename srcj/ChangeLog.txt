@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/05/10) Wiring problem (Bug #2569).
+FIX: In LayoutCell.doMoveArcInst() use proper ArcInst constructor for arc "ar3".
+
 IMP/MAN: (01/04/10, GVG) Analog flag reported as "Vertical NPN Transistor pbase" preference (Bug #2581)
 Manual might need to be reviewed.
 
