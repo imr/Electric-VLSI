@@ -550,18 +550,19 @@ public class PlacementFrame
 	 * @param iconToPlace non-null to place an instance of itself (the icon) in the Cell.
 	 * @return the newly created Cell.
 	 */
-	public Cell doPlacement(Library lib, String cellName, List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
+	public Cell doPlacement(Library lib, String cellName, List<PlacementNode> nodesToPlace,
+                            List<PlacementNetwork> allNetworks,
 		List<PlacementExport> exportsToPlace, NodeProto iconToPlace)
 	{
         long startTime = System.currentTimeMillis();
-        String newCellName = "placed" + cellName;
+//        String newCellName = "placed" + cellName;
         System.out.println("Running placement on cell '" + cellName + "' using the '" + getAlgorithmName() + "' algorithm");
 
         // do the real work of placement
 		runPlacement(nodesToPlace, allNetworks, cellName);
 
 		// create a new cell for the placement results
-		Cell newCell = Cell.makeInstance(lib, newCellName);
+		Cell newCell = Cell.makeInstance(lib, cellName); // newCellName
 
 		// place the nodes in the new cell
 		Map<PlacementNode,NodeInst> placedNodes = new HashMap<PlacementNode,NodeInst>();
