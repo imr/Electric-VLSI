@@ -399,7 +399,6 @@ class VectorDrawing
 			}
 			if (level == 0 || onPathDown || inPlaceCurrent == cell)
 				drawPortList(vsc, subVC, soX, soY, expanded, onPathDown);
-//				drawPortList(vsc, subVC, soX, soY, ni.isExpanded());
 		}
 	}
 

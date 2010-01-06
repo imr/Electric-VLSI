@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/06/10, SMR) Highlighting and objects are different when zoomed close (Bug #2577).
+FIX: In Highlight.drawOutlineFromPoints(), use grid coordinates.
+
 BUG: (01/06/10, GVG) exporting preferences to xml and re-importing causes some 
      keybindings to disappear (Bug #2336)
 FIX: "UTF-8" doesn't work on MacOSX (Snow Leopard). Back to original fix (default charset in MacOSX)

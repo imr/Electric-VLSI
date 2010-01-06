@@ -394,6 +394,7 @@ public abstract class Highlight implements Cloneable{
 //			cY = lp.y;
 //		}
 
+		Point p = new Point(0, 0);
 		for(int i=0; i<points.length; i++)
 		{
 			int lastI = i-1;
@@ -402,9 +403,11 @@ public abstract class Highlight implements Cloneable{
 				if (opened) continue;
 				lastI = points.length - 1;
 			}
-			Point lp = wnd.databaseToScreen(points[lastI].getX(), points[lastI].getY());
-			Point p = wnd.databaseToScreen(points[i].getX(), points[i].getY());
-			int fX = lp.x + offX;   int fY = lp.y + offY;
+//			Point p = wnd.databaseToScreen(points[lastI].getX(), points[lastI].getY());
+			wnd.gridToScreen((int)DBMath.lambdaToGrid(points[lastI].getX()), (int)DBMath.lambdaToGrid(points[lastI].getY()), p);
+			int fX = p.x + offX;   int fY = p.y + offY;
+//			p = wnd.databaseToScreen(points[i].getX(), points[i].getY());
+			wnd.gridToScreen((int)DBMath.lambdaToGrid(points[i].getX()), (int)DBMath.lambdaToGrid(points[i].getY()), p);
 			int tX = p.x + offX;    int tY = p.y + offY;
 			drawLine(g, wnd, fX, fY, tX, tY);
 			if (thickLine)
@@ -418,7 +421,7 @@ public abstract class Highlight implements Cloneable{
 		}
 	}
 
-    void internalDescribe(StringBuffer desc) {;}
+	void internalDescribe(StringBuffer desc) {;}
 
     /**
      * Describe the Highlight

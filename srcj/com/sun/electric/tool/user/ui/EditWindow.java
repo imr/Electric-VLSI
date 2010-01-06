@@ -151,6 +151,7 @@ public class EditWindow extends JPanel
 		HighlightListener, DatabaseChangeListener
 {
 	/** the window scale */									private double scale;
+	private double scale_, factorX, factorY;
 	/** the requested window scale */						private double scaleRequested;
 	/** the global text scale in this window */				private double globalTextScale;
 	/** the default font in this window */					private String defaultFont;
@@ -236,6 +237,9 @@ public class EditWindow extends JPanel
 		setPreferredSize(sz);
 
 		scale = scaleRequested = 1;
+		scale_ = (float)(scale/DBMath.GRID);
+		factorX = (float)(offx*DBMath.GRID - szHalfWidth/scale_);
+		factorY = (float)(offy*DBMath.GRID + szHalfHeight/scale_);
 		textInCell = null;
 		globalTextScale = User.getGlobalTextScale();
 		defaultFont = User.getDefaultFont();
@@ -1282,8 +1286,11 @@ public class EditWindow extends JPanel
 		if (scale != drawing.da.scale || offx != drawing.da.offX || offy != drawing.da.offY)
 			textInCell = null;
 		scale = drawing.da.scale;
+		scale_ = (float)(scale/DBMath.GRID);
 		offx = drawing.da.offX;
 		offy = drawing.da.offY;
+		factorX = (float)(offx*DBMath.GRID - szHalfWidth/scale_);
+		factorY = (float)(offy*DBMath.GRID + szHalfHeight/scale_);
 		setScrollPosition();			// redraw scroll bars
 
 		// set the default text size (for highlighting, etc)
@@ -2844,6 +2851,9 @@ public class EditWindow extends JPanel
 				setScreenBounds(cellBounds);
 				if (scale != scaleRequested) textInCell = null;
 				scale = scaleRequested;
+				scale_ = (float)(scale/DBMath.GRID);
+				factorX = (float)(offx*DBMath.GRID - szHalfWidth/scale_);
+				factorY = (float)(offy*DBMath.GRID + szHalfHeight/scale_);
 				Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
 				if (relativeTextBounds != null)
 				{
@@ -2856,6 +2866,9 @@ public class EditWindow extends JPanel
 						setScreenBounds(newCellBounds);
 						if (scale != scaleRequested) textInCell = null;
 						scale = scaleRequested;
+						scale_ = (float)(scale/DBMath.GRID);
+						factorX = (float)(offx*DBMath.GRID - szHalfWidth/scale_);
+						factorY = (float)(offy*DBMath.GRID + szHalfHeight/scale_);
 						relativeTextBounds = cell.getRelativeTextBounds(this);
 						if (relativeTextBounds != null)
 							Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
@@ -3669,6 +3682,20 @@ public class EditWindow extends JPanel
 	}
 
 	/**
+	 * Method to convert a database grid coordinate to screen coordinates.
+	 * @param dbX the X coordinate (in database grid units).
+	 * @param dbY the Y coordinate (in database grid units).
+	 * @param result the Point in which to store the screen coordinates.
+	 */
+	public void gridToScreen(int dbX, int dbY, Point result)
+	{
+		double scrX = (dbX - factorX) * scale_;
+		double scrY = (factorY - dbY) * scale_;
+		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
+		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
+	}
+
+	/**
 	 * Method to snap a point to the nearest database-space grid unit.
 	 * @param pt the point to be snapped.
 	 */
@@ -3885,9 +3912,12 @@ public class EditWindow extends JPanel
 			if (width == 0) width = 2;
 			if (height == 0) height = 2;
 			scale = scaleRequested = Math.min(wid/width, hei/height);
+			scale_ = (float)(scale/DBMath.GRID);
 			offx = offy = offxRequested = offyRequested = 0;
 			szHalfWidth = ix + wid / 2;
 			szHalfHeight = iy + hei / 2;
+			factorX = (float)(offx*DBMath.GRID - szHalfWidth/scale_);
+			factorY = (float)(offy*DBMath.GRID + szHalfHeight/scale_);
 
 			// draw the frame
 			g2d.setColor(Color.BLACK);
@@ -3895,10 +3925,13 @@ public class EditWindow extends JPanel
 
 			// restore window factors
 			scale = scaleRequested = saveScale;
+			scale_ = (float)(scale/DBMath.GRID);
 			szHalfWidth = saveHalfWid;
 			szHalfHeight = saveHalfHei;
 			offx = offxRequested = saveOffset.getX();
 			offy = offyRequested = saveOffset.getY();
+			factorX = (float)(offx*DBMath.GRID - szHalfWidth/scale_);
+			factorY = (float)(offy*DBMath.GRID + szHalfHeight/scale_);
 
 			g2d.setTransform(saveAT);
 		}
