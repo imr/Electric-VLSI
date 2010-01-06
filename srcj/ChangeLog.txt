@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/06/10, DN) NPE in VectorCache while renaming library whose cell was displayed (Bug #2589).
+FIX: In StatusBar.updateSelectedText skip highlights which are not valid.
+
 BUG: (01/06/10, SMR) Highlighting and objects are different when zoomed close (Bug #2577).
 FIX: In Highlight.drawOutlineFromPoints(), use grid coordinates.
 

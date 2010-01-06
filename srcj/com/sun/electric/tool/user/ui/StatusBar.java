@@ -336,6 +336,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			NodeInst theNode = null;
 			for(Highlight h : highlighter.getHighlights())
 			{
+                if (!h.isValid()) continue;
 				if (h.isHighlightEOBJ())
 				{
 					ElectricObject eObj = h.getElectricObject();
@@ -436,6 +437,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 	 */
 	private String getSelectedText(Highlight h)
 	{
+        assert h.isValid();
 		PortInst thePort;
 		NodeInst theNode;
 		ArcInst theArc;

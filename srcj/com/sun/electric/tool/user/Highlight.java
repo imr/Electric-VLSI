@@ -90,7 +90,7 @@ public abstract class Highlight implements Cloneable{
 
 	public Cell getCell() { return cell; }
 
-	boolean isValid()
+	public boolean isValid()
 	{
 		if (cell != null)
 			if (!cell.isLinked()) return false;
@@ -875,12 +875,12 @@ class HighlightEOBJ extends Highlight
 	public void setPoint(int p) { point = p;}
 	public int getPoint() { return point; }
 
-	boolean isValid()
+	public boolean isValid()
 	{
 		if (!super.isValid()) return false;
 
-		if (eobj instanceof PortInst)
-			return ((PortInst)eobj).getNodeInst().isLinked();
+//		if (eobj instanceof PortInst)
+//			return ((PortInst)eobj).getNodeInst().isLinked();
 		return eobj.isLinked();
 	}
 
@@ -1555,7 +1555,7 @@ class HighlightText extends Highlight
 
     public Variable.Key getVarKey() { return varKey; }
 
-    boolean isValid()
+    public boolean isValid()
     {
         if (!super.isValid()) return false;
         if (eobj == null || varKey == null) return false;
