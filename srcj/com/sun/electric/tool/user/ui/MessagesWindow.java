@@ -219,13 +219,15 @@ public class MessagesWindow
 	public void appendString(String str)
 	{
 		info.append(str);
-		try
-		{
-			Rectangle r = info.modelToView(info.getDocument().getLength());
-			info.scrollRectToVisible(r);
-		} catch (BadLocationException ble)
-		{
-		}
+		info.setCaretPosition(info.getDocument().getLength());
+
+//		try
+//		{
+//			Rectangle r = info.modelToView(info.getDocument().getLength());
+//			info.scrollRectToVisible(r);
+//		} catch (BadLocationException ble)
+//		{
+//		}
 	}
 
 	public void mouseClicked(MouseEvent e) {}
