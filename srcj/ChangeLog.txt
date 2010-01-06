@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
-BUG: (01/06/10, DN) NPE in VectorCache while renaming library whose cell was displayed (Bug #2589).
+BUG: (01/06/10, DN) NPE in getBasePort while deleting exports displayed in 2 windows (Bug #2588).
 FIX: In StatusBar.updateSelectedText skip highlights which are not valid.
 
 BUG: (01/06/10, SMR) Highlighting and objects are different when zoomed close (Bug #2577).
