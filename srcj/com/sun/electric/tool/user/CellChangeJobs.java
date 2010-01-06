@@ -1261,6 +1261,7 @@ public class CellChangeJobs
 		private boolean entireGroup;
 		private Cell dupCell;
         private boolean startNow;
+        private Map<Cell,Cell> newCells = new HashMap<Cell,Cell>();
 
         public DuplicateCell(Cell cell, String newName, Library lib, boolean entireGroup, boolean startN)
 		{
@@ -1281,7 +1282,6 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			Map<Cell,Cell> newCells = new HashMap<Cell,Cell>();
 			String newCellName = newName + cell.getView().getAbbreviationExtension();
 			dupCell = Cell.copyNodeProto(cell, destLib, newCellName, false);
 			if (dupCell == null) {
@@ -1289,8 +1289,10 @@ public class CellChangeJobs
 				return false;
 			}
 			newCells.put(cell, dupCell);
-            if (!startNow)
+            if (!startNow) {
+                fieldVariableChanged("newCells");
                 fieldVariableChanged("dupCell");
+            }
 
 			System.out.println("Duplicated cell "+cell+".  New cell is "+dupCell+".");
 
@@ -1336,8 +1338,11 @@ public class CellChangeJobs
 			return true;
 		}
 
+        @Override
 		public void terminateOK()
 		{
+            copyExpandedStatus(newCells);
+
 			// change the display of old cell to the new one
 			WindowFrame curWf = WindowFrame.getCurrentWindowFrame();
 			if (curWf != null)
@@ -1364,6 +1369,25 @@ public class CellChangeJobs
 		}
 	}
 
+    /**
+     * Copy expanded status in client database after some cells were copied or moved in server database
+     * @param newCells map from old to new cells.
+     */
+    public static void copyExpandedStatus(Map<Cell,Cell> newCells) {
+        for (Map.Entry<Cell,Cell> e: newCells.entrySet()) {
+            Cell oldCell = e.getKey();
+            Cell newCell = e.getValue();
+
+            for (Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); ) {
+                NodeInst oldNi = it.next();
+                if (!oldNi.isCellInstance()) continue;
+                NodeInst newNi = newCell.findNode(oldNi.getName());
+                if (newNi == null) continue;
+                newNi.setExpanded(oldNi.isExpanded());
+            }
+        }
+    }
+
 	/****************************** COPY CELLS ******************************/
 
 	/**
@@ -1380,7 +1404,7 @@ public class CellChangeJobs
 	 * @return address of a copied cell (null on failure).
 	 */
 	public static IdMapper copyRecursively(List<Cell> fromCells, Library toLib, boolean verbose, boolean move,
-		boolean allRelatedViews, boolean copySubCells, boolean useExisting)
+		boolean allRelatedViews, boolean copySubCells, boolean useExisting, Map<Cell,Cell> newCells)
 	{
 		IdMapper idMapper = new IdMapper();
 		Cell.setAllowCircularLibraryDependences(true);
@@ -1389,7 +1413,7 @@ public class CellChangeJobs
 			for(Cell fromCell : fromCells)
 			{
 				Cell copiedCell = copyRecursively(fromCell, toLib, verbose, move, "", true,
-					allRelatedViews, allRelatedViews, copySubCells, useExisting, existing, idMapper);
+					allRelatedViews, allRelatedViews, copySubCells, useExisting, existing, idMapper, newCells);
 				if (copiedCell == null) break;
 			}
 		} finally {
@@ -1419,10 +1443,12 @@ public class CellChangeJobs
 	 * The main key is an old cell name, and the value for that key is a map of library names to new cell names.
 	 * So, for example, if libraries "A" and "B" both have a cell called "X", then existing.get("X").get("A") is "X" but
 	 * existing.get(X").get("B") is "X_1" which disambiguates the cell names in the destination library.
+     * @param idMapper mapper which handles renamed cells
+     * @param newCells mapper which handles both copied and renamed cells
 	 */
 	private static Cell copyRecursively(Cell fromCell, Library toLib, boolean verbose, boolean move, String subDescript,
 		boolean schematicRelatedView, boolean allRelatedViews, boolean allRelatedViewsThisLevel, boolean copySubCells,
-		boolean useExisting, Map<String,Map<String,String>> existing, IdMapper idMapper)
+		boolean useExisting, Map<String,Map<String,String>> existing, IdMapper idMapper, Map<Cell,Cell> newCells)
 	{
 		// check for sensibility
 		if (copySubCells && !useExisting)
@@ -1466,7 +1492,7 @@ public class CellChangeJobs
 					if (ni.isIconOfParent()) doCopySchematicView = false;
 					Cell oNp = copyRecursively(cell, toLib, verbose,
 						move, "subcell ", doCopySchematicView, allRelatedViews, allRelatedViewsThisLevel,
-						copySubCells, useExisting, existing, idMapper);
+						copySubCells, useExisting, existing, idMapper, newCells);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of sub" + cell + " failed"); else
@@ -1501,7 +1527,7 @@ public class CellChangeJobs
 
 						// copy equivalent view if not already there
 						Cell oNp = copyRecursively(np, toLib, verbose,
-							move, "schematic view ", true, allRelatedViews, false, copySubCells, useExisting, existing, idMapper);
+							move, "schematic view ", true, allRelatedViews, false, copySubCells, useExisting, existing, idMapper, newCells);
 						if (oNp == null)
 						{
 							if (move) System.out.println("Move of schematic view " + np + " failed"); else
@@ -1533,7 +1559,7 @@ public class CellChangeJobs
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, toLib, verbose,
-						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, idMapper);
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, idMapper, newCells);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -1560,7 +1586,7 @@ public class CellChangeJobs
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, toLib, verbose,
-						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, idMapper);
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, idMapper, newCells);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -1657,6 +1683,9 @@ public class CellChangeJobs
 			idMapper.moveCell(fromCell.backup(), newFromCell.getId());
 			fromCell.kill();
 		}
+        if (newCells != null) {
+            newCells.put(fromCell, newFromCell);
+        }
 		return newFromCell;
 	}
 
