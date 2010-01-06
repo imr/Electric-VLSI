@@ -23,19 +23,10 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.change.DatabaseChangeEvent;
-import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.cvspm.AddRemove;
 import com.sun.electric.tool.cvspm.CVS;
@@ -64,18 +55,14 @@ import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
@@ -123,7 +110,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -133,12 +119,10 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.ActionMap;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -148,19 +132,14 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.TreeUI;
@@ -246,7 +225,8 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 	 * Method to return the currently selected objects in the explorer tree.
 	 * @return the currently selected objects in the explorer tree.
 	 */
-	public Object [] getCurrentlySelectedObject() {
+	public Object [] getCurrentlySelectedObject()
+	{
         Object[] selectedObjects = new Object[numCurrentlySelectedObjects()];
         for (int i = 0; i < selectedObjects.length; i++)
             selectedObjects[i] = getCurrentlySelectedObject(i);
@@ -264,7 +244,8 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
      * @param i index of currently selected object.
 	 * @return the currently selected object in the explorer tree.
 	 */
-	public Object getCurrentlySelectedObject(int i) {
+	public Object getCurrentlySelectedObject(int i)
+	{
         if (i >= currentSelectedPaths.length) return null;
         TreePath treePath = currentSelectedPaths[i];
         return getObjectInTreePath(treePath);
@@ -296,7 +277,8 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
      * Get a list of any libraries current selected.
      * @return list of libraries, or empty list if none selected
      */
-    public List<Library> getCurrentlySelectedLibraries() {
+    public List<Library> getCurrentlySelectedLibraries()
+    {
         List<Library> libs = new ArrayList<Library>();
         for (int i=0; i<numCurrentlySelectedObjects(); i++) {
             Object obj = getCurrentlySelectedObject(i);
@@ -310,10 +292,13 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
      * cell groups selected will have their cells added.
      * @return list of cells, or empty list if none selected
      */
-    public List<Cell> getCurrentlySelectedCells() {
+    public List<Cell> getCurrentlySelectedCells()
+    {
         List<Cell> cells = new ArrayList<Cell>();
         for (int i=0; i<numCurrentlySelectedObjects(); i++) {
             Object obj = getCurrentlySelectedObject(i);
+			if (obj instanceof ExplorerTreeModel.CellAndCount)
+				obj = ((ExplorerTreeModel.CellAndCount)obj).getCell();
             if (obj instanceof Cell) cells.add((Cell)obj);
             if (obj instanceof Cell.CellGroup) {
                 Cell.CellGroup group = (Cell.CellGroup)obj;
@@ -345,7 +330,8 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
      * @param cell
      * @param openLib true to open the current library, false to open the signals list.
      */
-	void openLibraryInExplorerTree(Library lib, Cell cell, boolean openLib) {
+	void openLibraryInExplorerTree(Library lib, Cell cell, boolean openLib)
+	{
         int count = -1; // starts from EXPLORER node
         openLibraryInExplorerTree(lib, cell, new TreePath(rootNode), openLib, count);
     }
@@ -1733,7 +1719,6 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 //				}
 //			}
 
-
 			// determine the source of this event
 			currentMouseEvent = e;
 		}
@@ -1947,34 +1932,34 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 					{
 						menuItem = new JMenuItem("Check Out");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CheckOutJob.checkOut((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CheckOutJob.checkOut(getCellFromExplorerObject(getCurrentlySelectedObject(0))); } });
 					}
 					if (projStatus == Project.CHECKEDOUTTOYOU)
 					{
 						menuItem = new JMenuItem("Check In...");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CheckInJob.checkIn((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CheckInJob.checkIn(getCellFromExplorerObject(getCurrentlySelectedObject(0))); } });
 
 						menuItem = new JMenuItem("Rollback and Release Check-Out");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CancelCheckOutJob.cancelCheckOut((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CancelCheckOutJob.cancelCheckOut(getCellFromExplorerObject(getCurrentlySelectedObject(0))); } });
 					}
 					if (projStatus == Project.NOTMANAGED)
 					{
 						menuItem = new JMenuItem("Add To Repository");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { AddCellJob.addCell((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { AddCellJob.addCell(getCellFromExplorerObject(getCurrentlySelectedObject(0))); } });
 					} else
 					{
 						menuItem = new JMenuItem("Show History of This Cell...");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { HistoryDialog.examineHistory((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { HistoryDialog.examineHistory(getCellFromExplorerObject(getCurrentlySelectedObject(0))); } });
 					}
 					if (projStatus == Project.CHECKEDIN || projStatus == Project.CHECKEDOUTTOYOU)
 					{
 						menuItem = new JMenuItem("Remove From Repository");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { DeleteCellJob.removeCell((Cell)getCurrentlySelectedObject(0)); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { DeleteCellJob.removeCell(getCellFromExplorerObject(getCurrentlySelectedObject(0))); } });
 					}
 				}
 
@@ -2042,14 +2027,6 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
                 }
 
                 menu.addSeparator();
-
-//				if (cell.isSchematic() && cell.getNewestVersion() == cell &&
-//					cell.getCellGroup().getMainSchematics() != cell)
-//				{
-//					menuItem = new JMenuItem("Make This the Main Schematic");
-//					menu.add(menuItem);
-//					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeCellMainSchematic(); }});
-//				}
 
                 menuItem = new JMenuItem("Change Cell Group...");
                 menu.add(menuItem);
@@ -2469,7 +2446,15 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             new CircuitChangeJobs.ReloadLibraryJob(lib);
         }
 
-		private void renameGroupAction()
+        private Cell getCellFromExplorerObject(Object obj)
+        {
+        	if (obj instanceof Cell) return (Cell)obj;
+			if (obj instanceof ExplorerTreeModel.CellAndCount)
+				return ((ExplorerTreeModel.CellAndCount)obj).getCell();
+			return null;
+        }
+
+        private void renameGroupAction()
 		{
 			Cell.CellGroup cellGroup = (Cell.CellGroup)getCurrentlySelectedObject(0);
 			String defaultName = "";
@@ -2531,12 +2516,15 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 		{
 			Cell cell = null;
 			int pageNo = 1;
-			if (getCurrentlySelectedObject(0) instanceof Cell)
+			Object curSel = getCurrentlySelectedObject(0);
+			if (curSel instanceof ExplorerTreeModel.CellAndCount)
+				curSel = ((ExplorerTreeModel.CellAndCount)curSel).getCell();
+			if (curSel instanceof Cell)
 			{
-				cell = (Cell)getCurrentlySelectedObject(0);
-			} else if (getCurrentlySelectedObject(0) instanceof ExplorerTreeModel.MultiPageCell)
+				cell = (Cell)curSel;
+			} else if (curSel instanceof ExplorerTreeModel.MultiPageCell)
 			{
-				ExplorerTreeModel.MultiPageCell mpc = (ExplorerTreeModel.MultiPageCell)getCurrentlySelectedObject(0);
+				ExplorerTreeModel.MultiPageCell mpc = (ExplorerTreeModel.MultiPageCell)curSel;
 				cell = mpc.getCell();
 				pageNo = mpc.getPageNo();
 			}
@@ -2558,7 +2546,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
 		private void newCellInstanceAction()
 		{
-			Cell cell = (Cell)getCurrentlySelectedObject(0);
+			Cell cell = getCellFromExplorerObject(getCurrentlySelectedObject(0));
 			if (cell == null) return;
 			PaletteFrame.placeInstance(cell, null, false);
 		}
@@ -2679,13 +2667,13 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
         private void newCellVersionAction()
 		{
-			Cell cell = (Cell)getCurrentlySelectedObject(0);
+			Cell cell = getCellFromExplorerObject(getCurrentlySelectedObject(0));
 			CircuitChanges.newVersionOfCell(cell);
 		}
 
 		private void duplicateCellAction()
 		{
-			Cell cell = (Cell)getCurrentlySelectedObject(0);
+			Cell cell = getCellFromExplorerObject(getCurrentlySelectedObject(0));
 			new CellMenu.NewCellName(false, cell);
 		}
 
@@ -2694,7 +2682,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			List<Cell> cellsToDelete = new ArrayList<Cell>();
 			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
-				Cell cell = (Cell)getCurrentlySelectedObject(i);
+				Cell cell = getCellFromExplorerObject(getCurrentlySelectedObject(i));
 				cellsToDelete.add(cell);
 			}
 
@@ -2718,7 +2706,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
 		private void renameCellAction()
 		{
-			Cell cell = (Cell)getCurrentlySelectedObject(0);
+			Cell cell = getCellFromExplorerObject(getCurrentlySelectedObject(0));
 			String response = JOptionPane.showInputDialog(ExplorerTree.this, "New name for " + cell, cell.getName());
 			if (response == null) return;
 			CircuitChanges.renameCellInJob(cell, response);
@@ -2727,6 +2715,8 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         private void prepareForCopyAction(JMenu subMenu, Object selectedObject)
         {
             Cell cell = null;
+            if (selectedObject instanceof ExplorerTreeModel.CellAndCount)
+            	selectedObject = ((ExplorerTreeModel.CellAndCount)selectedObject).getCell();
             if (selectedObject instanceof Cell)
             {
                 cell = (Cell)selectedObject;
@@ -2777,7 +2767,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				List<Cell> cellsToReview = new ArrayList<Cell>();
 				for(int i=0; i<numCurrentlySelectedObjects(); i++)
 				{
-					Cell cell = (Cell)getCurrentlySelectedObject(i);
+					Cell cell = getCellFromExplorerObject(getCurrentlySelectedObject(i));
 					cellsToReview.add(cell);
 				}
 				for(Cell cell : cellsToReview)
@@ -2787,19 +2777,12 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			}
 		}
 
-//		private void makeCellMainSchematic()
-//		{
-//            Cell cell = (Cell)getCurrentlySelectedObject(0);
-//            if (cell == null) return;
-//            cell.getCellGroup().setMainSchematics(cell);
-//		}
-
         private void changeCellGroupAction() {
         	List<Cell> cellsToChange = new ArrayList<Cell>();
         	Library lib = null;
 			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
-				Cell cell = (Cell)getCurrentlySelectedObject(i);
+				Cell cell = getCellFromExplorerObject(getCurrentlySelectedObject(i));
 				if (lib == null) lib = cell.getLibrary(); else
 				{
 					if (lib != cell.getLibrary())

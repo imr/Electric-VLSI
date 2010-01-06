@@ -627,7 +627,10 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 		}
 
 		// show what is there
-		for(Cell subCell : cellCount.keySet())
+		List<Cell> sortedSubCells = new ArrayList<Cell>();
+		for(Cell subCell : cellCount.keySet()) sortedSubCells.add(subCell);
+    	Collections.sort(sortedSubCells, new TextUtils.CellsByName());		
+		for(Cell subCell : sortedSubCells)
 		{
 			DBMath.MutableInteger mi = cellCount.get(subCell);
 			if (mi == null) continue;
