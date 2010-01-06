@@ -701,6 +701,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @param useExisting true to use existing subcell instances if they exist in the destination Library.
      * @return the new Cell in the destination Library.
      */
+    // TODO this method used to copy expansion status. Now it doesn't because this method is called on server side
+    // and expansion status lives on client side. It would be good to look through all usages of this methods and
+    // call CellChangeJobs.copyExpansionStatus in Job's terminateOK methods.
     public static Cell copyNodeProto(Cell fromCell, Library toLib, String toName, boolean useExisting) {
         return copyNodeProto(fromCell, toLib, toName, useExisting, null);
     }
@@ -871,7 +874,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             // copy miscellaneous information
             toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
             toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
-            toNi.copyStateBitsAndExpandedFlag(ni);
+            toNi.copyStateBits(ni);
         }
 
         // now copy the variables on the nodes

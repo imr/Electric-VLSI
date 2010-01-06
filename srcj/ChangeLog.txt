@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/06/10, DN) Duplicate Cell assigned current tech instead of orig cell tech (Bug #2586)
+FIX: In Cell.copyNodeProtoUsingMapping call NodeInst.copyStateBits instead NodeInst.copyStateBitsAndFlags.
+   In CellChangeJobs and in CrossLibCopy copyExpansionStatus on client side.
+
 BUG: (01/05/10, GVG) Exception in CellChangeJobs if it is executed from another job (Bug #2585)
 FIX: Detect the case when this job is started by another one.
 
@@ -16,7 +20,7 @@ BUG: (01/05/10, GVG) exporting preferences to xml and re-importing causes some
      keybindings to disappear (Bug #2336)
 FIX: Trying "UTF-8" instead on MacOSX (Snow Leopard)
 
-BUG: (01/05/10) Wiring problem (Bug #2569).
+BUG: (01/05/10, DN) Wiring problem (Bug #2569).
 FIX: In LayoutCell.doMoveArcInst() use proper ArcInst constructor for arc "ar3".
 
 IMP/MAN: (01/04/10, GVG) Analog flag reported as "Vertical NPN Transistor pbase"
