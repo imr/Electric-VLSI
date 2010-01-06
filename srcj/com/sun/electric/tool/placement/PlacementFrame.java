@@ -507,6 +507,20 @@ public class PlacementFrame
 				convertedNodes.put(ni, placedPorts);
 			}
 		}
+//System.out.println("PLACING "+nodesToPlace.size()+" NODES");
+//
+//System.out.println("COUNTING SHADOW PORTS");   int totalNets = 0, totalPorts = 0;
+//long startTime = System.currentTimeMillis();
+//for(Iterator<Network> it = netList.getNetworks(); it.hasNext(); )
+//{
+//	Network net = it.next();
+//	totalNets++;
+//	if ((totalNets%200) == 0) System.out.println("  COUNTED "+totalNets+" SHADOW NETWORKS");
+//	for(Iterator<PortInst> pIt = net.getPorts(); pIt.hasNext(); ) { pIt.next();   totalPorts++; }
+//}
+//long endTime = System.currentTimeMillis();
+//System.out.println("THERE WILL BE "+totalPorts+" PORTS ON "+totalNets+" SHADOW NETWORKS");
+//System.out.println("(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 
 		// gather connectivity information in a list of PlacementNetwork objects
 		List<PlacementNetwork> allNetworks = new ArrayList<PlacementNetwork>();
