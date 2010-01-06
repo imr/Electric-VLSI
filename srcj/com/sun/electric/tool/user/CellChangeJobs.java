@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
@@ -1261,7 +1262,7 @@ public class CellChangeJobs
 		private boolean entireGroup;
 		private Cell dupCell;
         private boolean startNow;
-        private Map<Cell,Cell> newCells = new HashMap<Cell,Cell>();
+        private Map<CellId,Cell> newCells = new HashMap<CellId,Cell>();
 
         public DuplicateCell(Cell cell, String newName, Library lib, boolean entireGroup, boolean startN)
 		{
@@ -1288,7 +1289,7 @@ public class CellChangeJobs
 				System.out.println("Could not duplicate "+cell);
 				return false;
 			}
-			newCells.put(cell, dupCell);
+			newCells.put(cell.getId(), dupCell);
             if (!startNow) {
                 fieldVariableChanged("newCells");
                 fieldVariableChanged("dupCell");
@@ -1312,14 +1313,15 @@ public class CellChangeJobs
 					System.out.println("Could not duplicate cell "+otherCell);
 					break;
 				}
-				newCells.put(otherCell, copyCell);
+				newCells.put(otherCell.getId(), copyCell);
 				System.out.println("  Also duplicated cell "+otherCell+".  New cell is "+copyCell+".");
 			}
 
 			// if icon of cell is present, replace old icon with new icon in new schematics cell
-			for(Cell oldCell : newCells.keySet())
+			for(CellId oldCellId : newCells.keySet())
 			{
-				Cell newCell = newCells.get(oldCell);
+				Cell newCell = newCells.get(oldCellId);
+                Cell oldCell = newCell.getDatabase().getCell(oldCellId);
 				if (!newCell.isSchematic()) continue;
 				List<NodeInst> replaceThese = new ArrayList<NodeInst>();
 				for (Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
@@ -1373,10 +1375,12 @@ public class CellChangeJobs
      * Copy expanded status in client database after some cells were copied or moved in server database
      * @param newCells map from old to new cells.
      */
-    public static void copyExpandedStatus(Map<Cell,Cell> newCells) {
-        for (Map.Entry<Cell,Cell> e: newCells.entrySet()) {
-            Cell oldCell = e.getKey();
+    public static void copyExpandedStatus(Map<CellId,Cell> newCells) {
+        for (Map.Entry<CellId,Cell> e: newCells.entrySet()) {
+            CellId oldCellId = e.getKey();
             Cell newCell = e.getValue();
+            Cell oldCell = newCell.getDatabase().getCell(oldCellId);
+            if (oldCell == null) continue;
 
             for (Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); ) {
                 NodeInst oldNi = it.next();
@@ -1404,7 +1408,7 @@ public class CellChangeJobs
 	 * @return address of a copied cell (null on failure).
 	 */
 	public static IdMapper copyRecursively(List<Cell> fromCells, Library toLib, boolean verbose, boolean move,
-		boolean allRelatedViews, boolean copySubCells, boolean useExisting, Map<Cell,Cell> newCells)
+		boolean allRelatedViews, boolean copySubCells, boolean useExisting, Map<CellId,Cell> newCells)
 	{
 		IdMapper idMapper = new IdMapper();
 		Cell.setAllowCircularLibraryDependences(true);
@@ -1448,7 +1452,7 @@ public class CellChangeJobs
 	 */
 	private static Cell copyRecursively(Cell fromCell, Library toLib, boolean verbose, boolean move, String subDescript,
 		boolean schematicRelatedView, boolean allRelatedViews, boolean allRelatedViewsThisLevel, boolean copySubCells,
-		boolean useExisting, Map<String,Map<String,String>> existing, IdMapper idMapper, Map<Cell,Cell> newCells)
+		boolean useExisting, Map<String,Map<String,String>> existing, IdMapper idMapper, Map<CellId,Cell> newCells)
 	{
 		// check for sensibility
 		if (copySubCells && !useExisting)
@@ -1684,7 +1688,7 @@ public class CellChangeJobs
 			fromCell.kill();
 		}
         if (newCells != null) {
-            newCells.put(fromCell, newFromCell);
+            newCells.put(fromCell.getId(), newFromCell);
         }
 		return newFromCell;
 	}

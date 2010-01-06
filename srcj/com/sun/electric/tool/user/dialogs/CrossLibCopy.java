@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
@@ -335,7 +336,7 @@ public class CrossLibCopy extends EDialog
 		private boolean deleteAfter, copyRelated, copySubs, useExisting;
 		private int index;
         private IdMapper idMapper;
-        private Map<Cell,Cell> newCells = new HashMap<Cell,Cell>();
+        private Map<CellId,Cell> newCells = new HashMap<CellId,Cell>();
 
 		public CrossLibraryCopyJob(List<Cell> fromCells, Library toLibrary, CrossLibCopy dialog, boolean deleteAfter,
 			boolean copyRelated, boolean copySubs, boolean useExisting)
