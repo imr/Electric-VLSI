@@ -662,7 +662,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 		private TreeModel theTreeModel;
 		private Object theRootNode;
 
-		KeepTreeExpansion(JTree tt, Object rn, TreeModel tm, TreePath tp)
+		public KeepTreeExpansion(JTree tt, Object rn, TreeModel tm, TreePath tp)
 		{
 			theTree = tt;
 			theTreeModel = tm;

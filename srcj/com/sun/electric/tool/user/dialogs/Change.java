@@ -41,7 +41,9 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode.Function;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -50,14 +52,15 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ExplorerTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,16 +69,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
-import javax.swing.ListSelectionModel;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 /**
  * Class to handle the "Change" dialog.
@@ -94,10 +99,14 @@ public class Change extends EModelessDialog implements HighlightListener
 	private static boolean lastAllowMissingPorts = false;
 	private static int whatToChange = CHANGE_SELECTED;
 	private static String libSelected = null;
+	private static Map<PrimitiveNode,Map<Function,String>> specialSchematics = null;
+	private DefaultMutableTreeNode rootNode, rootCells, rootPrims, rootArcs, currentlySelected;
+	private DefaultTreeModel treeModel;
+	private JTree changeTree;
 	private List<Geometric> geomsToChange;                  // List of Geometrics to change
-	private JList changeList;
-	private DefaultListModel changeListModel;
-	private List<NodeProto> changeNodeProtoList;
+	private Map<DefaultMutableTreeNode,NodeProto> changeNodeProtoList;
+	private Map<DefaultMutableTreeNode,ArcProto> changeArcProtoList;
+	private Map<DefaultMutableTreeNode,Function> changeNodeProtoFunctionList;
 	private EditWindow wnd;
 
 	public static void showChangeDialog()
@@ -122,6 +131,71 @@ public class Change extends EModelessDialog implements HighlightListener
 		theDialog.toFront();
 	}
 
+	private void setupSpecialPrimitives()
+	{
+		if (specialSchematics != null) return;
+		specialSchematics = new HashMap<PrimitiveNode,Map<Function,String>>();
+		Map<Function,String> specialTransistor = new HashMap<Function,String>();
+		Map<Function,String> special4Transistor = new HashMap<Function,String>();
+    	List<Function> functions = Function.getFunctions();
+    	for(Function fun : functions)
+    	{
+    		if (!fun.isTransistor()) continue;
+    		Function altFun = fun.make3PortTransistor();
+    		if (altFun != null) special4Transistor.put(fun, fun.getShortName()); else
+    			specialTransistor.put(fun, fun.getShortName());
+    	}
+    	specialSchematics.put(Schematics.tech().transistorNode, specialTransistor);
+    	specialSchematics.put(Schematics.tech().transistor4Node, special4Transistor);
+
+    	Map<Function,String> specialResistor = new HashMap<Function,String>();
+    	specialResistor.put(Function.RESIST, "normal");
+    	specialResistor.put(Function.RESNPOLY, "n-poly");
+    	specialResistor.put(Function.RESPPOLY, "p-poly");
+    	specialResistor.put(Function.RESNNSPOLY, "n-poly-no-silicide");
+    	specialResistor.put(Function.RESPNSPOLY, "p-poly-no-silicide");
+    	specialResistor.put(Function.RESNWELL, "n-well");
+    	specialResistor.put(Function.RESPWELL, "p-well");
+    	specialResistor.put(Function.RESNACTIVE, "n-active");
+    	specialResistor.put(Function.RESPACTIVE, "p-active");
+    	specialResistor.put(Function.RESHIRESPOLY2, "hi-res-poly-2");
+    	specialSchematics.put(Schematics.tech().resistorNode, specialResistor);
+
+    	Map<Function,String> specialDiode = new HashMap<Function,String>();
+    	specialDiode.put(Function.DIODE, "normal");
+    	specialDiode.put(Function.DIODEZ, "zener");
+    	specialSchematics.put(Schematics.tech().diodeNode, specialDiode);
+
+    	Map<Function,String> specialCapacitor = new HashMap<Function,String>();
+    	specialCapacitor.put(Function.CAPAC, "normal");
+    	specialCapacitor.put(Function.ECAPAC, "electrolytic");
+    	specialCapacitor.put(Function.POLY2CAPAC, "poly-2");
+    	specialSchematics.put(Schematics.tech().capacitorNode, specialCapacitor);
+
+    	Map<Function,String> specialFlipFlop = new HashMap<Function,String>();
+    	specialFlipFlop.put(Function.FLIPFLOPRSMS, "RS-ms");
+    	specialFlipFlop.put(Function.FLIPFLOPRSP, "RS-p");
+    	specialFlipFlop.put(Function.FLIPFLOPRSN, "RS-n");
+    	specialFlipFlop.put(Function.FLIPFLOPJKMS, "JK-ms");
+    	specialFlipFlop.put(Function.FLIPFLOPJKP, "JK-p");
+    	specialFlipFlop.put(Function.FLIPFLOPJKN, "JK-n");
+    	specialFlipFlop.put(Function.FLIPFLOPDMS, "D-ms");
+    	specialFlipFlop.put(Function.FLIPFLOPDP, "D-p");
+    	specialFlipFlop.put(Function.FLIPFLOPDN, "D-n");
+    	specialFlipFlop.put(Function.FLIPFLOPTMS, "T-ms");
+    	specialFlipFlop.put(Function.FLIPFLOPTP, "T-p");
+    	specialFlipFlop.put(Function.FLIPFLOPTN, "T-n");
+    	specialSchematics.put(Schematics.tech().flipflopNode, specialFlipFlop);
+
+    	Map<Function,String> specialTwoport = new HashMap<Function,String>();
+    	specialTwoport.put(Function.VCCS, Function.VCCS.getShortName());
+    	specialTwoport.put(Function.CCVS, Function.CCVS.getShortName());
+    	specialTwoport.put(Function.VCVS, Function.VCVS.getShortName());
+    	specialTwoport.put(Function.CCCS, Function.CCCS.getShortName());
+    	specialTwoport.put(Function.TLINE, "transmission");
+    	specialSchematics.put(Schematics.tech().twoportNode, specialTwoport);
+	}
+
 	/** Creates new form Change */
 	private Change(Frame parent)
 	{
@@ -131,19 +205,28 @@ public class Change extends EModelessDialog implements HighlightListener
         apply.setMnemonic('A');
         done.setMnemonic('D');
 
-		// build the change list
-		changeListModel = new DefaultListModel();
-		changeList = new JList(changeListModel);
-		changeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		listPane.setViewportView(changeList);
-		changeNodeProtoList = new ArrayList<NodeProto>();
-		changeList.addMouseListener(new MouseAdapter()
-		{
-			public void mouseClicked(MouseEvent e)
-			{
-				if (e.getClickCount() == 2) apply(null);
-			}
-		});
+        // make sure special primitive map is built
+        setupSpecialPrimitives();
+
+        // build the change list
+        currentlySelected = null;
+		rootNode = new DefaultMutableTreeNode("");
+		rootCells = new DefaultMutableTreeNode("Cells");
+		rootPrims = new DefaultMutableTreeNode("Primitives");
+		rootArcs = new DefaultMutableTreeNode("Arcs");
+		rootNode.add(rootCells);
+		rootNode.add(rootPrims);
+		rootNode.add(rootArcs);
+		treeModel = new MyDefaultTreeModel(rootNode);
+		changeTree = new JTree(treeModel);
+		changeTree.setRootVisible(false);
+		changeTree.setShowsRootHandles(true);
+		changeTree.addMouseListener(new TreeHandler());
+		listPane.setViewportView(changeTree);
+
+		changeNodeProtoList = new HashMap<DefaultMutableTreeNode,NodeProto>();
+		changeArcProtoList = new HashMap<DefaultMutableTreeNode,ArcProto>();
+		changeNodeProtoFunctionList = new HashMap<DefaultMutableTreeNode,Function>();
 
 		// make a popup of libraries
 		List<Library> libList = Library.getVisibleLibraries();
@@ -219,6 +302,45 @@ public class Change extends EModelessDialog implements HighlightListener
 		}
 		finishInitialization();
 		Highlighter.addHighlightListener(this);
+	}
+
+	/**
+	 * Class to handle clicks in the tree.
+	 * Tracks what is selected and handles double-clicks to make a change.
+	 */
+	private class TreeHandler implements MouseListener
+	{
+		public void mouseClicked(MouseEvent e) {}
+		public void mouseEntered(MouseEvent e) {}
+		public void mouseExited(MouseEvent e) {}
+		public void mouseReleased(MouseEvent e) {}
+
+		public void mousePressed(MouseEvent e)
+		{
+			if (e.getClickCount() == 2)
+			{
+				apply(null);
+				return;
+			}
+			currentlySelected = null;
+			TreePath currentPath = changeTree.getPathForLocation(e.getX(), e.getY());
+			if (currentPath == null) return;
+			currentlySelected = (DefaultMutableTreeNode)currentPath.getLastPathComponent();
+		}
+	}
+
+	/**
+	 * Class to manage the tree model so that the arcs/cells/primitives are all folder icons.
+	 */
+	private class MyDefaultTreeModel extends DefaultTreeModel
+	{
+		MyDefaultTreeModel(DefaultMutableTreeNode dmtn) { super(dmtn); }
+
+		public boolean isLeaf(Object node)
+		{
+			if (node == rootArcs || node == rootCells || node == rootPrims) return false;
+			return super.isLeaf(node);
+		}
 	}
 
 	/**
@@ -611,8 +733,14 @@ public class Change extends EModelessDialog implements HighlightListener
 		lastChangeNodesWithArcs = changeNodesWithArcs.isSelected();
 		if (dontReload) return;
 
-		changeListModel.clear();
+		ExplorerTree.KeepTreeExpansion kte = new ExplorerTree.KeepTreeExpansion(changeTree, rootNode, treeModel, new TreePath(rootNode));
+
+        rootCells.removeAllChildren();
+		rootPrims.removeAllChildren();
+		rootArcs.removeAllChildren();
 		changeNodeProtoList.clear();
+		changeArcProtoList.clear();
+		changeNodeProtoFunctionList.clear();
 		if (geomsToChange.size() == 0) return;
 		Technology curTech = Technology.getCurrent();
 		Geometric geomToChange = geomsToChange.get(0);
@@ -651,54 +779,81 @@ public class Change extends EModelessDialog implements HighlightListener
 								continue;
 						}
 					}
-					changeListModel.addElement(cell.noLibDescribe());
-					changeNodeProtoList.add(cell);
+					DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(cell.noLibDescribe());
+					rootCells.add(dmtn);
+					changeNodeProtoList.put(dmtn, cell);
 				}
 			}
 			if (showPrimitives.isSelected())
 			{
-				// primitive: list primitives in this and the generic technology
+            	// primitive: list primitives in this and the generic technology
 				for(PrimitiveNode np : curTech.getNodesSortedByName())
 				{
-                    if (np.isNotUsed()) continue; // skip primitives not in used.
-                    changeListModel.addElement(np.describe(false));
-					changeNodeProtoList.add(np);
+                    if (np.isNotUsed()) continue; // skip primitives not in use
+                    Map<Function,String> specialList = specialSchematics.get(np);
+                    if (specialList != null)
+                    {
+                    	Map<String,Function> subNames = new TreeMap<String,Function>();
+                    	for(Function fun : specialList.keySet()) subNames.put(specialList.get(fun), fun);
+                    	DefaultMutableTreeNode subPrims = new DefaultMutableTreeNode(np.describe(false));
+    					rootPrims.add(subPrims);
+                    	for(String subName : subNames.keySet())
+                    	{
+                    		Function fun = subNames.get(subName);
+                    		DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(subName);
+                    		subPrims.add(dmtn);
+        					changeNodeProtoList.put(dmtn, np);
+        					changeNodeProtoFunctionList.put(dmtn, fun);
+                    	}
+                    } else
+                    {
+                    	DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(np.describe(false)); 
+                    	rootPrims.add(dmtn);
+    					changeNodeProtoList.put(dmtn, np);
+                    }
 				}
 				if (curTech != Generic.tech())
 				{
-					changeListModel.addElement("Generic:Universal-Pin");
-					changeNodeProtoList.add(Generic.tech().universalPinNode);
-					changeListModel.addElement("Generic:Invisible-Pin");
-					changeNodeProtoList.add(Generic.tech().invisiblePinNode);
-					changeListModel.addElement("Generic:Unrouted-Pin");
-					changeNodeProtoList.add(Generic.tech().unroutedPinNode);
+					DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode("Generic:Universal-Pin");
+					rootPrims.add(dmtn);
+					changeNodeProtoList.put(dmtn, Generic.tech().universalPinNode);
+
+					dmtn = new DefaultMutableTreeNode("Generic:Invisible-Pin");
+					rootPrims.add(dmtn);
+					changeNodeProtoList.put(dmtn, Generic.tech().invisiblePinNode);
+
+					dmtn = new DefaultMutableTreeNode("Generic:Unrouted-Pin");
+					rootPrims.add(dmtn);
+					changeNodeProtoList.put(dmtn, Generic.tech().unroutedPinNode);
 				}
 			}
-			changeList.setSelectedIndex(0);
 
 			// try to select prototype of selected node
-			if (ni.isCellInstance())
+			for(DefaultMutableTreeNode dmtn : changeNodeProtoList.keySet())
 			{
-				Cell c = (Cell)ni.getProto();
-				for (int i=0; i<changeListModel.getSize(); i++)
+				NodeProto np = changeNodeProtoList.get(dmtn);
+				Function fun = changeNodeProtoFunctionList.get(dmtn);
+				if (np == ni.getProto())
 				{
-					String str = (String)changeListModel.get(i);
-					if (str.equals(c.noLibDescribe()))
+					TreePath path = new TreePath(rootNode);
+					if (ni.isCellInstance())
 					{
-						changeList.setSelectedIndex(i);
-						break;
-					}
-				}
-			} else
-			{
-				for (int i=0; i<changeListModel.getSize(); i++)
-				{
-					String str = (String)changeListModel.get(i);
-					if (str.equals(ni.getProto().describe(false)))
+						path = path.pathByAddingChild(rootCells);
+					} else
 					{
-						changeList.setSelectedIndex(i);
-						break;
+						path = path.pathByAddingChild(rootPrims);
 					}
+					if (fun != null)
+					{
+						if (ni.getFunction() != fun) continue;
+						DefaultMutableTreeNode parent = (DefaultMutableTreeNode)dmtn.getParent();
+						path = path.pathByAddingChild(parent);
+					}
+					path = path.pathByAddingChild(dmtn);
+					changeTree.expandPath(path);
+					changeTree.setSelectionPath(path);
+					SwingUtilities.invokeLater(new MyRunnable(path));
+					break;
 				}
 			}
 			if (showCells.isSelected())
@@ -710,12 +865,12 @@ public class Change extends EModelessDialog implements HighlightListener
 				if (mat.matches())
 				{
 					// try to select items.  Nothing will happen if they are not in list.
-					changeList.setSelectedValue(mat.group(1) + "{" + mat.group(3), true);
+//					changeList.setSelectedValue(mat.group(1) + "{" + mat.group(3), true);
 					librariesPopup.setSelectedItem(mat.group(2));
 				} else
 				{
 					// otherwise, try to match name
-					changeList.setSelectedValue(geomName, true);
+//					changeList.setSelectedValue(geomName, true);
 				}
 			}
 		} else
@@ -733,7 +888,9 @@ public class Change extends EModelessDialog implements HighlightListener
 					if (!pp1.connectsTo(ap)) continue;
 					if (!pp2.connectsTo(ap)) continue;
 				}
-				changeListModel.addElement(ap.describe());
+				DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(ap.describe());
+				rootArcs.add(dmtn);
+				changeArcProtoList.put(dmtn, ap);
 			}
 			if (curTech != Generic.tech())
 			{
@@ -746,7 +903,9 @@ public class Change extends EModelessDialog implements HighlightListener
 						if (!pp1.connectsTo(ap)) continue;
 						if (!pp2.connectsTo(ap)) continue;
 					}
-					changeListModel.addElement(ap.describe());
+					DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(ap.describe());
+					rootArcs.add(dmtn);
+					changeArcProtoList.put(dmtn, ap);
 				}
 			}
 			Technology arcTech = ai.getProto().getTechnology();
@@ -761,39 +920,62 @@ public class Change extends EModelessDialog implements HighlightListener
 						if (!pp1.connectsTo(ap)) continue;
 						if (!pp2.connectsTo(ap)) continue;
 					}
-					changeListModel.addElement(ap.describe());
+					DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(ap.describe());
+					rootArcs.add(dmtn);
+					changeArcProtoList.put(dmtn, ap);
 				}
 			}
-			changeList.setSelectedIndex(0);
+			for(DefaultMutableTreeNode dmtn : changeArcProtoList.keySet())
+			{
+				ArcProto ap = changeArcProtoList.get(dmtn);
+				if (ap == ai.getProto())
+				{
+					TreePath path = new TreePath(rootNode);
+					path = path.pathByAddingChild(rootArcs);
+					path = path.pathByAddingChild(dmtn);
+					changeTree.expandPath(path);
+					changeTree.setSelectionPath(path);
+					SwingUtilities.invokeLater(new MyRunnable(path));
+					break;
+				}
+			}
  		}
+		changeTree.updateUI();
+        kte.restore();
 		updateChangeCount();
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() { EDialog.centerSelection(changeList); }});
+	}
+
+	private class MyRunnable implements Runnable
+	{
+		private TreePath path;
+
+		MyRunnable(TreePath path) { this.path = path; }
+
+		public void run() { changeTree.scrollPathToVisible(path); }
 	}
 
 	private void doTheChange()
 	{
 		NodeProto np = null;
 		ArcProto ap = null;
+		Function func = null;
 		Geometric geomToChange = geomsToChange.get(0);
 		if (geomToChange instanceof NodeInst)
 		{
-			int index = changeList.getSelectedIndex();
-			np = changeNodeProtoList.get(index);
+			np = changeNodeProtoList.get(currentlySelected);
+			func = changeNodeProtoFunctionList.get(currentlySelected);
 		} else
 		{
-			String line = (String)changeList.getSelectedValue();
-			ap = ArcProto.findArcProto(line);
+			ap = changeArcProtoList.get(currentlySelected);
 			if (ap == null)
 			{
-				System.out.println("Nothing called '" + line + "'");
+				System.out.println("Nothing is selected");
 				return;
 			}
 		}
 
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
-
-		new ChangeObject(geomsToChange, highs, getLibSelected(), np, ap, ignorePortNames.isSelected(),
+		new ChangeObject(geomsToChange, highs, getLibSelected(), np, func, ap, ignorePortNames.isSelected(),
 			allowMissingPorts.isSelected(), changeNodesWithArcs.isSelected(), changeInCell.isSelected(),
 			changeInLibrary.isSelected(), changeEverywhere.isSelected(), changeConnected.isSelected());
 	}
@@ -810,10 +992,11 @@ public class Change extends EModelessDialog implements HighlightListener
 		private Cell cell;
 		private boolean ignorePortNames, allowMissingPorts, changeNodesWithArcs;
 		private boolean changeInCell, changeInLibrary, changeEverywhere, changeConnected;
+		private Function func;
 		private List<Geometric> highlightThese;
 
 		private ChangeObject(List<Geometric> geomsToChange, List<Geometric> highs, String libName,
-			NodeProto np, ArcProto ap, boolean ignorePortNames, boolean allowMissingPorts,
+			NodeProto np, Function func, ArcProto ap, boolean ignorePortNames, boolean allowMissingPorts,
 			boolean changeNodesWithArcs, boolean changeInCell, boolean changeInLibrary,
 			boolean changeEverywhere, boolean changeConnected)
 		{
@@ -822,6 +1005,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			this.highs = highs;
 			this.libName = libName;
 			this.np = np;
+			this.func = func;
 			this.ap = ap;
 			this.cell = WindowFrame.getCurrentCell();
 			this.ignorePortNames = ignorePortNames;
@@ -847,6 +1031,7 @@ public class Change extends EModelessDialog implements HighlightListener
 				{
 					// get node to be replaced
 					NodeInst ni = (NodeInst)geomToChange;
+					NodeProto oldNType = ni.getProto();
 
 					// disallow replacing if lock is on
 					if (CircuitChangeJobs.cantEdit(ni.getParent(), ni, true, false, true) != 0) return false;
@@ -856,30 +1041,13 @@ public class Change extends EModelessDialog implements HighlightListener
 					if (library == null) return false;
 					if (np == null) return false;
 
-					// sanity check
-					NodeProto oldNType = ni.getProto();
-					if (oldNType == np)
-					{
-						System.out.println("Node already of type " + np.describe(true));
-
-						// just skip this case. No need to redo it. This not an error.
-						continue;
-					}
-
-					// replace the nodeinsts
-					if (!changedAlready.contains(ni))
-					{
-						changedAlready.add(ni);
-						NodeInst onlyNewNi = CircuitChangeJobs.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
-						if (onlyNewNi == null)
-						{
-							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-								np + " does not fit in the place of " + oldNType,
-								"Change failed", JOptionPane.ERROR_MESSAGE);
-							return false;
-						}
+					// replace the selected node
+					NodeInst onlyNewNi = updateNodeInst(ni, changedAlready);
+					if (onlyNewNi != null)
 						highlightThese.add(onlyNewNi);
-					}
+
+					String replacedWith = "node " + np.describe(false);
+					if (func != null) replacedWith += " (" + func.getShortName() + ")";
 
 					// do additional replacements if requested
 					int total = 1;
@@ -902,35 +1070,31 @@ public class Change extends EModelessDialog implements HighlightListener
 										NodeInst lNi = nIt.next();
 										if (lNi.getProto() != oldNType) continue;
 
-										if (!changedAlready.contains(lNi))
+										// do not replace the example icon
+										if (lNi.isIconOfParent())
 										{
-											changedAlready.add(lNi);
-											// do not replace the example icon
-											if (lNi.isIconOfParent())
-											{
-												System.out.println("Example icon in " + cell + " not replaced");
-												continue;
-											}
+											System.out.println("Example icon in " + cell + " not replaced");
+											continue;
+										}
 
-											// disallow replacing if lock is on
-											int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
-											if (errorCode < 0) return false;
-											if (errorCode > 0) continue;
+										// disallow replacing if lock is on
+										int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
+										if (errorCode < 0) return false;
+										if (errorCode > 0) continue;
 
-											NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-											if (newNi != null)
-											{
-												total++;
-												found = true;
-												break;
-											}
+										NodeInst newNi = updateNodeInst(lNi, changedAlready);
+										if (newNi != null)
+										{
+											total++;
+											found = true;
+											break;
 										}
 									}
 								}
 							}
 						}
 						System.out.println("All " + total + " " + oldNType.describe(true) +
-							" nodes in all libraries replaced with " + np);
+							" nodes in all libraries replaced with " + replacedWith);
 					} else if (changeInLibrary)
 					{
 						// replace throughout the library containing "this cell" if requested
@@ -947,28 +1111,23 @@ public class Change extends EModelessDialog implements HighlightListener
 									NodeInst lNi = nIt.next();
 									if (lNi.getProto() != oldNType) continue;
 
-									if (!changedAlready.contains(lNi))
+									// disallow replacing if lock is on
+									int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
+									if (errorCode < 0) return false;
+									if (errorCode > 0) continue;
+
+									NodeInst newNi = updateNodeInst(lNi, changedAlready);
+									if (newNi != null)
 									{
-										changedAlready.add(lNi);
-
-										// disallow replacing if lock is on
-										int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
-										if (errorCode < 0) return false;
-										if (errorCode > 0) continue;
-
-										NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-										if (newNi != null)
-										{
-											total++;
-											found = true;
-											break;
-										}
+										total++;
+										found = true;
+										break;
 									}
 								}
 							}
 						}
 						System.out.println("All " + total + " " + oldNType.describe(true) +
-							" nodes in " + lib + " replaced with " + np);
+							" nodes in " + lib + " replaced with " + replacedWith);
 					} else if (changeInCell)
 					{
 						// replace throughout this cell if requested
@@ -981,43 +1140,38 @@ public class Change extends EModelessDialog implements HighlightListener
 								NodeInst lNi = nIt.next();
 								if (lNi.getProto() != oldNType) continue;
 
-								if (!changedAlready.contains(lNi))
+								// disallow replacing if lock is on
+								int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
+								if (errorCode < 0) return false;
+								if (errorCode > 0) continue;
+
+								NodeInst newNi = updateNodeInst(lNi, changedAlready);
+								if (newNi != null)
 								{
-									changedAlready.add(lNi);
-
-									// disallow replacing if lock is on
-									int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
-									if (errorCode < 0) return false;
-									if (errorCode > 0) continue;
-
-									NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-									if (newNi != null)
-									{
-										total++;
-										found = true;
-										break;
-									}
+									total++;
+									found = true;
+									break;
 								}
 							}
 						}
 						System.out.println("All " + total + " " + oldNType.describe(true) + " nodes in " +
-							cell + " replaced with " + np);
+							cell + " replaced with " + replacedWith);
 					} else if (changeConnected)
 					{
 						// replace all connected to this in the cell if requested
 						Netlist netlist = cell.getUserNetlist();
 						List<NodeInst> others = new ArrayList<NodeInst>();
-						NodeInst onlyNewNi = null;
+						NodeInst newNi = null;
 						if (highlightThese.size() == 1 && highlightThese.get(0) instanceof NodeInst)
-							onlyNewNi = (NodeInst)highlightThese.get(0);
+							newNi = (NodeInst)highlightThese.get(0);
 						for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 						{
 							NodeInst lNi = it.next();
 							if (lNi.getProto() != oldNType) continue;
-							if (lNi == onlyNewNi) continue;
+							if (lNi == newNi) continue;
 
 							boolean found = false;
-							for(Iterator<PortInst> pIt = onlyNewNi.getPortInsts(); pIt.hasNext(); )
+							for(Iterator<PortInst> pIt = newNi.getPortInsts(); pIt.hasNext(); )
 							{
 								PortInst pi = pIt.next();
 								for(Iterator<PortInst> lPIt = lNi.getPortInsts(); lPIt.hasNext(); )
@@ -1037,22 +1191,17 @@ public class Change extends EModelessDialog implements HighlightListener
 						// make the changes
 						for(NodeInst lNi : others)
 						{
-							if (!changedAlready.contains(lNi))
-							{
-								changedAlready.add(lNi);
+							// disallow replacing if lock is on
+							int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
+							if (errorCode < 0) return false;
+							if (errorCode > 0) continue;
 
-								// disallow replacing if lock is on
-								int errorCode = CircuitChangeJobs.cantEdit(cell, lNi, true, false, true);
-								if (errorCode < 0) return false;
-								if (errorCode > 0) continue;
-
-								NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-								if (newNi != null) total++;
-							}
+							NodeInst newNode = updateNodeInst(lNi, changedAlready);
+							if (newNode != null) total++;
 						}
 						System.out.println("All " + total + " " + oldNType.describe(true) +
-							" nodes connected to this replaced with " + np);
-					} else System.out.println(oldNType + " replaced with " + np);
+							" nodes connected to this replaced with " + replacedWith);
+					} else System.out.println(oldNType + " replaced with " + replacedWith);
 				} else
 				{
                     // get arc to be replaced
@@ -1223,6 +1372,52 @@ public class Change extends EModelessDialog implements HighlightListener
 				}
 			}
 			return true;
+		}
+
+		/**\
+		 * Method to update a node with the replacement type.
+		 * @param ni the node to update
+		 * @param changedAlready a Set of nodes already updates.
+		 * @return a node to highlight (because it was changed).  May be null.
+		 */
+		private NodeInst updateNodeInst(NodeInst ni, Set<Geometric> changedAlready)
+		{
+			if (changedAlready.contains(ni)) return null;
+			NodeProto oldNType = ni.getProto();
+			boolean noChange = oldNType == np;
+			if (noChange)
+			{
+				if (func != null)
+				{
+					Function oldFunc = ni.getFunction();
+					if (func != oldFunc) noChange = false;
+				}
+			}
+			if (noChange)
+			{
+				System.out.println("Node already of type " + np.describe(true));
+
+				// just skip this case. No need to redo it. This not an error.
+				return null;
+			}
+
+			// replace the nodeinsts
+			changedAlready.add(ni);
+			NodeInst onlyNewNi = ni;
+			if (oldNType != np)
+			{
+				onlyNewNi = CircuitChangeJobs.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
+				if (onlyNewNi == null)
+				{
+					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						np + " does not fit in the place of " + oldNType,
+						"Change failed", JOptionPane.ERROR_MESSAGE);
+					return null;
+				}
+			}
+			if (func != null)
+				onlyNewNi.setTechSpecific(Schematics.getPrimitiveFunctionBits(func));
+			return onlyNewNi;
 		}
 
 		public void terminateOK()
@@ -1591,7 +1786,7 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
         getContentPane().add(apply, gridBagConstraints);
 
         listPane.setMinimumSize(new java.awt.Dimension(150, 22));
-        listPane.setPreferredSize(new java.awt.Dimension(150, 22));
+        listPane.setPreferredSize(new java.awt.Dimension(250, 22));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -1760,5 +1955,4 @@ if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND 
     private javax.swing.JCheckBox showCells;
     private javax.swing.JCheckBox showPrimitives;
     // End of variables declaration//GEN-END:variables
-
 }

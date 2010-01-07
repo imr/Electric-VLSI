@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+IMP/MAN: (01/07/10, SMR) "Change" dialog now shows different types of schematic
+     components (nMOS, pMOS, transistors, for example) and also shows
+     hierarchical list of new object types (Bug #2550).
+
 BUG: (01/07/10, SMR) Highlighting broken for down-in-place (Bug #2593).
 FIX: Changes to Bug #2577 did not consider down-in-place.
 

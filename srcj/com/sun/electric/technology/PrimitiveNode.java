@@ -251,19 +251,19 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
 		/** Describes a 4-port nMOS floating gate transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRA4NMOSFG("floating-gate-nMOS-4-port-transistor", "nmos-fg", true, false),
+		TRA4NMOSFG("floating-gate-nMOS-4-port-transistor", "nmos-fg-4", true, false),
 
 		/** Describes a 4-port pMOS floating gate transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRA4PMOSFG("floating-gate-pMOS-4-port-transistor", "pmos-fg", true, false),
+		TRA4PMOSFG("floating-gate-pMOS-4-port-transistor", "pmos-fg-4", true, false),
 
 		/** Describes a 4-port nMOS carbon nanotube transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRA4NMOSCN("carbon-nanotube-nMOS-4-port-transistor", "nmos-cn", true, false),
+		TRA4NMOSCN("carbon-nanotube-nMOS-4-port-transistor", "nmos-cn-4", true, false),
 
 		/** Describes a 4-port pMOS carbon nanotube transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRA4PMOSCN("carbon-nanotube-pMOS-4-port-transistor", "pmos-cn", true, false),
+		TRA4PMOSCN("carbon-nanotube-pMOS-4-port-transistor", "pmos-cn-4", true, false),
 
 		/** Describes a 4-port nMOS low-threshold transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
