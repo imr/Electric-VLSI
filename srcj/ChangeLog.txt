@@ -11,9 +11,6 @@ IMP/MAN: (01/07/10, SMR) "Change" dialog now shows different types of schematic
 BUG: (01/07/10, SMR) Highlighting broken for down-in-place (Bug #2593).
 FIX: Changes to Bug #2577 did not consider down-in-place.
 
-BUG: (01/07/10, GVG)  overlapping metal arcs not detected (Bug #2567)
-FIX: Not using interaction mapping in checkCellInstContent. More errors might be found in standard mode.
-
 BUG: (01/06/10, SMR) Explorer tree has problems viewing hierarchically (Bug #2591).
 FIX: Fixed ExplorerTree.java and ExplorerTreeModel.java
 

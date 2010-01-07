@@ -974,7 +974,7 @@ public class Quick
 				if (ni.isCellInstance())
 				{
                     // see if this configuration of instances has already been done
-//                    if (checkInteraction(ni, thisNi, oNi, oNiParent, triggerNi)) continue;  // Jan 27'05. Removed on May'05
+                    if (checkInteraction(ni, thisNi, oNi, oNiParent, triggerNi)) continue;  // Jan 27'05. Removed on May'05
                     // You can't discard by interaction becuase two cells could be visited many times
                     // during this type of checking
 
