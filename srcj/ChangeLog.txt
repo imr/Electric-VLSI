@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/07/10, SMR) Highlighting broken for down-in-place (Bug #2593).
+FIX: Changes to Bug #2577 did not consider down-in-place.
+
 BUG: (01/07/10, GVG)  overlapping metal arcs not detected (Bug #2567)
 FIX: Not using interaction mapping in checkCellInstContent. More errors might be found in standard mode.
 

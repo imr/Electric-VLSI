@@ -395,6 +395,7 @@ public abstract class Highlight implements Cloneable{
 //		}
 
 		Point p = new Point(0, 0);
+		Point2D ptXF = new Point2D.Double(0, 0);
 		for(int i=0; i<points.length; i++)
 		{
 			int lastI = i-1;
@@ -403,11 +404,23 @@ public abstract class Highlight implements Cloneable{
 				if (opened) continue;
 				lastI = points.length - 1;
 			}
-//			Point p = wnd.databaseToScreen(points[lastI].getX(), points[lastI].getY());
-			wnd.gridToScreen((int)DBMath.lambdaToGrid(points[lastI].getX()), (int)DBMath.lambdaToGrid(points[lastI].getY()), p);
+			Point2D pt = points[lastI];
+			if (wnd.isInPlaceEdit())
+			{
+		   		wnd.getInPlaceTransformOut().transform(pt, ptXF);
+		   		pt = ptXF;
+			}
+//			Point p = wnd.databaseToScreen(pt.getX(), pt.getY());
+			wnd.gridToScreen((int)DBMath.lambdaToGrid(pt.getX()), (int)DBMath.lambdaToGrid(pt.getY()), p);
 			int fX = p.x + offX;   int fY = p.y + offY;
-//			p = wnd.databaseToScreen(points[i].getX(), points[i].getY());
-			wnd.gridToScreen((int)DBMath.lambdaToGrid(points[i].getX()), (int)DBMath.lambdaToGrid(points[i].getY()), p);
+			pt = points[i];
+			if (wnd.isInPlaceEdit())
+			{
+		   		wnd.getInPlaceTransformOut().transform(pt, ptXF);
+		   		pt = ptXF;
+			}
+//			p = wnd.databaseToScreen(pt.getX(), pt.getY());
+			wnd.gridToScreen((int)DBMath.lambdaToGrid(pt.getX()), (int)DBMath.lambdaToGrid(pt.getY()), p);
 			int tX = p.x + offX;    int tY = p.y + offY;
 			drawLine(g, wnd, fX, fY, tX, tY);
 			if (thickLine)
