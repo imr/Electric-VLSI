@@ -164,7 +164,13 @@ public class DELIB extends JELIB {
      */
     @Override
     void writeCell(CellRevision cellRevision) {
-        if (writeHeaderOnly) return;
+        if (writeHeaderOnly) {
+            if (!wroteSearchForCells) {
+                printWriter.println("C"+SEARCH_FOR_CELL_FILES);
+                wroteSearchForCells = true;
+            }
+            return;
+        }
 
         // create cell file in directory
         String cellFile = getCellFile(cellRevision.d.cellId);
