@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/08/10, DN) Getting ports on network is very slow (Bug #2590).
+FIX: Add method Netlist.getPortInstsByNetwork to get ports in bulky way.
+
 BUG: (01/08/10, DN) Difference between immutable and mutable nodes in cell? (Bug #2594).
 FIX: Comment experimental code for now.
 

@@ -36,12 +36,13 @@ import com.sun.electric.database.topology.IconNodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 
-import com.sun.electric.tool.Job;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * This is the Netlist class. It contains information about electric
@@ -604,6 +605,45 @@ public abstract class Netlist {
             return null;
         }
         return getNetwork(pi.getNodeInst(), portProto, 0);
+    }
+
+    /**
+     * Return a map from Networks to array of their PortInsts.
+     * Works only for layout cells.
+     * @return a map from Networks to array of their PortInsts.
+     */
+    public Map<Network,PortInst[]> getPortInstsByNetwork() {
+        Cell cell = netCell.cell;
+        int[] networkCounts = new int[getNumNetworks()];
+        for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); ) {
+            NodeInst ni = nit.next();
+            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+                PortInst pi = pit.next();
+                Network net = getNetwork(pi);
+                if (net == null) continue;
+                networkCounts[net.getNetIndex()]++;
+            }
+        }
+        PortInst[][] portInsts = new PortInst[getNumNetworks()][];
+        for (int netIndex = 0; netIndex < getNumNetworks(); netIndex++) {
+            portInsts[netIndex] = new PortInst[networkCounts[netIndex]];
+        }
+        Arrays.fill(networkCounts, 0);
+        for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); ) {
+            NodeInst ni = nit.next();
+            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+                PortInst pi = pit.next();
+                Network net = getNetwork(pi);
+                if (net == null) continue;
+                int netIndex = net.getNetIndex();
+                portInsts[netIndex][networkCounts[netIndex]++] = pi;
+            }
+        }
+        LinkedHashMap<Network,PortInst[]> map = new LinkedHashMap<Network,PortInst[]>();
+        for (int netIndex = 0; netIndex < getNumNetworks(); netIndex++) {
+            map.put(getNetwork(netIndex), portInsts[netIndex]);
+        }
+        return map;
     }
 
     /**
