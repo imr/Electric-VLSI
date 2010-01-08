@@ -25,7 +25,6 @@ package com.sun.electric.tool.ncc.basic;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -340,37 +339,6 @@ public class NccCellAnnotations {
 		}
 	}
 
-//	/**
-//	 * Class to create a Cell NCC annotation object in a new Job.
-//	 */
-//    private static class MakeCellAnnotationJob extends Job {
-//    	static final long serialVersionUID = 0;
-//
-//		private transient EditWindow_ wnd;
-//        private Cell cell;
-//        private String newAnnotation;
-//
-//		private MakeCellAnnotationJob(EditWindow_ wnd, Cell cell, String annotation)
-//        {
-//            super("Make Cell NCC Annotation", NetworkTool.getNetworkTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-//            this.wnd = wnd;
-//            this.cell = cell;
-//            newAnnotation = annotation;
-//            startJob();
-//        }
-//		@Override
-//        public boolean doIt() throws JobException {
-//        	addNccAnnotation(cell, newAnnotation);
-//        	return true;
-//        }
-//		@Override
-//        public void terminateOK() {
-//        	wnd.clearHighlighting();
-//			wnd.addHighlightText(cell, cell, NCC_ANNOTATION_KEY);
-//			wnd.finishedHighlighting();
-//        }
-//    }
-
 	// ---------------------- public methods -----------------------------
 
 	/**
@@ -381,42 +349,12 @@ public class NccCellAnnotations {
 	{
         CircuitChangeJobs.MakeCellAnnotationJob.makeAnnotationMenuCommand(NetworkTool.getNetworkTool(),
             NCC_ANNOTATION_KEY, newAnnotation);
-//        UserInterface ui = Job.getUserInterface();
-//		EditWindow_ wnd = ui.needCurrentEditWindow_();
-//		if (wnd == null) return;
-//		Cell cell = ui.needCurrentCell();
-//		if (cell == null) return;
-//		new MakeCellAnnotationJob(wnd, cell, newAnnotation);
 	}
-	/** Add an NCC annotation to a Cell. */
+
+    /** Add an NCC annotation to a Cell. */
 	public static void addNccAnnotation(Cell c, String newAnnotation)
     {
         CircuitChangeJobs.MakeCellAnnotationJob.addAnnotation(c, NCC_ANNOTATION_KEY, newAnnotation);
-//        Variable nccVar = c.getVar(NCC_ANNOTATION_KEY);
-//		if (nccVar == null) {
-//			String [] initial = new String[1];
-//			initial[0] = newAnnotation;
-//			TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-//			nccVar = c.newVar(NCC_ANNOTATION_KEY, initial, td);
-//			Job.error(nccVar==null, "couldn't create NCC annotation");
-//		} else {
-//			Object oldObj = nccVar.getObject();
-//			if (oldObj instanceof String) {
-//				/* Groan! Menu command always creates NCC attributes as arrays of strings.
-//				 * However, if user edits a single line NCC attribute then dialog box
-//				 * converts it back into a String.  Be prepared to convert it back into an array*/
-//				oldObj = new String[] {(String)oldObj};
-//			}
-//			Job.error(!(oldObj instanceof String[]), "NCC annotation not String[]");
-//			String[] oldVal = (String[]) oldObj;
-//			TextDescriptor td = nccVar.getTextDescriptor();
-//
-//			int newLen = oldVal.length+1;
-//			String[] newVal = new String[newLen];
-//			for (int i=0; i<newLen-1; i++) newVal[i]=oldVal[i];
-//			newVal[newLen-1] = newAnnotation;
-//			nccVar = c.newVar(NCC_ANNOTATION_KEY, newVal, td);
-//		}
 	}
 
 	/**
