@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+BUG: (01/08/10, DN) Difference between immutable and mutable nodes in cell? (Bug #2594).
+FIX: Comment experimental code for now.
+
 IMP/MAN: (01/07/10, GVG) TechEditWizard writing metal-based technologies (Bug #2595).
 This also changed the order of elements in tsmcSun40GP.xml and the regression.
 
