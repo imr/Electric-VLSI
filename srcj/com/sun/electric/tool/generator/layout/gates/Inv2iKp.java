@@ -32,10 +32,10 @@ import com.sun.electric.tool.generator.layout.FoldedPmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
+import com.sun.electric.tool.Job;
 
 /**
  * Create inverters with wide output busses.
@@ -73,7 +73,7 @@ public class Inv2iKp {
 	}
 
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	// If strong PMOS has only one fold then connect ODD src/drn of weak

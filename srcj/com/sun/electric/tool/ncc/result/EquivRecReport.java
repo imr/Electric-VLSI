@@ -27,8 +27,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.result.NetObjReport.NetObjReportable;
+import com.sun.electric.tool.Job;
 
 /** EquivRecReport stores information needed by the 
  * NCC GUI in order to report mismatches to the user.
@@ -106,7 +106,7 @@ public class EquivRecReport implements Serializable {
 				return (j instanceof PartReport);
 			}
 		}
-		LayoutLib.error(true, "EquivRecord with no NetObjects?");
+		Job.error(true, "EquivRecord with no NetObjects?");
 		return false;
 	}
 	/** Only bad local partition EquivRecords have matched net objects. */

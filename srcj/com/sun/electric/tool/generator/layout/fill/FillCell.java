@@ -9,6 +9,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.tool.Job;
 
 //---------------------------------- FillCell --------------------------------
 public class FillCell {
@@ -148,10 +149,10 @@ public class FillCell {
 
 	private VddGndStraps[] findHoriVert(VddGndStraps lay1, VddGndStraps lay2) {
 		if (lay1.isHorizontal()) {
-			LayoutLib.error(lay2.isHorizontal(), "adjacent layers both horizontal");
+			Job.error(lay2.isHorizontal(), "adjacent layers both horizontal");
 			return new VddGndStraps[] {lay1, lay2};
 		} else {
-			LayoutLib.error(!lay2.isHorizontal(), "adjacent layers both vertical");
+			Job.error(!lay2.isHorizontal(), "adjacent layers both vertical");
 			return new VddGndStraps[] {lay2, lay1};
 		}
 	}
@@ -194,7 +195,7 @@ public class FillCell {
 		PrimitiveNode viaType = tech.getViaFor(verMetal, horMetal);
 		PortInst horPort = (verNdx%2==0) ? horLay.getVdd(horNdx, 0) : horLay.getVdd(horNdx, 1);
         // Line below will detect mixture of technologies.
-        LayoutLib.error(viaType==null, "can't find via for metal layers " + verMetal + " " + horMetal);
+        Job.error(viaType==null, "can't find via for metal layers " + verMetal + " " + horMetal);
 
 		ViaDim d = new ViaDim(horLay, x, y, w, h);
 
@@ -219,7 +220,7 @@ public class FillCell {
 		ArcProto horMetal = horLay.getMetalType();
 		PrimitiveNode viaType = tech.getViaFor(verMetal, horMetal);
 		PortInst horPort = (verNdx%2==0) ? horLay.getGnd(horNdx, 0) : horLay.getGnd(horNdx, 1);
-		LayoutLib.error(viaType==null, "can't find via for metal layers");
+		Job.error(viaType==null, "can't find via for metal layers");
 
 		ViaDim d = new ViaDim(horLay, x, y, w, h);
 

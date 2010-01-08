@@ -28,11 +28,11 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.sun.electric.technology.PrimitiveNode.Function;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.result.PartReport.PartReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.Job;
 
 /** Part is an intermediate abstract sub-class of NetObject.
  * sub-classes of Part include Transistor, Resistor, (Capacitor), but
@@ -203,7 +203,9 @@ public abstract class Part extends NetObject implements PartReportable {
 	
 	public boolean isMos() {return this instanceof Mos;}
 	public boolean isResistor() {return this instanceof Resistor;}
-	public double getWidth() {LayoutLib.error(true, "Part has no width"); return 0;}
-	public double getLength() {LayoutLib.error(true, "Part has no length"); return 0;}
+	public double getWidth() {
+        Job.error(true, "Part has no width"); return 0;}
+	public double getLength() {
+        Job.error(true, "Part has no length"); return 0;}
 }
 

@@ -30,10 +30,10 @@ import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
+import com.sun.electric.tool.Job;
 
 public class Nms2_sy {
 	private static final double gY = -4.0;
@@ -42,7 +42,7 @@ public class Nms2_sy {
 	private static final double nmosTop = -(1.5 + 5 + 2);
 	
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {

@@ -2,7 +2,7 @@ package com.sun.electric.tool.generator.flag.router;
 
 import java.util.TreeSet;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 public class Track {
 	/** X or Y coordinate of center of track */
@@ -31,8 +31,8 @@ public class Track {
 		Segment prev = null;
 		for (Segment s : segments) {
 			if (prev!=null) {
-				LayoutLib.error(prev.min>=s.min, "illegally ordered segments");
-				LayoutLib.error(prev.max>s.min, "overlapping segments");
+				Job.error(prev.min>=s.min, "illegally ordered segments");
+				Job.error(prev.max>s.min, "overlapping segments");
 			}
 			prev = s;
 		}
@@ -40,7 +40,7 @@ public class Track {
 	
 	public Segment allocate(double min, double max) {
 		// sanity check
-		LayoutLib.error(!isAvailable(min, max), "overlapping blockages");
+		Job.error(!isAvailable(min, max), "overlapping blockages");
 		Segment seg = new Segment(min, max, this, trackNdx);
 		segments.add(seg);
 		sanityCheck();

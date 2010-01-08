@@ -33,13 +33,11 @@ import java.util.Map;
 
 
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.result.BenchmarkResults.BenchIdx;
-import com.sun.electric.tool.ncc.strategy.StratCount;
 import com.sun.electric.tool.ncc.strategy.StratHashParts;
 import com.sun.electric.tool.ncc.strategy.StratHashWires;
 import com.sun.electric.tool.ncc.strategy.StratPortName;
@@ -47,6 +45,7 @@ import com.sun.electric.tool.ncc.strategy.StratRandomMatch;
 import com.sun.electric.tool.ncc.strategy.StratSizes;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
+import com.sun.electric.tool.Job;
 
 /** HashCodePartitioning implements Carl Ebeling's classic
  * Gemini II algorithm. 
@@ -132,7 +131,7 @@ public class HashCodePartitioning {
 			}
 			for (Iterator<EquivRecord> erIt=newBorns.iterator(); erIt.hasNext();) {
 				EquivRecord er = erIt.next();
-				LayoutLib.error(er==null, "null not allowed");
+				Job.error(er==null, "null not allowed");
 				if (er.isMatched()) {
 					matchedNewBorns.add(new ChildAndBirthday(er, todaysDate));
 				} else if (er.isMismatched()) {

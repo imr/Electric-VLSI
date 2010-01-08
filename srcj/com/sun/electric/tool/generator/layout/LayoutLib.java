@@ -52,10 +52,10 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
-import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 /*
@@ -74,26 +74,7 @@ public class LayoutLib {
 		TL, TR, BL, BR;
 	}
 
-	// ---------------------------- public methods ---------------------------
-	/**
-	 * Print a message, dump a stack trace, and throw a RuntimeException if
-	 * errorHasOccurred argument is true.
-	 *
-	 * @param errorHasOccurred indicates a runtime error has been detected
-	 * @param msg the message to print when an error occurs
-	 * @throws RuntimeException if errorHasOccurred is true
-	 */
-	public static void error(boolean errorHasOccurred, String msg) {
-		if (!errorHasOccurred) return;
-		RuntimeException e = new RuntimeException(msg);
-		// The following prints a stack trace on the console
-        ActivityLogger.logException(e);
-
-		// The following prints a stack trace in the Electric messages window
-		throw e;
-	}
-
-	/**
+    /**
 	 * Open a library for reading. If a library is
 	 * already open then return it. Otherwise look for the library
 	 * file named libFileName and open that library.
@@ -110,7 +91,7 @@ public class LayoutLib {
 		if (lib==null) {
 			lib = LibraryFiles.readLibrary(libFileURL, null, type, false);
 		}
-		error(lib==null, "can't open Library for reading: "+libFileName);
+		Job.error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;
 	}
 	/**
@@ -149,7 +130,7 @@ public class LayoutLib {
 		lib = Library.newInstance(libName, null);
         URL libURL = TextUtils.makeURLToFile(libName);
         lib.setLibFile(libURL);
-		error(lib==null, "can't open Library for modify: "+libName);
+		Job.error(lib==null, "can't open Library for modify: "+libName);
 		return lib;
 	}
 	/**
@@ -267,7 +248,7 @@ public class LayoutLib {
 			} else {
 				double hi = so.getHighXOffset();
 				double lo = so.getLowXOffset();
-				error(lo!=hi, "asymmetric X offset");
+				Job.error(lo!=hi, "asymmetric X offset");
 				width = signW * (Math.abs(width) + hi+lo);
 			}
 			double signH = height<0 ? -1 : 1;
@@ -276,7 +257,7 @@ public class LayoutLib {
 			} else {
 				double hi = so.getHighYOffset();
 				double lo = so.getLowYOffset();
-				error(lo!=hi, "asymmetric Y offset");
+				Job.error(lo!=hi, "asymmetric Y offset");
 				height = signH * (Math.abs(height) + hi+lo);
 			}
 		}
@@ -362,7 +343,7 @@ public class LayoutLib {
         Orientation orient = Orientation.fromJava((int)Math.round(angle*10), width < 0, height < 0);
 		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), Math.abs(width), Math.abs(height),
                 parent, orient, null);
-		error(ni==null, "newNodeInst failed");
+		Job.error(ni==null, "newNodeInst failed");
 
 		// adjust position so that translation is Cell-Center relative
 		if (np instanceof Cell) {
@@ -489,7 +470,7 @@ public class LayoutLib {
 		                                 head, tail, new Point2D.Double(hX, hY),
 										 new Point2D.Double(tX, tY),
 										 null, 0);
-        error(ai==null, "newArcInst failed");
+        Job.error(ai==null, "newArcInst failed");
 		ai.setFixedAngle(true);
 		return ai;
 	}
@@ -539,7 +520,7 @@ public class LayoutLib {
 				double loy = r.getMinY();
 				double hiy = r.getMaxY();
 				System.out.println(loy+" "+hiy);
-				error(true, "center moved");
+				Job.error(true, "center moved");
 			}
 
 
@@ -580,7 +561,7 @@ public class LayoutLib {
 	                               ArcProto ap, double w, double x, double y) {
         EditingPreferences ep = cell.getEditingPreferences();
 		NodeProto np = ap.findOverridablePinProto(ep);
-		error(np==null, "LayoutLib.newExport: This layer has no layer-pin");
+		Job.error(np==null, "LayoutLib.newExport: This layer has no layer-pin");
 
 		double defSz = LayoutLib.DEF_SIZE;
 		NodeInst ni = LayoutLib.newNodeInst(np, x, y, defSz, defSz, 0, cell);
@@ -638,7 +619,7 @@ public class LayoutLib {
 	public static void abutLeft(NodeInst node, double leftX, double originY) {
 		double cY = getPosition(node).getY();
 		Rectangle2D bd = node.findEssentialBounds();
-		error(bd==null,
+		Job.error(bd==null,
 			  "can't abut NodeInsts that don't have essential-bounds");
 		LayoutLib.modNodeInst(node, leftX-bd.getX(), originY-cY, 0, 0, false,
 						      false, 0);
@@ -708,7 +689,7 @@ public class LayoutLib {
 	public static void abutBottom(NodeInst node, double originX, double botY) {
 		double cX = getPosition(node).getX();
 		Rectangle2D eb = node.findEssentialBounds();
-		error(eb==null,
+		Job.error(eb==null,
 			  "can't abut a NodeInst that doesn't have Essential Bounds");
 		LayoutLib.modNodeInst(node, originX-cX, botY-eb.getMinY(), 0, 0,
 		                      false, false, 0);

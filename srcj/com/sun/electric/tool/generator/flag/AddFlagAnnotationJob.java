@@ -8,7 +8,6 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 
 public class AddFlagAnnotationJob extends Job {
 	static final long serialVersionUID = 0;
@@ -42,7 +41,7 @@ public class AddFlagAnnotationJob extends Job {
 				 * converts it back into a String.  Be prepared to convert it back into an array*/
 				oldObj = new String[] {(String)oldObj};
 			}
-			LayoutLib.error(!(oldObj instanceof String[]), "PLAID annotation not String[]");
+			error(!(oldObj instanceof String[]), "PLAID annotation not String[]");
 			String[] oldVal = (String[]) oldObj;
 			TextDescriptor td = plaidVar.getTextDescriptor();
 

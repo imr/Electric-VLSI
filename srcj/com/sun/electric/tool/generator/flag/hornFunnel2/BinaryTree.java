@@ -11,11 +11,11 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 public class BinaryTree {
 	private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
@@ -97,9 +97,9 @@ public class BinaryTree {
 		Map<Node, Integer> nodeToNdx = new HashMap<Node, Integer>();
 		for (int i=0; i<slots.size(); i++) {
 			Node n = slots.get(i);
-			LayoutLib.error(n.getSlot()!=i, "wrong slot. actual="+i+" incorrect="+n.getSlot());
+			Job.error(n.getSlot()!=i, "wrong slot. actual="+i+" incorrect="+n.getSlot());
 			Integer index = nodeToNdx.get(n);
-			LayoutLib.error(index!=null, "already at: "+index);
+			Job.error(index!=null, "already at: "+index);
 			nodeToNdx.put(n, i);
 		}
 	}
@@ -113,7 +113,7 @@ public class BinaryTree {
 	public void moveTo(Node n, int dst, int moveableHeight) {
 		checkSlots();
 		int src = n.getSlot();
-		LayoutLib.error(isLocked(slots.get(dst), moveableHeight),
+		Job.error(isLocked(slots.get(dst), moveableHeight),
 		                "moveTo fails because destination is locked. \n"+
 		                "    src: "+slots.get(src).toString()+"\n"+
 		                "    dest: "+slots.get(dst).toString());
@@ -147,7 +147,7 @@ public class BinaryTree {
 					                            270, c);
 			addId(ni, n.getId());
 
-			LayoutLib.error(nodeToInst.containsKey(n), "duplicate entry");
+			Job.error(nodeToInst.containsKey(n), "duplicate entry");
 			nodeToInst.put(n, ni);
 		}
 		drawExternalArc(c, nodeToInst);

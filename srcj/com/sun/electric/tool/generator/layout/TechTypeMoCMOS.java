@@ -2,6 +2,7 @@ package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 
 public class TechTypeMoCMOS extends TechType {
 	private static final long serialVersionUID = 0;
@@ -11,7 +12,7 @@ public class TechTypeMoCMOS extends TechType {
 	    "Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6"};
 
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 	
 	public TechTypeMoCMOS(TechTypeEnum techEnum) {

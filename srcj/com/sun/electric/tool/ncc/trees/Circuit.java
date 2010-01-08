@@ -29,10 +29,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.strategy.Strategy;
+import com.sun.electric.tool.Job;
 
 /** A Circuit is a collection of NetObjects that belong to the same
  * design. For example, a collection of Parts from the schematic.
@@ -46,7 +46,7 @@ public class Circuit {
     private Circuit(){}
 
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	// ---------------------- public methods ------------------

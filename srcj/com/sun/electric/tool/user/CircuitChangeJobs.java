@@ -65,6 +65,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -3317,4 +3318,74 @@ public class CircuitChangeJobs
 		}
 	}
 
+    /****************************** Make Cell Annotation Job ******************************/
+    public static class MakeCellAnnotationJob extends Job
+    {
+    	static final long serialVersionUID = 0;
+
+		private transient EditWindow_ wnd;
+        private Cell cell;
+        private String newAnnotation;
+        private Variable.Key key;
+
+        public static void makeAnnotationMenuCommand(Tool tool, Variable.Key key, String newAnnotation)
+        {
+            UserInterface ui = Job.getUserInterface();
+            EditWindow_ wnd = ui.needCurrentEditWindow_();
+            if (wnd == null) return;
+            Cell cell = ui.needCurrentCell();
+            if (cell == null) return;
+		    new MakeCellAnnotationJob(wnd, cell, tool, key, newAnnotation);
+        }
+
+        private MakeCellAnnotationJob(EditWindow_ wnd, Cell cell, Tool tool, Variable.Key k, String annotation)
+        {
+            super("Make Cell NCC Annotation", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.wnd = wnd;
+            this.cell = cell;
+            newAnnotation = annotation;
+            key = k;
+            startJob();
+        }
+		@Override
+        public boolean doIt() throws JobException {
+        	addAnnotation(cell, key, newAnnotation);
+        	return true;
+        }
+		@Override
+        public void terminateOK() {
+        	wnd.clearHighlighting();
+			wnd.addHighlightText(cell, cell, key);
+			wnd.finishedHighlighting();
+        }
+
+        public static void addAnnotation(Cell c, Variable.Key k, String annotation)
+        {
+            Variable var = c.getVar(k);
+            if (var == null) {
+                String [] initial = new String[1];
+                initial[0] = annotation;
+                TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+                var = c.newVar(k, initial, td);
+                Job.error(var==null, "couldn't create" + k + " annotation");
+            } else {
+                Object oldObj = var.getObject();
+                if (oldObj instanceof String) {
+                    /* Groan! Menu command always creates attributes as arrays of strings.
+                     * However, if user edits a single line attribute then dialog box
+                     * converts it back into a String.  Be prepared to convert it back into an array*/
+                    oldObj = new String[] {(String)oldObj};
+                }
+                Job.error(!(oldObj instanceof String[]), k + " annotation not String[]");
+                String[] oldVal = (String[]) oldObj;
+                TextDescriptor td = var.getTextDescriptor();
+
+                int newLen = oldVal.length+1;
+                String[] newVal = new String[newLen];
+                for (int i=0; i<newLen-1; i++) newVal[i]=oldVal[i];
+                newVal[newLen-1] = annotation;
+                var = c.newVar(k, newVal, td);
+            }
+        }
+    }
 }

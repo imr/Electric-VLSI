@@ -306,7 +306,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		Object val = context.evalVar(var, no);
 		if (val==null) return -2;
 		//LayoutLib.error(val==null, "strength is null?");
-		LayoutLib.error(!(val instanceof Number),
+		Job.error(!(val instanceof Number),
 				        "strength not number?");
 		return ((Number)val).doubleValue();
 	}

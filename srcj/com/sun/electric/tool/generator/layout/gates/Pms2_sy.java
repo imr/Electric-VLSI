@@ -30,10 +30,10 @@ import com.sun.electric.tool.generator.layout.FoldedPmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
+import com.sun.electric.tool.Job;
 
 public class Pms2_sy {
 	private static final double gY = 4.0;
@@ -41,7 +41,7 @@ public class Pms2_sy {
 	private static final double pmosBot = 9.0;
 	
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {

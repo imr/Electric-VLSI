@@ -33,7 +33,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.lists.RecordList;
@@ -42,6 +41,7 @@ import com.sun.electric.tool.ncc.processing.LocalPartitionWires;
 import com.sun.electric.tool.ncc.result.EquivRecReport.EquivRecReportable;
 import com.sun.electric.tool.ncc.result.NetObjReport.NetObjReportable;
 import com.sun.electric.tool.ncc.strategy.Strategy;
+import com.sun.electric.tool.Job;
 
 /** Leaf EquivRecords hold Circuits. Internal EquivRecords hold offspring.
  * Every EquivRecord is assigned a pseudo random code at birth which it 
@@ -81,7 +81,7 @@ public class EquivRecord implements EquivRecReportable {
 					lists.get(i).add(itN.next());
 				}
 			}
-			LayoutLib.error(i!=numDesigns, "wrong number of circuits");
+			Job.error(i!=numDesigns, "wrong number of circuits");
 		}
 		
 		@Override public LeafList doFor(EquivRecord er) {
@@ -142,7 +142,7 @@ public class EquivRecord implements EquivRecReportable {
 	private List<Circuit> circuits;
 
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	/** For a leaf record, apply strategy to build one Map for each Circuit

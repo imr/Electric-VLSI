@@ -15,6 +15,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 
 /** The TechType class holds technology dependent information for the layout
  * generators. Most of the information is available from public static methods.
@@ -135,7 +136,7 @@ public abstract class TechType implements Serializable {
 
     //----------------------------- private methods  -----------------------------
     private static void error(boolean pred, String msg) {
-        LayoutLib.error(pred, msg);
+        Job.error(pred, msg);
     }
     private ArcProto getLayer(int n) {
         return n>(layers.length-1) ? null : layers[n];
@@ -322,7 +323,7 @@ public abstract class TechType implements Serializable {
         private final NodeInst mos;
         private final String leftDiff, rightDiff, topPoly, botPoly;
         private static void error(boolean pred, String msg) {
-            LayoutLib.error(pred, msg);
+            Job.error(pred, msg);
         }
         private MosInst(char np, double x, double y, double xSize, double ySize,
                         double angle,

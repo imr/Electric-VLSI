@@ -61,7 +61,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.GraphicsPreferences;
@@ -2094,7 +2093,7 @@ public class EditWindow extends JPanel
 				Pattern p = Pattern.compile(sic.regExpSearch);
 				Matcher m = p.matcher(oldString);
 				boolean found = m.find(sic.startPosition);
-				LayoutLib.error(!found, "regExp find before replace failed");
+				Job.error(!found, "regExp find before replace failed");
 				try
 				{
 					StringBuffer ns = new StringBuffer();

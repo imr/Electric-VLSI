@@ -38,9 +38,9 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
+import com.sun.electric.tool.Job;
 
 /** Find all Cells used in the design. Collect information about Cell usage. */
 class CellUsage extends HierarchyEnumerator.Visitor {
@@ -260,7 +260,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	 * @return a CellContext for the instance of Cell cell
 	 */
 	public CellContext getCellContext(Cell cell) {
-		LayoutLib.error(!cellsInUse.containsKey(cell), "cell not found");
+		Job.error(!cellsInUse.containsKey(cell), "cell not found");
 		return cellsInUse.get(cell);
 	}
 	/** A joinGroup annotation indicates that NCC should treat a Cell

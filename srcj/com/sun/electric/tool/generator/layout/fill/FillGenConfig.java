@@ -29,7 +29,6 @@ import java.util.List;
 
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.Tech;
 
@@ -118,7 +117,7 @@ public class FillGenConfig implements Serializable
                                              double gndReserved, FillGeneratorTool.Units gndUnits)
     {
         int numMetals = tech.getNumMetals();
-        LayoutLib.error(layer<1 || layer>numMetals,
+        Job.error(layer<1 || layer>numMetals,
                     "Bad layer. Layers must be between 2 and "+numMetals+ " inclusive: "+
                     layer);
         ReserveConfig config = new ReserveConfig(layer, vddReserved, gndReserved, vddUnits, gndUnits);

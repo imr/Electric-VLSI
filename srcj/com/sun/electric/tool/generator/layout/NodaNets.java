@@ -40,6 +40,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.Job;
 
 /** A "netlist-like" object that allows you to find the Nodables
  * attached to a Network, and the Networks attached to a 
@@ -79,7 +80,7 @@ public class NodaNets {
 		Netlist nets = c.getNetlist(shortResistors);
 		for (Iterator<Nodable> it=c.getNodables(); it.hasNext();) {
 			Nodable no = it.next();
-			LayoutLib.error(nameToNoda.containsKey(no.getName()),
+			Job.error(nameToNoda.containsKey(no.getName()),
 					        "Nodable name not unique: ");
 			nameToNoda.put(no.getName(), no);
 			NodeProto np = no.getProto();
@@ -96,7 +97,7 @@ public class NodaNets {
 						String netNm = it3.next();
 						Network exists = nameToNet.get(netNm);
 						if (exists!=null) {
-							LayoutLib.error(exists!=net, "Net name not unique");
+							Job.error(exists!=net, "Net name not unique");
 						} else {
 							nameToNet.put(netNm, net);
 						}

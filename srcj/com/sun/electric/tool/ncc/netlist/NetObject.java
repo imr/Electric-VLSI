@@ -27,9 +27,9 @@
 package com.sun.electric.tool.ncc.netlist;
 import java.util.Iterator;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.result.NetObjReport.NetObjReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.Job;
 
 /**  
  * NetObject is the parent class for Parts, Wires, and Ports.  There
@@ -60,7 +60,7 @@ public abstract class NetObject implements NetObjReportable {
 
     // ---------- protected methods ----------
     protected static void error(boolean pred, String msg) {
-    	LayoutLib.error(pred, msg);
+    	Job.error(pred, msg);
     }
 
     /** Make sure this object is OK. */

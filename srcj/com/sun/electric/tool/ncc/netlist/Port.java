@@ -31,9 +31,9 @@ import java.util.TreeSet;
 
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.result.PortReport.PortReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.Job;
 
 /** An NCC Port holds all the Export names associated with a single NCC
  * Wire. */ 
@@ -56,7 +56,7 @@ public class Port extends NetObject implements PortReportable {
 	}
 	@Override
 	public String getName() {
-		LayoutLib.error(names.size()==0, "Port with no name?");
+		Job.error(names.size()==0, "Port with no name?");
 		return names.iterator().next();
 	}
 	@Override
@@ -66,7 +66,7 @@ public class Port extends NetObject implements PortReportable {
 	
 	public void addExport(String nm, PortCharacteristic type, boolean oneNamePerPort) {
 		if (oneNamePerPort) {
-			LayoutLib.error(names.size()!=1, "expect exactly one Port name");
+			Job.error(names.size()!=1, "expect exactly one Port name");
 			if (TextUtils.STRING_NUMBER_ORDER.compare(names.get(0), nm)>0)   names.set(0, nm);
 		} else {
 			// compatibility mode only for old regressions

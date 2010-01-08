@@ -47,6 +47,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.result.NccResults;
+import com.sun.electric.tool.Job;
 
 
 /** The bottom of the PMOS well and the top of the NMOS well are at
@@ -88,7 +89,7 @@ public class StdCellParams {
 	}
 
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	// -------------------------- private data ---------------------------------

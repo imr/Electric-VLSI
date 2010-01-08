@@ -113,6 +113,8 @@ public abstract class Job implements Serializable {
 
     public static void setDebug(boolean f) { GLOBALDEBUG = f; }
 
+    // ---------------------------- public methods ---------------------------
+
     /**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
 	 */
@@ -587,6 +589,23 @@ public abstract class Job implements Serializable {
 
     public String toString() { return ejob.jobName+" ("+getStatus()+")"; }
 
+    /**
+     * Print a message, dump a stack trace, and throw a RuntimeException if
+     * errorHasOccurred argument is true.
+     *
+     * @param errorHasOccurred indicates a runtime error has been detected
+     * @param msg the message to print when an error occurs
+     * @throws RuntimeException if errorHasOccurred is true
+     */
+    public static void error(boolean errorHasOccurred, String msg) {
+        if (!errorHasOccurred) return;
+        RuntimeException e = new RuntimeException(msg);
+        // The following prints a stack trace on the console
+        ActivityLogger.logException(e);
+
+        // The following prints a stack trace in the Electric messages window
+        throw e;
+    }
 
     /** Get info on Job */
     public String getInfo() {

@@ -31,10 +31,10 @@ import com.sun.electric.tool.generator.layout.FoldedPmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
+import com.sun.electric.tool.Job;
 
 public class Nand2_star_en {
 	private static final double wellOverhangDiff = 6;
@@ -50,7 +50,7 @@ public class Nand2_star_en {
 	private static final double pmosPitch = 26;
     
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 	
 	public static Cell makePart(double sz, String threshold, StdCellParams stdCell) {

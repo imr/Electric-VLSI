@@ -25,10 +25,10 @@ package com.sun.electric.tool.ncc.result;
 
 import java.io.Serializable;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.result.PartReport.PartReportable;
 import com.sun.electric.tool.ncc.result.PortReport.PortReportable;
 import com.sun.electric.tool.ncc.result.WireReport.WireReportable;
+import com.sun.electric.tool.Job;
 
 /* Save information needed by the NCC GUI to report mismatch 
  * information to the user. 
@@ -56,7 +56,7 @@ public abstract class NetObjReport implements Serializable {
 		if (no instanceof PartReportable) return new PartReport((PartReportable)no);
 		else if (no instanceof WireReportable) return new WireReport((WireReportable)no);
 		else if (no instanceof PortReportable) return new PortReport((PortReportable)no);
-		LayoutLib.error(true, "unrecognized NetObject");
+		Job.error(true, "unrecognized NetObject");
 		return null;
 	}
 

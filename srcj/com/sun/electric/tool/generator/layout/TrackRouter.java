@@ -33,6 +33,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.tool.Job;
 
 public abstract class TrackRouter {
 	// ----------------------- private and protected data ------------------------
@@ -60,7 +61,7 @@ public abstract class TrackRouter {
 
 	// ------------------ private and protected methods ----------------------
 	static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	private double getXY(ViaStack via) {

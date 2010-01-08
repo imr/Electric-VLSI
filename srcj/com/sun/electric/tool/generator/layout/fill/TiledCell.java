@@ -33,9 +33,9 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.Job;
 
 import java.awt.geom.Rectangle2D;
 import java.util.*;
@@ -91,7 +91,7 @@ public class TiledCell {
 
         Rectangle2D bounds = cell.findEssentialBounds();
         ERectangle r = cell.getBounds();
-        LayoutLib.error(bounds==null, "missing Essential Bounds");
+        Job.error(bounds==null, "missing Essential Bounds");
         double cellW = bounds.getWidth();
         double cellH = bounds.getHeight();
 
@@ -200,7 +200,7 @@ public class TiledCell {
                 Export e = Export.newInstance(tiled, pi, gndName());
                 e.setCharacteristic(role);
             } else {
-                LayoutLib.error(true, "unrecognized Characteristic");
+                Job.error(true, "unrecognized Characteristic");
             }
         }
     }

@@ -32,7 +32,8 @@ import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Cell.CellGroup;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
+
 /**
  * A collection of one or more CompareLists.  NCC will sequence
  * through each CompareList making sure that Cells in the same
@@ -65,7 +66,7 @@ public class CompareLists {
 			}
 			num++;
 		}
-		LayoutLib.error(numComp!=0 && numComp!=num, 
+		Job.error(numComp!=0 && numComp!=num,
 						"cell group partially processed");
 		return numComp>0;
 	}

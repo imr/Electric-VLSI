@@ -28,8 +28,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.user.ncc.NccGuiInfo;
+import com.sun.electric.tool.Job;
 
 /** Summary results from the comparison of multiple pairs of Cells */
 public class NccResults implements Iterable<NccResult>, Serializable {
@@ -49,7 +49,7 @@ public class NccResults implements Iterable<NccResult>, Serializable {
 		// If the user aborted then we have nothing to show
 		if (r.userAbort()) return;
 		
-		LayoutLib.error(r==null, "Null NccResult shouldn't be possible?");
+		Job.error(r==null, "Null NccResult shouldn't be possible?");
 		
 		results.add(r); 
 		exportMatch &= r.exportMatch();
@@ -91,7 +91,7 @@ public class NccResults implements Iterable<NccResult>, Serializable {
     /** @return the NccResult from comparing the top level Cells in the hierarchy */
     public NccResult getResultFromRootCells() {
     	int sz = results.size();
-    	LayoutLib.error(sz==0, "No results in NccResults");
+    	Job.error(sz==0, "No results in NccResults");
     	return results.get(sz-1);
     }
 

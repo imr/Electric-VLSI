@@ -39,18 +39,15 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.PrimitiveNode.Function;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -60,10 +57,10 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
-import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ncc.ExportConflict;
 import com.sun.electric.tool.user.ncc.NccGuiInfo;
 import com.sun.electric.tool.user.ncc.UnrecognizedPart;
+import com.sun.electric.tool.Job;
 
 /**
  * NCC's representation of a netlist.
@@ -325,7 +322,7 @@ class ExportGlobal {
 	}
 	public boolean isExport() {return export!=null;}
 	public Export getExport() {
-		LayoutLib.error(export==null, "this is a Global, not an Export!");
+		Job.error(export==null, "this is a Global, not an Export!");
 		return export;
 	}
 }

@@ -26,13 +26,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
+import com.sun.electric.tool.Job;
 
 public class RecordList {
 	protected List<EquivRecord> content = new ArrayList<EquivRecord>(); 
 	protected void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	public RecordList() {}

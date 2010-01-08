@@ -605,9 +605,9 @@ public class FillGeneratorTool extends Tool {
     }
 
     private Floorplan[] makeFloorplans(boolean metalFlex, boolean hierFlex) {
-        LayoutLib.error(config.width==Double.NaN,
+        Job.error(config.width==Double.NaN,
                         "width hasn't been specified. use setWidth()");
-        LayoutLib.error(config.height==Double.NaN,
+        Job.error(config.height==Double.NaN,
                         "height hasn't been specified. use setHeight()");
         double w = config.width;
         double h = config.height;
@@ -723,9 +723,9 @@ public class FillGeneratorTool extends Tool {
     protected void initFillParameters(boolean metalFlex, boolean hierFlex) {
         if (libInitialized) return;
 
-        LayoutLib.error(config.fillLibName==null, "no library specified. Use setFillLibrary()");
-        LayoutLib.error((config.width==Double.NaN || config.width<=0), "no width specified. Use setFillCellWidth()");
-        LayoutLib.error((config.height==Double.NaN || config.height<=0), "no height specified. Use setFillCellHeight()");
+        Job.error(config.fillLibName==null, "no library specified. Use setFillLibrary()");
+        Job.error((config.width==Double.NaN || config.width<=0), "no width specified. Use setFillCellWidth()");
+        Job.error((config.height==Double.NaN || config.height<=0), "no height specified. Use setFillCellHeight()");
 
         plans = makeFloorplans(metalFlex, hierFlex);
         if (!metalFlex) printCoverage(plans);
@@ -834,10 +834,10 @@ public class FillGeneratorTool extends Tool {
                                      int[] tiledSizes, boolean metalFlex) {
         initFillParameters(metalFlex, false);
 
-        LayoutLib.error(loLayer<1, "loLayer must be >=1");
+        Job.error(loLayer<1, "loLayer must be >=1");
         int maxNumMetals = config.techType.getTechType().getNumMetals();
-        LayoutLib.error(hiLayer>maxNumMetals, "hiLayer must be <=" + maxNumMetals);
-        LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
+        Job.error(hiLayer>maxNumMetals, "hiLayer must be <=" + maxNumMetals);
+        Job.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
         Cell cell = null;
             cell = standardMakeAndTileCell(lib, plans, loLayer, hiLayer, capCell, 
             		                       tech, exportConfig,

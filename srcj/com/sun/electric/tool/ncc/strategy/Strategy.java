@@ -31,13 +31,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.lists.RecordList;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
+import com.sun.electric.tool.Job;
 
 /** 
  * Strategy is the superclass for all strategies.
@@ -69,7 +69,7 @@ public abstract class Strategy {
      * @param msg message to print if error occurs */
     public void error(boolean pred, String msg) {
     	if (globals==null) {
-    		LayoutLib.error(pred, msg);
+    		Job.error(pred, msg);
     	} else {
     		globals.error(pred, msg);
     	}

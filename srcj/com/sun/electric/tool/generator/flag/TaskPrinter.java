@@ -1,8 +1,6 @@
 package com.sun.electric.tool.generator.flag;
 
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.tool.generator.flag.router.ToConnect;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 /** TaskPrinter will describe the task at hand only if I need to report
  * that something went wrong. */ 
@@ -33,7 +31,7 @@ public class TaskPrinter {
 	public void error(boolean cond, String msg) {
 		if (cond) {
 			printTaskDescription();
-			LayoutLib.error(true, msg);
+			Job.error(true, msg);
 		}
 	}
 }

@@ -31,10 +31,11 @@ import com.sun.electric.tool.generator.layout.FoldedPmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
+import com.sun.electric.tool.Job;
+
 /** Separate control over N and P transistor sizes.  It's not clear if this is really
  *  necessary or desireable. I'm doing this for Justin */
 public class InvV {
@@ -44,7 +45,7 @@ public class InvV {
 	private static final double outLoY = -11.0;
 
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	public static Cell makePart(double pSz, double nSz, StdCellParams stdCell) {

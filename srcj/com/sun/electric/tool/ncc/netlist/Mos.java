@@ -31,12 +31,12 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.technology.PrimitiveNode.Function;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.Job;
 
 /** One or more MOS transistors in series. All gates have the same width
  * and length. 
@@ -63,10 +63,10 @@ public class Mos extends Part {
 		}
 		public GateType(Function np, int numSeries, int gateHeight, boolean cap,
 				        boolean hasBody) {
-			LayoutLib.error(np==null, "null type?");
-			LayoutLib.error(numSeries<1, "bad numSeries");
+			Job.error(np==null, "null type?");
+			Job.error(numSeries<1, "bad numSeries");
 			int highestGateInLowerHalfOfStack = (numSeries+1)/2;
-			LayoutLib.error(gateHeight>highestGateInLowerHalfOfStack, "bad gate Height");
+			Job.error(gateHeight>highestGateInLowerHalfOfStack, "bad gate Height");
 			this.np = np;
 			this.numSeries = numSeries;
 			this.gateHeight = gateHeight;
@@ -89,8 +89,8 @@ public class Mos extends Part {
 		}
 		public DiffType(Function np, int numSeries, boolean cap, 
 				        boolean hasBody) {
-			LayoutLib.error(np==null, "null type?");
-			LayoutLib.error(numSeries<1, "bad numSeries");
+			Job.error(np==null, "null type?");
+			Job.error(numSeries<1, "bad numSeries");
 			this.np = np;
 			this.numSeries = numSeries;
 			this.cap = cap;
@@ -108,8 +108,8 @@ public class Mos extends Part {
 			return t+c+h+"_withBody body";
 		}
 		public BodyType(Function np, int numSeries, boolean cap) {
-			LayoutLib.error(np==null, "null type?");
-			LayoutLib.error(numSeries<1, "bad numSeries");
+			Job.error(np==null, "null type?");
+			Job.error(numSeries<1, "bad numSeries");
 			this.np = np;
 			this.numSeries = numSeries;
 			this.cap = cap;
@@ -212,12 +212,12 @@ public class Mos extends Part {
 		this.width = width;
 		this.length = length;
 		this.hasBody = hasBody;
-		LayoutLib.error(np==null, "null type?");
+		Job.error(np==null, "null type?");
 		
 		int nbGateDiff = pins.length - (hasBody?1:0);
 		
 		pin_coeffs = CoeffGen.getCoeffArray(nbGateDiff, hasBody);
-		LayoutLib.error(pins.length!=pin_coeffs.length, "wrong number of pin coeffs");
+		Job.error(pins.length!=pin_coeffs.length, "wrong number of pin coeffs");
 	}
 	
 	private int nbGateDiffPins() {

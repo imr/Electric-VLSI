@@ -28,9 +28,9 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
+import com.sun.electric.tool.Job;
 
 // Well Ties now serve two roles. 
 //
@@ -58,7 +58,7 @@ public class WellTie {
 	private static final double WELL_CONT_PITCH = 5 + 4 + 2;
 	
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 	
 	/** The maximum distance from an internal well contact to the right

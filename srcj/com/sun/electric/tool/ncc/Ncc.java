@@ -28,7 +28,6 @@ import java.util.Date;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.result.NccResults;
@@ -58,7 +57,7 @@ public class Ncc {
 			  case NccOptions.HIER_EACH_CELL:
 				pr("Hierarchical NCC every cell in the design: "); break;
 			  default:
-				LayoutLib.error(true, "bad operation: "+options.operation);
+				Job.error(true, "bad operation: "+options.operation);
 			}
 			prln(cc1.cell+"  "+cc2.cell);
 			NccResults results = NccBottomUp.compare(cc1, cc2, passed, options,

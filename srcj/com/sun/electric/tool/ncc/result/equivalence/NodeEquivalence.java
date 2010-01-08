@@ -31,7 +31,7 @@ import java.util.Set;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 /** Object to map from a Nodable in one design to the 
  * "NCC equivalent" Nodable in the 
@@ -56,7 +56,7 @@ class NodeEquivalence implements Serializable {
 		if (instToNccCtxt!=null) return; 
 		instToNccCtxt = new InstancePathToNccContext[numDesigns];
 		for (int i=0; i<numDesigns; i++) {
-			LayoutLib.error(equivNodes[i].length!=numNodes,
+			Job.error(equivNodes[i].length!=numNodes,
 					        "designs don't have same numbers of nodables?");
 			instToNccCtxt[i] = new InstancePathToNccContext(equivNodes[i]); 
 		}
@@ -73,7 +73,7 @@ class NodeEquivalence implements Serializable {
 
 	private NodableNameProxy findEquivalent(VarContext vc, Nodable node, 
 			                                int designIndex) {
-		LayoutLib.error(designIndex!=0 && designIndex!=1, 
+		Job.error(designIndex!=0 && designIndex!=1,
 				        "designIndex must be 0 or 1");
 		buildNameTree();
 		InstancePathToNccContext nameIndex = instToNccCtxt[designIndex];
@@ -131,7 +131,7 @@ class NodeEquivalence implements Serializable {
 	 * to "NCC equivalent" nodable in design 0. 
 	 * @return the number of errors. */
 	public int regressionTest() {
-		LayoutLib.error(numDesigns!=2, "we must have exactly two designs");
+		Job.error(numDesigns!=2, "we must have exactly two designs");
 		
 		int numErrors = 0;
 		for (int desNdx=0; desNdx<numDesigns; desNdx++) {

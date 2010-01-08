@@ -6,6 +6,7 @@ import java.util.List;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 public class SkewTree {
 	private static final String OUT_LIB_NM = "treePictures";
@@ -31,7 +32,7 @@ public class SkewTree {
 	/** Make space in slot dstSlot for a node of level moveableHeight */
 	private void makeSpaceLeft(BinaryTree tree, int dstSlot, int moveableHeight) {
 		Node n = tree.getNodeInSlot(dstSlot);
-		LayoutLib.error(n.getHeight()>moveableHeight, 
+		Job.error(n.getHeight()>moveableHeight,
 				        "can't make space because destintation is locked: "+
 				        n.toString());
 		// Put Node with height < moveableHeight into dstSlot
@@ -42,12 +43,12 @@ public class SkewTree {
 				return;
 			}
 		}
-		LayoutLib.error(true, "can't find a node with height < moveableHeight");
+		Job.error(true, "can't find a node with height < moveableHeight");
 	}
 	/** Make space in slot dstSlot for a node of level moveableHeight */
 	private void makeSpaceRight(BinaryTree tree, int dstSlot, int moveableHeight) {
 		Node n = tree.getNodeInSlot(dstSlot);
-		LayoutLib.error(n.getHeight()>moveableHeight, 
+		Job.error(n.getHeight()>moveableHeight,
 				        "can't make space because destintation is locked: "+
 				        n.toString());
 		// Put Node with height < moveableHeight into dstSlot
@@ -58,7 +59,7 @@ public class SkewTree {
 				return;
 			}
 		}
-		LayoutLib.error(true, "can't find a node with height < moveableHeight");
+		Job.error(true, "can't find a node with height < moveableHeight");
 	}
 	private void moveNodesLeft(BinaryTree tree, List<Node> nodes, 
 		   	                   int dstSlot, int moveableHeight) {

@@ -23,17 +23,17 @@
  */
 package com.sun.electric.tool.ncc.trees;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.strategy.Strategy;
+import com.sun.electric.tool.Job;
+
 /** Object to keep track of the leaves of the EquivRecord tree.
  * <p>
  * Profiling has demonstrated that it is too expensive to repeatedly locate 
@@ -102,7 +102,7 @@ public class LeafEquivRecords {
 		for (ListIterator<EquivRecord> it=notMatched.listIterator(); it.hasNext();) {
 			EquivRecord er = it.next();
 			if (er.isLeaf()) {
-				LayoutLib.error(er.isMatched(), "notMatched list has matched");
+				Job.error(er.isMatched(), "notMatched list has matched");
 			} else {
 				// a leaf EquivRecord was partitioned and therefore isn't a 
 				// leaf anymore.  Find the descendents of this node that are

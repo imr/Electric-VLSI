@@ -29,8 +29,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.result.NccResults;
@@ -193,7 +191,7 @@ public class NccJob extends Job {
 		
 		// Set up arguments for doIt() method that is run on server
 		numWindows = numWind;
-		LayoutLib.error(numWindows!=1 && numWindows!=2, 
+		error(numWindows!=1 && numWindows!=2,
 		                "numWindows must be 1 or 2");
 		cellCtxts = getCellsFromWindows(numWindows);
 		

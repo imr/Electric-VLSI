@@ -8,7 +8,6 @@ import java.util.Map;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Cell.CellGroup;
@@ -22,6 +21,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.generator.flag.router.ToConnect;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 public class SchematicVisitor extends Visitor {
 	private static final Variable.Key LAYOUT_SPACE_KEY = Variable.newKey("ATTR_LAYOUT_SPACE");
@@ -136,7 +136,7 @@ public class SchematicVisitor extends Visitor {
 		// Icon is a layout primitive, get layout
 		Cell lay = findLayout(icon);
 		
-		LayoutLib.error(lay==null, 
+		Job.error(lay==null,
 		        "Can't find layout for icon: "+icon.getName());
 
 		NodeInst layInst = LayoutLib.newNodeInst(lay, 0, 0, 0, 0, 0, layCell);

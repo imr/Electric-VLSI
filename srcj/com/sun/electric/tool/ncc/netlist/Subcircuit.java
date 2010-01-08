@@ -26,10 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.electric.technology.PrimitiveNode.Function;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
+import com.sun.electric.tool.Job;
 
 /** A Cell instance that is being treated as a primitive circuit component
  * during a hierarchical netlist comparison */
@@ -74,7 +74,7 @@ public class Subcircuit extends Part {
 	public int[] getPinCoeffs() {return pinCoeffs;}
 	@Override
 	public boolean parallelMerge(Part p, NccOptions nccOpt) {
-		LayoutLib.error(true, "we never parallel merge subcircuits so don't call this method");
+		Job.error(true, "we never parallel merge subcircuits so don't call this method");
 		return false;
 	}
 	
@@ -84,7 +84,7 @@ public class Subcircuit extends Part {
 	 * pins. It's better to avoid calling this method at a higher level.*/
 	@Override
 	public Integer hashCodeForParallelMerge() {
-		LayoutLib.error(true, "we never parallel merge subcircuits so don't call this method");
+		Job.error(true, "we never parallel merge subcircuits so don't call this method");
 		
 		// include how many Wires may be connected
 		int hc = pins.length;
@@ -140,7 +140,7 @@ public class Subcircuit extends Part {
 	@Override
     public int getHashFor(Wire w) {
 		Integer coeffSum = wireToCoeffSum.get(w);
-		LayoutLib.error(coeffSum==null, "Wire not found");
+		Job.error(coeffSum==null, "Wire not found");
 		return coeffSum*getCode();
     }
 	

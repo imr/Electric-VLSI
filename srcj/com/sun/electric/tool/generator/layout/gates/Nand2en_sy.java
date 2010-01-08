@@ -34,6 +34,7 @@ import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
+import com.sun.electric.tool.Job;
 
 public class Nand2en_sy {
 	private static final double nmosTop = -9.0;
@@ -45,7 +46,7 @@ public class Nand2en_sy {
 	private static final double outLoY = -11.0;
     
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {

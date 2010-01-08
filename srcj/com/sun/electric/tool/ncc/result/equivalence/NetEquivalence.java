@@ -39,9 +39,9 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist.ShortResistors;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.NodaNets;
 import com.sun.electric.tool.generator.layout.NodaNets.NodaPortInst;
+import com.sun.electric.tool.Job;
 
 /** Object to map from a net or node in one design to the 
  * "NCC equivalent" net or node in the 
@@ -66,7 +66,7 @@ class NetEquivalence implements Serializable {
     	// First element of ArrayList is VarContext.globalContext
     	private static ArrayList<VarContext> buildContextArray(VarContext ctxt) {
     		LinkedList<VarContext> ll = new LinkedList<VarContext>();
-    		LayoutLib.error(ctxt==null, "buildContextArray: null ctxt not allowed");
+    		Job.error(ctxt==null, "buildContextArray: null ctxt not allowed");
     		while (true) {
     			ll.addFirst(ctxt);
     			if (ctxt==VarContext.globalContext) break;
@@ -184,7 +184,7 @@ class NetEquivalence implements Serializable {
 		if (instToNetNccCtxt!=null) return; 
 		instToNetNccCtxt = new InstancePathToNccContext[numDesigns];
 		for (int i=0; i<numDesigns; i++) {
-			LayoutLib.error(equivNets[i].length!=numNets,
+			Job.error(equivNets[i].length!=numNets,
 					        "designs don't have same numbers of nets?");
 			instToNetNccCtxt[i] = new InstancePathToNccContext(equivNets[i]); 
 		}
@@ -204,7 +204,7 @@ class NetEquivalence implements Serializable {
 
 	private NetNameProxy findEquivNet(VarContext vc, Network net, 
 			                            int designIndex) {
-		LayoutLib.error(designIndex!=0 && designIndex!=1, 
+		Job.error(designIndex!=0 && designIndex!=1,
 				        "designIndex must be 0 or 1");
 		buildNameTree();
 		InstancePathToNccContext nameIndex = instToNetNccCtxt[designIndex];
@@ -237,7 +237,7 @@ class NetEquivalence implements Serializable {
 		Collection<NodaPortInst> ports = noshortNets.getPorts(n);
 		for (NodaPortInst pi : ports) return pi;
 
-		LayoutLib.error(true, "No ports found on Network?");
+		Job.error(true, "No ports found on Network?");
 		return null;
 	}
 
@@ -333,7 +333,7 @@ class NetEquivalence implements Serializable {
 	 * net in design 0. 
 	 * @return the number of errors. */
 	public int regressionTest() {
-		LayoutLib.error(numDesigns!=2, "we must have exactly two designs");
+		Job.error(numDesigns!=2, "we must have exactly two designs");
 		
 		int numErrors = 0;
 		for (int desNdx=0; desNdx<numDesigns; desNdx++) {

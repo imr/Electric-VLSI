@@ -27,11 +27,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.netlist.PinType;
 import com.sun.electric.tool.ncc.netlist.Port;
 import com.sun.electric.tool.ncc.netlist.Subcircuit;
+import com.sun.electric.tool.Job;
 
 /** Holds information necessary to treat this Cell as a primitive subcircuit
  *  when performing hierarchical netlist comparison at a higher level */
@@ -63,7 +63,7 @@ public class SubcircuitInfo {
 		}
 
 		ReferenceInfo(String name, int ID, String[] portNames) {
-			LayoutLib.error(name==null, "No name?");
+			Job.error(name==null, "No name?");
 			this.name = name;
 			this.ID = ID;
 			this.portNames = portNames;
@@ -92,7 +92,7 @@ public class SubcircuitInfo {
 				if (portNames[i]==null) portNames[i] = exportName;
 				exportNameToPortIndex.put(exportName, portIndex);
 			}
-			LayoutLib.error(portNames[i]==null, "Port with no name?");
+			Job.error(portNames[i]==null, "Port with no name?");
 		}
 	}
 	

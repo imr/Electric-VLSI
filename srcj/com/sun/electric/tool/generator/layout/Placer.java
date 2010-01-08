@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.generator.layout.gates.WellTie;
+import com.sun.electric.tool.Job;
 
 class Placer {
 	private static final boolean VERBOSE = false;
@@ -44,7 +45,7 @@ class Placer {
 	private ArrayList<Net> buildNets = new ArrayList<Net>();
 	
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 	
 	// ---------------------- private classes --------------------------

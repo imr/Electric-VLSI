@@ -46,7 +46,6 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -194,7 +193,7 @@ public class HighlightEquivalent {
 			                              CellContext cc) {
 		prln("Find the equivalent of NodeInst: "+ni.describe(false));
 		List<Nodable> nodables = findNodablesFrom(ni);
-		LayoutLib.error(nodables.size()==0, "No Nodable for NodeInst?");
+		Job.error(nodables.size()==0, "No Nodable for NodeInst?");
 		Nodable node = selectNodable(nodables);
 		if (node==null) {
 			// user clicked "Cancel"

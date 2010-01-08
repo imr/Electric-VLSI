@@ -387,14 +387,19 @@ public class Quick
 
         // Check if cell doesn't have special annotation
         Variable drcVar = cell.getVar(DRC.DRC_ANNOTATION_KEY);
-        if (drcVar != null && drcVar.getObject().toString().startsWith("black"))
+        if (drcVar != null)
         {
-            // Skipping this one
-            assert(reportInfo.totalSpacingMsgFound == 0); // get rid of this variable.
-            return reportInfo.totalSpacingMsgFound;
+            assert(drcVar.getLength() == 1 && drcVar.getObject(0) instanceof String);
+            String val = (String)drcVar.getObject(0);
+            if (val.toUpperCase().equals("BLACK"))
+            {
+                // Skipping this one
+                assert(reportInfo.totalSpacingMsgFound == 0); // get rid of this variable.
+                return reportInfo.totalSpacingMsgFound;
+            }
         }
 
-		// first check all subcells
+        // first check all subcells
 		boolean allSubCellsStillOK = true;
         Area area = reportInfo.exclusionMap.get(cell);
 

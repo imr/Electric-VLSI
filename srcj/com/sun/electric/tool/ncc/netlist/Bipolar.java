@@ -27,11 +27,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.electric.technology.PrimitiveNode.Function;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
+import com.sun.electric.tool.Job;
 
 /** A Bipolar transistor */
 public class Bipolar extends Part {
@@ -44,7 +44,7 @@ public class Bipolar extends Part {
 			return np.getShortName()+" "+PIN_NAMES[pinIndex];
 		}
 		public BipolarPinType(Function np, int pinIndex) {
-			LayoutLib.error(np==null, "null type?");
+			Job.error(np==null, "null type?");
 			this.np = np;
 			this.pinIndex = pinIndex;
 		}
@@ -83,12 +83,12 @@ public class Bipolar extends Part {
     // ---------- private methods ----------
 	private Bipolar(Function np, PartNameProxy name, double area, Wire[] pins) {
 		super(name, np, pins);
-		LayoutLib.error(np==null, "null type?");
+		Job.error(np==null, "null type?");
 		this.area = area;
 	}
 
 	private boolean samePinsAs(Bipolar b) {
-		LayoutLib.error(b.pins.length!=pins.length, "different # pins?");
+		Job.error(b.pins.length!=pins.length, "different # pins?");
 		for (int i=0; i<pins.length; i++) {
 			if (pins[i]!=b.pins[i]) return false;
 		}

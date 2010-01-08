@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.electric.tool.generator.flag.Utils;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 
 /** rectangular region for routing */
@@ -90,7 +90,7 @@ public class Channel implements Comparable<Channel> {
     		return null;
     	}
     	Segment s = bestTrack.allocate(min, max);
-    	LayoutLib.error(s==null, 
+    	Job.error(s==null,
     			        "Impossible: we already checked it's available");
     	return s;
     }

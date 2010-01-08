@@ -50,6 +50,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
@@ -86,6 +87,15 @@ public class DRC extends Listener
         new Layer.Function.Set(layer);
         return thisLayerFunction;
     }
+
+    /*********************************** Annotations ***********************************/
+    public static void makeDRCAnnotation()
+    {
+        CircuitChangeJobs.MakeCellAnnotationJob.makeAnnotationMenuCommand(tool, DRC.DRC_ANNOTATION_KEY, "BLACK");
+    }
+    /*********************************** End of Annotations ***********************************/
+
+    /*********************************** Crop Functions ***********************************/
 
     /**
 	 * Method to see if polygons in "pList" (describing arc "ai") should be cropped against a
@@ -159,6 +169,8 @@ public class DRC extends Listener
             pList[diffPoly] = poly;
         }
     }
+
+    /*********************************** End of crip functions ***********************************/
 
     /**
          * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
@@ -278,82 +290,82 @@ public class DRC extends Listener
     }
 
     /**
-         * Method to determine if neighbor would help to cover the minimum conditions
- *
- * @return true if error was found (not warning)
- */
-static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly, Layer layer, Rectangle2D bounds,
-                                            DRCTemplate minWidthRule, int dir, boolean onlyOne, boolean reportError,
-                                            Layer.Function.Set layerFunction, ReportInfo reportInfo)
-{
-    double actual = 0;
-    Point2D left1, left2, left3, right1, right2, right3;
-    //if (bounds.getWidth() < minWidthRule.value)
-    String msg = "";
+     * Method to determine if neighbor would help to cover the minimum conditions
+     *
+     * @return true if error was found (not warning)
+     */
+    static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly, Layer layer, Rectangle2D bounds,
+                                               DRCTemplate minWidthRule, int dir, boolean onlyOne, boolean reportError,
+                                               Layer.Function.Set layerFunction, ReportInfo reportInfo)
+    {
+        double actual = 0;
+        Point2D left1, left2, left3, right1, right2, right3;
+        //if (bounds.getWidth() < minWidthRule.value)
+        String msg = "";
 
-    // potential problem along X
-    if (dir == 0)
-    {
-        actual = bounds.getWidth();
-        msg = "(X axis)";
-        double leftW = bounds.getMinX() - TINYDELTA;
-        left1 = new Point2D.Double(leftW, bounds.getMinY());
-        left2 = new Point2D.Double(leftW, bounds.getMaxY());
-        left3 = new Point2D.Double(leftW, bounds.getCenterY());
-        double rightW = bounds.getMaxX() + TINYDELTA;
-        right1 = new Point2D.Double(rightW, bounds.getMinY());
-        right2 = new Point2D.Double(rightW, bounds.getMaxY());
-        right3 = new Point2D.Double(rightW, bounds.getCenterY());
-    } else
-    {
-        actual = bounds.getHeight();
-        msg = "(Y axis)";
-        double leftH = bounds.getMinY() - TINYDELTA;
-        left1 = new Point2D.Double(bounds.getMinX(), leftH);
-        left2 = new Point2D.Double(bounds.getMaxX(), leftH);
-        left3 = new Point2D.Double(bounds.getCenterX(), leftH);
-        double rightH = bounds.getMaxY() + TINYDELTA;
-        right1 = new Point2D.Double(bounds.getMinX(), rightH);
-        right2 = new Point2D.Double(bounds.getMaxX(), rightH);
-        right3 = new Point2D.Double(bounds.getCenterX(), rightH);
+        // potential problem along X
+        if (dir == 0)
+        {
+            actual = bounds.getWidth();
+            msg = "(X axis)";
+            double leftW = bounds.getMinX() - TINYDELTA;
+            left1 = new Point2D.Double(leftW, bounds.getMinY());
+            left2 = new Point2D.Double(leftW, bounds.getMaxY());
+            left3 = new Point2D.Double(leftW, bounds.getCenterY());
+            double rightW = bounds.getMaxX() + TINYDELTA;
+            right1 = new Point2D.Double(rightW, bounds.getMinY());
+            right2 = new Point2D.Double(rightW, bounds.getMaxY());
+            right3 = new Point2D.Double(rightW, bounds.getCenterY());
+        } else
+        {
+            actual = bounds.getHeight();
+            msg = "(Y axis)";
+            double leftH = bounds.getMinY() - TINYDELTA;
+            left1 = new Point2D.Double(bounds.getMinX(), leftH);
+            left2 = new Point2D.Double(bounds.getMaxX(), leftH);
+            left3 = new Point2D.Double(bounds.getCenterX(), leftH);
+            double rightH = bounds.getMaxY() + TINYDELTA;
+            right1 = new Point2D.Double(bounds.getMinX(), rightH);
+            right2 = new Point2D.Double(bounds.getMaxX(), rightH);
+            right3 = new Point2D.Double(bounds.getCenterX(), rightH);
+        }
+        // see if there is more of this layer adjoining on either side
+        boolean[] pointsFound = new boolean[3];
+        pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+        Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX() - TINYDELTA, bounds.getMinY() - TINYDELTA,
+            bounds.getWidth() + TINYDELTA * 2, bounds.getHeight() + TINYDELTA * 2);
+        boolean zeroWide = (bounds.getWidth() == 0 || bounds.getHeight() == 0);
+
+        boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+            left1, left2, left3, pointsFound, layerFunction, reportInfo.ignoreCenterCuts); //) return false;
+    //        if (overlapLayer && !zeroWide) return false;
+        if (overlapLayer) return false;
+
+        // Try the other corner
+        pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+        overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+            right1, right2, right3, pointsFound, layerFunction, reportInfo.ignoreCenterCuts); //) return false;
+    //        if (overlapLayer && !zeroWide) return false;
+        if (overlapLayer) return false;
+
+        DRCErrorType errorType = DRCErrorType.MINWIDTHERROR;
+        String extraMsg = msg;
+        String rule = minWidthRule.ruleName;
+
+        // Only when the flat element is fully covered send the warning
+        // otherwise it is considered an error.
+        if (zeroWide && overlapLayer)
+        {
+            extraMsg = " but covered by other layer";
+            errorType = DRCErrorType.ZEROLENGTHARCWARN;
+            rule = null;
+        }
+
+        if (reportError)
+            createDRCErrorLogger(reportInfo, errorType, extraMsg, cell, minWidthRule.getValue(0), actual, rule,
+                (onlyOne) ? null : poly, geom, layer, null, null, null);
+        return !overlapLayer;
     }
-    // see if there is more of this layer adjoining on either side
-    boolean[] pointsFound = new boolean[3];
-    pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-    Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX() - TINYDELTA, bounds.getMinY() - TINYDELTA,
-        bounds.getWidth() + TINYDELTA * 2, bounds.getHeight() + TINYDELTA * 2);
-    boolean zeroWide = (bounds.getWidth() == 0 || bounds.getHeight() == 0);
-
-    boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
-        left1, left2, left3, pointsFound, layerFunction, reportInfo.ignoreCenterCuts); //) return false;
-//        if (overlapLayer && !zeroWide) return false;
-    if (overlapLayer) return false;
-
-    // Try the other corner
-    pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-    overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
-        right1, right2, right3, pointsFound, layerFunction, reportInfo.ignoreCenterCuts); //) return false;
-//        if (overlapLayer && !zeroWide) return false;
-    if (overlapLayer) return false;
-
-    DRCErrorType errorType = DRCErrorType.MINWIDTHERROR;
-    String extraMsg = msg;
-    String rule = minWidthRule.ruleName;
-
-    // Only when the flat element is fully covered send the warning
-    // otherwise it is considered an error.
-    if (zeroWide && overlapLayer)
-    {
-        extraMsg = " but covered by other layer";
-        errorType = DRCErrorType.ZEROLENGTHARCWARN;
-        rule = null;
-    }
-
-    if (reportError)
-        createDRCErrorLogger(reportInfo, errorType, extraMsg, cell, minWidthRule.getValue(0), actual, rule,
-            (onlyOne) ? null : poly, geom, layer, null, null, null);
-    return !overlapLayer;
-}
 
     /**
          * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects

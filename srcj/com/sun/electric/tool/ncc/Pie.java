@@ -25,8 +25,8 @@ package com.sun.electric.tool.ncc;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.result.NccResults;
+import com.sun.electric.tool.Job;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -62,7 +62,7 @@ public class Pie {
 		return pie.pieNccJobClass!=null;
 	}
 	public static void invokePieNcc(int numWind) {
-		LayoutLib.error(!hasPie(), "trying to invoke non-existant PIE");
+		Job.error(!hasPie(), "trying to invoke non-existant PIE");
 		try {
 			pie.pieNccJobConstructor.newInstance(new Integer(numWind));
 		} catch (Throwable e) {
@@ -73,7 +73,7 @@ public class Pie {
 	public static NccResults invokePieNccCompare(Cell c1, VarContext v1,
 			                                     Cell c2, VarContext v2,
 			                                     NccOptions opt, PIEOptions pOpt) {
-		LayoutLib.error(!hasPie(), "trying to invoke non-existant PIE");
+		Job.error(!hasPie(), "trying to invoke non-existant PIE");
 		NccResults results = null;
 		try {
 			results = (NccResults)

@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.TreeSet;
 
 import com.sun.electric.tool.generator.flag.Utils;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 /** All the channels for one layer */
 public class LayerChannels {
@@ -12,7 +12,7 @@ public class LayerChannels {
 	
 	private static void prln(String msg) {Utils.prln(msg);}
 	private boolean isHorizontal() {
-		LayoutLib.error(channels.size()==0, 
+		Job.error(channels.size()==0,
 				        "can't tell direction because no channels");
 		return channels.first().isHorizontal();
 	}
@@ -29,9 +29,9 @@ public class LayerChannels {
 		double yMin = Math.min(y1, y2);
 		double yMax = Math.max(y1, y2);
 		if (channels.size()==0) return null;
-		LayoutLib.error(!isHorizontal(), "not sure what this means yet");
+		Job.error(!isHorizontal(), "not sure what this means yet");
 		for (Channel c : channels) {
-			LayoutLib.error(x<c.getMinTrackEnd() || x > c.getMaxTrackEnd(),
+			Job.error(x<c.getMinTrackEnd() || x > c.getMaxTrackEnd(),
 					        "channels can't cover X");
 			if (c.getMaxTrackCenter()<yMin) continue;
 			if (c.getMinTrackCenter()>yMax) break;;
@@ -44,7 +44,7 @@ public class LayerChannels {
 	public Channel findVertBridge(Channel horChan1, Channel horChan2, 
 			                      double x1, double x2) {
 		if (channels.size()==0) return null;
-		LayoutLib.error(isHorizontal(), "layer must be vertical");
+		Job.error(isHorizontal(), "layer must be vertical");
 		double yMin = Math.min(horChan1.getMinTrackCenter(), 
 				               horChan2.getMinTrackCenter());
 		double yMax = Math.max(horChan1.getMaxTrackCenter(), 

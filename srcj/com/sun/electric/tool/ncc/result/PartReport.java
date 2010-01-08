@@ -23,8 +23,8 @@
 */
 package com.sun.electric.tool.ncc.result;
 
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
+import com.sun.electric.tool.Job;
 
 /** Save Part information needed by the NCC GUI when reporting
  * mismatches to the user.
@@ -45,7 +45,7 @@ public class PartReport extends NetObjReport {
 	private boolean isMos, isResistor;
 	private double width, length;
 	private void checkLenWidValid() {
-		LayoutLib.error(!isMos && !isResistor, 
+		Job.error(!isMos && !isResistor,
 				        "PartReport has no width or length");
 	}
 	public PartReport(PartReportable p) {

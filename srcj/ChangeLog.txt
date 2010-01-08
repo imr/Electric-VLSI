@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11a: ******************************
 
+IMP/MAN: (01/08/10, GVG) Add DRC annotation to skip cell (Bug #2596)
+Added memu Tools -> DRC -> Add Skip Annotation to Cell.
+Many files modified due to the move of LayoutLib.error function to Job.error.
+
 BUG: (01/08/10, DN) Getting ports on network is very slow (Bug #2590).
 FIX: Add method Netlist.getPortInstsByNetwork to get ports in bulky way.
 

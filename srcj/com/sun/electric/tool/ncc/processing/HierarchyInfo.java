@@ -31,10 +31,10 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.CompareList;
 import com.sun.electric.tool.ncc.basic.CompareLists;
+import com.sun.electric.tool.Job;
 
 /** Information needed to perform hierarchical netlist comparison.
  * NCC usually performs comparisons hierarchically. NCC starts with
@@ -111,7 +111,7 @@ public class HierarchyInfo {
 	 * you do. */
 	public void addSubcircuitInfo(Cell c, SubcircuitInfo subcktInfo) {
 		if (purgeCurrentCompareList) return;
-		LayoutLib.error(cellToSubcktInfo.containsKey(c),
+		Job.error(cellToSubcktInfo.containsKey(c),
 						"SubcircuitInfo already exists for Cell");
 		cellsInCompareList.add(c);
 		cellToSubcktInfo.put(c, subcktInfo);
@@ -124,7 +124,7 @@ public class HierarchyInfo {
 	public void purgeCurrentCompareList() {
 		purgeCurrentCompareList = true;
 		for (Cell c : cellsInCompareList) {
-			LayoutLib.error(!cellToSubcktInfo.containsKey(c), "Cell not in map?");
+			Job.error(!cellToSubcktInfo.containsKey(c), "Cell not in map?");
 			cellToSubcktInfo.remove(c);
 		}
 		cellsInCompareList.clear();

@@ -11,6 +11,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.tool.Job;
 
 // ------------------------------------ CapCell -------------------------------
 /** CapCell is built assuming horizontal metal 1 straps. I deal with the
@@ -89,7 +90,7 @@ class CapCellMosis extends CapCell{
 							 (MAX_MOS_WIDTH + SEL_WIDTH_OF_NDM1 + 2*SEL_TO_MOS);
 			numMosX = (int) Math.ceil(numMosD);
 
-            LayoutLib.error((numMosX < 1), "not enough space for cap cell. Increase template size.");
+            Job.error((numMosX < 1), "not enough space for cap cell. Increase template size.");
 
             double mosWidth1 = availForCap/numMosX - SEL_WIDTH_OF_NDM1 - 2*SEL_TO_MOS;
 			// round down mos Width to integral number of lambdas

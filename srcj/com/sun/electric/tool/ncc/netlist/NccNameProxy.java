@@ -32,7 +32,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 /** Stores the information necessary to generate an instance name for a Part 
   * It is the same as HierarchyEnumerator.NameProxy except that it removes
@@ -43,7 +43,7 @@ public abstract class NccNameProxy implements Serializable {
 	public static String removePrefix(String commonPathPrefix,
 			                          String fullName) {
 		if (commonPathPrefix.length()==0) return fullName;
-		LayoutLib.error(!fullName.startsWith(commonPathPrefix), 
+		Job.error(!fullName.startsWith(commonPathPrefix),
                         "common path prefix not found");
 		// +1 to skip separator
 		int start = commonPathPrefix.length()+1;
@@ -58,7 +58,7 @@ public abstract class NccNameProxy implements Serializable {
 	/** It was a mistake to use toString(). The use of toString() makes
 	 * code unmodifiable. Let me begin the process of purging all uses. */
 	public String toString() {
-		LayoutLib.error(true, "Please tell Russell about this use of toString");
+		Job.error(true, "Please tell Russell about this use of toString");
 		return null;
 	}
 	abstract NameProxy nameProxy();

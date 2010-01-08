@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.netlist.NetObject;
@@ -47,6 +46,7 @@ import com.sun.electric.tool.ncc.netlist.PinType;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
+import com.sun.electric.tool.Job;
 
 /**
  * Partition Wires into equivalence classes based only upon
@@ -135,7 +135,7 @@ public class LocalPartitionWires {
 			c.increment();
 		}
 		public void setID(int id) {
-			LayoutLib.error(this.id!=null, "assigned a second ID?");
+			Job.error(this.id!=null, "assigned a second ID?");
 			this.id = new Integer(id);
 		}
 		public Integer getID() {return id;}

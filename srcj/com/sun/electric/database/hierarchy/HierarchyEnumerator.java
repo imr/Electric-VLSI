@@ -27,7 +27,6 @@ import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
@@ -36,7 +35,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.AffineTransform;
@@ -170,7 +169,7 @@ public final class HierarchyEnumerator {
     private HashMap<Cell, int[]> cellExternalIds = new HashMap<Cell, int[]>();
 
     private static void error(boolean pred, String msg) {
-        LayoutLib.error(pred, msg);
+        Job.error(pred, msg);
     }
 
     // Prevent anyone from instantiating HierarchyEnumerator.

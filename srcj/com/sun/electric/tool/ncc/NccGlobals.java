@@ -38,8 +38,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.netlist.NetObject;
@@ -50,6 +48,7 @@ import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
 import com.sun.electric.tool.user.ncc.NccGuiInfo;
+import com.sun.electric.tool.Job;
 
 /**
  * Generate non-recurring random integers
@@ -245,12 +244,13 @@ public class NccGlobals implements NccGlobalsReportable {
 	 * @param msg message to print when error occurs
 	 */
 	public void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 	/** Print a message and abort execution
 	 * @param msg message to print when error occurs
 	 */
-	public void error(String msg) {LayoutLib.error(true, msg);}
+	public void error(String msg) {
+        Job.error(true, msg);}
 	
 	/** Get the NCC options.
 	 */
@@ -288,7 +288,7 @@ public class NccGlobals implements NccGlobalsReportable {
 			int cktNdx = 0;
 			for (Iterator<Circuit> cit=er.getCircuits(); cit.hasNext(); cktNdx++) {
 				Circuit ckt = cit.next();
-				LayoutLib.error(ckt.numNetObjs()!=1, "not matched?");
+				Job.error(ckt.numNetObjs()!=1, "not matched?");
 				Wire w = (Wire) ckt.getNetObjs().next();
 				equivNets[cktNdx][wireNdx] = w.getNameProxy().getNetNameProxy();
 			}
@@ -312,7 +312,7 @@ public class NccGlobals implements NccGlobalsReportable {
 			int cktNdx = 0;
 			for (Iterator<Circuit> cit=er.getCircuits(); cit.hasNext(); cktNdx++) {
 				Circuit ckt = cit.next();
-				LayoutLib.error(ckt.numNetObjs()!=1, "not matched?");
+				Job.error(ckt.numNetObjs()!=1, "not matched?");
 				Part p = (Part) ckt.getNetObjs().next();
 				equivParts[cktNdx][partNdx] = p.getNameProxy().getNodableNameProxy();
 			}

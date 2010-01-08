@@ -23,6 +23,8 @@
 */
 package com.sun.electric.tool.generator.layout;
 
+import com.sun.electric.tool.Job;
+
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
@@ -100,7 +102,7 @@ public class ProjSettings {
 			        	 }
 			         }
 		         } catch (IllegalAccessException e) {
-		        	 LayoutLib.error(true, "Error accessing ProjPref field");
+		        	 Job.error(true, "Error accessing ProjPref field");
 		         }
 	         }
 		}

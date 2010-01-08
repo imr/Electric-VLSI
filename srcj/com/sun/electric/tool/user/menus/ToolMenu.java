@@ -50,14 +50,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import static com.sun.electric.database.text.ArrayIterator.i2i;
 import static com.sun.electric.database.text.ArrayIterator.i2al;
-import com.sun.electric.database.variable.DisplayedText;
-import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.EvalJavaBsh;
-import com.sun.electric.database.variable.EvalJython;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.*;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
@@ -121,11 +114,7 @@ import com.sun.electric.tool.sc.Place;
 import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.CompileVHDL;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.FillGenDialog;
 import com.sun.electric.tool.user.dialogs.LanguageScripts;
@@ -205,8 +194,11 @@ public class ToolMenu
                     DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
                     DRC.checkDRCHierarchically(dp, wnd.getCell(), wnd.getHighlightedEObjs(true, true),
                             wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP, false); }},
+                new EMenuItem("Add _Skip Annotation to Cell") { public void run() {
+                   DRC.makeDRCAnnotation(); }},
                 new EMenuItem("Check Area _Coverage") { public void run() {
-                    LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true, new LayerCoverageTool.LayerCoveragePreferences(false)); }},
+                    LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(),
+                        GeometryHandler.GHMode.ALGO_SWEEP, true, new LayerCoverageTool.LayerCoveragePreferences(false)); }},
                 new EMenuItem("_List Layer Coverage on Cell") { public void run() {
                     layerCoverageCommand(LayerCoverageTool.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); }},
 

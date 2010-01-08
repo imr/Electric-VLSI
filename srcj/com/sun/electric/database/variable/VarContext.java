@@ -29,8 +29,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -129,7 +128,7 @@ public class VarContext implements Serializable {
 
         public synchronized void put(CodeExpression ce, Object info, Object value) {
             EvalPair key = new EvalPair(ce, info);
-            LayoutLib.error(cache.containsKey(key), "duplicate keys in ValueCache?");
+            Job.error(cache.containsKey(key), "duplicate keys in ValueCache?");
             cache.put(key, value);
         }
     }

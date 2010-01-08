@@ -43,7 +43,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
@@ -163,7 +162,7 @@ public class SchemNamesToLay {
     private boolean reportNetNameConflicts(Network schNet, Network layNet,
     		                               Map<String,Network> layNmsToNets) {
     	String prefSchNm = schNet.getName();
-    	LayoutLib.error(isAutoGenName(prefSchNm), "missing preferred name");
+    	Job.error(isAutoGenName(prefSchNm), "missing preferred name");
     	boolean prefNameConflict = false;
     	for (String schNm : new For<String>(schNet.getNames())) {
     		if (isAutoGenName(schNm))  continue;

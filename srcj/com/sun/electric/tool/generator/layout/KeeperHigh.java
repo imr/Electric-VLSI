@@ -37,10 +37,11 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.gates.Inv;
 import com.sun.electric.tool.generator.layout.gates.Pms1;
+import com.sun.electric.tool.Job;
 
 public class KeeperHigh {
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	public static Cell makePart(Cell schem, VarContext context,

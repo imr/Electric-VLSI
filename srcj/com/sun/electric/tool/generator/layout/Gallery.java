@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 
 public class Gallery {
 	static final double PAGE_WIDTH = 1000;
@@ -46,7 +47,7 @@ public class Gallery {
 	private Library lib;
 
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 	ArrayList<Cell> readLayoutCells(Library lib) {
 		ArrayList<Cell> cells = new ArrayList<Cell>();

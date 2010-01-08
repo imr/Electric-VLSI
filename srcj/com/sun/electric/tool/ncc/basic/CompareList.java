@@ -31,7 +31,7 @@ import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Cell.CellGroup;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 /** A CompareList is a collection of Cells that are 
  * SUPPOSED to be topologically identical. NCC's job is
@@ -161,7 +161,7 @@ public class CompareList implements Iterable<CellContext> {
 			}
 		}
 
-		LayoutLib.error(compareSet.size()==0, "Cell not in its own group?");
+		Job.error(compareSet.size()==0, "Cell not in its own group?");
 
 		// make sure we have at least one cell from use1 and one from use2
 		if (!(used1 && used2)) return;
@@ -174,7 +174,7 @@ public class CompareList implements Iterable<CellContext> {
 		
 		safeToCheckSizes = safeToCompareSizes(cellContexts, use1, use2);
 		
-		LayoutLib.error(compareSet.size()<2, "nothing to compare?");
+		Job.error(compareSet.size()<2, "nothing to compare?");
 	}
 	/** printCells is useful for debugging
 	 */

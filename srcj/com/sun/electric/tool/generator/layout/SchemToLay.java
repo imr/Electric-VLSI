@@ -80,6 +80,7 @@ import com.sun.electric.tool.generator.layout.gates.Pms2;
 import com.sun.electric.tool.generator.layout.gates.Pms2_sy;
 import com.sun.electric.tool.generator.layout.gates.TieHi;
 import com.sun.electric.tool.generator.layout.gates.VertTrack;
+import com.sun.electric.tool.Job;
 
 public class SchemToLay {
     // ------------------------ private types ---------------------------------
@@ -341,7 +342,7 @@ public class SchemToLay {
 	static final PortFilter SKIP_WIRE_PORTINSTS = new SkipWirePortInsts();
 
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	private static double getNumericVal(Object val) {

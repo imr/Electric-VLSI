@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.awt.geom.Rectangle2D;
-
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -33,6 +31,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.generator.layout.TechType.MosInst;
+import com.sun.electric.tool.Job;
 
 /**
  * first cut at a folded transistor generator. Transistors are rotated 90
@@ -129,7 +128,7 @@ public abstract class FoldedMos {
 
 	// after rotating 90 degrees counter clock wise
 	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
+		Job.error(pred, msg);
 	}
 
 	private boolean isPmos() {

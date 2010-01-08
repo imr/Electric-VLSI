@@ -33,7 +33,7 @@ import java.util.Set;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NameProxy;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.Job;
 
 /* A data structure that parallels VarContext. A key difference is that 
  * NccContext has pointers from the root to the leaves while VarContext has
@@ -51,21 +51,21 @@ class NccContext implements Serializable {
 	public NccContext(VarContext vc) {context=vc;}
 	public void addChild(NccContext child) {
 		String name = child.context.getNodable().getName();
-		LayoutLib.error(nodableNameToChild.containsKey(name), 
+		Job.error(nodableNameToChild.containsKey(name),
 				        "2 nodables with same name?");
 		nodableNameToChild.put(name, child);
 	}
 	public void addNameProxyIndex(NameProxy np, int i) {
 		Integer bi = new Integer(i);
-		LayoutLib.error(objectIndices.contains(bi),
+		Job.error(objectIndices.contains(bi),
 				        "duplicate index?");
 		objectIndices.add(bi);
 		// Check invariant: All NameProxy's in the same NccContext are
 		// contained by the same parent Cell
-		LayoutLib.error(cell!=null && cell!=np.leafCell(),
+		Job.error(cell!=null && cell!=np.leafCell(),
 				        "NameProxy's in NccContext don't have same parent");
 		cell = np.leafCell();
-		LayoutLib.error(cell==null, "NameProxy with no parent Cell?");
+		Job.error(cell==null, "NameProxy with no parent Cell?");
 	}
 	public Iterator<Integer> getIndices() {return objectIndices.iterator();}
 	public NccContext findChild(String instNm) {

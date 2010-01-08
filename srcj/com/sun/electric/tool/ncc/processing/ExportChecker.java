@@ -34,7 +34,6 @@ import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -45,6 +44,7 @@ import com.sun.electric.tool.ncc.result.PortReport.PortReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.user.ncc.ExportMismatch;
+import com.sun.electric.tool.Job;
 
 /** The ExportChecker checks the Exports of the two Cells that are
  * supposed to be equivalent. NCC checks exports in two phases.
@@ -281,13 +281,13 @@ public class ExportChecker {
 	}
 
 	private Circuit getNthCircuit(EquivRecord er, int nth) {
-		LayoutLib.error(!er.isLeaf(), "only leaf EquivRecords have Circuits!");
+		Job.error(!er.isLeaf(), "only leaf EquivRecords have Circuits!");
 		Iterator<Circuit> it = er.getCircuits();
 		for (int i=0; i<nth; i++) {
-			LayoutLib.error(!it.hasNext(), "EquivRec has no Circuit at index: "+nth);
+			Job.error(!it.hasNext(), "EquivRec has no Circuit at index: "+nth);
 			it.next(); 
 		}
-		LayoutLib.error(!it.hasNext(), "EquivRec has no Circuit at index: "+nth);
+		Job.error(!it.hasNext(), "EquivRec has no Circuit at index: "+nth);
 		return it.next();
 	}
 
@@ -311,7 +311,7 @@ public class ExportChecker {
 		if (portOrWire instanceof Wire) {
 			return "network: "+((Wire)portOrWire).getName();
 		} else {
-			LayoutLib.error(!(portOrWire instanceof Port), "not a Wire?");
+			Job.error(!(portOrWire instanceof Port), "not a Wire?");
 			return "network with Exports: "+
 				   ((Port)portOrWire).exportNamesString();
 		}
