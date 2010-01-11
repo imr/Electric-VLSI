@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+BUG: (1/11/10, SMR) "Duplicate Cell" doesn't swap icons (Bug #2598).
+FIX: Fixed CellChangeJobs.DuplicateCell.doIt() to use CellIds.
+
 ************************* Version 8.11a: ******************************
 
 IMP/MAN: (01/08/10, GVG) Add DRC annotation to skip cell (Bug #2596)

@@ -1321,19 +1321,18 @@ public class CellChangeJobs
 			for(CellId oldCellId : newCells.keySet())
 			{
 				Cell newCell = newCells.get(oldCellId);
-                Cell oldCell = newCell.getDatabase().getCell(oldCellId);
 				if (!newCell.isSchematic()) continue;
 				List<NodeInst> replaceThese = new ArrayList<NodeInst>();
 				for (Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = it.next();
-					Cell replaceCell = newCells.get(ni.getProto());
+					Cell replaceCell = newCells.get(ni.getProto().getId());
 					if (replaceCell != null) replaceThese.add(ni);
 				}
 				for(NodeInst ni : replaceThese)
 				{
 					// replace old icon(s) in duplicated cell
-					Cell replaceCell = newCells.get(ni.getProto());
+					Cell replaceCell = newCells.get(ni.getProto().getId());
 					ni.replace(replaceCell, true, true);
 				}
 			}
