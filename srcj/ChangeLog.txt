@@ -4,8 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
-BUG/MAN: (01/11/10, GVG) Expection in SPICE with Poly1-Poly2 cap (lay) (Bug #2599)
-Missing port added. Technology.check() will report the error now.
+BUG/MAN: (01/11/10, GVG) Exception in SPICE with Poly1-Poly2 cap (lay) (Bug #2599)
+FIX: Missing port added. Technology.check() will report the error now.
 
 BUG: (1/11/10, SMR) Messages window not scrolled quickly enough (Bug #2575).
 FIX: Schedule scrolling for later.
