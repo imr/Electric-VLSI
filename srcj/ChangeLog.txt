@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+BUG/MAN: (01/11/10, GVG) Expection in SPICE with Poly1-Poly2 cap (lay) (Bug #2599)
+Missing port added. Technology.check() will report the error now.
+
 BUG: (1/11/10, SMR) Messages window not scrolled quickly enough (Bug #2575).
 FIX: Schedule scrolling for later.
 
@@ -11,6 +14,8 @@ IMP: (1/11/10, SMR) Fixed calls to Cell.copyNodeProto() (Bug #2587).
 
 BUG: (1/11/10, SMR) "Duplicate Cell" doesn't swap icons (Bug #2598).
 FIX: Fixed CellChangeJobs.DuplicateCell.doIt() to use CellIds.
+
+IMP/MAN: (01/08/10, GVG) Part of "More generic contacts geneted by TechEditorWizard" (Bug #)
 
 ************************* Version 8.11a: ******************************
 

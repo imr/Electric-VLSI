@@ -1719,7 +1719,17 @@
                 <lambdaBox klx="-5.0" khx="5.0" kly="-5.0" khy="5.0"/>
             </box>
         </nodeLayer>
-        <primitivePort name="metal-1-polysilicon-2">
+        <primitivePort name="a">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <!-- <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/> -->
+                <lambdaBox klx="-0.5" khx="0.5" kly="-0.5" khy="0.5"/>
+            </box>
+            <portArc>Polysilicon-1</portArc>
+            <portArc>Metal-1</portArc>
+        </primitivePort>
+        <primitivePort name="b">
             <portAngle primary="0" range="180"/>
             <portTopology>0</portTopology>
             <box>

@@ -4246,7 +4246,13 @@ public class Technology implements Comparable<Technology>, Serializable
                         System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +
     		        		" should connect to " + aFun + " because that layer is in the node");
         			}
-	        	} else if (fun.isFET())
+                } else if (fun.isCapacitor())
+                {
+                    if (np.getNumPorts() < 2)
+                        System.out.println("ERROR: Technology " + getTechName() + ", node " + np.getName() +
+    		        		" must have at least two ports if defined as capacitor");
+
+                } else if (fun.isFET())
 	        	{
 	        		// check validity of transistors
 	        		List<PrimitivePort> traPorts = new ArrayList<PrimitivePort>();

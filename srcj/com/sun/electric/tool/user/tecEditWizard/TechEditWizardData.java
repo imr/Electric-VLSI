@@ -143,14 +143,14 @@ public class TechEditWizardData
     private static class ContactNode
     {
         String layer;
-        WizardField overX; // overhang X value
-        WizardField overY; // overhang Y value
+        WizardField valueX; // overhang or size X value. Size value for cuts
+        WizardField valueY; // overhang or size Y value. Size value for cuts
 
-        ContactNode(String l, double overXV, String overXS, double overYV, String overYS)
+        ContactNode(String l, double valX, String nameX, double valY, String nameY)
         {
             layer = l;
-            overX = new WizardField(overXV, overXS);
-            overY = new WizardField(overYV, overYS);
+            valueX = new WizardField(valX, nameX);
+            valueY = new WizardField(valY, nameY);
         }
     }
     private static class Contact
@@ -167,8 +167,11 @@ public class TechEditWizardData
             layers = new ArrayList<ContactNode>();
         }
     }
-    private Map<String,List<Contact>> metalContacts;
-    private Map<String,List<Contact>> otherContacts;
+
+    private Map<String,List<Contact>> metalContacts = new HashMap<String,List<Contact>>();
+    private Map<String,List<Contact>> otherContacts = new HashMap<String,List<Contact>>(); 
+    private Map<String,List<Contact>> genericContacts = new HashMap<String,List<Contact>>();
+    private Map<String,List<Contact>> capacitors = new HashMap<String,List<Contact>>();
 
     private static class PaletteGroup
     {
@@ -241,6 +244,7 @@ public class TechEditWizardData
         boolean addArc = false;
         WizardField spacing, minimum;
         Layer.Function function = Layer.Function.ART; // ART is better default than UNKNOWN
+        PaletteGroup grp;  // to place extra elements for a given layer later in the palette
 
         LayerInfo(String n)
         {
@@ -437,10 +441,6 @@ public class TechEditWizardData
 		via_array_spacing = new WizardField[num_metal_layers-1];
 		via_overhang = new WizardField[num_metal_layers-1];
 		metal_antenna_ratio = new double[num_metal_layers];
-
-        metalContacts = new HashMap<String,List<Contact>>();
-        otherContacts = new HashMap<String,List<Contact>>();
-
         metal_layers = new LayerInfo[num_metal_layers];
 		via_layers = new LayerInfo[num_metal_layers-1];
 
@@ -750,11 +750,6 @@ public class TechEditWizardData
     {
         URL url = TextUtils.makeURLToFile(fileName);
 
-        // clean arrays first
-        metalContacts.clear();
-        otherContacts.clear();
-        extraLayers.clear();
-
         try
 		{
 			URLConnection urlCon = url.openConnection();
@@ -913,6 +908,10 @@ public class TechEditWizardData
 
                     if (varName.equalsIgnoreCase("metal_contacts_series")) fillContactSeries(varValue, metalContacts); else
                     if (varName.equalsIgnoreCase("contacts_series")) fillContactSeries(varValue, otherContacts); else
+                    // capacitors
+                    if (varName.equalsIgnoreCase("capacitors_series")) fillContactSeries(varValue, capacitors); else
+                    // more generic contacts that are not multicuts.
+                    if (varName.equalsIgnoreCase("nomulti_contacts_series")) fillContactSeries(varValue, genericContacts); else
                     // Special layers
                     if (varName.equalsIgnoreCase("extra_layers")) fillLayerSeries(varValue, extraLayers); else
                         
@@ -1197,7 +1196,7 @@ public class TechEditWizardData
     }
 
     // to get general contact
-    private void fillContactSeries(String str, Map<String,List<Contact>> contactMap)
+    private void fillContactSeries(String str, Map<String, List<Contact>> contactMap)
     {
         StringTokenizer parse = new StringTokenizer(str, "[]", false);
         List<ContactNode> nodeList = new ArrayList<ContactNode>();
@@ -1231,7 +1230,6 @@ public class TechEditWizardData
                     {
                         String l = n.nextToken();
                         layerNames.add(l);
-
                     }
                     assert (nodeList.size() == layerNames.size());
                     Contact cont = new Contact(prefix);
@@ -1239,8 +1237,9 @@ public class TechEditWizardData
                     {
                         String name = layerNames.get(i);
                         ContactNode tmp = nodeList.get(i);
-                        ContactNode node = new ContactNode(name,  tmp.overX.value,  tmp.overX.rule,
-                        tmp.overY.value,  tmp.overY.rule);
+                        ContactNode node = new ContactNode(name,
+                            tmp.valueX.value,  tmp.valueX.rule,
+                            tmp.valueY.value,  tmp.valueY.rule);
                         cont.layers.add(node);
                     }
 
@@ -1265,7 +1264,7 @@ public class TechEditWizardData
             }
             else
             {
-                // syntax: A(overX, overXS, overY, overYS)(Layer2, overX, overXS, overY, overYS)
+                // syntax: (overX, overXS, overY, overYS)(overX, overXS, overY, overYS)
                 // pair of layers found
                 StringTokenizer p = new StringTokenizer(value, "()", false);
 
@@ -1632,7 +1631,7 @@ public class TechEditWizardData
      */
     private Xml.PrimitiveNodeGroup makeXmlPrimitiveCon(List<Xml.PrimitiveNodeGroup> nodeGroups, String name,
                                                        PrimitiveNode.Function function, double sizeX, double sizeY,
-                                                       SizeOffset so, List<String> portNames, Xml.NodeLayer... list)
+                                                       SizeOffset so, List<String> portArcNames, Xml.NodeLayer... list)
     {
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
@@ -1643,8 +1642,35 @@ public class TechEditWizardData
             nodesList.add(lb);
         }
 
-        nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, -1, 0, 1, 0, -1, 0, 1, portNames));
+        nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, -1, 0, 1, 0, -1, 0, 1, portArcNames));
         return makeXmlPrimitive(nodeGroups, name + "-Con", function, sizeX, sizeY, 0, 0,
+                so, nodesList, nodePorts, null, false);
+    }
+
+    /**
+     * Method to creat the XML version of a PrimitiveNode representing a contact
+     * @return
+     */
+    private Xml.PrimitiveNodeGroup makeXmlCapacitor(List<Xml.PrimitiveNodeGroup> nodeGroups, String name,
+                                                    PrimitiveNode.Function function, double sizeX, double sizeY,
+                                                    SizeOffset so, List<String> portNames, List<String> portArcNames,
+                                                    Xml.NodeLayer... list)
+    {
+        List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
+        List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
+
+        for (Xml.NodeLayer lb : list)
+        {
+            if (lb == null) continue; // in case the pwell layer off
+            nodesList.add(lb);
+        }
+
+        for (String port : portNames)
+        {
+            nodePorts.add(makeXmlPrimitivePort(port, 0, 180, 0, null,
+                0, -1, 0, 1, 0, -1, 0, 1, portArcNames));
+        }
+        return makeXmlPrimitive(nodeGroups, name + "-Capacitor", function, sizeX, sizeY, 0, 0,
                 so, nodesList, nodePorts, null, false);
     }
 
@@ -2069,7 +2095,7 @@ public class TechEditWizardData
                                            double extLayer1, Xml.Layer layer1,
                                            double extLayer2, Xml.Layer layer2)
     {
-        List<String> portNames = new ArrayList<String>();
+        List<String> portNames = new ArrayList<String>(2);
 
         portNames.add(layer1.name);
         portNames.add(layer2.name);
@@ -2077,7 +2103,7 @@ public class TechEditWizardData
         // align contact
         double hlaLong1 = DBMath.round(contSize/2 + extLayer1);
         double hlaLong2 = DBMath.round(contSize/2 + extLayer2);
-        double longD = DBMath.isGreaterThan(extLayer1, extLayer2) ? extLayer1 : extLayer2;
+//        double longD = DBMath.isGreaterThan(extLayer1, extLayer2) ? extLayer1 : extLayer2;
 
         // long square contact. Standard ones
         return (makeXmlPrimitiveCon(nodeGroups, composeName, PrimitiveNode.Function.CONTACT, -1, -1,
@@ -2417,13 +2443,13 @@ public class TechEditWizardData
 
             if (info.addArc)
             {
-                PaletteGroup grp = new PaletteGroup();
-                grp.addArc(makeXmlArc(t, info.name, ArcProto.Function.UNKNOWN, 0,
+                info.grp = new PaletteGroup();
+                info.grp.addArc(makeXmlArc(t, info.name, ArcProto.Function.UNKNOWN, 0,
                     makeXmlArcLayer(layer, wf)));
                 double hla = scaledValue(info.width / 2);
-                grp.addPinOrResistor(makeXmlPrimitivePin(t, info.name, hla, null,
+                info.grp.addPinOrResistor(makeXmlPrimitivePin(t, info.name, hla, null,
                     null, makeXmlNodeLayer(hla, hla, hla, hla, layer, Poly.Type.CROSSED)), null);
-                extraPaletteList.add(grp);
+                extraPaletteList.add(info.grp);
             }
 
             // Adding 3D info
@@ -2432,6 +2458,9 @@ public class TechEditWizardData
             if (info.thickness > -1) // -1 is the default valuu
                 layer.thick3D = info.thickness;
         }
+
+        // Generic contacts which might be based on extraLayers
+        addGenericContacts(t, genericContacts, extraPaletteList);
 
         // Palette elements should be added at the end so they will appear in groups
         PaletteGroup[] metalPalette = new PaletteGroup[num_metal_layers];
@@ -2508,15 +2537,12 @@ public class TechEditWizardData
                 double spacing = scaledValue(via_inline_spacing[via-1].value);
                 double arraySpacing = scaledValue(via_array_spacing[via-1].value);
                 Xml.Layer metalConLayer = viaLayers.get(via-1);
-                double h1x = scaledValue(via_size[via-1].value /2 + verticalLayer.overX.value);
-                double h1y = scaledValue(via_size[via-1].value /2 + verticalLayer.overY.value);
-                double h2x = scaledValue(via_size[via-1].value /2 + horizontalLayer.overX.value);
-                double h2y = scaledValue(via_size[via-1].value /2 + horizontalLayer.overY.value);
-
-//                double longX = scaledValue(DBMath.isGreaterThan(verticalLayer.overX.v, horizontalLayer.overX.v) ? verticalLayer.overX.v : horizontalLayer.overX.v);
-//                double longY = scaledValue(DBMath.isGreaterThan(verticalLayer.overY.v, horizontalLayer.overY.v) ? verticalLayer.overY.v : horizontalLayer.overY.v);
-                double longX = scaledValue(Math.abs(verticalLayer.overX.value - horizontalLayer.overX.value));
-                double longY = scaledValue(Math.abs(verticalLayer.overY.value - horizontalLayer.overY.value));
+                double h1x = scaledValue(via_size[via-1].value /2 + verticalLayer.valueX.value);
+                double h1y = scaledValue(via_size[via-1].value /2 + verticalLayer.valueY.value);
+                double h2x = scaledValue(via_size[via-1].value /2 + horizontalLayer.valueX.value);
+                double h2y = scaledValue(via_size[via-1].value /2 + horizontalLayer.valueY.value);
+                double longX = scaledValue(Math.abs(verticalLayer.valueX.value - horizontalLayer.valueX.value));
+                double longY = scaledValue(Math.abs(verticalLayer.valueY.value - horizontalLayer.valueY.value));
                 portNames.clear();
                 portNames.add(lx.name);
                 portNames.add(ly.name);
@@ -2784,7 +2810,7 @@ public class TechEditWizardData
             null, makeXmlNodeLayer(hla, hla, hla, hla, poly2Layer, Poly.Type.CROSSED)), null);
     }
 
-    private void createAnalogElements(Xml.Technology t, List<PaletteGroup> polysGroup)
+    private void createAnalogElements(Xml.Technology t, List<Xml.Layer> metalLayers, List<PaletteGroup> polysGroup)
     {
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>();
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
@@ -2796,6 +2822,15 @@ public class TechEditWizardData
         Xml.Layer polyConLayer = t.findLayer(poly_layer.name+"-Cut");
 
         PaletteGroup g = polysGroup.get(1); // second group in polys
+
+
+        /*************************************/
+        // Analog Capacitors
+        /*************************************/
+        for (Map.Entry<String,List<Contact>> e : capacitors.entrySet())
+        {
+            addContactsOrCapacitors(t, e.getValue(), metalLayers, null, null, g, true);
+        }
 
         /*************************************/
         // Analog Hi Poly Resistors
@@ -3293,7 +3328,7 @@ public class TechEditWizardData
             null, makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED)), null);
 
         if (getSecondPolyFlag()) createSecondPolyElements(t, layerMap, polysGroup);
-        if (getAnalogFlag()) createAnalogElements(t, polysGroup);
+        if (getAnalogFlag()) createAnalogElements(t, metalLayers, polysGroup);
 
         Xml.Layer m1Layer = metalLayers.get(0);
         // poly contact
@@ -3317,7 +3352,7 @@ public class TechEditWizardData
                 System.out.println("Not via 0 layer");
         }
 
-                /**************************** N/P-Diff Nodes/Arcs/Group ***********************************************/
+        /**************************** N/P-Diff Nodes/Arcs/Group ***********************************************/
         PaletteGroup[] diffPalette = new PaletteGroup[2];
         diffPalette[0] = new PaletteGroup(); diffPalette[1] = new PaletteGroup();
 
@@ -3338,134 +3373,135 @@ public class TechEditWizardData
         double[] sels = {psel, nsel};
         Xml.Layer[] diffLayers = {diffPLayer, diffNLayer};
         Xml.Layer[] plusLayers = {pplusLayer, nplusLayer};
-        Xml.Layer pol2yLayer = t.findLayer(poly2_layer.name);
+//        Xml.Layer pol2yLayer = t.findLayer(poly2_layer.name);
 
         // Active and poly contacts. They are defined first that the Full types
         for (Map.Entry<String,List<Contact>> e : otherContacts.entrySet())
         {
-            // generic contacts
-            String name = null;
-
-            for (Contact c : e.getValue())
-            {
-                Xml.Layer ly = null, lx = null;
-                Xml.Layer conLay = diffConLayer;
-                PaletteGroup g = null;
-                ContactNode metalLayer = c.layers.get(0);
-                ContactNode otherLayer = c.layers.get(1);
-                String extraName = "";
-
-                if (!TextUtils.isANumber(metalLayer.layer)) // horizontal must be!
-                {
-                    assert (TextUtils.isANumber(otherLayer.layer));
-                    metalLayer = c.layers.get(1);
-                    otherLayer = c.layers.get(0);
-                }
-
-                int m1 = Integer.valueOf(metalLayer.layer);
-                ly = metalLayers.get(m1-1);
-                String layerName = otherLayer.layer;
-                if (layerName.equals(diffLayers[0].name))
-                {
-                    lx = diffLayers[0];
-                    g = diffPalette[0];
-                    extraName = "P";
-                }
-                else if (layerName.equals(diffLayers[1].name))
-                {
-                    lx = diffLayers[1];
-                    g = diffPalette[1];
-                    extraName = "N";
-                }
-                else if (layerName.equals(polyLayer.name))
-                {
-                    lx = polyLayer;
-                    conLay = polyConLayer;
-                    g = polyGroup;
-                }
-                else if (getSecondPolyFlag() && layerName.equals(pol2yLayer.name))
-                {
-                    lx = pol2yLayer;
-                    conLay = polyConLayer;
-                    g = polyGroup;
-                }
-                else
-                    assert(false); // it should not happen
-                double h1x = scaledValue(contact_size.value /2 + metalLayer.overX.value);
-                double h1y = scaledValue(contact_size.value /2 + metalLayer.overY.value);
-                double h2x = scaledValue(contact_size.value /2 + otherLayer.overX.value);
-                double h2y = scaledValue(contact_size.value /2 + otherLayer.overY.value);
-                double longX = (Math.abs(metalLayer.overX.value - otherLayer.overX.value));
-                double longY = (Math.abs(metalLayer.overY.value - otherLayer.overY.value));
-
-                PrimitiveNode.Function func = PrimitiveNode.Function.CONTACT;
-                Xml.NodeLayer[] nodes = new Xml.NodeLayer[c.layers.size() + 1]; // all plus cut
-                int count = 0;
-
-                // cut
-                nodes[count++] = makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing);
-                // metal
-                nodes[count++] = makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED); // layer1
-                // active or poly
-                nodes[count++] = makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED); // layer2
-
-                Xml.Layer otherLayerPort = lx;
-
-                for (int i = 2; i < c.layers.size(); i++) // rest of layers. Either select or well.
-                {
-                    ContactNode node = c.layers.get(i);
-                    Xml.Layer lz = t.findLayer(node.layer);
-
-                    if ((lz == pwellLayer && lx == diffLayers[0]) ||
-                        (lz == nwellLayer && lx == diffLayers[1])) // well contact
-                    {
-                        otherLayerPort = lz;
-                        if (lz == pwellLayer)
-                        {
-                            g = wellPalette[0];
-                            func = getWellContactFunction(Technology.P_TYPE);
-                            extraName = "PW"; // W for well
-                        }
-                        else // nwell
-                        {
-                            g = wellPalette[1];
-                            func = getWellContactFunction(Technology.N_TYPE);
-                            extraName = "NW"; // W for well
-                        }
-                    }
-                    if (pSubstrateProcess && lz == pwellLayer)
-                        continue; // skip this layer
-
-                    double h3x = scaledValue(contact_size.value /2 + node.overX.value);
-                    double h3y = scaledValue(contact_size.value /2 + node.overY.value);
-                    nodes[count++] = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED);
-
-                    // This assumes no well is defined
-                    double longXLocal = (Math.abs(node.overX.value - otherLayer.overX.value));
-                    double longYLocal = (Math.abs(node.overY.value - otherLayer.overY.value));
-                    if (DBMath.isGreaterThan(longXLocal, longX))
-                        longX = longXLocal;
-                    if (DBMath.isGreaterThan(longYLocal, longY))
-                        longY = longYLocal;
-                }
-                longX = scaledValue(longX);
-                longY = scaledValue(longY);
-
-                // prt names now after determing wheter is a diff or well contact
-                portNames.clear();
-//                if (!pSubstrateProcess || otherLayerPort == pwellLayer)
-                    portNames.add(otherLayerPort.name);
-                portNames.add(ly.name); // always should represent the metal1
-                name = ly.name + "-" + otherLayerPort.name;
-
-
-                // some primitives might not have prefix. "-" should not be in the prefix to avoid
-                // being displayed in the palette
-                String p = (c.prefix == null || c.prefix.equals("")) ? "" : c.prefix + "-";
-                g.addElement(makeXmlPrimitiveCon(t.nodeGroups, p + name, func, -1, -1,
-                    new SizeOffset(longX, longX, longY, longY), portNames,
-                    nodes), p + extraName); // contact
-            }
+            addContactsOrCapacitors(t, e.getValue(), metalLayers, diffPalette, wellPalette, polyGroup, false);
+//            // generic contacts
+//            String name = null;
+//
+//            for (Contact c : e.getValue())
+//            {
+//                Xml.Layer ly = null, lx = null;
+//                Xml.Layer conLay = diffConLayer;
+//                PaletteGroup g = null;
+//                ContactNode metalLayer = c.layers.get(0);
+//                ContactNode otherLayer = c.layers.get(1);
+//                String extraName = "";
+//
+//                if (!TextUtils.isANumber(metalLayer.layer)) // horizontal must be!
+//                {
+//                    assert (TextUtils.isANumber(otherLayer.layer));
+//                    metalLayer = c.layers.get(1);
+//                    otherLayer = c.layers.get(0);
+//                }
+//
+//                int m1 = Integer.valueOf(metalLayer.layer);
+//                ly = metalLayers.get(m1-1);
+//                String layerName = otherLayer.layer;
+//                if (layerName.equals(diffLayers[0].name))
+//                {
+//                    lx = diffLayers[0];
+//                    g = diffPalette[0];
+//                    extraName = "P";
+//                }
+//                else if (layerName.equals(diffLayers[1].name))
+//                {
+//                    lx = diffLayers[1];
+//                    g = diffPalette[1];
+//                    extraName = "N";
+//                }
+//                else if (layerName.equals(polyLayer.name))
+//                {
+//                    lx = polyLayer;
+//                    conLay = polyConLayer;
+//                    g = polyGroup;
+//                }
+//                else if (getSecondPolyFlag() && layerName.equals(pol2yLayer.name))
+//                {
+//                    lx = pol2yLayer;
+//                    conLay = polyConLayer;
+//                    g = polyGroup;
+//                }
+//                else
+//                    assert(false); // it should not happen
+//                double h1x = scaledValue(contact_size.value /2 + metalLayer.valueX.value);
+//                double h1y = scaledValue(contact_size.value /2 + metalLayer.valueY.value);
+//                double h2x = scaledValue(contact_size.value /2 + otherLayer.valueX.value);
+//                double h2y = scaledValue(contact_size.value /2 + otherLayer.valueY.value);
+//                double longX = (Math.abs(metalLayer.valueX.value - otherLayer.valueX.value));
+//                double longY = (Math.abs(metalLayer.valueY.value - otherLayer.valueY.value));
+//
+//                PrimitiveNode.Function func = PrimitiveNode.Function.CONTACT;
+//                Xml.NodeLayer[] nodes = new Xml.NodeLayer[c.layers.size() + 1]; // all plus cut
+//                int count = 0;
+//
+//                // cut
+//                nodes[count++] = makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing);
+//                // metal
+//                nodes[count++] = makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED); // layer1
+//                // active or poly
+//                nodes[count++] = makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED); // layer2
+//
+//                Xml.Layer otherLayerPort = lx;
+//
+//                for (int i = 2; i < c.layers.size(); i++) // rest of layers. Either select or well.
+//                {
+//                    ContactNode node = c.layers.get(i);
+//                    Xml.Layer lz = t.findLayer(node.layer);
+//
+//                    if ((lz == pwellLayer && lx == diffLayers[0]) ||
+//                        (lz == nwellLayer && lx == diffLayers[1])) // well contact
+//                    {
+//                        otherLayerPort = lz;
+//                        if (lz == pwellLayer)
+//                        {
+//                            g = wellPalette[0];
+//                            func = getWellContactFunction(Technology.P_TYPE);
+//                            extraName = "PW"; // W for well
+//                        }
+//                        else // nwell
+//                        {
+//                            g = wellPalette[1];
+//                            func = getWellContactFunction(Technology.N_TYPE);
+//                            extraName = "NW"; // W for well
+//                        }
+//                    }
+//                    if (pSubstrateProcess && lz == pwellLayer)
+//                        continue; // skip this layer
+//
+//                    double h3x = scaledValue(contact_size.value /2 + node.valueX.value);
+//                    double h3y = scaledValue(contact_size.value /2 + node.valueY.value);
+//                    nodes[count++] = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED);
+//
+//                    // This assumes no well is defined
+//                    double longXLocal = (Math.abs(node.valueX.value - otherLayer.valueX.value));
+//                    double longYLocal = (Math.abs(node.valueY.value - otherLayer.valueY.value));
+//                    if (DBMath.isGreaterThan(longXLocal, longX))
+//                        longX = longXLocal;
+//                    if (DBMath.isGreaterThan(longYLocal, longY))
+//                        longY = longYLocal;
+//                }
+//                longX = scaledValue(longX);
+//                longY = scaledValue(longY);
+//
+//                // prt names now after determing wheter is a diff or well contact
+//                portNames.clear();
+////                if (!pSubstrateProcess || otherLayerPort == pwellLayer)
+//                    portNames.add(otherLayerPort.name);
+//                portNames.add(ly.name); // always should represent the metal1
+//                name = ly.name + "-" + otherLayerPort.name;
+//
+//
+//                // some primitives might not have prefix. "-" should not be in the prefix to avoid
+//                // being displayed in the palette
+//                String p = (c.prefix == null || c.prefix.equals("")) ? "" : c.prefix + "-";
+//                g.addElement(makeXmlPrimitiveCon(t.nodeGroups, p + name, func, -1, -1,
+//                    new SizeOffset(longX, longX, longY, longY), portNames,
+//                    nodes), p + extraName); // contact
+//            }
         }
 
         // ndiff/pdiff contact
@@ -4200,6 +4236,223 @@ public class TechEditWizardData
         {
             makeLayerRuleMinWid(t, w, poly_width);
             makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, poly_spacing.rule, poly_spacing.value);
+        }
+    }
+
+    private void addContactsOrCapacitors(Xml.Technology t, List<Contact> contacts, List<Xml.Layer> metalLayers,
+                                         PaletteGroup[] diffPalette, PaletteGroup[] wellPalette,
+                                         PaletteGroup polyGroup, boolean capacitor)
+    {
+        List<String> portArcNames = new ArrayList<String>(0);
+        List<String> portNames = new ArrayList<String>(2);
+
+        // Typical port names in capacitors
+        portNames.add("a");
+        portNames.add("b");
+
+        // generic contacts
+        String name = null;
+        Xml.Layer polyLayer = t.findLayer(poly_layer.name);
+        Xml.Layer polyConLayer = t.findLayer("Poly-Cut");
+        Xml.Layer diffConLayer = t.findLayer(diff_layer.name+"-Cut");
+        Xml.Layer nwellLayer = t.findLayer(nwell_layer.name);
+        Xml.Layer pwellLayer = t.findLayer("P-Well");
+        Xml.Layer diffNLayer = t.findLayer("N-"+ diff_layer.name);
+        Xml.Layer diffPLayer = t.findLayer("P-"+ diff_layer.name);
+        Xml.Layer[] diffLayers = {diffPLayer, diffNLayer};
+        Xml.Layer pol2yLayer = t.findLayer(poly2_layer.name);
+        double contSize = scaledValue(contact_size.value);
+        double contSpacing = scaledValue(contact_spacing.value);
+        double contArraySpacing = scaledValue(contact_array_spacing.value);
+
+        for (Contact c : contacts)
+        {
+            Xml.Layer ly = null, lx = null;
+            Xml.Layer conLay = diffConLayer;
+            PaletteGroup g = null;
+            ContactNode metalLayer = c.layers.get(0);
+            ContactNode otherLayer = c.layers.get(1);
+            String extraName = "";
+
+            if (!TextUtils.isANumber(metalLayer.layer)) // horizontal must be!
+            {
+                assert (TextUtils.isANumber(otherLayer.layer));
+                metalLayer = c.layers.get(1);
+                otherLayer = c.layers.get(0);
+            }
+
+            int m1 = Integer.valueOf(metalLayer.layer);
+            ly = metalLayers.get(m1-1);
+            String layerName = otherLayer.layer;
+            if (layerName.equals(diffLayers[0].name))
+            {
+                lx = diffLayers[0];
+                g = diffPalette[0];
+                extraName = "P";
+            }
+            else if (layerName.equals(diffLayers[1].name))
+            {
+                lx = diffLayers[1];
+                g = diffPalette[1];
+                extraName = "N";
+            }
+            else if (layerName.equals(polyLayer.name))
+            {
+                lx = polyLayer;
+                conLay = polyConLayer;
+                g = polyGroup;
+            }
+            else if (getSecondPolyFlag() && layerName.equals(pol2yLayer.name))
+            {
+                lx = pol2yLayer;
+                conLay = polyConLayer;
+                g = polyGroup;
+            }
+            else
+                assert(false); // it should not happen
+            double h1x = scaledValue(contact_size.value /2 + metalLayer.valueX.value);
+            double h1y = scaledValue(contact_size.value /2 + metalLayer.valueY.value);
+            double h2x = scaledValue(contact_size.value /2 + otherLayer.valueX.value);
+            double h2y = scaledValue(contact_size.value /2 + otherLayer.valueY.value);
+            double longX = (Math.abs(metalLayer.valueX.value - otherLayer.valueX.value));
+            double longY = (Math.abs(metalLayer.valueY.value - otherLayer.valueY.value));
+
+            PrimitiveNode.Function func = (!capacitor) ? PrimitiveNode.Function.CONTACT :
+                PrimitiveNode.Function.CAPAC;
+            Xml.NodeLayer[] nodes = new Xml.NodeLayer[c.layers.size() + 1]; // all plus cut
+            int count = 0;
+
+            // cut
+            nodes[count++] = makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing);
+            // metal
+            nodes[count++] = makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED); // layer1
+            // active or poly
+            nodes[count++] = makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED); // layer2
+
+            Xml.Layer otherLayerPort = lx;
+
+            for (int i = 2; i < c.layers.size(); i++) // rest of layers. Either select or well.
+            {
+                ContactNode node = c.layers.get(i);
+                Xml.Layer lz = t.findLayer(node.layer);
+
+                if ((lz == pwellLayer && lx == diffLayers[0]) ||
+                    (lz == nwellLayer && lx == diffLayers[1])) // well contact
+                {
+                    otherLayerPort = lz;
+                    if (lz == pwellLayer)
+                    {
+                        g = wellPalette[0];
+                        func = getWellContactFunction(Technology.P_TYPE);
+                        extraName = "PW"; // W for well
+                    }
+                    else // nwell
+                    {
+                        g = wellPalette[1];
+                        func = getWellContactFunction(Technology.N_TYPE);
+                        extraName = "NW"; // W for well
+                    }
+                }
+                if (pSubstrateProcess && lz == pwellLayer)
+                    continue; // skip this layer
+
+                double h3x = scaledValue(contact_size.value /2 + node.valueX.value);
+                double h3y = scaledValue(contact_size.value /2 + node.valueY.value);
+                nodes[count++] = makeXmlNodeLayer(h3x, h3x, h3y, h3y, lz, Poly.Type.FILLED);
+
+                // This assumes no well is defined
+                double longXLocal = (Math.abs(node.valueX.value - otherLayer.valueX.value));
+                double longYLocal = (Math.abs(node.valueY.value - otherLayer.valueY.value));
+                if (DBMath.isGreaterThan(longXLocal, longX))
+                    longX = longXLocal;
+                if (DBMath.isGreaterThan(longYLocal, longY))
+                    longY = longYLocal;
+            }
+            longX = scaledValue(longX);
+            longY = scaledValue(longY);
+
+            // arc prt names now after determing wheter is a diff or well contact
+            portArcNames.clear();
+//                if (!pSubstrateProcess || otherLayerPort == pwellLayer)
+            portArcNames.add(otherLayerPort.name);
+            portArcNames.add(ly.name); // always should represent the metal1
+            name = ly.name + "-" + otherLayerPort.name;
+
+            // some primitives might not have prefix. "-" should not be in the prefix to avoid
+            // being displayed in the palette
+            String p = (c.prefix == null || c.prefix.equals("")) ? "" : c.prefix + "-";
+            Xml.PrimitiveNodeGroup png = (!capacitor) ?
+                makeXmlPrimitiveCon(t.nodeGroups, p + name, func, -1, -1,
+                    new SizeOffset(longX, longX, longY, longY), portArcNames, nodes) :    // contact
+                makeXmlCapacitor(t.nodeGroups, p + name, func, -1, -1,
+                    new SizeOffset(longX, longX, longY, longY), portNames, portArcNames, nodes);    // capacitor
+            g.addElement(png, p + extraName);
+        }
+    }
+    /***************************************************************************************************
+     * More Flexible Contacts, no multicuts
+     ***************************************************************************************************/
+    private void addGenericContacts(Xml.Technology t, Map<String,List<Contact>> contacts, List<PaletteGroup> extraPaletteList)
+    {
+        List<String> portNames = new ArrayList<String>(0);
+
+        for (Map.Entry<String,List<Contact>> e : contacts.entrySet())
+        {
+            // generic contacts
+            for (Contact c : e.getValue())
+            {
+                // Assuming is that the last layer is the cut layer
+                assert(c.layers.size() == 3);
+                ContactNode aLayer = c.layers.get(0);
+                ContactNode bLayer = c.layers.get(1);
+                ContactNode cutLayer = c.layers.get(2);
+                // Look for existing palette elemnent to place the contact in.
+                PaletteGroup grp = null;
+                for (ContactNode n : c.layers)
+                {
+                    for (LayerInfo info : extraLayers)
+                    {
+                        if (info.name.equals(n.layer))
+                        {
+                            grp = info.grp; break; // found
+                        }
+                        if (grp != null) break; // found
+                    }
+                    if (grp != null) break; // found
+                }
+                if (grp == null)
+                {
+                    grp = new PaletteGroup();
+                    extraPaletteList.add(grp);
+                }
+                Xml.Layer la = t.findLayer(aLayer.layer);
+                Xml.Layer lb = t.findLayer(bLayer.layer);
+                String name = la.name + "-" + lb.name;
+                double metalContSizeX = scaledValue(cutLayer.valueX.value/2);
+                double metalContSizeY = scaledValue(cutLayer.valueY.value/2);
+                Xml.Layer metalConLayer = t.findLayer(cutLayer.layer);
+                double h1x = scaledValue(cutLayer.valueX.value /2 + aLayer.valueX.value);
+                double h1y = scaledValue(cutLayer.valueY.value /2 + aLayer.valueY.value);
+                double h2x = scaledValue(cutLayer.valueX.value /2 + bLayer.valueX.value);
+                double h2y = scaledValue(cutLayer.valueY.value /2 + bLayer.valueY.value);
+                double longX = scaledValue(Math.abs(aLayer.valueX.value - bLayer.valueX.value));
+                double longY = scaledValue(Math.abs(aLayer.valueY.value - bLayer.valueY.value));
+                portNames.clear();
+                portNames.add(lb.name);
+                portNames.add(la.name);
+
+                // some primitives might not have prefix. "-" should not be in the prefix to avoid
+                // being displayed in the palette
+                String p = (c.prefix == null || c.prefix.equals("")) ? "" : c.prefix + "-";
+                grp.addElement(makeXmlPrimitiveCon(t.nodeGroups, p + name, PrimitiveNode.Function.CONTACT, -1, -1,
+                    /*new SizeOffset(longX, longX, longY, longY)*/null,
+                    portNames,
+                    makeXmlNodeLayer(h1x, h1x, h1y, h1y, la, Poly.Type.FILLED), // layer1
+                    makeXmlNodeLayer(h2x, h2x, h2y, h2y, lb, Poly.Type.FILLED), // layer2
+                    makeXmlNodeLayer(metalContSizeX, metalContSizeX, metalContSizeY, metalContSizeY,
+                        metalConLayer, Poly.Type.FILLED)), // cut
+                    c.prefix); // contact
+            }
         }
     }
 
