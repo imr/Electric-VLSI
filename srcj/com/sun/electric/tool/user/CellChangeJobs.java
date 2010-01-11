@@ -1214,6 +1214,7 @@ public class CellChangeJobs
 	{
 		private Cell cell;
 		private Cell newVersion;
+        private Map<CellId,Cell> newCells = new HashMap<CellId,Cell>();
 
 		public NewCellVersion(Cell cell)
 		{
@@ -1226,6 +1227,7 @@ public class CellChangeJobs
 		{
 			newVersion = cell.makeNewVersion();
 			if (newVersion == null) return false;
+			newCells.put(cell.getId(), newVersion);
 			fieldVariableChanged("newVersion");
 			return true;
 		}
@@ -1233,6 +1235,9 @@ public class CellChangeJobs
 		public void terminateOK()
 		{
 			if (newVersion == null) return;
+
+			// update cell expansion information
+            copyExpandedStatus(newCells);
 
 			// change the display of old versions to the new one
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
@@ -1342,6 +1347,7 @@ public class CellChangeJobs
         @Override
 		public void terminateOK()
 		{
+        	// update cell expansion information
             copyExpandedStatus(newCells);
 
 			// change the display of old cell to the new one
@@ -1374,14 +1380,17 @@ public class CellChangeJobs
      * Copy expanded status in client database after some cells were copied or moved in server database
      * @param newCells map from old to new cells.
      */
-    public static void copyExpandedStatus(Map<CellId,Cell> newCells) {
-        for (Map.Entry<CellId,Cell> e: newCells.entrySet()) {
+    public static void copyExpandedStatus(Map<CellId,Cell> newCells)
+    {
+        for (Map.Entry<CellId,Cell> e: newCells.entrySet())
+        {
             CellId oldCellId = e.getKey();
             Cell newCell = e.getValue();
             Cell oldCell = newCell.getDatabase().getCell(oldCellId);
             if (oldCell == null) continue;
 
-            for (Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); ) {
+            for (Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
+            {
                 NodeInst oldNi = it.next();
                 if (!oldNi.isCellInstance()) continue;
                 NodeInst newNi = newCell.findNode(oldNi.getName());

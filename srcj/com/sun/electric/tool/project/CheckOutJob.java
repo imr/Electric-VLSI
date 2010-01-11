@@ -28,10 +28,12 @@ package com.sun.electric.tool.project;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -50,6 +53,7 @@ public class CheckOutJob extends Job
 	private ProjectDB pdb;
 	private DisplayedCells displayedCells;
 	private boolean autoCheckout;
+    private Map<CellId,Cell> newCells = new HashMap<CellId,Cell>();
 
 	/**
 	 * Method to check the currently edited cell out of the repository.
@@ -151,7 +155,10 @@ public class CheckOutJob extends Job
 
     public void terminateOK()
     {
-    	// take the new version of the project database from the server
+    	// update cell expansion information
+        CellChangeJobs.copyExpandedStatus(newCells);
+
+        // take the new version of the project database from the server
     	Project.projectDB = pdb;
 
     	// redisplay windows to show current versions
@@ -421,13 +428,14 @@ public class CheckOutJob extends Job
 	 * @param oldVers the old Cell.
 	 * @return the new Cell (null on error).
 	 */
-	private static Cell bumpVersion(Cell oldVers)
+	private Cell bumpVersion(Cell oldVers)
 		throws JobException
 	{
 		Library lib = oldVers.getLibrary();
 		Cell newVers = Cell.copyNodeProto(oldVers, lib, oldVers.getName(), true);
 		if (newVers == null)
 			throw new JobException("Error making new version of cell " + oldVers.describe(false));
+		newCells.put(oldVers.getId(), newVers);
 
 		// replace former usage with new version
 		if (Project.useNewestVersion(oldVers, newVers))		// CHANGES DATABASE
@@ -441,7 +449,7 @@ public class CheckOutJob extends Job
 	 * Method to update the project databases to account for cell replacements.
 	 * @param newCells a map from old cells to new cells.
 	 */
-	private static void bumpRecordVersions(ProjectDB pdb, Cell oldVers, Cell newVers)
+	private void bumpRecordVersions(ProjectDB pdb, Cell oldVers, Cell newVers)
 	{
 		// find the old ProjectCell
 		ProjectLibrary pl = pdb.findProjectLibrary(oldVers.getLibrary());
@@ -462,7 +470,7 @@ public class CheckOutJob extends Job
 	 * @param cellsToCheckOut the List of Cells to check out.
 	 * Throws JobException on error.
 	 */
-	private static void preCheckOutCells(ProjectDB pdb, List<Cell> cellsToCheckOut)
+	private void preCheckOutCells(ProjectDB pdb, List<Cell> cellsToCheckOut)
 		throws JobException
 	{
 		// examine each cell being checked out

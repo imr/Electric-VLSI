@@ -700,10 +700,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * as the old name, a new version is made.
      * @param useExisting true to use existing subcell instances if they exist in the destination Library.
      * @return the new Cell in the destination Library.
+     * Note that when copying cells, it is necessary to copy the expanded status of cell instances
+     * inside of the copied cell.  This must be done during the Job's terminateOK method.
+     * See examples that call CellChangeJobs.copyExpandedStatus()
      */
-    // TODO this method used to copy expansion status. Now it doesn't because this method is called on server side
-    // and expansion status lives on client side. It would be good to look through all usages of this methods and
-    // call CellChangeJobs.copyExpansionStatus in Job's terminateOK methods.
     public static Cell copyNodeProto(Cell fromCell, Library toLib, String toName, boolean useExisting) {
         return copyNodeProto(fromCell, toLib, toName, useExisting, null);
     }

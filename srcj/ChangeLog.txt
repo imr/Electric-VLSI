@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+IMP: (1/11/10, SMR) Fixed calls to Cell.copyNodeProto() (Bug #2587).
+
 BUG: (1/11/10, SMR) "Duplicate Cell" doesn't swap icons (Bug #2598).
 FIX: Fixed CellChangeJobs.DuplicateCell.doIt() to use CellIds.
 
