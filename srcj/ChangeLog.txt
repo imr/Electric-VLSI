@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+BUG: (1/11/10, SMR) Messages window not scrolled quickly enough (Bug #2575).
+FIX: Schedule scrolling for later.
+
 IMP: (1/11/10, SMR) Fixed calls to Cell.copyNodeProto() (Bug #2587).
 
 BUG: (1/11/10, SMR) "Duplicate Cell" doesn't swap icons (Bug #2598).

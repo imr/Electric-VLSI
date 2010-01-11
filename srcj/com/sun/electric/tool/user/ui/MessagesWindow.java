@@ -219,7 +219,10 @@ public class MessagesWindow
 	public void appendString(String str)
 	{
 		info.append(str);
-		info.setCaretPosition(info.getDocument().getLength());
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() { info.setCaretPosition(info.getDocument().getLength()); }
+		});
+//		info.setCaretPosition(info.getDocument().getLength());
 
 //		try
 //		{
