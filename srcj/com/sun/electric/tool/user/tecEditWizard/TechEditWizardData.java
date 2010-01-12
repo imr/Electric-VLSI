@@ -2426,7 +2426,8 @@ public class TechEditWizardData
             }
             else if (info.graphicsColor != null)
             {
-                graph = new EGraphics(true, true, info.graphicsOutline, 0,
+                boolean displayPatterned = (info.graphicsOutline != EGraphics.Outline.NOPAT);
+                graph = new EGraphics(displayPatterned, displayPatterned, info.graphicsOutline, 0,
                     info.graphicsColor.getRed(), info.graphicsColor.getGreen(), info.graphicsColor.getBlue(),
                     1, true, info.graphicsPattern);
             }
@@ -4438,8 +4439,11 @@ public class TechEditWizardData
                 double longX = scaledValue(Math.abs(aLayer.valueX.value - bLayer.valueX.value));
                 double longY = scaledValue(Math.abs(aLayer.valueY.value - bLayer.valueY.value));
                 portNames.clear();
-                portNames.add(lb.name);
-                portNames.add(la.name);
+                // only when it is zero or positive. Negative means no layer arc
+                if (bLayer.valueX.value >= 0)
+                    portNames.add(lb.name);
+                if (aLayer.valueX.value >= 0)
+                    portNames.add(la.name);
 
                 // some primitives might not have prefix. "-" should not be in the prefix to avoid
                 // being displayed in the palette
