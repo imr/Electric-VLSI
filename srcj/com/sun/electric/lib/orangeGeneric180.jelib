@@ -1,18 +1,13 @@
 # header information:
-HorangeGeneric180|8.10k|USER_electrical_units()I70464
+HorangeGeneric180|8.09a|USER_electrical_units()I70464
 
 # Views:
 Vicon|ic
 Vschematic|sch
 
 # Tools:
-Ouser|DefaultTechnology()Scmos90|SchematicTechnology()Scmos90
-Oio|GDSOutputConvertsBracketsInExports()BF|GDSWritesExportPins()BT
-OSTA|GlobalSDCCommands()S"\n### 4 GHz clock setup\ncreate_clock -period 0.250 -name clk -waveform \"0 0.125\" clk\nset_clock_uncertainty -setup 0.010 clk\nset_clock_uncertainty -hold 0.010 clk\nset_propagated_clock clk\nset_clock_transition -rise 0.030 clk\nset_clock_transition -fall 0.030 clk\n#set_driving_cell -lib_cell inv_X008_0 clk\n\n### remove scan path from timing\nset_false_path -through */so\nset_false_path -from {sin}\nset_false_path -from {scanEn}\nset_false_path -to {sout}\n"
 
 # Technologies:
-Tcmos90|"GDS(ST)LayerForPad-FrameINcmos90"()S43|"GDS(TSMC)LayerForPad-FrameINcmos90"()S43
-Tmocmos|SelectedFoundryFormocmos()STSMC
 
 # Cell NMOS4f;1{ic}
 CNMOS4f;1{ic}||artwork|1021415734000|1046880615000|E|ATTR_Delay(D5G1;HNPX3.25;Y-2.25;)I100|ATTR_L(D5G1;HNPX3.25;Y-0.25;)I2|ATTR_W(D6G1;HNPX1.75;Y0.75;)I3|ATTR_drain_shared(D5G1;HPX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;HPX0.5;Y-2.5;)I0|prototype_center()I[0,0]
@@ -477,6 +472,22 @@ Awire|net@5|||1800|pmos4p@0|b|0|8|pwr@0||6|8
 Ed||D5G2;|conn@2|y|B
 Eg||D5G2;|conn@1|a|I
 Es||D5G2;|conn@0|y|B
+X
+
+# Cell anOrangeGallery;1{sch}
+CanOrangeGallery;1{sch}||schematic|1263074922138|1263221285099|
+INMOS4f;1{ic}|NMOS4f@0||-12|-18|||D0G4;|ATTR_Delay(D5G1;NPX3.25;Y-2.25;)I100|ATTR_L(D5G1;NPX3.25;Y-0.25;)I2|ATTR_W(D6G1;NPX1.75;Y0.75;)I3|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
+INMOS4fwk;1{ic}|NMOS4fwk@0||0|-18|||D0G4;|ATTR_Delay(D5G1;NPX3.5;Y-2;)I100|ATTR_L(D5G1;NPX3.5;)I2|ATTR_W(D6G1;NPX2;Y1;)I3|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
+INMOSf;1{ic}|NMOSf@0||-12|-6|||D0G4;|ATTR_Delay(D5G1;NPX3.5;Y-2;)I100|ATTR_L(D5G1;NPX3.5;)I2|ATTR_W(D6G1;NPX2;Y1;)I3|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
+INMOSfwk;1{ic}|NMOSfwk@0||0|-6|||D0G4;|ATTR_Delay(D5G1;NPX3.5;Y-2;)I100|ATTR_L(D5G1;NPX3.5;)I2|ATTR_W(D6G1;NPX2;Y1;)I3|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
+IPMOS4f;1{ic}|PMOS4f@0||-12|18|||D0G4;|ATTR_Delay(D5G1;NPX3.5;Y-2;)I100|ATTR_L(D5G1;NPX3.5;)I2|ATTR_W(D6G1;NPX2;Y1;)I3|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+IPMOS4fwk;1{ic}|PMOS4fwk@0||0|18|||D0G4;|ATTR_Delay(D5G1;NPX3.5;Y-2;)I100|ATTR_L(D5G1;NPX3.5;)I2|ATTR_W(D6G1;NPX2;Y1;)I3|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+IPMOSf;1{ic}|PMOSf@0||-12|6|||D0G4;|ATTR_Delay(D5G1;NPX3.5;Y-2;)I100|ATTR_L(D5G1;NPX3.5;)I2|ATTR_W(D6G1;NPX2;Y1;)I3|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+IPMOSfwk;1{ic}|PMOSfwk@0||0|6|||D0G4;|ATTR_Delay(D5G1;NPX3.5;Y-2;)I100|ATTR_L(D5G1;NPX3.5;)I2|ATTR_W(D6G1;NPX2;Y1;)I3|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+Ngeneric:Facet-Center|art@0||0|0||||AV
+Ngeneric:Invisible-Pin|pin@0||-1.5|25|||||ART_message(D5G4;)SanOrangeGallery
+Iwire180;1{ic}|wire180@0||12|6|||D0G4;|ATTR_L(D5G1;PUD)I100|ATTR_LEWIRE(P)I1|ATTR_layer(D5G1;NPY-1;)I1|ATTR_width(D5G1;NPY-2;)I3
+Iwire;1{ic}|wire@0||12|-6|||D5G4;|ATTR_C(D5G1;NPUCY-2.5;)S0.020f|ATTR_L(D5G1;PUD)I100|ATTR_R(D5G1;NPURY-1.5;)S15m
 X
 
 # Cell wire;1{ic}

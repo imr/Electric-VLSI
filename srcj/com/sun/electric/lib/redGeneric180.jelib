@@ -1,24 +1,16 @@
 # header information:
-HredGeneric180|8.10k|USER_electrical_units()I70464
+HredGeneric180|8.10|USER_electrical_units()I70464
 
 # Views:
 Vicon|ic
 Vschematic|sch
 
 # External Libraries:
-
 LorangeGeneric180|orangeGeneric180
 
-Lspiceparts|spiceparts
-
 # Tools:
-Ouser|DefaultTechnology()Scmos90|SchematicTechnology()Scmos90
-Oio|GDSOutputConvertsBracketsInExports()BF|GDSWritesExportPins()BT
-OSTA|GlobalSDCCommands()S"\n### 4 GHz clock setup\ncreate_clock -period 0.250 -name clk -waveform \"0 0.125\" clk\nset_clock_uncertainty -setup 0.010 clk\nset_clock_uncertainty -hold 0.010 clk\nset_propagated_clock clk\nset_clock_transition -rise 0.030 clk\nset_clock_transition -fall 0.030 clk\n#set_driving_cell -lib_cell inv_X008_0 clk\n\n### remove scan path from timing\nset_false_path -through */so\nset_false_path -from {sin}\nset_false_path -from {scanEn}\nset_false_path -to {sout}\n"
 
 # Technologies:
-Tcmos90|"GDS(ST)LayerForPad-FrameINcmos90"()S43|"GDS(TSMC)LayerForPad-FrameINcmos90"()S43
-Tmocmos|SelectedFoundryFormocmos()STSMC
 
 # Cell NMOS;1{ic}
 CNMOS;1{ic}||artwork|1021415734000|1045501743000|E|ATTR_Delay(D5G1;HNPX3.5;Y-2;)I100|ATTR_X(D5G1.5;HNPX3.5;Y0.5;)I1|ATTR_drain_shared(D5G1;HPX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;HPX0.5;Y-2.5;)I0|prototype_center()I[0,0]
@@ -355,88 +347,6 @@ Eg||D5G2;|conn@1|a|I
 Es||D5G2;|conn@2|y|B
 X
 
-# Cell hifidely;1{ic}
-Chifidely;1{ic}||artwork|1046374423000|1046374607000|E|prototype_center()I[0,0]
-Ngeneric:Facet-Center|art@0||0|0||||AV
-NThick-Circle|art@1||3.5|0|2|2|RRR||ART_color()I10|ART_degrees()F[0.0,3.1415927]
-NPin|pin@0||2|1|1|1||
-NPin|pin@1||2|-1|1|1||
-NPin|pin@2||3|-1|1|1||
-NPin|pin@3||3|1|1|1||
-NPin|pin@4||3.5|-1|1|1||
-NPin|pin@5||-4|-1|1|1||
-NPin|pin@6||-4|1|1|1||
-NPin|pin@7||3.5|1|1|1||
-Nschematic:Bus_Pin|pin@8||4.5|0||||
-Nschematic:Bus_Pin|pin@9||-4|0||||
-AThicker|net@0|||FS2700|pin@1||2|-1|pin@0||2|1|ART_color()I10
-AThicker|net@1|||FS2700|pin@2||3|-1|pin@3||3|1|ART_color()I10
-AThicker|net@2|||FS0|pin@4||3.5|-1|pin@5||-4|-1|ART_color()I10
-AThicker|net@3|||FS2700|pin@5||-4|-1|pin@6||-4|1|ART_color()I10
-AThicker|net@4|||FS1800|pin@6||-4|1|pin@7||3.5|1|ART_color()I10
-Ein||D5G2;|pin@9||I
-Eout||D5G2;|pin@8||O
-X
-
-# Cell hifidely;1{sch}
-Chifidely;1{sch}||schematic|1046374013000|1117667893107||prototype_center()I[0,0]
-Ispiceparts:Transmission;1{ic}|Transmis@0||-8|-1|||D0G4;|ATTR_Delay(D5G0.5;NPY-1;)S500ps|ATTR_z0(D5G0.5;NPY1;)I50
-Ispiceparts:VCVS;1{ic}|VCVS@0||11|-1|||D0G4;|ATTR_Gain(D5G0.5;NPY1;)I1|ATTR_Maximum(D5G0.5;NPY-1;)S10V|ATTR_Minimum(D5G0.5;NP)S-10V
-Ispiceparts:VCVS;1{ic}|VCVS@1||-21|-1|||D0G4;|ATTR_Gain(D5G0.5;NPY1;)I1|ATTR_Maximum(D5G0.5;NPY-1;)S10V|ATTR_Minimum(D5G0.5;NP)S-10V
-Ngeneric:Facet-Center|art@0||0|0||||AV
-NOff-Page|conn@0||20|1||||
-NOff-Page|conn@1||-35.5|3||||
-NGround|gnd@0||20|-9||||
-NGround|gnd@1||-31.5|-9||||
-NGround|gnd@2||1.5|-9||||
-NGround|gnd@3||-14|-9||||
-Ihifidely;1{ic}|hifidely@0||16.5|13.5|||D0G4;
-NWire_Pin|pin@0||-28|1||||
-NWire_Pin|pin@1||-28|3||||
-NWire_Pin|pin@3||-31.5|3||||
-NWire_Pin|pin@5||20|-3||||
-NWire_Pin|pin@6||1.5|2.75||||
-NWire_Pin|pin@8||4|2.75||||
-NWire_Pin|pin@9||-1|2.75||||
-NWire_Pin|pin@24||-31.5|-3||||
-NWire_Pin|pin@25||-14|-3||||
-NWire_Pin|pin@26||4|1||||
-NWire_Pin|pin@27||-1|1||||
-NWire_Pin|pin@28||1.5|-3||||
-Ngeneric:Invisible-Pin|pin@29||-12|17|||||ART_message(D5G5;)Shifidelay
-Ngeneric:Invisible-Pin|pin@30||-13|11.5|||||ART_message(D5G2;)Sideal delay for spice simulation
-NResistor|res@0||-31.5|0|||R||SCHEM_resistance(D5G1;)I1000000
-NResistor|res@1||1.5|0|||R||SCHEM_resistance(D5G1;)I50
-Awire|net@1|||2700|pin@0||-28|1|pin@1||-28|3
-Awire|net@2|||0|pin@1||-28|3|pin@3||-31.5|3
-Awire|net@5|||0|pin@3||-31.5|3|conn@1|y|-33.5|3
-Awire|net@11|||900|pin@5||20|-3|gnd@0||20|-7
-Awire|net@13|||900|pin@6||1.5|2.75|res@1|b|1.5|2
-Awire|net@14|||0|pin@8||4|2.75|pin@6||1.5|2.75
-Awire|net@15|||0|pin@6||1.5|2.75|pin@9||-1|2.75
-Awire|net@24|||0|Transmis@0|a|-13|1|VCVS@1|x|-16|1
-Awire|net@25|||1800|VCVS@1|y|-16|-3|pin@25||-14|-3
-Awire|net@26|||1800|pin@28||1.5|-3|VCVS@0|b|6|-3
-Awire|net@28|||0|conn@0|a|18|1|VCVS@0|x|16|1
-Awire|net@29|||0|pin@5||20|-3|VCVS@0|y|16|-3
-Awire|net@30|||1800|pin@0||-28|1|VCVS@1|a|-26|1
-Awire|net@31|||2700|res@0|b|-31.5|2|pin@3||-31.5|3
-Awire|net@32|||2700|gnd@1||-31.5|-7|pin@24||-31.5|-3
-Awire|net@33|||900|pin@28||1.5|-3|gnd@2||1.5|-7
-Awire|net@34|||2700|pin@24||-31.5|-3|res@0|a|-31.5|-2
-Awire|net@35|||0|VCVS@1|b|-26|-3|pin@24||-31.5|-3
-Awire|net@36|||1800|pin@25||-14|-3|Transmis@0|b|-13|-3
-Awire|net@38|||900|pin@8||4|2.75|pin@26||4|1
-Awire|net@39|||1800|pin@26||4|1|VCVS@0|a|6|1
-Awire|net@40|||900|pin@9||-1|2.75|pin@27||-1|1
-Awire|net@41|||0|pin@27||-1|1|Transmis@0|x|-3|1
-Awire|net@42|||900|res@1|a|1.5|-2|pin@28||1.5|-3
-Awire|net@43|||1800|Transmis@0|y|-3|-3|pin@28||1.5|-3
-Awire|net@44|||2700|gnd@3||-14|-7|pin@25||-14|-3
-Ein||D5G2;|conn@1|y|I
-Eout||D5G2;|conn@0|y|O
-X
-
 # Cell inv;1{ic}
 Cinv;1{ic}||artwork|1021415734000|1044914909000|E|ATTR_Delay(D5G1;HNPX2;Y-2;)I100|ATTR_X(D5G1.5;HNPX1.5;Y2;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -457,7 +367,7 @@ Eout||D5G1;|pin@4||O
 X
 
 # Cell inv;1{sch}
-Cinv;1{sch}||schematic|1021415734000|1060030088000||ATTR_Delay(D5G1;HNPX-12;Y-5;)I100|ATTR_X(D5G1;HNPX-12;Y-4;)I1|ATTR_drive0(D5G1;HNPTX-12;Y-6;)Sstrong0|ATTR_drive1(D5G1;HNPTX-12;Y-7;)Sstrong1|ATTR_verilog_template(D5G1;NTX24.5;Y-11;)Snot ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(in));|prototype_center()I[0,0]
+Cinv;1{sch}||schematic|1021415734000|1263085358400||ATTR_Delay(D5G1;HNPX-12;Y-5;)I100|ATTR_X(D5G1;HNPX-12;Y-4;)I1|ATTR_drive0(D5G1;HNPTX-12;Y-6;)Sstrong0|ATTR_drive1(D5G1;HNPTX-12;Y-7;)Sstrong1|ATTR_verilog_template(D5G1;NTX24.5;Y-11;)Snot ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(in));|prototype_center()I[0,0]
 INMOS;1{ic}|NMOS@0||0|-5|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
 IPMOS;1{ic}|PMOS@0||0|6|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -465,6 +375,7 @@ NOff-Page|conn@0||19|0||||
 NOff-Page|conn@1||-17.5|0||||
 NGround|gnd@0||0|-12||||
 Iinv;1{ic}|inv@0||25|13|||D0G4;|ATTR_Delay(D5G1;NPX2;Y-2;)I100|ATTR_X(D5G1.5;NPX1.5;Y2;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Iinvn;1{ic}|invI@0||25|7|||D0G4;|ATTR_Delay(D5G1;NPX2;Y-2;)I100|ATTR_X(D5G1.5;NPX1.5;Y2;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 NWire_Pin|pin@0||-4|0||||
 NWire_Pin|pin@1||0|0||||
 Ngeneric:Invisible-Pin|pin@2||0|16.5|||||ART_message(D5G2;)S[P to N width ratio is 2 to 1]
@@ -1028,7 +939,7 @@ Eout||D5G1;|pin@6||O
 X
 
 # Cell invHT;1{sch}
-CinvHT;1{sch}||schematic|1021415734000|1084347213000||ATTR_Delay(D5G1;HNPX-12;Y-5.5;)I100|ATTR_X(D5G1;HNPX-12;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-12;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-12;Y-7.5;)Sstrong1|ATTR_verilog_template(D5G1;NTX25.5;Y-15;)Snot ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(in));|prototype_center()I[0,0]
+CinvHT;1{sch}||schematic|1021415734000|1263136863181||ATTR_Delay(D5G1;HNPX-12;Y-5.5;)I100|ATTR_X(D5G1;HNPX-12;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-12;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-12;Y-7.5;)Sstrong1|ATTR_verilog_template(D5G1;NTX25.5;Y-15;)Snot ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(in));|prototype_center()I[0,0]
 INMOS;1{ic}|NMOS@0||0|-6|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
 IPMOS;1{ic}|PMOS@0||0|6|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X*2.0|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -1036,6 +947,7 @@ NOff-Page|conn@0||-11|0||||
 NOff-Page|conn@1||8|0||||
 NGround|gnd@0||0|-12.5||||
 IinvHT;1{ic}|invHT@0||16|10.5|||D0G4;|ATTR_Delay(D5G1;NPX2;Y-2;)I100|ATTR_X(D5G1.5;NPX1.5;Y2;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+IinvHTn;1{ic}|invHTn@0||16|4|||D0G4;|ATTR_Delay(D5G1;NPX2;Y-2;)I100|ATTR_X(D5G1.5;NPX1.5;Y2;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Ngeneric:Invisible-Pin|pin@0||26.5|-10|||||ART_message(D5G2;)S[X is drive strength,P drive strength is twice N strength]
 Ngeneric:Invisible-Pin|pin@1||1|17|||||ART_message(D5G2;)S[P to N width ratio is 4 to 1]
 NWire_Pin|pin@2||-4|0||||
@@ -1057,6 +969,26 @@ Awire|net@8|||2700|pin@2||-4|0|pin@4||-4|6
 Awire|net@9|||0|conn@1|a|6|0|pin@5||0|0
 Ein||D5G2;|conn@0|a|I
 Eout||D5G2;|conn@1|y|O
+X
+
+# Cell invHTn;1{ic}
+CinvHTn;1{ic}|invHT|artwork|1021415734000|1263136852373|E|ATTR_Delay(D5G1;HNPX-12;Y-5.5;)I100|ATTR_X(D5G1;HNPX-12;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-12;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-12;Y-7.5;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOpened-Thicker-Polygon|art@1||-0.25|0|0.5|1|||ART_color()I10|trace()V[-0.25/-0.5,-0.25/0.5,-0.25/0,0.25/0,0.25/0.5,0.25/-0.5]
+NThick-Circle|art@2||-2|0|1|1|||ART_color()I10
+NPin|pin@0||1.5|0|1|1||
+NPin|pin@1||2.5|0|1|1||
+NPin|pin@2||1.5|0||||
+NPin|pin@3||-1.5|2|1|1||
+NPin|pin@4||-1.5|-2|1|1||
+Nschematic:Bus_Pin|pin@5||-2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@6||2.5|0|-2|-2||
+AThicker|net@0|||FS0|pin@1||2.5|0|pin@2||1.5|0|ART_color()I10
+AThicker|net@1|||FS2700|pin@4||-1.5|-2|pin@3||-1.5|2|ART_color()I10
+AThicker|net@2|||FS337|pin@0||1.5|0|pin@4||-1.5|-2|ART_color()I10
+AThicker|net@3|||FS3263|pin@0||1.5|0|pin@3||-1.5|2|ART_color()I10
+Ein||D5G1;|pin@5||I
+Eout||D5G1;|pin@6||O
 X
 
 # Cell invK;1{ic}
@@ -1184,7 +1116,7 @@ Eout||D5G1;|pin@0||O
 X
 
 # Cell invLT;1{sch}
-CinvLT;1{sch}||schematic|1021415734000|1060030654000||ATTR_Delay(D5G1;HNPX-12;Y-5;)I100|ATTR_X(D5G1;HNPX-12;Y-4;)I1|ATTR_drive0(D5G1;HNPTX-12;Y-6;)Sstrong0|ATTR_drive1(D5G1;HNPTX-12;Y-7;)Sstrong1|ATTR_verilog_template(D5G1;NTX23;Y-13;)Snot ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(in));|prototype_center()I[0,0]
+CinvLT;1{sch}||schematic|1021415734000|1263135982515||ATTR_Delay(D5G1;HNPX-12;Y-5;)I100|ATTR_X(D5G1;HNPX-12;Y-4;)I1|ATTR_drive0(D5G1;HNPTX-12;Y-6;)Sstrong0|ATTR_drive1(D5G1;HNPTX-12;Y-7;)Sstrong1|ATTR_verilog_template(D5G1;NTX23;Y-13;)Snot ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(in));|prototype_center()I[0,0]
 INMOS;1{ic}|NMOS@0||0|-6|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X*2.0|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
 IPMOS;1{ic}|PMOS@0||0|6|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -1192,6 +1124,7 @@ NOff-Page|conn@0||11|0||||
 NOff-Page|conn@1||-11.5|0||||
 NGround|gnd@0||0|-12.5||||
 IinvLT;1{ic}|invLT@0||16|10.5|||D0G4;|ATTR_Delay(D5G1;NPX2;Y-2;)I100|ATTR_X(D5G1.5;NPX1.5;Y2;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+IinvLTn;1{ic}|invLTn@0||16|4.5|||D0G4;|ATTR_Delay(D5G1;NPX2;Y-2;)I100|ATTR_X(D5G1.5;NPX1.5;Y2;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 NWire_Pin|pin@0||-4|0||||
 NWire_Pin|pin@1||0|0||||
 Ngeneric:Invisible-Pin|pin@2||-1|24|||||ART_message(D5G6;)S[invLT]
@@ -1213,6 +1146,26 @@ Awire|net@8|||2700|gnd@0||0|-10.5|NMOS@0|s|0|-8
 Awire|net@9|||1800|pin@5||-4|-6|NMOS@0|g|-3|-6
 Ein||D5G2;|conn@1|a|I
 Eout||D5G2;|conn@0|y|O
+X
+
+# Cell invLTn;1{ic}
+CinvLTn;1{ic}|invLT|artwork|1021415734000|1263135971538|E|ATTR_Delay(D5G1;HNPX-12;Y-5;)I100|ATTR_X(D5G1;HNPX-12;Y-4;)I1|ATTR_drive0(D5G1;HNPTX-12;Y-6;)Sstrong0|ATTR_drive1(D5G1;HNPTX-12;Y-7;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2|0|1|1|||ART_color()I10
+NOpened-Thicker-Polygon|art@2||-0.25|0|0.5|1|||ART_color()I10|trace()V[-0.25/0.5,-0.25/-0.5,0.25/-0.5]
+Nschematic:Bus_Pin|pin@0||2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@1||-2.5|0|-2|-2||
+NPin|pin@2||-1.5|-2|1|1||
+NPin|pin@3||-1.5|2|1|1||
+NPin|pin@4||1.5|0||||
+NPin|pin@5||2.5|0|1|1||
+NPin|pin@6||1.5|0|1|1||
+AThicker|net@0|||FS3263|pin@6||1.5|0|pin@3||-1.5|2|ART_color()I10
+AThicker|net@1|||FS337|pin@6||1.5|0|pin@2||-1.5|-2|ART_color()I10
+AThicker|net@2|||FS2700|pin@2||-1.5|-2|pin@3||-1.5|2|ART_color()I10
+AThicker|net@3|||FS0|pin@5||2.5|0|pin@4||1.5|0|ART_color()I10
+Ein||D5G1;|pin@1||I
+Eout||D5G1;|pin@0||O
 X
 
 # Cell invV;1{ic}
@@ -1372,6 +1325,25 @@ Ein||D5G2;|conn@0|a|I
 Eout||D5G2;|conn@1|y|O
 X
 
+# Cell invn;1{ic}
+Cinvn;1{ic}|inv|artwork|1021415734000|1263085377660|E|ATTR_Delay(D5G1;HNPX-12;Y-5;)I100|ATTR_X(D5G1;HNPX-12;Y-4;)I1|ATTR_drive0(D5G1;HNPTX-12;Y-6;)Sstrong0|ATTR_drive1(D5G1;HNPTX-12;Y-7;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2|0|1|1|||ART_color()I10
+NPin|pin@0||1.5|0|1|1||
+Nschematic:Bus_Pin|pin@1||-2.5|0|-2|-2||
+NPin|pin@2||2.5|0|1|1||
+NPin|pin@3||1.5|0||||
+Nschematic:Bus_Pin|pin@4||2.5|0|-2|-2||
+NPin|pin@5||-1.5|2|1|1||
+NPin|pin@6||-1.5|-2|1|1||
+AThicker|net@0|||FS3263|pin@0||1.5|0|pin@5||-1.5|2|ART_color()I10
+AThicker|net@1|||FS337|pin@0||1.5|0|pin@6||-1.5|-2|ART_color()I10
+AThicker|net@2|||FS0|pin@2||2.5|0|pin@3||1.5|0|ART_color()I10
+AThicker|net@3|||FS2700|pin@6||-1.5|-2|pin@5||-1.5|2|ART_color()I10
+Ein||D5G1;|pin@1||I
+Eout||D5G1;|pin@4||O
+X
+
 # Cell mullerC;1{ic}
 CmullerC;1{ic}||artwork|1021415734000|1055458855000|E|ATTR_Delay(D5G1;HNPX2.5;Y-3;)I100|ATTR_X(D5G1.5;HNPX2.5;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -1403,12 +1375,13 @@ Eout||D5G1;|pin@7||O
 X
 
 # Cell mullerC;1{sch}
-CmullerC;1{sch}||schematic|1021415734000|1084377264000||ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|prototype_center()I[0,0]
+CmullerC;1{sch}||schematic|1021415734000|1263088794030||ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
 NOff-Page|conn@0||-19|0||||
 NOff-Page|conn@1||15.5|-5|||RR|
 NOff-Page|conn@2||15.5|0||||
 ImullerC;1{ic}|mullerC@0||26.5|16.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+ImullerCn;1{ic}|mullerCn@0||26|9|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Inms2;1{ic}|nms2@0||0|-9|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-2.25;Y1.5;)S@X
 NWire_Pin|pin@0||-6.5|0||||
 Ngeneric:Invisible-Pin|pin@1||23|-14|||||ART_message(D5G2;)S[X is drive strength,Pull-up and pull-down have the same strength]
@@ -1466,12 +1439,13 @@ Eout||D5G1;|pin@5||O
 X
 
 # Cell mullerC_sy;1{sch}
-CmullerC_sy;1{sch}||schematic|1021415734000|1084377287000||ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|prototype_center()I[0,0]
+CmullerC_sy;1{sch}||schematic|1021415734000|1263086578899||ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
 NOff-Page|conn@0||15.5|0||||
 NOff-Page|conn@1||15.5|-5|||RR|
 NOff-Page|conn@2||-19|0||||
 ImullerC_sy;1{ic}|mullerC_@0||26.5|16.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+ImullerCn_sy;1{ic}|mullerCn@0||26.5|8.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Inms2_sy;1{ic}|nms2_sy@0||0|-9|||D0G4;|ATTR_Delay(D5G1;NOJPX5.5;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-3.75;Y2.5;)S@X
 NWire_Pin|pin@0||0|0||||
 NWire_Pin|pin@1||-6.5|-9||||
@@ -1499,6 +1473,59 @@ Awire|net@11|||0|conn@0|a|13.5|0|pin@0||0|0
 Eina||D5G2;|conn@2|a|I
 Einb||D5G2;|conn@1|a|I
 Eout||D5G2;|conn@0|y|O
+X
+
+# Cell mullerCn;1{ic}
+CmullerCn;1{ic}|mullerC|artwork|1021415734000|1263088784791|E|ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOpened-Thicker-Polygon|art@1||-0.12|0|0.75|1.25|||ART_color()I10|trace()V[0.375/-0.625,-0.375/-0.625,-0.375/0.625,0.375/0.625]
+NThick-Circle|art@2||-0.5|0|4|4|RRR||ART_color()I10|ART_degrees()F[0.0,3.1415927]
+NThick-Circle|art@3||-2|1|1|1|||ART_color()I10
+NThick-Circle|art@4||-2|-1|1|1|||ART_color()I10
+NPin|pin@0||-0.25|-2|1|1||
+NPin|pin@1||-1.5|-0.75|1|1||
+Nschematic:Bus_Pin|pin@2||-2.5|-1|-2|-2||
+NPin|pin@5||-0.5|2|1|1||
+Nschematic:Bus_Pin|pin@6||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@8||-1.5|2|1|1||
+NPin|pin@9||-1.5|-2|1|1||
+NPin|pin@10||-0.5|-2|1|1||
+NPin|pin@11||1.5|0||||
+NPin|pin@12||2.5|0|1|1||
+AThicker|net@0|||FS3150|pin@0||-0.25|-2|pin@1||-1.5|-0.75|ART_color()I10
+AThicker|net@2|||FS0|pin@5||-0.5|2|pin@8||-1.5|2|ART_color()I10
+AThicker|net@3|||FS2700|pin@9||-1.5|-2|pin@8||-1.5|2|ART_color()I10
+AThicker|net@4|||FS0|pin@10||-0.5|-2|pin@9||-1.5|-2|ART_color()I10
+AThicker|net@5|||FS0|pin@12||2.5|0|pin@11||1.5|0|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Eout||D5G1;|pin@7||O
+X
+
+# Cell mullerCn_sy;1{ic}
+CmullerCn_sy;1{ic}|mullerC_sy|artwork|1021415734000|1263086569753|E|ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2|-1|1|1|||ART_color()I10
+NThick-Circle|art@2||-0.5|0|4|4|RRR||ART_color()I10|ART_degrees()F[0.0,3.1415927]
+NOpened-Thicker-Polygon|art@3||-0.12|0|0.75|1.25|||ART_color()I10|trace()V[0.375/-0.625,-0.375/-0.625,-0.375/0.625,0.375/0.625]
+NThick-Circle|art@4||-2|1|1|1|||ART_color()I10
+NPin|pin@2||-0.5|-2|1|1||
+NPin|pin@3||-1.5|-2|1|1||
+NPin|pin@4||-1.5|2|1|1||
+Nschematic:Bus_Pin|pin@5||2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@6||-2.5|1|-2|-2||
+NPin|pin@7||-0.5|2|1|1||
+NPin|pin@8||1.5|0||||
+NPin|pin@9||2.5|0|1|1||
+Nschematic:Bus_Pin|pin@10||-2.5|-1|-2|-2||
+AThicker|net@1|||FS0|pin@2||-0.5|-2|pin@3||-1.5|-2|ART_color()I10
+AThicker|net@2|||FS2700|pin@3||-1.5|-2|pin@4||-1.5|2|ART_color()I10
+AThicker|net@3|||FS0|pin@7||-0.5|2|pin@4||-1.5|2|ART_color()I10
+AThicker|net@4|||FS0|pin@9||2.5|0|pin@8||1.5|0|ART_color()I10
+Eina||D5G1;|pin@10||I
+Einb||D5G1;|pin@6||I
+Eout||D5G1;|pin@5||O
 X
 
 # Cell mux21_tri;1{ic}
@@ -1539,7 +1566,7 @@ Esel||D5G1;|pin@6||I
 X
 
 # Cell mux21_tri;1{sch}
-Cmux21_tri;1{sch}||schematic|1092081747000|1092155956000||ATTR_Delay(D5G1;HNPX-20;Y-11.5;)I100|ATTR_X(D5G1;HNPX-20;Y-10;)I1|prototype_center()I[0,0]
+Cmux21_tri;1{sch}||schematic|1092081747000|1263151263113||ATTR_Delay(D5G1;HNPX-20;Y-11.5;)I100|ATTR_X(D5G1;HNPX-20;Y-10;)I1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
 NOff-Page|conn@0||-16|-6||||
 NOff-Page|conn@1||-16|0||||
@@ -1547,6 +1574,7 @@ NOff-Page|conn@2||-16|6||||
 NOff-Page|conn@3||10|0||||
 Iinv;1{ic}|inv@0||-4|0|||D5G4;|ATTR_Delay(D5G1;NOJPX2;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX1.5;Y2;)S@X/2.0|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Imux21_tri;1{ic}|mux2@0||22|13|||D5G4;|ATTR_Delay(D5G1;NPX3.5;Y-4.5;)I100|ATTR_X(D5G1.5;NPX4;Y2;)I1
+Imux21n_tri;1{ic}|mux21n_t@0||22|1.5|||D5G4;|ATTR_Delay(D5G1;NPX3.5;Y-4.5;)I100|ATTR_X(D5G1.5;NPX4;Y2;)I1
 NWire_Pin|pin@1||5|-6||||
 NWire_Pin|pin@2||5|6||||
 NWire_Pin|pin@3||0|0||||
@@ -1584,6 +1612,41 @@ Eout||D5G2;|conn@3|y|O
 Esel||D5G2;|conn@1|a|I
 X
 
+# Cell mux21n_tri;1{ic}
+Cmux21n_tri;1{ic}|mux21_tri|artwork|1092084237000|1263151252008|E|ATTR_Delay(D5G1;HNPX-20;Y-11.5;)I100|ATTR_X(D5G1;HNPX-20;Y-10;)I1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-1.5|2|1|1|||ART_color()I10
+NThick-Circle|art@2||-1.5|-2|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@0||-2|2||||
+Nschematic:Bus_Pin|pin@2||-2|-2||||
+Nschematic:Bus_Pin|pin@4||3|0||||
+Nschematic:Bus_Pin|pin@6||0.5|4.5||||
+NPin|pin@8||-1|4|1|1||
+NPin|pin@9||-1|-4|1|1||
+NPin|pin@10||2|2.5|1|1||
+NPin|pin@11||2|-2.5|1|1||
+NPin|pin@13||2|-2.5|1|1||
+NPin|pin@14||-1|-4|1|1||
+NPin|pin@15||-1|4|1|1||
+NPin|pin@16||2|2.5|1|1||
+NPin|pin@19||2|0|1|1||
+NPin|pin@20||3|0|1|1||
+NPin|pin@21||0.5|4.5|1|1||
+NPin|pin@22||0.5|3.25|1|1||
+Ngeneric:Invisible-Pin|pin@25||0|2|||||ART_message(D5G1;)S0
+Ngeneric:Invisible-Pin|pin@26||0|-2|||||ART_message(D5G1;)S1
+AThicker|net@4|||FS2700|pin@9||-1|-4|pin@8||-1|4|ART_color()I10
+AThicker|net@5|||FS2700|pin@11||2|-2.5|pin@10||2|2.5|ART_color()I10
+AThicker|net@8|||FS2066|pin@14||-1|-4|pin@13||2|-2.5|ART_color()I10
+AThicker|net@9|||FS3334|pin@16||2|2.5|pin@15||-1|4|ART_color()I10
+AThicker|net@11|||FS0|pin@20||3|0|pin@19||2|0|ART_color()I10
+AThicker|net@12|||FS2700|pin@22||0.5|3.25|pin@21||0.5|4.5|ART_color()I10
+Ein0||D5G1;|pin@0||I
+Ein1||D5G1;|pin@2||I
+Eout||D5G1;|pin@4||O
+Esel||D5G1;|pin@6||I
+X
+
 # Cell nand2;1{ic}
 Cnand2;1{ic}||artwork|1021415734000|1047580016000|E|ATTR_Delay(D5G1;HNPX2.5;Y-3;)I100|ATTR_X(D5G1.5;HNPX2.5;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -1614,7 +1677,7 @@ Eout||D5G1;|pin@5||O
 X
 
 # Cell nand2;1{sch}
-Cnand2;1{sch}||schematic|1021415734000|1117667993195||ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|ATTR_verilog_template(D5G1;NTX27;Y-18.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
+Cnand2;1{sch}||schematic|1021415734000|1263130191928||ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|ATTR_verilog_template(D5G1;NTX27;Y-18.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@1||4.5|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -1622,6 +1685,7 @@ NOff-Page|conn@0||28|0||||
 NOff-Page|conn@1||24|-5|||RR|
 NOff-Page|conn@2||-25.5|-1||||
 Inand2;1{ic}|nand2@0||15.5|12.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inand2n;1{ic}|nand2n@1||16|5.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Inms2;1{ic}|nms2@0||0|-9|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-2.25;Y1.5;)S@X
 NWire_Pin|pin@2||0|0||||
 NWire_Pin|pin@3||-9|-9||||
@@ -1769,7 +1833,7 @@ Eout||D5G1;|pin@7||O
 X
 
 # Cell nand2HT;1{sch}
-Cnand2HT;1{sch}||schematic|1021415734000|1084377264000||ATTR_Delay(D5G1;HNPX-16.5;Y-7;)I100|ATTR_X(D5G1;HNPX-16.5;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-16.5;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16.5;Y-9;)Sstrong1|ATTR_verilog_template(D5G1;NTX6;Y-17.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
+Cnand2HT;1{sch}||schematic|1021415734000|1263136336997||ATTR_Delay(D5G1;HNPX-16.5;Y-7;)I100|ATTR_X(D5G1;HNPX-16.5;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-16.5;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16.5;Y-9;)Sstrong1|ATTR_verilog_template(D5G1;NTX6;Y-17.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S2.*@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@1||4.5|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S2.*@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -1777,6 +1841,7 @@ NOff-Page|conn@0||-14|-1||||
 NOff-Page|conn@1||16.5|-5|||RR|
 NOff-Page|conn@2||21|0|||Y|
 Inand2HT;1{ic}|nand2HT@0||30|13|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_LEGATE(T)I1|ATTR_LEPARALLGRP()I-1|ATTR_su(T)I-1
+Inand2HTn;1{ic}|nand2HTn@0||30|6|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_LEGATE(T)I1|ATTR_LEPARALLGRP()I-1|ATTR_su(T)I-1
 Inms2;1{ic}|nms2@0||0|-9|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-2.25;Y1.5;)S@X|ATTR_LEGATE(OJT)S@LEGATE|ATTR_LEPARALLGRP(T)I-1
 NWire_Pin|pin@0||0|8||||
 NWire_Pin|pin@1||-5|8||||
@@ -1808,6 +1873,85 @@ Awire|net@10|||2700|pin@10||4.5|0|PMOS@1|d|4.5|2
 Awire|net@11|||0|pin@11||9|4|PMOS@1|g|7.5|4
 Awire|net@12|||2700|pin@9||-9|-1|pin@5||-9|4
 Awire|net@13|||900|pin@6||0|0|nms2@0|d|0|-3
+Awire|net@14|||0|pin@10||4.5|0|pin@6||0|0
+Awire|net@15|||0|pin@6||0|0|pin@7||-5|0
+Awire|net@16|||0|pin@9||-9|-1|conn@0|y|-12|-1
+Awire|net@17|||2700|pin@12||9|-5|pin@11||9|4
+Awire|net@18|||1800|pin@12||9|-5|conn@1|y|14.5|-5
+Awire|net@19|||2700|pin@14||-9|-9|pin@9||-9|-1
+Eina||D5G2;|conn@0|a|I
+Einb||D5G2;|conn@1|a|I
+Eout||D5G2;|conn@2|y|O
+X
+
+# Cell nand2HT_sy;1{ic}
+Cnand2HT_sy;1{ic}||artwork|1021415734000|1263136489774|E|ATTR_Delay(D5G1;HNPX2.5;Y-3;)I100|ATTR_X(D5G1.5;HNPX2.5;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOpened-Thicker-Polygon|art@1||0|0|0.5|1|||ART_color()I10|trace()V[-0.25/-0.5,-0.25/0.5,-0.25/0,0.25/0,0.25/0.5,0.25/-0.5]
+NThick-Circle|art@2||-0.5|0|4|4|RRR||ART_color()I10|ART_degrees()F[0.0,3.1415927]
+NThick-Circle|art@3||2|0|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@2||-2.5|-1|-2|-2||
+NPin|pin@3||-1.5|-1|1|1||
+NPin|pin@4||-2.5|-1||||
+NPin|pin@5||-0.5|2|1|1||
+Nschematic:Bus_Pin|pin@6||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@8||-1.5|2|1|1||
+NPin|pin@9||-1.5|-2|1|1||
+NPin|pin@10||-0.5|-2|1|1||
+NPin|pin@11||-2.5|1||||
+NPin|pin@12||-1.5|1|1|1||
+AThicker|net@1|||FS0|pin@3||-1.5|-1|pin@4||-2.5|-1|ART_color()I10
+AThicker|net@2|||FS0|pin@5||-0.5|2|pin@8||-1.5|2|ART_color()I10
+AThicker|net@3|||FS2700|pin@9||-1.5|-2|pin@8||-1.5|2|ART_color()I10
+AThicker|net@4|||FS0|pin@10||-0.5|-2|pin@9||-1.5|-2|ART_color()I10
+AThicker|net@5|||FS0|pin@12||-1.5|1|pin@11||-2.5|1|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Eout||D5G1;|pin@7||O
+X
+
+# Cell nand2HT_sy;1{sch}
+Cnand2HT_sy;1{sch}||schematic|1021415734000|1263136469785||ATTR_Delay(D5G1;HNPX-16.5;Y-7;)I100|ATTR_X(D5G1;HNPX-16.5;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-16.5;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16.5;Y-9;)Sstrong1|ATTR_verilog_template(D5G1;NTX6;Y-17.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
+IPMOS;1{ic}|PMOS@0||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S2.*@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+IPMOS;1{ic}|PMOS@1||4.5|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S2.*@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||-14|-1||||
+NOff-Page|conn@1||16.5|-5|||RR|
+NOff-Page|conn@2||21|0|||Y|
+Inand2HT_sy;1{ic}|nand2HT_@0||30|13|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_LEGATE(T)I1|ATTR_LEPARALLGRP()I-1|ATTR_su(T)I-1
+Inand2HTn_sy;2{ic}|nand2HT_@1||30|6|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_LEGATE(T)I1|ATTR_LEPARALLGRP()I-1|ATTR_su(T)I-1
+Inms2_sy;1{ic}|nms2_sy@0||0|-9|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-2.25;Y1.5;)S@X|ATTR_LEGATE(OJT)S@LEGATE|ATTR_LEPARALLGRP(T)I-1
+NWire_Pin|pin@0||0|8||||
+NWire_Pin|pin@1||-5|8||||
+NWire_Pin|pin@2||4.5|8||||
+Ngeneric:Invisible-Pin|pin@3||31.5|-12.5|||||ART_message(D5G2;)S[X is drive strength,Pull-up has twice the strength,of the pull-down]
+Ngeneric:Invisible-Pin|pin@4||-0.5|17.5|||||ART_message(D5G2;)S[P to N width ratio is 4 to 2]
+NWire_Pin|pin@5||-9|4||||
+NWire_Pin|pin@6||0|0||||
+NWire_Pin|pin@7||-5|0||||
+Ngeneric:Invisible-Pin|pin@8||-0.5|20|||||ART_message(D5G2;)S[one-parameter high-threshold NAND]
+NWire_Pin|pin@9||-9|-1||||
+NWire_Pin|pin@10||4.5|0||||
+NWire_Pin|pin@11||9|4||||
+NWire_Pin|pin@12||9|-5||||
+Ngeneric:Invisible-Pin|pin@13||0.5|25|||||ART_message(D5G6;)Snand2HT_sy
+NWire_Pin|pin@14||-9|-9||||
+NPower|pwr@0||0|11.5||||
+Awire|net@0|||0|nms2_sy@0|g|-3|-9|pin@14||-9|-9
+Awire|net@1|||1800|nms2_sy@0|g2|3|-5|pin@12||9|-5
+Awire|net@2|||2700|pin@0||0|8|pwr@0||0|11.5
+Awire|net@3|||1800|pin@1||-5|8|pin@0||0|8
+Awire|net@4|||1800|pin@0||0|8|pin@2||4.5|8
+Awire|net@5|||1800|pin@10||4.5|0|conn@2|a|19|0
+Awire|net@6|||2700|PMOS@0|s|-5|6|pin@1||-5|8
+Awire|net@7|||900|pin@2||4.5|8|PMOS@1|s|4.5|6
+Awire|net@8|||1800|pin@5||-9|4|PMOS@0|g|-8|4
+Awire|net@9|||2700|pin@7||-5|0|PMOS@0|d|-5|2
+Awire|net@10|||2700|pin@10||4.5|0|PMOS@1|d|4.5|2
+Awire|net@11|||0|pin@11||9|4|PMOS@1|g|7.5|4
+Awire|net@12|||2700|pin@9||-9|-1|pin@5||-9|4
+Awire|net@13|||900|pin@6||0|0|nms2_sy@0|d|0|-3
 Awire|net@14|||0|pin@10||4.5|0|pin@6||0|0
 Awire|net@15|||0|pin@6||0|0|pin@7||-5|0
 Awire|net@16|||0|pin@9||-9|-1|conn@0|y|-12|-1
@@ -1902,6 +2046,61 @@ Einb||D5G2;|conn@1|a|I
 Eout||D5G2;|conn@0|y|O
 X
 
+# Cell nand2HTn;1{ic}
+Cnand2HTn;1{ic}|nand2HT|artwork|1021415734000|1263137656190|E|ATTR_Delay(D5G1;HNPX-16.5;Y-7;)I100|ATTR_X(D5G1;HNPX-16.5;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-16.5;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16.5;Y-9;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOpened-Thicker-Polygon|art@1||0|0|0.5|1|||ART_color()I10|trace()V[-0.25/-0.5,-0.25/0.5,-0.25/0,0.25/0,0.25/0.5,0.25/-0.5]
+NThick-Circle|art@5||-1.5|-1|1|1|||ART_color()I10
+NThick-Circle|art@6||-1.5|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@7||-1.5|2|8|7|RRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@8||-3.75|0|6|6|3200||ART_color()I10|ART_degrees()I800
+NThick-Circle|art@9||-1.5|1|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@2||-2.5|-1|-2|-2||
+Nschematic:Bus_Pin|pin@6||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@13||1.5|0||||
+NPin|pin@14||2.5|0|1|1||
+NPin|pin@15||-2|1|1|1||
+NPin|pin@16||-1|-1.25|1|1||
+NPin|pin@17||-0.5|-1.75|1|1||
+NPin|pin@18||-2|-1|1|1||
+NPin|pin@19||-2.5|-1||||
+NPin|pin@20||-2.5|1||||
+AThicker|net@6|||FS0|pin@14||2.5|0|pin@13||1.5|0|ART_color()I10
+AThicker|net@7|||FS3150|pin@17||-0.5|-1.75|pin@16||-1|-1.25|ART_color()I10
+AThicker|net@8|||FS0|pin@18||-2|-1|pin@19||-2.5|-1|ART_color()I10
+AThicker|net@9|||FS0|pin@15||-2|1|pin@20||-2.5|1|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Eout||D5G1;|pin@7||O
+X
+
+# Cell nand2HTn_sy;2{ic}
+Cnand2HTn_sy;2{ic}|nand2HT_sy|artwork|1021415734000|1263137686964|E|ATTR_Delay(D5G1;HNPX-16.5;Y-7;)I100|ATTR_X(D5G1;HNPX-16.5;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-16.5;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16.5;Y-9;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOpened-Thicker-Polygon|art@1||0|0|0.5|1|||ART_color()I10|trace()V[-0.25/-0.5,-0.25/0.5,-0.25/0,0.25/0,0.25/0.5,0.25/-0.5]
+NThick-Circle|art@5||-1.5|-1|1|1|||ART_color()I10
+NThick-Circle|art@6||-1.5|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@7||-1.5|2|8|7|RRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@8||-3.75|0|6|6|3200||ART_color()I10|ART_degrees()I800
+NThick-Circle|art@9||-1.5|1|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@2||-2.5|-1|-2|-2||
+Nschematic:Bus_Pin|pin@6||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@11||1.5|0||||
+NPin|pin@12||2.5|0|1|1||
+NPin|pin@13||-2|1|1|1||
+NPin|pin@16||-2|-1|1|1||
+NPin|pin@17||-2.5|-1||||
+NPin|pin@18||-2.5|1||||
+AThicker|net@5|||FS0|pin@12||2.5|0|pin@11||1.5|0|ART_color()I10
+AThicker|net@7|||FS0|pin@16||-2|-1|pin@17||-2.5|-1|ART_color()I10
+AThicker|net@8|||FS0|pin@13||-2|1|pin@18||-2.5|1|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Eout||D5G1;|pin@7||O
+X
+
 # Cell nand2LT;1{ic}
 Cnand2LT;1{ic}||artwork|1021415734000|1055452438000|E|ATTR_Delay(D5G1;HNPX2.5;Y-3;)I100|ATTR_X(D5G1.5;HNPX2.5;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -1933,7 +2132,7 @@ Eout||D5G1;|pin@7||O
 X
 
 # Cell nand2LT;1{sch}
-Cnand2LT;1{sch}||schematic|1021415734000|1084377264000||ATTR_Delay(D5G1;HNPX-13.5;Y-16;)I100|ATTR_X(D5G1;HNPX-13.5;Y-15;)I1|ATTR_drive0(D5G1;HNPTX-13.5;Y-17;)Sstrong0|ATTR_drive1(D5G1;HNPTX-13.5;Y-18;)Sstrong1|ATTR_verilog_template(D5G1;NTX26.5;Y-17;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
+Cnand2LT;1{sch}||schematic|1021415734000|1263136106311||ATTR_Delay(D5G1;HNPX-13.5;Y-16;)I100|ATTR_X(D5G1;HNPX-13.5;Y-15;)I1|ATTR_drive0(D5G1;HNPTX-13.5;Y-17;)Sstrong0|ATTR_drive1(D5G1;HNPTX-13.5;Y-18;)Sstrong1|ATTR_verilog_template(D5G1;NTX26.5;Y-17;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||6|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X/2.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@1||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X/2.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -1941,6 +2140,7 @@ NOff-Page|conn@0||-14.5|-9||||
 NOff-Page|conn@1||17|-5|||RR|
 NOff-Page|conn@2||17|0||||
 Inand2LT;1{ic}|nand2LT@0||29|14.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inand2LTn;1{ic}|nand2LTn@0||29|7|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Inms2;1{ic}|nms2@0||0|-9|||D0G4;|ATTR_Delay(D5G1;NOJPX5.5;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-3.75;Y2.5;)S@X
 Ngeneric:Invisible-Pin|pin@0||36.5|-10|||||ART_message(D5G2;)S[X is drive strength,The pull-down is twice as strong as,one pull-up; or both pull-ups together,are as strong as the pull-down]
 NWire_Pin|pin@1||-9.5|4||||
@@ -2008,7 +2208,7 @@ Eout||D5G1;|pin@5||O
 X
 
 # Cell nand2LT_sy;1{sch}
-Cnand2LT_sy;1{sch}||schematic|1021415734000|1084377287000||ATTR_Delay(D5G1;HNPX-13.5;Y-16;)I100|ATTR_X(D5G1;HNPX-13.5;Y-15;)I1|ATTR_drive0(D5G1;HNPTX-13.5;Y-17;)Sstrong0|ATTR_drive1(D5G1;HNPTX-13.5;Y-18;)Sstrong1|ATTR_verilog_template(D5G1;NTX26.5;Y-17;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
+Cnand2LT_sy;1{sch}||schematic|1021415734000|1263136221153||ATTR_Delay(D5G1;HNPX-13.5;Y-16;)I100|ATTR_X(D5G1;HNPX-13.5;Y-15;)I1|ATTR_drive0(D5G1;HNPTX-13.5;Y-17;)Sstrong0|ATTR_drive1(D5G1;HNPTX-13.5;Y-18;)Sstrong1|ATTR_verilog_template(D5G1;NTX26.5;Y-17;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X/2.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@1||6|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X/2.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -2016,6 +2216,7 @@ NOff-Page|conn@0||17|0||||
 NOff-Page|conn@1||17|-5|||RR|
 NOff-Page|conn@2||-14.5|-9||||
 Inand2LT_sy;1{ic}|nand2LT_@0||38.5|19|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inand2LTn_sy;1{ic}|nand2LTn@0||38.5|11|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Inms2_sy;1{ic}|nms2_sy@0||0|-9|||D0G4;|ATTR_Delay(D5G1;NOJPX5.5;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-3.75;Y2.5;)S@X
 NWire_Pin|pin@0||0|0||||
 Ngeneric:Invisible-Pin|pin@1||3|16|||||ART_message(D5G2;)S[Sized assuming both inputs go low together]
@@ -2134,6 +2335,61 @@ Einb||D5G2;|conn@1|a|I
 Eout||D5G2;|conn@0|y|O
 X
 
+# Cell nand2LTn;1{ic}
+Cnand2LTn;1{ic}|nand2LT|artwork|1021415734000|1263137563284|E|ATTR_Delay(D5G1;HNPX-13.5;Y-16;)I100|ATTR_X(D5G1;HNPX-13.5;Y-15;)I1|ATTR_drive0(D5G1;HNPTX-13.5;Y-17;)Sstrong0|ATTR_drive1(D5G1;HNPTX-13.5;Y-18;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOpened-Thicker-Polygon|art@3||0|0|0.5|1|||ART_color()I10|trace()V[-0.25/0.5,-0.25/-0.5,0.25/-0.5]
+NThick-Circle|art@5||-1.5|-1|1|1|||ART_color()I10
+NThick-Circle|art@6||-1.5|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@7||-1.5|2|8|7|RRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@8||-3.75|0|6|6|3200||ART_color()I10|ART_degrees()I800
+NThick-Circle|art@9||-1.5|1|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@2||-2.5|-1|-2|-2||
+Nschematic:Bus_Pin|pin@6||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@13||1.5|0||||
+NPin|pin@14||2.5|0|1|1||
+NPin|pin@15||-2|1|1|1||
+NPin|pin@16||-1|-1.25|1|1||
+NPin|pin@17||-0.5|-1.75|1|1||
+NPin|pin@18||-2|-1|1|1||
+NPin|pin@19||-2.5|-1||||
+NPin|pin@20||-2.5|1||||
+AThicker|net@6|||FS0|pin@14||2.5|0|pin@13||1.5|0|ART_color()I10
+AThicker|net@7|||FS3150|pin@17||-0.5|-1.75|pin@16||-1|-1.25|ART_color()I10
+AThicker|net@8|||FS0|pin@18||-2|-1|pin@19||-2.5|-1|ART_color()I10
+AThicker|net@9|||FS0|pin@15||-2|1|pin@20||-2.5|1|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Eout||D5G1;|pin@7||O
+X
+
+# Cell nand2LTn_sy;1{ic}
+Cnand2LTn_sy;1{ic}|nand2LT_sy|artwork|1021415734000|1263137621634|E|ATTR_Delay(D5G1;HNPX-13.5;Y-16;)I100|ATTR_X(D5G1;HNPX-13.5;Y-15;)I1|ATTR_drive0(D5G1;HNPTX-13.5;Y-17;)Sstrong0|ATTR_drive1(D5G1;HNPTX-13.5;Y-18;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOpened-Thicker-Polygon|art@1||0|0|0.5|1|||ART_color()I10|trace()V[-0.25/0.5,-0.25/-0.5,0.25/-0.5]
+NThick-Circle|art@5||-1.5|-1|1|1|||ART_color()I10
+NThick-Circle|art@6||-1.5|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@7||-1.5|2|8|7|RRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@8||-3.75|0|6|6|3200||ART_color()I10|ART_degrees()I800
+NThick-Circle|art@9||-1.5|1|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@5||2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@6||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@10||-2.5|-1|-2|-2||
+NPin|pin@11||1.5|0||||
+NPin|pin@12||2.5|0|1|1||
+NPin|pin@13||-2|1|1|1||
+NPin|pin@16||-2|-1|1|1||
+NPin|pin@17||-2.5|-1||||
+NPin|pin@18||-2.5|1||||
+AThicker|net@5|||FS0|pin@12||2.5|0|pin@11||1.5|0|ART_color()I10
+AThicker|net@7|||FS0|pin@16||-2|-1|pin@17||-2.5|-1|ART_color()I10
+AThicker|net@8|||FS0|pin@13||-2|1|pin@18||-2.5|1|ART_color()I10
+Eina||D5G1;|pin@10||I
+Einb||D5G1;|pin@6||I
+Eout||D5G1;|pin@5||O
+X
+
 # Cell nand2_sy;1{ic}
 Cnand2_sy;1{ic}||artwork|1021415734000|1048009196000|E|ATTR_Delay(D5G1;HNPX2.5;Y-3;)I100|ATTR_X(D5G1.5;HNPX2.5;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -2161,7 +2417,7 @@ Eout||D5G1;|pin@5||O
 X
 
 # Cell nand2_sy;1{sch}
-Cnand2_sy;1{sch}||schematic|1021415734000|1117668003780||ATTR_Delay(D5G1;HNPX-17.5;Y-16;)I100|ATTR_X(D5G1;HNPX-17.5;Y-15;)I1|ATTR_drive0(D5G1;HNPTX-17.5;Y-17;)Sstrong0|ATTR_drive1(D5G1;HNPTX-17.5;Y-18;)Sstrong1|ATTR_verilog_template(D5G1;NTX25;Y-17.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
+Cnand2_sy;1{sch}||schematic|1021415734000|1263130373689||ATTR_Delay(D5G1;HNPX-17.5;Y-16;)I100|ATTR_X(D5G1;HNPX-17.5;Y-15;)I1|ATTR_drive0(D5G1;HNPTX-17.5;Y-17;)Sstrong0|ATTR_drive1(D5G1;HNPTX-17.5;Y-18;)Sstrong1|ATTR_verilog_template(D5G1;NTX25;Y-17.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||5.5|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@1||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -2169,6 +2425,7 @@ NOff-Page|conn@0||-23.5|-9||||
 NOff-Page|conn@1||19.5|-5|||RR|
 NOff-Page|conn@2||19.5|0||||
 Inand2_sy;1{ic}|nand2_sy@0||29|14.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inand2n_sy;1{ic}|nand2n_s@0||29|6.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Inms2_sy;1{ic}|nms2_sy@0||0|-9|||D0G4;|ATTR_Delay(D5G1;NOJPX5.5;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-3.75;Y2.5;)S@X
 NWire_Pin|pin@4||13.5|-5||||
 NWire_Pin|pin@5||0|0||||
@@ -2376,55 +2633,35 @@ Eout||D5G2;|conn@0|y|O
 X
 
 # Cell nand2n;1{ic}
-Cnand2n;1{ic}||artwork|1021415734000|1052771040000|E|ATTR_Delay(D5G1;HNPX2.5;Y-3;)I100|ATTR_X(D5G1.5;HNPX2.5;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
+Cnand2n;1{ic}|nand2|artwork|1021415734000|1263130095082|E|ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
-NThick-Circle|art@1||-1|-1|1|1|||ART_color()I10
-NThick-Circle|art@2||-1|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
-NThick-Circle|art@3||-1|2|8|7|RRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
-NThick-Circle|art@4||-3.25|0|6|6|3200||ART_color()I10|ART_degrees()I800
-NThick-Circle|art@5||-1|1|1|1|||ART_color()I10
-NPin|pin@0||2|0||||
-NPin|pin@1||2.5|0|1|1||
-NPin|pin@2||-0.5|-1.25|1|1||
-NPin|pin@3||0|-1.75|1|1||
-Nschematic:Bus_Pin|pin@4||-2.5|-1|-2|-2||
-NPin|pin@5||-1.5|-1|1|1||
-NPin|pin@6||-2.5|-1||||
-Nschematic:Bus_Pin|pin@7||-2.5|1|-2|-2||
-Nschematic:Bus_Pin|pin@8||2.5|0|-2|-2||
-NPin|pin@9||-2.5|1||||
-NPin|pin@10||-1.5|1|1|1||
-AThicker|net@0|||FS0|pin@1||2.5|0|pin@0||2|0|ART_color()I10
-AThicker|net@1|||FS3150|pin@3||0|-1.75|pin@2||-0.5|-1.25|ART_color()I10
-AThicker|net@2|||FS0|pin@5||-1.5|-1|pin@6||-2.5|-1|ART_color()I10
-AThicker|net@3|||FS0|pin@10||-1.5|1|pin@9||-2.5|1|ART_color()I10
-Eina||D5G1;|pin@4||I
-Einb||D5G1;|pin@7||I
-Eout||D5G1;|pin@8||O
-X
-
-# Cell nand2n;1{sch}
-Cnand2n;1{sch}||schematic|1021415734000|1059582248000||ATTR_Delay(D5G1;HNPX-16;Y-5.5;)I100|ATTR_X(D5G1;HNPX-16;Y-4.5;)I1|ATTR_drive0(D5G1;HNPTX-16;Y-6.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16;Y-7.5;)Sstrong1|prototype_center()I[0,0]
-Ngeneric:Facet-Center|art@0||0|0||||AV
-NOff-Page|conn@0||-9.5|-1||||
-NOff-Page|conn@1||-9.5|1||||
-NOff-Page|conn@2||9|0||||
-Inand2;1{ic}|nand2@0||0|0|||D0G4;|ATTR_Delay(D5G1;NOJPX2.5;Y-3;)S@Delay|ATTR_X(D5G1.5;NOJPX2.5;Y2.5;)S@X|ATTR_drive0(OJP)S@drive0|ATTR_drive1(OJP)S@drive1
-Inand2n;1{ic}|nand2n@0||24|14|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-3;)I100|ATTR_X(D5G1.5;NPX2.5;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
-Ngeneric:Invisible-Pin|pin@0||22|-9.5|||||ART_message(D5G2;)S[X is drive strength,One pull-up has the same strength,as the pull-down]
-Ngeneric:Invisible-Pin|pin@1||-2.5|11|||||ART_message(D5G2;)S[P to N width ratio is 2 to 2]
-Ngeneric:Invisible-Pin|pin@2||-2.5|13.5|||||ART_message(D5G2;)S[one-parameter NAND (NOR rep)]
-Ngeneric:Invisible-Pin|pin@3||-2.5|18.5|||||ART_message(D5G6;)S[nand2n]
-Awire|net@0|||1800|nand2@0|out|2.5|0|conn@2|a|7|0
-Awire|net@1|||0|nand2@0|inb|-2.5|1|conn@1|y|-7.5|1
-Awire|net@2|||1800|conn@0|y|-7.5|-1|nand2@0|ina|-2.5|-1
-Eina||D5G2;|conn@0|a|I
-Einb||D5G2;|conn@1|a|I
-Eout||D5G2;|conn@2|y|O
+NThick-Circle|art@3||-1.5|-1|1|1|||ART_color()I10
+NThick-Circle|art@4||-1.5|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@5||-1.5|2|8|7|RRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@6||-3.75|0|6|6|3200||ART_color()I10|ART_degrees()I800
+NThick-Circle|art@7||-1.5|1|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@5||2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@6||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@10||-2.5|-1|-2|-2||
+NPin|pin@13||1.5|0||||
+NPin|pin@14||2.5|0|1|1||
+NPin|pin@15||-2|1|1|1||
+NPin|pin@16||-1|-1.25|1|1||
+NPin|pin@17||-0.5|-1.75|1|1||
+NPin|pin@18||-2|-1|1|1||
+NPin|pin@19||-2.5|-1||||
+NPin|pin@20||-2.5|1||||
+AThicker|net@6|||FS0|pin@14||2.5|0|pin@13||1.5|0|ART_color()I10
+AThicker|net@7|||FS3150|pin@17||-0.5|-1.75|pin@16||-1|-1.25|ART_color()I10
+AThicker|net@8|||FS0|pin@18||-2|-1|pin@19||-2.5|-1|ART_color()I10
+AThicker|net@9|||FS0|pin@15||-2|1|pin@20||-2.5|1|ART_color()I10
+Eina||D5G1;|pin@10||I
+Einb||D5G1;|pin@6||I
+Eout||D5G1;|pin@5||O
 X
 
 # Cell nand2n_sy;1{ic}
-Cnand2n_sy;1{ic}||artwork|1021415734000|1055527407000|E|ATTR_Delay(D5G1;HNPX2;Y-2.5;)I100|ATTR_X(D5G1.5;HNPX2;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
+Cnand2n_sy;1{ic}|nand2_sy|artwork|1021415734000|1263130346641|E|ATTR_Delay(D5G1;HNPX-17.5;Y-16;)I100|ATTR_X(D5G1;HNPX-17.5;Y-15;)I1|ATTR_drive0(D5G1;HNPTX-17.5;Y-17;)Sstrong0|ATTR_drive1(D5G1;HNPTX-17.5;Y-18;)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
 NThick-Circle|art@1||-1.5|1|1|1|||ART_color()I10
 NThick-Circle|art@2||-1.5|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
@@ -2448,24 +2685,6 @@ AThicker|net@3|||FS2700|pin@9||-1|-1.25|pin@9||-1|-1.25|ART_color()I78
 Eina||D5G1;|pin@2||I
 Einb||D5G1;|pin@1||I
 Eout||D5G1;|pin@0||O
-X
-
-# Cell nand2n_sy;1{sch}
-Cnand2n_sy;1{sch}||schematic|1021415734000|1055528962000||ATTR_Delay(D5G1;HNPX-16.5;Y-6.5;)I100|ATTR_X(D5G1;HNPX-16.5;Y-5.5;)I1|ATTR_drive0(D5G1;HNPTX-16.5;Y-7.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-16.5;Y-8.5;)Sstrong1|prototype_center()I[0,0]
-Ngeneric:Facet-Center|art@0||0|0||||AV
-NOff-Page|conn@0||-11.5|-1||||
-NOff-Page|conn@1||10|0||||
-NOff-Page|conn@2||-11.5|1||||
-Inand2_sy;1{ic}|nand2_sy@0||0|0|||D0G4;|ATTR_Delay(D5G1;NOJPX2.5;Y-2.5;)S@Delay|ATTR_X(D5G1.5;NOJPX2.5;Y2.5;)S@X|ATTR_drive0(OJP)S@drive0|ATTR_drive1(OJP)S@drive1|ATTR_LEGATE(T)I1|ATTR_LEPARALLGRP()I-1|ATTR_su(OJT)S@su
-Inand2n_sy;1{ic}|nand2n_s@0||12.5|14|||D0G4;|ATTR_Delay(D5G1;NPX2;Y-2.5;)I100|ATTR_X(D5G1.5;NPX2;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
-Ngeneric:Invisible-Pin|pin@0||-9|18.5|||||ART_message(D5G6;)S[nand2n_sy]
-Ngeneric:Invisible-Pin|pin@1||-10|13.5|||||ART_message(D5G2;)S[duplilcate icon for nand2_sy]
-Awire|net@0|||0|nand2_sy@0|inb|-2.5|1|conn@2|y|-9.5|1
-Awire|net@1|||0|nand2_sy@0|ina|-2.5|-1|conn@0|y|-9.5|-1
-Awire|net@2|||0|conn@1|a|8|0|nand2_sy@0|out|2.5|0
-Eina||D5G2;|conn@0|a|I
-Einb||D5G2;|conn@2|a|I
-Eout||D5G2;|conn@1|y|O
 X
 
 # Cell nand3;1{ic}
@@ -2503,7 +2722,7 @@ Eout||D5G1;|pin@7||O
 X
 
 # Cell nand3;1{sch}
-Cnand3;1{sch}||schematic|1021415734000|1084377312000||ATTR_Delay(D5G1;HNPX-29;Y-7;)I100|ATTR_X(D5G1;HNPX-29;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-29;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-29;Y-9;)Sstrong1|ATTR_verilog_template(D5G1;NTX20.5;Y-17.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb), $(inc));|prototype_center()I[0,0]
+Cnand3;1{sch}||schematic|1021415734000|1263216073465||ATTR_Delay(D5G1;HNPX-29;Y-7;)I100|ATTR_X(D5G1;HNPX-29;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-29;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-29;Y-9;)Sstrong1|ATTR_verilog_template(D5G1;NTX20.5;Y-17.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb), $(inc));|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||-14|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@1||4.5|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@2||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
@@ -2513,6 +2732,7 @@ NOff-Page|conn@1||14|-1|||RR|
 NOff-Page|conn@2||0|14.5|||R|
 NOff-Page|conn@3||-22|4||||
 Inand3;1{ic}|nand3@0||27.5|19|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-2.5;)I100|ATTR_X(D5G1.5;NPX3;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inand3n;1{ic}|nand3n@0||27.5|10.5|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-2.5;)I100|ATTR_X(D5G1.5;NPX3;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Inms3;1{ic}|nms3@0||0|-12|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX-2;Y0.5;)S@X
 NWire_Pin|pin@0||-5|7.5||||
 NWire_Pin|pin@1||-14|7.5||||
@@ -2602,7 +2822,7 @@ Eout||D5G1;|pin@10||O
 X
 
 # Cell nand3LT;1{sch}
-Cnand3LT;1{sch}||schematic|1021415734000|1084377312000||ATTR_Delay(D5G1;HNPX-30;Y-12.5;)I100|ATTR_X(D5G1;HNPX-30;Y-11.5;)I1|ATTR_drive0(D5G1;HNPTX-30;Y-13.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-30;Y-14.5;)Sstrong1|ATTR_verilog_template(D5G1;NTX19;Y-23;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb), $(inc));|prototype_center()I[0,0]
+Cnand3LT;1{sch}||schematic|1021415734000|1263218481003||ATTR_Delay(D5G1;HNPX-30;Y-12.5;)I100|ATTR_X(D5G1;HNPX-30;Y-11.5;)I1|ATTR_drive0(D5G1;HNPTX-30;Y-13.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-30;Y-14.5;)Sstrong1|ATTR_verilog_template(D5G1;NTX19;Y-23;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb), $(inc));|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||4.5|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X/3.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@1||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y1.5;)S@X/3.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@2||-14|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X/3.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
@@ -2612,6 +2832,7 @@ NOff-Page|conn@1||0|11|||R|
 NOff-Page|conn@2||17|4|||RR|
 NOff-Page|conn@3||-27.5|-2.5||||
 Inand3LT;1{ic}|nand3LT@0||35|19.5|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-2.5;)I100|ATTR_X(D5G1.5;NPX3;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_LEGATE()I1|ATTR_su()I-1
+Inand3LTn;1{ic}|nand3LTn@0||35|9|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-2.5;)I100|ATTR_X(D5G1.5;NPX3;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_LEGATE()I1|ATTR_su()I-1
 Inms3;1{ic}|nms3@0||-5|-16.5|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX-2;Y0.5;)S@X
 NWire_Pin|pin@0||-14|0||||
 Ngeneric:Invisible-Pin|pin@1||-0.5|25|||||ART_message(D5G6;)S[nand3LT]
@@ -2668,6 +2889,104 @@ Einc||D5G2;|conn@0|y|I
 Eout||D5G2;|conn@1|y|O
 X
 
+# Cell nand3LT_sy2;1{ic}
+Cnand3LT_sy2;1{ic}||artwork|1021415734000|1263219361612|E|ATTR_Delay(D5G1;HNPX4;Y-2.5;)I100|ATTR_X(D5G1.5;HNPX3;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-0.5|0|6|4|RRR||ART_color()I10|ART_degrees()F[0.0,3.1415927]
+NThick-Circle|art@2||2|0|1|1|||ART_color()I10
+NOpened-Thicker-Polygon|art@3||0|0|0.5|1|||ART_color()I10|trace()V[-0.25/0.5,-0.25/-0.5,0.25/-0.5]
+Nschematic:Bus_Pin|pin@2||-2.5|-2|-2|-2||
+NPin|pin@3||-1.5|-2|1|1||
+NPin|pin@4||-2.5|-2||||
+NPin|pin@5||-0.5|3|1|1||
+Nschematic:Bus_Pin|pin@6||-2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@8||-1.5|3|1|1||
+NPin|pin@9||-1.5|-3|1|1||
+NPin|pin@10||-0.5|-3|1|1||
+NPin|pin@11||-2.5|0||||
+NPin|pin@12||-1.5|0|1|1||
+Ngeneric:Invisible-Pin|pin@13||-2.5|2||||
+NPin|pin@14||-1.5|2|1|1||
+NPin|pin@15||-2.5|2||||
+AThicker|net@1|||FS0|pin@3||-1.5|-2|pin@4||-2.5|-2|ART_color()I10
+AThicker|net@2|||FS0|pin@5||-0.5|3|pin@8||-1.5|3|ART_color()I10
+AThicker|net@3|||FS2700|pin@9||-1.5|-3|pin@8||-1.5|3|ART_color()I10
+AThicker|net@4|||FS0|pin@10||-0.5|-3|pin@9||-1.5|-3|ART_color()I10
+AThicker|net@5|||FS0|pin@12||-1.5|0|pin@11||-2.5|0|ART_color()I10
+AThicker|net@6|||FS0|pin@14||-1.5|2|pin@15||-2.5|2|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Einc||D5G1;|pin@13||I
+Eout||D5G1;|pin@7||O
+X
+
+# Cell nand3LT_sy2;1{sch}
+Cnand3LT_sy2;1{sch}||schematic|1021415734000|1263219480186||ATTR_Delay(D5G1;HNPX-29;Y-7;)I100|ATTR_X(D5G1;HNPX-29;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-29;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-29;Y-9;)Sstrong1|ATTR_verilog_template(D5G1;NTX20.5;Y-17.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb), $(inc));|prototype_center()I[0,0]
+IPMOS;1{ic}|PMOS@0||-14|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X/3.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+IPMOS;1{ic}|PMOS@3||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;)S@X/3.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+IPMOS;1{ic}|PMOS@4||4.5|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y1.5;)S@X/3.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||-15|-12||||
+NOff-Page|conn@1||14|-1|||RR|
+NOff-Page|conn@2||0|14.5|||R|
+NOff-Page|conn@3||-22|4||||
+Inand3LT_sy2;1{ic}|nand3LT_@0||27.5|19|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-2.5;)I100|ATTR_X(D5G1.5;NPX3;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inand3LTn_sy2;2{ic}|nand3LT_@1||27.5|10.5|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-2.5;)I100|ATTR_X(D5G1.5;NPX3;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inms3_sy2;1{ic}|nms3_sy2@1||0|-12|||D0G4;|ATTR_Delay(D5G1;NPX-8.5;Y-1.5;)I100|ATTR_X(D5G1.5;NOJPX1.5;Y2.5;)S@X
+NWire_Pin|pin@0||-5|7.5||||
+NWire_Pin|pin@1||-14|7.5||||
+NWire_Pin|pin@2||4.5|7.5||||
+Ngeneric:Invisible-Pin|pin@3||30|-10|||||ART_message(D5G2;)S[X is drive strength,Each pull-up has the same strength,as the pull-down]
+Ngeneric:Invisible-Pin|pin@4||-0.5|19.5|||||ART_message(D5G2;)S[P to N width ratio is 2 to 3]
+NWire_Pin|pin@5||-9|4||||
+NWire_Pin|pin@6||0|0||||
+NWire_Pin|pin@7||-5|0||||
+Ngeneric:Invisible-Pin|pin@8||-0.5|22|||||ART_message(D5G2;)S["three input, fixed-size NAND"]
+NWire_Pin|pin@9||-9|-12||||
+NWire_Pin|pin@10||4.5|0||||
+NWire_Pin|pin@11||9|4||||
+NWire_Pin|pin@12||9|-1||||
+Ngeneric:Invisible-Pin|pin@13||-0.5|27|||||ART_message(D5G6;)Snand3LT_sy2
+NWire_Pin|pin@14||-14|0||||
+NWire_Pin|pin@15||-18|4||||
+NWire_Pin|pin@16||-18|-4||||
+NWire_Pin|pin@17||9|-8||||
+Ngeneric:Invisible-Pin|pin@18||34|-4|||||ART_message(D5G2;)S[two stacks suffice for symmetry,because of the diffusion loads]
+NPower|pwr@0||-5|11.5||||
+Awire|net@0|||2700|pin@17||9|-8|pin@12||9|-1
+Awire|net@2|||2700|pin@0||-5|7.5|pwr@0||-5|11.5
+Awire|net@3|||900|pin@0||-5|7.5|PMOS@3|s|-5|6
+Awire|net@4|||1800|pin@1||-14|7.5|pin@0||-5|7.5
+Awire|net@5|||1800|pin@0||-5|7.5|pin@2||4.5|7.5
+Awire|net@6|||2700|PMOS@0|s|-14|6|pin@1||-14|7.5
+Awire|net@7|||900|pin@2||4.5|7.5|PMOS@4|s|4.5|6
+Awire|net@8|||0|PMOS@0|g|-17|4|pin@15||-18|4
+Awire|net@9|||2700|pin@14||-14|0|PMOS@0|d|-14|2
+Awire|net@10|||1800|PMOS@4|g|7.5|4|pin@11||9|4
+Awire|net@11|||2700|pin@10||4.5|0|PMOS@4|d|4.5|2
+Awire|net@12|||1800|pin@5||-9|4|PMOS@3|g|-8|4
+Awire|net@13|||2700|pin@7||-5|0|PMOS@3|d|-5|2
+Awire|net@14|||2700|pin@9||-9|-12|pin@5||-9|4
+Awire|net@15|||2700|pin@6||0|0|conn@2|a|0|12.5
+Awire|net@16|||0|pin@10||4.5|0|pin@6||0|0
+Awire|net@17|||0|pin@6||0|0|pin@7||-5|0
+Awire|net@18|||0|pin@9||-9|-12|conn@0|y|-13|-12
+Awire|net@19|||2700|pin@12||9|-1|pin@11||9|4
+Awire|net@20|||1800|pin@12||9|-1|conn@1|y|12|-1
+Awire|net@22|||0|pin@7||-5|0|pin@14||-14|0
+Awire|net@23|||0|pin@15||-18|4|conn@3|y|-20|4
+Awire|net@24|||2700|pin@16||-18|-4|pin@15||-18|4
+Awire|net@27|||2700|nms3_sy2@1|d|0|-1|pin@6||0|0
+Awire|net@28|||1800|pin@9||-9|-12|nms3_sy2@1|g|-5|-12
+Awire|net@29|||0|pin@17||9|-8|nms3_sy2@1|g2|5|-8
+Awire|net@30|||1800|pin@16||-18|-4|nms3_sy2@1|g3|-5|-4
+Eina||D5G2;|conn@0|a|I
+Einb||D5G2;|conn@1|a|I
+Einc||D5G2;|conn@3|y|I
+Eout||D5G2;|conn@2|y|O
+X
+
 # Cell nand3LT_sy3;1{ic}
 Cnand3LT_sy3;1{ic}||artwork|1021415734000|1048637972000|E|ATTR_Delay(D5G1;HNPX4;Y-2.5;)I100|ATTR_X(D5G1.5;HNPX3;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -2702,7 +3021,7 @@ Eout||D5G1;|pin@5||O
 X
 
 # Cell nand3LT_sy3;1{sch}
-Cnand3LT_sy3;1{sch}||schematic|1021415734000|1084405602000||ATTR_Delay(D5G1;HNPX-30;Y-12.5;)I100|ATTR_X(D5G1;HNPX-30;Y-11.5;)I1|ATTR_drive0(D5G1;HNPTX-30;Y-13.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-30;Y-14.5;)Sstrong1|ATTR_verilog_template(D5G1;NTX19;Y-24;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb), $(inc));|prototype_center()I[0,0]
+Cnand3LT_sy3;1{sch}||schematic|1021415734000|1263220780391||ATTR_Delay(D5G1;HNPX-30;Y-12.5;)I100|ATTR_X(D5G1;HNPX-30;Y-11.5;)I1|ATTR_drive0(D5G1;HNPTX-30;Y-13.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-30;Y-14.5;)Sstrong1|ATTR_verilog_template(D5G1;NTX19;Y-24;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb), $(inc));|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||-14|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X/3.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@1||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX4;Y2.5;)S@X/3.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@2||4.5|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX4.5;Y0.5;)S@X/3.|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
@@ -2713,16 +3032,6 @@ NOff-Page|conn@2||27|0||||
 NOff-Page|conn@3||-35|4||||
 Inand3LT_sy3;1{ic}|nand3LT_@0||35|19.5|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-2.5;)I100|ATTR_X(D5G1.5;NPX3;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_LEGATE()I1|ATTR_su()I-1
 Inms3_sy3;1{ic}|nms3_sy3@0||-10|-16.5|||D0G4;|ATTR_Delay(D5G1;NOJPX-8.5;Y-1.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-8.5;Y1;)S@X
-NWire_Pin|pin@0||23|1||||
-NWire_Pin|pin@1||14.5|0||||
-NWire_Pin|pin@2||23|0||||
-NWire_Pin|pin@3||23|-1||||
-NWire_Pin|pin@4||23|-3.5||||
-NWire_Pin|pin@5||23|3.5||||
-NWire_Pin|pin@6||14.5|1||||
-NWire_Pin|pin@7||14.5|-1||||
-NWire_Pin|pin@8||14.5|-3.5||||
-NWire_Pin|pin@9||14.5|3.5||||
 NWire_Pin|pin@10||-19.5|-8.5||||
 NWire_Pin|pin@11||-21.5|-16.5||||
 NWire_Pin|pin@12||10.5|-12.5||||
@@ -2743,38 +3052,7 @@ NWire_Pin|pin@26||10.5|4||||
 Ngeneric:Invisible-Pin|pin@27||-0.5|25|||||ART_message(D5G6;)S[nand3LT_sy3]
 NWire_Pin|pin@28||-14|0||||
 NPower|pwr@0||-5|10.5||||
-IorangeGeneric180:wire180;1{ic}|wire180@0||-25.5|4|||D0G4;|ATTR_L(D5G1;OJPUD)SPfingers=Math.ceil(2.*@X.doubleValue()/15.); (Pfingers + 1.0) * 8.0 + (Pfingers*1.5) * 5.|ATTR_LEWIRE(P)I1|ATTR_layer(D5G1;NPY-1;)I1|ATTR_width(D5G1;NPY-2;)I3
-IorangeGeneric180:wire180;1{ic}|wire180@1||16.5|-12.5|||D0G4;|ATTR_L(D5G1;OJPUD)SPfingers=Math.ceil(2.*@X.doubleValue()/15.); (Pfingers + 1.0) * 8.0 + (Pfingers*1.5) * 5.|ATTR_LEWIRE(P)I1|ATTR_layer(D5G1;NPY-1;)I1|ATTR_width(D5G1;NPY-2;)I3
-IorangeGeneric180:wire180;1{ic}|wire180@2||18.5|1|||D0G4;|ATTR_L(D5G1;OJPUD)SPfingers=Math.ceil(2.*@X.doubleValue()/15.); (2.*(Pfingers + 1.0) * 13.0 + @X*6.)/4.|ATTR_LEWIRE(P)I1|ATTR_layer(D5G1;NPY-1;)I1|ATTR_width(D5G1;NPY-2;)I3
-IorangeGeneric180:wire180;1{ic}|wire180@3||18.5|-1|||D0G4;|ATTR_L(D5G1;OJPUD)SPfingers=Math.ceil(2.*@X.doubleValue()/15.); (2.*(Pfingers + 1.0) * 13.0 + @X*6.)/4.|ATTR_LEWIRE(P)I1|ATTR_layer(D5G1;NPY-1;)I1|ATTR_width(D5G1;NPY-2;)I3
-IorangeGeneric180:wire180;1{ic}|wire180@4||18.5|-3.5|||D0G4;|ATTR_L(D5G1;OJPUD)SPfingers=Math.ceil(2.*@X.doubleValue()/15.); (2.*(Pfingers + 1.0) * 13.0 + @X*6.)/4.|ATTR_LEWIRE(P)I1|ATTR_layer(D5G1;NPY-1;)I1|ATTR_width(D5G1;NPY-2;)I3
-IorangeGeneric180:wire180;1{ic}|wire180@5||18.5|3.5|||D0G4;|ATTR_L(D5G1;OJPUD)SPfingers=Math.ceil(2.*@X.doubleValue()/15.); (2.*(Pfingers + 1.0) * 13.0 + @X*6.)/4.|ATTR_LEWIRE(P)I1|ATTR_layer(D5G1;NPY-1;)I1|ATTR_width(D5G1;NPY-2;)I3
-IorangeGeneric180:wire180;1{ic}|wire180@6||-26.5|-2.5|||D0G4;|ATTR_L(D5G1;OJPUD)SPfingers=Math.ceil(2.*@X.doubleValue()/15.); (Pfingers + 1.0) * 8.0 + (Pfingers*1.5) * 5.|ATTR_LEWIRE(P)I1|ATTR_layer(D5G1;NPY-1;)I1|ATTR_width(D5G1;NPY-2;)I3
-Awire|net@0|||0|wire180@6|a|-29|-2.5|conn@0|y|-32.5|-2.5
-Awire|net@1|||1800|wire180@6|b|-24|-2.5|pin@14||-21.5|-2.5
-Awire|net@2|||0|wire180@5|a|16|3.5|pin@9||14.5|3.5
-Awire|net@3|||1800|wire180@5|b|21|3.5|pin@5||23|3.5
-Awire|net@4|||0|wire180@4|a|16|-3.5|pin@8||14.5|-3.5
-Awire|net@5|||1800|wire180@4|b|21|-3.5|pin@4||23|-3.5
-Awire|net@6|||0|wire180@3|a|16|-1|pin@7||14.5|-1
-Awire|net@7|||1800|wire180@3|b|21|-1|pin@3||23|-1
-Awire|net@8|||0|wire180@2|a|16|1|pin@6||14.5|1
-Awire|net@9|||1800|wire180@2|b|21|1|pin@0||23|1
-Awire|net@10|||0|wire180@1|a|14|-12.5|pin@12||10.5|-12.5
-Awire|net@11|||1800|wire180@1|b|19|-12.5|conn@1|y|22|-12.5
-Awire|net@12|||0|wire180@0|a|-28|4|conn@3|y|-33|4
-Awire|net@13|||1800|wire180@0|b|-23|4|pin@13||-19.5|4
-Awire|net@14|||0|pin@1||14.5|0|pin@25||4.5|0
-Awire|net@15|||1800|pin@2||23|0|conn@2|a|25|0
 Awire|net@16|||1800|pin@23||-5|0|pin@25||4.5|0
-Awire|net@17|||2700|pin@3||23|-1|pin@2||23|0
-Awire|net@18|||2700|pin@7||14.5|-1|pin@1||14.5|0
-Awire|net@19|||2700|pin@6||14.5|1|pin@9||14.5|3.5
-Awire|net@20|||2700|pin@8||14.5|-3.5|pin@7||14.5|-1
-Awire|net@21|||2700|pin@2||23|0|pin@0||23|1
-Awire|net@22|||2700|pin@0||23|1|pin@5||23|3.5
-Awire|net@23|||2700|pin@4||23|-3.5|pin@3||23|-1
-Awire|net@24|||2700|pin@1||14.5|0|pin@6||14.5|1
 Awire|net@25|||1800|pin@10||-19.5|-8.5|nms3_sy3@0|g3|-13|-8.5
 Awire|net@26|||900|pin@13||-19.5|4|pin@10||-19.5|-8.5
 Awire|net@27|||1800|pin@11||-21.5|-16.5|nms3_sy3@0|g|-13|-16.5
@@ -2797,6 +3075,10 @@ Awire|net@43|||2700|pin@16||-5|7.5|pwr@0||-5|10.5
 Awire|net@44|||0|pin@17||4.5|7.5|pin@16||-5|7.5
 Awire|net@45|||0|pin@16||-5|7.5|pin@18||-14|7.5
 Awire|net@46|||0|pin@23||-5|0|pin@28||-14|0
+Awire|net@47|||0|conn@2|a|25|0|pin@25||4.5|0
+Awire|net@48|||1800|conn@3|y|-33|4|pin@13||-19.5|4
+Awire|net@49|||1800|conn@0|y|-32.5|-2.5|pin@14||-21.5|-2.5
+Awire|net@50|||1800|pin@12||10.5|-12.5|conn@1|y|22|-12.5
 Eina||D5G2;|conn@0|a|I
 Einb||D5G2;|conn@1|a|I
 Einc||D5G2;|conn@3|y|I
@@ -3010,6 +3292,61 @@ Einc||D5G2;|conn@0|y|I
 Eout||D5G2;|conn@1|y|O
 X
 
+# Cell nand3LTn;1{ic}
+Cnand3LTn;1{ic}|nand3LT|artwork|1021415734000|1263218567807|E|ATTR_Delay(D5G1;HNPX-30;Y-12.5;)I100|ATTR_X(D5G1;HNPX-30;Y-11.5;)I1|ATTR_drive0(D5G1;HNPTX-30;Y-13.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-30;Y-14.5;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOpened-Thicker-Polygon|art@3||0|0|0.5|1|||ART_color()I10|trace()V[-0.25/0.5,-0.25/-0.5,0.25/-0.5]
+NThick-Circle|art@4||-2|-2|1|1|||ART_color()I10
+NThick-Circle|art@5||-5.5|0|9|9|3200||ART_color()I10|ART_degrees()F[0.0,1.3962634]
+NThick-Circle|art@6||-2.8|-1.5|9|9|Y2800||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@7||-2.8|1.5|9|9|2800||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@8||-1.5|0|1|1|||ART_color()I10
+NThick-Circle|art@9||-2|2|1|1|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@4||-2.5|2||||
+Nschematic:Bus_Pin|pin@10||2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@11||-2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@15||-2.5|-2|-2|-2||
+NPin|pin@16||-0.25|-2.2|1|1||
+NPin|pin@17||-1.2|-1.3|1|1||
+NPin|pin@18||1.5|0||||
+NPin|pin@19||2.5|0|1|1||
+NPin|pin@20||-2|0|1|1||
+NPin|pin@21||-2.5|0|1|1||
+AThicker|net@7|||FS3165|pin@16||-0.25|-2.2|pin@17||-1.2|-1.3|ART_color()I10
+AThicker|net@8|||FS0|pin@20||-2|0|pin@21||-2.5|0|ART_color()I10
+AThicker|net@9|||FS0|pin@19||2.5|0|pin@18||1.5|0|ART_color()I10
+Eina||D5G1;|pin@15||I
+Einb||D5G1;|pin@11||I
+Einc||D5G1;|pin@4||I
+Eout||D5G1;|pin@10||O
+X
+
+# Cell nand3LTn_sy2;2{ic}
+Cnand3LTn_sy2;2{ic}|nand3LT_sy2|artwork|1021415734000|1263219371911|E|ATTR_Delay(D5G1;HNPX-5;Y-5;)I100|ATTR_X(D5G1;HNPX-5;Y-4;)I1|ATTR_drive0(D5G1;HNPTX-5;Y-6;)Sstrong0|ATTR_drive1(D5G1;HNPTX-5;Y-7;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2.8|1.5|9|9|2800||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@2||-1.5|0|1|1|||ART_color()I10
+NThick-Circle|art@3||-2|2|1|1|||ART_color()I10
+NThick-Circle|art@4||-2|-2|1|1|||ART_color()I10
+NThick-Circle|art@5||-5.5|0|9|9|3200||ART_color()I10|ART_degrees()F[0.0,1.3962634]
+NThick-Circle|art@7||-2.8|-1.5|9|9|Y2800||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NOpened-Thicker-Polygon|art@8||0|0|0.5|1|||ART_color()I10|trace()V[-0.25/0.5,-0.25/-0.5,0.25/-0.5]
+Nschematic:Bus_Pin|pin@2||-2.5|-2|-2|-2||
+NPin|pin@5||-2|0|1|1||
+Nschematic:Bus_Pin|pin@6||-2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@8||-2.5|0|1|1||
+NPin|pin@11||1.5|0||||
+NPin|pin@12||2.5|0|1|1||
+Ngeneric:Invisible-Pin|pin@13||-2.5|2||||
+AThicker|net@2|||FS0|pin@5||-2|0|pin@8||-2.5|0|ART_color()I10
+AThicker|net@5|||FS0|pin@12||2.5|0|pin@11||1.5|0|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Einc||D5G1;|pin@13||I
+Eout||D5G1;|pin@7||O
+X
+
 # Cell nand3MLT;1{ic}
 Cnand3MLT;1{ic}||artwork|1021415734000|1048703082000|E|ATTR_Delay(D5G1;HNPX4;Y-2.5;)I100|ATTR_X(D5G1.5;HNPX3;Y2.5;)SLE.getdrive()|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -3111,6 +3448,103 @@ Eina||D5G2;|conn@3|a|I
 Einb||D5G2;|conn@2|a|I
 Einc||D5G2;|conn@0|y|I
 Eout||D5G2;|conn@1|y|O
+X
+
+# Cell nand3_sy2;1{ic}
+Cnand3_sy2;1{ic}||artwork|1021415734000|1263216678139|E|ATTR_Delay(D5G1;HNPX4;Y-2.5;)I100|ATTR_X(D5G1.5;HNPX3;Y2.5;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-0.5|0|6|4|RRR||ART_color()I10|ART_degrees()F[0.0,3.1415927]
+NThick-Circle|art@2||2|0|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@2||-2.5|-2|-2|-2||
+NPin|pin@3||-1.5|-2|1|1||
+NPin|pin@4||-2.5|-2||||
+NPin|pin@5||-0.5|3|1|1||
+Nschematic:Bus_Pin|pin@6||-2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@8||-1.5|3|1|1||
+NPin|pin@9||-1.5|-3|1|1||
+NPin|pin@10||-0.5|-3|1|1||
+NPin|pin@11||-2.5|0||||
+NPin|pin@12||-1.5|0|1|1||
+Ngeneric:Invisible-Pin|pin@13||-2.5|2||||
+NPin|pin@14||-1.5|2|1|1||
+NPin|pin@15||-2.5|2||||
+AThicker|net@1|||FS0|pin@3||-1.5|-2|pin@4||-2.5|-2|ART_color()I10
+AThicker|net@2|||FS0|pin@5||-0.5|3|pin@8||-1.5|3|ART_color()I10
+AThicker|net@3|||FS2700|pin@9||-1.5|-3|pin@8||-1.5|3|ART_color()I10
+AThicker|net@4|||FS0|pin@10||-0.5|-3|pin@9||-1.5|-3|ART_color()I10
+AThicker|net@5|||FS0|pin@12||-1.5|0|pin@11||-2.5|0|ART_color()I10
+AThicker|net@6|||FS0|pin@14||-1.5|2|pin@15||-2.5|2|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Einc||D5G1;|pin@13||I
+Eout||D5G1;|pin@7||O
+X
+
+# Cell nand3_sy2;1{sch}
+Cnand3_sy2;1{sch}||schematic|1021415734000|1263216589770||ATTR_Delay(D5G1;HNPX-29;Y-7;)I100|ATTR_X(D5G1;HNPX-29;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-29;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-29;Y-9;)Sstrong1|ATTR_verilog_template(D5G1;NTX20.5;Y-17.5;)Snand ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb), $(inc));|prototype_center()I[0,0]
+IPMOS;1{ic}|PMOS@0||-14|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+IPMOS;1{ic}|PMOS@1||4.5|4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+IPMOS;1{ic}|PMOS@2||-5|4|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||-15|-12||||
+NOff-Page|conn@1||14|-1|||RR|
+NOff-Page|conn@2||0|14.5|||R|
+NOff-Page|conn@3||-22|4||||
+Inand3_sy2;1{ic}|nand3_sy@0||27.5|19|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-2.5;)I100|ATTR_X(D5G1.5;NPX3;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inand3n_sy2;2{ic}|nand3_sy@1||27.5|10.5|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-2.5;)I100|ATTR_X(D5G1.5;NPX3;Y2.5;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inms3_sy2;1{ic}|nms3_sy2@1||0|-12|||D0G4;|ATTR_Delay(D5G1;NPX-8.5;Y-1.5;)I100|ATTR_X(D5G1.5;NOJPX1.5;Y2.5;)S@X
+NWire_Pin|pin@0||-5|7.5||||
+NWire_Pin|pin@1||-14|7.5||||
+NWire_Pin|pin@2||4.5|7.5||||
+Ngeneric:Invisible-Pin|pin@3||30|-10|||||ART_message(D5G2;)S[X is drive strength,Each pull-up has the same strength,as the pull-down]
+Ngeneric:Invisible-Pin|pin@4||-0.5|19.5|||||ART_message(D5G2;)S[P to N width ratio is 2 to 3]
+NWire_Pin|pin@5||-9|4||||
+NWire_Pin|pin@6||0|0||||
+NWire_Pin|pin@7||-5|0||||
+Ngeneric:Invisible-Pin|pin@8||-0.5|22|||||ART_message(D5G2;)S["three input, fixed-size NAND"]
+NWire_Pin|pin@9||-9|-12||||
+NWire_Pin|pin@10||4.5|0||||
+NWire_Pin|pin@11||9|4||||
+NWire_Pin|pin@12||9|-1||||
+Ngeneric:Invisible-Pin|pin@13||-0.5|27|||||ART_message(D5G6;)Snand3_sy2
+NWire_Pin|pin@14||-14|0||||
+NWire_Pin|pin@15||-18|4||||
+NWire_Pin|pin@16||-18|-4||||
+NWire_Pin|pin@17||9|-8||||
+Ngeneric:Invisible-Pin|pin@18||34|-4|||||ART_message(D5G2;)S[two stacks suffice for symmetry,because of the diffusion loads]
+NPower|pwr@0||-5|11.5||||
+Awire|net@0|||2700|pin@17||9|-8|pin@12||9|-1
+Awire|net@2|||2700|pin@0||-5|7.5|pwr@0||-5|11.5
+Awire|net@3|||900|pin@0||-5|7.5|PMOS@2|s|-5|6
+Awire|net@4|||1800|pin@1||-14|7.5|pin@0||-5|7.5
+Awire|net@5|||1800|pin@0||-5|7.5|pin@2||4.5|7.5
+Awire|net@6|||2700|PMOS@0|s|-14|6|pin@1||-14|7.5
+Awire|net@7|||900|pin@2||4.5|7.5|PMOS@1|s|4.5|6
+Awire|net@8|||0|PMOS@0|g|-17|4|pin@15||-18|4
+Awire|net@9|||2700|pin@14||-14|0|PMOS@0|d|-14|2
+Awire|net@10|||1800|PMOS@1|g|7.5|4|pin@11||9|4
+Awire|net@11|||2700|pin@10||4.5|0|PMOS@1|d|4.5|2
+Awire|net@12|||1800|pin@5||-9|4|PMOS@2|g|-8|4
+Awire|net@13|||2700|pin@7||-5|0|PMOS@2|d|-5|2
+Awire|net@14|||2700|pin@9||-9|-12|pin@5||-9|4
+Awire|net@15|||2700|pin@6||0|0|conn@2|a|0|12.5
+Awire|net@16|||0|pin@10||4.5|0|pin@6||0|0
+Awire|net@17|||0|pin@6||0|0|pin@7||-5|0
+Awire|net@18|||0|pin@9||-9|-12|conn@0|y|-13|-12
+Awire|net@19|||2700|pin@12||9|-1|pin@11||9|4
+Awire|net@20|||1800|pin@12||9|-1|conn@1|y|12|-1
+Awire|net@22|||0|pin@7||-5|0|pin@14||-14|0
+Awire|net@23|||0|pin@15||-18|4|conn@3|y|-20|4
+Awire|net@24|||2700|pin@16||-18|-4|pin@15||-18|4
+Awire|net@27|||2700|nms3_sy2@1|d|0|-1|pin@6||0|0
+Awire|net@28|||1800|pin@9||-9|-12|nms3_sy2@1|g|-5|-12
+Awire|net@29|||0|pin@17||9|-8|nms3_sy2@1|g2|5|-8
+Awire|net@30|||1800|pin@16||-18|-4|nms3_sy2@1|g3|-5|-4
+Eina||D5G2;|conn@0|a|I
+Einb||D5G2;|conn@1|a|I
+Einc||D5G2;|conn@3|y|I
+Eout||D5G2;|conn@2|y|O
 X
 
 # Cell nand3en;1{ic}
@@ -3312,6 +3746,115 @@ Einc||D5G2;|conn@3|y|I
 Eout||D5G2;|conn@2|y|O
 X
 
+# Cell nand3n;1{ic}
+Cnand3n;1{ic}|nand3|artwork|1021415734000|1263218505712|E|ATTR_Delay(D5G1;HNPX-2;Y-6;)I100|ATTR_X(D5G1;HNPX-2;Y-5;)I1|ATTR_drive0(D5G1;HNPTX-2;Y-7;)Sstrong0|ATTR_drive1(D5G1;HNPTX-2;Y-8;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2.8|1.5|9|9|2800||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@2||-1.5|0|1|1|||ART_color()I10
+NThick-Circle|art@3||-2|2|1|1|||ART_color()I10
+NThick-Circle|art@4||-2|-2|1|1|||ART_color()I10
+NThick-Circle|art@5||-5.5|0|9|9|3200||ART_color()I10|ART_degrees()F[0.0,1.3962634]
+NThick-Circle|art@7||-2.8|-1.5|9|9|Y2800||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NPin|pin@0||-0.25|-2.2|1|1||
+NPin|pin@1||-1.2|-1.3|1|1||
+Nschematic:Bus_Pin|pin@2||-2.5|-2|-2|-2||
+NPin|pin@5||-2|0|1|1||
+Nschematic:Bus_Pin|pin@6||-2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@8||-2.5|0|1|1||
+NPin|pin@11||1.5|0||||
+NPin|pin@12||2.5|0|1|1||
+Ngeneric:Invisible-Pin|pin@13||-2.5|2||||
+AThicker|net@0|||FS3165|pin@0||-0.25|-2.2|pin@1||-1.2|-1.3|ART_color()I10
+AThicker|net@2|||FS0|pin@5||-2|0|pin@8||-2.5|0|ART_color()I10
+AThicker|net@5|||FS0|pin@12||2.5|0|pin@11||1.5|0|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Einc||D5G1;|pin@13||I
+Eout||D5G1;|pin@7||O
+X
+
+# Cell nand3n_sy2;2{ic}
+Cnand3n_sy2;2{ic}|nand3_sy2|artwork|1021415734000|1263216684995|E|ATTR_Delay(D5G1;HNPX-29;Y-7;)I100|ATTR_X(D5G1;HNPX-29;Y-6;)I1|ATTR_drive0(D5G1;HNPTX-29;Y-8;)Sstrong0|ATTR_drive1(D5G1;HNPTX-29;Y-9;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2.8|1.5|9|9|2800||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@2||-1.5|0|1|1|||ART_color()I10
+NThick-Circle|art@3||-2|2|1|1|||ART_color()I10
+NThick-Circle|art@4||-2|-2|1|1|||ART_color()I10
+NThick-Circle|art@5||-5.5|0|9|9|3200||ART_color()I10|ART_degrees()F[0.0,1.3962634]
+NThick-Circle|art@7||-2.8|-1.5|9|9|Y2800||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+Nschematic:Bus_Pin|pin@2||-2.5|-2|-2|-2||
+NPin|pin@5||-2|0|1|1||
+Nschematic:Bus_Pin|pin@6||-2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@7||2.5|0|-2|-2||
+NPin|pin@8||-2.5|0|1|1||
+NPin|pin@11||1.5|0||||
+NPin|pin@12||2.5|0|1|1||
+Ngeneric:Invisible-Pin|pin@13||-2.5|2||||
+AThicker|net@2|||FS0|pin@5||-2|0|pin@8||-2.5|0|ART_color()I10
+AThicker|net@5|||FS0|pin@12||2.5|0|pin@11||1.5|0|ART_color()I10
+Eina||D5G1;|pin@2||I
+Einb||D5G1;|pin@6||I
+Einc||D5G1;|pin@13||I
+Eout||D5G1;|pin@7||O
+X
+
+# Cell nms1;1{ic}
+Cnms1;1{ic}||artwork|1021415734000|1263086779282|E|ATTR_Delay(D5G1;HNPX3;Y-0.5;)I100|ATTR_X(D5G1.5;HNPX-2.25;Y1.5;)I1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NPin|pin@0||-1|-2|1|1||
+NPin|pin@1||0|-3||||
+NPin|pin@2||1|-2|1|1||
+NPin|pin@3||0|-2|1|1||
+NPin|pin@4||0|-2|1|1||
+Nschematic:Bus_Pin|pin@5||0|2|-2|-2||
+Nschematic:Bus_Pin|pin@6||-3|0|-2|-2||
+NPin|pin@8||-1.5|0|1|1|RR|
+NPin|pin@9||-3|0|||RR|
+NPin|pin@10||-1.5|1|1|1||
+NPin|pin@11||-1.5|-1|1|1||
+NPin|pin@12||0|-1|1|1||
+NPin|pin@13||-0.75|-1|1|1||
+NPin|pin@14||-0.75|1|1|1||
+NPin|pin@15||0|1|1|1||
+NPin|pin@16||0|2|1|1||
+NPin|pin@21||0|2|1|1|YRR|
+NPin|pin@24||0|2|1|1|YRR|
+AThicker|net@0|||FS0|pin@3||0|-2|pin@0||-1|-2|ART_color()I10
+AThicker|net@1|||FS0|pin@2||1|-2|pin@3||0|-2|ART_color()I10
+AThicker|net@2|||FS1350|pin@0||-1|-2|pin@1||0|-3|ART_color()I10
+AThicker|net@3|||FS2250|pin@1||0|-3|pin@2||1|-2|ART_color()I10
+AThicker|net@4|||FS900|pin@12||0|-1|pin@4||0|-2|ART_color()I10
+AThicker|net@5|||FS900|pin@10||-1.5|1|pin@11||-1.5|-1|ART_color()I10
+AThicker|net@6|||FS1800|pin@13||-0.75|-1|pin@12||0|-1|ART_color()I10
+AThicker|net@7|||FS900|pin@16||0|2|pin@15||0|1|ART_color()I10
+AThicker|net@8|||FS900|pin@14||-0.75|1|pin@13||-0.75|-1|ART_color()I10
+AThicker|net@9|||FS0|pin@15||0|1|pin@14||-0.75|1|ART_color()I10
+AThicker|net@10|||FS1800|pin@9||-3|0|pin@8||-1.5|0|ART_color()I10
+AThicker|net@11|||FS900|pin@21||0|2|pin@24||0|2|ART_color()I10
+Ed||D5G1;|pin@5||O
+Eg||D5G1;|pin@6||I
+X
+
+# Cell nms1;1{sch}
+Cnms1;1{sch}||schematic|1021415734000|1263319189716||ATTR_Delay(D5G1;HNPX-9;Y-15.5;)I100|ATTR_X(D5G1;HNPX-9;Y-14.5;)I1|prototype_center()I[0,0]
+INMOS;1{ic}|NMOS@1||0|-11|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)S0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||-10|-11||||
+NOff-Page|conn@1||8|0|||Y|
+NGround|gnd@0||0|-19||||
+Inms1;1{ic}|nms1@0||24.5|2|||D5G4;|ATTR_Delay(D5G1;NPX3.75;Y-0.25;)I100|ATTR_X(D5G1.5;NPX-1.5;Y1.75;)I1
+NWire_Pin|pin@0||0|0||||
+Ngeneric:Invisible-Pin|pin@1||-0.5|4|||||ART_message(D5G2;)S[two fixed-size N-type transistors to GND]
+Ngeneric:Invisible-Pin|pin@2||0|8.5|||||ART_message(D5G6;)Snms1
+Awire|net@3|||2700|gnd@0||0|-17|NMOS@1|s|0|-13
+Awire|net@4|||1800|conn@0|y|-8|-11|NMOS@1|g|-3|-11
+Awire|net@5|||1800|pin@0||0|0|conn@1|a|6|0
+Awire|net@6|||900|pin@0||0|0|NMOS@1|d|0|-9
+Ed||D5G2;|conn@1|y|O
+Eg||D5G2;|conn@0|a|I
+X
+
 # Cell nms2;1{ic}
 Cnms2;1{ic}||artwork|1021415734000|1084377264000|E|ATTR_Delay(D5G1;HNPX3;Y-0.5;)I100|ATTR_X(D5G1.5;HNPX-2.25;Y1.5;)I1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -3366,7 +3909,7 @@ Eg2||D5G1;|pin@7||I
 X
 
 # Cell nms2;1{sch}
-Cnms2;1{sch}||schematic|1021415734000|1084377274000||ATTR_Delay(D5G1;HNPX-9;Y-15.5;)I100|ATTR_X(D5G1;HNPX-9;Y-14.5;)I1|prototype_center()I[0,0]
+Cnms2;1{sch}||schematic|1021415734000|1263087520430||ATTR_Delay(D5G1;HNPX-9;Y-15.5;)I100|ATTR_X(D5G1;HNPX-9;Y-14.5;)I1|prototype_center()I[0,0]
 INMOS;1{ic}|NMOS@0||0|-4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X*2.0|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)S1
 INMOS;1{ic}|NMOS@1||0|-11|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X*2.0|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)S1|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -3375,6 +3918,7 @@ NOff-Page|conn@1||8|0|||Y|
 NOff-Page|conn@2||8|-4|||YRR|
 NGround|gnd@0||0|-19||||
 Inms2;1{ic}|nms2@0||29|0|||D0G4;|ATTR_Delay(D5G1;NPX3;Y-0.5;)I100|ATTR_X(D5G1.5;NPX-2.25;Y1.5;)I1
+Inms2a;1{ic}|nms2a@0||29|-11.5|||D0G4;|ATTR_Delay(D5G1;NPX3;Y-0.5;)I100|ATTR_X(D5G1.5;NPX-2.25;Y1.5;)I1
 NWire_Pin|pin@0||0|0||||
 Ngeneric:Invisible-Pin|pin@1||-0.5|4|||||ART_message(D5G2;)S[two fixed-size N-type transistors to GND]
 Ngeneric:Invisible-Pin|pin@2||0|8.5|||||ART_message(D5G6;)S[nms2]
@@ -3502,6 +4046,59 @@ Eg||D5G2;|conn@2|a|I
 Eg2||D5G2;|conn@1|a|I
 X
 
+# Cell nms2a;1{ic}
+Cnms2a;1{ic}|nms2|artwork|1021415734000|1263087507736|E|ATTR_Delay(D5G1;HNPX-9;Y-15.5;)I100|ATTR_X(D5G1;HNPX-9;Y-14.5;)I1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NPin|pin@0||-1|-2|1|1||
+NPin|pin@1||0|-3||||
+NPin|pin@2||1|-2|1|1||
+NPin|pin@3||0|-2|1|1||
+NPin|pin@4||0|-2|1|1||
+Nschematic:Bus_Pin|pin@5||0|6|-2|-2||
+Nschematic:Bus_Pin|pin@6||-3|0|-2|-2||
+Nschematic:Bus_Pin|pin@7||-3|4|-2|-2||
+NPin|pin@8||-1.5|0|1|1|RR|
+NPin|pin@9||-3|0|||RR|
+NPin|pin@10||-1.5|1|1|1||
+NPin|pin@11||-1.5|-1|1|1||
+NPin|pin@12||0|-1|1|1||
+NPin|pin@13||-0.75|-1|1|1||
+NPin|pin@14||-0.75|1|1|1||
+NPin|pin@15||0|1|1|1||
+NPin|pin@16||0|2|1|1||
+NPin|pin@17||0|6|||RR|
+NPin|pin@18||0|5|1|1|YRR|
+NPin|pin@19||-0.75|5|1|1|YRR|
+NPin|pin@20||-0.75|3|1|1|YRR|
+NPin|pin@21||0|3|1|1|YRR|
+NPin|pin@22||-1.5|3|1|1|YRR|
+NPin|pin@23||-1.5|5|1|1|YRR|
+NPin|pin@24||0|2|1|1|YRR|
+NPin|pin@25||-1.5|4||||
+NPin|pin@26||-3|4|1|1|Y|
+AThicker|net@0|||FS0|pin@3||0|-2|pin@0||-1|-2|ART_color()I10
+AThicker|net@1|||FS0|pin@2||1|-2|pin@3||0|-2|ART_color()I10
+AThicker|net@2|||FS1350|pin@0||-1|-2|pin@1||0|-3|ART_color()I10
+AThicker|net@3|||FS2250|pin@1||0|-3|pin@2||1|-2|ART_color()I10
+AThicker|net@4|||FS900|pin@12||0|-1|pin@4||0|-2|ART_color()I10
+AThicker|net@5|||FS900|pin@10||-1.5|1|pin@11||-1.5|-1|ART_color()I10
+AThicker|net@6|||FS1800|pin@13||-0.75|-1|pin@12||0|-1|ART_color()I10
+AThicker|net@7|||FS900|pin@16||0|2|pin@15||0|1|ART_color()I10
+AThicker|net@8|||FS900|pin@14||-0.75|1|pin@13||-0.75|-1|ART_color()I10
+AThicker|net@9|||FS0|pin@15||0|1|pin@14||-0.75|1|ART_color()I10
+AThicker|net@10|||FS1800|pin@9||-3|0|pin@8||-1.5|0|ART_color()I10
+AThicker|net@11|||FS900|pin@21||0|3|pin@24||0|2|ART_color()I10
+AThicker|net@12|||FS1800|pin@20||-0.75|3|pin@21||0|3|ART_color()I10
+AThicker|net@13|||FS900|pin@17||0|6|pin@18||0|5|ART_color()I10
+AThicker|net@14|||FS0|pin@18||0|5|pin@19||-0.75|5|ART_color()I10
+AThicker|net@15|||FS900|pin@23||-1.5|5|pin@22||-1.5|3|ART_color()I10
+AThicker|net@16|||FS900|pin@19||-0.75|5|pin@20||-0.75|3|ART_color()I10
+AThicker|net@17|||FS0|pin@25||-1.5|4|pin@26||-3|4|ART_color()I10
+Ed||D5G1;|pin@5||O
+Eg||D5G1;|pin@6||I
+Eg2||D5G1;|pin@7||I
+X
+
 # Cell nms3;1{ic}
 Cnms3;1{ic}||artwork|1021415734000|1084377312000|E|ATTR_Delay(D5G1;HNPX3;Y-2;)I100|ATTR_X(D5G1.5;HNOJPX-2;Y0.5;)SLE.getdrive()|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -3574,7 +4171,7 @@ Eg3||D5G1;|pin@26||I
 X
 
 # Cell nms3;1{sch}
-Cnms3;1{sch}||schematic|1021415734000|1084405272000||ATTR_Delay(D5G1;HNPX-9.5;Y-16.5;)I100|ATTR_X(D5G1;HNOJPX-9.5;Y-15.5;)SLE.getdrive()|prototype_center()I[0,0]
+Cnms3;1{sch}||schematic|1021415734000|1263162276830||ATTR_Delay(D5G1;HNPX-9.5;Y-16.5;)I100|ATTR_X(D5G1;HNOJPX-9.5;Y-15.5;)SLE.getdrive()|prototype_center()I[0,0]
 INMOS;1{ic}|NMOS@0||0|2.5|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S3.0*@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)S1
 INMOS;1{ic}|NMOS@1||0|-11|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S3.0*@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)S1|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
 INMOS;1{ic}|NMOS@2||0|-4|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S3.0*@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)S1|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)S1
@@ -3584,7 +4181,10 @@ NOff-Page|conn@1||5|6||||
 NOff-Page|conn@2||-10|-11||||
 NOff-Page|conn@3||-10|2.5||||
 NGround|gnd@0||0|-19||||
-Inms3;1{ic}|nms3@0||34|1|||D0G4;|ATTR_Delay(D5G1;NPX3;Y-2;)I100|ATTR_X(D5G1.5;NOJPX-2;Y0.5;)SLE.getdrive()
+Inms3;1{ic}|nms3@4||18|-18.5|||D0G4;|ATTR_Delay(D5G1;NPX3;Y-4.5;)I100|ATTR_X(D5G1.5;NOJPX-2;Y2.5;)S1
+Inms3a;1{ic}|nms3a@0||18|-3.5|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-5;)I100|ATTR_X(D5G1.5;NOJPX3;Y2.5;)S1
+Inms3b;1{ic}|nms3b@2||30|-3.5|||D0G4;|ATTR_Delay(D5G1;NPX3;Y-6;)I100|ATTR_X(D5G1.5;NOJPX2;Y2.5;)S1
+Inms3d;1{ic}|nms3c@0||30|-18.5|||D0G4;|ATTR_Delay(D5G1;NPX3;Y-4.5;)I100|ATTR_X(D5G1.5;NOJPX2;Y-1;)S1
 Ngeneric:Invisible-Pin|pin@0||0|13.5|||||ART_message(D5G6;)S[nms3]
 Ngeneric:Invisible-Pin|pin@1||0|9|||||ART_message(D5G2;)S[three fixed-size N-type transistors to GND]
 NWire_Pin|pin@2||0|6||||
@@ -3754,6 +4354,191 @@ Ed||D5G2;|conn@3|y|O
 Eg||D5G2;|conn@1|a|I
 Eg2||D5G2;|conn@2|a|I
 Eg3||D5G2;|conn@0|a|I
+X
+
+# Cell nms3_sy2;1{ic}
+Cnms3_sy2;1{ic}||artwork|1021415734000|1263158552362|E|ATTR_Delay(D5G1;HNPX-8.5;Y-1.5;)I100|ATTR_X(D5G1.5;HNOJPX-10.5;Y1.5;)SLE.getdrive()|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NPin|pin@0||3.5|8|1|1|Y|
+NPin|pin@1||0.25|8|1|1||
+NPin|pin@3||-1.5|0|1|1|Y|
+NPin|pin@7||3.5|0|1|1||
+NPin|pin@8||3.5|4|1|1||
+NPin|pin@12||2|7|1|1||
+NPin|pin@13||2|5|1|1||
+NPin|pin@14||2|1|1|1||
+NPin|pin@15||2|3|1|1||
+NPin|pin@16||-2|3|1|1||
+NPin|pin@17||-2|1|1|1||
+NPin|pin@22||1.5|0|1|1|Y|
+NPin|pin@24||-0.25|8|1|1||
+NPin|pin@26||-3.5|4|1|1||
+NPin|pin@29||-3.5|8|1|1||
+NPin|pin@30||0|11||||
+NPin|pin@31||0|10|1|1||
+NPin|pin@32||0|-3|1|1||
+NPin|pin@33||-2|-1|1|1|Y|
+NPin|pin@34||-2|-2||||
+NPin|pin@35||0|-2||||
+NPin|pin@37||2|-1|1|1|Y|
+NPin|pin@38||2|-2||||
+NPin|pin@39||2|-2|1|1|Y|
+NPin|pin@40||2|10|1|1||
+NPin|pin@41||2|10||||
+NPin|pin@42||2|9|1|1||
+NPin|pin@45||-2|5|1|1||
+NPin|pin@46||5|4|1|1|RR|
+NPin|pin@47||3.5|4|||RR|
+NPin|pin@48||3.5|8|||RR|
+NPin|pin@49||4.25|8|1|1|RR|
+NPin|pin@50||4.25|0||||
+NPin|pin@51||3.5|0|1|1|Y|
+NPin|pin@58||2|9|1|1|YRR|
+NPin|pin@59||2.75|9|1|1|YRR|
+NPin|pin@60||2.75|7|1|1|YRR|
+NPin|pin@61||2|7|1|1|YRR|
+NPin|pin@62||2|-1|1|1|YRR|
+NPin|pin@63||2.75|-1|1|1|YRR|
+NPin|pin@64||2.75|1|1|1|YRR|
+NPin|pin@65||2|1|1|1|YRR|
+NPin|pin@66||2|5|1|1||
+NPin|pin@67||2.75|5|1|1||
+NPin|pin@68||2.75|3|1|1||
+NPin|pin@69||2|3|1|1||
+NPin|pin@70||3.5|3|1|1||
+NPin|pin@71||3.5|5|1|1||
+NPin|pin@72||3.5|9|1|1||
+NPin|pin@73||3.5|7|1|1||
+NPin|pin@74||3.5|-1|1|1||
+NPin|pin@75||3.5|1|1|1||
+NPin|pin@94||-2|10||||
+NPin|pin@95||-2|9|1|1||
+NPin|pin@96||-2.75|9|1|1||
+NPin|pin@97||-2.75|7|1|1||
+NPin|pin@98||-2|7|1|1||
+NPin|pin@99||-3.5|7|1|1||
+NPin|pin@100||-3.5|9|1|1||
+NPin|pin@101||-5|8|||RR|
+NPin|pin@102||-3.5|8|1|1|RR|
+Ngeneric:Invisible-Pin|pin@103||-5|8||||
+Nschematic:Bus_Pin|pin@104||0|11|-2|-2||
+Nschematic:Bus_Pin|pin@105||-5|0|-2|-2||
+Nschematic:Bus_Pin|pin@106||5|4|-2|-2||
+NPin|pin@107||-3.5|0|1|1|RR|
+NPin|pin@108||-5|0|||RR|
+NPin|pin@109||1|-3|1|1||
+NPin|pin@110||0|-4||||
+NPin|pin@111||-1|-3|1|1||
+NPin|pin@112||-3.5|1|1|1||
+NPin|pin@113||-3.5|-1|1|1||
+NPin|pin@114||-2|-1|1|1||
+NPin|pin@115||-2.75|-1|1|1||
+NPin|pin@116||-2.75|1|1|1||
+NPin|pin@117||-2|1|1|1||
+NPin|pin@118||-2|5|1|1|YRR|
+NPin|pin@119||-2.75|5|1|1|YRR|
+NPin|pin@120||-2.75|3|1|1|YRR|
+NPin|pin@121||-2|3|1|1|YRR|
+NPin|pin@122||-3.5|3|1|1|YRR|
+NPin|pin@123||-3.5|5|1|1|YRR|
+NPin|pin@124||-3.5|4||||
+NPin|pin@125||-4.25|4|1|1|Y|
+ASolid|net@0|||FS777|pin@1||0.25|8|pin@3||-1.5|0|ART_color()I10
+ASolid|net@1|||FS0|pin@0||3.5|8|pin@1||0.25|8|ART_color()I10
+AThicker|net@9|||FS2700|pin@13||2|5|pin@12||2|7|ART_color()I10
+AThicker|net@10|||FS2700|pin@14||2|1|pin@15||2|3|ART_color()I10
+AThicker|net@11|||FS2700|pin@17||-2|1|pin@16||-2|3|ART_color()I10
+ASolid|net@15|||FS1023|pin@24||-0.25|8|pin@22||1.5|0|ART_color()I10
+AThicker|net@18|||FS2700|pin@45||-2|5|pin@98||-2|7|ART_color()I10
+AThicker|net@21|||FS900|pin@30||0|11|pin@31||0|10|ART_color()I10
+AThicker|net@22|||FS2700|pin@32||0|-3|pin@35||0|-2|ART_color()I10
+AThicker|net@23|||FS1800|pin@111||-1|-3|pin@32||0|-3|ART_color()I10
+AThicker|net@24|||FS1800|pin@32||0|-3|pin@109||1|-3|ART_color()I10
+AThicker|net@25|||FS1800|pin@34||-2|-2|pin@39||2|-2|ART_color()I10
+AThicker|net@26|||FS2700|pin@38||2|-2|pin@37||2|-1|ART_color()I10
+AThicker|net@27|||FS2700|pin@34||-2|-2|pin@33||-2|-1|ART_color()I10
+AThicker|net@29|||FS1800|pin@94||-2|10|pin@40||2|10|ART_color()I10
+AThicker|net@30|||FS900|pin@41||2|10|pin@42||2|9|ART_color()I10
+AThicker|net@32|||FS1800|pin@47||3.5|4|pin@46||5|4|ART_color()I10
+AThicker|net@33|||FS1800|pin@48||3.5|8|pin@49||4.25|8|ART_color()I10
+AThicker|net@34|||FS0|pin@50||4.25|0|pin@51||3.5|0|ART_color()I10
+AThicker|net@38|||FS0|pin@63||2.75|-1|pin@62||2|-1|ART_color()I10
+AThicker|net@39|||FS1800|pin@66||2|5|pin@67||2.75|5|ART_color()I10
+AThicker|net@40|||FS900|pin@72||3.5|9|pin@73||3.5|7|ART_color()I10
+AThicker|net@41|||FS1800|pin@58||2|9|pin@59||2.75|9|ART_color()I10
+AThicker|net@42|||FS900|pin@59||2.75|9|pin@60||2.75|7|ART_color()I10
+AThicker|net@43|||FS0|pin@60||2.75|7|pin@61||2|7|ART_color()I10
+AThicker|net@44|||FS900|pin@71||3.5|5|pin@70||3.5|3|ART_color()I10
+AThicker|net@45|||FS900|pin@67||2.75|5|pin@68||2.75|3|ART_color()I10
+AThicker|net@46|||FS0|pin@68||2.75|3|pin@69||2|3|ART_color()I10
+AThicker|net@47|||FS900|pin@75||3.5|1|pin@74||3.5|-1|ART_color()I10
+AThicker|net@48|||FS900|pin@64||2.75|1|pin@63||2.75|-1|ART_color()I10
+AThicker|net@49|||FS1800|pin@65||2|1|pin@64||2.75|1|ART_color()I10
+AThicker|net@62|||FS900|pin@100||-3.5|9|pin@99||-3.5|7|ART_color()I10
+AThicker|net@63|||FS900|pin@94||-2|10|pin@95||-2|9|ART_color()I10
+AThicker|net@64|||FS0|pin@95||-2|9|pin@96||-2.75|9|ART_color()I10
+AThicker|net@65|||FS1800|pin@97||-2.75|7|pin@98||-2|7|ART_color()I10
+AThicker|net@66|||FS1800|pin@101||-5|8|pin@102||-3.5|8|ART_color()I10
+AThicker|net@67|||FS900|pin@96||-2.75|9|pin@97||-2.75|7|ART_color()I10
+AThicker|net@68|||FS900|pin@112||-3.5|1|pin@113||-3.5|-1|ART_color()I10
+AThicker|net@69|||FS1800|pin@115||-2.75|-1|pin@114||-2|-1|ART_color()I10
+AThicker|net@70|||FS900|pin@116||-2.75|1|pin@115||-2.75|-1|ART_color()I10
+AThicker|net@71|||FS0|pin@117||-2|1|pin@116||-2.75|1|ART_color()I10
+AThicker|net@72|||FS1350|pin@111||-1|-3|pin@110||0|-4|ART_color()I10
+AThicker|net@73|||FS2250|pin@110||0|-4|pin@109||1|-3|ART_color()I10
+AThicker|net@74|||FS1800|pin@108||-5|0|pin@107||-3.5|0|ART_color()I10
+AThicker|net@75|||FS1800|pin@120||-2.75|3|pin@121||-2|3|ART_color()I10
+AThicker|net@76|||FS0|pin@118||-2|5|pin@119||-2.75|5|ART_color()I10
+AThicker|net@77|||FS900|pin@123||-3.5|5|pin@122||-3.5|3|ART_color()I10
+AThicker|net@78|||FS900|pin@119||-2.75|5|pin@120||-2.75|3|ART_color()I10
+AThicker|net@79|||FS0|pin@124||-3.5|4|pin@125||-4.25|4|ART_color()I10
+ASolid|net@85|||FS0|pin@8||3.5|4|pin@26||-3.5|4|ART_color()I10
+ASolid|net@88|||FS0|pin@7||3.5|0|pin@22||1.5|0|ART_color()I10
+ASolid|net@89|||FS1800|pin@29||-3.5|8|pin@24||-0.25|8|ART_color()I10
+ASolid|net@92|||FS0|pin@3||-1.5|0|pin@107||-3.5|0|ART_color()I-16777215
+Ed||D5G1;|pin@104||O
+Eg||D5G1;|pin@105||I
+Eg2||D5G1;|pin@106||I
+Eg3||D5G1;|pin@103||I
+X
+
+# Cell nms3_sy2;1{sch}
+Cnms3_sy2;1{sch}||schematic|1021415734000|1263153075785||ATTR_Delay(D5G1;HNPX-9.5;Y-16.5;)I100|ATTR_X(D5G1;HNOJPX-9.5;Y-15.5;)SLE.getdrive()|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||-7|0||||
+NOff-Page|conn@1||-5|-8||||
+NOff-Page|conn@2||30|4||||
+NOff-Page|conn@3||30.5|-4|||YRR|
+Inms3;1{ic}|nms3@0||21|-8|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX-2;Y0.5;)S@X/2.
+Inms3;1{ic}|nms3@2||2|-8|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX-2;Y0.5;)S@X/2.
+Inms3_sy2;1{ic}|nms3_sy2@0||45|13|||D0G4;|ATTR_Delay(D5G1;NPX-8.5;Y-1.5;)I100|ATTR_X(D5G1.5;NOJPX1.5;Y2.5;)SLE.getdrive()
+NWire_Pin|pin@2||21|4||||
+NWire_Pin|pin@10||2|4||||
+NWire_Pin|pin@11||14.5|0||||
+NWire_Pin|pin@12||6.5|-8||||
+Ngeneric:Invisible-Pin|pin@17||10|12.5|||||ART_message(D5G2;)Sa symmetric fixed-size N-type 3 stack to GND
+Ngeneric:Invisible-Pin|pin@18||8|17|||||ART_message(D5G6;)Snms3_sy2
+NWire_Pin|pin@23||14.5|-8|||X|
+NWire_Pin|pin@24||6.5|0|||X|
+Ngeneric:Invisible-Pin|pin@25||12|8.5|||||ART_message(D5G2;)S[two stacks connected like this suffice for symmetry,because of the diffusion loads]
+Awire|net@3|||1800|pin@2||21|4|conn@2|a|28|4
+Awire|net@4|||2700|nms3@0|d|21|2|pin@2||21|4
+Awire|net@17|||900|pin@10||2|4|nms3@2|d|2|2
+Awire|net@18|||0|nms3@2|g3|-1|0|conn@0|y|-5|0
+Awire|net@19|||0|nms3@2|g|-1|-8|conn@1|y|-3|-8
+Awire|net@21|||450|pin@11||14.5|0|pin@12||6.5|-8
+Awire|net@22|||0|pin@12||6.5|-8|nms3@2|g|-1|-8
+Awire|net@28|||0|pin@24||6.5|0|nms3@2|g3|-1|0
+Awire|net@42|||0|pin@2||21|4|pin@10||2|4
+Awire|net@47|||1350|pin@24||6.5|0|pin@23||14.5|-8
+Awire|net@48|||0|nms3@0|g3|18|0|pin@11||14.5|0
+Awire|net@51|||0|conn@3|y|28.5|-4|nms3@0|g2|24|-4
+Awire|net@52|||0|nms3@0|g2|24|-4|nms3@2|g2|5|-4
+Awire|net@53|||0|nms3@0|g|18|-8|pin@23||14.5|-8
+Ed||D5G2;|conn@2|y|O
+Eg||D5G2;|conn@1|a|I
+Eg2||D5G2;|conn@3|a|I
+Eg3||D5G2;|conn@0|y|I
 X
 
 # Cell nms3_sy3;1{ic}
@@ -4036,6 +4821,219 @@ Eg2||D5G2;|conn@3|a|I
 Eg3||D5G2;|conn@0|y|I
 X
 
+# Cell nms3a;1{ic}
+Cnms3a;1{ic}|nms3|artwork|1021415734000|1263153467149|E|ATTR_Delay(D5G1;HNPX-9.5;Y-16.5;)I100|ATTR_X(D5G1;HNOJPX-9.5;Y-15.5;)SLE.getdrive()|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NPin|pin@0||-3|4|1|1|Y|
+NPin|pin@1||-1.5|4||||
+NPin|pin@2||0|2|1|1|YRR|
+NPin|pin@3||-1.5|5|1|1|YRR|
+NPin|pin@4||-1.5|3|1|1|YRR|
+NPin|pin@5||0|3|1|1|YRR|
+NPin|pin@6||-0.75|3|1|1|YRR|
+NPin|pin@7||-0.75|5|1|1|YRR|
+NPin|pin@8||0|5|1|1|YRR|
+NPin|pin@9||0|6|||RR|
+NPin|pin@10||0|2|1|1||
+NPin|pin@11||0|1|1|1||
+NPin|pin@12||-0.75|1|1|1||
+NPin|pin@13||-0.75|-1|1|1||
+NPin|pin@14||0|-1|1|1||
+NPin|pin@15||-1.5|-1|1|1||
+NPin|pin@16||-1.5|1|1|1||
+NPin|pin@17||-1|-2|1|1||
+NPin|pin@18||0|-3||||
+NPin|pin@19||1|-2|1|1||
+NPin|pin@20||0|-2|1|1||
+NPin|pin@21||-3|0|||RR|
+NPin|pin@22||-1.5|0|1|1|RR|
+Nschematic:Bus_Pin|pin@23||-3|4|-2|-2||
+Nschematic:Bus_Pin|pin@24||-3|0|-2|-2||
+Nschematic:Bus_Pin|pin@25||0|10|-2|-2||
+Ngeneric:Invisible-Pin|pin@26||-3|8||||
+NPin|pin@27||-1.5|8|1|1|RR|
+NPin|pin@28||-3|8|||RR|
+NPin|pin@29||0|6|1|1||
+NPin|pin@30||-1.5|9|1|1||
+NPin|pin@31||-1.5|7|1|1||
+NPin|pin@32||0|7|1|1||
+NPin|pin@33||-0.75|7|1|1||
+NPin|pin@34||-0.75|9|1|1||
+NPin|pin@35||0|9|1|1||
+NPin|pin@36||0|10||||
+AThicker|net@0|||FS0|pin@1||-1.5|4|pin@0||-3|4|ART_color()I10
+AThicker|net@1|||FS900|pin@7||-0.75|5|pin@6||-0.75|3|ART_color()I10
+AThicker|net@2|||FS900|pin@3||-1.5|5|pin@4||-1.5|3|ART_color()I10
+AThicker|net@3|||FS0|pin@8||0|5|pin@7||-0.75|5|ART_color()I10
+AThicker|net@4|||FS900|pin@9||0|6|pin@8||0|5|ART_color()I10
+AThicker|net@5|||FS1800|pin@6||-0.75|3|pin@5||0|3|ART_color()I10
+AThicker|net@6|||FS900|pin@5||0|3|pin@2||0|2|ART_color()I10
+AThicker|net@7|||FS1800|pin@21||-3|0|pin@22||-1.5|0|ART_color()I10
+AThicker|net@8|||FS2250|pin@18||0|-3|pin@19||1|-2|ART_color()I10
+AThicker|net@9|||FS0|pin@20||0|-2|pin@17||-1|-2|ART_color()I10
+AThicker|net@10|||FS1350|pin@17||-1|-2|pin@18||0|-3|ART_color()I10
+AThicker|net@11|||FS0|pin@19||1|-2|pin@20||0|-2|ART_color()I10
+AThicker|net@12|||FS0|pin@11||0|1|pin@12||-0.75|1|ART_color()I10
+AThicker|net@13|||FS900|pin@12||-0.75|1|pin@13||-0.75|-1|ART_color()I10
+AThicker|net@14|||FS900|pin@10||0|2|pin@11||0|1|ART_color()I10
+AThicker|net@15|||FS900|pin@14||0|-1|pin@20||0|-2|ART_color()I10
+AThicker|net@16|||FS1800|pin@13||-0.75|-1|pin@14||0|-1|ART_color()I10
+AThicker|net@17|||FS900|pin@16||-1.5|1|pin@15||-1.5|-1|ART_color()I10
+AThicker|net@18|||FS900|pin@34||-0.75|9|pin@33||-0.75|7|ART_color()I10
+AThicker|net@19|||FS1800|pin@28||-3|8|pin@27||-1.5|8|ART_color()I10
+AThicker|net@20|||FS900|pin@32||0|7|pin@29||0|6|ART_color()I10
+AThicker|net@21|||FS1800|pin@33||-0.75|7|pin@32||0|7|ART_color()I10
+AThicker|net@22|||FS0|pin@35||0|9|pin@34||-0.75|9|ART_color()I10
+AThicker|net@23|||FS900|pin@36||0|10|pin@35||0|9|ART_color()I10
+AThicker|net@24|||FS900|pin@30||-1.5|9|pin@31||-1.5|7|ART_color()I10
+Ed||D5G1;|pin@25||O
+Eg||D5G1;|pin@24||I
+Eg2||D5G1;|pin@23||I
+Eg3||D5G1;|pin@26||I
+X
+
+# Cell nms3b;1{ic}
+Cnms3b;1{ic}|nms3|artwork|1021415734000|1263155893332|E|ATTR_Delay(D5G1;HNPX-9.5;Y-16.5;)I100|ATTR_X(D5G1;HNOJPX-9.5;Y-15.5;)SLE.getdrive()|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NPin|pin@0||-1.5|4|1|1|XY|
+NPin|pin@1||-3|4|||X|
+NPin|pin@2||0|2|1|1|XYRR|
+NPin|pin@3||-1.5|5|1|1|XYRR|
+NPin|pin@4||-1.5|3|1|1|XYRR|
+NPin|pin@5||0|3|1|1|XYRR|
+NPin|pin@6||-0.75|3|1|1|XYRR|
+NPin|pin@7||-0.75|5|1|1|XYRR|
+NPin|pin@8||0|5|1|1|XYRR|
+NPin|pin@9||0|6|||XRR|
+NPin|pin@10||0|2|1|1|X|
+NPin|pin@11||0|1|1|1|X|
+NPin|pin@12||0.75|1|1|1|X|
+NPin|pin@13||0.75|-1|1|1|X|
+NPin|pin@14||0|-1|1|1|X|
+NPin|pin@15||1.5|-1|1|1|X|
+NPin|pin@16||1.5|1|1|1|X|
+NPin|pin@17||1|-2|1|1|X|
+NPin|pin@18||0|-3|||X|
+NPin|pin@19||-1|-2|1|1|X|
+NPin|pin@20||0|-2|1|1|X|
+NPin|pin@21||3|0|||XRR|
+NPin|pin@22||1.5|0|1|1|XRR|
+Nschematic:Bus_Pin|pin@23||-3|4|-2|-2|X|
+Nschematic:Bus_Pin|pin@24||3|0|-2|-2|X|
+Nschematic:Bus_Pin|pin@25||0|10|-2|-2|X|
+Ngeneric:Invisible-Pin|pin@26||-3|8|||X|
+NPin|pin@27||-3|8|1|1|XRR|
+NPin|pin@28||-1.5|8|||XRR|
+NPin|pin@29||0|6|1|1|X|
+NPin|pin@30||-1.5|9|1|1|X|
+NPin|pin@31||-1.5|7|1|1|X|
+NPin|pin@32||0|7|1|1|X|
+NPin|pin@33||-0.75|7|1|1|X|
+NPin|pin@34||-0.75|9|1|1|X|
+NPin|pin@35||0|9|1|1|X|
+NPin|pin@36||0|10|||X|
+AThicker|net@0|||FS1800|pin@1||-3|4|pin@0||-1.5|4|ART_color()I10
+AThicker|net@1|||FS900|pin@7||-0.75|5|pin@6||-0.75|3|ART_color()I10
+AThicker|net@2|||FS900|pin@3||-1.5|5|pin@4||-1.5|3|ART_color()I10
+AThicker|net@3|||FS0|pin@8||0|5|pin@7||-0.75|5|ART_color()I10
+AThicker|net@4|||FS900|pin@9||0|6|pin@8||0|5|ART_color()I10
+AThicker|net@5|||FS1800|pin@6||-0.75|3|pin@5||0|3|ART_color()I10
+AThicker|net@6|||FS900|pin@5||0|3|pin@2||0|2|ART_color()I10
+AThicker|net@7|||FS0|pin@21||3|0|pin@22||1.5|0|ART_color()I10
+AThicker|net@8|||FS3150|pin@18||0|-3|pin@19||-1|-2|ART_color()I10
+AThicker|net@9|||FS1800|pin@20||0|-2|pin@17||1|-2|ART_color()I10
+AThicker|net@10|||FS450|pin@17||1|-2|pin@18||0|-3|ART_color()I10
+AThicker|net@11|||FS1800|pin@19||-1|-2|pin@20||0|-2|ART_color()I10
+AThicker|net@12|||FS1800|pin@11||0|1|pin@12||0.75|1|ART_color()I10
+AThicker|net@13|||FS900|pin@12||0.75|1|pin@13||0.75|-1|ART_color()I10
+AThicker|net@14|||FS900|pin@10||0|2|pin@11||0|1|ART_color()I10
+AThicker|net@15|||FS900|pin@14||0|-1|pin@20||0|-2|ART_color()I10
+AThicker|net@16|||FS0|pin@13||0.75|-1|pin@14||0|-1|ART_color()I10
+AThicker|net@17|||FS900|pin@16||1.5|1|pin@15||1.5|-1|ART_color()I10
+AThicker|net@18|||FS900|pin@34||-0.75|9|pin@33||-0.75|7|ART_color()I10
+AThicker|net@19|||FS0|pin@28||-1.5|8|pin@27||-3|8|ART_color()I10
+AThicker|net@20|||FS900|pin@32||0|7|pin@29||0|6|ART_color()I10
+AThicker|net@21|||FS1800|pin@33||-0.75|7|pin@32||0|7|ART_color()I10
+AThicker|net@22|||FS0|pin@35||0|9|pin@34||-0.75|9|ART_color()I10
+AThicker|net@23|||FS900|pin@36||0|10|pin@35||0|9|ART_color()I10
+AThicker|net@24|||FS900|pin@30||-1.5|9|pin@31||-1.5|7|ART_color()I10
+Ed||D5G1;|pin@25||O
+Eg||D5G1;|pin@24||I
+Eg2||D5G1;|pin@23||I
+Eg3||D5G1;|pin@26||I
+X
+
+# Cell nms3d;1{ic}
+Cnms3d;1{ic}|nms3|artwork|1021415734000|1263155906205|E|ATTR_Delay(D5G1;HNPX-9.5;Y-16.5;)I100|ATTR_X(D5G1;HNOJPX-9.5;Y-15.5;)SLE.getdrive()|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NPin|pin@0||-1.5|4|1|1|XY|
+NPin|pin@1||-3|4|||X|
+NPin|pin@2||0|2|1|1|XYRR|
+NPin|pin@3||-1.5|5|1|1|XYRR|
+NPin|pin@4||-1.5|3|1|1|XYRR|
+NPin|pin@5||0|3|1|1|XYRR|
+NPin|pin@6||-0.75|3|1|1|XYRR|
+NPin|pin@7||-0.75|5|1|1|XYRR|
+NPin|pin@8||0|5|1|1|XYRR|
+NPin|pin@9||0|6|||XRR|
+NPin|pin@10||0|2|1|1|X|
+NPin|pin@11||0|1|1|1|X|
+NPin|pin@12||-0.75|1|1|1|X|
+NPin|pin@13||-0.75|-1|1|1|X|
+NPin|pin@14||0|-1|1|1|X|
+NPin|pin@15||-1.5|-1|1|1|X|
+NPin|pin@16||-1.5|1|1|1|X|
+NPin|pin@17||1|-2|1|1|X|
+NPin|pin@18||0|-3|||X|
+NPin|pin@19||-1|-2|1|1|X|
+NPin|pin@20||0|-2|1|1|X|
+NPin|pin@21||-1.5|0|||XRR|
+NPin|pin@22||-3|0|1|1|XRR|
+Nschematic:Bus_Pin|pin@23||-3|4|-2|-2|X|
+Nschematic:Bus_Pin|pin@24||-3|0|-2|-2|X|
+Nschematic:Bus_Pin|pin@25||0|10|-2|-2|X|
+Ngeneric:Invisible-Pin|pin@26||3|8|||X|
+NPin|pin@27||1.5|8|1|1|XRR|
+NPin|pin@28||3|8|||XRR|
+NPin|pin@29||0|6|1|1|X|
+NPin|pin@30||1.5|9|1|1|X|
+NPin|pin@31||1.5|7|1|1|X|
+NPin|pin@32||0|7|1|1|X|
+NPin|pin@33||0.75|7|1|1|X|
+NPin|pin@34||0.75|9|1|1|X|
+NPin|pin@35||0|9|1|1|X|
+NPin|pin@36||0|10|||X|
+AThicker|net@0|||FS1800|pin@1||-3|4|pin@0||-1.5|4|ART_color()I10
+AThicker|net@1|||FS900|pin@7||-0.75|5|pin@6||-0.75|3|ART_color()I10
+AThicker|net@2|||FS900|pin@3||-1.5|5|pin@4||-1.5|3|ART_color()I10
+AThicker|net@3|||FS0|pin@8||0|5|pin@7||-0.75|5|ART_color()I10
+AThicker|net@4|||FS900|pin@9||0|6|pin@8||0|5|ART_color()I10
+AThicker|net@5|||FS1800|pin@6||-0.75|3|pin@5||0|3|ART_color()I10
+AThicker|net@6|||FS900|pin@5||0|3|pin@2||0|2|ART_color()I10
+AThicker|net@7|||FS0|pin@21||-1.5|0|pin@22||-3|0|ART_color()I10
+AThicker|net@8|||FS3150|pin@18||0|-3|pin@19||-1|-2|ART_color()I10
+AThicker|net@9|||FS1800|pin@20||0|-2|pin@17||1|-2|ART_color()I10
+AThicker|net@10|||FS450|pin@17||1|-2|pin@18||0|-3|ART_color()I10
+AThicker|net@11|||FS1800|pin@19||-1|-2|pin@20||0|-2|ART_color()I10
+AThicker|net@12|||FS0|pin@11||0|1|pin@12||-0.75|1|ART_color()I10
+AThicker|net@13|||FS900|pin@12||-0.75|1|pin@13||-0.75|-1|ART_color()I10
+AThicker|net@14|||FS900|pin@10||0|2|pin@11||0|1|ART_color()I10
+AThicker|net@15|||FS900|pin@14||0|-1|pin@20||0|-2|ART_color()I10
+AThicker|net@16|||FS1800|pin@13||-0.75|-1|pin@14||0|-1|ART_color()I10
+AThicker|net@17|||FS900|pin@16||-1.5|1|pin@15||-1.5|-1|ART_color()I10
+AThicker|net@18|||FS900|pin@34||0.75|9|pin@33||0.75|7|ART_color()I10
+AThicker|net@19|||FS0|pin@28||3|8|pin@27||1.5|8|ART_color()I10
+AThicker|net@20|||FS900|pin@32||0|7|pin@29||0|6|ART_color()I10
+AThicker|net@21|||FS0|pin@33||0.75|7|pin@32||0|7|ART_color()I10
+AThicker|net@22|||FS1800|pin@35||0|9|pin@34||0.75|9|ART_color()I10
+AThicker|net@23|||FS900|pin@36||0|10|pin@35||0|9|ART_color()I10
+AThicker|net@24|||FS900|pin@30||1.5|9|pin@31||1.5|7|ART_color()I10
+Ed||D5G1;|pin@25||O
+Eg||D5G1;|pin@24||I
+Eg2||D5G1;|pin@23||I
+Eg3||D5G1;|pin@26||I
+X
+
 # Cell nor2;1{ic}
 Cnor2;1{ic}||artwork|1021415734000|1079513648000|E|ATTR_Delay(D5G1;HNPX2.5;Y-2;)I100|ATTR_X(D5G1.5;HNPX2.25;Y2.25;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -4061,7 +5059,7 @@ Eout||D5G1;|pin@4||O
 X
 
 # Cell nor2;1{sch}
-Cnor2;1{sch}||schematic|1021415734000|1094835472000||ATTR_Delay(D5G1;HNPX-18;Y-6;)I100|ATTR_X(D5G1;HNPX-18;Y-5;)I1|ATTR_drive0(D5G1;HNPTX-18;Y-7;)Sstrong0|ATTR_drive1(D5G1;HNPTX-18;Y-8;)Sstrong1|ATTR_verilog_template(D5G1;NTX5.5;Y-18.5;)Snor ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
+Cnor2;1{sch}||schematic|1021415734000|1263131945895||ATTR_Delay(D5G1;HNPX-18;Y-6;)I100|ATTR_X(D5G1;HNPX-18;Y-5;)I1|ATTR_drive0(D5G1;HNPTX-18;Y-7;)Sstrong0|ATTR_drive1(D5G1;HNPTX-18;Y-8;)Sstrong1|ATTR_verilog_template(D5G1;NTX5.5;Y-18.5;)Snor ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
 INMOS;1{ic}|NMOS@0||-4|-8|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
 INMOS;1{ic}|NMOS@1||4|-8|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX4.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -4070,6 +5068,7 @@ NOff-Page|conn@1||14|-8|||RR|
 NOff-Page|conn@2||14|0||||
 NGround|gnd@0||0|-15||||
 Inor2;1{ic}|nor2@0||24.5|14.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-2;)I100|ATTR_X(D5G1.5;NPX2.25;Y2.25;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Inor2n;1{ic}|nor2n@5||24.5|6.5|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-2;)I100|ATTR_X(D5G1.5;NPX2.25;Y2.25;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 NWire_Pin|pin@0||0|-11.5||||
 NWire_Pin|pin@1||-4|-11.5||||
 NWire_Pin|pin@2||4|-11.5||||
@@ -4134,7 +5133,7 @@ Eout||D5G1;|pin@3||O
 X
 
 # Cell nor2_sy;1{sch}
-Cnor2_sy;1{sch}||schematic|1021415734000|1084377034000||ATTR_Delay(D5G1;HNPX-18;Y-6;)I100|ATTR_X(D5G1;HNPX-18;Y-5;)I1|ATTR_drive0(D5G1;HNPTX-18;Y-7;)Sstrong0|ATTR_drive1(D5G1;HNPTX-18;Y-8;)Sstrong1|ATTR_verilog_template(D5G1;NTX5.5;Y-18.5;)Snor ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
+Cnor2_sy;1{sch}||schematic|1021415734000|1263086144696||ATTR_Delay(D5G1;HNPX-18;Y-6;)I100|ATTR_X(D5G1;HNPX-18;Y-5;)I1|ATTR_drive0(D5G1;HNPTX-18;Y-7;)Sstrong0|ATTR_drive1(D5G1;HNPTX-18;Y-8;)Sstrong1|ATTR_verilog_template(D5G1;NTX5.5;Y-18.5;)Snor ($(drive0), $(drive1)) #($(Delay)) $(node_name) ($(out), $(ina), $(inb));|prototype_center()I[0,0]
 INMOS;1{ic}|NMOS@0||4|-8|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
 INMOS;1{ic}|NMOS@1||-4|-8|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y-2.5;)I0
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -4143,6 +5142,7 @@ NOff-Page|conn@1||14|-8|||RR|
 NOff-Page|conn@2||-15.5|0||||
 NGround|gnd@0||0|-15||||
 Inor2_sy;1{ic}|nor2_sy@0||29.5|17|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-2;)I100|ATTR_X(D5G1.5;NPX2.25;Y2.25;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_LEGATE(T)I1|ATTR_LEPARALLGRP()I-1|ATTR_su(T)I-1
+Inor2n_sy;1{ic}|nor2n_sy@0||29.5|10|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-2;)I100|ATTR_X(D5G1.5;NPX2.25;Y2.25;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_LEGATE(T)I1|ATTR_LEPARALLGRP()I-1|ATTR_su(T)I-1
 Ngeneric:Invisible-Pin|pin@0||27|-14|||||ART_message(D5G2;)S[X is drive strength,One pull-down is as strong,as the pull-up]
 NWire_Pin|pin@1||-4|0||||
 NWire_Pin|pin@2||4|0||||
@@ -4340,60 +5340,54 @@ Eout||D5G2;|conn@2|y|O
 X
 
 # Cell nor2n;1{ic}
-Cnor2n;1{ic}||artwork|1021415734000|1052770339000|E|ATTR_Delay(D5G1;HNPX3;Y-3;)I100|ATTR_X(D5G1.5;HNPX2.25;Y2.25;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
+Cnor2n;1{ic}|nor2|artwork|1021415734000|1263134011740|E|ATTR_Delay(D5G1;HNPX-18;Y-6;)I100|ATTR_X(D5G1;HNPX-18;Y-5;)I1|ATTR_drive0(D5G1;HNPTX-18;Y-7;)Sstrong0|ATTR_drive1(D5G1;HNPTX-18;Y-8;)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
-NThick-Circle|art@1||-1|1|1|1|||ART_color()I10
-NThick-Circle|art@2||0.5|0|4|4|RRR||ART_color()I10|ART_degrees()F[0.0,3.1415927]
-NThick-Circle|art@3||-1|-1|1|1|||ART_color()I10
-NPin|pin@0||-0.5|-0.75|1|1||
-NPin|pin@1||0.75|-2|1|1||
-NPin|pin@2||0.5|-2|1|1||
-NPin|pin@3||-0.5|-2|1|1||
-NPin|pin@4||-0.5|2|1|1||
-NPin|pin@5||0.5|2|1|1||
-NPin|pin@6||-1.5|1|1|1||
-NPin|pin@7||-2.5|1||||
-Nschematic:Bus_Pin|pin@8||2.5|0|-2|-2||
-Nschematic:Bus_Pin|pin@9||-2.5|1|-2|-2||
-NPin|pin@10||-2.5|-1||||
-NPin|pin@11||-1.5|-1|1|1||
-Nschematic:Bus_Pin|pin@12||-2.5|-1|-2|-2||
-AThicker|net@0|||FS3150|pin@1||0.75|-2|pin@0||-0.5|-0.75|ART_color()I10
-AThicker|net@1|||FS0|pin@2||0.5|-2|pin@3||-0.5|-2|ART_color()I10
-AThicker|net@2|||FS2700|pin@3||-0.5|-2|pin@4||-0.5|2|ART_color()I10
-AThicker|net@3|||FS0|pin@5||0.5|2|pin@4||-0.5|2|ART_color()I10
-AThicker|net@4|||FS0|pin@6||-1.5|1|pin@7||-2.5|1|ART_color()I10
-AThicker|net@5|||FS0|pin@11||-1.5|-1|pin@10||-2.5|-1|ART_color()I10
-Eina||D5G1;|pin@12||I
-Einb||D5G1;|pin@9||I
-Eout||D5G1;|pin@8||O
+NThick-Circle|art@5||-2|-1|1|1|||ART_color()I10
+NThick-Circle|art@6||-2|1|1|1|||ART_color()I10
+NThick-Circle|art@7||-0.5|0|4|4|RRR||ART_color()I10|ART_degrees()F[0.0,3.1415927]
+Nschematic:Bus_Pin|pin@0||-2.5|-1|-2|-2||
+Nschematic:Bus_Pin|pin@3||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@4||2.5|0|-2|-2||
+NPin|pin@9||-0.25|-2|1|1||
+NPin|pin@10||1.5|0||||
+NPin|pin@11||2.5|0|1|1||
+NPin|pin@12||-0.5|-2|1|1||
+NPin|pin@13||-1.5|-2|1|1||
+NPin|pin@14||-1.5|2|1|1||
+NPin|pin@15||-0.5|2|1|1||
+NPin|pin@18||-1.5|-0.75|1|1||
+AThicker|net@3|||FS3150|pin@9||-0.25|-2|pin@18||-1.5|-0.75|ART_color()I10
+AThicker|net@4|||FS0|pin@12||-0.5|-2|pin@13||-1.5|-2|ART_color()I10
+AThicker|net@5|||FS2700|pin@13||-1.5|-2|pin@14||-1.5|2|ART_color()I10
+AThicker|net@6|||FS0|pin@15||-0.5|2|pin@14||-1.5|2|ART_color()I10
+AThicker|net@8|||FS0|pin@11||2.5|0|pin@10||1.5|0|ART_color()I10
+Eina||D5G1;|pin@0||I
+Einb||D5G1;|pin@3||I
+Eout||D5G1;|pin@4||O
 X
 
-# Cell nor2n;1{sch}
-Cnor2n;1{sch}||schematic|1021415734000|1059582248000||ATTR_Delay(D5G1;HNPX-18;Y-8.5;)I100|ATTR_X(D5G1;HNPX-18;Y-7.5;)I1|ATTR_drive0(D5G1;HNPTX-18;Y-9.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-18;Y-10.5;)Sstrong1|prototype_center()I[0,0]
+# Cell nor2n_sy;1{ic}
+Cnor2n_sy;1{ic}|nor2_sy|artwork|1021415734000|1263134093365|E|ATTR_Delay(D5G1;HNPX-18;Y-6;)I100|ATTR_X(D5G1;HNPX-18;Y-5;)I1|ATTR_drive0(D5G1;HNPTX-18;Y-7;)Sstrong0|ATTR_drive1(D5G1;HNPTX-18;Y-8;)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
-NOff-Page|conn@0||10.5|0||||
-NOff-Page|conn@1||-15.5|2.5||||
-NOff-Page|conn@2||-15.5|-2.5||||
-Inor2;1{ic}|nor2@0||0|0|||D0G4;|ATTR_Delay(D5G1;NOJPX2.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX2.25;Y2.25;)S@X|ATTR_drive0(OJP)S@drive0|ATTR_drive1(OJP)S@drive1
-Inor2n;1{ic}|nor2n@0||24.5|11.5|||D0G4;|ATTR_Delay(D5G1;NPX3;Y-3;)I100|ATTR_X(D5G1.5;NPX2.25;Y2.25;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
-NWire_Pin|pin@0||-7|-2.5||||
-NWire_Pin|pin@1||-7|-1||||
-NWire_Pin|pin@2||-7|1||||
-NWire_Pin|pin@3||-7|2.5||||
-Ngeneric:Invisible-Pin|pin@4||20.5|-11|||||ART_message(D5G2;)S[X is drive strength,One pull-down is as strong,as the pull-up]
-Ngeneric:Invisible-Pin|pin@5||-2|16.5|||||ART_message(D5G6;)S[nor2n]
-Ngeneric:Invisible-Pin|pin@6||-2|11.5|||||ART_message(D5G2;)S[one-parameter fixed-size NOR (AND rep)]
-Awire|net@0|||0|pin@0||-7|-2.5|conn@2|y|-13.5|-2.5
-Awire|net@1|||2700|pin@0||-7|-2.5|pin@1||-7|-1
-Awire|net@2|||1800|pin@1||-7|-1|nor2@0|ina|-2.5|-1
-Awire|net@3|||0|nor2@0|inb|-2.5|1|pin@2||-7|1
-Awire|net@4|||2700|pin@2||-7|1|pin@3||-7|2.5
-Awire|net@5|||0|pin@3||-7|2.5|conn@1|y|-13.5|2.5
-Awire|net@6|||0|conn@0|a|8.5|0|nor2@0|out|2.5|0
-Eina||D5G2;|conn@2|a|I
-Einb||D5G2;|conn@1|a|I
-Eout||D5G2;|conn@0|y|O
+NThick-Circle|art@5||-2|1|1|1|||ART_color()I10
+NThick-Circle|art@6||-0.5|0|4|4|RRR||ART_color()I10|ART_degrees()F[0.0,3.1415927]
+NThick-Circle|art@7||-2|-1|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@3||2.5|0|-2|-2||
+Nschematic:Bus_Pin|pin@4||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@7||-2.5|-1|-2|-2||
+NPin|pin@10||-0.5|-2|1|1||
+NPin|pin@11||-1.5|-2|1|1||
+NPin|pin@12||-1.5|2|1|1||
+NPin|pin@13||-0.5|2|1|1||
+NPin|pin@14||2.5|0|1|1||
+NPin|pin@15||1.5|0||||
+AThicker|net@5|||FS0|pin@10||-0.5|-2|pin@11||-1.5|-2|ART_color()I10
+AThicker|net@6|||FS2700|pin@11||-1.5|-2|pin@12||-1.5|2|ART_color()I10
+AThicker|net@7|||FS0|pin@13||-0.5|2|pin@12||-1.5|2|ART_color()I10
+AThicker|net@8|||FS0|pin@14||2.5|0|pin@15||1.5|0|ART_color()I10
+Eina||D5G1;|pin@7||I
+Einb||D5G1;|pin@4||I
+Eout||D5G1;|pin@3||O
 X
 
 # Cell passF;1{ic}
@@ -4614,6 +5608,58 @@ EpassT||D5G2;|conn@2|a|I
 Esrc||D5G2;|conn@0|a|I
 X
 
+# Cell pms1;1{ic}
+Cpms1;1{ic}||artwork|1021415734000|1263087182704|E|ATTR_Delay(D5G1;HNPX-3;Y-1.5;)I100|ATTR_X(D5G1.5;HNPX2.25;Y1;)I1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2|0|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@0||-3|0|-2|-2||
+Nschematic:Bus_Pin|pin@1||0|-2|-2|-2||
+NPin|pin@3||0|1|1|1||
+NPin|pin@4||-0.75|1|1|1||
+NPin|pin@5||-0.75|-1|1|1||
+NPin|pin@6||0|-1|1|1|YRR|
+NPin|pin@7||0|-2|1|1|YRR|
+NPin|pin@8||-3|0|||RR|
+NPin|pin@9||-2.5|0|1|1|RR|
+NPin|pin@10||0|2|1|1||
+NPin|pin@11||-0.5|2.5||||
+NPin|pin@12||0.5|1.5|1|1||
+NPin|pin@13||-1.5|-1|1|1||
+NPin|pin@14||-1.5|1|1|1||
+NPin|pin@17||0|-2|1|1|YRR|
+NPin|pin@24||0|-2|1|1|YRR|
+AThicker|net@0|||FS900|pin@14||-1.5|1|pin@13||-1.5|-1|ART_color()I10
+AThicker|net@1|||FS0|pin@3||0|1|pin@4||-0.75|1|ART_color()I10
+AThicker|net@2|||FS2700|pin@3||0|1|pin@10||0|2|ART_color()I10
+AThicker|net@3|||FS1800|pin@8||-3|0|pin@9||-2.5|0|ART_color()I10
+AThicker|net@4|||FS1800|pin@5||-0.75|-1|pin@6||0|-1|ART_color()I10
+AThicker|net@5|||FS900|pin@6||0|-1|pin@7||0|-2|ART_color()I10
+AThicker|net@6|||FS900|pin@4||-0.75|1|pin@5||-0.75|-1|ART_color()I10
+AThicker|net@7|||FS3150|pin@12||0.5|1.5|pin@11||-0.5|2.5|ART_color()I10
+AThicker|net@8|||FS2700|pin@24||0|-2|pin@17||0|-2|ART_color()I10
+Ed||D5G1;|pin@1||O
+Eg||D5G1;|pin@0||I
+X
+
+# Cell pms1;1{sch}
+Cpms1;1{sch}||schematic|1021415734000|1263319207023||ATTR_Delay(D5G1;HNPX-12;Y8;)I100|ATTR_X(D5G1;HNPX-12.25;Y9;)I1|prototype_center()I[0,0]
+IPMOS;1{ic}|PMOS@0||0|15|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)S0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||-8.5|15||||
+NOff-Page|conn@1||8|0||||
+NWire_Pin|pin@0||0|0||||
+Ngeneric:Invisible-Pin|pin@1||-1|31|||||ART_message(D5G6;)Spms1
+Ngeneric:Invisible-Pin|pin@2||-1|26|||||ART_message(D5G2;)Sone fixed-size P-type transistor to VDD
+Ipms1;1{ic}|pms1@0||20|22|||D0G4;|ATTR_Delay(D5G1;NPX-3;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.25;Y1;)I1
+NPower|pwr@0||0|22||||
+Awire|net@0|||900|pwr@0||0|22|PMOS@0|s|0|17
+Awire|net@1|||1800|conn@0|y|-6.5|15|PMOS@0|g|-3|15
+Awire|net@5|||1800|pin@0||0|0|conn@1|a|6|0
+Awire|net@6|||900|PMOS@0|d|0|13|pin@0||0|0
+Ed||D5G2;|conn@1|y|O
+Eg||D5G2;|conn@0|a|I
+X
+
 # Cell pms2;1{ic}
 Cpms2;1{ic}||artwork|1021415734000|1084376993000|E|ATTR_Delay(D5G1;HNPX-3;Y-1.5;)I100|ATTR_X(D5G1.5;HNPX2.25;Y1;)I1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -4665,7 +5711,7 @@ Eg2||D5G1;|pin@2||I
 X
 
 # Cell pms2;1{sch}
-Cpms2;1{sch}||schematic|1021415734000|1084377004000||ATTR_Delay(D5G1;HNPX-12;Y8;)I100|ATTR_X(D5G1;HNPX-12.25;Y9;)I1|prototype_center()I[0,0]
+Cpms2;1{sch}||schematic|1021415734000|1263087660691||ATTR_Delay(D5G1;HNPX-12;Y8;)I100|ATTR_X(D5G1;HNPX-12.25;Y9;)I1|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||0|15|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S2*@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)S1|ATTR_source_shared(D5G1;PX0.5;Y2.5;)I0
 IPMOS;1{ic}|PMOS@1||0|7|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S2*@X|ATTR_drain_shared(D5G1;PX0.5;Y-2.5;)I0|ATTR_source_shared(D5G1;PX0.5;Y2.5;)S1
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -4676,6 +5722,7 @@ NWire_Pin|pin@0||0|0||||
 Ngeneric:Invisible-Pin|pin@1||-1|31|||||ART_message(D5G6;)S[pms2]
 Ngeneric:Invisible-Pin|pin@2||-1|26|||||ART_message(D5G2;)S[two fixed-size P-type transistors to VDD]
 Ipms2;1{ic}|pms2@0||20|22|||D0G4;|ATTR_Delay(D5G1;NPX-3;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.25;Y1;)I1
+Ipms2a;1{ic}|pms2a@0||20|11.5|||D0G4;|ATTR_Delay(D5G1;NPX-3;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.25;Y1;)I1
 NPower|pwr@0||0|22||||
 Awire|net@0|||900|pwr@0||0|22|PMOS@0|s|0|17
 Awire|net@1|||1800|conn@0|y|-6.5|15|PMOS@0|g|-3|15
@@ -4804,6 +5851,56 @@ Eg||D5G2;|conn@0|a|I
 Eg2||D5G2;|conn@1|a|I
 X
 
+# Cell pms2a;1{ic}
+Cpms2a;1{ic}|pms2|artwork|1021415734000|1263087652420|E|ATTR_Delay(D5G1;HNPX-12;Y8;)I100|ATTR_X(D5G1;HNPX-12.25;Y9;)I1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2|0|1|1|||ART_color()I10
+NThick-Circle|art@2||-2|-4|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@0||-3|0|-2|-2||
+Nschematic:Bus_Pin|pin@1||0|-6|-2|-2||
+Nschematic:Bus_Pin|pin@2||-3|-4|-2|-2||
+NPin|pin@3||0|1|1|1||
+NPin|pin@4||-0.75|1|1|1||
+NPin|pin@5||-0.75|-1|1|1||
+NPin|pin@6||0|-1|1|1|YRR|
+NPin|pin@7||0|-2|1|1|YRR|
+NPin|pin@8||-3|0|||RR|
+NPin|pin@9||-2.5|0|1|1|RR|
+NPin|pin@10||0|2|1|1||
+NPin|pin@11||-0.5|2.5||||
+NPin|pin@12||0.5|1.5|1|1||
+NPin|pin@13||-1.5|-1|1|1||
+NPin|pin@14||-1.5|1|1|1||
+NPin|pin@15||-1.5|-3|1|1|YRR|
+NPin|pin@16||-1.5|-5|1|1|YRR|
+NPin|pin@17||0|-2|1|1|YRR|
+NPin|pin@18||-2.5|-4|||RR|
+NPin|pin@19||-3|-4|1|1|RR|
+NPin|pin@20||0|-6|||RR|
+NPin|pin@21||0|-5|1|1|YRR|
+NPin|pin@22||-0.75|-5|1|1|YRR|
+NPin|pin@23||-0.75|-3|1|1|YRR|
+NPin|pin@24||0|-3|1|1|YRR|
+AThicker|net@0|||FS900|pin@14||-1.5|1|pin@13||-1.5|-1|ART_color()I10
+AThicker|net@1|||FS0|pin@3||0|1|pin@4||-0.75|1|ART_color()I10
+AThicker|net@2|||FS2700|pin@3||0|1|pin@10||0|2|ART_color()I10
+AThicker|net@3|||FS1800|pin@8||-3|0|pin@9||-2.5|0|ART_color()I10
+AThicker|net@4|||FS1800|pin@5||-0.75|-1|pin@6||0|-1|ART_color()I10
+AThicker|net@5|||FS900|pin@6||0|-1|pin@7||0|-2|ART_color()I10
+AThicker|net@6|||FS900|pin@4||-0.75|1|pin@5||-0.75|-1|ART_color()I10
+AThicker|net@7|||FS3150|pin@12||0.5|1.5|pin@11||-0.5|2.5|ART_color()I10
+AThicker|net@8|||FS2700|pin@24||0|-3|pin@17||0|-2|ART_color()I10
+AThicker|net@9|||FS0|pin@24||0|-3|pin@23||-0.75|-3|ART_color()I10
+AThicker|net@10|||FS900|pin@15||-1.5|-3|pin@16||-1.5|-5|ART_color()I10
+AThicker|net@11|||FS1800|pin@19||-3|-4|pin@18||-2.5|-4|ART_color()I10
+AThicker|net@12|||FS1800|pin@22||-0.75|-5|pin@21||0|-5|ART_color()I10
+AThicker|net@13|||FS900|pin@21||0|-5|pin@20||0|-6|ART_color()I10
+AThicker|net@14|||FS900|pin@23||-0.75|-3|pin@22||-0.75|-5|ART_color()I10
+Ed||D5G1;|pin@1||O
+Eg||D5G1;|pin@0||I
+Eg2||D5G1;|pin@2||I
+X
+
 # Cell pms3;1{ic}
 Cpms3;1{ic}||artwork|1021415734000|1084377153000|E|ATTR_Delay(D5G1;HNPX-3;Y-1;)I100|ATTR_X(D5G1.5;HNPX2.75;Y3;)I1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
@@ -4872,7 +5969,7 @@ Eg3||D5G1;|pin@8||I
 X
 
 # Cell pms3;1{sch}
-Cpms3;1{sch}||schematic|1021415734000|1084405272000||ATTR_Delay(D5G1;HNPX-12;Y8;)I100|ATTR_X(D5G1;HNPX-12.25;Y9;)I1|prototype_center()I[0,0]
+Cpms3;1{sch}||schematic|1021415734000|1263156530380||ATTR_Delay(D5G1;HNPX-12;Y8;)I100|ATTR_X(D5G1;HNPX-12.25;Y9;)I1|prototype_center()I[0,0]
 IPMOS;1{ic}|PMOS@0||0|-1|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X*3.0
 IPMOS;1{ic}|PMOS@1||0|7|YRR||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X*3.0
 IPMOS;1{ic}|PMOS@2||0|15|||D0G4;|ATTR_Delay(D5G1;NOJPX3.5;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX3.5;Y0.5;)S@X*3.0
@@ -4884,7 +5981,10 @@ NOff-Page|conn@3||-8.5|15||||
 Ngeneric:Invisible-Pin|pin@0||-1|26|||||ART_message(D5G2;)S[three fixed-size P-type transistors to VDD]
 Ngeneric:Invisible-Pin|pin@1||-1|31|||||ART_message(D5G6;)S[pms3]
 NWire_Pin|pin@2||0|-10.5||||
-Ipms3;1{ic}|pms3@0||28|22.38|||D0G4;|ATTR_Delay(D5G1;NPX-3;Y-1;)I100|ATTR_X(D5G1.5;NPX2.75;Y3;)I1
+Ipms3;1{ic}|pms3@2||23.5|5.38|||D0G4;|ATTR_Delay(D5G1;NPX-3;Y-1;)I100|ATTR_X(D5G1.5;NPX2.75;Y3;)I1
+Ipms3a;1{ic}|pms3a@0||23|20.88|||D0G4;|ATTR_Delay(D5G1;NPX-3;Y-1;)I100|ATTR_X(D5G1.5;NPX2.75;Y3;)I1
+Ipms3b;1{ic}|pms3b@0||33.5|20.88|||D0G4;|ATTR_Delay(D5G1;NPX-3;Y-1;)I100|ATTR_X(D5G1.5;NPX2.75;Y3;)I1
+Ipms3d;1{ic}|pms3d@0||34|5.38|||D0G4;|ATTR_Delay(D5G1;NPX-3;Y-1;)I100|ATTR_X(D5G1.5;NPX2.75;Y3;)I1
 NPower|pwr@0||0|22||||
 Awire|net@0|||2700|pin@2||0|-10.5|PMOS@0|d|0|-3
 Awire|net@1|||0|PMOS@0|g|-3|-1|conn@0|y|-6.5|-1
@@ -4898,6 +5998,386 @@ Ed||D5G2;|conn@2|y|O
 Eg||D5G2;|conn@3|a|I
 Eg2||D5G2;|conn@1|a|I
 Eg3||D5G2;|conn@0|a|I
+X
+
+# Cell pms3_sy2;1{ic}
+Cpms3_sy2;1{ic}||artwork|1021415734000|1263158580330|E|ATTR_Delay(D5G1;HNPX-8.5;Y-9.5;)I100|ATTR_X(D5G1.5;HNOJPX-10.5;Y-6.5;)SLE.getdrive()|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-4|-8|1|1|||ART_color()I10
+NThick-Circle|art@2||-4|0|1|1|||ART_color()I10
+NThick-Circle|art@3||4|-8|1|1|||ART_color()I10
+NThick-Circle|art@4||4|0|1|1|||ART_color()I10
+NThick-Circle|art@5||4|-4|1|1|||ART_color()I10
+NThick-Circle|art@6||-4|-4|1|1|||ART_color()I10
+NPin|pin@0||3.5|0|1|1|Y|
+NPin|pin@1||0.25|0|1|1||
+NPin|pin@3||-1.5|-8|1|1|Y|
+NPin|pin@7||3.5|-8|1|1||
+NPin|pin@8||3.5|-4|1|1||
+NPin|pin@12||2|-1|1|1||
+NPin|pin@13||2|-3|1|1||
+NPin|pin@14||2|-7|1|1||
+NPin|pin@15||2|-5|1|1||
+NPin|pin@16||-2|-5|1|1||
+NPin|pin@17||-2|-7|1|1||
+NPin|pin@22||1.5|-8|1|1|Y|
+NPin|pin@24||-0.25|0|1|1||
+NPin|pin@26||-3.5|-4|1|1||
+NPin|pin@29||-3.5|0|1|1||
+NPin|pin@30||0|3||||
+NPin|pin@31||0|2|1|1||
+NPin|pin@32||0|-11|1|1||
+NPin|pin@33||-2|-9|1|1|Y|
+NPin|pin@34||-2|-10||||
+NPin|pin@35||0|-10||||
+NPin|pin@37||2|-9|1|1|Y|
+NPin|pin@38||2|-10||||
+NPin|pin@39||2|-10|1|1|Y|
+NPin|pin@40||2|2|1|1||
+NPin|pin@41||2|2||||
+NPin|pin@42||2|1|1|1||
+NPin|pin@45||-2|-3|1|1||
+NPin|pin@46||5|-4|1|1|RR|
+NPin|pin@47||4.5|-4|||RR|
+NPin|pin@58||2|1|1|1|YRR|
+NPin|pin@59||2.75|1|1|1|YRR|
+NPin|pin@60||2.75|-1|1|1|YRR|
+NPin|pin@61||2|-1|1|1|YRR|
+NPin|pin@62||2|-9|1|1|YRR|
+NPin|pin@63||2.75|-9|1|1|YRR|
+NPin|pin@64||2.75|-7|1|1|YRR|
+NPin|pin@65||2|-7|1|1|YRR|
+NPin|pin@66||2|-3|1|1||
+NPin|pin@67||2.75|-3|1|1||
+NPin|pin@68||2.75|-5|1|1||
+NPin|pin@69||2|-5|1|1||
+NPin|pin@70||3.5|-5|1|1||
+NPin|pin@71||3.5|-3|1|1||
+NPin|pin@72||3.5|1|1|1||
+NPin|pin@73||3.5|-1|1|1||
+NPin|pin@74||3.5|-9|1|1||
+NPin|pin@75||3.5|-7|1|1||
+NPin|pin@94||-2|2||||
+NPin|pin@95||-2|1|1|1||
+NPin|pin@96||-2.75|1|1|1||
+NPin|pin@97||-2.75|-1|1|1||
+NPin|pin@98||-2|-1|1|1||
+NPin|pin@99||-3.5|-1|1|1||
+NPin|pin@100||-3.5|1|1|1||
+NPin|pin@101||-5|0|||RR|
+NPin|pin@102||-4.5|0|1|1|RR|
+Ngeneric:Invisible-Pin|pin@103||-5|-8||||
+Nschematic:Bus_Pin|pin@104||0|-11|-2|-2||
+Nschematic:Bus_Pin|pin@105||-5|0|-2|-2||
+Nschematic:Bus_Pin|pin@106||5|-4|-2|-2||
+NPin|pin@107||-3.5|-8|1|1|RR|
+NPin|pin@112||-3.5|-7|1|1||
+NPin|pin@113||-3.5|-9|1|1||
+NPin|pin@114||-2|-9|1|1||
+NPin|pin@115||-2.75|-9|1|1||
+NPin|pin@116||-2.75|-7|1|1||
+NPin|pin@117||-2|-7|1|1||
+NPin|pin@118||-2|-3|1|1|YRR|
+NPin|pin@119||-2.75|-3|1|1|YRR|
+NPin|pin@120||-2.75|-5|1|1|YRR|
+NPin|pin@121||-2|-5|1|1|YRR|
+NPin|pin@122||-3.5|-5|1|1|YRR|
+NPin|pin@123||-3.5|-3|1|1|YRR|
+NPin|pin@126||-5|-8|||RR|
+NPin|pin@127||-4.5|-8|1|1|RR|
+NPin|pin@128||0.5|2.5|1|1||
+NPin|pin@129||-0.5|3.5||||
+ASolid|net@0|||FS777|pin@1||0.25|0|pin@3||-1.5|-8|ART_color()I10
+ASolid|net@1|||FS0|pin@0||3.5|0|pin@1||0.25|0|ART_color()I10
+AThicker|net@9|||FS2700|pin@13||2|-3|pin@12||2|-1|ART_color()I10
+AThicker|net@10|||FS2700|pin@14||2|-7|pin@15||2|-5|ART_color()I10
+AThicker|net@11|||FS2700|pin@17||-2|-7|pin@16||-2|-5|ART_color()I10
+ASolid|net@15|||FS1023|pin@24||-0.25|0|pin@22||1.5|-8|ART_color()I10
+AThicker|net@18|||FS2700|pin@45||-2|-3|pin@98||-2|-1|ART_color()I10
+AThicker|net@21|||FS900|pin@30||0|3|pin@31||0|2|ART_color()I10
+AThicker|net@22|||FS2700|pin@32||0|-11|pin@35||0|-10|ART_color()I10
+AThicker|net@25|||FS1800|pin@34||-2|-10|pin@39||2|-10|ART_color()I10
+AThicker|net@26|||FS2700|pin@38||2|-10|pin@37||2|-9|ART_color()I10
+AThicker|net@27|||FS2700|pin@34||-2|-10|pin@33||-2|-9|ART_color()I10
+AThicker|net@29|||FS1800|pin@94||-2|2|pin@40||2|2|ART_color()I10
+AThicker|net@30|||FS900|pin@41||2|2|pin@42||2|1|ART_color()I10
+AThicker|net@32|||FS1800|pin@47||4.5|-4|pin@46||5|-4|ART_color()I10
+AThicker|net@38|||FS0|pin@63||2.75|-9|pin@62||2|-9|ART_color()I10
+AThicker|net@39|||FS1800|pin@66||2|-3|pin@67||2.75|-3|ART_color()I10
+AThicker|net@40|||FS900|pin@72||3.5|1|pin@73||3.5|-1|ART_color()I10
+AThicker|net@41|||FS1800|pin@58||2|1|pin@59||2.75|1|ART_color()I10
+AThicker|net@42|||FS900|pin@59||2.75|1|pin@60||2.75|-1|ART_color()I10
+AThicker|net@43|||FS0|pin@60||2.75|-1|pin@61||2|-1|ART_color()I10
+AThicker|net@44|||FS900|pin@71||3.5|-3|pin@70||3.5|-5|ART_color()I10
+AThicker|net@45|||FS900|pin@67||2.75|-3|pin@68||2.75|-5|ART_color()I10
+AThicker|net@46|||FS0|pin@68||2.75|-5|pin@69||2|-5|ART_color()I10
+AThicker|net@47|||FS900|pin@75||3.5|-7|pin@74||3.5|-9|ART_color()I10
+AThicker|net@48|||FS900|pin@64||2.75|-7|pin@63||2.75|-9|ART_color()I10
+AThicker|net@49|||FS1800|pin@65||2|-7|pin@64||2.75|-7|ART_color()I10
+AThicker|net@62|||FS900|pin@100||-3.5|1|pin@99||-3.5|-1|ART_color()I10
+AThicker|net@63|||FS900|pin@94||-2|2|pin@95||-2|1|ART_color()I10
+AThicker|net@64|||FS0|pin@95||-2|1|pin@96||-2.75|1|ART_color()I10
+AThicker|net@65|||FS1800|pin@97||-2.75|-1|pin@98||-2|-1|ART_color()I10
+AThicker|net@66|||FS1800|pin@101||-5|0|pin@102||-4.5|0|ART_color()I10
+AThicker|net@67|||FS900|pin@96||-2.75|1|pin@97||-2.75|-1|ART_color()I10
+AThicker|net@68|||FS900|pin@112||-3.5|-7|pin@113||-3.5|-9|ART_color()I10
+AThicker|net@69|||FS1800|pin@115||-2.75|-9|pin@114||-2|-9|ART_color()I10
+AThicker|net@70|||FS900|pin@116||-2.75|-7|pin@115||-2.75|-9|ART_color()I10
+AThicker|net@71|||FS0|pin@117||-2|-7|pin@116||-2.75|-7|ART_color()I10
+AThicker|net@75|||FS1800|pin@120||-2.75|-5|pin@121||-2|-5|ART_color()I10
+AThicker|net@76|||FS0|pin@118||-2|-3|pin@119||-2.75|-3|ART_color()I10
+AThicker|net@77|||FS900|pin@123||-3.5|-3|pin@122||-3.5|-5|ART_color()I10
+AThicker|net@78|||FS900|pin@119||-2.75|-3|pin@120||-2.75|-5|ART_color()I10
+ASolid|net@85|||FS0|pin@8||3.5|-4|pin@26||-3.5|-4|ART_color()I10
+ASolid|net@88|||FS0|pin@7||3.5|-8|pin@22||1.5|-8|ART_color()I10
+ASolid|net@89|||FS1800|pin@29||-3.5|0|pin@24||-0.25|0|ART_color()I10
+ASolid|net@92|||FS0|pin@3||-1.5|-8|pin@107||-3.5|-8|ART_color()I-16777215
+AThicker|net@93|||FS1800|pin@126||-5|-8|pin@127||-4.5|-8|ART_color()I10
+AThicker|net@94|||FS3150|pin@128||0.5|2.5|pin@129||-0.5|3.5|ART_color()I10
+Ed||D5G1;|pin@104||O
+Eg||D5G1;|pin@105||I
+Eg2||D5G1;|pin@106||I
+Eg3||D5G1;|pin@103||I
+X
+
+# Cell pms3_sy2;1{sch}
+Cpms3_sy2;1{sch}||schematic|1021415734000|1263158591854||ATTR_Delay(D5G1;HNPX-9.5;Y-16.5;)I100|ATTR_X(D5G1;HNOJPX-9.5;Y-15.5;)SLE.getdrive()|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||-15|-8||||
+NOff-Page|conn@1||-14|0||||
+NOff-Page|conn@2||18|-12||||
+NOff-Page|conn@3||16.5|-4|||YRR|
+Ngeneric:Invisible-Pin|pin@17||10|12.5|||||ART_message(D5G2;)Sa symmetric fixed-size P-type 3 stack to VDD
+Ngeneric:Invisible-Pin|pin@18||8|17|||||ART_message(D5G6;)Spms3_sy2
+Ngeneric:Invisible-Pin|pin@25||12|8.5|||||ART_message(D5G2;)S[two stacks connected like this suffice for symmetry,because of the diffusion loads]
+NWire_Pin|pin@31||-6|-12||||
+NWire_Pin|pin@32||7.5|-12||||
+NWire_Pin|pin@33||-3|-8||||
+NWire_Pin|pin@34||1.5|0||||
+NWire_Pin|pin@36||3|-8|||X|
+NWire_Pin|pin@37||-1.5|0|||X|
+Ipms3;1{ic}|pms3@0||-6|0|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX-2;Y0.5;)S@X/2.
+Ipms3;1{ic}|pms3@1||7.5|0|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-2;)S@Delay|ATTR_X(D5G1.5;NOJPX-2;Y0.5;)S@X/2.
+Ipms3_sy2;1{ic}|pms3_sy2@0||33.5|-0.5|||D0G4;|ATTR_Delay(D5G1;NPX-8.5;Y-1.5;)I100|ATTR_X(D5G1.5;NOJPX1.5;Y2.5;)SLE.getdrive()
+Awire|net@68|||0|pin@32||7.5|-12|pin@31||-6|-12
+Awire|net@69|||2700|pin@31||-6|-12|pms3@0|d|-6|-10
+Awire|net@70|||0|conn@2|a|16|-12|pin@32||7.5|-12
+Awire|net@71|||900|pms3@1|d|7.5|-10|pin@32||7.5|-12
+Awire|net@72|||1800|conn@0|y|-13|-8|pms3@0|g3|-9|-8
+Awire|net@73|||1800|pms3@0|g3|-9|-8|pin@33||-3|-8
+Awire|net@74|||F2406|pin@33||-3|-8|pin@34||1.5|0
+Awire|net@75|||0|conn@3|y|14.5|-4|pms3@1|g2|10.5|-4
+Awire|net@76|||0|pms3@1|g2|10.5|-4|pms3@0|g2|-3|-4
+Awire|net@77|||1800|conn@1|y|-12|0|pms3@0|g|-9|0
+Awire|net@79|||1800|pin@34||1.5|0|pms3@1|g|4.5|0
+Awire|net@80|||F2994|pin@36||3|-8|pin@37||-1.5|0
+Awire|net@82|||0|pms3@1|g3|4.5|-8|pin@36||3|-8
+Awire|net@83|||1800|pms3@0|g|-9|0|pin@37||-1.5|0
+Ed||D5G2;|conn@2|y|O
+Eg||D5G2;|conn@1|a|I
+Eg2||D5G2;|conn@3|a|I
+Eg3||D5G2;|conn@0|y|I
+X
+
+# Cell pms3a;1{ic}
+Cpms3a;1{ic}|pms3|artwork|1021415734000|1263156255671|E|ATTR_Delay(D5G1;HNPX-12;Y8;)I100|ATTR_X(D5G1;HNPX-12.25;Y9;)I1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2|-8|1|1|||ART_color()I10
+NThick-Circle|art@2||-2|-4|1|1|||ART_color()I10
+NThick-Circle|art@3||-2|0|1|1|||ART_color()I10
+NPin|pin@0||0|-10|0.5|0.5||
+NPin|pin@1||-2.5|-8|||RR|
+NPin|pin@2||-3|-8|1|1|RR|
+NPin|pin@3||-1.5|-7|1|1|YRR|
+NPin|pin@4||-1.5|-9|1|1|YRR|
+NPin|pin@5||0|-9|0.5|0.5||
+NPin|pin@6||-0.75|-9|0.5|0.5||
+NPin|pin@7||-0.75|-7|0.5|0.5||
+Ngeneric:Invisible-Pin|pin@8||-3|-8||||
+NPin|pin@9||0|-3|1|1|YRR|
+NPin|pin@10||-0.75|-3|1|1|YRR|
+NPin|pin@11||-0.75|-5|1|1|YRR|
+NPin|pin@12||0|-5|1|1|YRR|
+NPin|pin@13||0|-7|||RR|
+NPin|pin@14||-3|-4|1|1|RR|
+NPin|pin@15||-2.5|-4|||RR|
+NPin|pin@16||0|-2|1|1|YRR|
+NPin|pin@17||-1.5|-5|1|1|YRR|
+NPin|pin@18||-1.5|-3|1|1|YRR|
+NPin|pin@19||-1.5|1|1|1||
+NPin|pin@20||-1.5|-1|1|1||
+NPin|pin@21||0.5|1.5|1|1||
+NPin|pin@22||-0.5|2.5||||
+NPin|pin@23||0|2|1|1||
+NPin|pin@24||-2.5|0|1|1|RR|
+NPin|pin@25||-3|0|||RR|
+NPin|pin@26||0|-2|1|1|YRR|
+NPin|pin@27||0|-1|1|1|YRR|
+NPin|pin@28||-0.75|-1|1|1||
+NPin|pin@29||-0.75|1|1|1||
+NPin|pin@30||0|1|1|1||
+Nschematic:Bus_Pin|pin@31||-3|-4|-2|-2||
+Nschematic:Bus_Pin|pin@32||0|-10|-2|-2||
+Nschematic:Bus_Pin|pin@33||-3|0|-2|-2||
+AThicker|net@0|||FS2700|pin@0||0|-10|pin@5||0|-9|ART_color()I10
+AThicker|net@1|||FS1800|pin@2||-3|-8|pin@1||-2.5|-8|ART_color()I10
+AThicker|net@2|||FS900|pin@3||-1.5|-7|pin@4||-1.5|-9|ART_color()I10
+AThicker|net@3|||FS0|pin@5||0|-9|pin@6||-0.75|-9|ART_color()I10
+AThicker|net@4|||FS2700|pin@6||-0.75|-9|pin@7||-0.75|-7|ART_color()I10
+AThicker|net@5|||FS1800|pin@7||-0.75|-7|pin@13||0|-7|ART_color()I10
+AThicker|net@6|||FS900|pin@10||-0.75|-3|pin@11||-0.75|-5|ART_color()I10
+AThicker|net@7|||FS900|pin@12||0|-5|pin@13||0|-7|ART_color()I10
+AThicker|net@8|||FS1800|pin@11||-0.75|-5|pin@12||0|-5|ART_color()I10
+AThicker|net@9|||FS1800|pin@14||-3|-4|pin@15||-2.5|-4|ART_color()I10
+AThicker|net@10|||FS900|pin@18||-1.5|-3|pin@17||-1.5|-5|ART_color()I10
+AThicker|net@11|||FS0|pin@9||0|-3|pin@10||-0.75|-3|ART_color()I10
+AThicker|net@12|||FS2700|pin@9||0|-3|pin@16||0|-2|ART_color()I10
+AThicker|net@13|||FS3150|pin@21||0.5|1.5|pin@22||-0.5|2.5|ART_color()I10
+AThicker|net@14|||FS900|pin@29||-0.75|1|pin@28||-0.75|-1|ART_color()I10
+AThicker|net@15|||FS900|pin@27||0|-1|pin@26||0|-2|ART_color()I10
+AThicker|net@16|||FS1800|pin@28||-0.75|-1|pin@27||0|-1|ART_color()I10
+AThicker|net@17|||FS1800|pin@25||-3|0|pin@24||-2.5|0|ART_color()I10
+AThicker|net@18|||FS2700|pin@30||0|1|pin@23||0|2|ART_color()I10
+AThicker|net@19|||FS0|pin@30||0|1|pin@29||-0.75|1|ART_color()I10
+AThicker|net@20|||FS900|pin@19||-1.5|1|pin@20||-1.5|-1|ART_color()I10
+Ed||D5G1;|pin@32||O
+Eg||D5G1;|pin@33||I
+Eg2||D5G1;|pin@31||I
+Eg3||D5G1;|pin@8||I
+X
+
+# Cell pms3b;1{ic}
+Cpms3b;1{ic}|pms3|artwork|1021415734000|1263156402157|E|ATTR_Delay(D5G1;HNPX-12;Y8;)I100|ATTR_X(D5G1;HNPX-12.25;Y9;)I1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||2|-8|1|1|X||ART_color()I10
+NThick-Circle|art@2||-2|-4|1|1|X||ART_color()I10
+NThick-Circle|art@3||-2|0|1|1|X||ART_color()I10
+NPin|pin@0||0|-10|0.5|0.5|X|
+NPin|pin@1||2.5|-8|||XRR|
+NPin|pin@2||3|-8|1|1|XRR|
+NPin|pin@3||1.5|-7|1|1|XYRR|
+NPin|pin@4||1.5|-9|1|1|XYRR|
+NPin|pin@5||0|-9|0.5|0.5|X|
+NPin|pin@6||0.75|-9|0.5|0.5|X|
+NPin|pin@7||0.75|-7|0.5|0.5|X|
+Ngeneric:Invisible-Pin|pin@8||3|-8|||X|
+NPin|pin@9||0|-3|1|1|XYRR|
+NPin|pin@10||-0.75|-3|1|1|XYRR|
+NPin|pin@11||-0.75|-5|1|1|XYRR|
+NPin|pin@12||0|-5|1|1|XYRR|
+NPin|pin@13||0|-7|||XRR|
+NPin|pin@14||-2.5|-4|1|1|XRR|
+NPin|pin@15||-3|-4|||XRR|
+NPin|pin@16||0|-2|1|1|XYRR|
+NPin|pin@17||-1.5|-5|1|1|XYRR|
+NPin|pin@18||-1.5|-3|1|1|XYRR|
+NPin|pin@19||-1.5|1|1|1|X|
+NPin|pin@20||-1.5|-1|1|1|X|
+NPin|pin@21||-0.5|1.5|1|1|X|
+NPin|pin@22||0.5|2.5|||X|
+NPin|pin@23||0|2|1|1|X|
+NPin|pin@24||-2.5|0|1|1|XRR|
+NPin|pin@25||-3|0|||XRR|
+NPin|pin@26||0|-2|1|1|XYRR|
+NPin|pin@27||0|-1|1|1|XYRR|
+NPin|pin@28||-0.75|-1|1|1|X|
+NPin|pin@29||-0.75|1|1|1|X|
+NPin|pin@30||0|1|1|1|X|
+Nschematic:Bus_Pin|pin@31||-3|-4|-2|-2|X|
+Nschematic:Bus_Pin|pin@32||0|-10|-2|-2|X|
+Nschematic:Bus_Pin|pin@33||-3|0|-2|-2|X|
+AThicker|net@0|||FS2700|pin@0||0|-10|pin@5||0|-9|ART_color()I10
+AThicker|net@1|||FS0|pin@2||3|-8|pin@1||2.5|-8|ART_color()I10
+AThicker|net@2|||FS900|pin@3||1.5|-7|pin@4||1.5|-9|ART_color()I10
+AThicker|net@3|||FS1800|pin@5||0|-9|pin@6||0.75|-9|ART_color()I10
+AThicker|net@4|||FS2700|pin@6||0.75|-9|pin@7||0.75|-7|ART_color()I10
+AThicker|net@5|||FS0|pin@7||0.75|-7|pin@13||0|-7|ART_color()I10
+AThicker|net@6|||FS900|pin@10||-0.75|-3|pin@11||-0.75|-5|ART_color()I10
+AThicker|net@7|||FS900|pin@12||0|-5|pin@13||0|-7|ART_color()I10
+AThicker|net@8|||FS1800|pin@11||-0.75|-5|pin@12||0|-5|ART_color()I10
+AThicker|net@9|||FS0|pin@14||-2.5|-4|pin@15||-3|-4|ART_color()I10
+AThicker|net@10|||FS900|pin@18||-1.5|-3|pin@17||-1.5|-5|ART_color()I10
+AThicker|net@11|||FS0|pin@9||0|-3|pin@10||-0.75|-3|ART_color()I10
+AThicker|net@12|||FS2700|pin@9||0|-3|pin@16||0|-2|ART_color()I10
+AThicker|net@13|||FS2250|pin@21||-0.5|1.5|pin@22||0.5|2.5|ART_color()I10
+AThicker|net@14|||FS900|pin@29||-0.75|1|pin@28||-0.75|-1|ART_color()I10
+AThicker|net@15|||FS900|pin@27||0|-1|pin@26||0|-2|ART_color()I10
+AThicker|net@16|||FS1800|pin@28||-0.75|-1|pin@27||0|-1|ART_color()I10
+AThicker|net@17|||FS1800|pin@25||-3|0|pin@24||-2.5|0|ART_color()I10
+AThicker|net@18|||FS2700|pin@30||0|1|pin@23||0|2|ART_color()I10
+AThicker|net@19|||FS0|pin@30||0|1|pin@29||-0.75|1|ART_color()I10
+AThicker|net@20|||FS900|pin@19||-1.5|1|pin@20||-1.5|-1|ART_color()I10
+Ed||D5G1;|pin@32||O
+Eg||D5G1;|pin@33||I
+Eg2||D5G1;|pin@31||I
+Eg3||D5G1;|pin@8||I
+X
+
+# Cell pms3d;1{ic}
+Cpms3d;1{ic}|pms3|artwork|1021415734000|1263156521004|E|ATTR_Delay(D5G1;HNPX-12;Y8;)I100|ATTR_X(D5G1;HNPX-12.25;Y9;)I1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-2|-8|1|1|X||ART_color()I10
+NThick-Circle|art@2||-2|-4|1|1|X||ART_color()I10
+NThick-Circle|art@3||2|0|1|1|X||ART_color()I10
+NPin|pin@0||0|-10|0.5|0.5|X|
+NPin|pin@1||-3|-8|||XRR|
+NPin|pin@2||-2.5|-8|1|1|XRR|
+NPin|pin@3||-1.5|-7|1|1|XYRR|
+NPin|pin@4||-1.5|-9|1|1|XYRR|
+NPin|pin@5||0|-9|0.5|0.5|X|
+NPin|pin@6||-0.75|-9|0.5|0.5|X|
+NPin|pin@7||-0.75|-7|0.5|0.5|X|
+Ngeneric:Invisible-Pin|pin@8||-3|-8|||X|
+NPin|pin@9||0|-3|1|1|XYRR|
+NPin|pin@10||-0.75|-3|1|1|XYRR|
+NPin|pin@11||-0.75|-5|1|1|XYRR|
+NPin|pin@12||0|-5|1|1|XYRR|
+NPin|pin@13||0|-7|||XRR|
+NPin|pin@14||-2.5|-4|1|1|XRR|
+NPin|pin@15||-3|-4|||XRR|
+NPin|pin@16||0|-2|1|1|XYRR|
+NPin|pin@17||-1.5|-5|1|1|XYRR|
+NPin|pin@18||-1.5|-3|1|1|XYRR|
+NPin|pin@19||1.5|1|1|1|X|
+NPin|pin@20||1.5|-1|1|1|X|
+NPin|pin@21||-0.5|1.5|1|1|X|
+NPin|pin@22||0.5|2.5|||X|
+NPin|pin@23||0|2|1|1|X|
+NPin|pin@24||2.5|0|1|1|XRR|
+NPin|pin@25||3|0|||XRR|
+NPin|pin@26||0|-2|1|1|XYRR|
+NPin|pin@27||0|-1|1|1|XYRR|
+NPin|pin@28||0.75|-1|1|1|X|
+NPin|pin@29||0.75|1|1|1|X|
+NPin|pin@30||0|1|1|1|X|
+Nschematic:Bus_Pin|pin@31||-3|-4|-2|-2|X|
+Nschematic:Bus_Pin|pin@32||0|-10|-2|-2|X|
+Nschematic:Bus_Pin|pin@33||3|0|-2|-2|X|
+AThicker|net@0|||FS2700|pin@0||0|-10|pin@5||0|-9|ART_color()I10
+AThicker|net@1|||FS0|pin@2||-2.5|-8|pin@1||-3|-8|ART_color()I10
+AThicker|net@2|||FS900|pin@3||-1.5|-7|pin@4||-1.5|-9|ART_color()I10
+AThicker|net@3|||FS0|pin@5||0|-9|pin@6||-0.75|-9|ART_color()I10
+AThicker|net@4|||FS2700|pin@6||-0.75|-9|pin@7||-0.75|-7|ART_color()I10
+AThicker|net@5|||FS1800|pin@7||-0.75|-7|pin@13||0|-7|ART_color()I10
+AThicker|net@6|||FS900|pin@10||-0.75|-3|pin@11||-0.75|-5|ART_color()I10
+AThicker|net@7|||FS900|pin@12||0|-5|pin@13||0|-7|ART_color()I10
+AThicker|net@8|||FS1800|pin@11||-0.75|-5|pin@12||0|-5|ART_color()I10
+AThicker|net@9|||FS0|pin@14||-2.5|-4|pin@15||-3|-4|ART_color()I10
+AThicker|net@10|||FS900|pin@18||-1.5|-3|pin@17||-1.5|-5|ART_color()I10
+AThicker|net@11|||FS0|pin@9||0|-3|pin@10||-0.75|-3|ART_color()I10
+AThicker|net@12|||FS2700|pin@9||0|-3|pin@16||0|-2|ART_color()I10
+AThicker|net@13|||FS2250|pin@21||-0.5|1.5|pin@22||0.5|2.5|ART_color()I10
+AThicker|net@14|||FS900|pin@29||0.75|1|pin@28||0.75|-1|ART_color()I10
+AThicker|net@15|||FS900|pin@27||0|-1|pin@26||0|-2|ART_color()I10
+AThicker|net@16|||FS0|pin@28||0.75|-1|pin@27||0|-1|ART_color()I10
+AThicker|net@17|||FS0|pin@25||3|0|pin@24||2.5|0|ART_color()I10
+AThicker|net@18|||FS2700|pin@30||0|1|pin@23||0|2|ART_color()I10
+AThicker|net@19|||FS1800|pin@30||0|1|pin@29||0.75|1|ART_color()I10
+AThicker|net@20|||FS900|pin@19||1.5|1|pin@20||1.5|-1|ART_color()I10
+Ed||D5G1;|pin@32||O
+Eg||D5G1;|pin@33||I
+Eg2||D5G1;|pin@31||I
+Eg3||D5G1;|pin@8||I
 X
 
 # Cell triInv;1{ic}
@@ -4931,7 +6411,7 @@ Eout||D5G1;|pin@6||O
 X
 
 # Cell triInv;1{sch}
-CtriInv;1{sch}||schematic|1092081210000|1092082645000||ATTR_Delay(D5G1;HNPX-12;Y-7;)I100|ATTR_X(D5G1;HNPX-12;Y-5;)I1|prototype_center()I[0,0]
+CtriInv;1{sch}||schematic|1092081210000|1263151049129||ATTR_Delay(D5G1;HNPX-12;Y-7;)I100|ATTR_X(D5G1;HNPX-12;Y-5;)I1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
 NOff-Page|conn@0||-13|0||||
 NOff-Page|conn@1||12|0||||
@@ -4945,7 +6425,8 @@ NWire_Pin|pin@4||0|0||||
 Ngeneric:Invisible-Pin|pin@5||-4|17|||||ART_message(D5G5;)StriInv
 Ngeneric:Invisible-Pin|pin@6||-4|13|||||ART_message(D5G2;)Stristate inverter
 Ipms2;1{ic}|pms2@0||0|8|||D5G4;|ATTR_Delay(D5G1;NOJPX-3;Y-1.5;)S@Delay|ATTR_X(D5G1.5;NOJPX2.25;Y1;)S@X
-ItriInv;1{ic}|triInv@2||11|14|||D5G4;|ATTR_Delay(D5G1;NPX3.5;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.5;Y2;)I1
+ItriInv;1{ic}|triInv@2||11|16.5|||D5G4;|ATTR_Delay(D5G1;NPX3.5;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.5;Y2;)I1
+ItriInvn;1{ic}|triInvn@0||11|9.5|||D5G4;
 Awire|net@0|||2700|nms2@0|d|0|-2|pin@4||0|0
 Awire|net@1|||1800|conn@0|y|-11|0|pin@1||-6|0
 Awire|net@2|||2700|pin@1||-6|0|pin@2||-6|8
@@ -4962,35 +6443,168 @@ Ein||D5G2;|conn@0|a|I
 Eout||D5G2;|conn@1|y|O
 X
 
-# Cell xor2;1{ic}
-Cxor2;1{ic}||artwork|1021415734000|1085387251000|E|ATTR_Delay(D5G1;HNPX2.5;Y-2;)I100|ATTR_X(D5G1.5;HNPX2.25;Y2.25;)I1|ATTR_drive0(D5G1;HPT)Sstrong0|ATTR_drive1(D5G1;HPT)Sstrong1|prototype_center()I[0,0]
+# Cell triInvn;1{ic}
+CtriInvn;1{ic}|triInv|artwork|1092081409000|1263151049129|E|ATTR_Delay(D5G1;HNPX-12;Y-7;)I100|ATTR_X(D5G1;HNPX-12;Y-5;)I1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||0|1.25|0.5|0.5|||ART_color()I10
+NThick-Circle|art@3||-2|0|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@0||0|-2||||
+Nschematic:Bus_Pin|pin@2||0|2||||
+Nschematic:Bus_Pin|pin@4||-2.5|0||||
+Nschematic:Bus_Pin|pin@6||2.5|0||||
+NPin|pin@15||1.5|0|1|1||
+NPin|pin@17||2.5|0|1|1||
+NPin|pin@18||1.5|0||||
+NPin|pin@20||-1.5|2|1|1||
+NPin|pin@21||-1.5|-2|1|1||
+NPin|pin@22||0|-1|1|1||
+NPin|pin@23||0|-2|1|1||
+NPin|pin@24||0|2|1|1||
+NPin|pin@25||0|1.5|1|1||
+AThicker|net@8|||FS3263|pin@15||1.5|0|pin@20||-1.5|2|ART_color()I10
+AThicker|net@9|||FS337|pin@15||1.5|0|pin@21||-1.5|-2|ART_color()I10
+AThicker|net@10|||FS0|pin@17||2.5|0|pin@18||1.5|0|ART_color()I10
+AThicker|net@11|||FS2700|pin@21||-1.5|-2|pin@20||-1.5|2|ART_color()I10
+AThicker|net@12|||FS2700|pin@23||0|-2|pin@22||0|-1|ART_color()I10
+AThicker|net@13|||FS2700|pin@25||0|1.5|pin@24||0|2|ART_color()I10
+Een||D5G1;|pin@0||I
+EenB||D5G1;|pin@2||I
+Ein||D5G1;|pin@4||I
+Eout||D5G1;|pin@6||O
+X
+
+# Cell xnor2;1{ic}
+Cxnor2;1{ic}||artwork|1021415734000|1263150164817|E|ATTR_Delay(D5G1;HNPX3.5;Y-2;)I100|ATTR_X(D5G1.5;HNPX3.25;Y2.25;)I1|ATTR_drive0(D5G1;HPTX1;)Sstrong0|ATTR_drive1(D5G1;HPTX1;)Sstrong1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
 NThick-Circle|art@1||-1.5|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
 NThick-Circle|art@2||-1.5|2|8|7|RRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
 NThick-Circle|art@3||-3.75|0|6|6|3200||ART_color()I10|ART_degrees()I800
-NThick-Circle|art@4||-4.5|0|6|6|3200||ART_color()I10|ART_degrees()I800
-NThick-Circle|art@5||-2|0.5|1|1|||ART_color()I10
-NThick-Circle|art@6||-2.5|-1.5|1|1|||ART_color()I10
-Nschematic:Bus_Pin|pin@0||-3.5|-0.5|-2|-2||
-NPin|pin@1||-1.5|-0.5|1|1||
-NPin|pin@2||-3.5|-0.5||||
-Nschematic:Bus_Pin|pin@3||-3.5|1.5|-2|-2||
-Nschematic:Bus_Pin|pin@4||1.5|0|-2|-2||
-NPin|pin@5||-3.5|0.5||||
-NPin|pin@6||-2.5|0.5|1|1||
+NThick-Circle|art@4||-4|0|6|6|3200||ART_color()I10|ART_degrees()I800
+NThick-Circle|art@5||-2|1.5|1|1|||ART_color()I10
+NThick-Circle|art@6||-2|-1.5|1|1|||ART_color()I10
+NThick-Circle|art@7||2|0|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@0||-2.5|-0.5|-2|-2||
+NPin|pin@1||-1.1|-0.5|1|1||
+NPin|pin@2||-2.5|-0.5||||
+Nschematic:Bus_Pin|pin@3||-2.5|0.5|-2|-2||
+Nschematic:Bus_Pin|pin@4||2.5|0|-2|-2||
+NPin|pin@5||-2.5|0.5||||
+NPin|pin@6||-1.1|0.5|1|1||
 NPin|pin@7||-1|-1.25|1|1||
 NPin|pin@8||-0.5|-1.75|1|1||
-NPin|pin@9||-2|1.5|1|1||
-NPin|pin@10||-3.5|1.5||||
-Ngeneric:Invisible-Pin|pin@11||-3.5|0.5||||
-NPin|pin@12||-3.5|-1.5||||
-NPin|pin@13||-3|-1.5|1|1||
-Ngeneric:Invisible-Pin|pin@14||-3.5|-1.5||||
-AThicker|net@0|||FS0|pin@1||-1.5|-0.5|pin@2||-3.5|-0.5|ART_color()I10
-AThicker|net@1|||FS0|pin@6||-2.5|0.5|pin@5||-3.5|0.5|ART_color()I10
+Ngeneric:Invisible-Pin|pin@11||-2.5|1.5||||
+Ngeneric:Invisible-Pin|pin@14||-2.5|-1.5||||
+AThicker|net@0|||FS0|pin@1||-1.1|-0.5|pin@2||-2.5|-0.5|ART_color()I10
+AThicker|net@1|||FS0|pin@6||-1.1|0.5|pin@5||-2.5|0.5|ART_color()I10
 AThicker|net@2|||FS3150|pin@8||-0.5|-1.75|pin@7||-1|-1.25|ART_color()I10
-AThicker|net@3|||FS0|pin@9||-2|1.5|pin@10||-3.5|1.5|ART_color()I10
-AThicker|net@4|||FS0|pin@13||-3|-1.5|pin@12||-3.5|-1.5|ART_color()I10
+Eina||D5G1;|pin@0||I
+EinaB||D5G1;|pin@14||I
+Einb||D5G1;|pin@3||I
+EinbB||D5G1;|pin@11||I
+Eout||D5G1;|pin@4||O
+X
+
+# Cell xnor2;1{sch}
+Cxnor2;1{sch}||schematic|1021415734000|1263150498498||ATTR_Delay(D5G1;HNPX-22;Y-13.5;)I100|ATTR_X(D5G1;HNPX-22;Y-12.5;)I1|ATTR_drive0(D5G1;HNPTX-22;Y-14.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-22;Y-15.5;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||-17|4||||
+NOff-Page|conn@1||25|-4|||XY|
+NOff-Page|conn@2||12|0||||
+NOff-Page|conn@3||-17|-4|||XRR|
+NOff-Page|conn@4||25|4|||YRR|
+Inms2;1{ic}|nms2@0||-5|-12|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-2.25;Y1.5;)S@X
+Inms2;1{ic}|nms2@1||5|-12|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-2.25;Y1.5;)S@X
+NWire_Pin|pin@0||-10|-8||||
+Ngeneric:Invisible-Pin|pin@1||-3|18|||||ART_message(D5G2;)S[one-parameter fixed-size XOR]
+NWire_Pin|pin@2||-12|10||||
+Ngeneric:Invisible-Pin|pin@4||0.5|24.5|||||ART_message(D5G6;)Sxnor2
+NWire_Pin|pin@5||-10|8||||
+NWire_Pin|pin@6||-5|0||||
+NWire_Pin|pin@7||-5|3.5||||
+NWire_Pin|pin@8||5|0||||
+NWire_Pin|pin@9||-10|4||||
+NWire_Pin|pin@10||18|4||||
+NWire_Pin|pin@11||18|-8||||
+NWire_Pin|pin@12||-12|-12||||
+NWire_Pin|pin@14||20|-12||||
+NWire_Pin|pin@15||20|10||||
+NWire_Pin|pin@16||18|8||||
+NWire_Pin|pin@17||-1|10||||
+NWire_Pin|pin@18||1|12||||
+NWire_Pin|pin@19||1|10||||
+NWire_Pin|pin@20||-1|12||||
+NWire_Pin|pin@21||-12|-4||||
+NWire_Pin|pin@22||20|-4||||
+Ipms2;1{ic}|pms2@0||-5|12|||D0G4;|ATTR_Delay(D5G1;NOJPX-3;Y-1.5;)S@Delay|ATTR_X(D5G1.5;NOJPX2.25;Y1;)S@X
+Ipms2;1{ic}|pms2@1||5|12|||D0G4;|ATTR_Delay(D5G1;NOJPX-3;Y-1.5;)S@Delay|ATTR_X(D5G1.5;NOJPX2.25;Y1;)S@X
+Ixnor2;1{ic}|xnor2@0||30|18|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-2;)I100|ATTR_X(D5G1.5;NPX2.25;Y2.25;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Awire|net@2|||2700|pin@6||-5|0|pms2@0|d|-5|6
+Awire|net@3|||2700|pin@6||-5|0|pin@7||-5|3.5
+Awire|net@4|||900|pin@7||-5|3.5|nms2@0|d|-5|-6
+Awire|net@5|||1800|pin@8||5|0|conn@2|a|10|0
+Awire|net@6|||1800|pin@6||-5|0|pin@8||5|0
+Awire|net@7|||900|pin@8||5|0|nms2@1|d|5|-6
+Awire|net@8|||2700|pin@0||-10|-8|pin@9||-10|4
+Awire|net@9|||2700|pin@9||-10|4|pin@5||-10|8
+Awire|net@10|||0|pin@9||-10|4|conn@0|y|-15|4
+Awire|net@11|||0|nms2@0|g2|-2|-8|pin@0||-10|-8
+Awire|net@12|||1800|pin@10||18|4|conn@4|y|23|4
+Awire|net@13|||2700|pin@11||18|-8|pin@10||18|4
+Awire|net@14|||1800|nms2@1|g2|8|-8|pin@11||18|-8
+Awire|net@16|||0|nms2@0|g|-8|-12|pin@12||-12|-12
+Awire|net@19|||1800|nms2@1|g|2|-12|pin@14||20|-12
+Awire|net@21|||0|pms2@0|g2|-2|8|pin@5||-10|8
+Awire|net@22|||2700|pin@8||5|0|pms2@1|d|5|6
+Awire|net@23|||900|pin@16||18|8|pin@10||18|4
+Awire|net@24|||1800|pms2@1|g2|8|8|pin@16||18|8
+Awire|net@25|||0|pin@17||-1|10|pin@2||-12|10
+Awire|net@26|||450|pin@18||1|12|pin@17||-1|10
+Awire|net@27|||0|pms2@1|g|2|12|pin@18||1|12
+Awire|net@28|||1800|pin@19||1|10|pin@15||20|10
+Awire|net@29|||1350|pin@20||-1|12|pin@19||1|10
+Awire|net@30|||1800|pms2@0|g|-8|12|pin@20||-1|12
+Awire|net@31|||900|pin@2||-12|10|pin@21||-12|-4
+Awire|net@32|||2700|pin@22||20|-4|pin@15||20|10
+Awire|net@33|||900|pin@21||-12|-4|pin@12||-12|-12
+Awire|net@34|||1800|conn@3|y|-15|-4|pin@21||-12|-4
+Awire|net@35|||2700|pin@14||20|-12|pin@22||20|-4
+Awire|net@36|||1800|pin@22||20|-4|conn@1|y|23|-4
+Eina||D5G2;|conn@0|a|I
+EinaB||D5G2;|conn@4|a|I
+Einb||D5G2;|conn@1|a|I
+EinbB||D5G2;|conn@3|a|I
+Eout||D5G2;|conn@2|y|O
+X
+
+# Cell xor2;1{ic}
+Cxor2;1{ic}||artwork|1021415734000|1263149860785|E|ATTR_Delay(D5G1;HNPX3.5;Y-2;)I100|ATTR_X(D5G1.5;HNPX3.25;Y2.25;)I1|ATTR_drive0(D5G1;HPTX1;)Sstrong0|ATTR_drive1(D5G1;HPTX1;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-1.5|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@2||-1.5|2|8|7|RRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@3||-3.75|0|6|6|3200||ART_color()I10|ART_degrees()I800
+NThick-Circle|art@4||-4|0|6|6|3200||ART_color()I10|ART_degrees()I800
+NThick-Circle|art@5||-1.5|0.5|1|1|||ART_color()I10
+NThick-Circle|art@6||-2|-1.5|1|1|||ART_color()I10
+Nschematic:Bus_Pin|pin@0||-2.5|-0.5|-2|-2||
+NPin|pin@1||-1.1|-0.5|1|1||
+NPin|pin@2||-2.5|-0.5||||
+Nschematic:Bus_Pin|pin@3||-2.5|1.5|-2|-2||
+Nschematic:Bus_Pin|pin@4||2.5|0|-2|-2||
+NPin|pin@5||-2.5|0.5||||
+NPin|pin@6||-2|0.5|1|1||
+NPin|pin@7||-1|-1.25|1|1||
+NPin|pin@8||-0.5|-1.75|1|1||
+NPin|pin@9||-1.5|1.5|1|1||
+NPin|pin@10||-2.5|1.5||||
+Ngeneric:Invisible-Pin|pin@11||-2.5|0.5||||
+Ngeneric:Invisible-Pin|pin@14||-2.5|-1.5||||
+NPin|pin@15||1.5|0||||
+NPin|pin@16||2.5|0|1|1||
+AThicker|net@0|||FS0|pin@1||-1.1|-0.5|pin@2||-2.5|-0.5|ART_color()I10
+AThicker|net@1|||FS0|pin@6||-2|0.5|pin@5||-2.5|0.5|ART_color()I10
+AThicker|net@2|||FS3150|pin@8||-0.5|-1.75|pin@7||-1|-1.25|ART_color()I10
+AThicker|net@3|||FS0|pin@9||-1.5|1.5|pin@10||-2.5|1.5|ART_color()I10
+AThicker|net@5|||FS0|pin@16||2.5|0|pin@15||1.5|0|ART_color()I10
 Eina||D5G1;|pin@0||I
 EinaB||D5G1;|pin@14||I
 Einb||D5G1;|pin@3||I
@@ -5067,5 +6681,86 @@ Eina||D5G2;|conn@0|a|I
 EinaB||D5G2;|conn@4|a|I
 Einb||D5G2;|conn@1|a|I
 EinbB||D5G2;|conn@3|a|I
+Eout||D5G2;|conn@2|y|O
+X
+
+# Cell xor2bus;1{ic}
+Cxor2bus;1{ic}||artwork|1021415734000|1263162634808|E|ATTR_Delay(D5G1;HNPX3.5;Y-2;)I100|ATTR_X(D5G1.5;HNPX3.25;Y2.25;)I1|ATTR_drive0(D5G1;HPTX1;)Sstrong0|ATTR_drive1(D5G1;HPTX1;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NThick-Circle|art@1||-1.5|-2|8|7|YRRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@2||-1.5|2|8|7|RRR||ART_color()I10|ART_degrees()F[0.0,1.0471976]
+NThick-Circle|art@3||-3.75|0|6|6|3200||ART_color()I10|ART_degrees()I800
+NThick-Circle|art@4||-4|0|6|6|3200||ART_color()I10|ART_degrees()I800
+Nschematic:Bus_Pin|pin@0||-2.5|-1|-2|-2||
+Nschematic:Bus_Pin|pin@3||-2.5|1|-2|-2||
+Nschematic:Bus_Pin|pin@4||2.5|0|-2|-2||
+NPin|pin@7||-1|-1.25|1|1||
+NPin|pin@8||-0.5|-1.75|1|1||
+NPin|pin@15||1.5|0||||
+NPin|pin@16||2.5|0|1|1||
+Nschematic:Bus_Pin|pin@21||-1.2|-1|-1.25|-1.25||
+Nschematic:Bus_Pin|pin@22||-1.2|1|-1.25|-1.25||
+AThicker|net@2|||FS3150|pin@8||-0.5|-1.75|pin@7||-1|-1.25|ART_color()I10
+AThicker|net@5|||FS0|pin@16||2.5|0|pin@15||1.5|0|ART_color()I10
+Aschematic:bus|net@10||-0.5|IJ1800|pin@0||-2.5|-1|pin@21||-1.2|-1
+Aschematic:bus|net@12||-0.5|IJ1800|pin@3||-2.5|1|pin@22||-1.2|1
+Eina|ina[T,F]|D5G1;|pin@0||I
+Einb|inb[T,F]|D5G1;|pin@3||I
+Eout||D5G1;|pin@4||O
+X
+
+# Cell xor2bus;1{sch}
+Cxor2bus;1{sch}||schematic|1021415734000|1263162791979||ATTR_Delay(D5G1;HNPX-22;Y-13.5;)I100|ATTR_X(D5G1;HNPX-22;Y-12.5;)I1|ATTR_drive0(D5G1;HNPTX-22;Y-14.5;)Sstrong0|ATTR_drive1(D5G1;HNPTX-22;Y-15.5;)Sstrong1|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NOff-Page|conn@0||-17|4||||
+NOff-Page|conn@1||-17|-4|||Y|
+NOff-Page|conn@2||10.5|0||||
+Inms2;1{ic}|nms2@0||-5|-12|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-2.25;Y1.5;)S@X
+Inms2;1{ic}|nms2@1||5|-12|||D0G4;|ATTR_Delay(D5G1;NOJPX3;Y-0.5;)S@Delay|ATTR_X(D5G1.5;NOJPX-2.25;Y1.5;)S@X
+NWire_Pin|pin@0||-10|-8||||
+Ngeneric:Invisible-Pin|pin@1||-3|18|||||ART_message(D5G2;)S[one-parameter fixed-size XOR]
+NWire_Pin|pin@2||-12|10||||
+Ngeneric:Invisible-Pin|pin@4||0.5|24.5|||||ART_message(D5G6;)Sxor2bus
+NWire_Pin|pin@5||-10|8||||
+NWire_Pin|pin@6||-5|0||||
+NWire_Pin|pin@7||-5|3.5||||
+NWire_Pin|pin@8||5|0||||
+NWire_Pin|pin@11||18|-8||||
+NWire_Pin|pin@12||-12|-12||||
+NWire_Pin|pin@14||20|-12||||
+NWire_Pin|pin@15||20|10||||
+NWire_Pin|pin@16||18|8||||
+NWire_Pin|pin@17||-1|10||||
+NWire_Pin|pin@18||1|12||||
+NWire_Pin|pin@19||1|10||||
+NWire_Pin|pin@20||-1|12||||
+Ipms2;1{ic}|pms2@0||-5|12|||D0G4;|ATTR_Delay(D5G1;NOJPX-3;Y-1.5;)S@Delay|ATTR_X(D5G1.5;NOJPX2.25;Y1;)S@X
+Ipms2;1{ic}|pms2@1||5|12|||D0G4;|ATTR_Delay(D5G1;NOJPX-3;Y-1.5;)S@Delay|ATTR_X(D5G1.5;NOJPX2.25;Y1;)S@X
+Ixor2bus;1{ic}|xor2bus@0||28|18|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-2;)I100|ATTR_X(D5G1.5;NPX2.25;Y2.25;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
+Awire|ina[F]|D5G2;||2700|pin@11||18|-8|pin@16||18|8
+Awire|ina[T]|D5G2;||2700|pin@0||-10|-8|pin@5||-10|8
+Awire|inb[F]|D5G2;Y-1;||2700|pin@14||20|-12|pin@15||20|10
+Awire|inb[T]|D5G2;Y-1.5;||900|pin@2||-12|10|pin@12||-12|-12
+Awire|net@2|||2700|pin@6||-5|0|pms2@0|d|-5|6
+Awire|net@3|||2700|pin@6||-5|0|pin@7||-5|3.5
+Awire|net@4|||900|pin@7||-5|3.5|nms2@0|d|-5|-6
+Awire|net@5|||1800|pin@8||5|0|conn@2|a|8.5|0
+Awire|net@6|||1800|pin@6||-5|0|pin@8||5|0
+Awire|net@7|||900|pin@8||5|0|nms2@1|d|5|-6
+Awire|net@11|||0|nms2@0|g2|-2|-8|pin@0||-10|-8
+Awire|net@14|||1800|nms2@1|g2|8|-8|pin@11||18|-8
+Awire|net@16|||0|nms2@0|g|-8|-12|pin@12||-12|-12
+Awire|net@19|||1800|nms2@1|g|2|-12|pin@14||20|-12
+Awire|net@21|||0|pms2@0|g2|-2|8|pin@5||-10|8
+Awire|net@22|||2700|pin@8||5|0|pms2@1|d|5|6
+Awire|net@24|||1800|pms2@1|g2|8|8|pin@16||18|8
+Awire|net@25|||0|pin@17||-1|10|pin@2||-12|10
+Awire|net@26|||450|pin@18||1|12|pin@17||-1|10
+Awire|net@27|||0|pms2@1|g|2|12|pin@18||1|12
+Awire|net@28|||1800|pin@19||1|10|pin@15||20|10
+Awire|net@29|||1350|pin@20||-1|12|pin@19||1|10
+Awire|net@30|||1800|pms2@0|g|-8|12|pin@20||-1|12
+Eina|ina[T,F]|D5G2;|conn@0|a|I
+Einb|inb[T,F]|D5G2;|conn@1|a|I
 Eout||D5G2;|conn@2|y|O
 X

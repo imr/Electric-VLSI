@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+IMP: (1/12/10, SMR) Updated built-in Purple/Red/Orange libraries (Bug #2603).
+
 BUG: (01/12/10, GVG) overlapping metal arcs not detected (Bug #2567)
 FIX: Adding bounding box for the interaction information to avoid so many collisions
 with the same pair of geometries.
