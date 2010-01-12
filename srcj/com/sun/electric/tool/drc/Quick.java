@@ -921,7 +921,7 @@ public class Quick
 			if (!oNi.isCellInstance()) continue;
 
 			// see if this configuration of instances has already been done
-			if (checkInteraction(ni, null, oNi, null, null)) continue;
+			if (checkInteraction(ni, ni, oNi, oNi, ni, searchBounds)) continue;
 
 			// found other instance "oNi", look for everything in "ni" that is near it
 			Rectangle2D nearNodeBounds = oNi.getBounds();
@@ -979,7 +979,7 @@ public class Quick
 				if (ni.isCellInstance())
 				{
                     // see if this configuration of instances has already been done
-                    if (checkInteraction(ni, thisNi, oNi, oNiParent, triggerNi)) continue;  // Jan 27'05. Removed on May'05
+                    if (checkInteraction(ni, thisNi, oNi, oNiParent, triggerNi, bb)) continue;  // Jan 27'05. Removed on May'05
                     // You can't discard by interaction becuase two cells could be visited many times
                     // during this type of checking
 
@@ -2047,8 +2047,8 @@ public class Quick
 	 * Method to look for an interaction between instances "ni1" and "ni2".  If it is found,
 	 * return TRUE.  If not found, add to the list and return FALSE.
 	 */
-	private boolean checkInteraction(NodeInst ni1, NodeInst n1Parent,
-                                     NodeInst ni2, NodeInst n2Parent, NodeInst triggerNi)
+	private boolean checkInteraction(NodeInst ni1, NodeInst n1Parent, NodeInst ni2, NodeInst n2Parent,
+                                     NodeInst triggerNi, Rectangle2D searchBnd)
 	{
         if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return false;
 
@@ -2081,8 +2081,9 @@ public class Quick
 		// get essential information about their interaction
 		dii.cell1 = (Cell)ni1.getProto();
 		dii.or1 = ni1.getOrient();
+        dii.bnd = searchBnd;
 
-		dii.cell2 = (Cell)ni2.getProto();
+        dii.cell2 = (Cell)ni2.getProto();
 		dii.or2 = ni2.getOrient();
 
         // This has to be calculated before the swap
@@ -2114,7 +2115,8 @@ public class Quick
 			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
 				thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
 				thisII.dx == dii.dx && thisII.dy == dii.dy &&
-                thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent)
+                thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent &&
+                thisII.bnd == dii.bnd)
             {
                 if (dii.triggerNi == thisII.triggerNi)
                 {

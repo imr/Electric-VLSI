@@ -4,7 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
-IMP: (01/12/19, GVG) More generic contacts geneted by TechEditorWizard (Bug #2597)
+BUG: (01/12/10, GVG) overlapping metal arcs not detected (Bug #2567)
+FIX: Adding bounding box for the interaction information to avoid so many collisions
+with the same pair of geometries.
+
+IMP: (01/12/10, GVG) More generic contacts geneted by TechEditorWizard (Bug #2597)
 
 BUG/MAN: (01/11/10, GVG) Exception in SPICE with Poly1-Poly2 cap (lay) (Bug #2599)
 FIX: Missing port added. Technology.check() will report the error now.
