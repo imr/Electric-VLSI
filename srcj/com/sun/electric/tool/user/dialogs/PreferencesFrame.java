@@ -445,8 +445,12 @@ public class PreferencesFrame extends EDialog
 		gbc.weightx = 1.0;   gbc.weighty = 1.0;
 		getContentPane().add(splitPane2, gbc);
 
-		pack();
+//		pack();
 		finishInitialization();
+
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() { pack(); }
+		});
 	}
 
 	private void addTreeNode(PreferencePanel panel, DefaultMutableTreeNode theSet)
