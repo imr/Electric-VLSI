@@ -1156,21 +1156,24 @@ public class ToolBar extends JToolBar
                 String task = Undo.getUndoActivity();
                 boolean realUndo = true; // always undo by default
                 if (task.length() == 0) realUndo = false;
-                if (task.equals(FileMenu.openJobName) && realUndo)
+                boolean readP = task.equals(FileMenu.openJobName);
+                if ((readP || task.startsWith("Write")) && realUndo)
                 {
                     String [] options = {"Cancel", "Undo"};
-					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-						"Undo the reading process?", "Undo Reading",
+                    String msg = (readP) ? "Reading" : "Writing";
+                    String extra = (!readP) ? ". Undo won't modify the file on disk." : "";
+                    int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+						"Undo the " + msg + " process?" + extra, "Undo " + msg,
 						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "Cancel");
 					if (ret == 0)
                         realUndo = false;
                 }
-                if (realUndo && task.startsWith("Write"))
-                {
-                    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Write can not be undone");
-                    realUndo = false;
-                    Undo.removeLastChangeBatchTask();
-                }
+//                if (realUndo && task.startsWith("Write"))
+//                {
+//                    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Write can not be undone");
+//                    realUndo = false;
+//                    Undo.removeLastChangeBatchTask();
+//                }
                 if (realUndo)
                     Undo.undo();
 			}
