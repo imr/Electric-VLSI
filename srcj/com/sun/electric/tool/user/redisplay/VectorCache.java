@@ -949,7 +949,7 @@ public class VectorCache {
             varContext = vc.vcg.isParameterized ? context : null;
             curScale = scale; // Fix it later. Multiple Strings positioning shouldn't use scale.
             Cell cell = database.getCell(cellId);
-            if (Job.getDebug())
+            if (Job.getDebug() && cell == null)
                 System.out.println("Cell is null in VectorCell.drawCell"); // extra testing
             if (cell != null && cell.isLinked())
                 vc.init(database.getCell(cellId));
