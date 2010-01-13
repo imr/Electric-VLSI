@@ -463,7 +463,7 @@ class CapLayer implements VddGndStraps {
 		return plan.horizontal ? center.getY() : center.getX();
 	}
 	public double getVddWidth(int n) {return capCell.getVddWidth();}
-	public int numGnd() {return capCell.numGnd();}
+	public int numGnd() {return (capCell != null) ? capCell.numGnd() : 0;}
 	public PortInst getGnd(int n, int pos) {
 		return capCellInst.findPortInst(FillCell.GND_NAME+"_"+n);
 	}

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+BUG: (01/13/10, GVG) NPE in CelLFile with one contact as cell (Bug #2605)
+FIX: Detecting when # of gnds is not availabel (capCell==null). Similar to fix for vdds.
+
 BUG: (01/13/10, GVG) NPE in VectorCache while renaming library whose cell was displayed (Bug #2589)
 FIX: Nothing fixed since it is hard to reproduce. Added extra code to detect the case.
 
