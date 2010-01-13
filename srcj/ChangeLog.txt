@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+BUG: (01/13/10, GVG) overlapping metal arcs not detected (Bug #2567)
+FIX: Undoing again the changes. See Bug #2567 for details.
+
 BUG: (1/12/10, DN) Getting ports on network is very slow (Bug #2590).
 FIX: Create a method Netlist.getArcInstsByNetwork() .
 

@@ -2642,5 +2642,5 @@ class ValidationLayers
         /** orientation of cell instance 2 */           Orientation or2;
 		/** distance from instance 1 to instance 2 */	double dx, dy;
         /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
-        /** bounding used to select first element */    Rectangle2D bnd;
+//        /** bounding used to select first element */    Rectangle2D bnd;
     }

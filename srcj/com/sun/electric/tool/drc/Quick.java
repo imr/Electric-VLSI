@@ -2081,7 +2081,7 @@ public class Quick
 		// get essential information about their interaction
 		dii.cell1 = (Cell)ni1.getProto();
 		dii.or1 = ni1.getOrient();
-        dii.bnd = searchBnd;
+//        dii.bnd = searchBnd;
 
         dii.cell2 = (Cell)ni2.getProto();
 		dii.or2 = ni2.getOrient();
@@ -2115,8 +2115,8 @@ public class Quick
 			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
 				thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
 				thisII.dx == dii.dx && thisII.dy == dii.dy &&
-                thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent &&
-                thisII.bnd == dii.bnd)
+                thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent)
+//                thisII.bnd == dii.bnd)
             {
                 if (dii.triggerNi == thisII.triggerNi)
                 {
