@@ -61,6 +61,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.Job;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -947,7 +948,11 @@ public class VectorCache {
         if (vc.vcg.isParameterized || !vc.valid) {
             varContext = vc.vcg.isParameterized ? context : null;
             curScale = scale; // Fix it later. Multiple Strings positioning shouldn't use scale.
-            vc.init(database.getCell(cellId));
+            Cell cell = database.getCell(cellId);
+            if (Job.getDebug())
+                System.out.println("Cell is null in VectorCell.drawCell"); // extra testing
+            if (cell != null && cell.isLinked())
+                vc.init(database.getCell(cellId));
         }
         return vc;
     }

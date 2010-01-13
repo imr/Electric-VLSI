@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+BUG: (01/13/10, GVG) NPE in VectorCache while renaming library whose cell was displayed (Bug #2589)
+FIX: Nothing fixed since it is hard to reproduce. Added extra code to detect the case.
+
 BUG: (01/13/10, GVG) Undo/Redo history is partially lost after undoing "SaveLibrary" (Bug #2539)
 FIX: Implementd Dima' suggestion.
 
