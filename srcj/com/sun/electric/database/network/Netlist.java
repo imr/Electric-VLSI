@@ -612,36 +612,74 @@ public abstract class Netlist {
      * Works only for layout cells.
      * @return a map from Networks to array of their PortInsts.
      */
-    public Map<Network,PortInst[]> getPortInstsByNetwork() {
+    public Map<Network, PortInst[]> getPortInstsByNetwork() {
         Cell cell = netCell.cell;
         int[] networkCounts = new int[getNumNetworks()];
-        for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); ) {
+        for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext();) {
             NodeInst ni = nit.next();
-            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext();) {
                 PortInst pi = pit.next();
                 Network net = getNetwork(pi);
-                if (net == null) continue;
+                if (net == null) {
+                    continue;
+                }
                 networkCounts[net.getNetIndex()]++;
             }
         }
+        LinkedHashMap<Network, PortInst[]> map = new LinkedHashMap<Network, PortInst[]>();
         PortInst[][] portInsts = new PortInst[getNumNetworks()][];
         for (int netIndex = 0; netIndex < getNumNetworks(); netIndex++) {
-            portInsts[netIndex] = new PortInst[networkCounts[netIndex]];
+            map.put(getNetwork(netIndex), portInsts[netIndex] = new PortInst[networkCounts[netIndex]]);
         }
         Arrays.fill(networkCounts, 0);
-        for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); ) {
+        for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext();) {
             NodeInst ni = nit.next();
-            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext();) {
                 PortInst pi = pit.next();
                 Network net = getNetwork(pi);
-                if (net == null) continue;
+                if (net == null) {
+                    continue;
+                }
                 int netIndex = net.getNetIndex();
                 portInsts[netIndex][networkCounts[netIndex]++] = pi;
             }
         }
-        LinkedHashMap<Network,PortInst[]> map = new LinkedHashMap<Network,PortInst[]>();
+        return map;
+    }
+
+    /**
+     * Return a map from Networks to array of their ArcInsts.
+     * Works only for layout cells.
+     * @return a map from Networks to array of their ArcInsts.
+     */
+    public Map<Network, ArcInst[]> getArcInstsByNetwork() {
+        Cell cell = netCell.cell;
+        int[] networkCounts = new int[getNumNetworks()];
+        for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext();) {
+            ArcInst ai = ait.next();
+            Network net = getNetwork(ai, 0);
+            if (net == null) {
+                continue;
+            }
+            networkCounts[net.getNetIndex()]++;
+        }
+        LinkedHashMap<Network, ArcInst[]> map = new LinkedHashMap<Network, ArcInst[]>();
+        ArcInst[][] arcInsts = new ArcInst[getNumNetworks()][];
         for (int netIndex = 0; netIndex < getNumNetworks(); netIndex++) {
-            map.put(getNetwork(netIndex), portInsts[netIndex]);
+            int numArcs = networkCounts[netIndex];
+            ArcInst[] arcs = numArcs > 0 ? new ArcInst[numArcs] : ArcInst.NULL_ARRAY;
+            map.put(getNetwork(netIndex), arcs);
+            arcInsts[netIndex] = arcs;
+        }
+        Arrays.fill(networkCounts, 0);
+        for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext();) {
+            ArcInst ai = ait.next();
+            Network net = getNetwork(ai, 0);
+            if (net == null) {
+                continue;
+            }
+            int netIndex = net.getNetIndex();
+            arcInsts[netIndex][networkCounts[netIndex]++] = ai;
         }
         return map;
     }

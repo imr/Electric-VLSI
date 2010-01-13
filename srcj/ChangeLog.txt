@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+BUG: (1/12/10, DN) Getting ports on network is very slow (Bug #2590).
+FIX: Create a method Netlist.getArcInstsByNetwork() .
+
 BUG: (1/12/10, SMR) Preferences window is too small on JDK 7 (Bug #2554).
 FIX: In PreferencesFrame constructor, invoke pack() in a new thread.
 
