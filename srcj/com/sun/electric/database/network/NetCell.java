@@ -236,6 +236,14 @@ public class NetCell {
     }
 
     /*
+     * Get offset in networks map for given export name.
+     */
+    int getNetMapOffset(Name exportName) {
+        Export export = cell.findExport(exportName);
+        return export != null ? drawns[export.getPortIndex()] : -1;
+    }
+
+    /*
      * Get offset in networks map for given arc.
      */
     int getNetMapOffset(ArcInst ai, int busIndex) {

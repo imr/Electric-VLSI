@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+IMP: (01/14/10, DN) Self-test of a method "Netlist.getNetwork(Name exportName);" (For Bug #2533).
+
 BUG: (01/13/10, GVG) NPE in CelLFile with one contact as cell (Bug #2605)
 FIX: Detecting when # of gnds is not availabel (capCell==null). Similar to fix for vdds.
 

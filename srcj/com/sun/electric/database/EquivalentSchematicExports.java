@@ -32,12 +32,14 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
  *
  */
 public class EquivalentSchematicExports {
+
     public final CellId cellId;
     public final EquivalentSchematicExports implementation;
     public final int[] portImplementation;
@@ -46,7 +48,8 @@ public class EquivalentSchematicExports {
     public final int[] portOffsets;
     public final int numExpandedExports;
     final ImmutableArrayList<ImmutableExport> exports;
-    private final HashMap<ExportId,Global.Set[]> globalPartitions;
+    private final HashMap<ExportId, Global.Set[]> globalPartitions;
+    private IdentityHashMap<Name, Integer> exportNameMapOffsets;
     /**
      * Equivalence of ports.
      * equivPorts.size == ports.size.
@@ -92,6 +95,15 @@ public class EquivalentSchematicExports {
         return exports.get(exportIndex).name;
     }
 
+    public int getExportNameMapOffset(Name exportName) {
+        assert !exportName.isBus();
+        if (exportNameMapOffsets == null) {
+            buildExportNameMapOffsets();
+        }
+        Integer objResult = exportNameMapOffsets.get(exportName);
+        return objResult != null ? objResult.intValue() : -1;
+    }
+
     public int getNumExpandedExports() {
         return numExports;
     }
@@ -118,7 +130,7 @@ public class EquivalentSchematicExports {
         if (!(o instanceof EquivalentSchematicExports)) {
             return false;
         }
-        EquivalentSchematicExports that = (EquivalentSchematicExports)o;
+        EquivalentSchematicExports that = (EquivalentSchematicExports) o;
         if (this.cellId != that.cellId || this.implementation.cellId != that.implementation.cellId) {
             return false;
         }
@@ -153,7 +165,7 @@ public class EquivalentSchematicExports {
             if (this.globalPartitions.size() != that.globalPartitions.size()) {
                 return false;
             }
-            for (Map.Entry<ExportId,Global.Set[]> e: this.globalPartitions.entrySet()) {
+            for (Map.Entry<ExportId, Global.Set[]> e : this.globalPartitions.entrySet()) {
                 ExportId eId = e.getKey();
                 Global.Set[] thisG = e.getValue();
                 Global.Set[] thatG = that.globalPartitions.get(eId);
@@ -165,5 +177,29 @@ public class EquivalentSchematicExports {
         return Arrays.equals(this.equivPortsN, that.equivPortsN)
                 && Arrays.equals(this.equivPortsP, that.equivPortsP)
                 && Arrays.equals(this.equivPortsA, that.equivPortsA);
+    }
+
+    private void buildExportNameMapOffsets() {
+        IdentityHashMap<Name, Integer> map = new IdentityHashMap<Name, Integer>();
+        for (int exportIndex = 0; exportIndex < exports.size(); exportIndex++) {
+            ImmutableExport e = exports.get(exportIndex);
+            for (int busIndex = 0; busIndex < e.name.busWidth(); busIndex++) {
+                Name exportName = e.name.subname(busIndex);
+                if (map.containsKey(exportName)) {
+                    continue;
+                }
+                Integer mapOffset;
+                if (implementation == this) {
+                    mapOffset = Integer.valueOf(portOffsets[exportIndex] + busIndex);
+                } else {
+                    mapOffset = implementation.getExportNameMapOffset(exportName);
+                    if (mapOffset == null) {
+                        continue;
+                    }
+                }
+                map.put(exportName, mapOffset);
+            }
+        }
+        exportNameMapOffsets = map;
     }
 }

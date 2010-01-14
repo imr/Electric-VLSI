@@ -44,12 +44,12 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 
-import com.sun.electric.tool.Job;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -109,6 +109,7 @@ class NetSchem extends NetCell {
     Name[] drawnNames;
     /** */
     int[] drawnWidths;
+    private IdentityHashMap<Name, Integer> exportNameMapOffsets;
 
     NetSchem(Cell cell) {
         super(cell);
@@ -371,6 +372,34 @@ class NetSchem extends NetCell {
             return -1;
         }
         return drawnOffsets[drawn] + busIndex;
+    }
+
+    /*
+     * Get offset in networks map for given export name.
+     */
+    @Override
+    int getNetMapOffset(Name exportName) {
+        assert !exportName.isBus();
+        if (exportNameMapOffsets == null) {
+            buildExportNameMapOffsets();
+        }
+        Integer objResult = exportNameMapOffsets.get(exportName);
+        return objResult != null ? objResult.intValue() : -1;
+    }
+
+    private void buildExportNameMapOffsets() {
+        IdentityHashMap<Name, Integer> map = new IdentityHashMap<Name, Integer>();
+        for (int exportIndex = 0; exportIndex < cell.getNumPorts(); exportIndex++) {
+            Export e = cell.getPort(exportIndex);
+            for (int busIndex = 0; busIndex < e.getNameKey().busWidth(); busIndex++) {
+                Name exportName = e.getNameKey().subname(busIndex);
+                if (map.containsKey(exportName)) {
+                    continue;
+                }
+                map.put(exportName, Integer.valueOf(portOffsets[exportIndex] + busIndex));
+            }
+        }
+        exportNameMapOffsets = map;
     }
 
     /*

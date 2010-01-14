@@ -483,6 +483,25 @@ public abstract class Netlist {
             return -1;
         }
         int netMapIndex = netCell.getNetMapOffset(export, busIndex);
+        int netIndex = netMapIndex >= 0 ? nm_net[netMapIndex] : -1;
+        if (true) {
+            Name exportName = export.getNameKey().subname(busIndex);
+            assert netIndex == getNetIndex(exportName);
+        }
+        return netIndex;
+    }
+
+    /**
+     * Get net index of signal in export name.
+     * @param exportName given Export name.
+     * @return net index.
+     */
+    int getNetIndex(Name exportName) {
+        checkForModification();
+        if (exportName.isBus()) {
+            throw new IllegalArgumentException("Scalar export name expected");
+        }
+        int netMapIndex = netCell.getNetMapOffset(exportName);
         if (netMapIndex < 0) {
             return -1;
         }
@@ -611,8 +630,12 @@ public abstract class Netlist {
      * Return a map from Networks to array of their PortInsts.
      * Works only for layout cells.
      * @return a map from Networks to array of their PortInsts.
+     * @throws IllegalArgumentException for schematic Netlists
      */
     public Map<Network, PortInst[]> getPortInstsByNetwork() {
+        if (netCell instanceof NetSchem) {
+            throw new IllegalArgumentException();
+        }
         Cell cell = netCell.cell;
         int[] networkCounts = new int[getNumNetworks()];
         for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext();) {
@@ -651,8 +674,12 @@ public abstract class Netlist {
      * Return a map from Networks to array of their ArcInsts.
      * Works only for layout cells.
      * @return a map from Networks to array of their ArcInsts.
+     * @throws IllegalArgumentException for schematic Netlists
      */
     public Map<Network, ArcInst[]> getArcInstsByNetwork() {
+        if (netCell instanceof NetSchem) {
+            throw new IllegalArgumentException();
+        }
         Cell cell = netCell.cell;
         int[] networkCounts = new int[getNumNetworks()];
         for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext();) {
@@ -695,6 +722,15 @@ public abstract class Netlist {
             return null;
         }
         return getNetworkRaw(getNetIndex(export, busIndex));
+    }
+
+    /**
+     * Get network of signal in export name.
+     * @param exportName given Export name.
+     * @return network.
+     */
+    public Network getNetwork(Name exportName) {
+        return getNetworkRaw(getNetIndex(exportName));
     }
 
     /**
