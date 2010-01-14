@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+BUG: (1/14/10, GVG) Some preference causes NCC to fail (Bug #2604)
+FIX: Fixed rounding issue in sizes match for the absolute value.
+
 BUG: (1/14/10, SMR) Getting ports and arcs on network is very slow (Bug #2590).
 FIX: Now using bulk methods Netlist.getArcInstsByNetwork() and Netlist.getPortInstsByNetwork() .
 

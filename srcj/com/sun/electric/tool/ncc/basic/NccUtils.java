@@ -176,8 +176,11 @@ public class NccUtils {
 		double minWidth = Math.min(w1, w2);
 		double absWidErr = maxWidth - minWidth;
 		double relWidErr = absWidErr / minWidth;
-		return absWidErr<=opt.absoluteSizeTolerance || 
-		       relWidErr<=opt.relativeSizeTolerance;
+        boolean absV = round(absWidErr,2)<=opt.absoluteSizeTolerance; // rounding to 2 decimals in abs case should be fine
+        boolean relV = relWidErr<=opt.relativeSizeTolerance;
+        return relV || absV;
+//        return absWidErr<=opt.absoluteSizeTolerance ||
+//		       relWidErr<=opt.relativeSizeTolerance;
 	}
     /** Wait forever. This allows me to explore memory usage */
     public static void hang(String msg) {
