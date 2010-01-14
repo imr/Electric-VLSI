@@ -259,13 +259,13 @@ public class FillCell {
 		VddGndStraps[] layers = new VddGndStraps[topLayer+1];
 		for (int i=topLayer; i>=botLayer; i--) {
 			if (i==1) {
-				layers[i] = new CapLayer((CapFloorplan) plans[i], capCell, 
+				layers[i] = new CapLayer(tech, (CapFloorplan) plans[i], capCell,
 						                 cell);
 			} else {
                 if (metalFlex && !hierFlex)
-				    layers[i] = new MetalLayerFlex(i, plans[i], cell);
+				    layers[i] = new MetalLayerFlex(tech, i, plans[i], cell);
                 else
-                    layers[i] = new MetalLayer(i, plans[i], cell);
+                    layers[i] = new MetalLayer(tech, i, plans[i], cell);
 			}
 			if (i!=topLayer) {
 				// connect to upper level

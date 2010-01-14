@@ -36,7 +36,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.generator.layout.Gallery;
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 
 import java.lang.reflect.Constructor;
@@ -177,11 +176,11 @@ class ExportBar
     }
 }
 
-class MetalLayer implements VddGndStraps {
-	protected final MetalFloorplanBase plan;
-	protected final int layerNum;
-	protected final PrimitiveNode pin;
-	protected final ArcProto metal;
+class MetalLayer extends VddGndStraps {
+	protected MetalFloorplanBase plan;
+	protected int layerNum;
+	protected PrimitiveNode pin;
+	protected ArcProto metal;
     protected ArrayList<ExportBar> vddBars = new ArrayList<ExportBar>();
     protected ArrayList<ExportBar> gndBars = new ArrayList<ExportBar>();
 
@@ -277,8 +276,10 @@ class MetalLayer implements VddGndStraps {
 		buildVdd(cell);
     }
 
-	public MetalLayer(int layerNum, Floorplan plan, Cell cell) {
-		this.plan = (MetalFloorplanBase)plan;
+	public MetalLayer(TechType t, int layerNum, Floorplan plan, Cell cell)
+    {
+        super(t);
+        this.plan = (MetalFloorplanBase)plan;
 		this.layerNum = layerNum;
 		metal = METALS[layerNum];
 		pin = PINS[layerNum];
@@ -311,8 +312,8 @@ class MetalLayer implements VddGndStraps {
 
 class MetalLayerFlex extends MetalLayer {
 
-    public MetalLayerFlex(int layerNum, Floorplan plan, Cell cell) {
-        super(layerNum, plan, cell);
+    public MetalLayerFlex(TechType t, int layerNum, Floorplan plan, Cell cell) {
+        super(t, layerNum, plan, cell);
 	}
 
     public boolean addExtraArc() { return false; } // For automatic fill generator no extra arcs are wanted.
@@ -436,15 +437,17 @@ class MetalLayerFlex extends MetalLayer {
 }
 
 //---------------------------------- CapLayer ---------------------------------
-class CapLayer implements VddGndStraps {
+class CapLayer extends VddGndStraps {
 	private CapCell capCell;
 	private NodeInst capCellInst;
 	private CapFloorplan plan;
 
     public boolean addExtraArc() { return true; }
 
-	public CapLayer(CapFloorplan plan, CapCell capCell, Cell cell) {
-		this.plan = plan;
+	public CapLayer(TechType t, CapFloorplan plan, CapCell capCell, Cell cell)
+    {
+        super(t);
+        this.plan = plan;
 		this.capCell = capCell;
 
 		double angle = plan.horizontal ? 0 : 90;
@@ -473,8 +476,8 @@ class CapLayer implements VddGndStraps {
 	}
 	public double getGndWidth(int n) {return capCell.getGndWidth();}
 
-	public PrimitiveNode getPinType() {return Tech.m1pin();}
-	public ArcProto getMetalType() {return Tech.m1();}
+	public PrimitiveNode getPinType() {return tech.m1pin();}
+	public ArcProto getMetalType() {return tech.m1();}
 	public double getCellWidth() {return plan.cellWidth;}
 	public double getCellHeight() {return plan.cellHeight;}
 	public int getLayerNumber() {return 1;}
@@ -483,7 +486,9 @@ class CapLayer implements VddGndStraps {
 
 class FillRouter {
 	private HashMap<String,List<PortInst>> portMap = new HashMap<String,List<PortInst>>();
-	private String makeKey(PortInst pi) {
+    private TechType tech;
+
+    private String makeKey(PortInst pi) {
         EPoint center = pi.getCenter();
 		String x = ""+center.getX(); // LayoutLib.roundCenterX(pi);
 		String y = ""+center.getY(); // LayoutLib.roundCenterY(pi);
@@ -493,7 +498,7 @@ class FillRouter {
 //		return pp1.connectsTo(a) && pp2.connectsTo(a);
 //	}
 	private ArcProto findCommonArc(PortInst p1, PortInst p2) {
-		ArcProto[] metals = {Tech.m6(), Tech.m5(), Tech.m4(), Tech.m3(), Tech.m2(), Tech.m1()};
+		ArcProto[] metals = {tech.m6(), tech.m5(), tech.m4(), tech.m3(), tech.m2(), tech.m1()};
 		PortProto pp1 = p1.getPortProto();
 		PortProto pp2 = p2.getPortProto();
 		for (int i=0; i<metals.length; i++) {
@@ -514,8 +519,10 @@ class FillRouter {
 			}
 		}
 	}
-	private FillRouter(ArrayList<PortInst> ports) {
-		for (PortInst pi : ports) {
+	private FillRouter(TechType t, ArrayList<PortInst> ports)
+    {
+        tech = t;
+        for (PortInst pi : ports) {
 			String key = makeKey(pi);
 			List<PortInst> l = portMap.get(key);
 			if (l==null) {
@@ -532,11 +539,10 @@ class FillRouter {
 			connectPorts(portMap.get(str));
 		}
 	}
-	public static void connectCoincident(ArrayList<PortInst> ports) {
-		new FillRouter(ports);
+	public static void connectCoincident(TechType t, ArrayList<PortInst> ports) {
+		new FillRouter(t, ports);
 	}
 }
-
 
 /**
  * Object for building fill libraries
@@ -579,8 +585,6 @@ public class FillGeneratorTool extends Tool {
     {
         this.config = config;
         this.libInitialized = false; 
-        /** Set technology */
-        Tech.setTechType(config.techType.getTechType());
     }
 
     public enum Units {NONE, LAMBDA, TRACKS}
@@ -601,7 +605,7 @@ public class FillGeneratorTool extends Tool {
         if (units==LAMBDA) return reserved;
         double nbTracks = reserved;
         if (nbTracks==0) return 0;
-        return config.techType.getTechType().reservedToLambda(layer, nbTracks);
+        return config.getTechType().reservedToLambda(layer, nbTracks);
     }
 
     private Floorplan[] makeFloorplans(boolean metalFlex, boolean hierFlex) {
@@ -611,7 +615,7 @@ public class FillGeneratorTool extends Tool {
                         "height hasn't been specified. use setHeight()");
         double w = config.width;
         double h = config.height;
-        int numLayers = config.techType.getTechType().getNumMetals() + 1; // one extra for the cap
+        int numLayers = config.getTechType().getNumMetals() + 1; // one extra for the cap
         double[] vddRes = new double[numLayers]; //{0,0,0,0,0,0,0};
         double[] gndRes = new double[numLayers]; //{0,0,0,0,0,0,0};
         double[] vddW = new double[numLayers]; //{0,0,0,0,0,0,0};
@@ -733,9 +737,9 @@ public class FillGeneratorTool extends Tool {
         lib = LayoutLib.openLibForWrite(config.fillLibName);
         if (!metalFlex) // don't do transistors
         {
-            if (config.techType == TechType.TechTypeEnum.MOCMOS || config.techType == TechType.TechTypeEnum.TSMC180)
+            if (config.is180Tech())
             {
-                capCell = new CapCellMosis(lib, (CapFloorplan) plans[1]);
+                capCell = new CapCellMosis(lib, (CapFloorplan) plans[1], config.getTechType());
             }
             else
             {
@@ -835,7 +839,7 @@ public class FillGeneratorTool extends Tool {
         initFillParameters(metalFlex, false);
 
         Job.error(loLayer<1, "loLayer must be >=1");
-        int maxNumMetals = config.techType.getTechType().getNumMetals();
+        int maxNumMetals = config.getTechType().getNumMetals();
         Job.error(hiLayer>maxNumMetals, "hiLayer must be <=" + maxNumMetals);
         Job.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
         Cell cell = null;

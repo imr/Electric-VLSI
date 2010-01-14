@@ -382,20 +382,37 @@ public abstract class TechType implements Serializable {
      * generators */
     public static enum TechTypeEnum {MOCMOS, TSMC180, CMOS90;
         private TechType type;
-        public TechType getTechType() {
-            if (type == null) {
-                if (this == TechTypeEnum.MOCMOS)
-                    type = new TechTypeMoCMOS(this);
-                else if (this == TechTypeEnum.TSMC180)
-                    type = getTechTypeTSMC180(this);
-                else if (this == TechTypeEnum.CMOS90)
-                    type = getTechTypeCMOS90(this);
-                else {
-                    System.out.println("Invalid TechTypeEnum");
-                    assert(false);
-                }
-            }
+        public TechType getTechType()
+        {
+            loadTechType();
             return type;
+        }
+        private void loadTechType()
+        {
+            if (type != null) return; // loaded
+            if (this == TechTypeEnum.MOCMOS)
+                type = new TechTypeMoCMOS(this);
+            else if (this == TechTypeEnum.TSMC180)
+                type = getTechTypeTSMC180(this);
+            else if (this == TechTypeEnum.CMOS90)
+                type = getTechTypeCMOS90(this);
+            else {
+                System.out.println("Invalid TechTypeEnum");
+                assert(false);
+            }
+        }
+
+        public static TechTypeEnum getTechTypeEnumFromTechnology(Technology tech)
+        {
+            for (TechTypeEnum t : TechTypeEnum.values())
+            {
+                // not loaded yet
+                if (t.type == null)
+                    t.loadTechType();
+                if (t.type.getTechnology() == tech)
+                    return t;
+            }
+            return null;
         }
     }
 

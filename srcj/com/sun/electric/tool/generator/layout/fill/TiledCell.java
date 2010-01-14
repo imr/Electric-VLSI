@@ -34,7 +34,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Rectangle2D;
@@ -70,6 +70,7 @@ public class TiledCell {
      */
     public TiledCell(FillGenConfig conf)
     {
+        assert(conf != null);
         config = conf;
     }
 
@@ -83,11 +84,12 @@ public class TiledCell {
      * @param lib
      * @param stdCell
      */
-    private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans,
-                      Library lib)
+    private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans, Library lib)
     {
         String tiledName = "t"+cell.getName()+"_"+numX+"x"+numY+"{lay}";
         tileCell = Cell.newInstance(lib, tiledName);
+        TechType.TechTypeEnum tech = TechType.TechTypeEnum.getTechTypeEnumFromTechnology(cell.getTechnology());
+        config = new FillGenConfig(tech);
 
         Rectangle2D bounds = cell.findEssentialBounds();
         ERectangle r = cell.getBounds();
@@ -108,7 +110,7 @@ public class TiledCell {
             }
             y += cellH;
         }
-        connectAllPortInsts(tileCell);
+        connectAllPortInsts(config.getTechType(), tileCell);
         exportUnconnectedPortInsts(rows, plans[plans.length-1].horizontal, tileCell);
 //		addEssentialBounds(cellW, cellH, numX, numY, tileCell);
         addEssentialBounds1(r.getX(), r.getY(), cellW, cellH, numX, numY, tileCell);
@@ -140,7 +142,7 @@ public class TiledCell {
             }
         }
     }
-    public static ArrayList<PortInst> connectAllPortInsts(Cell cell) {
+    public static ArrayList<PortInst> connectAllPortInsts(TechType tech, Cell cell) {
         // get all the ports
         ArrayList<PortInst> ports = new ArrayList<PortInst>();
         for (Iterator<NodeInst> it=cell.getNodes(); it.hasNext();) {
@@ -151,7 +153,7 @@ public class TiledCell {
             }
         }
         Collections.sort(ports, new OrderPortInstsByName());
-        FillRouter.connectCoincident(ports);
+        FillRouter.connectCoincident(tech, ports);
         return ports;
     }
     private static Orientation orientation(Rectangle2D bounds, PortInst pi) {
@@ -271,9 +273,10 @@ public class TiledCell {
     {
         double x2 = x + numX*cellW;
         double y2 = y + numY*cellH;
-        LayoutLib.newNodeInst(Tech.essentialBounds(), x, y,
+        TechType tech = config.getTechType();
+        LayoutLib.newNodeInst(tech.essentialBounds(), x, y,
                               G.DEF_SIZE, G.DEF_SIZE, 180, tiled);
-        LayoutLib.newNodeInst(Tech.essentialBounds(), x2, y2,
+        LayoutLib.newNodeInst(tech.essentialBounds(), x2, y2,
                               G.DEF_SIZE, G.DEF_SIZE, 0, tiled);
     }
 
@@ -281,8 +284,7 @@ public class TiledCell {
 
 
 
-    public static Cell makeTiledCell(int numX, int numY, Cell cell,
-                                     Floorplan[] plans, Library lib) {
+    public static Cell makeTiledCell(int numX, int numY, Cell cell, Floorplan[] plans, Library lib) {
         TiledCell tile = new TiledCell(numX, numY, cell, plans, lib);
         return tile.tileCell;
     }

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+BUG: (1/14/10, GVG) Runtime exception in fill if it was run with a diff tech before (Bug #2606)
+FIX: Static final dependencies removed.
+
 BUG: (1/14/10, GVG) Some preference causes NCC to fail (Bug #2604)
 FIX: Fixed rounding issue in sizes match for the absolute value.
 

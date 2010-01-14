@@ -173,7 +173,6 @@ public class GateRegression extends Job {
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = techNm;
         this.backupScheme = IOTool.getBackupRedundancy();
-        Tech.setTechType(techNm.getTechType());
 		startJob();
 	}
 }

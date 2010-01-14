@@ -68,7 +68,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -1733,7 +1732,6 @@ public class ViewChanges
 					else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.TechTypeEnum.CMOS90;
 					if (type != null)
 					{
-						Tech.setTechType(type.getTechType());
 						if (type == TechType.TechTypeEnum.CMOS90)
 						{
 							stdCell = GateLayoutGenerator.sportParams(false);

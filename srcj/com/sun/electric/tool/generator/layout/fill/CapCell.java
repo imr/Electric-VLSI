@@ -9,7 +9,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.Job;
 
@@ -237,14 +236,14 @@ class CapCellMosis extends CapCell{
 			newDiffArc(a[i], b[i]);
 		}
 	}
-	/** @Deprecated */
-	public CapCellMosis(Library lib, CapFloorplan instPlan) {
-		this(lib, instPlan, Tech.getTechType());
-	}
+//	/** @Deprecated */
+//	public CapCellMosis(Library lib, CapFloorplan instPlan) {
+//		this(lib, instPlan, Tech.getTechType());
+//	}
 
-	public CapCellMosis(Library lib, CapFloorplan instPlan, TechType tech) {
-		this.plan = new ProtoPlan(instPlan, tech);
-		this.tech = tech;
+	public CapCellMosis(Library lib, CapFloorplan instPlan, TechType t) {
+		this.plan = new ProtoPlan(instPlan, t);
+		this.tech = t;
 		PortInst[] botDiffs = new PortInst[plan.numMosX];
 		PortInst[] topDiffs = new PortInst[plan.numMosX];
 
@@ -261,7 +260,7 @@ class CapCellMosis extends CapCell{
 			connectDiffs(topDiffs, lastCont);
 		}
 		// Cover the sucker with well to eliminate notch errors
-		LayoutLib.newNodeInst(tech.pwell(), 0, 0, plan.protoWidth,
+		LayoutLib.newNodeInst(t.pwell(), 0, 0, plan.protoWidth,
 		                      plan.protoHeight, 0, cell);
 	}
 	@Override

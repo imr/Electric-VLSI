@@ -31,9 +31,9 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 
 /** Create a ring in layers p1 and m1 - m5.  This ring is useful for
@@ -121,8 +121,9 @@ public class DrcRing {
     Cell ring = stdCell.findPart(nm);
     if (ring!=null) return ring;
     ring = stdCell.newPart(nm);
-
-    if (Tech.is90nm()) {
+    boolean is90nm = ring.getTechnology() == Technology.getCMOS90Technology();
+    if (is90nm) {
+//    if (Tech.is90nm()) {
         // ignore poly, but put in select rings
         double pwellRatio = stdCell.getPmosWellHeight()/(stdCell.getNmosWellHeight()+stdCell.getPmosWellHeight());
         drawRing(tech.pselNode(), w, h, 4.8, ring, 'B', pwellRatio);
