@@ -38,6 +38,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -442,7 +443,9 @@ public class SeaOfGatesEngine
 			}
 			Set<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 			Set<NodeInst> nodesToDelete = new HashSet<NodeInst>();
-			List<Connection> netEnds = Routing.findNetEnds(net, arcsToDelete, nodesToDelete, netList, true);
+			Map<Network,ArcInst[]> arcMap = null;
+			if (cell.getView() != View.SCHEMATIC) arcMap = netList.getArcInstsByNetwork();
+			List<Connection> netEnds = Routing.findNetEnds(net, arcMap, arcsToDelete, nodesToDelete, netList, true);
 			List<PortInst> orderedPorts = makeOrderedPorts(net, netEnds);
 			if (orderedPorts == null)
 			{
@@ -1105,6 +1108,8 @@ public class SeaOfGatesEngine
 	private void addBlockagesAtPorts(List<ArcInst> arcsToRoute, SeaOfGates.SeaOfGatesOptions prefs)
 	{
 		Netlist netList = cell.getUserNetlist();
+		Map<Network,ArcInst[]> arcMap = null;
+		if (cell.getView() != View.SCHEMATIC) arcMap = netList.getArcInstsByNetwork();
 
 		for(ArcInst ai : arcsToRoute)
 		{
@@ -1118,7 +1123,7 @@ public class SeaOfGatesEngine
 			Network net = netList.getNetwork(ai, 0);
 			HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 			HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
-			List<Connection> netEnds = Routing.findNetEnds(net, arcsToDelete, nodesToDelete, netList, true);
+			List<Connection> netEnds = Routing.findNetEnds(net, arcMap, arcsToDelete, nodesToDelete, netList, true);
 			List<PortInst> orderedPorts = makeOrderedPorts(net, netEnds);
 			if (orderedPorts == null) continue;
 

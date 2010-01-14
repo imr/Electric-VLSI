@@ -27,6 +27,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
@@ -138,6 +139,8 @@ public class SeaOfGates
 	{
 		// get cell from network information
 		Cell cell = netList.getCell();
+		Map<Network,ArcInst[]> arcMap = null;
+		if (cell.getView() != View.SCHEMATIC) arcMap = netList.getArcInstsByNetwork();
 
 		// order the nets appropriately
 		List<NetsToRoute> orderedNetsToRoute = new ArrayList<NetsToRoute>();
@@ -152,9 +155,15 @@ public class SeaOfGates
 				if (e.isGround() || e.isPower()) { isPwrGnd = true;   break; }
 			}
 			double length = 0;
-			for(Iterator<ArcInst> it = net.getArcs(); it.hasNext(); )
+			ArcInst[] arcsOnNet = null;
+			if (arcMap != null) arcsOnNet = arcMap.get(net); else
 			{
-				ArcInst ai = it.next();
+				List<ArcInst> arcList = new ArrayList<ArcInst>();
+				for(Iterator<ArcInst> it = net.getArcs(); it.hasNext(); ) arcList.add(it.next());
+				arcsOnNet = arcList.toArray(new ArcInst[]{});
+			}
+			for(ArcInst ai : arcsOnNet)
+			{
 				length += ai.getLambdaLength();
 				PortProto headPort = ai.getHeadPortInst().getPortProto();
 				PortProto tailPort = ai.getTailPortInst().getPortProto();
@@ -170,9 +179,15 @@ public class SeaOfGates
 		List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
 		for(NetsToRoute ntr : orderedNetsToRoute)
 		{
-			for(Iterator<ArcInst> it = ntr.net.getArcs(); it.hasNext(); )
+			ArcInst[] arcsOnNet = null;
+			if (arcMap != null) arcsOnNet = arcMap.get(ntr.net); else
 			{
-				ArcInst ai = it.next();
+				List<ArcInst> arcList = new ArrayList<ArcInst>();
+				for(Iterator<ArcInst> it = ntr.net.getArcs(); it.hasNext(); ) arcList.add(it.next());
+				arcsOnNet = arcList.toArray(new ArcInst[]{});
+			}
+			for(ArcInst ai : arcsOnNet)
+			{
 				if (ai.getProto() != Generic.tech().unrouted_arc) continue;
 				arcsToRoute.add(ai);
 				break;

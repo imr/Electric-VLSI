@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -507,50 +508,25 @@ public class PlacementFrame
 				convertedNodes.put(ni, placedPorts);
 			}
 		}
-        if (false) {
-            System.out.println("PLACING " + nodesToPlace.size() + " NODES");
-
-            System.out.println("COUNTING SHADOW PORTS");
-            int totalNets = 0, totalPorts = 0;
-            long startTime = System.currentTimeMillis();
-            Map<Network,PortInst[]> portInstsByNetwork = netList.getPortInstsByNetwork();
-            for (Map.Entry<Network,PortInst[]> e: portInstsByNetwork.entrySet()) {
-                Network net = e.getKey();
-                totalNets++;
-                if ((totalNets % 200) == 0) {
-                    System.out.println("  COUNTED " + totalNets + " SHADOW NETWORKS");
-                }
-                PortInst[] portInsts = e.getValue();
-                totalPorts += portInsts.length;
-            }
-            long endTime = System.currentTimeMillis();
-            System.out.println("THERE WILL BE " + totalPorts + " PORTS ON " + totalNets + " SHADOW NETWORKS");
-            System.out.println("(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-        }
-//System.out.println("PLACING "+nodesToPlace.size()+" NODES");
-//
-//System.out.println("COUNTING SHADOW PORTS");   int totalNets = 0, totalPorts = 0;
-//long startTime = System.currentTimeMillis();
-//for(Iterator<Network> it = netList.getNetworks(); it.hasNext(); )
-//{
-//	Network net = it.next();
-//	totalNets++;
-//	if ((totalNets%200) == 0) System.out.println("  COUNTED "+totalNets+" SHADOW NETWORKS");
-//	for(Iterator<PortInst> pIt = net.getPorts(); pIt.hasNext(); ) { pIt.next();   totalPorts++; }
-//}
-//long endTime = System.currentTimeMillis();
-//System.out.println("THERE WILL BE "+totalPorts+" PORTS ON "+totalNets+" SHADOW NETWORKS");
-//System.out.println("(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 
 		// gather connectivity information in a list of PlacementNetwork objects
+        Map<Network,PortInst[]> portInstsByNetwork = null;
+        if (cell.getView() != View.SCHEMATIC) portInstsByNetwork = netList.getPortInstsByNetwork();
 		List<PlacementNetwork> allNetworks = new ArrayList<PlacementNetwork>();
 		for(Iterator<Network> it = netList.getNetworks(); it.hasNext(); )
 		{
 			Network net = it.next();
 			List<PlacementPort> portsOnNet = new ArrayList<PlacementPort>();
-			for(Iterator<PortInst> pIt = net.getPorts(); pIt.hasNext(); )
+			PortInst[] portInsts = null;
+			if (portInstsByNetwork != null) portInsts = portInstsByNetwork.get(net); else
 			{
-				PortInst pi = pIt.next();
+				List<PortInst> portList = new ArrayList<PortInst>();
+				for(Iterator<PortInst> pIt = net.getPorts(); pIt.hasNext(); ) portList.add(pIt.next());
+				portInsts = portList.toArray(new PortInst[]{});
+			}
+			for(int i=0; i<portInsts.length; i++)
+	        {
+				PortInst pi = portInsts[i];
 				NodeInst ni = pi.getNodeInst();
 				PortProto pp = pi.getPortProto();
 				Map<PortProto,PlacementPort> convertedPorts = convertedNodes.get(ni);
@@ -589,7 +565,6 @@ public class PlacementFrame
 		List<PlacementExport> exportsToPlace, NodeProto iconToPlace)
 	{
         long startTime = System.currentTimeMillis();
-//        String newCellName = "placed" + cellName;
         System.out.println("Running placement on cell '" + cellName + "' using the '" + getAlgorithmName() + "' algorithm");
 
         // do the real work of placement
@@ -665,7 +640,7 @@ public class PlacementFrame
 			Export.newInstance(newCell, portToExport, exportName, plExport.getCharacteristic());
 		}
 
-		// add the connections in the new cell
+//System.out.println("Placement finished, now implementing it with 26,000 arcs (will take 18 minutes)"); int totalArcs = 0;
 		for(PlacementNetwork plNet : allNetworks)
 		{
 			List<PortInst> portsToConnect = new ArrayList<PortInst>();
@@ -684,9 +659,12 @@ public class PlacementFrame
 			{
 				PortInst lastPi = portsToConnect.get(i-1);
 				PortInst thisPi = portsToConnect.get(i);
+//totalArcs++;
+//if ((totalArcs%500) == 0) System.out.println("ROUTED "+totalArcs+" ARCS");
 				ArcInst.makeInstance(Generic.tech().unrouted_arc, lastPi, thisPi);
 			}
 		}
+//System.out.println("Placement finished, now implementing it (wanted to make "+totalArcs+" arcs)");
 
         long endTime = System.currentTimeMillis();
         System.out.println("\t(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");

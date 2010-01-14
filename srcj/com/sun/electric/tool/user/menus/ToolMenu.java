@@ -128,13 +128,16 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JMenu;
@@ -957,6 +960,8 @@ public class ToolMenu
 			System.out.println("Sorry, a deadlock aborted netlist display (network information unavailable).  Please try again");
 			return;
 		}
+		Map<Network,ArcInst[]> arcMap = null;
+		if (cell.getView() != View.SCHEMATIC) arcMap = netlist.getArcInstsByNetwork();
 		int total = 0;
 		for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 		{
@@ -970,9 +975,15 @@ public class ToolMenu
 //				formatinfstr(infstr, _(" (bus with %d signals)"), net->buswidth);
 //			}
 			boolean connected = false;
-			for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); )
+			ArcInst[] arcsOnNet = null;
+			if (arcMap != null) arcsOnNet = arcMap.get(net); else
 			{
-				ArcInst ai = aIt.next();
+				List<ArcInst> arcList = new ArrayList<ArcInst>();
+				for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); ) arcList.add(aIt.next());
+				arcsOnNet = arcList.toArray(new ArcInst[]{});
+			}
+			for(ArcInst ai : arcsOnNet)
+			{
 				if (!connected)
 				{
 					connected = true;
@@ -1276,6 +1287,8 @@ public class ToolMenu
         if (cell == null) return;
         wnd.clearHighlighting();
         Netlist nl = cell.acquireUserNetlist();
+		Map<Network,ArcInst[]> arcMap = null;
+		if (cell.getView() != View.SCHEMATIC) arcMap = nl.getArcInstsByNetwork();
         int colors = nl.getNumNetworks();
         Color [] netColors = makeUniqueColors(colors);
         int index = 0;
@@ -1283,12 +1296,17 @@ public class ToolMenu
         for(Iterator<Network> it = nl.getNetworks(); it.hasNext(); )
         {
         	Network net = it.next();
-        	Iterator<ArcInst> aIt = net.getArcs();
-        	if (!aIt.hasNext()) continue;
+    		ArcInst[] arcsOnNet = null;
+    		if (arcMap != null) arcsOnNet = arcMap.get(net); else
+    		{
+    			List<ArcInst> arcList = new ArrayList<ArcInst>();
+    			for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); ) arcList.add(aIt.next());
+    			arcsOnNet = arcList.toArray(new ArcInst[]{});
+    		}
+        	if (arcsOnNet.length == 0) continue;
         	Color col = netColors[index++];
-        	for( ; aIt.hasNext(); )
+        	for(ArcInst ai : arcsOnNet)
         	{
-        		ArcInst ai = aIt.next();
                 Point2D [] points = new Point2D[2];
         		points[0] = ai.getHeadLocation();
         		points[1] = ai.getTailLocation();
@@ -1442,12 +1460,26 @@ public class ToolMenu
                 }
                 public void exitCell(CellInfo cellInfo) {
                     Cell cell = cellInfo.getCell();
+        			Map<Network,ArcInst[]> arcMap = null;
+        			Map<Network,PortInst[]> portMap = null;
+        			if (cell.getView() != View.SCHEMATIC)
+        			{
+        				arcMap = cell.getNetlist().getArcInstsByNetwork();
+                		portMap = cell.getNetlist().getPortInstsByNetwork();
+        			}
                     for(Network net : i2i(cell.getNetlist().getNetworks())) {
                         boolean driven = false;
                         boolean hasInputExport = false;
 
                         // because we're in exitCell, we know that we've already added any Ports to drivenPorts
-                        for(PortInst pi : i2i(net.getPorts())) {
+            			PortInst[] portsOnNet = null;
+            			if (portMap != null) portsOnNet = portMap.get(net); else
+            			{
+            				List<PortInst> portList = new ArrayList<PortInst>();
+            				for(Iterator<PortInst> pIt = net.getPorts(); pIt.hasNext(); ) portList.add(pIt.next());
+            				portsOnNet = portList.toArray(new PortInst[]{});
+            			}
+                        for(PortInst pi : portsOnNet) {
                             NodeInst ni = pi.getNodeInst();
                             PortProto pp = pi.getPortProto();
                             if (ni.isCellInstance() && ((Cell)ni.getProto()).getView() == View.ICON)
@@ -1485,10 +1517,16 @@ public class ToolMenu
                                 }
                         if (!driven && !hasInputExport) {
                             // problem!
-                            if (net.getArcs().hasNext())
-                                errorLogger.logMessage("Undriven network", (ArrayList<ArcInst>)i2al(net.getArcs()), cell, 0, true);
-                            else if (net.getPorts().hasNext()) {
-                                PortInst pi = net.getPorts().next();
+            				List<ArcInst> arcsOnNet = null;
+                			if (arcMap != null) arcsOnNet = new ArrayList<ArcInst>(Arrays.asList(arcMap.get(net))); else
+                			{
+                				arcsOnNet = new ArrayList<ArcInst>();
+                				for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); ) arcsOnNet.add(aIt.next());
+                			}
+                            if (arcsOnNet.size() > 0)
+                                errorLogger.logMessage("Undriven network", arcsOnNet, cell, 0, true);
+                            else if (portsOnNet.length > 0) {
+                                PortInst pi = portsOnNet[0];
                                 errorLogger.logMessage("Undriven network on node " + pi.getNodeInst().describe(false) + ", port " +
                                                        pi.getPortProto().getName(), null, null, cell, 0, true);
                             }

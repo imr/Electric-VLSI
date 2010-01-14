@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.network.Netlist;
@@ -287,6 +288,8 @@ public class Routing extends Listener
 			highlightThese = new ArrayList<ArcInst>();
 
 			// make arrays of what to unroute
+			Map<Network,ArcInst[]> arcMap = null;
+			if (cell.getView() != View.SCHEMATIC) arcMap = netList.getArcInstsByNetwork();
 			int total = nets.size();
 			Network [] netsToUnroute = new Network[total];
 			ArrayList<List<Connection>> netEnds = new ArrayList<List<Connection>>();
@@ -300,14 +303,16 @@ public class Routing extends Listener
 				Set<NodeInst> nodes = new HashSet<NodeInst>();
 				arcsToDelete.add(arcs);
 				nodesToDelete.add(nodes);
-				netEnds.add(findNetEnds(net, arcs, nodes, netList, false));
+				netEnds.add(findNetEnds(net, arcMap, arcs, nodes, netList, false));
 				i++;
 			}
 
 			// do the unrouting
+//System.out.println("GATHERED "+total+" NETWORKS TO UNROUTE");
 			for(int j=0; j<total; j++)
 			{
 				if (unrouteNet(netsToUnroute[j], arcsToDelete.get(j), nodesToDelete.get(j), netEnds.get(j), netList, highlightThese)) break;
+//System.out.println("UNROUTED "+(j+1)+" OUT OF "+total+" NETWORKS");
 			}
 			fieldVariableChanged("highlightThese");
 			return true;
@@ -390,6 +395,7 @@ public class Routing extends Listener
 	/**
 	 * Method to find the endpoints of a network.
 	 * @param net the network to "unroute".
+	 * @param arcMap a shortcut to finding arcs on a network (if not null).
 	 * @param arcsToDelete a HashSet of arcs that should be deleted.
 	 * @param nodesToDelete a HashSet of nodes that should be deleted.
 	 * @param netList the netlist for the current cell.
@@ -397,20 +403,23 @@ public class Routing extends Listener
 	 * False to only include items from the generic technology or pins with no exports.
 	 * @return a List of Connection (PortInst/Point2D pairs) that should be wired together.
 	 */
-	public static List<Connection> findNetEnds(Network net, Set<ArcInst> arcsToDelete, Set<NodeInst> nodesToDelete,
+	public static List<Connection> findNetEnds(Network net, Map<Network,ArcInst[]> arcMap, Set<ArcInst> arcsToDelete, Set<NodeInst> nodesToDelete,
 		Netlist netList, boolean mustBeUnrouted)
 	{
 		// initialize
-		Cell cell = net.getParent();
 		List<Connection> endList = new ArrayList<Connection>();
 
 		// look at every arc and see if it is part of the network
-		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+		ArcInst[] arcsOnNet = null;
+		if (arcMap != null) arcsOnNet = arcMap.get(net); else
 		{
-			ArcInst ai = it.next();
+			List<ArcInst> arcList = new ArrayList<ArcInst>();
+			for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); ) arcList.add(aIt.next());
+			arcsOnNet = arcList.toArray(new ArcInst[]{});
+		}
+		for(ArcInst ai : arcsOnNet)
+		{
 			if (mustBeUnrouted && ai.getProto() != Generic.tech().unrouted_arc) continue;
-			Network aNet = netList.getNetwork(ai, 0);
-			if (aNet != net) continue;
 			arcsToDelete.add(ai);
 
 			// see if an end of the arc is a network "end"
@@ -424,6 +433,13 @@ public class Routing extends Listener
 				boolean term = true;
 				if (!ni.hasExports() && !ni.isCellInstance())
 				{
+					PrimitiveNode.Function fun = ni.getFunction();
+					if (ni.getNumConnections() != 1)
+					{
+						if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.CONTACT ||
+							fun == PrimitiveNode.Function.CONNECT) continue;
+					}
+
 					// see if this primitive connects to other unconnected nets
 					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 					{
@@ -676,6 +692,8 @@ public class Routing extends Listener
 		// make a list of all networks
 		System.out.println("Copying topology of " + fromCell + " to " + toCell);
 		Netlist nl = fromCell.acquireUserNetlist();
+		Map<Network,ArcInst[]> arcMap = null;
+		if (fromCell.getView() != View.SCHEMATIC) arcMap = nl.getArcInstsByNetwork();
 
 		// first make a list of all nodes in the "from" cell
 		Map<NodeInst,List<NodeMatch>> nodeMap = new HashMap<NodeInst,List<NodeMatch>>();
@@ -812,9 +830,15 @@ public class Routing extends Listener
 			}
 
 			// find all PortInsts on this network
-			for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); )
+			ArcInst[] arcsOnNet = null;
+			if (arcMap != null) arcsOnNet = arcMap.get(net); else
 			{
-				ArcInst ai = aIt.next();
+				List<ArcInst> arcList = new ArrayList<ArcInst>();
+				for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); ) arcList.add(aIt.next());
+				arcsOnNet = arcList.toArray(new ArcInst[]{});
+			}
+			for(ArcInst ai : arcsOnNet)
+			{
 				int busWidth = nl.getBusWidth(ai);
 				for(int b=0; b<busWidth; b++)
 				{

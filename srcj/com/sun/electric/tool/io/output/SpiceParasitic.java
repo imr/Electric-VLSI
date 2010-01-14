@@ -465,7 +465,7 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
 	/**
 	 * Method to print the netlist considering the metal lines as distribute RC(transmission lines)
 	 */
-	public void writeNewSpiceCode(Cell cell,CellNetInfo cni,Technology layoutTechnology, Spice out)
+	public void writeNewSpiceCode(Cell cell, CellNetInfo cni, Technology layoutTechnology, Spice out)
 	{
 		double scale = layoutTechnology.getScale();
 

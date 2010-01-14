@@ -478,7 +478,7 @@ public class GenerateVHDL extends Topology
 
 					// write connection
 					String sigName = addString(net.getName(), null);
-					if (!net.getExports().hasNext() && !net.getArcs().hasNext()) sigName = "open";
+					if (!net.isExported() && !net.getArcs().hasNext()) sigName = "open";
 					if (first) infstr.append(", ");   first = true;
 					infstr.append(sigName);
 				}

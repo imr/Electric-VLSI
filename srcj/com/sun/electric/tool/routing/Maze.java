@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -63,6 +64,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -298,7 +300,9 @@ public class Maze
 
 			// route the unrouted arc
 			Network net = netList.getNetwork(ai, 0);
-			if (routeNet(net)) continue;
+			Map<Network,ArcInst[]> arcMap = null;
+			if (cell.getView() != View.SCHEMATIC) arcMap = netList.getArcInstsByNetwork();
+			if (routeNet(net, arcMap)) continue;
 		}
 	}
 
@@ -307,12 +311,12 @@ public class Maze
 	 * @param net the network to route.
 	 * @return true on error.
 	 */
-	private boolean routeNet(Network net)
+	private boolean routeNet(Network net, Map<Network,ArcInst[]> arcMap)
 	{
 		// get extent of net and mark nodes and arcs on it
 		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 		HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
-		List<Connection> netEnds = Routing.findNetEnds(net, arcsToDelete, nodesToDelete, netList, true);
+		List<Connection> netEnds = Routing.findNetEnds(net, arcMap, arcsToDelete, nodesToDelete, netList, true);
 		int count = netEnds.size();
 		if (count == 0) return false;
 		if (count != 2)
