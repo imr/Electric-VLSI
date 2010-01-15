@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
-BUG: (1/14/10, GVG) [Bug 2607] New: NPE in getBasePort (Bug #2607)
+BUG: (1/14/10, GVG) FillCell not working with SeaOfGates option (Bug #2608)
+FIX: Remove the condition only for PortProto == Export.
+
+BUG: (1/14/10, GVG) NPE in getBasePort (Bug #2607)
 FIX: Detected invalid exampleHigh in Highlighter.getSimiliarHighlight(). Added extra assertion to future cases.
 
 BUG: (1/14/10, GVG) Runtime exception in fill if it was run with a diff tech before (Bug #2606)

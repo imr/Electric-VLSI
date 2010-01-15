@@ -74,9 +74,8 @@ public class FillGenConfig implements Serializable
 
     public FillGenConfig(TechType.TechTypeEnum tech) { techType = tech; }
 
-    public FillGenConfig(TechType.TechTypeEnum tech, FillGeneratorTool.FillTypeEnum type, String lib, ExportConfig perim,
-                         int first, int last,
-                         double w, double h, boolean even,
+    public FillGenConfig(TechType.TechTypeEnum tech, FillGeneratorTool.FillTypeEnum type, String lib,
+                         ExportConfig perim, int first, int last, double w, double h, boolean even,
                          int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
                          boolean binary, boolean useMaster, boolean onlyAround, double gap, FillGenType genType,
                          int level)
