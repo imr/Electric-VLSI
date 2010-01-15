@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11b: ******************************
 
+IMP/MAN: (1/15/10, GVG) Ability to specify exports in top layers (Bug #2610).
+New syntax: "@exports = {layerName1, layerName2}
+
 BUG: (1/14/10, GVG) ConcurrentModificationException in Netlist.checkForModification from Stitch job (Bug #2609)
 FIX: Modifications are cached now before running the actual changes.
 
