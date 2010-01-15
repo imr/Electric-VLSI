@@ -934,14 +934,22 @@ public class StitchFillJob extends Job
         List<Network> nets = new ArrayList<Network>();
         for (Iterator<Network> itN = theCell.getNetlist().getNetworks(); itN.hasNext(); )
             nets.add(itN.next());
+
+        // Collect the data to modify to avoid concurrency issues
+        Map<Export, String> map = new HashMap<Export, String>();
         for (Network net: nets) {
             if (!net.isExported()) continue;
             String name = net.getName();
             String rootName = extractRootName(name);
             if (!name.equals(rootName)) {
                 Export exp = net.getExports().next();
-                exp.rename(rootName);
+                map.put(exp, rootName);
             }
+        }
+        // Do the actual change now
+        for (Map.Entry<Export,String> e : map.entrySet())
+        {
+            e.getKey().rename(e.getValue());
         }
         return true;
     }
