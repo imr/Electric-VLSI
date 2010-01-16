@@ -54,6 +54,16 @@ public class ExecProcess {
             public int  available() { return 0; }
         };
 
+    /** any bytes written to this are written to all of its arguments */
+    public static class MultiOutputStream extends OutputStream {
+        private final OutputStream[] args;
+        public MultiOutputStream(OutputStream[] args) { this.args = args; }
+        public void write(int b) throws IOException { for(OutputStream os : args) os.write(b); }
+        public void write(byte[] b, int ofs, int len) throws IOException { for(OutputStream os : args) os.write(b,ofs,len); }
+        public void flush() throws IOException { for(OutputStream os : args) os.flush(); }
+        public void close() throws IOException { for(OutputStream os : args) os.close(); }
+    }
+
     /**
      *  @param command the command to run (separated into argv[])
      *  @param workingDirectory the working directory on the LOCAL machine
