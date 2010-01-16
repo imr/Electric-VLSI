@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.IconNodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.Job;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -484,9 +485,13 @@ public abstract class Netlist {
         }
         int netMapIndex = netCell.getNetMapOffset(export, busIndex);
         int netIndex = netMapIndex >= 0 ? nm_net[netMapIndex] : -1;
-        if (true) {
+        if (Job.getDebug()) {
             Name exportName = export.getNameKey().subname(busIndex);
-            assert netIndex == getNetIndex(exportName);
+            if (netIndex != getNetIndex(exportName)) {
+                System.out.println("Export Name network mismatch in Cell " + netCell.cell.libDescribe()+
+                        ": getNetIndex("+export+","+busIndex+")="+netIndex+
+                        " getNetIndex("+exportName+")"+"="+getNetIndex(exportName));
+            }
         }
         return netIndex;
     }
