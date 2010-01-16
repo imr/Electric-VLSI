@@ -974,28 +974,58 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             String commands = "";
             double min = Double.MAX_VALUE;
             double max = Double.MIN_VALUE;
-            double sr = 1;
+            //double sr = 1;
+            int numPanels = 0;
+            int maxWidth = 0;
+            int height = 0;
             for(Panel wp : ww.wavePanels) {
+                numPanels++;
                 min = Math.min(min, wp.convertXScreenToData(0));
                 max = Math.max(max, wp.convertXScreenToData(wp.getSz().width));
-                sr  = Math.min(sr, ((double)wp.getSz().height)/((double)wp.getSz().width));
+                maxWidth =  Math.max(wp.getSz().width, maxWidth);
+                height   += wp.getSz().height;
             }
             if (file!=null) {
                 commands += "set terminal "+format+"; ";
                 commands += "set output \""+file+"\"; ";
             }
-            commands += "set size ratio "+sr+"; ";
+            commands += "set multiplot; ";
             commands += "set xrange [\""+min+"\":\""+max+"\"]; ";
-            commands += "plot \"-\" with lines; ";
-            System.out.println("Running: gnuplot -e \""+commands+"\"");
-            ExecProcess ep = new ExecProcess(new String[] { "gnuplot", "-e", commands }, null);
+            commands += "set format x \"\"; ";
+            System.out.println("Running: gnuplot for "+numPanels+" panels");
+            ExecProcess ep = new ExecProcess(new String[] { "gnuplot" }, null);
             ep.redirectStdout(System.out);
             ep.redirectStderr(System.out);
             ep.start();
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(ep.getStdin()));
-            for(Panel wp : ww.wavePanels)
-                wp.dumpDataForGnuplot(pw);
+            PrintWriter pw = new PrintWriter(new OutputStreamWriter(new ExecProcess.MultiOutputStream(new OutputStream[] { System.out, ep.getStdin() })));
+            pw.println(commands);
+            pw.println("set label 1 \"Voltage (Volts)\" at 0,0.5 left");
+            pw.println();
+            int whichPanel = 0;
+            double ypos = 1.0;
+            for(Panel wp : ww.wavePanels) {
+                if (whichPanel==numPanels-1) {
+                    pw.println("set xlabel \"time (in seconds)\"; ");
+                    pw.println("unset format; ");
+                }
+                pw.println("set size "+
+                           (((double)wp.getSz().width)/maxWidth)+
+                           ","+
+                           (((double)wp.getSz().height)/height)+"; ");
+                ypos -= (((double)wp.getSz().height)/height);
+                pw.println("set origin 0, "+ypos);
+                pw.flush();
+                pw.print("plot ");
+                wp.dumpDataForGnuplot(pw, min, max, ",");
+                pw.println();
+                pw.flush();
+                whichPanel++;
+            }
+            pw.println("unset multiplot; ");
+            pw.println("quit;");
+            pw.flush();
             pw.close();
+            System.out.println("gnuplot finished.");
         } catch (Exception e) {
         	System.out.println("ERROR: Unable to run 'gnuplot': " + e);
         }
