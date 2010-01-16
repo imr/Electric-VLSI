@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.11c: ******************************
+
 ************************* Version 8.11b: ******************************
 
 IMP/MAN: (1/15/10, GVG) Ability to specify exports in top layers (Bug #2610).
