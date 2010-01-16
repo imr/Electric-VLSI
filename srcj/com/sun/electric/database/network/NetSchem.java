@@ -1358,7 +1358,7 @@ class NetSchem extends NetCell {
                 // clear errors for cell
                 networkManager.startErrorLogging(cell);
                 try {
-
+                    exportNameMapOffsets = null;
                     makeDrawns();
                     // Gather port and arc names
                     initNetnames();

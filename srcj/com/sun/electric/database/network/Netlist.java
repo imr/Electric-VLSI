@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.IconNodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ActivityLogger;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -488,9 +489,11 @@ public abstract class Netlist {
         if (Job.getDebug()) {
             Name exportName = export.getNameKey().subname(busIndex);
             if (netIndex != getNetIndex(exportName)) {
-                System.out.println("Export Name network mismatch in Cell " + netCell.cell.libDescribe()+
+                String msg = "Export Name network mismatch in Cell " + netCell.cell.libDescribe()+
                         ": getNetIndex("+export+","+busIndex+")="+netIndex+
-                        " getNetIndex("+exportName+")"+"="+getNetIndex(exportName));
+                        " getNetIndex("+exportName+")"+"="+getNetIndex(exportName);
+                System.out.println(msg);
+                ActivityLogger.logException(new AssertionError(msg));
             }
         }
         return netIndex;

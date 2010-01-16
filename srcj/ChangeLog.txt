@@ -4,7 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
-IMP: (1/16/10, DN) Debug message for bug #2611.
+BUG: (1/16/10, DN) Assertion Exception in netlist/network tool (Bug #2611).
+FIX: In NetSchem.updateSchematic clear map exportNameMapOffsets.
 
 ************************* Version 8.11b: ******************************
 
