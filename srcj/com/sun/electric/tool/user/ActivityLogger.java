@@ -65,9 +65,7 @@ public class ActivityLogger {
         ActivityLogger.logJobs = logJobs;
         ActivityLogger.logTimeStamps = useTimeStamps;
 
-        outputFile = (Client.isOSMac()) ?
-                System.getProperty("user.home") + File.separator + fileName :
-                System.getProperty("user.dir") + File.separator + fileName;
+        outputFile = System.getProperty("java.io.tmpdir") + File.separator + fileName;
         try {
             FileOutputStream fos = new FileOutputStream(outputFile, false);
             BufferedOutputStream bout = new BufferedOutputStream(fos);

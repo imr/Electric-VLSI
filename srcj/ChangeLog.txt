@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+BUG: (1/17/10, AM) Electric litters files in my home directory without
+     my permission (Bug #2613)
+FIX: In ActivityLogger, use java.io.tmpdir instead of $HOME.
+
 IMP: (1/16/10, AM) Waveform plotting: support for: multiple panes,
      multiple waves per pane, using user's colors for plotted waves,
      using user's names for plotted waves, x-axis label.
