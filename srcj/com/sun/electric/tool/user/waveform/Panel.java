@@ -1480,22 +1480,27 @@ public class Panel extends JPanel
 	void dumpDataForGnuplot(PrintWriter pw) { dumpDataForGnuplot(pw, Double.MIN_VALUE, Double.MAX_VALUE, ""); }
 	void dumpDataForGnuplot(PrintWriter pw, double min, double max, String sep) {
         boolean first = true;
+        int linetype = 1;
 		for(WaveSignal ws : waveSignals.values()) {
+            boolean used = false;
 			if (ws.getSignal() instanceof AnalogSignal) {
 				AnalogSignal as = (AnalogSignal)ws.getSignal();
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
                     if (!first) pw.print(sep);
                     pw.print(" \'-\' with lines ");
-                    pw.print(" title \""+ws.getSignal().getFullName()+"\" ");
                     Color c = ws.getColor();
+                    pw.print(" lt "+linetype+" ");
                     pw.print("lc rgb \"#"+
                              pad2(Integer.toString(c.getRed()   & 0xff, 16))+
                              pad2(Integer.toString(c.getGreen() & 0xff, 16))+
                              pad2(Integer.toString(c.getBlue()  & 0xff, 16))+
                              "\" ");
+                    pw.print(" title \""+ws.getSignal().getFullName()+"\" ");
                     first = false;
+                    used = true;
                 }
             }
+            if (used) linetype++;
         }
 		for(WaveSignal ws : waveSignals.values()) {
 			if (ws.getSignal() instanceof AnalogSignal) {

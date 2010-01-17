@@ -985,10 +985,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
                 maxWidth =  Math.max(wp.getSz().width, maxWidth);
                 height   += wp.getSz().height;
             }
+            System.out.println("plotting: maxWidth="+maxWidth+", height="+height);
             if (file!=null) {
-                commands += "set terminal "+format+"; ";
+                commands += "set terminal "+format+" size 9 , "+(((double)height*9)/maxWidth)+"; ";
                 commands += "set output \""+file+"\"; ";
+            } else {
+                commands += "set terminal aqua size "+(maxWidth+100)+" "+(height+100)+"; ";
             }
+            commands += "unset colorbox; ";
             commands += "set multiplot; ";
             commands += "set xrange [\""+min+"\":\""+max+"\"]; ";
             commands += "set format x \"\"; ";
@@ -999,7 +1003,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             ep.start();
             PrintWriter pw = new PrintWriter(new OutputStreamWriter(new ExecProcess.MultiOutputStream(new OutputStream[] { System.out, ep.getStdin() })));
             pw.println(commands);
-            pw.println("set label 1 \"Voltage (Volts)\" at 0,0.5 left");
+            pw.println("set label 1 \"Voltage (Volts)\" at 1,1 left");
             pw.println();
             int whichPanel = 0;
             double ypos = 1.0;

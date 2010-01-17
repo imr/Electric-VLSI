@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+IMP: (1/17/10, AM) Enable dotted/dashed lines in plots (for
+     black+white publications).  Clean up handling of panel aspect
+     ratios.  Disable "plot as PDF" because the gnuplot pdf driver is
+     unreliable; use "plot as PS" instead and ps2pdf.
+
 BUG: (1/17/10, AM) Electric litters files in my home directory without
      my permission (Bug #2613)
 FIX: In ActivityLogger, use java.io.tmpdir instead of $HOME.
