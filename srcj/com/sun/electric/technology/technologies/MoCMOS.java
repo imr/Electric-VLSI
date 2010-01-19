@@ -678,16 +678,16 @@ public class MoCMOS extends Technology
         Xml.PrimitiveNodeGroup npnTransistorNode = tech.findNodeGroup("NPN-Transistor");
         Xml.PrimitiveNodeGroup polyCapNode = tech.findNodeGroup("Poly1-Poly2-Capacitor");
         Set<Xml.PrimitiveNodeGroup> analogElems = new HashSet<Xml.PrimitiveNodeGroup>();
-        analogElems.add(tech.findNodeGroup("NPN-Transistor"));
-        analogElems.add(tech.findNodeGroup("Hi-Res-Poly-Resistor"));
-        analogElems.add(tech.findNodeGroup("P-Active-Resistor"));
         analogElems.add(tech.findNodeGroup("N-Active-Resistor"));
-        analogElems.add(tech.findNodeGroup("P-Well-Resistor"));
-        analogElems.add(tech.findNodeGroup("N-Well-Resistor"));
-        analogElems.add(tech.findNodeGroup("P-Poly-Resistor"));
-        analogElems.add(tech.findNodeGroup("N-Poly-Resistor"));
-        analogElems.add(tech.findNodeGroup("P-No-Silicide-Poly-Resistor"));
         analogElems.add(tech.findNodeGroup("N-No-Silicide-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("N-Well-Resistor"));
+        analogElems.add(tech.findNodeGroup("P-Well-Resistor"));
+        analogElems.add(tech.findNodeGroup("P-No-Silicide-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("P-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("NPN-Transistor"));
+        analogElems.add(tech.findNodeGroup("P-Active-Resistor"));
+        analogElems.add(tech.findNodeGroup("N-Poly-Resistor"));
+        analogElems.add(tech.findNodeGroup("Hi-Res-Poly2-Resistor"));
         // Remove all possible null entries (not found elements)
         analogElems.remove(null);
 

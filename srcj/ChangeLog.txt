@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+BUG: (1/19/10, GVG) "Hi-Res-Poly2-Resistor not properly check in MoCMOS.getPatchedXml (Bug #2616)
+FIX: Name corrected in function
+
 BUG: (1/19/10, GVG) Not counting properly analog elements found in MoCMOS.getPatchedXml()
 FIX: Removing null elements before counting.
 
