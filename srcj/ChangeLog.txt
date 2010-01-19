@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+BUG: (1/19/10, GVG) Not counting properly analog elements found in MoCMOS.getPatchedXml()
+FIX: Removing null elements before counting.
+
 IMP: (1/17/10, AM) Enable dotted/dashed lines in plots (for
      black+white publications).  Clean up handling of panel aspect
      ratios.  Disable "plot as PDF" because the gnuplot pdf driver is

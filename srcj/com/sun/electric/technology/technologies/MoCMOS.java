@@ -677,7 +677,7 @@ public class MoCMOS extends Technology
         Xml.PrimitiveNodeGroup[] scalableTransistorNodes = new Xml.PrimitiveNodeGroup[2];
         Xml.PrimitiveNodeGroup npnTransistorNode = tech.findNodeGroup("NPN-Transistor");
         Xml.PrimitiveNodeGroup polyCapNode = tech.findNodeGroup("Poly1-Poly2-Capacitor");
-        List<Xml.PrimitiveNodeGroup> analogElems = new ArrayList<Xml.PrimitiveNodeGroup>();
+        Set<Xml.PrimitiveNodeGroup> analogElems = new HashSet<Xml.PrimitiveNodeGroup>();
         analogElems.add(tech.findNodeGroup("NPN-Transistor"));
         analogElems.add(tech.findNodeGroup("Hi-Res-Poly-Resistor"));
         analogElems.add(tech.findNodeGroup("P-Active-Resistor"));
@@ -688,6 +688,8 @@ public class MoCMOS extends Technology
         analogElems.add(tech.findNodeGroup("N-Poly-Resistor"));
         analogElems.add(tech.findNodeGroup("P-No-Silicide-Poly-Resistor"));
         analogElems.add(tech.findNodeGroup("N-No-Silicide-Poly-Resistor"));
+        // Remove all possible null entries (not found elements)
+        analogElems.remove(null);
 
         assert(analogElems.size() == 10 &&  polyCapNode != null); // so far
         
