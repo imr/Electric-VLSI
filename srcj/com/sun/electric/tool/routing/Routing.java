@@ -293,26 +293,28 @@ public class Routing extends Listener
 			int total = nets.size();
 			Network [] netsToUnroute = new Network[total];
 			ArrayList<List<Connection>> netEnds = new ArrayList<List<Connection>>();
-			ArrayList<Set<ArcInst>> arcsToDelete = new ArrayList<Set<ArcInst>>();
-			ArrayList<Set<NodeInst>> nodesToDelete = new ArrayList<Set<NodeInst>>();
+			Set<NodeInst> deleteAllNodes = new HashSet<NodeInst>();
+			Set<ArcInst> deleteAllArcs = new HashSet<ArcInst>();
 			int i = 0;
 			for(Network net : nets)
 			{
 				netsToUnroute[i] = net;
 				Set<ArcInst> arcs = new HashSet<ArcInst>();
 				Set<NodeInst> nodes = new HashSet<NodeInst>();
-				arcsToDelete.add(arcs);
-				nodesToDelete.add(nodes);
 				netEnds.add(findNetEnds(net, arcMap, arcs, nodes, netList, false));
+				for(NodeInst ni : nodes) deleteAllNodes.add(ni);
+				for(ArcInst ai : arcs) deleteAllArcs.add(ai);
 				i++;
 			}
 
+			// delete all arcs and nodes that are being unrouted
+			cell.killArcs(deleteAllArcs);
+			cell.killNodes(deleteAllNodes);
+
 			// do the unrouting
-//System.out.println("GATHERED "+total+" NETWORKS TO UNROUTE");
 			for(int j=0; j<total; j++)
 			{
-				if (unrouteNet(netsToUnroute[j], arcsToDelete.get(j), nodesToDelete.get(j), netEnds.get(j), netList, highlightThese)) break;
-//System.out.println("UNROUTED "+(j+1)+" OUT OF "+total+" NETWORKS");
+				if (makeUnroutedNet(netsToUnroute[j], netEnds.get(j), netList, highlightThese)) break;
 			}
 			fieldVariableChanged("highlightThese");
 			return true;
@@ -329,17 +331,8 @@ public class Routing extends Listener
 			wnd.finishedHighlighting();
 		}
 
-		private static boolean unrouteNet(Network net, Set<ArcInst> arcsToDelete, Set<NodeInst> nodesToDelete,
-			List<Connection> netEnds, Netlist netList, List<ArcInst> highlightThese)
+		private static boolean makeUnroutedNet(Network net, List<Connection> netEnds, Netlist netList, List<ArcInst> highlightThese)
 		{
-			// remove marked nodes and arcs
-			for(ArcInst ai : arcsToDelete)
-			{
-				ai.kill();
-			}
-            Cell cell = net.getParent();
-			cell.killNodes(nodesToDelete);
-
 			// now create the new unrouted wires
 			double wid = Generic.tech().unrouted_arc.getDefaultLambdaBaseWidth();
 			int count = netEnds.size();
@@ -353,40 +346,71 @@ public class Routing extends Listener
 				points[i] = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
 				covered[i] = 0;
 			}
-			for(int first=0; ; first++)
+//System.out.println("UNROUTING NET "+net.describe(false)+" WITH "+count+" ENDS");
+			if (count >= 1000)
 			{
-				boolean found = true;
-				double bestdist = 0;
-				int besti = 0, bestj = 0;
+				// too much work to make the solution look pretty: just radiate all connections from a center point
+				double x = 0, y = 0;
 				for(int i=0; i<count; i++)
 				{
-					for(int j=i+1; j<count; j++)
-					{
-						if (first != 0)
-						{
-							if (covered[i] + covered[j] != 1) continue;
-						}
-						double dist = points[i].distance(points[j]);
-
-						if (!found && dist >= bestdist) continue;
-						found = false;
-						bestdist = dist;
-						besti = i;
-						bestj = j;
-					}
+					x += points[i].getX();
+					y += points[i].getY();
 				}
-				if (found) break;
-
-				covered[besti] = covered[bestj] = 1;
-				PortInst head = netEnds.get(besti).getPortInst();
-				PortInst tail = netEnds.get(bestj).getPortInst();
-				ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
-				if (ai == null)
+				Point2D center = new Point2D.Double(x/count, y/count);
+				PrimitiveNode centerNp = Generic.tech().unroutedPinNode;
+				double width = centerNp.getDefWidth();
+				double height = centerNp.getDefHeight();
+				NodeInst centerNi = NodeInst.makeInstance(centerNp, center, width, height, net.getParent());
+				PortInst tail = centerNi.getOnlyPortInst();
+				for(int i=0; i<count; i++)
 				{
-					System.out.println("Could not create unrouted arc");
-					return true;
+					PortInst head = netEnds.get(i).getPortInst();
+					ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
+					if (ai == null)
+					{
+						System.out.println("Could not create unrouted arc");
+						return true;
+					}
+					highlightThese.add(ai);
 				}
-				highlightThese.add(ai);
+			} else
+			{
+				// do a poor-man's traveling-salesman solution to make the unrouted nets look good
+				for(int first=0; ; first++)
+				{
+					boolean found = true;
+					double bestdist = 0;
+					int besti = 0, bestj = 0;
+					for(int i=0; i<count; i++)
+					{
+						for(int j=i+1; j<count; j++)
+						{
+							if (first != 0)
+							{
+								if (covered[i] + covered[j] != 1) continue;
+							}
+							double dist = points[i].distance(points[j]);
+
+							if (!found && dist >= bestdist) continue;
+							found = false;
+							bestdist = dist;
+							besti = i;
+							bestj = j;
+						}
+					}
+					if (found) break;
+
+					covered[besti] = covered[bestj] = 1;
+					PortInst head = netEnds.get(besti).getPortInst();
+					PortInst tail = netEnds.get(bestj).getPortInst();
+					ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
+					if (ai == null)
+					{
+						System.out.println("Could not create unrouted arc");
+						return true;
+					}
+					highlightThese.add(ai);
+				}
 			}
 			return false;
 		}
@@ -408,6 +432,7 @@ public class Routing extends Listener
 	{
 		// initialize
 		List<Connection> endList = new ArrayList<Connection>();
+		Map<NodeInst,List<Connection>> endListByNode = new HashMap<NodeInst,List<Connection>>();
 
 		// look at every arc and see if it is part of the network
 		ArcInst[] arcsOnNet = null;
@@ -434,19 +459,17 @@ public class Routing extends Listener
 				if (!ni.hasExports() && !ni.isCellInstance())
 				{
 					PrimitiveNode.Function fun = ni.getFunction();
-					if (ni.getNumConnections() != 1)
+					if (ni.getNumConnections() != 1 && (fun == PrimitiveNode.Function.PIN ||
+						fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT)) term = false; else
 					{
-						if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.CONTACT ||
-							fun == PrimitiveNode.Function.CONNECT) continue;
-					}
-
-					// see if this primitive connects to other unconnected nets
-					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
-					{
-						Connection con = cIt.next();
-						ArcInst conAi = con.getArc();
-						if (mustBeUnrouted && conAi.getProto() != Generic.tech().unrouted_arc) continue;
-						if (conAi != ai && netList.getNetwork(conAi, 0) == net) { term = false;   break; }
+						// see if this primitive connects to other unconnected nets
+						for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
+						{
+							Connection con = cIt.next();
+							ArcInst conAi = con.getArc();
+							if (mustBeUnrouted && conAi.getProto() != Generic.tech().unrouted_arc) continue;
+							if (conAi != ai && netList.getNetwork(conAi, 0) == net) { term = false;   break; }
+						}
 					}
 				}
 
@@ -456,30 +479,37 @@ public class Routing extends Listener
 					// see if it is already in the list, connection-wise
 					boolean found = false;
 					Netlist nl = null;
-					for(Connection lCon : endList)
+					List<Connection> consOnNode = endListByNode.get(ni);
+					if (consOnNode != null)
 					{
-						PortInst otherPI = lCon.getPortInst();
-						NodeInst otherNI = otherPI.getNodeInst();
-						if (otherNI != ni) continue;
-						if (otherPI == pi) { found = true;   break; }
+						for(Connection lCon : consOnNode)
+						{
+							PortInst otherPI = lCon.getPortInst();
+							if (otherPI == pi) { found = true;   break; }
 
-						// connecting to another port on a node: ignore if they are connected internally
-						if (ni.isCellInstance())
-						{
-							if (nl == null) nl = ((Cell)ni.getProto()).acquireUserNetlist();
-							if (nl == null) continue;
-							Network subNet = nl.getNetwork((Export)pi.getPortProto(), 0);
-							Network otherSubNet = nl.getNetwork((Export)otherPI.getPortProto(), 0);
-							if (subNet == otherSubNet) { found = true;   break; }
-						} else
-						{
-							PrimitivePort subPP = (PrimitivePort)pi.getPortProto();
-							PrimitivePort otherSubPP = (PrimitivePort)otherPI.getPortProto();
-							if (subPP.getTopology() == otherSubPP.getTopology()) { found = true;   break; }
+							// connecting to another port on a node: ignore if they are connected internally
+							if (ni.isCellInstance())
+							{
+								if (nl == null) nl = ((Cell)ni.getProto()).acquireUserNetlist();
+								if (nl == null) continue;
+								Network subNet = nl.getNetwork((Export)pi.getPortProto(), 0);
+								Network otherSubNet = nl.getNetwork((Export)otherPI.getPortProto(), 0);
+								if (subNet == otherSubNet) { found = true;   break; }
+							} else
+							{
+								PrimitivePort subPP = (PrimitivePort)pi.getPortProto();
+								PrimitivePort otherSubPP = (PrimitivePort)otherPI.getPortProto();
+								if (subPP.getTopology() == otherSubPP.getTopology()) { found = true;   break; }
+							}
 						}
 					}
 					if (!found)
+					{
 						endList.add(thisCon);
+						List<Connection> consByNode = endListByNode.get(ni);
+						if (consByNode == null) endListByNode.put(ni, consByNode = new ArrayList<Connection>());
+						consByNode.add(thisCon);
+					}
 				} else
 				{
 					// not a network end: mark the node for removal
