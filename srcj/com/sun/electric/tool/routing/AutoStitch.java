@@ -521,9 +521,10 @@ public class AutoStitch
 
 		double widestArc = 0;
 		PortInst bottomPort = pi;
+		NodeInst bottomNi;
 		for(;;)
 		{
-			NodeInst bottomNi = bottomPort.getNodeInst();
+			bottomNi = bottomPort.getNodeInst();
 			PortProto bottomPp = bottomPort.getPortProto();
 
 			// analyze all arcs connected to bottomPort
@@ -540,6 +541,8 @@ public class AutoStitch
         	if (!bottomNi.isCellInstance()) break;
             bottomPort = ((Export)bottomPp).getOriginalPort();
         }
+		if (widestArc > bottomNi.getXSize() && widestArc > bottomNi.getYSize())
+			widestArc = Math.max(bottomNi.getXSize(), bottomNi.getYSize());
 		truePinSize.put(pi, new Double(widestArc));
 		return widestArc;
 	}
@@ -916,16 +919,6 @@ name=null;
 							// only want polygons on correct part of this nodeinst
 							if (!subNetlist.portsConnected(rNi, rPp, poly.getPort())) continue;
 
-							if (ZEROSIZEPINS && rNi.getFunction() == PrimitiveNode.Function.PIN)
-							{
-								double pinSize = getPortSize(rNi.getOnlyPortInst());
-								Poly npp = new Poly(poly.getCenterX(), poly.getCenterY(), pinSize, pinSize);
-								npp.setLayer(poly.getLayer());
-								npp.setPort(poly.getPort());
-								npp.setStyle(poly.getStyle());
-								poly = npp;
-							}
-
 							// transformed polygon
 							poly.transform(trans);
 
@@ -1022,17 +1015,6 @@ name=null;
 
 					// only want electrically connected polygons
 					if (polyPtr.getPort() == null) continue;
-
-					// make pin polygons zero-size
-					if (ZEROSIZEPINS && ni.getFunction() == PrimitiveNode.Function.PIN)
-					{
-						double pinSize = getPortSize(ni.getOnlyPortInst());
-						Poly npp = new Poly(polyPtr.getCenterX(), polyPtr.getCenterY(), pinSize, pinSize);
-						npp.setLayer(polyPtr.getLayer());
-						npp.setPort(polyPtr.getPort());
-						npp.setStyle(polyPtr.getStyle());
-						polyPtr = npp;
-					}
 
 					// search all ports for the closest connected to this layer
 					PortProto bestPp = null;
@@ -1478,16 +1460,6 @@ name=null;
 								if (!oLayer.getTechnology().sameLayer(oLayer, apLayer)) continue;
 							}
 
-							if (ZEROSIZEPINS && rNi.getFunction() == PrimitiveNode.Function.PIN)
-							{
-								double pinSize = getPortSize(rNi.getOnlyPortInst());
-								Poly npp = new Poly(oPoly.getCenterX(), oPoly.getCenterY(), pinSize, pinSize);
-								npp.setLayer(oPoly.getLayer());
-								npp.setPort(oPoly.getPort());
-								npp.setStyle(oPoly.getStyle());
-								oPoly = npp;
-							}
-
 							// transform the polygon and pass it on to the next test
 							oPoly.transform(trans);
 							if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
@@ -1588,16 +1560,6 @@ name=null;
 					// port must be able to connect to the arc
 					if (!rPp.getBasePort().connectsTo(ap)) continue;
 
-					if (ZEROSIZEPINS && oNi.getFunction() == PrimitiveNode.Function.PIN)
-					{
-						double pinSize = getPortSize(oNi.getOnlyPortInst());
-						Poly npp = new Poly(oPoly.getCenterX(), oPoly.getCenterY(), pinSize, pinSize);
-						npp.setLayer(oPoly.getLayer());
-						npp.setPort(oPoly.getPort());
-						npp.setStyle(oPoly.getStyle());
-						oPoly = npp;
-					}
-
 					// transformed the polygon and pass it on to the next test
 					oPoly.transform(trans);
 					if (comparePoly(oNi, rPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
@@ -1630,7 +1592,7 @@ name=null;
 		ArcProto ap, PolyMerge stayInside, StitchingTopology top, Rectangle2D limitBound)
 	{
 		// find the bounding boxes of the polygons
-		if (poly.separation(oPoly) >= DBMath.getEpsilon()) return false;
+		if (poly.separation(oPoly) > DBMath.getEpsilon()) return false;
 
 		// be sure the closest ports are being used
 		Poly portPoly = ni.getShapeOfPort(pp);
@@ -1657,6 +1619,7 @@ name=null;
 			PortProto tPp = it.next();
 			if (tPp == opp) continue;
 			if (!top.portsConnected(oNi, tPp, opp)) continue;
+			if (!tPp.getBasePort().connectsTo(ap)) continue;
 			portPoly = oNi.getShapeOfPort(tPp);
 			Point2D tPortCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
 			double tDist = portCenter.distance(tPortCenter);
@@ -1670,6 +1633,7 @@ name=null;
 			PortProto tPp = it.next();
 			if (tPp == pp) continue;
 			if (!top.portsConnected(ni, tPp, pp)) continue;
+			if (!tPp.getBasePort().connectsTo(ap)) continue;
 			portPoly = ni.getShapeOfPort(tPp);
 			Point2D tPortCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
 			double tDist = oPortCenter.distance(tPortCenter);
@@ -1730,11 +1694,6 @@ name=null;
 		Rectangle2D nullRect = null;
 		Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside, true, true, nullRect, alignment);
 		if (route.size() == 0) return false;
-
-//		// see if this caused an arc to be deleted
-//		boolean deletedArc = false;
-//        for (RouteElement e : route)
-//            if (e.getAction() == RouteElement.RouteElementAction.deleteArc) { deletedArc = true;  break; }
 
         allRoutes.add(route);
 		top.connect(net1, net2);
@@ -2894,7 +2853,6 @@ name=null;
 			// pins must be covered by an arc that is extended and has enough width to cover the pin
 			boolean gotOne = false;
 			Rectangle2D coverage = null;
-			Rectangle2D polyBounds = nodePolys[0].getBounds2D();
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = it.next();
@@ -2909,35 +2867,20 @@ name=null;
 				// figure out how much of the pin is covered by the arc
 				Poly [] arcPolys = ai.getProto().getTechnology().getShapeOfArc(ai);
 				if (arcPolys.length == 0) continue;
-				Rectangle2D arcBounds = arcPolys[0].getBounds2D();
-				arcBounds.intersects(polyBounds);
-				if (coverage == null) coverage = arcBounds; else
+				Poly arcPoly = arcPolys[0];
+				Rectangle2D arcBounds = arcPoly.getBounds2D();
+				Rectangle2D arcBoundsLimited = new Rectangle2D.Double();
+				Rectangle2D.intersect(nodePolys[0].getBounds2D(), arcBounds, arcBoundsLimited);
+				if (coverage == null)
 				{
-					// look for known and easy configurations
-					if (coverage.getMinX() == arcBounds.getMinX() && coverage.getMaxX() == arcBounds.getMaxX() &&
-						coverage.getMinY() >= arcBounds.getMaxY() && coverage.getMaxY() <= arcBounds.getMinY())
-					{
-						// they are stacked vertically
-						double lX = Math.min(coverage.getMinX(), arcBounds.getMinX());
-						double hX = Math.max(coverage.getMaxX(), arcBounds.getMaxX());
-						coverage.setRect(lX, coverage.getMinY(), hX-lX, coverage.getHeight());
-					} else if (coverage.getMinY() == arcBounds.getMinY() && coverage.getMaxY() == arcBounds.getMaxY())
-					{
-						// they are side-by-side
-						if (coverage.getMinX() >= arcBounds.getMaxX() && coverage.getMaxX() <= arcBounds.getMinX())
-						{
-							double lY = Math.min(coverage.getMinY(), arcBounds.getMinY());
-							double hY = Math.max(coverage.getMaxY(), arcBounds.getMaxY());
-							coverage.setRect(coverage.getMinX(), lY, coverage.getWidth(), hY-lY);
-						}
-					} else
-					{
-						// not known, intersection is a bit restrictive...
-						coverage.intersects(arcBounds);
-					}
+					coverage = arcBoundsLimited;
+				} else
+				{
+					// not known, intersection is a bit restrictive...
+					Rectangle2D.union(coverage, arcBoundsLimited, coverage);
 				}
 			}
-			if (!gotOne && !ni.hasExports())
+			if (!gotOne) // && !ni.hasExports())
 			{
 				if (coverage == null) return new Poly[0];
 
@@ -2945,6 +2888,8 @@ name=null;
 				newPoly.setStyle(nodePolys[0].getStyle());
 				newPoly.setLayer(nodePolys[0].getLayerOrPseudoLayer());
 				newPoly.setPort(nodePolys[0].getPort());
+				AffineTransform trans = ni.rotateIn();
+				newPoly.transform(trans);
 				nodePolys[0] = newPoly;
 			}
 		}
