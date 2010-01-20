@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+BUG: (1/20/10, SMR) Change dialog gives popup error messages for every node
+     that fails to change (Bug #2618).
+FIX: Show just one popup at the end.
+
 BUG: (1/20/10, DN) Arc creation is very slow (Bug #2615).
 FIX: Replace ArcInst.makeInstance by ArcInst.newInstance without checking that arc ends are in PortInst's polys.
 

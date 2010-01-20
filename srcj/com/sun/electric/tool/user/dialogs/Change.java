@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.EditingPreferences;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -1023,6 +1024,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			highlightThese = new ArrayList<Geometric>();
 			fieldVariableChanged("highlightThese");
 			Set<Geometric> changedAlready = new HashSet<Geometric>();
+			MutableInteger failures = new MutableInteger(0);
 
 			for (Geometric geomToChange : geomsToChange)
 			{
@@ -1042,7 +1044,7 @@ public class Change extends EModelessDialog implements HighlightListener
 					if (np == null) return false;
 
 					// replace the selected node
-					NodeInst onlyNewNi = updateNodeInst(ni, changedAlready);
+					NodeInst onlyNewNi = updateNodeInst(ni, changedAlready, failures);
 					if (onlyNewNi != null)
 						highlightThese.add(onlyNewNi);
 
@@ -1082,7 +1084,7 @@ public class Change extends EModelessDialog implements HighlightListener
 										if (errorCode < 0) return false;
 										if (errorCode > 0) continue;
 
-										NodeInst newNi = updateNodeInst(lNi, changedAlready);
+										NodeInst newNi = updateNodeInst(lNi, changedAlready, failures);
 										if (newNi != null)
 										{
 											total++;
@@ -1116,7 +1118,7 @@ public class Change extends EModelessDialog implements HighlightListener
 									if (errorCode < 0) return false;
 									if (errorCode > 0) continue;
 
-									NodeInst newNi = updateNodeInst(lNi, changedAlready);
+									NodeInst newNi = updateNodeInst(lNi, changedAlready, failures);
 									if (newNi != null)
 									{
 										total++;
@@ -1145,7 +1147,7 @@ public class Change extends EModelessDialog implements HighlightListener
 								if (errorCode < 0) return false;
 								if (errorCode > 0) continue;
 
-								NodeInst newNi = updateNodeInst(lNi, changedAlready);
+								NodeInst newNi = updateNodeInst(lNi, changedAlready, failures);
 								if (newNi != null)
 								{
 									total++;
@@ -1196,12 +1198,19 @@ public class Change extends EModelessDialog implements HighlightListener
 							if (errorCode < 0) return false;
 							if (errorCode > 0) continue;
 
-							NodeInst newNode = updateNodeInst(lNi, changedAlready);
+							NodeInst newNode = updateNodeInst(lNi, changedAlready, failures);
 							if (newNode != null) total++;
 						}
 						System.out.println("All " + total + " " + oldNType.describe(true) +
 							" nodes connected to this replaced with " + replacedWith);
 					} else System.out.println(oldNType + " replaced with " + replacedWith);
+					if (failures.intValue() > 0)
+					{
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							"There were " + failures.intValue() + " nodes that could not be replaced with " + np,
+							"Change failed", JOptionPane.ERROR_MESSAGE);
+						
+					}
 				} else
 				{
                     // get arc to be replaced
@@ -1374,13 +1383,13 @@ public class Change extends EModelessDialog implements HighlightListener
 			return true;
 		}
 
-		/**\
+		/**
 		 * Method to update a node with the replacement type.
 		 * @param ni the node to update
 		 * @param changedAlready a Set of nodes already updates.
 		 * @return a node to highlight (because it was changed).  May be null.
 		 */
-		private NodeInst updateNodeInst(NodeInst ni, Set<Geometric> changedAlready)
+		private NodeInst updateNodeInst(NodeInst ni, Set<Geometric> changedAlready, MutableInteger failures)
 		{
 			if (changedAlready.contains(ni)) return null;
 			NodeProto oldNType = ni.getProto();
@@ -1409,9 +1418,8 @@ public class Change extends EModelessDialog implements HighlightListener
 				onlyNewNi = CircuitChangeJobs.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
 				if (onlyNewNi == null)
 				{
-					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-						np + " does not fit in the place of " + oldNType,
-						"Change failed", JOptionPane.ERROR_MESSAGE);
+					System.out.println(np + " does not fit in the place of " + oldNType);
+					failures.increment();
 					return null;
 				}
 			}
