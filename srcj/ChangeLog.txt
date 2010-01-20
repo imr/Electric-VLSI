@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+BUG: (1/20/10, DN) Arc creation is very slow (Bug #2615).
+FIX: Replace ArcInst.makeInstance by ArcInst.newInstance without checking that arc ends are in PortInst's polys.
+
 BUG: (1/20/10, GVG) SeaOfGates not considering spacing rule in the "to" surround
 FIX: Extra code added. It didn't affect the regression
 

@@ -24,9 +24,11 @@
 package com.sun.electric.tool.routing;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.CellTree;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -292,16 +294,23 @@ public class Routing extends Listener
 			if (cell.getView() != View.SCHEMATIC) arcMap = netList.getArcInstsByNetwork();
 			int total = nets.size();
 			Network [] netsToUnroute = new Network[total];
-			ArrayList<List<Connection>> netEnds = new ArrayList<List<Connection>>();
+			ArrayList<UnroutePort[]> netEnds = new ArrayList<UnroutePort[]>();
 			Set<NodeInst> deleteAllNodes = new HashSet<NodeInst>();
 			Set<ArcInst> deleteAllArcs = new HashSet<ArcInst>();
+            Map<PortInst,EPoint> portCenters = new HashMap<PortInst,EPoint>();
 			int i = 0;
 			for(Network net : nets)
 			{
 				netsToUnroute[i] = net;
 				Set<ArcInst> arcs = new HashSet<ArcInst>();
 				Set<NodeInst> nodes = new HashSet<NodeInst>();
-				netEnds.add(findNetEnds(net, arcMap, arcs, nodes, netList, false));
+                List<Connection> netCons = findNetEnds(net, arcMap, arcs, nodes, netList, false);
+                UnroutePort[] netUnroutePorts = new UnroutePort[netCons.size()];
+                for (int j = 0; j < netCons.size(); j++) {
+                    netUnroutePorts[j] = new UnroutePort(netCons.get(j));
+                }
+				netEnds.add(netUnroutePorts);
+//				netEnds.add(findNetEnds(net, arcMap, arcs, nodes, netList, false));
 				for(NodeInst ni : nodes) deleteAllNodes.add(ni);
 				for(ArcInst ai : arcs) deleteAllArcs.add(ai);
 				i++;
@@ -331,19 +340,33 @@ public class Routing extends Listener
 			wnd.finishedHighlighting();
 		}
 
-		private static boolean makeUnroutedNet(Network net, List<Connection> netEnds, Netlist netList, List<ArcInst> highlightThese)
+        private static class UnroutePort {
+            final PortInst pi;
+            final EPoint center;
+
+            UnroutePort(Connection con) {
+                pi = con.getPortInst();
+                center = pi.getCenter();
+            }
+        }
+
+		private static boolean makeUnroutedNet(Network net, UnroutePort[] netEnds, Netlist netList, List<ArcInst> highlightThese)
 		{
+            Cell cell = net.getNetlist().getCell();
+            ImmutableArcInst a = Generic.tech().unrouted_arc.getDefaultInst(cell.getEditingPreferences());
+            long gridExtend = a.getGridExtendOverMin();
 			// now create the new unrouted wires
-			double wid = Generic.tech().unrouted_arc.getDefaultLambdaBaseWidth();
-			int count = netEnds.size();
+//			double wid = Generic.tech().unrouted_arc.getDefaultLambdaBaseWidth();
+			int count = netEnds.length;
 			int [] covered = new int[count];
-			Point2D [] points = new Point2D[count];
+			EPoint [] points = new EPoint[count];
 			for(int i=0; i<count; i++)
 			{
-				Connection con = netEnds.get(i);
-				PortInst pi = con.getPortInst();
-				Poly poly = pi.getPoly();
-				points[i] = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+                points[i] = netEnds[i].center;
+//				Connection con = netEnds.get(i);
+//				PortInst pi = con.getPortInst();
+//				Poly poly = pi.getPoly();
+//				points[i] = poly.getCenter();
 				covered[i] = 0;
 			}
 //System.out.println("UNROUTING NET "+net.describe(false)+" WITH "+count+" ENDS");
@@ -356,7 +379,7 @@ public class Routing extends Listener
 					x += points[i].getX();
 					y += points[i].getY();
 				}
-				Point2D center = new Point2D.Double(x/count, y/count);
+				EPoint center = EPoint.fromLambda(x/count, y/count);
 				PrimitiveNode centerNp = Generic.tech().unroutedPinNode;
 				double width = centerNp.getDefWidth();
 				double height = centerNp.getDefHeight();
@@ -364,8 +387,12 @@ public class Routing extends Listener
 				PortInst tail = centerNi.getOnlyPortInst();
 				for(int i=0; i<count; i++)
 				{
-					PortInst head = netEnds.get(i).getPortInst();
-					ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
+					PortInst head = netEnds[i].pi;
+                    EPoint headP = netEnds[i].center;
+//					PortInst head = netEnds.get(i).getPortInst();
+                    ArcInst ai = ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null,
+                            head, tail, headP, center, gridExtend, 0, a.flags);
+//					ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
 					if (ai == null)
 					{
 						System.out.println("Could not create unrouted arc");
@@ -401,9 +428,13 @@ public class Routing extends Listener
 					if (found) break;
 
 					covered[besti] = covered[bestj] = 1;
-					PortInst head = netEnds.get(besti).getPortInst();
-					PortInst tail = netEnds.get(bestj).getPortInst();
-					ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
+					PortInst head = netEnds[besti].pi;
+					PortInst tail = netEnds[bestj].pi;
+                    EPoint headP = netEnds[besti].center;
+                    EPoint tailP = netEnds[bestj].center;
+                    ArcInst ai = ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null,
+                            head, tail, headP, tailP, gridExtend, 0, a.flags);
+//					ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
 					if (ai == null)
 					{
 						System.out.println("Could not create unrouted arc");
