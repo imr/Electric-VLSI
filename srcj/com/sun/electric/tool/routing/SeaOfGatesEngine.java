@@ -596,6 +596,7 @@ public class SeaOfGatesEngine
 				lay = metalLayers[toZ];
 				rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, metalArcs[toZ].getDefaultLambdaBaseWidth(), -1);
 				surround = 0;
+				if (rule != null) surround = rule.getValue(0);
 				block = getMetalBlockage(netID, toZ, metalSpacing, metalSpacing, surround, toX, toY);
 				if (block != null)
 				{

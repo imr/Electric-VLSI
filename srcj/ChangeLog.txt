@@ -4,11 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+BUG: (1/20/10, GVG) SeaOfGates not considering spacing rule in the "to" surround
+FIX: Extra code added. It didn't affect the regression
+
 BUG: (1/20/10, SMR) Auto-stitcher making too many arcs (Bug #2617).
 FIX: Force it to use proper layer and prevent wide arcs from expanding coverage in cells.
 
 BUG: (1/19/10, GVG) "Hi-Res-Poly2-Resistor not properly check in MoCMOS.getPatchedXml (Bug #2616)
-FIX: Name corrected in function
+FIX: Name corrected in function. This element was not properly marked as "notUsed".
 
 BUG: (1/19/10, GVG) Not counting properly analog elements found in MoCMOS.getPatchedXml()
 FIX: Removing null elements before counting.
