@@ -342,6 +342,7 @@ public class MessagesWindow
         File f = new File(libURL.getPath());
         try
         {
+            System.out.println("Saving console messages in '" + fileName + " '");
             PrintWriter wr = new PrintWriter(f);
             wr.print(info.getText());
             wr.close();
