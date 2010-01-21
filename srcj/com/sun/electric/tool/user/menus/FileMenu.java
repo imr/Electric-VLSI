@@ -1604,7 +1604,8 @@ public class FileMenu {
 		public void run()
 		{
 			try {
-				pj.print(aset);
+                System.out.println("Printing '" + pj.getJobName() + "' ...");
+                pj.print(aset);
 			} catch (PrinterException pe)
 			{
 				System.out.println("Print aborted.");

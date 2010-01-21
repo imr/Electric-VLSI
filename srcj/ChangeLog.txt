@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+IMP: (1/21/10, GVG) Message in MessagesWindow that a print job is running even though there is no
+way to know if it is printing to file.
+
 BUG: (1/21/10, GVG) NPE in PS export (Bug #2623)
 FIX: Detect the null case and assign TextDescriptor.EMPTY
 
