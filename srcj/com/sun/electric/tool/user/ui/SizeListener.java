@@ -99,6 +99,15 @@ public class SizeListener
 			return;
 		}
 		Geometric geom = geomList.get(0);
+		if (geom instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)geom;
+			if (ni.isCellInstance())
+			{
+				System.out.println("You can only resize primitive nodes, not cell instances.");
+				return;
+			}
+		}
 		EventListener newListener = null;
 
 		// remember the listener that was there before
@@ -494,7 +503,7 @@ public class SizeListener
 
 		// get information about the node being stretched
 		NodeInst ni = (NodeInst)stretchGeom;
-		if (ni.getProto() instanceof Cell) return EPoint.ORIGIN;
+		if (ni.getProto() instanceof Cell) return new Point2D.Double(0, 0);
 
 		// setup outline of node with standard offset
 		Poly nodePoly = ni.getBaseShape();

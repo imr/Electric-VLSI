@@ -4,11 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+BUG: (1/21/10, SMR) Resizing a cell instance crashes (Bug #2621).
+FIX: Prevent the crash and disallow the sizing.
+
 IMP: (1/21/10, AM) Per Gilda's request, uniquify log file name and
      print it in the messages window on startup.
 
 IMP/MAN: (1/21/10, GVG) Ability to save text in MessagesLog to a file (Bug #2620)
-Only available in debug mode.
+     Only available in debug mode.
 
 BUG: (1/20/10, SMR) Change dialog gives popup error messages for every node
      that fails to change (Bug #2618).
