@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -128,6 +129,8 @@ public class MessagesWindow
 			((JFrame)jf).pack();
 			((JFrame)jf).setVisible(true);
 		}
+
+        appendString("log file is " + ActivityLogger.getLogFileName()+"\n");
 	}
 
 //	public Component getComponent()

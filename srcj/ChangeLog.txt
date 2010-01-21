@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+IMP: (1/21/10, AM) Per Gilda's request, uniquify log file name and
+     print it in the messages window on startup.
+
 IMP/MAN: (1/21/10, GVG) Ability to save text in MessagesLog to a file (Bug #2620)
 Only available in debug mode.
 

@@ -65,8 +65,8 @@ public class ActivityLogger {
         ActivityLogger.logJobs = logJobs;
         ActivityLogger.logTimeStamps = useTimeStamps;
 
-        outputFile = System.getProperty("java.io.tmpdir") + File.separator + fileName;
         try {
+            outputFile = File.createTempFile(fileName+"-", ".txt").getAbsolutePath();
             FileOutputStream fos = new FileOutputStream(outputFile, false);
             BufferedOutputStream bout = new BufferedOutputStream(fos);
             out = new PrintWriter(bout);
@@ -78,6 +78,14 @@ public class ActivityLogger {
             out = new PrintWriter(System.out);
         }
         if (out != null) out.println("Electric "+Version.getVersionInformation());
+    }
+
+    /**
+     * Return the name of the log file so we can display it in the
+     * messages window once the messages window is open.
+     */
+    public static String getLogFileName() {
+        return outputFile;
     }
 
     /**
