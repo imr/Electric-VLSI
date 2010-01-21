@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+BUG: (1/21/10, GVG) NPE in PS export (Bug #2623)
+FIX: Detect the null case and assign TextDescriptor.EMPTY
+
 BUG: (1/21/10, SMR) Export text on rotated nodes reads wrong (Bug #2622).
 FIX: In Export.getNamePoly(), adjust coordinates properly.
 
