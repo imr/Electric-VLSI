@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11c: ******************************
 
+BUG: (1/21/10, SMR) Export text on rotated nodes reads wrong (Bug #2622).
+FIX: In Export.getNamePoly(), adjust coordinates properly.
+
 BUG: (1/21/10, SMR) Resizing a cell instance crashes (Bug #2621).
 FIX: Prevent the crash and disallow the sizing.
 
@@ -71,18 +74,18 @@ FIX: Fixed rounding issue in sizes match for the absolute value.
 BUG: (1/14/10, SMR) Getting ports and arcs on network is very slow (Bug #2590).
 FIX: Now using bulk methods Netlist.getArcInstsByNetwork() and Netlist.getPortInstsByNetwork() .
 
-IMP: (01/14/10, DN) Self-test of a method "Netlist.getNetwork(Name exportName);" (For Bug #2533).
+IMP: (1/14/10, DN) Self-test of a method "Netlist.getNetwork(Name exportName);" (For Bug #2533).
 
-BUG: (01/13/10, GVG) NPE in CelLFile with one contact as cell (Bug #2605)
+BUG: (1/13/10, GVG) NPE in CelLFile with one contact as cell (Bug #2605)
 FIX: Detecting when # of gnds is not availabel (capCell==null). Similar to fix for vdds.
 
-BUG: (01/13/10, GVG) NPE in VectorCache while renaming library whose cell was displayed (Bug #2589)
+BUG: (1/13/10, GVG) NPE in VectorCache while renaming library whose cell was displayed (Bug #2589)
 FIX: Nothing fixed since it is hard to reproduce. Added extra code to detect the case.
 
-BUG: (01/13/10, GVG) Undo/Redo history is partially lost after undoing "SaveLibrary" (Bug #2539)
+BUG: (1/13/10, GVG) Undo/Redo history is partially lost after undoing "SaveLibrary" (Bug #2539)
 FIX: Implementd Dima' suggestion.
 
-BUG: (01/13/10, GVG) overlapping metal arcs not detected (Bug #2567)
+BUG: (1/13/10, GVG) overlapping metal arcs not detected (Bug #2567)
 FIX: Undoing again the changes. See Bug #2567 for details.
 
 BUG: (1/12/10, DN) Getting ports on network is very slow (Bug #2590).
@@ -93,13 +96,13 @@ FIX: In PreferencesFrame constructor, invoke pack() in a new thread.
 
 IMP: (1/12/10, SMR) Updated built-in Purple/Red/Orange libraries (Bug #2603).
 
-BUG: (01/12/10, GVG) overlapping metal arcs not detected (Bug #2567)
+BUG: (1/12/10, GVG) overlapping metal arcs not detected (Bug #2567)
 FIX: Adding bounding box for the interaction information to avoid so many collisions
 with the same pair of geometries.
 
-IMP: (01/12/10, GVG) More generic contacts geneted by TechEditorWizard (Bug #2597)
+IMP: (1/12/10, GVG) More generic contacts geneted by TechEditorWizard (Bug #2597)
 
-BUG/MAN: (01/11/10, GVG) Exception in SPICE with Poly1-Poly2 cap (lay) (Bug #2599)
+BUG/MAN: (1/11/10, GVG) Exception in SPICE with Poly1-Poly2 cap (lay) (Bug #2599)
 FIX: Missing port added. Technology.check() will report the error now.
 
 BUG: (1/11/10, SMR) Messages window not scrolled quickly enough (Bug #2575).
@@ -110,7 +113,7 @@ IMP: (1/11/10, SMR) Fixed calls to Cell.copyNodeProto() (Bug #2587).
 BUG: (1/11/10, SMR) "Duplicate Cell" doesn't swap icons (Bug #2598).
 FIX: Fixed CellChangeJobs.DuplicateCell.doIt() to use CellIds.
 
-IMP/MAN: (01/08/10, GVG) Part of "More generic contacts geneted by TechEditorWizard" (Bug #)
+IMP/MAN: (1/08/10, GVG) Part of "More generic contacts geneted by TechEditorWizard" (Bug #)
 
 ************************* Version 8.11a: ******************************
 

@@ -486,6 +486,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         setCharacteristic(other.getCharacteristic());
     }
 
+    private static final boolean NEWWAY = true;
+
     /****************************** GRAPHICS ******************************/
     /**
      * Method to return a Poly that describes this Export name.
@@ -501,26 +503,44 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         TextDescriptor.Position pos = td.getPos();
         Poly.Type style = pos.getPolyType();
         Point2D[] pointList = new Point2D.Double[1];
-
-        // must untransform the node to apply the offset
-        NodeInst ni = getOriginalPort().getNodeInst();
-        if (!ni.getOrient().equals(Orientation.IDENT)) {
-            pointList[0] = new Point2D.Double(cX, cY);
+        if (NEWWAY)
+        {
+	        // must untransform the node to apply the offset
+	        NodeInst ni = getOriginalPort().getNodeInst();
             AffineTransform trans = ni.rotateIn();
-            trans.transform(pointList[0], pointList[0]);
-            pointList[0].setLocation(pointList[0].getX() + offX, pointList[0].getY() + offY);
-            trans = ni.rotateOut();
-            trans.transform(pointList[0], pointList[0]);
-        } else {
-            pointList[0] = new Point2D.Double(cX + offX, cY + offY);
-        }
+	        pointList[0] = new Point2D.Double(cX, cY);
+	        trans.transform(pointList[0], pointList[0]);
+	        pointList[0].setLocation(pointList[0].getX()+offX, pointList[0].getY()+offY);
 
-        poly = new Poly(pointList);
-        poly.setStyle(style);
-        poly.setPort(this);
-        poly.setString(getName());
-        poly.setTextDescriptor(td);
-        poly.setDisplayedText(new DisplayedText(this, EXPORT_NAME));
+	        poly = new Poly(pointList);
+	        poly.setStyle(style);
+	        poly.setPort(this);
+	        poly.setString(getName());
+	        poly.setTextDescriptor(td);
+	        poly.setDisplayedText(new DisplayedText(this, EXPORT_NAME));
+	        poly.transform(ni.rotateOut());
+        } else
+        {
+	        // must untransform the node to apply the offset
+	        NodeInst ni = getOriginalPort().getNodeInst();
+	        if (!ni.getOrient().equals(Orientation.IDENT)) {
+	            pointList[0] = new Point2D.Double(cX, cY);
+	            AffineTransform trans = ni.rotateIn();
+	            trans.transform(pointList[0], pointList[0]);
+	            pointList[0].setLocation(pointList[0].getX() + offX, pointList[0].getY() + offY);
+	            trans = ni.rotateOut();
+	            trans.transform(pointList[0], pointList[0]);
+	        } else {
+	            pointList[0] = new Point2D.Double(cX + offX, cY + offY);
+	        }
+
+	        poly = new Poly(pointList);
+	        poly.setStyle(style);
+	        poly.setPort(this);
+	        poly.setString(getName());
+	        poly.setTextDescriptor(td);
+	        poly.setDisplayedText(new DisplayedText(this, EXPORT_NAME));
+        }
         return poly;
     }
 
