@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11d: ******************************
 
+BUG/MAN: (1/22/10, GVG) Runtime exception in LoadImage to create logos in Layout (Bug #2626)
+FIX: Added extra code to check if file format is valid (png, jpeg so far)
+
 IMP: (1/21/10, GVG) Message in MessagesWindow that a print job is running even though there is no
 way to know if it is printing to file.
 

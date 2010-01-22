@@ -35,6 +35,10 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import javax.imageio.stream.ImageInputStream;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.swing.*;
 import java.awt.Canvas;
 import java.awt.Frame;
 import java.awt.Image;
@@ -45,6 +49,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.util.Iterator;
+import java.io.File;
 
 /**
  * Class to handle the "Layout Image" dialog.  There is still a ton of
@@ -285,6 +290,29 @@ public class LayoutImage extends EDialog {
         }
 
         try {
+            // Checking if the file is actually a JPEG file
+            File fileURL = new File(fileName.getText());
+            ImageInputStream iis = ImageIO.createImageInputStream(fileURL);
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+            boolean validFormat = false;
+            while (readers.hasNext())
+            {
+                ImageReader read = readers.next();
+                // Another way to detect this could be "read instanceof JPEGImageReader
+                String format = read.getFormatName().toLowerCase();
+                // so far jpeg and png are the only valid formats tested.
+                validFormat = format.equals("jpeg") || format.equals("png");
+                if (validFormat)
+                    break;
+            }
+            if (!validFormat)
+            {
+                String msg = "'" + fileName.getText() + "' is not a JPEG file";
+                JOptionPane.showMessageDialog(null, msg, "Erorr in LoadImage",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             Image img = Toolkit.getDefaultToolkit().createImage(fileName.getText());
 
             // dumb hack to force AWT to load the image
