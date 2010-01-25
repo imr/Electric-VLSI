@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11d: ******************************
 
+MAN: (1/25/10, GVG) NCC gets confused with two lay cells in the same group (Bug #2627)
+Added comment in NCC manual.
+
 BUG/MAN: (1/22/10, GVG) Runtime exception in LoadImage to create logos in Layout (Bug #2626)
 FIX: Added extra code to check if file format is valid (png, jpeg so far)
 
