@@ -1446,7 +1446,10 @@ public class EditMenu {
      */
     private static void showNextErrorCommand(boolean separateWindow)
     {
-        String msg = ErrorLoggerTree.reportNextMessage(separateWindow);
+    	// if the display preference "show cell results in new window" is unchecked, always disable separate window display
+    	if (!User.isShowCellsInNewWindow()) separateWindow = false;
+
+    	String msg = ErrorLoggerTree.reportNextMessage(separateWindow);
         System.out.println(msg);
     }
 
@@ -1467,7 +1470,10 @@ public class EditMenu {
      */
     private static void showPrevErrorCommand(boolean separateWindow)
     {
-        String msg = ErrorLoggerTree.reportPrevMessage(separateWindow);
+    	// if the display preference "show cell results in new window" is unchecked, always disable separate window display
+    	if (!User.isShowCellsInNewWindow()) separateWindow = false;
+
+    	String msg = ErrorLoggerTree.reportPrevMessage(separateWindow);
         System.out.println(msg);
     }
 

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11d: ******************************
 
+BUG: (1/25/10, SMR) Setting the Display Preference to keep cells in the same
+     window is not respected when browsing through errors (Bug #2573).
+FIX: Use the Display Preference for error browsing.
+
 BUG: (1/25/10, SMR) Change dialog still gives popup error messages for every node
      that fails to change (Bug #2618).
 FIX: Show just one popup at the end.
