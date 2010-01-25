@@ -228,23 +228,8 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	public boolean cellIsUsed(Cell cell) {return cellsInUse.containsKey(cell);}
 	/** Cell has only one size in the design */
 	public boolean cellHasOnlyOneSize(Cell cell) {
-		final boolean NEW_ALGORITHM = true;
-
-//		//debug
-//		String cellNm = cell.getName();
-//		if (cellNm.indexOf("rxSlice")!=-1) {
-//			prln(" Testing rxSlice");
-//			prln("    Single use: "+singleUseCells.contains(cell));
-//			prln("    LE Gates: "+cellsWithLeGates.contains(cell));
-//			prln("    Parameterized: "+cellIsParameterized(cell));
-//		}
-
-		if (NEW_ALGORITHM) {
-			return singleUseCells.contains(cell) ||
-		       (!cellsWithLeGates.contains(cell)) && !cellIsParameterized(cell);
-		} else {
-			return singleUseCells.contains(cell);
-		}
+        return singleUseCells.contains(cell) ||
+           (!cellsWithLeGates.contains(cell)) && !cellIsParameterized(cell);
 	}
 	/** Get an iterator over a list of all the cells used in the design. The
 	 * list is sorted in reverse topological order.
