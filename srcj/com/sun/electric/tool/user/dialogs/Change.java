@@ -1024,7 +1024,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			highlightThese = new ArrayList<Geometric>();
 			fieldVariableChanged("highlightThese");
 			Set<Geometric> changedAlready = new HashSet<Geometric>();
-			MutableInteger failures = new MutableInteger(0);
+			MutableInteger nodeFailures = new MutableInteger(0);
 
 			for (Geometric geomToChange : geomsToChange)
 			{
@@ -1044,15 +1044,18 @@ public class Change extends EModelessDialog implements HighlightListener
 					if (np == null) return false;
 
 					// replace the selected node
-					NodeInst onlyNewNi = updateNodeInst(ni, changedAlready, failures);
+					int total = 0;
+					NodeInst onlyNewNi = updateNodeInst(ni, changedAlready, nodeFailures);
 					if (onlyNewNi != null)
+					{
 						highlightThese.add(onlyNewNi);
+						total++;
+					}
 
 					String replacedWith = "node " + np.describe(false);
 					if (func != null) replacedWith += " (" + func.getShortName() + ")";
 
 					// do additional replacements if requested
-					int total = 1;
 					if (changeEverywhere)
 					{
 						// replace in all cells of library if requested
@@ -1084,7 +1087,7 @@ public class Change extends EModelessDialog implements HighlightListener
 										if (errorCode < 0) return false;
 										if (errorCode > 0) continue;
 
-										NodeInst newNi = updateNodeInst(lNi, changedAlready, failures);
+										NodeInst newNi = updateNodeInst(lNi, changedAlready, nodeFailures);
 										if (newNi != null)
 										{
 											total++;
@@ -1095,7 +1098,7 @@ public class Change extends EModelessDialog implements HighlightListener
 								}
 							}
 						}
-						System.out.println("All " + total + " " + oldNType.describe(true) +
+						if (total > 0) System.out.println("All " + total + " " + oldNType.describe(true) +
 							" nodes in all libraries replaced with " + replacedWith);
 					} else if (changeInLibrary)
 					{
@@ -1118,7 +1121,7 @@ public class Change extends EModelessDialog implements HighlightListener
 									if (errorCode < 0) return false;
 									if (errorCode > 0) continue;
 
-									NodeInst newNi = updateNodeInst(lNi, changedAlready, failures);
+									NodeInst newNi = updateNodeInst(lNi, changedAlready, nodeFailures);
 									if (newNi != null)
 									{
 										total++;
@@ -1128,7 +1131,7 @@ public class Change extends EModelessDialog implements HighlightListener
 								}
 							}
 						}
-						System.out.println("All " + total + " " + oldNType.describe(true) +
+						if (total > 0) System.out.println("All " + total + " " + oldNType.describe(true) +
 							" nodes in " + lib + " replaced with " + replacedWith);
 					} else if (changeInCell)
 					{
@@ -1147,7 +1150,7 @@ public class Change extends EModelessDialog implements HighlightListener
 								if (errorCode < 0) return false;
 								if (errorCode > 0) continue;
 
-								NodeInst newNi = updateNodeInst(lNi, changedAlready, failures);
+								NodeInst newNi = updateNodeInst(lNi, changedAlready, nodeFailures);
 								if (newNi != null)
 								{
 									total++;
@@ -1156,7 +1159,7 @@ public class Change extends EModelessDialog implements HighlightListener
 								}
 							}
 						}
-						System.out.println("All " + total + " " + oldNType.describe(true) + " nodes in " +
+						if (total > 0) System.out.println("All " + total + " " + oldNType.describe(true) + " nodes in " +
 							cell + " replaced with " + replacedWith);
 					} else if (changeConnected)
 					{
@@ -1198,18 +1201,14 @@ public class Change extends EModelessDialog implements HighlightListener
 							if (errorCode < 0) return false;
 							if (errorCode > 0) continue;
 
-							NodeInst newNode = updateNodeInst(lNi, changedAlready, failures);
+							NodeInst newNode = updateNodeInst(lNi, changedAlready, nodeFailures);
 							if (newNode != null) total++;
 						}
-						System.out.println("All " + total + " " + oldNType.describe(true) +
+						if (total > 0) System.out.println("All " + total + " " + oldNType.describe(true) +
 							" nodes connected to this replaced with " + replacedWith);
-					} else System.out.println(oldNType + " replaced with " + replacedWith);
-					if (failures.intValue() > 0)
+					} else
 					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"There were " + failures.intValue() + " nodes that could not be replaced with " + np,
-							"Change failed", JOptionPane.ERROR_MESSAGE);
-						
+						if (total > 0) System.out.println(oldNType + " replaced with " + replacedWith);
 					}
 				} else
 				{
@@ -1379,6 +1378,13 @@ public class Change extends EModelessDialog implements HighlightListener
 							" arcs connected to this replaced with " + ap);
 					} else System.out.println(oldAType + " replaced with " +ap);
 				}
+			}
+			if (nodeFailures.intValue() > 0)
+			{
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					"There were " + nodeFailures.intValue() + " nodes that could not be replaced with " + np,
+					"Change failed", JOptionPane.ERROR_MESSAGE);
+				
 			}
 			return true;
 		}
