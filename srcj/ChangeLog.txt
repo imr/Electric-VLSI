@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11d: ******************************
 
+BUG: (1/25/10, GVG) SeaOfGate router should not depend on NotUsed elements (Bug #2508)
+FIX: NODSIZE indices not longer overlap with single layer indices. See more details in report.
+
 BUG: (1/25/10, SMR) NCC should respect the "Display Preference" to keep
      cells in the same window (Bug #2572).
 Fixed in HighlightTools.getHighlighter().

@@ -690,7 +690,7 @@ public class DRC extends Listener
         if (np instanceof PrimitiveNode)
         {
             DRCTemplate forbidRule =
-            DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
+            DRC.isForbiddenNode(tech.getPrimNodeIndexInTech((PrimitiveNode)np), -1,
                 DRCTemplate.DRCRuleType.FORBIDDEN, tech);
             if (forbidRule != null)
             {

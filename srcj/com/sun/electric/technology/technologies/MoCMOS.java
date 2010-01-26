@@ -897,6 +897,8 @@ public class MoCMOS extends Technology
     }
 
     private static void resizeContacts(Xml.PrimitiveNodeGroup ng, ResizeData rd) {
+        if (ng == null) return;
+
         for (Xml.NodeLayer nl: ng.nodeLayers) {
             if (nl.representation != Technology.NodeLayer.MULTICUTBOX) continue;
             nl.sizex = nl.sizey = rd.contact_size;

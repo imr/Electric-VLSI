@@ -54,16 +54,19 @@ public class XMLRules implements DRCRules, Serializable
     /**
 	 * Method to determine the index in the upper-left triangle array for two layers/nodes. In this type of rules,
      * the index starts after primitive nodes and single layers rules.
+     * The sequence of indices is: rules for single layers, rules for nodes, rules that
+     * involve more than 1 layers.
 	 * @param index1 the first layer/node index.
 	 * @param index2 the second layer/node index.
 	 * @return the index in the array that corresponds to these two layers/nodes.
 	 */
 	public int getRuleIndex(int index1, int index2)
 	{
-		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
-		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
-		pIndex = index2 + (tech.getNumLayers()) * index1 - pIndex;
-		return tech.getNumLayers() + tech.getNumNodes() + pIndex;
+        return tech.getRuleIndex(index1, index2);
+//		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
+//		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
+//		pIndex = index2 + (tech.getNumLayers()) * index1 - pIndex;
+//		return tech.getNumLayers() + tech.getNumNodes() + pIndex;
 	}
 
      /**
@@ -1029,7 +1032,7 @@ public class XMLRules implements DRCRules, Serializable
                 break;
             case FORBIDDEN:
                 if (nty != null) // node forbidden
-                    addRule(nty.getPrimNodeIndexInTech(), theRule);
+                    addRule(tech.getPrimNodeIndexInTech(nty), theRule);
                 else
                     addRule(index, theRule);
                 break;
@@ -1060,7 +1063,7 @@ public class XMLRules implements DRCRules, Serializable
                 assert(false);
                 break;
             case NODSIZ:
-                addRule(nty.getPrimNodeIndexInTech(), theRule);
+                addRule(tech.getPrimNodeIndexInTech(nty), theRule);
                 break;
             case SURROUND:
                 addRule(index, theRule);

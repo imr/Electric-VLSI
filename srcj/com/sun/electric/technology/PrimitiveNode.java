@@ -2127,10 +2127,14 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	}
 
     /**
-     * Method to retrieve index of the node in the given technology
+     * Method to retrieve index of the node in the given technology.
+     * It must add the total number of layers to guarantee indexes don't collide with
+     * layer indices. This function MUST be in sync with
+     * The sequence of indices is: rules for single layers, rules for nodes, rules that
+     * involve more than 1 layers.
      * @return the index of this node in its Technology.
      */
-    public final int getPrimNodeIndexInTech() { return techPrimNodeIndex;}
+    public final int getPrimNodeInddexInTech() { return techPrimNodeIndex;}
 
     /**
      * Method to set the index of this node in its Technology.
