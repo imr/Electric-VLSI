@@ -415,7 +415,7 @@ public class EDIF extends Topology
     /**
      * Build up lists of cells that need to be written, organized by library
      */
-    protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
+    protected void writeCellTopology(Cell cell, String cellName, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
     {
         Library lib = cell.getLibrary();
         LibToWrite l = libsToWrite.get(lib);

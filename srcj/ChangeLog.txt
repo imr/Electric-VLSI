@@ -4,7 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11d: ******************************
 
-BUG: (1/21/10, GVG) NPE in PS export (Bug #2623) (another fix)
+BUG: (1/26/10, SMR) Cell groups with multiple icons should netlist with
+     multiple copies of the schematic (Bug #1957).
+FIX: Changed Topology.java to handle this (added writeCopyForEachIcon()) and
+     modified Spice and Verilog to use it.
+
+BUG: (1/26/10, GVG) NPE in PS export (Bug #2623) (another fix)
 FIX: Detect the null case and assign corresponding TextDescription default for exports.
 
 IMP: (1/26/10, GVG) Keeping suffix ".log" for Electric's logfiles (Bug #2613)

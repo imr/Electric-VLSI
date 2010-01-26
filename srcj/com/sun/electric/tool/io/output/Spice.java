@@ -338,7 +338,6 @@ public class Spice extends Topology
 
                 // set up run probe
                 FileType type = Simulate.getSpiceOutputType(outputFormat, engine);
-//                String [] extensions = type.getExtensions();
                 String outFile = rundir + File.separator + filename_noext + "." + type.getFirstExtension();
                 Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
 
@@ -404,8 +403,6 @@ public class Spice extends Topology
 
         // get the mask scale
 		maskScale = 1.0;
-//		Variable scaleVar = layoutTechnology.getVar("SIM_spice_mask_scale");
-//		if (scaleVar != null) maskScale = TextUtils.atof(scaleVar.getObject().toString());
 
         // set up the parameterized cells
         uniquifyCells = new HashMap<Cell,Cell>();
@@ -471,8 +468,13 @@ public class Spice extends Topology
 	 * Method called by traversal mechanism to write one level of hierarchy in the Spice netlist.
 	 * This could be the top level or a subcircuit.
 	 * The bulk of the Spice netlisting happens here.
+	 * @param cell the cell to write.
+	 * @param cellName the name of the cell to use in the header.
+	 * @param cni information from the hierarchy traverser.
+	 * @param context the hierarchical cell context.
+	 * @param info more information from the hierarchy traverser.
 	 */
-	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
+	protected void writeCellTopology(Cell cell, String cellName, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
 	{
 		// if this is the top level cell, write globals
 		if (cell == topCell)
@@ -628,8 +630,7 @@ public class Spice extends Topology
                     return;
             }
 
-			String cellName = cni.getParameterizedName();
-			multiLinePrint(true, "\n*** CELL: " + cell.describe(false) + "\n");
+			multiLinePrint(true, "\n*** SUBCIRCUIT " + cellName + " FROM CELL " + cell.describe(false) + "\n");
 			StringBuffer infstr = new StringBuffer();
 			infstr.append(".SUBCKT " + cellName);
 			for(Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); )
@@ -845,7 +846,16 @@ public class Spice extends Topology
 				}
 
                 if (useCDL) infstr.append(" /"); else infstr.append(" ");
-                infstr.append(subCni.getParameterizedName());
+                String subCellName = subCni.getParameterizedName();
+
+                // make sure to use the correct icon cell name if there are more than one
+                NodeInst ni = no.getNodeInst();
+                if (ni != null)
+                {
+                	String alternateSubCellName = getIconCellName((Cell)ni.getProto());
+                	if (alternateSubCellName != null) subCellName = alternateSubCellName;
+                }
+                infstr.append(subCellName);
 
 				if (!useCDL && localPrefs.useCellParameters)
 				{
@@ -942,20 +952,7 @@ public class Spice extends Topology
                                 extra = formatParam(extra, resistVar.getUnit(), false);
                         }
 					} else {
-						// remove next 10 lines when PRESIST and WRESIST are finally deprecated
-//                        if (fun == PrimitiveNode.Function.PRESIST)
-//                        {
-//                            if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) fun = PrimitiveNode.Function.RESPPOLY;
-//                            if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) fun = PrimitiveNode.Function.RESNPOLY;
-//                        }
-//                        if (fun == PrimitiveNode.Function.WRESIST)
-//                        {
-//                            if (ni.getProto().getName().equals("P-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESPWELL;
-//                            if (ni.getProto().getName().equals("N-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESNWELL;
-//                        }
                         if (fun.isComplexResistor())
-//                            fun == PrimitiveNode.Function.RESPPOLY || fun == PrimitiveNode.Function.RESNPOLY ||
-//                        	fun == PrimitiveNode.Function.RESPWELL || fun == PrimitiveNode.Function.RESNWELL)
                         {
                             partName = "XR";
                             double width = ni.getLambdaBaseYSize();
@@ -1884,7 +1881,6 @@ public class Spice extends Topology
         if (varTemplate == null) return null;
         Set<Variable.Key> depends = new HashSet<Variable.Key>();
         findVarsInTemplate(varTemplate, cell, true, depends);
-        //depends.add(Simulation.M_FACTOR_KEY);
         return depends;
     }
 
@@ -2388,6 +2384,12 @@ public class Spice extends Topology
         return false;
     }
 
+	/**
+	 * Since the Spice netlister should write a separate copy of schematic cells for each icon,
+	 * this override returns true.
+	 */
+	protected boolean writeCopyForEachIcon() { return true; }
+
     /**
      * Method called when a cell is skipped.
      * Performs any checking to validate that no error occurs.
@@ -2443,7 +2445,7 @@ public class Spice extends Topology
     /** Tell the Hierarchy enumerator how to short resistors */
     @Override
     protected Netlist.ShortResistors getShortResistors() {
-    	// TODO use the value of localPrefs.shortResistors
+    	// should use the value of localPrefs.shortResistors
 //    	switch (localPrefs.shortResistors)
 //    	{
 //    		case 0: return Netlist.ShortResistors.NO;
@@ -2605,8 +2607,6 @@ public class Spice extends Topology
 				multiLinePrint(false, header[i] + "\n");
 			return;
 		}
-//		reportWarning("WARNING: no model cards for SPICE level " + level +
-//			" in " + layoutTechnology.getTechName() + " technology");
 	}
 
 	/**
@@ -2842,7 +2842,6 @@ public class Spice extends Topology
             uniquifyCells.put(cell, cell);
         else
             uniquifyCells.put(cell, null);
-        //System.out.println("---> "+cell.describe(false)+" is marked "+mark);
         return mark;
     }
 
@@ -3083,10 +3082,6 @@ public class Spice extends Topology
 		for (int pt = 0; pt < str.length(); pt++)
 		{
 			char chr = str.charAt(pt);
-//			if (sim_spice_machine == SPICE2)
-//			{
-//				if (islower(*pt)) *pt = toupper(*pt);
-//			}
 			if (chr == '\n')
 			{
 				printWriter.print(str.substring(lineStart, pt+1));
@@ -3139,14 +3134,14 @@ public class Spice extends Topology
 
     private static class SpiceFinishedListener implements Exec.FinishedListener
     {
-        private Cell cell;
-        private FileType type;
-        private String file;
+//        private Cell cell;
+//        private FileType type;
+//        private String file;
 
         private SpiceFinishedListener(Cell cell, FileType type, String file) {
-            this.cell = cell;
-            this.type = type;
-            this.file = file;
+//            this.cell = cell;
+//            this.type = type;
+//            this.file = file;
         }
 
         public void processFinished(Exec.FinishedEvent e)

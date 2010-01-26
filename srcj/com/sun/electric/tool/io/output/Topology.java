@@ -113,7 +113,7 @@ public abstract class Topology extends Output
 	protected void enterCell(HierarchyEnumerator.CellInfo info) { }
 
 	/** Abstract method to write CellGeom to disk */
-	protected abstract void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info);
+	protected abstract void writeCellTopology(Cell cell, String cellName, CellNetInfo cni, VarContext context, Topology.MyCellInfo info);
 
 	/** Abstract method to convert a network name to one that is safe for this format */
 	protected abstract String getSafeNetName(String name, boolean bus);
@@ -159,6 +159,23 @@ public abstract class Topology extends Output
 	 * subcells, override this method.
 	 */
 	protected boolean skipCellAndSubcells(Cell cell) { return false; }
+
+	/**
+	 * Method to tell whether the netlister should write a separate copy of schematic cells for each icon.
+	 *
+	 * If you want this to happen, you must do these things:
+	 * (1) override this method and have it return true.
+	 * (2) At the place where the cell name is written, use this code:
+	 *     // make sure to use the correct icon cell name if there are more than one
+	 *     String subCellName = subCni.getParameterizedName();
+	 *     NodeInst ni = no.getNodeInst();
+	 *     if (ni != null)
+	 *     {
+	 *         String alternateSubCellName = getIconCellName((Cell)ni.getProto());
+	 *         if (alternateSubCellName != null) subCellName = alternateSubCellName;
+	 *     }
+	 */
+	protected boolean writeCopyForEachIcon() { return false; }
 
 	/**
 	 * If a cell is skipped, this method can perform any checking to
@@ -253,7 +270,26 @@ public abstract class Topology extends Output
 					isNetworksUseExportedNames(), info);
 				cellTopos.put(parameterizedName, cni);
 			}
-			outGeom.writeCellTopology(cell, cni, info.getContext(), (MyCellInfo)info);
+			String cellName = cni.getParameterizedName();
+			outGeom.writeCellTopology(cell, cellName, cni, info.getContext(), (MyCellInfo)info);
+
+			// see if there are alternate icons with different names
+			if (writeCopyForEachIcon() && cell != topCell)
+			{
+				for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
+				{
+					Cell otherCell = it.next();
+					if (otherCell.getView() != View.ICON) continue;
+					String otherCellName = getSafeCellName(otherCell.getName());
+					if (otherCellName.equals(cell.getName())) continue;
+					if (isLibraryNameAlwaysAddedToCellName())
+						otherCellName = otherCell.getLibrary().getName() + "__" + otherCellName;
+					if (otherCellName.equals(cellName)) continue;
+
+					outGeom.writeCellTopology(cell, otherCellName, cni, info.getContext(), (MyCellInfo)info);			
+				}
+			}
+
 			lastInfo = info;
 		}
 
@@ -1086,6 +1122,16 @@ public abstract class Topology extends Output
 
 	/**
 	 * Method to return the name of cell "c", given that it may be ambiguously used in multiple
+	 * libraries.  Also, since this is an icon cell name, do not switch to its schematic.
+	 */
+	protected String getIconCellName(Cell cell)
+	{
+		String name = cellNameMap.get(cell);
+		return name;
+	}
+
+	/**
+	 * Method to return the name of cell "c", given that it may be ambiguously used in multiple
 	 * libraries.
 	 */
 	protected String getUniqueCellName(Cell cell)
@@ -1122,6 +1168,25 @@ public abstract class Topology extends Output
 			cellNameMap.put(cell, name);
 			getConflictList(name).add(cell);
 			//System.out.println("Mapped "+cell.describe(false) + " --> " + name);
+
+			// see if there are alternate icons with different names
+			if (cell != topCell && topology.writeCopyForEachIcon() && cell.isSchematic())
+			{
+				for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
+				{
+					Cell otherCell = it.next();
+					if (otherCell.getView() != View.ICON) continue;
+					if (otherCell.getName().equals(cell.getName())) continue;
+					String otherCellName = getDefaultName(otherCell);
+
+					// add name for this cell
+					if (!cellNameMap.containsKey(otherCell))
+					{
+						cellNameMap.put(otherCell, otherCellName);
+						getConflictList(otherCellName).add(otherCell);
+					}
+				}
+			}
 			return true;
 		}
 
