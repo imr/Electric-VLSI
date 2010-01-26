@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11d: ******************************
 
+BUG: (1/26/10, SMR) Autostitch missing some arcs (Bug #2628).
+FIX: Rearrange order of elimination tests in AutoStitch.testPoly().
+
 BUG: (1/26/10, SMR) Cell groups with multiple icons should netlist with
      multiple copies of the schematic (Bug #1957).
 FIX: Changed Topology.java to handle this (added writeCopyForEachIcon()) and

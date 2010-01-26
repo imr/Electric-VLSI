@@ -1357,14 +1357,14 @@ name=null;
 		Map<NodeInst, ObjectQTree> nodePortBounds,
 		Map<ArcProto,Layer> arcLayers, PolyMerge stayInside, Rectangle2D limitBound)
 	{
+//System.out.println("FOR LAYER "+ap.getName()+" CONSIDER PORT "+pp.getName()+" OF NODE "+ni.describe(false));
 		// get network associated with the node/port
 		PortInst pi = ni.findPortInstFromProto(pp);
 
 		// keep track of which networks we've already tied together
         Set<Network> netsConnectedTo = new TreeSet<Network>();
         Network net = top.getNodeNetwork(ni, pp);
-        if (net == null)
-            return false;
+        if (net == null) return false;
         netsConnectedTo.add(net);
 
         // now look at every layer in this node
@@ -1384,16 +1384,16 @@ name=null;
                     PortInst oPi = (PortInst)obj;
 					PortProto mPp = oPi.getPortProto();
 
-                    // keep track of which networks we've already tied together
-                    Cell subcell = (Cell)oNi.getProto();
-                    Netlist netlist = subcell.getNetlist();
-                    if (mPp instanceof Export) {
-                        Export mPpe = (Export)mPp;
-                        Network netm = netlist.getNetwork(mPpe, 0);
-                        assert netm != null;
-                        if (netsConnectedTo.contains(netm)) continue;
-                        netsConnectedTo.add(netm);
-                    }
+//                    // keep track of which networks we've already tied together
+//                    Cell subcell = (Cell)oNi.getProto();
+//                    Netlist netlist = subcell.getNetlist();
+//                    if (mPp instanceof Export) {
+//                        Export mPpe = (Export)mPp;
+//                        Network netm = netlist.getNetwork(mPpe, 0);
+//                        assert netm != null;
+//                        if (netsConnectedTo.contains(netm)) continue;
+//                        netsConnectedTo.add(netm);
+//                    }
 
 					// port must be able to connect to the arc
 					if (!mPp.getBasePort().connectsTo(ap)) continue;
@@ -1428,6 +1428,21 @@ name=null;
 						trans = rNi.rotateOut();
 						trans.preConcatenate(temp);
 					}
+
+                    // keep track of which sub-networks we've already considered
+                    Cell subcell = (Cell)oNi.getProto();
+                    Netlist netlist = subcell.getNetlist();
+                    if (mPp instanceof Export) {
+                        Export mPpe = (Export)mPp;
+                        Network netm = netlist.getNetwork(mPpe, 0);
+                        assert netm != null;
+                        if (netsConnectedTo.contains(netm))
+                        {
+//System.out.println("   ---PORT "+mPp.getName()+" OF NODE "+oPi.getNodeInst().describe(false)+" FAILS NETLIST");
+                        	continue;
+                        }
+                        netsConnectedTo.add(netm);
+                    }
 
 					// see how much geometry is on this node
 					Poly [] polys = shapeOfNode(rNi);
@@ -1591,8 +1606,10 @@ name=null;
 		NodeInst ni, PortProto pp, Poly poly, Network net,
 		ArcProto ap, PolyMerge stayInside, StitchingTopology top, Rectangle2D limitBound)
 	{
+		double sep = poly.separation(oPoly);
+//System.out.println("   DISTANCE BETWEEN PORT "+pp.getName()+" OF NODE "+ni.describe(false)+" AND PORT "+opp.getName()+" OF NODE "+oNi.describe(false)+" IS "+sep);
 		// find the bounding boxes of the polygons
-		if (poly.separation(oPoly) > DBMath.getEpsilon()) return false;
+		if (sep > DBMath.getEpsilon()) return false;
 
 		// be sure the closest ports are being used
 		Poly portPoly = ni.getShapeOfPort(pp);
@@ -1664,6 +1681,7 @@ name=null;
 		// run the wire
 		PortInst pi = ni.findPortInstFromProto(pp);
 		PortInst opi = oNi.findPortInstFromProto(opp);
+//System.out.println("   *** MAKING THE CONNECTION");
 		return connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside, top);
 	}
 
