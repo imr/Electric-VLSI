@@ -28,7 +28,6 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Client;
 
 import java.awt.geom.Point2D;
 import java.io.BufferedOutputStream;
@@ -66,7 +65,7 @@ public class ActivityLogger {
         ActivityLogger.logTimeStamps = useTimeStamps;
 
         try {
-            outputFile = File.createTempFile(fileName+"-", ".txt").getAbsolutePath();
+            outputFile = File.createTempFile(fileName+"-", ".log").getAbsolutePath();
             FileOutputStream fos = new FileOutputStream(outputFile, false);
             BufferedOutputStream bout = new BufferedOutputStream(fos);
             out = new PrintWriter(bout);

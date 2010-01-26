@@ -201,7 +201,7 @@ public final class Main
             return;
         }
 
-        ActivityLogger.initialize("electric.log", true, true, true/*false*/);
+        ActivityLogger.initialize("electric", true, true, true/*false*/);
 
         if (hasCommandLineOption(argsList, "-batch")) {
             //System.setProperty("java.awt.headless", "true");

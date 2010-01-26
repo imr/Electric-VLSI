@@ -130,7 +130,7 @@ public class MessagesWindow
 			((JFrame)jf).setVisible(true);
 		}
 
-        appendString("log file is " + ActivityLogger.getLogFileName()+"\n");
+        appendString("Electric's log file is " + ActivityLogger.getLogFileName()+"\n");
 	}
 
 //	public Component getComponent()

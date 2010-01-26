@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11d: ******************************
 
+IMP: (1/26/10, GVG) Keeping suffix ".log" for Electric's logfiles (Bug #2613)
+
 BUG: (1/25/10, GVG) SeaOfGate router should not depend on NotUsed elements (Bug #2508)
 FIX: NODSIZE indices not longer overlap with single layer indices. See more details in report.
 
@@ -38,7 +40,7 @@ BUG: (1/21/10, SMR) Resizing a cell instance crashes (Bug #2621).
 FIX: Prevent the crash and disallow the sizing.
 
 IMP: (1/21/10, AM) Per Gilda's request, uniquify log file name and
-     print it in the messages window on startup.
+     print it in the messages window on startup. Related to Bug #2613
 
 IMP/MAN: (1/21/10, GVG) Ability to save text in MessagesLog to a file (Bug #2620)
      Only available in debug mode.
