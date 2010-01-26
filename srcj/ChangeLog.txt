@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11d: ******************************
 
+BUG: (1/21/10, GVG) NPE in PS export (Bug #2623) (another fix)
+FIX: Detect the null case and assign corresponding TextDescription default for exports.
+
 IMP: (1/26/10, GVG) Keeping suffix ".log" for Electric's logfiles (Bug #2613)
 
 BUG: (1/25/10, GVG) SeaOfGate router should not depend on NotUsed elements (Bug #2508)
