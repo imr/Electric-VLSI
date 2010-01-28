@@ -140,6 +140,7 @@ public class FileType implements Serializable {
 	/** Describes Spice decks.*/			public static final FileType SPICE        = makeFileType("Spice", new String[] {"spi", "sp"}, "Spice Deck (spi, sp)", SPICESIMGRP);
 	/** Describes Spice standard output.*/	public static final FileType SPICEOUT     = makeFileType("Spice Output", new String[] {"spo"}, "Spice/GNUCap Output File (spo)", SPICESIMGRP);
 	/** Describes Sue files.*/				public static final FileType SUE          = makeFileType("Sue", new String[] {"sue"}, "Sue File (sue)", EXPORTIMPORTGRP);
+	/** Describes SVG files.*/				public static final FileType SVG          = makeFileType("SVG", new String[] {"svg"}, "Scalable Vector Graphics (svg)");
 	/** Describes Tegas files. */			public static final FileType TEGAS        = makeFileType("Tegas", new String[] {"tdl"}, "Tegas File (tdl)", OTHERSIMGRP);
 	/** Describes text files. */			public static final FileType TEXT         = makeFileType("Text", new String[] {"txt"}, "Text File (txt)");
 	/** Describes Verilog decks. */			public static final FileType VERILOG      = makeFileType("Verilog", new String[] {"v", "vL"}, "Verilog Deck (v)", VERILOGSIMGRP);

@@ -153,6 +153,7 @@ public class Output
 		if (type == FileType.SKILL) return new IOTool.SkillPreferences(factory, false, cell);
         if (type == FileType.SKILLEXPORTSONLY) return new IOTool.SkillPreferences(factory, true, cell);
 		if (type == FileType.SPICE) return new Spice.SpicePreferences(factory, false);
+		if (type == FileType.SVG) return new SVG.SVGPreferences(factory);
 		if (type == FileType.TEGAS) return new Tegas.TegasPreferences(factory);
 		if (type == FileType.VERILOG) return new Verilog.VerilogPreferences(factory);
         return null;

@@ -199,7 +199,7 @@ public class FileMenu {
             new EMenuItem("Save All Libraries in _Format...") { public void run() {
                 if (checkInvariants()) saveAllLibrariesInFormatCommand(); }},
 
-		// mnemonic keys available:    D        M   Q   UVWVYZ
+		// mnemonic keys available:    D        M   Q   UVW YZ
             new EMenu("_Export",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
                     exportCommand(FileType.CIF, false); }},
@@ -229,6 +229,8 @@ public class FileMenu {
                     exportCommand(FileType.POSTSCRIPT, false); }},
                 new EMenuItem("P_NG (Portable Network Graphics)...") { public void run() {
                     exportCommand(FileType.PNG, false); }},
+                new EMenuItem("S_VG...") { public void run() {
+                    exportCommand(FileType.SVG, false); }},
                 new EMenuItem("_HPGL...") { public void run() {
                     exportCommand(FileType.HPGL, false); }},
                 new EMenuItem("D_XF (AutoCAD)...") { public void run() {
