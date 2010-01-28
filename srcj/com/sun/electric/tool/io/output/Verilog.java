@@ -377,7 +377,7 @@ public class Verilog extends Topology
 	 * Since the Verilog netlister should write a separate copy of schematic cells for each icon,
 	 * this override returns true.
 	 */
-	protected boolean writeCopyForEachIcon() { return true; }
+	protected boolean writeCopyForEachIcon() { return false; }
 
 	/**
 	 * Method to write cellGeom
