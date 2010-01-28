@@ -42,6 +42,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -61,8 +62,9 @@ public class ROMGenerator
 	private static int folds;
 	private static double lambda = 1;
 	private static Technology tech;
+    private static IconParameters iconParameters = IconParameters.makeInstance(true);
 
-	/**
+    /**
 	 * Main entry point for ROM generation.
 	 * The method creates layout for a pseudo-nMOS ROM array.
 	 *
@@ -175,7 +177,7 @@ public class ROMGenerator
 		// presume MOSIS CMOS
 		tech = Technology.getMocmosTechnology();
 
-		int[][] romarray = romarraygen(romfile);
+        int[][] romarray = romarraygen(romfile);
 
 		String dpr  = new String(romcell+"_decoderpmos");
 		String dnr  = new String(romcell+"_decodernmos");
@@ -4049,7 +4051,7 @@ highX -= 64*lambda;
 	private static void makeCStyleExport(Cell parent, NodeInst ni, PortProto pp, String name, PortCharacteristic exporttype)
 	{
 		PortInst pi = ni.findPortInstFromProto(pp);
-		Export.newInstance(parent, pi, name, exporttype);
+		Export.newInstance(parent, pi, name, exporttype, iconParameters);
 	}
 
 	/**

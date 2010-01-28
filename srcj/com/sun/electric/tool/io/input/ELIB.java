@@ -69,6 +69,8 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.IconParameters;
+
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -288,8 +290,9 @@ public class ELIB extends LibraryFiles
     /** variable keys possibly in the library */                            private Variable.Key[] varKeys;
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
+    /** icon parameters for exports */                                      private IconParameters iconParameters = IconParameters.makeInstance(true);
 
- 	/**
+     /**
 	 * This class is used to convert old "facet" style Libraries to pure Cell Libraries.
 	 */
 	private static class FakeCell
@@ -298,7 +301,9 @@ public class ELIB extends LibraryFiles
 		NodeProto firstInCell;
 	}
 
-	ELIB() {}
+	ELIB()
+    {
+    }
 
 	// ----------------------- public methods -------------------------------
 
@@ -1773,7 +1778,7 @@ public class ELIB extends LibraryFiles
                 Point2D center = new Point2D.Double(expected.getX() - anchorX, expected.getY() - anchorY);
                 PrimitiveNode pn = Generic.tech().universalPinNode;
                 NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, c, Orientation.IDENT, "");
-                Export ex = Export.newInstance(c, ni.getOnlyPortInst(), portname, null, false);
+                Export ex = Export.newInstance(c, ni.getOnlyPortInst(), portname, null, false, iconParameters);
                 if (ex != null) {
                     return node.findPortInst(portname);
                 }

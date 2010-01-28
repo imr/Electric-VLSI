@@ -698,12 +698,13 @@ public final class ExportChanges
 		private boolean onlyPowerGround;
 		private boolean ignorePrimitives;
 		private boolean fromRight;
+        public IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		/**
+        /**
 		 * @see ExportChanges#reExportNodes(java.util.List, boolean, boolean, boolean)
 		 */
-		public ReExportNodes(Cell cell, List<Geometric> nodeInsts, boolean wiredPorts, boolean unwiredPorts, boolean onlyPowerGround,
-							 boolean ignorePrimitives, boolean fromRight)
+		public ReExportNodes(Cell cell, List<Geometric> nodeInsts, boolean wiredPorts, boolean unwiredPorts,
+                             boolean onlyPowerGround, boolean ignorePrimitives, boolean fromRight)
 		{
 			super("Re-export nodes", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -713,7 +714,7 @@ public final class ExportChanges
 			this.onlyPowerGround = onlyPowerGround;
 			this.ignorePrimitives = ignorePrimitives;
 			this.fromRight = fromRight;
-			startJob();
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -721,7 +722,8 @@ public final class ExportChanges
 			// disallow port action if lock is on
 			if (CircuitChangeJobs.cantEdit(cell, null, true, true, true) != 0) return false;
 
-			int num = reExportNodes(cell, nodeInsts, wiredPorts, unwiredPorts, onlyPowerGround, ignorePrimitives, fromRight);
+			int num = reExportNodes(cell, nodeInsts, wiredPorts, unwiredPorts, onlyPowerGround, ignorePrimitives,
+                fromRight, iconParameters);
 			System.out.println(num+" ports exported.");
 			return true;
 		}
@@ -741,7 +743,9 @@ public final class ExportChanges
 	 * @return the number of exports created
 	 */
 	public static int reExportNodes(Cell cell, List<Geometric> nodeInsts, boolean wiredPorts, boolean unwiredPorts,
-		boolean onlyPowerGround, boolean ignorePrimitives, boolean fromRight) {
+                                    boolean onlyPowerGround, boolean ignorePrimitives, boolean fromRight,
+                                    IconParameters iconParameters)
+    {
 		int total = 0;
 
 		for (Geometric geom : nodeInsts)
@@ -771,7 +775,8 @@ public final class ExportChanges
 				// add pi to list of ports to export
 				portInstsToExport.add(pi);
 			}
-			total += reExportPorts(cell, portInstsToExport, true, wiredPorts, unwiredPorts, onlyPowerGround, fromRight, null);
+			total += reExportPorts(cell, portInstsToExport, true, wiredPorts, unwiredPorts, onlyPowerGround,
+                fromRight, null, iconParameters);
 		}
 		return total;
 	}
@@ -789,8 +794,9 @@ public final class ExportChanges
 		private boolean onlyPowerGround;
 		private boolean fromRight;
 		private Map<PortInst,Export> originalExports;
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		/**
+        /**
 		 * Constructor.
 		 */
 		public ReExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean wiredPorts, boolean unwiredPorts,
@@ -805,7 +811,7 @@ public final class ExportChanges
 			this.fromRight = fromRight;
 			this.sort = sort;
 			this.originalExports = originalExports;
-			startJob();
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -813,7 +819,8 @@ public final class ExportChanges
 			// disallow port action if lock is on
 			if (CircuitChangeJobs.cantEdit(cell, null, true, true, true) != 0) return false;
 
-			int num = reExportPorts(cell, portInsts, sort, wiredPorts, unwiredPorts, onlyPowerGround, fromRight, originalExports);
+			int num = reExportPorts(cell, portInsts, sort, wiredPorts, unwiredPorts, onlyPowerGround, fromRight,
+                originalExports, iconParameters);
 			System.out.println(num+" ports exported.");
 			return true;
 		}
@@ -860,8 +867,9 @@ public final class ExportChanges
 		private boolean wiredPorts;
 		private boolean unwiredPorts;
 		private boolean fromRight;
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		public ReExportHighlighted(Cell cell, ERectangle bounds, boolean deep, boolean wiredPorts,
+        public ReExportHighlighted(Cell cell, ERectangle bounds, boolean deep, boolean wiredPorts,
 			boolean unwiredPorts, boolean fromRight)
 		{
 			super("Re-export highlighted", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -871,7 +879,7 @@ public final class ExportChanges
 			this.wiredPorts = wiredPorts;
 			this.unwiredPorts = unwiredPorts;
 			this.fromRight = fromRight;
-			startJob();
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -879,7 +887,7 @@ public final class ExportChanges
 			// disallow port action if lock is on
 			if (CircuitChangeJobs.cantEdit(cell, null, true, true, true) != 0) return false;
 
-			reExportInBounds(cell, bounds, deep, wiredPorts, unwiredPorts, true, fromRight);
+			reExportInBounds(cell, bounds, deep, wiredPorts, unwiredPorts, true, fromRight, iconParameters);
 			return true;
 		}
 	}
@@ -893,8 +901,9 @@ public final class ExportChanges
 	 * @param unwiredPorts true to re-export when the port is not wired.
 	 * @param topLevel true if this is the top-level call.
 	 */
-	private static void reExportInBounds(Cell cell, Rectangle2D bounds, boolean deep,
-		boolean wiredPorts, boolean unwiredPorts, boolean topLevel, boolean fromRight)
+	private static void reExportInBounds(Cell cell, Rectangle2D bounds, boolean deep, boolean wiredPorts,
+                                         boolean unwiredPorts, boolean topLevel, boolean fromRight,
+                                         IconParameters iconParameters)
 	{
 		// find all ports in highlighted area
 		List<PortInst> queuedExports = new ArrayList<PortInst>();
@@ -914,7 +923,8 @@ public final class ExportChanges
 				Rectangle2D boundsInside = new Rectangle2D.Double(bounds.getMinX(), bounds.getMinY(),
 					bounds.getWidth(), bounds.getHeight());
 				DBMath.transformRect(boundsInside, goIn);
-				reExportInBounds((Cell)ni.getProto(), boundsInside, deep, wiredPorts, unwiredPorts, false, fromRight);
+				reExportInBounds((Cell)ni.getProto(), boundsInside, deep, wiredPorts, unwiredPorts, false,
+                    fromRight, iconParameters);
 			}
 
 			for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
@@ -944,7 +954,8 @@ public final class ExportChanges
 		}
 
 		// create job
-		int num = reExportPorts(cell, queuedExports, true, wiredPorts, unwiredPorts, false, fromRight, null);
+		int num = reExportPorts(cell, queuedExports, true, wiredPorts, unwiredPorts, false, fromRight, null,
+            iconParameters);
 		System.out.println(num+" ports exported.");
 	}
 
@@ -964,8 +975,9 @@ public final class ExportChanges
 	 * Ignored if null.
 	 * @return the number of ports exported
 	 */
-	public static int reExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean wiredPorts,
-		boolean unwiredPorts, boolean onlyPowerGround, boolean fromRight, Map<PortInst,Export> originalExports)
+	public static int reExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean wiredPorts, 
+                                    boolean unwiredPorts, boolean onlyPowerGround, boolean fromRight,
+                                    Map<PortInst,Export> originalExports, IconParameters iconParameters)
 	{
 		EDatabase.serverDatabase().checkChanging();
 
@@ -1058,7 +1070,7 @@ public final class ExportChanges
 				nextPlainIndex, false, fromRight);
 
 			// create export
-			Export newPp = Export.newInstance(cell, pi, protoNameString, pc);
+			Export newPp = Export.newInstance(cell, pi, protoNameString, pc, iconParameters);
 			if (newPp != null)
 			{
 				// copy text descriptor, var, and characteristic
@@ -1747,12 +1759,13 @@ public final class ExportChanges
 	private static class SynchronizeExports extends Job
 	{
 		private Library oLib;
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		private SynchronizeExports(Library oLib)
+        private SynchronizeExports(Library oLib)
 		{
 			super("Synchronize exports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oLib = oLib;
-			startJob();
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -1796,7 +1809,7 @@ public final class ExportChanges
 							np, oNi.getOrient(), oNi.getName(), oNi.getTechSpecific());
 						if (ni == null) continue;
 						PortInst pi = ni.findPortInstFromProto(oPp.getOriginalPort().getPortProto());
-						pp = Export.newInstance(np, pi, oPp.getName(), oPp.getCharacteristic());
+						pp = Export.newInstance(np, pi, oPp.getName(), oPp.getCharacteristic(), iconParameters);
 						if (pp == null) continue;
 						pp.copyTextDescriptorFrom(oPp, Export.EXPORT_NAME);
 						pp.copyVarsFrom(oPp);

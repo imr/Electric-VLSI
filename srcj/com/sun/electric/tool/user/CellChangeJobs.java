@@ -877,14 +877,15 @@ public class CellChangeJobs
 		Set<Geometric> whatToPackage;
 		String newCellName;
         private Set<NodeInst> expandedNodes = new HashSet<NodeInst>();
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		public PackageCell(Cell curCell, Set<Geometric> whatToPackage, String newCellName)
+        public PackageCell(Cell curCell, Set<Geometric> whatToPackage, String newCellName)
 		{
 			super("Package Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = curCell;
 			this.whatToPackage = whatToPackage;
 			this.newCellName = newCellName;
-			startJob();
+            startJob();
 		}
 
         @Override
@@ -919,7 +920,7 @@ public class CellChangeJobs
 				{
 					Export pp = it.next();
 					PortInst pi = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
-					Export newPp = Export.newInstance(cell, pi, pp.getName(), pp.getCharacteristic());
+					Export newPp = Export.newInstance(cell, pi, pp.getName(), pp.getCharacteristic(), iconParameters);
 					if (newPp != null)
 					{
 						newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);

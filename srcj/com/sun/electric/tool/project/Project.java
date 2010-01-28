@@ -48,6 +48,7 @@ import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.IconParameters;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -772,7 +773,9 @@ public class Project extends Listener
 		Cell newFromCell = toLib.findNodeProto(fromCell.noLibDescribe());
 		if (newFromCell != null) return newFromCell;
 
-		// must copy subcells
+        IconParameters iconParameters = IconParameters.makeInstance(true);
+
+        // must copy subcells
 		HashMap<NodeInst,NodeProto> nodePrototypes = new HashMap<NodeInst,NodeProto>();
 		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 		{
@@ -801,7 +804,7 @@ public class Project extends Listener
 				if (cell.getLibrary() != fromCell.getLibrary())
 					oCell.newVar(PROJLIBRARYKEY, cell.getLibrary().getName());
 
-				if (ViewChanges.skeletonizeCell(cell, oCell))
+				if (ViewChanges.skeletonizeCell(cell, oCell, iconParameters))
 				{
 					System.out.println("Copy of sub" + cell + " failed");
 					return null;

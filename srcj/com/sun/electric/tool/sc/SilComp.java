@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.Rectangle2D;
 
@@ -66,6 +67,9 @@ public class SilComp extends Tool
     {
         // from Settings
     	public String schematicTechnology;
+
+        // icon prefereces
+        public IconParameters iconParameters = IconParameters.makeInstance(true);
 
         // SilComp prefs
 
@@ -145,7 +149,7 @@ public class SilComp extends Tool
 		{
             super(factory);
 			schematicTechnology = User.getSchematicTechnology().getTechName();
-		}
+        }
     }
 
     /**

@@ -56,6 +56,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.Spice;
 
@@ -71,7 +72,6 @@ import java.io.LineNumberReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -231,14 +231,16 @@ public class Sue extends Input
     {
 		public boolean use4PortTransistors;
 		public boolean convertExpressions;
+        public IconParameters iconParameters = IconParameters.makeInstance(false);
 
-		public SuePreferences(boolean factory) { super(factory); }
+        public SuePreferences(boolean factory) { super(factory); }
 
 		public void initFromUserDefaults()
 		{
 			use4PortTransistors = IOTool.isSueUses4PortTransistors();
 			convertExpressions = IOTool.isSueConvertsExpressions();
-		}
+            iconParameters.initFromUserDefaults();
+        }
 
         @Override
         public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
@@ -847,7 +849,7 @@ public class Sue extends Input
 				if (ni == null) continue;
 
 				PortInst pi = ni.getOnlyPortInst();
-				Export ppt = Export.newInstance(cell, pi, parP.theName, parP.type);
+				Export ppt = Export.newInstance(cell, pi, parP.theName, parP.type, localPrefs.iconParameters);
 				if (ppt == null)
 				{
 					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
@@ -1118,7 +1120,7 @@ public class Sue extends Input
 			Export ppt = (Export)cell.findPortProto(portName);
 			if (ppt == null)
 			{
-				return Export.newInstance(cell, pi, portName, pc);
+				return Export.newInstance(cell, pi, portName, pc, localPrefs.iconParameters);
 			}
 
 			// make space for modified name

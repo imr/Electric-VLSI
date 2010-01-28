@@ -46,6 +46,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -421,7 +422,7 @@ public class PlacementFrame
 	 * Objects in that Cell will be reorganized in and placed in a new Cell.
 	 * @return the new Cell with the placement results.
 	 */
-	public Cell doPlacement(Cell cell)
+	public Cell doPlacement(Cell cell, Placement.PlacementPreferences prefs)
 	{
 		// get network information for the Cell
 		Netlist netList = cell.acquireUserNetlist();
@@ -545,7 +546,7 @@ public class PlacementFrame
 
 		// do the placement from the shadow objects
 		Cell newCell = doPlacement(cell.getLibrary(), cell.noLibDescribe(), nodesToPlace, allNetworks, exportsToPlace,
-            iconToPlace);
+            iconToPlace, prefs.iconParameters);
 		return newCell;
 	}
 
@@ -560,9 +561,8 @@ public class PlacementFrame
 	 * @param iconToPlace non-null to place an instance of itself (the icon) in the Cell.
 	 * @return the newly created Cell.
 	 */
-	public Cell doPlacement(Library lib, String cellName, List<PlacementNode> nodesToPlace,
-                            List<PlacementNetwork> allNetworks,
-		List<PlacementExport> exportsToPlace, NodeProto iconToPlace)
+	public Cell doPlacement(Library lib, String cellName, List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
+                            List<PlacementExport> exportsToPlace, NodeProto iconToPlace, IconParameters iconParameters)
 	{
         long startTime = System.currentTimeMillis();
         System.out.println("Running placement on cell '" + cellName + "' using the '" + getAlgorithmName() + "' algorithm");
@@ -637,7 +637,7 @@ public class PlacementFrame
 			NodeInst newNI = placedNodes.get(plNode);
 			if (newNI == null) continue;
 			PortInst portToExport = newNI.findPortInstFromProto(plPort.getPortProto());
-			Export.newInstance(newCell, portToExport, exportName, plExport.getCharacteristic());
+			Export.newInstance(newCell, portToExport, exportName, plExport.getCharacteristic(), iconParameters);
 		}
 
 //System.out.println("Placement finished, now implementing it with 26,000 arcs (will take 18 minutes)"); int totalArcs = 0;

@@ -59,6 +59,7 @@ import com.sun.electric.tool.routing.AutoStitch.AutoOptions;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -149,8 +150,9 @@ public class PadGenerator
 	private HashMap<String,PadExports> exports;		// which ports to export
 	private List<Object> orderedCommands;			// list of orderedCommands to do
 	private boolean coreAllOnOneSide = false;
+    private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-	private static class ArrayAlign
+    private static class ArrayAlign
 	{
 		int lineno;
 		String cellname;
@@ -212,7 +214,7 @@ public class PadGenerator
 		angle = 0;
 		lineno = 1;
 		orderedCommands = new ArrayList<Object>();
-	}
+    }
 
 	private Cell makePadFrame(Job job)
 	{
@@ -1133,11 +1135,9 @@ public class PadGenerator
 				if (leftSide * 2 < rightSide) spacing = leadSpacing * 2;
 				yBBPos = yPos = ySize / 2 - ((ySize - (leftSide - 1) * spacing) / 2 + total * spacing);
 
-				int rotation = ViewChanges.iconTextRotation(pp, User.getIconGenInputRot(),
-					User.getIconGenOutputRot(), User.getIconGenBidirRot(), User.getIconGenPowerRot(),
-					User.getIconGenGroundRot(), User.getIconGenClockRot());
-				if (ViewChanges.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell,
-					exportTech, drawLeads, exportStyle, exportLocation, rotation, ad))
+				int rotation = ViewChanges.iconTextRotation(pp, iconParameters);
+				if (IconParameters.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell,
+					rotation, iconParameters))
 						total++;
 			}
 			total = 0;
@@ -1158,11 +1158,9 @@ public class PadGenerator
 				xPos = xBBPos + leadLength;
 				if (rightSide * 2 < leftSide) spacing = leadSpacing * 2;
 				yBBPos = yPos = ySize / 2 - ((ySize - (rightSide - 1) * spacing) / 2 + total * spacing);
-				int rotation = ViewChanges.iconTextRotation(pp, User.getIconGenInputRot(),
-					User.getIconGenOutputRot(), User.getIconGenBidirRot(), User.getIconGenPowerRot(),
-					User.getIconGenGroundRot(), User.getIconGenClockRot());
-				if (ViewChanges.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell,
-					exportTech, drawLeads, exportStyle, exportLocation, rotation, ad))
+				int rotation = ViewChanges.iconTextRotation(pp, iconParameters);
+				if (IconParameters.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell,
+					rotation, iconParameters))
 						total++;
 			}
 

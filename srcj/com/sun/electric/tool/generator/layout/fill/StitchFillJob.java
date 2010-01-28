@@ -27,6 +27,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.ExportChanges;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.routing.*;
 import com.sun.electric.tool.routing.AutoStitch.AutoOptions;
@@ -63,6 +64,7 @@ public class StitchFillJob extends Job
     private List<Cell> generatedCells = new ArrayList<Cell>();
     private boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption
     private List<String> layersWithExports = new ArrayList<String>();
+    private IconParameters iconParameters = IconParameters.makeInstance(true);
 
 //    private static final boolean doFill = false;
 
@@ -357,17 +359,18 @@ public class StitchFillJob extends Job
      * @param job
      */
     private static void doTheJob(Cell newCell, String fillCellName, List<NodeInst> fillCells,
-                                 List<Geometric> fillGeoms, List<TileInfo> tileList, boolean wideOption, StitchFillJob job)
+                                 List<Geometric> fillGeoms, List<TileInfo> tileList,
+                                 boolean wideOption, StitchFillJob job)
     {
         // Re-exporting
-        ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true, true);
+        ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true, true, job.iconParameters);
 //        if (!doFill) return;
 
         // Flatting subcells
         new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true, true);
         
         // generation of master fill
-        generateFill(newCell, wideOption, job.evenHorizontal, job.layersWithExports);
+        generateFill(newCell, wideOption, job.evenHorizontal, job.layersWithExports, job.iconParameters);
 
         // tiles generation. Flat generation for now
         generateTiles(newCell, fillCellName, tileList, job);
@@ -436,7 +439,8 @@ public class StitchFillJob extends Job
      * @param evenHor
      * @return True if auto-stitch ran without errors
      */
-    private static boolean generateFill(Cell theCell, boolean wideOption, boolean evenHor, List<String> exportNames)
+    private static boolean generateFill(Cell theCell, boolean wideOption, boolean evenHor, List<String> exportNames,
+                                        IconParameters iconParameters)
     {
         InteractiveRouter router  = new SimpleWirer();
         List<Layer> listOfLayers = new ArrayList<Layer>(12);
@@ -887,7 +891,8 @@ public class StitchFillJob extends Job
                 for (PinsArcPair pair : pairs)
                 {
                     SplitContainter split = splitArcAtPoint(pair.topArc, pair.insert);
-                    Export.newInstance(theCell, split.splitPin.getPortInst(0), e.getKey(), PortCharacteristic.UNKNOWN);
+                    Export.newInstance(theCell, split.splitPin.getPortInst(0), e.getKey(),
+                        PortCharacteristic.UNKNOWN, iconParameters);
                 }
             }
         }

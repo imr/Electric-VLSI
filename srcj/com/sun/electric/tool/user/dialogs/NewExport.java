@@ -32,12 +32,9 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.*;
 
 import java.awt.Frame;
 import java.util.List;
@@ -332,8 +329,9 @@ public class NewExport extends EDialog
 		private boolean body;
 		private boolean drawn;
 		private String ch;
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		protected MakeExport(Cell cell, NodeInst ni, PortProto pp, String name,
+        protected MakeExport(Cell cell, NodeInst ni, PortProto pp, String name,
 			boolean body, boolean drawn, String ch, String referenceName)
 		{
 			super("Make Export", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -345,7 +343,7 @@ public class NewExport extends EDialog
 			this.drawn = drawn;
 			this.ch = ch;
 			this.referenceName = referenceName;
-			startJob();
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -372,7 +370,7 @@ public class NewExport extends EDialog
 
 			PortInst pi = ni.findPortInstFromProto(pp);
 			PortCharacteristic characteristic = PortCharacteristic.findCharacteristic(ch);
-			e = Export.newInstance(cell, pi, name, characteristic);
+			e = Export.newInstance(cell, pi, name, characteristic, iconParameters);
 			if (e == null)
 			{
 				System.out.println("Failed to create export");

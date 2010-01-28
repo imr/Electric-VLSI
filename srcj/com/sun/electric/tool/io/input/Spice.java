@@ -45,6 +45,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.placement.Placement;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.Placement.PlacementPreferences;
@@ -76,12 +77,17 @@ public class Spice extends Input
 	public static class SpicePreferences extends InputPreferences
     {
 		public String placementAlgorithm;
+        public IconParameters iconParameters = IconParameters.makeInstance(false);
 
-		public SpicePreferences(boolean factory) { super(factory); }
+        public SpicePreferences(boolean factory)
+        {
+            super(factory);
+        }
 
 		public void initFromUserDefaults()
 		{
 			placementAlgorithm = Placement.getAlgorithmName();
+            iconParameters.initFromUserDefaults();
 		}
 
         @Override
@@ -270,7 +276,7 @@ public class Spice extends Input
 				PortInst pi2 = ni2.getOnlyPortInst();
 				ArcProto ap = Schematics.tech().wire_arc;
 				ArcInst.makeInstance(ap, pi1, pi2);
-				Export e = Export.newInstance(cell, pi1, export, PortCharacteristic.UNKNOWN);
+				Export e = Export.newInstance(cell, pi1, export, PortCharacteristic.UNKNOWN, localPrefs.iconParameters);
 				TextDescriptor newTD = e.getTextDescriptor(Export.EXPORT_NAME).withPos(TextDescriptor.Position.LEFT);
 				e.setTextDescriptor(Export.EXPORT_NAME, newTD);
 				yPos += 2;
@@ -424,7 +430,7 @@ public class Spice extends Input
 			}
 
 			// run placement
-			pla.doPlacement(lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell);
+			pla.doPlacement(lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell, localPrefs.iconParameters);
 
 			// the old way...
 //			Cell cell = Cell.makeInstance(lib, name + "{sch}");

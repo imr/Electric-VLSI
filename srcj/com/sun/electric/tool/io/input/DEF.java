@@ -47,6 +47,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.AffineTransform;
@@ -104,14 +105,16 @@ public class DEF extends LEFDEF
     {
 		public boolean logicalPlacement;
 		public boolean physicalPlacement;
+        public IconParameters iconParameters = IconParameters.makeInstance(false);
 
-		public DEFPreferences(boolean factory) { super(factory); }
+        public DEFPreferences(boolean factory) { super(factory); }
 
 		public void initFromUserDefaults()
 		{
 			logicalPlacement = IOTool.isDEFLogicalPlacement();
 			physicalPlacement = IOTool.isDEFPhysicalPlacement();
-		}
+            iconParameters.initFromUserDefaults();
+        }
 
         @Override
         public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
@@ -742,7 +745,7 @@ public class DEF extends LEFDEF
 				return true;
 			}
 			PortInst pi = ni.findPortInstFromProto(np.getPort(0));
-			Export e = Export.newInstance(cell, pi, pinName, portCharacteristic);
+			Export e = Export.newInstance(cell, pi, pinName, portCharacteristic, localPrefs.iconParameters);
 			if (e == null)
 			{
 				reportError("Unable to create pin name");

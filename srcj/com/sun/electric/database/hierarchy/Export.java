@@ -30,7 +30,6 @@ import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ExportId;
@@ -50,8 +49,8 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.dialogs.BusParameters;
 
 import java.awt.geom.AffineTransform;
@@ -146,7 +145,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return the newly created Export.
      */
     public static Export newInstance(Cell parent, PortInst portInst, String protoName) {
-        return newInstance(parent, portInst, protoName, null, true);
+        return newInstance(parent, portInst, protoName, null, true, null);
     }
 
     /**
@@ -158,8 +157,10 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param characteristic the characteristic (input, output) of this Export.
      * @return the newly created Export.
      */
-    public static Export newInstance(Cell parent, PortInst portInst, String protoName, PortCharacteristic characteristic) {
-        return newInstance(parent, portInst, protoName, characteristic, true);
+    public static Export newInstance(Cell parent, PortInst portInst, String protoName, 
+                                     PortCharacteristic characteristic, IconParameters iconParameters)
+    {
+        return newInstance(parent, portInst, protoName, characteristic, true, iconParameters);
     }
 
     /**
@@ -173,7 +174,9 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return the newly created Export.
      */
     public static Export newInstance(Cell parent, PortInst portInst, String protoName,
-            PortCharacteristic characteristic, boolean createOnIcon) {
+                                     PortCharacteristic characteristic, boolean createOnIcon,
+                                     IconParameters iconParameters)
+    {
         if (protoName == null) {
             return null;
         }
@@ -231,7 +234,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 Dimension2D alignmentToGrid = parent.getEditingPreferences().getAlignmentToGrid();
                 double newlocX = (locX - bounds.getMinX()) / bounds.getWidth() * iconBounds.getWidth() + iconBounds.getMinX();
                 newlocX = DBMath.toNearest(newlocX, alignmentToGrid.getWidth());
-                double bodyDX = User.getIconGenLeadLength();
+                double bodyDX = iconParameters.getIconGenLeadLength();
                 double distToXEdge = locX - bounds.getMinX();
                 if (locX >= bounds.getCenterX()) {
                     bodyDX = -bodyDX;
@@ -239,7 +242,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 }
                 double newlocY = (locY - bounds.getMinY()) / bounds.getHeight() * iconBounds.getHeight() + iconBounds.getMinY();
                 newlocY = DBMath.toNearest(newlocY, alignmentToGrid.getHeight());
-                double bodyDY = User.getIconGenLeadLength();
+                double bodyDY = iconParameters.getIconGenLeadLength();
                 double distToYEdge = locY - bounds.getMinY();
                 if (locY >= bounds.getCenterY()) {
                     bodyDY = -bodyDY;
@@ -258,16 +261,9 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 newlocY = point.getY();
 
                 // create export in icon
-                int exportTech = User.getIconGenExportTech();
-                boolean drawLeads = User.isIconGenDrawLeads();
-                int exportStyle = User.getIconGenExportStyle();
-                int exportLocation = User.getIconGenExportLocation();
-                boolean ad = User.isIconsAlwaysDrawn();
-                int rotation = ViewChanges.iconTextRotation(pp, User.getIconGenInputRot(),
-                        User.getIconGenOutputRot(), User.getIconGenBidirRot(), User.getIconGenPowerRot(),
-                        User.getIconGenGroundRot(), User.getIconGenClockRot());
-                if (!ViewChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX + bodyDX, newlocY + bodyDY, icon,
-                        exportTech, drawLeads, exportStyle, exportLocation, rotation, ad)) {
+                int rotation = ViewChanges.iconTextRotation(pp, iconParameters);
+                if (!IconParameters.makeIconExport(pp, 0, newlocX, newlocY, newlocX + bodyDX, newlocY + bodyDY, icon,
+                        rotation, iconParameters)) {
                     System.out.println("Warning: Failed to create associated export in icon " + icon.describe(true));
                 }
             }

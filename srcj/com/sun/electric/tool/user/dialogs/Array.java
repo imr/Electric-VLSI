@@ -42,12 +42,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.drc.Quick;
-import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.ExportChanges;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MeasureListener;
 import com.sun.electric.tool.user.ui.ToolBar;
@@ -525,6 +520,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		private boolean arcsAutoIncrement, fromRight;
         private Cell cell;
         private DRC.DRCPreferences dp;
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
         protected ArrayStuff(Cell c, List<NodeInst> nodeList, List<ArcInst> arcList, List<Export> exportList,
 			int xRepeat, int yRepeat, double xOverlap, double yOverlap, double cX, double cY, boolean arcsAutoIncrement)
@@ -542,8 +538,8 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			this.cY = cY;
 			this.arcsAutoIncrement = arcsAutoIncrement;
 			this.fromRight = User.isIncrementRightmostIndex();
-            dp = new DRC.DRCPreferences(false);
-			startJob();
+            this.dp = new DRC.DRCPreferences(false);
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -711,7 +707,8 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					portInstsToExport.add(pi);
 					originalExports.put(pi, pp);
 				}
-				ExportChanges.reExportPorts(cell, portInstsToExport, false, true, true, false, fromRight, originalExports);
+				ExportChanges.reExportPorts(cell, portInstsToExport, false, true, true, false, fromRight, 
+                    originalExports, iconParameters);
 			}
 
 			// rename the replicated objects

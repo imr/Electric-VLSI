@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+IMP: (1/28/10, GVG) Accessing many user values in Make Export (Bug #2630)
+Important refactorization due to icon preferences used in new exports.
+
 BUG: (1/28/10, SMR) Technology editor fails to identify objects (Bug #2632).
 FIX: Use correct database in Manipulate.getLayerCell().
 

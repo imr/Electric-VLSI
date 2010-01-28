@@ -63,7 +63,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.EDIFEquiv;
 import com.sun.electric.tool.routing.AutoStitch;
-import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -396,7 +396,7 @@ public class EDIF extends Input
 	/** arcs placed on current net */			private List<ArcInst> arcsOnNet;
 	/** nodes placed on current net */			private List<NodeInst> nodesOnNet;
 
-	// some standard artwork primitivies
+    // some standard artwork primitivies
 	private PortProto defaultPort;
 	private PortProto defaultBusPort;
 
@@ -412,7 +412,7 @@ public class EDIF extends Input
 		public String acceptedParameters;
 		public String configurationFile;
 		public boolean cadenceCompatibility;
-		public ViewChanges.IconParameters iconParameters = new ViewChanges.IconParameters();
+		public IconParameters iconParameters = IconParameters.makeInstance(false);
 		public AutoStitch.AutoOptions autoParameters = new AutoStitch.AutoOptions();
 
 		public EDIFPreferences(boolean factory) { super(factory); }
@@ -1717,7 +1717,7 @@ public class EDIF extends Input
 		String name = plp.name;
 		String exportName = renamedObjects.get(name);
 		if (exportName != null) name = exportName;
-		plp.createdPort = Export.newInstance(curCell, pi, convertParens(name), plp.direction, false);
+		plp.createdPort = Export.newInstance(curCell, pi, convertParens(name), plp.direction, false, localPrefs.iconParameters);
 		if (plp.createdPort == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + name + ">");

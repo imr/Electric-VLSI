@@ -33,7 +33,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
-import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -651,8 +650,9 @@ public class Clipboard //implements ClipboardOwner
 		private List<DisplayedText> textList, newTextList;
 		private boolean dupCopiesExports, fromRight, autoIncrementArcs;
 		private Dimension2D alignment;
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		protected DuplicateObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, Dimension2D alignment)
+        protected DuplicateObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, Dimension2D alignment)
 		{
 			super("Duplicate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -662,7 +662,7 @@ public class Clipboard //implements ClipboardOwner
 			dupCopiesExports = User.isDupCopiesExports();
 			fromRight = User.isIncrementRightmostIndex();
 			autoIncrementArcs = User.isArcsAutoIncremented();
-			startJob();
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -671,7 +671,7 @@ public class Clipboard //implements ClipboardOwner
 			newGeomList = new ArrayList<Geometric>();
 			newTextList = new ArrayList<DisplayedText>();
 			copyListToCell(cell, geomList, textList, newGeomList, newTextList, new Point2D.Double(lastDupX, lastDupY),
-				dupCopiesExports, fromRight, autoIncrementArcs, alignment, null, null);
+				dupCopiesExports, fromRight, autoIncrementArcs, alignment, null, null, iconParameters);
 			fieldVariableChanged("newGeomList");
 			fieldVariableChanged("newTextList");
 			return true;
@@ -778,10 +778,11 @@ public class Clipboard //implements ClipboardOwner
 		private boolean copyExports, fromRight, uniqueArcs;
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		protected PasteObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList,
-			double dX, double dY, Dimension2D alignment, boolean copyExports, boolean fromRight, boolean uniqueArcs,
-			AffineTransform inPlace, Orientation inPlaceOrient)
+		protected PasteObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double dX, double dY,
+                               Dimension2D alignment, boolean copyExports, boolean fromRight, boolean uniqueArcs,
+                               AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			super("Paste", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -795,7 +796,7 @@ public class Clipboard //implements ClipboardOwner
 			this.uniqueArcs = uniqueArcs;
 			this.inPlace = inPlace;
 			this.inPlaceOrient = inPlaceOrient;
-			startJob();
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -806,8 +807,8 @@ public class Clipboard //implements ClipboardOwner
 			// paste them into the current cell
 			newGeomList = new ArrayList<Geometric>();
 			newTextList = new ArrayList<DisplayedText>();
-			copyListToCell(cell, geomList, textList, newGeomList, newTextList,
-				new Point2D.Double(dX, dY), copyExports, fromRight, uniqueArcs, alignment, inPlace, inPlaceOrient);
+			copyListToCell(cell, geomList, textList, newGeomList, newTextList, new Point2D.Double(dX, dY),
+                copyExports, fromRight, uniqueArcs, alignment, inPlace, inPlaceOrient, iconParameters);
 			fieldVariableChanged("newGeomList");
 			fieldVariableChanged("newTextList");
 			return true;
@@ -925,10 +926,12 @@ public class Clipboard //implements ClipboardOwner
 	 * @param inPlaceOrient
 	 */
 	public static void copyListToClipboard(List<Geometric> geomList, List<DisplayedText> textList,
-		Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient) {
-		copyListToCell(getClipCell(), geomList, textList, null, null, new Point2D.Double(),
+                                           Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient)
+    {
+        IconParameters iconParameters = IconParameters.makeInstance(true);
+        copyListToCell(getClipCell(), geomList, textList, null, null, new Point2D.Double(),
 				User.isDupCopiesExports(), User.isIncrementRightmostIndex(), User.isArcsAutoIncremented(),
-				alignment, inPlace, inPlaceOrient);
+				alignment, inPlace, inPlaceOrient, iconParameters);
 	}
 
 	/**
@@ -948,8 +951,10 @@ public class Clipboard //implements ClipboardOwner
 	 * @return the last NodeInst that was created.
 	 */
 	public static NodeInst copyListToCell(Cell toCell, List<Geometric> geomList, List<DisplayedText> textList,
-		List<Geometric> newGeomList, List<DisplayedText> newTextList, Point2D delta, boolean copyExports,
-		boolean fromRight, boolean uniqueArcs, Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient)
+                                          List<Geometric> newGeomList, List<DisplayedText> newTextList, Point2D delta,
+                                          boolean copyExports,boolean fromRight, boolean uniqueArcs,
+                                          Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient,
+                                          IconParameters iconParameters)
 	{
 		// make a list of all objects to be copied (includes end points of arcs)
 		List<NodeInst> theNodes = new ArrayList<NodeInst>();
@@ -1071,7 +1076,8 @@ public class Clipboard //implements ClipboardOwner
 				reExpThese.add(newPi);
 				originalExports.put(newPi, e);
 			}
-			ExportChanges.reExportPorts(toCell, reExpThese, false, true, true, false, fromRight, originalExports);
+			ExportChanges.reExportPorts(toCell, reExpThese, false, true, true, false, fromRight, originalExports,
+                iconParameters);
 		}
 
 		Map<ArcInst,ArcInst> newArcs = new HashMap<ArcInst,ArcInst>();

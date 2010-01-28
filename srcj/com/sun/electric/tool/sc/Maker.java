@@ -1089,7 +1089,7 @@ public class Maker
 			case GetNetlist.PWRPORT:   pc = PortCharacteristic.PWR;    break;
 			default:                   pc = PortCharacteristic.GND;    break;
 		}
-		Export xPort = Export.newInstance(bCell, pi, name, pc);
+		Export xPort = Export.newInstance(bCell, pi, name, pc, localPrefs.iconParameters);
 		return xPort;
 	}
 
