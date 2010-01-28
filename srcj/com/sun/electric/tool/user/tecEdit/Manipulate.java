@@ -247,10 +247,11 @@ public class Manipulate
 				for(Iterator<NodeInst> nIt = oNp.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = nIt.next();
-					Variable var = ni.getVar(Info.LAYER_KEY);
-					if (var == null) continue;
-					CellId cID = (CellId)var.getObject();
-					Cell varCell = EDatabase.serverDatabase().getCell(cID);
+					Cell varCell = getLayerCell(ni);
+//					Variable var = ni.getVar(Info.LAYER_KEY);
+//					if (var == null) continue;
+//					CellId cID = (CellId)var.getObject();
+//					Cell varCell = EDatabase.serverDatabase().getCell(cID);
 					if (varCell == np)
 					{
 						if (warning != null) warning.append(","); else
@@ -1165,14 +1166,15 @@ public class Manipulate
 		Variable var = ni.getVar(Info.LAYER_KEY);
 		if (var == null) return null;
 		CellId cID = (CellId)var.getObject();
+		Cell clientCell = EDatabase.clientDatabase().getCell(cID);
 		Cell cell = EDatabase.serverDatabase().getCell(cID);
-		if (cell != null)
+		if (clientCell != null || cell != null)
 		{
 			// validate the reference
 			for(Iterator<Cell> it = ni.getParent().getLibrary().getCells(); it.hasNext(); )
 			{
 				Cell oCell = it.next();
-				if (oCell == cell) return cell;
+				if (oCell == cell || oCell == clientCell) return oCell;
 			}
 		}
         System.out.println("Layer " + cID.cellName + " not found");
@@ -1766,13 +1768,8 @@ public class Manipulate
 		options[layerCells.length] = "SET-MINIMUM-SIZE";
 		options[layerCells.length+1] = "CLEAR-MINIMUM-SIZE";
 		String initial = options[0];
-		Variable curLay = ni.getVar(Info.LAYER_KEY);
-		if (curLay != null)
-		{
-			CellId cID = (CellId)curLay.getObject();
-			Cell cell = EDatabase.serverDatabase().getCell(cID);
-			if (cell != null) initial = cell.getName().substring(6);
-		}
+		Cell cell = getLayerCell(ni);
+		if (cell != null) initial = cell.getName().substring(6);
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer", "New layer for this geometry:", initial, options);
 		if (choice == null) return;
 
@@ -1864,7 +1861,7 @@ public class Manipulate
 			for(int i=0; i<connects.length; i++)
 			{
 				if (connects[i] != null)
-					connectSet.add(EDatabase.serverDatabase().getCell(connects[i]));
+					connectSet.add(EDatabase.clientDatabase().getCell(connects[i]));
 			}
 		}
 
@@ -2245,10 +2242,11 @@ public class Manipulate
 				{
 					NodeInst cNi = nIt.next();
 					if (getOptionOnNode(cNi) != Info.LAYERPATCH) continue;
-					Variable varLay = cNi.getVar(Info.LAYER_KEY);
-					if (varLay == null) continue;
-					CellId cID = (CellId)varLay.getObject();
-					Cell varCell = EDatabase.serverDatabase().getCell(cID);
+					Cell varCell = getLayerCell(cNi);
+//					Variable varLay = cNi.getVar(Info.LAYER_KEY);
+//					if (varLay == null) continue;
+//					CellId cID = (CellId)varLay.getObject();
+//					Cell varCell = EDatabase.serverDatabase().getCell(cID);
 					if (varCell != cell) continue;
 					setPatch(cNi, li.desc);
 				}

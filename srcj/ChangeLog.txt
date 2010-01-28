@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
+
+BUG: (1/28/10, SMR) Technology editor fails to identify objects (Bug #2632).
+FIX: Use correct database in Manipulate.getLayerCell().
+
 ************************* Version 8.11d: ******************************
 
 BUG: (1/26/10, SMR) Autostitch missing some arcs (Bug #2628).
