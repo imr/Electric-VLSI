@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (1/28/10, GVG) Assertion in Verilog running in debug mode (Bug #2634)
+FIX: No checking port names for supplies
+
 IMP/MAN: (1/28/10, SMR) Added first pass of SVG export (Bug #2003).
 
 IMP: (1/28/10, GVG) Accessing many user values in Make Export (Bug #2630)

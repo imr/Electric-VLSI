@@ -537,13 +537,15 @@ public class VerilogData implements Serializable
          * Function to add a given export to the list
          * @param name name of the new export
          * @param checkClock
+         * @param checkDuplicatedPortName
          */
-        VerilogPort addPort(String name, boolean checkClock)
+        VerilogPort addPort(String name, boolean checkClock, boolean checkDuplicatedPortName)
         {
-            if (Job.getDebug())
+            if (checkDuplicatedPortName && findPort(name) != null)
             {
-                if (findPort(name) != null)
-                assert(findPort(name) == null);
+                System.out.println("Duplicated port name? " + name);
+                if (Job.getDebug())
+                    assert(false); // force to take a look
             }
 
             PortCharacteristic def = PortCharacteristic.UNKNOWN;

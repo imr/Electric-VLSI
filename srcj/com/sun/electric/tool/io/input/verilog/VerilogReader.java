@@ -211,7 +211,7 @@ public class VerilogReader extends Input
 
     private NodeInst readSupply(VerilogData.VerilogModule module, boolean power, String name)
     {
-        VerilogData.VerilogPort supply = module.addPort(name, false);
+        VerilogData.VerilogPort supply = module.addPort(name, false, false);
         supply.type = (power) ? PortCharacteristic.PWR : PortCharacteristic.GND;
         return null;
     }
@@ -291,7 +291,7 @@ public class VerilogReader extends Input
                     if (exp == null)
                     {
 //                            System.out.println("Warning: port " + export + " not found in module " + element.name + " yet");
-                        exp = element.addPort(export, false);
+                        exp = element.addPort(export, false, true);
                     }
                     verilogInst.addPortInstance(pin, exp);
                 }
@@ -466,7 +466,7 @@ public class VerilogReader extends Input
         module.setValid(true);
         // adding ports in modules: from 1 -> inputs.size()-1;
         for (int i = 1; i < inputs.size(); i++)
-            module.addPort(inputs.get(i), true);
+            module.addPort(inputs.get(i), true, true);
 
         String nextToken = null;
 
