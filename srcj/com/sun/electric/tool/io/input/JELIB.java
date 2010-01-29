@@ -69,12 +69,13 @@ public class JELIB extends LibraryFiles
 {
     private final FileType fileType;
     private final JelibParser parser;
-    private IconParameters iconParameters = IconParameters.makeInstance(true);
+    private final IconParameters iconParameters;
 
-    JELIB(LibId libId, URL fileURL, FileType fileType) throws IOException
+    JELIB(LibId libId, URL fileURL, FileType type, IconParameters iconParams) throws IOException
 	{
-        this.fileType = fileType;
+        fileType = type;
         parser = JelibParser.parse(libId, fileURL, fileType, false, Input.errorLogger);
+        iconParameters = iconParams;
     }
 
     public static Map<Setting,Object> readProjectSettings(URL fileURL, FileType fileType, TechPool techPool, ErrorLogger errorLogger) {
@@ -160,7 +161,7 @@ public class JELIB extends LibraryFiles
             LibId libId = e.getKey();
             String libFileName = e.getValue();
             if (Library.findLibrary(libId.libName) == null)
-                readExternalLibraryFromFilename(libFileName, fileType);
+                readExternalLibraryFromFilename(libFileName, fileType, iconParameters);
         }
 
         nodeProtoCount = parser.allCells.size();
@@ -444,7 +445,8 @@ public class JELIB extends LibraryFiles
 	 * @param lineNumber the line number in the file being read (for error reporting).
 	 * @return the PortInst specified (null if none can be found).
 	 */
-	private PortInst figureOutPortInst(Cell cell, String portName, JelibParser.NodeContents n, Point2D pos, String fileName, int lineNumber)
+	private PortInst figureOutPortInst(Cell cell, String portName, JelibParser.NodeContents n, Point2D pos,
+                                       String fileName, int lineNumber)
 	{
 		NodeInst ni = n != null ? n.ni : null;
 		if (ni == null)

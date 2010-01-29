@@ -338,7 +338,7 @@ public class PadGenerator
 				FileType style = FileType.DEFAULTLIB;
 				if (TextUtils.getExtension(fileURL).equals("txt")) style = FileType.READABLEDUMP;
 				if (TextUtils.getExtension(fileURL).equals("elib")) style = FileType.ELIB;
-				cellLib = LibraryFiles.readLibrary(fileURL, null, style, false);
+				cellLib = LibraryFiles.readLibrary(fileURL, null, style, false, iconParameters);
 				if (cellLib == null)
 				{
 					err("cannot read library " + keyWord);

@@ -45,6 +45,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -155,8 +156,9 @@ public class PLA
 		private boolean outputsOnBottom;
 		private Cell newCell;
         private boolean doItNow; // for regression
+         private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		protected GeneratePLAJob(Library destLib, String cellName, String andFileName, String orFileName,
+        protected GeneratePLAJob(Library destLib, String cellName, String andFileName, String orFileName,
                                  boolean inputsOnTop, boolean outputsOnBottom, boolean doItNow)
 		{
 			super("Generate MOSIS CMOS PLA", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -183,7 +185,7 @@ public class PLA
 			{
 	            // start a job to read the PLA support library
 				URL fileURL = LibFile.getLibFile(libName + ".jelib");
-	    		LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
+	    		LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true, iconParameters);
 			}
 
 			PLA pla = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);

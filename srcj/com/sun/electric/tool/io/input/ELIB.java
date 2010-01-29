@@ -290,7 +290,7 @@ public class ELIB extends LibraryFiles
     /** variable keys possibly in the library */                            private Variable.Key[] varKeys;
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
-    /** icon parameters for exports */                                      private IconParameters iconParameters = IconParameters.makeInstance(true);
+    /** icon parameters for exports */                                      private IconParameters iconParameters;
 
      /**
 	 * This class is used to convert old "facet" style Libraries to pure Cell Libraries.
@@ -301,8 +301,9 @@ public class ELIB extends LibraryFiles
 		NodeProto firstInCell;
 	}
 
-	ELIB()
+	ELIB(IconParameters iconParams)
     {
+        iconParameters = iconParams;
     }
 
 	// ----------------------- public methods -------------------------------
@@ -313,21 +314,21 @@ public class ELIB extends LibraryFiles
 	 * @param fileURL the URL to the disk file.
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static synchronized Header readLibraryHeader(URL fileURL, ErrorLogger errorLogger)
-	{
-		try {
-			ELIB in = new ELIB();
-			if (in.openBinaryInput(fileURL)) return null;
-			Header header = in.readHeader();
-			// read the library
-			in.closeInput();
-			return header;
-        } catch (Exception e)
-		{
-            errorLogger.logError("Error " + e + " on " + fileURL, -1);
-        }
-		return null;
-    }
+//	public static synchronized Header readLibraryHeader(URL fileURL, ErrorLogger errorLogger)
+//	{
+//		try {
+//			ELIB in = new ELIB();
+//			if (in.openBinaryInput(fileURL)) return null;
+//			Header header = in.readHeader();
+//			// read the library
+//			in.closeInput();
+//			return header;
+//        } catch (Exception e)
+//		{
+//            errorLogger.logError("Error " + e + " on " + fileURL, -1);
+//        }
+//		return null;
+//    }
 
 	/**
 	 * Method to read a Library from disk.
@@ -335,10 +336,11 @@ public class ELIB extends LibraryFiles
 	 * @param fileURL the URL to the disk file.
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static synchronized boolean readStatistics(URL fileURL, ErrorLogger errorLogger, LibraryStatistics.FileContents fc)
+	public static synchronized boolean readStatistics(URL fileURL, ErrorLogger errorLogger,
+                                                      LibraryStatistics.FileContents fc)
 	{
 		try {
-			ELIB in = new ELIB();
+			ELIB in = new ELIB(null);
 			if (in.openBinaryInput(fileURL)) return true;
 			boolean error = in.readTheLibrary(true, fc);
 			// read the library
@@ -2117,7 +2119,7 @@ public class ELIB extends LibraryFiles
 		int highY = cellHighY[cellIndex];
 
 		// get the external library
-		Library elib = readExternalLibraryFromFilename(cellLibraryPath[cellIndex], FileType.ELIB);
+		Library elib = readExternalLibraryFromFilename(cellLibraryPath[cellIndex], FileType.ELIB, iconParameters);
 
 		// find this cell in the external library
 		Cell c = elib.findNodeProto(fullCellName);

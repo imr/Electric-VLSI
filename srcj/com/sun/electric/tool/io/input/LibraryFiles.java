@@ -46,7 +46,6 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
@@ -58,6 +57,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.AffineTransform;
@@ -161,10 +161,11 @@ public abstract class LibraryFiles extends Input
 	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @param quick true to read the library without verbosity (used when reading a library internally).
+     * @param iconParams icon parameters used in the creation of exports.
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
-        return readLibrary(fileURL, libName, type, quick, null);
+	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick, IconParameters iconParams) {
+        return readLibrary(fileURL, libName, type, quick, null, iconParams);
     }
 
 	/**
@@ -178,7 +179,8 @@ public abstract class LibraryFiles extends Input
 	 * @param projectSettings an output map which is filled by project preferences of top library
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick, Map<Setting,Object> projectSettings) {
+	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick,
+                                      Map<Setting,Object> projectSettings, IconParameters iconParams) {
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
         errorLogger = ErrorLogger.newInstance("Library Read");
@@ -229,7 +231,7 @@ public abstract class LibraryFiles extends Input
 			{
 				// get the library name
 				if (libName == null) libName = TextUtils.getFileNameWithoutExtension(fileURL);
-				lib = readALibrary(fileURL, null, libName, type, projectSettings);
+				lib = readALibrary(fileURL, null, libName, type, projectSettings, iconParams);
 			}
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done reading data for all libraries");
@@ -303,7 +305,7 @@ public abstract class LibraryFiles extends Input
         LibraryFiles in;
         if (type == FileType.ELIB)
         {
-            in = new ELIB();
+            in = new ELIB(null);
             if (in.openBinaryInput(fileURL)) return null;
         } else if (type == FileType.READABLEDUMP)
         {
@@ -356,19 +358,20 @@ public abstract class LibraryFiles extends Input
 	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	protected static Library readALibrary(URL fileURL, Library lib, String libName, FileType type, Map<Setting,Object> projectSettings)
+	protected static Library readALibrary(URL fileURL, Library lib, String libName, FileType type,
+                                          Map<Setting,Object> projectSettings, IconParameters iconParams)
 	{
 		// handle different file types
 		LibraryFiles in;
 		if (type == FileType.ELIB)
 		{
-			in = new ELIB();
+			in = new ELIB(iconParams);
 			if (in.openBinaryInput(fileURL)) return null;
 		} else if (type == FileType.JELIB || type == FileType.DELIB)
 		{
             try {
                 LibId libId = lib != null ? lib.getId() : EDatabase.serverDatabase().getIdManager().newLibId(libName);
-                in = new JELIB(libId, fileURL, type);
+                in = new JELIB(libId, fileURL, type, iconParams);
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
@@ -426,7 +429,7 @@ public abstract class LibraryFiles extends Input
      * @param lib the Library to reload.
 	 * @return mapping of Library/Cell/Export ids, null if the library was renamed.
      */
-    public static IdMapper reloadLibrary(Library lib) {
+    public static IdMapper reloadLibrary(Library lib, IconParameters iconParameters) {
         if (!lib.isFromDisk()) {
             System.out.println("No disk file associated with this library, cannot reload from disk");
             return null;
@@ -444,7 +447,7 @@ public abstract class LibraryFiles extends Input
         lib = idMapper.get(lib.getId()).inDatabase(EDatabase.serverDatabase());
         lib.setHidden();                // hide the old library
         startProgressDialog("library", name);
-        Library newLib = readLibrary(libFile, name, type, true);
+        Library newLib = readLibrary(libFile, name, type, true, iconParameters);
         stopProgressDialog();
         if (isCurrent)
             Job.setCurrentLibraryInJob(newLib);
@@ -482,65 +485,65 @@ public abstract class LibraryFiles extends Input
      * Reload Cells from disk.  Other cells in the library will not be affected.
      * These cells must all be from the same library.
      */
-    public static void reloadLibraryCells(List<Cell> cellList) {
-        if (cellList == null || cellList.size() == 0) return;
-        Library lib = cellList.get(0).getLibrary();
-
-        if (!lib.isFromDisk()) {
-            System.out.println("No disk file associated with this library, cannot reload from disk");
-            return;
-        }
-        FileType type = OpenFile.getOpenFileType(lib.getLibFile().getPath(), FileType.JELIB);
-
-        // Load disk library as temp library.
-        // Then, copy over new cells from temp library to replace current cells in memory,
-        // then close temp library.
-
-        String name = lib.getName();
-        URL libFile = lib.getLibFile();
-        startProgressDialog("library", name);
-        Library newLib = readLibrary(libFile, "___reloaded___"+name, type, true);
-        stopProgressDialog();
-        newLib.setHidden();
-
-        // replace all old cells with new cells
-        Cell.setAllowCircularLibraryDependences(true);
-        for (Cell oldCell : cellList) {
-            String cellName = oldCell.getCellName().toString(); // contains version and view info
-
-            Cell newCell = newLib.findNodeProto(cellName);
-            if (newCell == null) {
-                System.out.println("Cell "+oldCell.describe(false)+" cannot be reloaded, it does not exist in disk library");
-                continue;
-            }
-
-            // rename oldCell
-            String renamedName = "___old___"+oldCell.getName();
-            IdMapper idMapper = oldCell.rename(renamedName, renamedName);      // must not contain version or view info
-            if (idMapper == null) continue;
-            oldCell = idMapper.get(oldCell.getId()).inDatabase(EDatabase.serverDatabase());
-
-            // copy newCell over with oldCell's name
-            newCell = Cell.copyNodeProto(newCell, lib, cellName, true);
-
-            // replace all usages of old cell with new cell
-            List<NodeInst> instances = new ArrayList<NodeInst>();
-            for(Iterator<NodeInst> it2 = oldCell.getInstancesOf(); it2.hasNext(); ) {
-                instances.add(it2.next());
-            }
-            for (NodeInst ni : instances) {
-                CircuitChangeJobs.replaceNodeInst(ni, newCell, true, true);
-            }
-
-            // kill oldCell
-            oldCell.kill();
-        }
-        Cell.setAllowCircularLibraryDependences(false);
-
-        // close temp library
-        newLib.kill("delete temp library");
-        System.out.println("Reloaded Cells from disk.");
-    }
+//    public static void reloadLibraryCells(List<Cell> cellList) {
+//        if (cellList == null || cellList.size() == 0) return;
+//        Library lib = cellList.get(0).getLibrary();
+//
+//        if (!lib.isFromDisk()) {
+//            System.out.println("No disk file associated with this library, cannot reload from disk");
+//            return;
+//        }
+//        FileType type = OpenFile.getOpenFileType(lib.getLibFile().getPath(), FileType.JELIB);
+//
+//        // Load disk library as temp library.
+//        // Then, copy over new cells from temp library to replace current cells in memory,
+//        // then close temp library.
+//
+//        String name = lib.getName();
+//        URL libFile = lib.getLibFile();
+//        startProgressDialog("library", name);
+//        Library newLib = readLibrary(libFile, "___reloaded___"+name, type, true, iconParams);
+//        stopProgressDialog();
+//        newLib.setHidden();
+//
+//        // replace all old cells with new cells
+//        Cell.setAllowCircularLibraryDependences(true);
+//        for (Cell oldCell : cellList) {
+//            String cellName = oldCell.getCellName().toString(); // contains version and view info
+//
+//            Cell newCell = newLib.findNodeProto(cellName);
+//            if (newCell == null) {
+//                System.out.println("Cell "+oldCell.describe(false)+" cannot be reloaded, it does not exist in disk library");
+//                continue;
+//            }
+//
+//            // rename oldCell
+//            String renamedName = "___old___"+oldCell.getName();
+//            IdMapper idMapper = oldCell.rename(renamedName, renamedName);      // must not contain version or view info
+//            if (idMapper == null) continue;
+//            oldCell = idMapper.get(oldCell.getId()).inDatabase(EDatabase.serverDatabase());
+//
+//            // copy newCell over with oldCell's name
+//            newCell = Cell.copyNodeProto(newCell, lib, cellName, true);
+//
+//            // replace all usages of old cell with new cell
+//            List<NodeInst> instances = new ArrayList<NodeInst>();
+//            for(Iterator<NodeInst> it2 = oldCell.getInstancesOf(); it2.hasNext(); ) {
+//                instances.add(it2.next());
+//            }
+//            for (NodeInst ni : instances) {
+//                CircuitChangeJobs.replaceNodeInst(ni, newCell, true, true);
+//            }
+//
+//            // kill oldCell
+//            oldCell.kill();
+//        }
+//        Cell.setAllowCircularLibraryDependences(false);
+//
+//        // close temp library
+//        newLib.kill("delete temp library");
+//        System.out.println("Reloaded Cells from disk.");
+//    }
 
 	// *************************** THE CREATION INTERFACE ***************************
 
@@ -785,7 +788,8 @@ public abstract class LibraryFiles extends Input
 	 * @return a Library that was read. If library cannot be read or found, creates
 	 * a Library called DUMMYname, and returns that.
 	 */
-	protected Library readExternalLibraryFromFilename(String theFileName, FileType defaultType)
+	protected Library readExternalLibraryFromFilename(String theFileName, FileType defaultType,
+                                                      IconParameters iconParams)
 	{
 		// get the path to the library file
 		String legalLibName = TextUtils.getFileNameWithoutExtension(theFileName, true);
@@ -901,7 +905,7 @@ public abstract class LibraryFiles extends Input
 
 			// get the library name
 			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
-            elib = readALibrary(externalURL, elib, eLibName, importType, null);
+            elib = readALibrary(externalURL, elib, eLibName, importType, null, iconParams);
             setProgressValue(100);
             setProgressNote(oldNote);
         }

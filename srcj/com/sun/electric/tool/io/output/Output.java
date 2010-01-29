@@ -50,6 +50,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -198,6 +199,7 @@ public class Output
         // IO Settings
         public boolean useCopyrightMessage = IOTool.isUseCopyrightMessage();
         public boolean includeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
+        public IconParameters iconParameters = IconParameters.makeInstance(true);
 
         protected OutputPreferences() { this(false); }
         protected OutputPreferences(boolean factory) {

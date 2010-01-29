@@ -73,8 +73,9 @@ public class Project extends Listener
 	        static final Variable.Key PROJPATHKEY   = Variable.newKey("PROJ_path");
 	        static final Variable.Key PROJLIBRARYKEY = Variable.newKey("PROJ_library");
 	        static final String PROJECTFILE = "project.proj";
+            static final IconParameters iconParameters = IconParameters.makeInstance(true);
 
-	/** the Project tool. */					private static Project tool = new Project();
+    /** the Project tool. */					private static Project tool = new Project();
 	/** nonzero to ignore broadcast changes */	private static boolean ignoreChanges;
 	/** check modules */						private static List<FCheck>    fCheckList = new ArrayList<FCheck>();
 	/** nonzero if the system is active */		        static boolean pmActive;
@@ -546,7 +547,7 @@ public class Project extends Listener
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
 		NetworkTool.setInformationOutput(false);
-		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true);
+		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true, iconParameters);
 		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{

@@ -2996,8 +2996,9 @@ public class CircuitChangeJobs
 	public static class ReloadLibraryJob extends Job
 	{
 		private Library lib;
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
-		public ReloadLibraryJob(Library lib)
+        public ReloadLibraryJob(Library lib)
 		{
 			super("Reload Library " + lib.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
@@ -3006,7 +3007,7 @@ public class CircuitChangeJobs
 
 		public boolean doIt()
 		{
-			LibraryFiles.reloadLibrary(lib);
+			LibraryFiles.reloadLibrary(lib, iconParameters);
 			return true;
 		}
 	}

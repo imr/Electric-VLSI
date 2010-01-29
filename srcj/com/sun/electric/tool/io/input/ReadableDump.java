@@ -405,7 +405,7 @@ public class ReadableDump extends LibraryFiles
 
 		// get the library associated with that name
         String libPath = cellLibPaths[cellNumber];
-		Library elib = readExternalLibraryFromFilename(libPath, FileType.ELIB);
+		Library elib = readExternalLibraryFromFilename(libPath, FileType.ELIB, null);
 
 		// find the requested cell in the external library
 		Cell cell = null;

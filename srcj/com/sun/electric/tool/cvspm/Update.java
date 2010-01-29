@@ -31,6 +31,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -190,6 +191,8 @@ public class Update {
         private boolean checkEditors;
         private String cvsProgram = CVS.getCVSProgram();
         private String repository = CVS.getRepository();
+        private IconParameters iconParameters = IconParameters.makeInstance(true);
+
         /**
          * Update cells and/or libraries.
          * @param cellsToUpdate
@@ -298,7 +301,7 @@ public class Update {
                 for (int i = 0; i < libsToReload.size(); i++) {
                     Library lib = libsToReload.get(i);
                     String libName = lib.getName();
-                    LibraryFiles.reloadLibrary(lib);
+                    LibraryFiles.reloadLibrary(lib, iconParameters);
                     libsToReload.set(i, Library.findLibrary(libName));
                 }
             }

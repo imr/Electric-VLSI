@@ -124,7 +124,7 @@ public class Placement extends Tool
 	public static class PlacementPreferences implements Serializable
     {
 		public String placementAlgorithm;
-        IconParameters iconParameters = IconParameters.makeInstance(false);
+        public IconParameters iconParameters = IconParameters.makeInstance(false);
 
         public PlacementPreferences(boolean factory)
 		{

@@ -49,7 +49,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import static com.sun.electric.database.text.ArrayIterator.i2i;
-import static com.sun.electric.database.text.ArrayIterator.i2al;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.DRCTemplate;
@@ -2035,7 +2034,7 @@ public class ToolMenu
 			// read standard cell library
 			System.out.println("Reading Standard Cell Library '" + SilComp.SCLIBNAME + "'");
 			URL fileURL = LibFile.getLibFile(SilComp.SCLIBNAME + ".jelib");
-			LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true);
+			LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true, null);
             return true;
         }
 
