@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (1/29/10, GVG) Client's protocol version incompatible with Server's protocol version (Bug #2630)
+FIX: Project tool can't call IconParameters.makeInstance() with true.
+
 BUG: (1/28/10, GVG) Assertion in Verilog running in debug mode (Bug #2634)
 FIX: No checking port names for supplies
 

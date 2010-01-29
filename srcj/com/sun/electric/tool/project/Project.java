@@ -73,7 +73,7 @@ public class Project extends Listener
 	        static final Variable.Key PROJPATHKEY   = Variable.newKey("PROJ_path");
 	        static final Variable.Key PROJLIBRARYKEY = Variable.newKey("PROJ_library");
 	        static final String PROJECTFILE = "project.proj";
-            static final IconParameters iconParameters = IconParameters.makeInstance(true);
+            static final IconParameters iconParameters = IconParameters.makeInstance(false);
 
     /** the Project tool. */					private static Project tool = new Project();
 	/** nonzero to ignore broadcast changes */	private static boolean ignoreChanges;
@@ -108,7 +108,8 @@ public class Project extends Listener
 		setOn();
 		pmActive = false;
 		ignoreChanges = false;
-	}
+//        iconParameters.initFromUserDefaults();
+    }
 
 	/**
 	 * Method to retrieve the singleton associated with the Project tool.
