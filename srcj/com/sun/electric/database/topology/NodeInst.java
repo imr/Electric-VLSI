@@ -1523,10 +1523,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     private void computeBounds() {
-        double oldX = visBounds.x;
-        double oldY = visBounds.y;
-        double oldWidth = visBounds.width;
-        double oldHeight = visBounds.height;
+//        double oldX = visBounds.x;
+//        double oldY = visBounds.y;
+//        double oldWidth = visBounds.width;
+//        double oldHeight = visBounds.height;
         // handle cell bounds
         if (d.protoId instanceof CellId) {
             // offset by distance from cell-center to the true center
@@ -2514,12 +2514,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return an array of PortAssociation objects that associates ports on this NodeInst
      * with those on the other one.  returns null if there is an error.
      */
-    private PortAssociation[] portAssociate(NodeInst ni1, NodeInst ni2, boolean ignorePortNames) {
+    private PortAssociation[] portAssociate(NodeInst ni1, NodeInst ni2, boolean ignorePortNames)
+    {
         // gather information about NodeInst 1 (ports, Poly, location, association)
         int total1 = ni1.getProto().getNumPorts();
         PortAssociation[] portInfo1 = new PortAssociation[total1];
         int k = 0;
-        for (Iterator<PortInst> it1 = ni1.getPortInsts(); it1.hasNext();) {
+        for (Iterator<PortInst> it1 = ni1.getPortInsts(); it1.hasNext();)
+        {
             PortInst pi1 = it1.next();
             portInfo1[k] = new PortAssociation();
             portInfo1[k].portInst = pi1;
@@ -2533,7 +2535,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         int total2 = ni2.getProto().getNumPorts();
         PortAssociation[] portInfo2 = new PortAssociation[total2];
         k = 0;
-        for (Iterator<PortInst> it2 = ni2.getPortInsts(); it2.hasNext();) {
+        for (Iterator<PortInst> it2 = ni2.getPortInsts(); it2.hasNext();)
+        {
             PortInst pi2 = it2.next();
             portInfo2[k] = new PortAssociation();
             portInfo2[k].portInst = pi2;
@@ -2544,20 +2547,19 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
 
         // associate on port name matches
-        if (!ignorePortNames) {
-            for (int i1 = 0; i1 < total1; i1++) {
+        if (!ignorePortNames)
+        {
+            for (int i1 = 0; i1 < total1; i1++)
+            {
                 PortInst pi1 = portInfo1[i1].portInst;
-                for (int i2 = 0; i2 < total2; i2++) {
+                for (int i2 = 0; i2 < total2; i2++)
+                {
                     PortInst pi2 = portInfo2[i2].portInst;
-                    if (portInfo2[i2].assn != null) {
-                        continue;
-                    }
+                    if (portInfo2[i2].assn != null) continue;
 
                     // stop if the ports have different name
-                    if (!pi2.getPortProto().getName().equals(pi1.getPortProto().getName())) {
+                    if (!pi2.getPortProto().getName().equals(pi1.getPortProto().getName()))
                         continue;
-                    }
-//					if (!pi2.getPortProto().getName().equalsIgnoreCase(pi1.getPortProto().getName())) continue;
 
                     // store the correct association of ports
                     portInfo1[i1].assn = pi2;
@@ -2567,76 +2569,49 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
 
         // make two passes, the first stricter
-        for (int pass = 0; pass < 2; pass++) {
+        for (int pass = 0; pass < 2; pass++)
+        {
             // associate ports that are in the same position
-            for (int i1 = 0; i1 < total1; i1++) {
+            for (int i1 = 0; i1 < total1; i1++)
+            {
                 PortInst pi1 = portInfo1[i1].portInst;
-                if (portInfo1[i1].assn != null) {
-                    continue;
-                }
+                if (portInfo1[i1].assn != null) continue;
 
-                for (int i2 = 0; i2 < total2; i2++) {
+                for (int i2 = 0; i2 < total2; i2++)
+                {
                     // if this port is already associated, ignore it
                     PortInst pi2 = portInfo2[i2].portInst;
-                    if (portInfo2[i2].assn != null) {
-                        continue;
-                    }
+                    if (portInfo2[i2].assn != null) continue;
 
                     // if the port centers are different, go no further
-                    if (portInfo2[i2].pos.getX() != portInfo1[i1].pos.getX()
-                            || portInfo2[i2].pos.getY() != portInfo1[i1].pos.getY()) {
-                        continue;
-                    }
+                    if (portInfo2[i2].pos.getX() != portInfo1[i1].pos.getX() ||
+                        portInfo2[i2].pos.getY() != portInfo1[i1].pos.getY())
+                    		continue;
 
                     // compare actual polygons to be sure
-                    if (pass == 0) {
-                        if (!portInfo1[i1].poly.polySame(portInfo2[i2].poly)) {
-                            continue;
-                        }
+                    if (pass == 0)
+                    {
+                        if (!portInfo1[i1].poly.polySame(portInfo2[i2].poly)) continue;
+                        if (!connectivityMatches(pi1.getPortProto(), pi2.getPortProto())) continue;
                     }
 
                     // handle confusion if multiple ports have the same polygon
-                    if (portInfo1[i1].assn != null) {
+                    if (portInfo1[i1].assn != null)
+                    {
                         PortProto mpt = portInfo1[i1].assn.getPortProto();
 
                         // see if name match can fix confusion
-                        if (ignorePortNames) {
-                            if (pi1.getPortProto().getName().equals(mpt.getName())) {
-                                continue;
-                            }
-                            if (!pi1.getPortProto().getName().equals(pi2.getPortProto().getName())) {
-                                continue;
-                            }
+                        if (ignorePortNames)
+                        {
+                            if (pi1.getPortProto().getName().equals(mpt.getName())) continue;
+                            if (!pi1.getPortProto().getName().equals(pi2.getPortProto().getName())) continue;
                         }
 
                         // see if one of the associations has the same connectivity
-                        ArcProto[] i1Conn = pi1.getPortProto().getBasePort().getConnections();
-                        ArcProto[] i2ConnNew = pi2.getPortProto().getBasePort().getConnections();
-                        ArcProto[] i2ConnOld = mpt.getBasePort().getConnections();
-                        boolean matchNew = i1Conn.length == i2ConnNew.length;
-                        boolean matchOld = i1Conn.length == i2ConnOld.length;
-                        for (int j = 0; j < i1Conn.length; j++) {
-                            if (j >= i2ConnNew.length) {
-                                matchNew = false;
-                            } else {
-                                if (i1Conn[j] != i2ConnNew[j]) {
-                                    matchNew = false;
-                                }
-                            }
-                            if (j >= i2ConnOld.length) {
-                                matchOld = false;
-                            } else {
-                                if (i1Conn[j] != i2ConnOld[j]) {
-                                    matchOld = false;
-                                }
-                            }
-                        }
-                        if (!matchNew) {
-                            continue;
-                        }
-                        if (matchOld) {
-                            continue;
-                        }
+                        boolean matchNew = connectivityMatches(pi1.getPortProto(), pi2.getPortProto());
+                        boolean matchOld = connectivityMatches(pi1.getPortProto(), mpt);
+                        if (!matchNew) continue;
+                        if (matchOld) continue;
                     }
 
                     // store the correct association of ports
@@ -2647,19 +2622,40 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
 
         // one final pass allows many-to-one associations when ports are in the same location
-        for (int i1 = 0; i1 < total1; i1++) {
-            for (int i2 = 0; i2 < total2; i2++) {
-                // stop if the ports have different location
-                if (portInfo2[i2].pos.getX() != portInfo1[i1].pos.getX()
-                        || portInfo2[i2].pos.getY() != portInfo1[i1].pos.getY()) {
-                    continue;
-                }
+        for (int i1 = 0; i1 < total1; i1++)
+        {
+        	if (portInfo1[i1].assn != null) continue;
+
+        	for (int i2 = 0; i2 < total2; i2++)
+            {
+            	if (portInfo2[i2].assn != null) continue;
+
+            	// stop if the ports have different location
+                if (portInfo2[i2].pos.getX() != portInfo1[i1].pos.getX() ||
+                    portInfo2[i2].pos.getY() != portInfo1[i1].pos.getY())
+                    	continue;
+                if (!connectivityMatches(portInfo1[i1].portInst.getPortProto(), portInfo2[i2].portInst.getPortProto()))
+                	continue;
 
                 // store the correct association
                 portInfo1[i1].assn = portInfo2[i2].portInst;
             }
         }
         return portInfo1;
+    }
+
+    private boolean connectivityMatches(PortProto pp1, PortProto pp2)
+    {
+        // see if the associations have the same connectivity
+        ArcProto[] i1Conn1 = pp1.getBasePort().getConnections();
+        ArcProto[] i2Conn2 = pp2.getBasePort().getConnections();
+        if (i1Conn1.length != i2Conn2.length) return false;
+        for (int j = 0; j < i1Conn1.length; j++)
+        {
+            if (j >= i2Conn2.length) return false;
+            if (i1Conn1[j] != i2Conn2[j])return false;
+        }
+        return true;
     }
 
     /****************************** CONNECTIONS ******************************/
