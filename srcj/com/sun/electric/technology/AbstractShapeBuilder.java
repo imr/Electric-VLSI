@@ -215,8 +215,8 @@ public abstract class AbstractShapeBuilder {
             if (skipLayer(layer)) continue;
 	        Poly.Type style = primLayer.getStyle();
 	        PrimitivePort pp = primLayer.getPort(np);
-            if (layer.isCarbonNanotubeLayer()) {
-                assert np.getFunction() == PrimitiveNode.Function.TRANMOSCN || np.getFunction() == PrimitiveNode.Function.TRAPMOSCN;
+            if (layer.isCarbonNanotubeLayer() &&
+            	(np.getFunction() == PrimitiveNode.Function.TRANMOSCN || np.getFunction() == PrimitiveNode.Function.TRAPMOSCN)) {
                 CarbonNanotube cnd = new CarbonNanotube(n, primLayer);
 	            for(int j = 0; j < cnd.numTubes; j++)
 	                cnd.fillCutPoly(j, style, layer, pp);
