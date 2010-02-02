@@ -1,3 +1,27 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: SamplerControl.java
+ * Written by Adam Megacz, Sun Microsystems.
+ *
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.simulation.test;
 
 /**
@@ -26,11 +50,6 @@ package com.sun.electric.tool.simulation.test;
  * This is almost exactly the [Corelis] "White Box" connector.  The
  * only Differences are that pin 1 is VREF instead of "reserved" and
  * "master clear" is on pin 15 rather than 17.  You must connect VREF.
- * 
- * @author Adam Megacz (megacz)
- * @version 1.0 29.Oct.2009 
- *
- * Copyright (c) 2009 by Nuts, Deez.
  */
 import java.io.*;
 import java.util.*;

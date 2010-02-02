@@ -1,11 +1,28 @@
-package com.sun.electric.tool.simulation.test;
-
-/*
- * Created on Jul 19, 2004
+/* -*- tab-width: 4 -*-
  *
- * Copyright (c) 2004,2005 by Sun Microsystems, Inc.
+ * Electric(tm) VLSI Design System
  *
+ * File: LogicLevel.java
+ * Written by Tom O'Neill, Sun Microsystems.
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
+package com.sun.electric.tool.simulation.test;
 
 /**
  * Class for setting Vdd and a logic level on a chip, when both values are
@@ -51,9 +68,6 @@ package com.sun.electric.tool.simulation.test;
  * In this case, the only methods one should invoke in the <code>level</code>
  * object are <code>isLogicStateHigh()</code> and <code>setLogicState()</code>.
  * I.e., control of Vdd should only be performed using <code>level2</code>.
- * 
- * @author Tom O'Neill (toneill)
- * @version 1.0 8/16/04
  */
 public class LogicLevel extends PowerChannel implements LogicSettable {
 

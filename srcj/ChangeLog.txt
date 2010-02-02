@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+IMP: (2/2/10, SMR) Fixed copyright in tool.simulation.test (Bug #2639).
+
 IMP: (2/2/10, SMR) Removed obsolete simulator: ArchSim (Bug #2638).
 
 BUG: (2/1/10, SMR) Carbon nanotube technology causes assertion failure (Bug #2637).

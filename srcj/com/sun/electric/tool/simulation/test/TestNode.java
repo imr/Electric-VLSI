@@ -1,3 +1,27 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: TestNode.java
+ * Written by Tom O'Neill, Sun Microsystems.
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.simulation.test;
 
 /**
@@ -9,13 +33,7 @@ package com.sun.electric.tool.simulation.test;
  * through the hierarchy but can be overridden at any level. The default value
  * that obtains at a given leaf node is the actual value for the scan chain
  * elements contained therein.
- * 
- * @author Tom O'Neill (toneill)
- * @version 1.0 7/26/04
- * Copyright (c) 2004,2005 by Sun Microsystems, Inc.
- *
  */
-
 class TestNode extends MyTreeNode {
 
     /** clearBehavior value for scan chain elements which do not clear */

@@ -1,22 +1,34 @@
-package com.sun.electric.tool.simulation.test;
-
-/*
- * Agilent6031A.java
+/* -*- tab-width: 4 -*-
  *
- * Created on July 17, 2008, 5:33 PM
- * Copyright (c) 2008 by Sun Microsystems, Inc.
+ * Electric(tm) VLSI Design System
  *
+ * File: Agilent6031A.java
+ * Written by Tom O'Neill and Nathaniel Pinckney, Sun Microsystems.
+ *
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
+package com.sun.electric.tool.simulation.test;
 
 /**
  * This class extends the generic equipment class to include methods specific to
  * the Agilent 6031A 20V/120A single-channel power supply.
  * <P>
  * Rather than using this class directly, you should use {@link Agilent6031AChannel}
- * 
- * @author Nathaniel Pinckney (np227454)
- * @author rh141231
- * @author Tom O'Neill (toneill)
  */
 public class Agilent6031A extends Equipment {
 

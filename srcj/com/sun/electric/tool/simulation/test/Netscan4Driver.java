@@ -1,22 +1,35 @@
-package com.sun.electric.tool.simulation.test;
-
-/*
- * Netscan4Driver.java
- * 
- * Copyright (c) 2004,2005 by Sun Microsystems, Inc.
+/* -*- tab-width: 4 -*-
  *
- * Created on February 11, 2005, by extraction from Netscan4
+ * Electric(tm) VLSI Design System
+ *
+ * File: Netscan4Driver.java
+ * Written by Tom O'Neill, Sun Microsystems.
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
+package com.sun.electric.tool.simulation.test;
 
 /**
  * Low-level drvier providing initialization, configuration, and connection for
  * all four ports on Corelis NETUSB-1149.1/E boundary scan controller (JTAG
  * tester device). Shifting data in and out should instead be performed using
  * {@link ChainControl}. Class is static and non-instantiable.
- * 
- * @author Tom O'Neill (toneill)
  */
-
 class Netscan4Driver extends Logger {
 
     /** Minumum allowed value of the JTAG port (TAP) parameter */

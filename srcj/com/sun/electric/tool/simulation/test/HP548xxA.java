@@ -1,12 +1,28 @@
-package com.sun.electric.tool.simulation.test;
-
-/*
- * HP548xxA.java
+/* -*- tab-width: 4 -*-
  *
- * Created on June 9, 2004, 9:42 AM
- * Copyright (c) 2004,2005 by Sun Microsystems, Inc.
+ * Electric(tm) VLSI Design System
  *
+ * File: HP548xxA.java
+ * Written by Ron Ho and Tom O'Neill, Sun Microsystems.
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
+package com.sun.electric.tool.simulation.test;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,10 +31,6 @@ import java.io.PrintWriter;
 /**
  * API for controlling Agilent 5485xA oscilloscopes. Seems to work for 5484xA
  * oscilloscopes as well.
- * 
- * @author rh143999
- * @author Tom O'Neill (toneill)
- * @version 1.1 8/19/04
  */
 public class HP548xxA extends Equipment {
 

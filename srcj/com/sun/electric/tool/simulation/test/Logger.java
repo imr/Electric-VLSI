@@ -1,11 +1,28 @@
-package com.sun.electric.tool.simulation.test;
-
-/* Logger.java
- * 
- * Copyright (c) 2005 by Sun Microsystems, Inc.
+/* -*- tab-width: 4 -*-
  *
- * Created on March 18, 2005
+ * Electric(tm) VLSI Design System
+ *
+ * File: Logger.java
+ * Written by Tom O'Neill, Sun Microsystems.
+ *
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
+package com.sun.electric.tool.simulation.test;
 
 /**
  * Provides user-configurable diagnostic messages to device classes that extend
@@ -14,8 +31,6 @@ package com.sun.electric.tool.simulation.test;
  * can use {@link #setLogSets}&nbsp; and {@link #setLogOthers}&nbsp; to
  * control the object's individual logging characteristics. In this manner, the
  * user can enable messages only from particular devices.
- * 
- * @author Tom O'Neill (toneill)
  */
 public abstract class Logger {
 

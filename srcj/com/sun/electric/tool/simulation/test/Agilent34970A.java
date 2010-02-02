@@ -1,12 +1,28 @@
-package com.sun.electric.tool.simulation.test;
-
-/*
- * Agilent34970A.java
+/* -*- tab-width: 4 -*-
  *
- * Copyright (c) 2004 by Sun Microsystems, Inc.
+ * Electric(tm) VLSI Design System
  *
- * Created: December 15, 2004
+ * File: Agilent34970A.java
+ * Written by Tom O'Neill, Sun Microsystems.
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
+package com.sun.electric.tool.simulation.test;
 
 /**
  * API for controlling the Agilent 34970A data acquisition/swith unit. At
@@ -14,8 +30,6 @@ package com.sun.electric.tool.simulation.test;
  * and it is used as a simple multi-channel voltmeter. Error checking on channel
  * numbers is provided by the device itself (see <code>handleError</code>),
  * since the valid channel numbers depend on which modules are inserted.
- * 
- * @author Tom O'Neill (toneill)
  */
 class Agilent34970A extends Equipment {
 
