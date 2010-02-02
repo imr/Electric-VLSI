@@ -44,7 +44,8 @@ import com.sun.electric.tool.user.waveform.WaveformWindow;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import javax.swing.*;
+
+import javax.swing.SwingUtilities;
 
 /**
  * This class reads simulation output files and plots them.
@@ -99,20 +100,9 @@ public abstract class Simulate extends Input
 		plotSimulationResults(FileType.VERILOGOUT, cell, null, null);
 	}
 
-	/**
-	 * Method called from the pulldown menus to read ArchSim output and plot it.
-	 */
-	public static void plotArchSimResults()
-	{
-		plotSimulationResults(FileType.ARCHSIMOUT, null, null, null);
-	}
-
     private static Simulate getSimulate(FileType type) {
         Simulate is = null;
-        if (type == FileType.ARCHSIMOUT)
-        {
-            is = new ArchSimOut();
-        } else if (type == FileType.HSPICEOUT)
+        if (type == FileType.HSPICEOUT)
         {
             is = new HSpiceOut();
         } else if (type == FileType.PSPICEOUT)

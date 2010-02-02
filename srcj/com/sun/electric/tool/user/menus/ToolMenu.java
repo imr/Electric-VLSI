@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import static com.sun.electric.database.text.ArrayIterator.i2i;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
 import com.sun.electric.database.geometry.EPoint;
@@ -33,10 +34,10 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -48,8 +49,14 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import static com.sun.electric.database.text.ArrayIterator.i2i;
-import com.sun.electric.database.variable.*;
+import com.sun.electric.database.variable.DisplayedText;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.variable.EvalJython;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
@@ -113,7 +120,11 @@ import com.sun.electric.tool.sc.Place;
 import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.CompileVHDL;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.FillGenDialog;
 import com.sun.electric.tool.user.dialogs.LanguageScripts;
@@ -127,7 +138,6 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
-import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -374,12 +384,7 @@ public class ToolMenu
 		        new EMenuItem("Write _FastHenry Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.FASTHENRY, true); }},
 		        new EMenuItem("Fast_Henry Arc Properties...") { public void run() {
-                    FastHenryArc.showFastHenryArcDialog(); }},
-                SEPARATOR,
-		        new EMenuItem("Write _ArchSim Deck...") { public void run() {
-                    FileMenu.exportCommand(FileType.ARCHSIM, true); }},
-		        new EMenuItem("Display ArchSim _Journal...") { public void run() {
-                    Simulate.plotArchSimResults(); }}),
+                    FastHenryArc.showFastHenryArcDialog(); }}),
 
 		//------------------- ERC
 
