@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: Pst3202.java
- * Written by ac147373, Sun Microsystems.
+ * Written by Ajanta Chakraborty, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

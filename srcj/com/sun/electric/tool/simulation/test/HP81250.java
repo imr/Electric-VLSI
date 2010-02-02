@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: HP81250.java
- * Written by ac147373, Sun Microsystems.
+ * Written by Ajanta Chakraborty, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
