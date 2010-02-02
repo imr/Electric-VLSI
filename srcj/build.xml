@@ -322,7 +322,7 @@
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
             <exclude name="**/.nfs*"/>
             <exclude name="apidoc/"/>
-            <exclude name="build.xml" unless="source"/>
+            <exclude name="build.xml"/>
             <exclude name="ChangeLog.txt" unless="source"/>
             <exclude name="classes/" unless="source"/>
             <exclude name="dotClasspath.txt"/>
@@ -377,7 +377,7 @@
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <exclude name="**/.nfs*"/>
             <exclude name="apidoc/"/>
-            <exclude name="build.xml" unless="source"/>
+            <exclude name="build.xml"/>
             <exclude name="ChangeLog.txt" unless="source"/>
             <exclude name="classes/" unless="source"/>
             <exclude name="dotClasspath.txt"/>
