@@ -3,8 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: PIEOptions.java
+ * Written by Stephen Friedman
  *
- * Copyright (c) 2006 Stephen Friedman
+ * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
