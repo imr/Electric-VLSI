@@ -3084,7 +3084,7 @@ public class EditWindow extends JPanel
 		// for stacked NodeInsts, must choose which one
 		Nodable desiredNO = null;
 		List<Nodable> possibleNodables = new ArrayList<Nodable>();
-		Netlist nl = ni.getParent().acquireUserNetlist();
+		Netlist nl = ni.getParent().getNetlist();
 		if (nl == null)
 		{
 			System.out.println("Netlist is not ready");

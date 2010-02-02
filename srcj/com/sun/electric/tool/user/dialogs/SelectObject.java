@@ -175,7 +175,7 @@ public class SelectObject extends EModelessDialog implements DatabaseChangeListe
 	{
 		int [] si = list.getSelectedIndices();
 		if (si.length > 0) highlighter.clear();
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted selection (network information unavailable).  Please try again");
@@ -294,7 +294,7 @@ public class SelectObject extends EModelessDialog implements DatabaseChangeListe
 		{
 			// show all networks
 			what = NETS;
-			Netlist netlist = cell.acquireUserNetlist();
+			Netlist netlist = cell.getNetlist();
 			if (netlist == null)
 			{
 				System.out.println("Sorry, a deadlock aborted selection (network information unavailable).  Please try again");

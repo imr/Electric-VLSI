@@ -1297,7 +1297,7 @@ public class EDIF extends Topology
 					{
 						Connection con = cIt.next();
 						ArcInst ai = con.getArc();
-						if (netlist == null) netlist = cell.acquireUserNetlist();
+						if (netlist == null) netlist = cell.getNetlist();
 						int width = netlist.getBusWidth(ai);
 						if (width > 1) busWidthFound = width; else
 							wireFound = true;

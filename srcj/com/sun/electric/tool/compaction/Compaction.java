@@ -233,7 +233,7 @@ if (--limitLoops <= 0) change = false;
 			// number ports of cell "cell"
 			HashMap<PortProto,Integer> portIndices = new HashMap<PortProto,Integer>();
 			flatIndex = 1;
-			Netlist nl = cell.acquireUserNetlist();
+			Netlist nl = cell.getNetlist();
 			if (nl == null)
 			{
 				System.out.println("Sorry, a deadlock aborted compaction (network information unavailable).  Please try again");
@@ -1090,7 +1090,7 @@ if (--limitLoops <= 0) change = false;
 			}
 
 			// look for unconnected ports and assign new network numbers
-			Netlist nl = ni.getParent().getUserNetlist();
+			Netlist nl = ni.getParent().getNetlist();
 			for(Iterator<PortProto> it = ni.getProto().getPorts(); it.hasNext(); )
 			{
 				PortProto pp = it.next();
@@ -1204,7 +1204,7 @@ if (--limitLoops <= 0) change = false;
 		 */
 		private HashMap<ArcInst,Integer> subCellSmash(Cell topCell, HashMap<PortProto,Integer> portIndices)
 		{
-			Netlist nl = topCell.getUserNetlist();
+			Netlist nl = topCell.getNetlist();
 
 			// first erase the arc node information
 			HashMap<ArcInst,Integer> arcIndices = new HashMap<ArcInst,Integer>();

@@ -779,7 +779,7 @@ public class LETool extends Tool {
          * @param context current context
          */
         public void registerCellsToUniquify(Cell cell, VarContext context) {
-            Netlist netlist = cell.getUserNetlist();
+            Netlist netlist = cell.getNetlist();
 
             for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
                 Nodable no = it.next();
@@ -842,7 +842,7 @@ public class LETool extends Tool {
          * @param context current context
          */
         public void uniquify(Cell cell, VarContext context) {
-            Netlist netlist = cell.getUserNetlist();
+            Netlist netlist = cell.getNetlist();
 
             // top down traversal
             for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {

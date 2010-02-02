@@ -413,7 +413,7 @@ public class Change extends EModelessDialog implements HighlightListener
 		}
 		if (connected)
 		{
-			Netlist netlist = cell.getUserNetlist();
+			Netlist netlist = cell.getNetlist();
 			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = it.next();
@@ -504,7 +504,7 @@ public class Change extends EModelessDialog implements HighlightListener
 				} else if (changeConnected.isSelected())
 				{
 					// replace all connected to this in the cell if requested
-					Netlist netlist = cell.getUserNetlist();
+					Netlist netlist = cell.getNetlist();
 					for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 					{
 						NodeInst lNi = it.next();
@@ -596,7 +596,7 @@ public class Change extends EModelessDialog implements HighlightListener
 					} else if (changeConnected.isSelected())
 					{
 						// replace all connected to this if requested
-						Netlist netlist = cell.getUserNetlist();
+						Netlist netlist = cell.getNetlist();
 						for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 						{
 							ArcInst lAi = it.next();
@@ -1164,7 +1164,7 @@ public class Change extends EModelessDialog implements HighlightListener
 					} else if (changeConnected)
 					{
 						// replace all connected to this in the cell if requested
-						Netlist netlist = cell.getUserNetlist();
+						Netlist netlist = cell.getNetlist();
 						List<NodeInst> others = new ArrayList<NodeInst>();
 						NodeInst newNi = null;
 						if (highlightThese.size() == 1 && highlightThese.get(0) instanceof NodeInst)
@@ -1361,7 +1361,7 @@ public class Change extends EModelessDialog implements HighlightListener
 					{
 						// replace all connected to this if requested
 						List<ArcInst> others = new ArrayList<ArcInst>();
-						Netlist netlist = cell.getUserNetlist();
+						Netlist netlist = cell.getNetlist();
 						for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 						{
 							ArcInst lAi = it.next();
@@ -1467,7 +1467,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			}
 			if (connected)
 			{
-				Netlist netlist = cell.getUserNetlist();
+				Netlist netlist = cell.getNetlist();
 				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = it.next();

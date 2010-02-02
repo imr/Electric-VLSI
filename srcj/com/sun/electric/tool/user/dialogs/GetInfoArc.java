@@ -357,7 +357,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 
 			// load the dialog
 			type.setText(ai.getProto().describe());
-			Netlist netlist = ai.getParent().acquireUserNetlist();
+			Netlist netlist = ai.getParent().getNetlist();
 			int busWidth = 1;
 			String netName = "UNKNOWN";
 			if (netlist != null)

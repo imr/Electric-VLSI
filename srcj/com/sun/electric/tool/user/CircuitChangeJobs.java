@@ -780,7 +780,7 @@ public class CircuitChangeJobs
 			for(ArcInst ai : list)
 			{
 				if (ai.getProto() != Schematics.tech().bus_arc) continue;
-				Netlist netList = ai.getParent().acquireUserNetlist();
+				Netlist netList = ai.getParent().getNetlist();
 				if (netList == null)
 				{
 					System.out.println("Sorry, a deadlock aborted bus ripping (network information unavailable).  Please try again");

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+IMP: (2/2/10, SMR) Converted "Cell.acquireUserNetlist()" and
+     "Cell.getUserNetlist()" to be "Cell.getNetlist()" (Bug #2641).
+
 IMP: (2/2/10, SMR) Removed "build.xml" from packaging (Bug #2640).
 
 IMP: (2/2/10, SMR) Fixed copyright in tool.simulation.test and database.geometry.btree (Bug #2639).

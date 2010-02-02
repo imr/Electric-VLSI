@@ -406,7 +406,7 @@ public class MimicStitch
 		Point2D [] endPts = new Point2D[2];
 		endPts[0] = conn1.getLocation();   endPts[1] = conn2.getLocation();
 		Cell cell = endPi[0].getNodeInst().getParent();
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted mimic-routing (network information unavailable).  Please try again");

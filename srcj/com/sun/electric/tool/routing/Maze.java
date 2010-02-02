@@ -220,7 +220,7 @@ public class Maze
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		if (wnd == null) return;
 
-		Netlist netList = cell.acquireUserNetlist();
+		Netlist netList = cell.getNetlist();
 		if (netList == null)
 		{
 			System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
@@ -279,7 +279,7 @@ public class Maze
 	{
 		if (arcsToRoute.size() == 0)
 		{
-			netList = cell.acquireUserNetlist();
+			netList = cell.getNetlist();
 			Set<Network> nets = new HashSet<Network>();
 			for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
 			{
@@ -296,7 +296,7 @@ public class Maze
 		for(ArcInst ai : arcsToRoute)
 		{
 			// reacquire the netlist for the current configuration
-			netList = cell.acquireUserNetlist();
+			netList = cell.getNetlist();
 
 			// route the unrouted arc
 			Network net = netList.getNetwork(ai, 0);

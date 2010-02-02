@@ -450,7 +450,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (attributes.isSelected() && !hasAttributes) ports.setSelected(true);
 
 		int busWidth = 1;
-		Netlist nl = shownNode.getParent().acquireUserNetlist();
+		Netlist nl = shownNode.getParent().getNetlist();
 		if (nl != null)
 		{
 			if (shownPort != null && shownPort instanceof Export)
@@ -915,7 +915,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		}
 		if (busMembers.isSelected())
 		{
-			Netlist nl = shownNode.getParent().acquireUserNetlist();
+			Netlist nl = shownNode.getParent().getNetlist();
 			int busWidth = nl.getBusWidth((Export)shownPort);
 			List<String> busMessages = new ArrayList<String>();
 			for(int i=0; i<busWidth; i++)

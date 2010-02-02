@@ -421,7 +421,7 @@ public class ViewChanges
 		}
 
 		// connect electrically-equivalent ports
-		Netlist netlist = curCell.acquireUserNetlist();
+		Netlist netlist = curCell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted skeletonization (network information unavailable).  Please try again");

@@ -34,7 +34,7 @@ public class SogRouterAdapter {
 	}
 
 	private List<ArcInst> addUnroutedArcs(Cell cell, List<ToConnect> toConns) {
-		Netlist nl = cell.getUserNetlist();
+		Netlist nl = cell.getNetlist();
 
 		List<ArcInst> unroutedArcs = new ArrayList<ArcInst>();
 		for (ToConnect tc : toConns) {

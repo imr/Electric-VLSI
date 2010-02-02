@@ -288,7 +288,7 @@ public class River
 				Set<Network> nets = wnd.getHighlightedNetworks();
 				if (nets.size() != 0)
 				{
-					Netlist netList = cell.acquireUserNetlist();
+					Netlist netList = cell.getNetlist();
 					if (netList == null)
 					{
 						System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");

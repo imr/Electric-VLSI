@@ -2152,7 +2152,7 @@ public class Connectivity
 					// if not already exported, make the export now
 					if (foundPi == null)
 					{
-						Netlist nl = subCell.acquireUserNetlist();
+						Netlist nl = subCell.getNetlist();
 						Network net = nl.getNetwork(pi);
 						String exportName = null;
 						for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
@@ -4156,7 +4156,7 @@ public class Connectivity
 		// find nodes that touch
 		Rectangle2D bounds = newPoly.getBounds2D();
 		Point2D centerPoint = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-		Netlist nl = newCell.acquireUserNetlist();
+		Netlist nl = newCell.getNetlist();
 		for(Iterator<RTBounds> it = newCell.searchIterator(bounds); it.hasNext(); )
 		{
 			RTBounds geom = it.next();
@@ -5636,7 +5636,7 @@ public class Connectivity
 		for(Export e : generatedExports)
 		{
 			Cell cell = e.getParent();
-			Netlist nl = cell.acquireUserNetlist();
+			Netlist nl = cell.getNetlist();
 			Network net = nl.getNetwork(e, 0);
 			String exportName = null;
 			for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )

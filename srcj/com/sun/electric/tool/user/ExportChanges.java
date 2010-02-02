@@ -112,7 +112,7 @@ public final class ExportChanges
 		public boolean doIt() throws JobException
 		{
 			if (cell == null) return false;
-			Netlist netlist = cell.acquireUserNetlist();
+			Netlist netlist = cell.getNetlist();
 			if (netlist == null)
 			{
 				System.out.println("Sorry, a deadlock aborted your query (network information unavailable).  Please try again");
@@ -473,7 +473,7 @@ public final class ExportChanges
 						netsSeenInCell = new HashSet<Network>();
 						networksSeen.put(higher, netsSeenInCell);
 					}
-					Netlist nl = higher.acquireUserNetlist();
+					Netlist nl = higher.getNetlist();
 					Network net = nl.getNetwork(ni, e, 0);
 					if (net == null) continue;
 					if (netsSeenInCell.contains(net)) continue;
@@ -509,7 +509,7 @@ public final class ExportChanges
 							netsSeenInCell = new HashSet<Network>();
 							networksSeen.put(higher, netsSeenInCell);
 						}
-						Netlist nl = higher.acquireUserNetlist();
+						Netlist nl = higher.getNetlist();
 						Network net = nl.getNetwork(ni, e, 0);
 						if (netsSeenInCell.contains(net)) continue;
 						netsSeenInCell.add(net);

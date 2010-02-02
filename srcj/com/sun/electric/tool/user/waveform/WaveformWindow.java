@@ -2085,7 +2085,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// if no cell in the window, stop now
 		Cell cell = sd.getCell();
 		if (cell == null) return nets;
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
@@ -2605,7 +2605,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			export = (Export)it.next();
 			for (i=0; i<export.getNameKey().busWidth(); i++) {
-				Netlist netlist = childCell.acquireUserNetlist();
+				Netlist netlist = childCell.getNetlist();
 				if (netlist == null)
 				{
 					System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
@@ -2624,7 +2624,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// find corresponding network in parent
 		Cell parentCell = childNodable.getParent();
 		//if (childNodable instanceof NodeInst) childNodable = Netlist.getNodableFor((NodeInst)childNodable, 0);
-		Netlist netlist = parentCell.acquireUserNetlist();
+		Netlist netlist = parentCell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
@@ -3097,7 +3097,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			Cell cell = wnd.getCell();
 			if (cell == null) continue;
 			Highlighter hl = wnd.getHighlighter();
-			Netlist netlist = cell.acquireUserNetlist();
+			Netlist netlist = cell.getNetlist();
 			if (netlist == null)
 			{
 				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
@@ -3242,7 +3242,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		schemWnd.clearCrossProbeLevels();
 
 		Cell cell = getCell();
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");

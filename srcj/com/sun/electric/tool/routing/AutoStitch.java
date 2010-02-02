@@ -900,7 +900,7 @@ name=null;
 						usePortPoly = true;
 						tot = 1;
 					}
-					Netlist subNetlist = rNi.getParent().getUserNetlist();
+					Netlist subNetlist = rNi.getParent().getNetlist();
 					for(int j=0; j<tot; j++)
 					{
 						Layer layer = null;
@@ -1455,7 +1455,7 @@ name=null;
 					} else
 					{
 						// a geometric primitive: look for ports on layers that touch
-						Netlist subNetlist = rNi.getParent().getUserNetlist();
+						Netlist subNetlist = rNi.getParent().getNetlist();
 						for(int j=0; j<tot; j++)
 						{
 							Poly oPoly = polys[j];
@@ -2386,7 +2386,7 @@ name=null;
 
 	private String getExportNameInCell(Cell cell, PortInst pi)
 	{
-		Netlist nl = cell.acquireUserNetlist();
+		Netlist nl = cell.getNetlist();
 		Network net = nl.getNetwork(pi);
 		String exportName = null;
 		for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
@@ -3008,7 +3008,7 @@ name=null;
 
 		StitchingTopology(Cell cell)
 		{
-			netlist = cell.acquireUserNetlist();
+			netlist = cell.getNetlist();
 			if (netlist == null)
 			{
 				System.out.println("Auto-router cannot get netlist information for cell " + cell.describe(false));

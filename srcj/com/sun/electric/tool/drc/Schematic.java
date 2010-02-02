@@ -161,7 +161,7 @@ public class Schematic
     private void checkSchematicCell(Cell cell, boolean justThis, Geometric[] geomsToCheck, ErrorGrouper eg)
     {
         int initialErrorCount = errorLogger.getNumErrors();
-        Netlist netlist = cell.getUserNetlist();
+        Netlist netlist = cell.getNetlist();
 
         // Normal hierarchically geometry
         if (geomsToCheck == null)

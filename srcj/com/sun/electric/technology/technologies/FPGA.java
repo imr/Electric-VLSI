@@ -569,7 +569,7 @@ public class FPGA extends Technology
 		Cell parent = ai.getParent();
 		if (parent != null)
 		{
-			Netlist nl = parent.acquireUserNetlist();
+			Netlist nl = parent.getNetlist();
 			Network net = nl.getNetwork(ni, pp, 0);
 			if (net != null)
 			{

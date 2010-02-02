@@ -284,7 +284,7 @@ public class Routing extends Listener
 		public boolean doIt() throws JobException
 		{
 			// convert requested nets
-			Netlist netList = cell.acquireUserNetlist();
+			Netlist netList = cell.getNetlist();
 			if (netList == null)
 				throw new JobException("Sorry, a deadlock aborted unrouting (network information unavailable).  Please try again");
 			highlightThese = new ArrayList<ArcInst>();
@@ -509,7 +509,7 @@ public class Routing extends Listener
 							// connecting to another port on a node: ignore if they are connected internally
 							if (ni.isCellInstance())
 							{
-								if (nl == null) nl = ((Cell)ni.getProto()).acquireUserNetlist();
+								if (nl == null) nl = ((Cell)ni.getProto()).getNetlist();
 								if (nl == null) continue;
 								Network subNet = nl.getNetwork((Export)pi.getPortProto(), 0);
 								Network otherSubNet = nl.getNetwork((Export)otherPI.getPortProto(), 0);
@@ -740,7 +740,7 @@ public class Routing extends Listener
 	{
 		// make a list of all networks
 		System.out.println("Copying topology of " + fromCell + " to " + toCell);
-		Netlist nl = fromCell.acquireUserNetlist();
+		Netlist nl = fromCell.getNetlist();
 		Map<Network,ArcInst[]> arcMap = null;
 		if (fromCell.getView() != View.SCHEMATIC) arcMap = nl.getArcInstsByNetwork();
 

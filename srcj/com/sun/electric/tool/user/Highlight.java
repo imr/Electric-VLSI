@@ -1247,7 +1247,7 @@ class HighlightEOBJ extends Highlight
                 // it figures out what's connected and adds them manually. Because they are added
                 // in addNetwork, we shouldn't try and add connected objects here.
                 if (highlightConnected && onlyHighlight) {
-                    Netlist netlist = cell.acquireUserNetlist();
+                    Netlist netlist = cell.getNetlist();
 					if (netlist == null) return;
 					NodeInst originalNI = ni;
 		            if (ni.isIconOfParent())

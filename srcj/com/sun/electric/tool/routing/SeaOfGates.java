@@ -67,7 +67,7 @@ public class SeaOfGates
 		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
-		Netlist netList = cell.acquireUserNetlist();
+		Netlist netList = cell.getNetlist();
 		if (netList == null)
 		{
 			System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
@@ -118,7 +118,7 @@ public class SeaOfGates
 	 */
 	public static void seaOfGatesRoute(Cell cell, SeaOfGatesOptions prefs)
 	{
-		Netlist netList = cell.getUserNetlist();
+		Netlist netList = cell.getNetlist();
 
 		Set<Network> netsToRoute = new TreeSet<Network>(new TextUtils.NetworksByName());
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )

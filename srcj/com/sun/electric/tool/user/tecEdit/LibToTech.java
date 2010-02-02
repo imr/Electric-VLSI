@@ -1009,7 +1009,7 @@ public class LibToTech
 	 */
 	private boolean fillPrimitivePorts(Cell np, NodeInfo nIn, Example firstEx, ArcInfo [] aList)
 	{
-		Netlist netList = np.acquireUserNetlist();
+		Netlist netList = np.getNetlist();
 		if (netList == null)
 		{
 			System.out.println("Sorry, a deadlock technology generation (network information unavailable).  Please try again");

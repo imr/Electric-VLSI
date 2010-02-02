@@ -841,7 +841,7 @@ public class ToolMenu
 		System.out.println("  Denominator is the width of transistors on the network");
 		System.out.println("    Separate results are computed for N and P transistors, as well as their sum");
 		System.out.println("-----------------------------------------------------------------------------");
-		Netlist nl = cell.acquireUserNetlist();
+		Netlist nl = cell.getNetlist();
 		for(Iterator<Network> it =  nl.getNetworks(); it.hasNext(); )
 		{
 			Network net = it.next();
@@ -958,7 +958,7 @@ public class ToolMenu
 	{
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell == null) return;
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted netlist display (network information unavailable).  Please try again");
@@ -1025,7 +1025,7 @@ public class ToolMenu
         Highlighter highlighter = wnd.getHighlighter();
 
         Set<Network> nets = highlighter.getHighlightedNetworks();
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
@@ -1119,7 +1119,7 @@ public class ToolMenu
         Highlighter highlighter = wnd.getHighlighter();
 
         Set<Network> nets = highlighter.getHighlightedNetworks();
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
@@ -1150,7 +1150,7 @@ public class ToolMenu
         Highlighter highlighter = wnd.getHighlighter();
 
         Set<Network> nets = highlighter.getHighlightedNetworks();
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
@@ -1195,7 +1195,7 @@ public class ToolMenu
                 {
                     CellUsage u = uIt.next();
                     Cell superCell = u.getParent(database);
-            		Netlist superNetlist = cell.acquireUserNetlist();
+            		Netlist superNetlist = cell.getNetlist();
             		if (superNetlist == null)
             		{
             			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
@@ -1244,7 +1244,7 @@ public class ToolMenu
                     if (listedExports.contains(pp)) continue;
                     listedExports.add(pp);
                     System.out.println("    Export " + pp.getName() + " in " + subCell);
-            		Netlist subNetlist = subCell.acquireUserNetlist();
+            		Netlist subNetlist = subCell.getNetlist();
             		if (subNetlist == null)
             		{
             			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");
@@ -1290,7 +1290,7 @@ public class ToolMenu
         Cell cell = wnd.getCell();
         if (cell == null) return;
         wnd.clearHighlighting();
-        Netlist nl = cell.acquireUserNetlist();
+        Netlist nl = cell.getNetlist();
 		Map<Network,ArcInst[]> arcMap = null;
 		if (cell.getView() != View.SCHEMATIC) arcMap = nl.getArcInstsByNetwork();
         int colors = nl.getNumNetworks();
@@ -1589,7 +1589,7 @@ public class ToolMenu
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted query (network information unavailable).  Please try again");

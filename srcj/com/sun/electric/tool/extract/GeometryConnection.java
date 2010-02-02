@@ -58,7 +58,7 @@ public class GeometryConnection
         AffineTransform rTransI = cellB.rotateIn(cellB.translateIn());
         AffineTransform cellUp = cellB.transformOut();
         DBMath.transformRect(cellBounds, rTransI);
-        Netlist topNetlist = cellA.getParent().acquireUserNetlist();
+        Netlist topNetlist = cellA.getParent().getNetlist();
 
         if (cellB.isCellInstance() && cellA.isCellInstance())
         {
@@ -79,7 +79,7 @@ public class GeometryConnection
                         cellBProto.getNetlist(), topNetlist);
                 HierarchyEnumerator.enumerateCell(cellA.getParent(), VarContext.globalContext, check);
 //                HierarchyEnumerator.enumerateCell(cellA.getParent(), VarContext.globalContext,
-//                        NetworkTool.acquireUserNetlist(cellA.getParent()),
+//                        NetworkTool.getNetlist(cellA.getParent()),
 //                        check);
                 if (check.found) return true;
                 }

@@ -4008,21 +4008,21 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         netCellRef = USE_WEAK_REFERENCES ? new WeakReference<NetCell>(netCell) : new SoftReference<NetCell>(netCell);
     }
 
-    /** Returns the Netlist structure for this Cell, using current network options.
-     * Waits for completion of change Job when called from GUI thread
-     * @return the Netlist structure for this cell.
-     */
-    public Netlist getUserNetlist() {
-        return getNetlist();
-    }
-
-    /** Returns the Netlist structure for this Cell, using current network options.
-     * Returns null if change Job hasn't prepared GUI Netlist
-     * @return the Netlist structure for this cell.
-     */
-    public Netlist acquireUserNetlist() {
-        return getNetlist();
-    }
+//    /** Returns the Netlist structure for this Cell, using current network options.
+//     * Waits for completion of change Job when called from GUI thread
+//     * @return the Netlist structure for this cell.
+//     */
+//    public Netlist getUserNetlist() {
+//        return getNetlist();
+//    }
+//
+//    /** Returns the Netlist structure for this Cell, using current network options.
+//     * Returns null if change Job hasn't prepared GUI Netlist
+//     * @return the Netlist structure for this cell.
+//     */
+//    public Netlist acquireUserNetlist() {
+//        return getNetlist();
+//    }
 
     /****************************** DATES ******************************/
     /**

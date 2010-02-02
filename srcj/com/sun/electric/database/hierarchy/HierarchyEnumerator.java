@@ -867,7 +867,7 @@ public final class HierarchyEnumerator {
      * during the enumertion of the design hierarchy. */
 //	public static void enumerateCell(Cell root, VarContext context,
 //	                                 Netlist netlist, Visitor visitor) {
-//		if (netlist == null) netlist = NetworkTool.getUserNetlist(root);
+//		if (netlist == null) netlist = NetworkTool.getNetlist(root);
 //		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, false, false, false, false);
 //	}
     public static void enumerateCell(Cell root, VarContext context, Visitor visitor) {
@@ -940,7 +940,7 @@ public final class HierarchyEnumerator {
             pp = pi.getPortProto();
             for (i = 0; i < pp.getNameKey().busWidth(); i++) {
                 Network net = parentNetlist.getNetwork(childNodable, pp, i);
-//                Network net = childNodable.getParent().getUserNetlist().getNetwork(childNodable, pp, i);
+//                Network net = childNodable.getParent().getNetlist().getNetwork(childNodable, pp, i);
                 if (net == parentNet) {
                     found = true;
                     break;
@@ -959,7 +959,7 @@ public final class HierarchyEnumerator {
         }
         Export export = childCell.findExport(pp.getNameKey());
         Network childNet = childNetlist.getNetwork(export, i);
-//        Network childNet = childCell.getUserNetlist().getNetwork(export, i);
+//        Network childNet = childCell.getNetlist().getNetwork(export, i);
         return childNet;
     }
 

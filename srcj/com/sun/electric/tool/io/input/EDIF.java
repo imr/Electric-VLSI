@@ -706,7 +706,7 @@ public class EDIF extends Input
 		// put names on named arcs
 		for(Cell cell : namedArcs.keySet())
 		{
-			Netlist nl = cell.acquireUserNetlist();
+			Netlist nl = cell.getNetlist();
 			Map<String,List<ArcInst>> arcsInCell = namedArcs.get(cell);
 			Map<ArcInst,String> arcsToName = new HashMap<ArcInst,String>();
 			for(String name : arcsInCell.keySet())
@@ -3684,7 +3684,7 @@ public class EDIF extends Input
 					if (ni == null)
 					{
 						// might be an instance of an arrayed node
-						for(Iterator<Nodable> nIt = curCell.acquireUserNetlist().getNodables(); nIt.hasNext(); )
+						for(Iterator<Nodable> nIt = curCell.getNetlist().getNodables(); nIt.hasNext(); )
 						{
 							Nodable oNo = nIt.next();
 							if (oNo.getName().equalsIgnoreCase(nodeName))
@@ -3952,7 +3952,7 @@ public class EDIF extends Input
 //			if (keyStack[keyStackDepth-1] == KPORTLIST && curPortlist != null)
 //			{
 //				// TODO finish
-//				Netlist nl = curCell.acquireUserNetlist();
+//				Netlist nl = curCell.getNetlist();
 //				Network net;
 //				if (no != null)
 //				{

@@ -434,7 +434,7 @@ public class SeaOfGatesEngine
 		{
 			// get list of PortInsts that comprise this net
 			ArcInst ai = arcsToRoute.get(b);
-			Netlist netList = cell.getUserNetlist();
+			Netlist netList = cell.getNetlist();
 			Network net = netList.getNetwork(ai, 0);
 			if (net == null)
 			{
@@ -1108,7 +1108,7 @@ public class SeaOfGatesEngine
 	 */
 	private void addBlockagesAtPorts(List<ArcInst> arcsToRoute, SeaOfGates.SeaOfGatesOptions prefs)
 	{
-		Netlist netList = cell.getUserNetlist();
+		Netlist netList = cell.getNetlist();
 		Map<Network,ArcInst[]> arcMap = null;
 		if (cell.getView() != View.SCHEMATIC) arcMap = netList.getArcInstsByNetwork();
 

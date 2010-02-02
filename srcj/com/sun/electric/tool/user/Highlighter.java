@@ -322,7 +322,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public void addNetwork(Network net, Cell cell)
 	{
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted highlighting (network information unavailable).  Please try again");
@@ -346,7 +346,7 @@ public class Highlighter implements DatabaseChangeListener {
     public void showNetworks(Cell cell)
     {
     	// find out what is selected
-		Netlist netlist = cell.acquireUserNetlist();
+		Netlist netlist = cell.getNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted netlist display (network information unavailable).  Please try again");
@@ -929,7 +929,7 @@ public class Highlighter implements DatabaseChangeListener {
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell != null)
 		{
-			Netlist netlist = cell.acquireUserNetlist();
+			Netlist netlist = cell.getNetlist();
 			if (netlist == null)
 			{
 				String msg = "Selected networks are not ready";

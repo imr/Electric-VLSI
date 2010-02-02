@@ -672,7 +672,7 @@ public class ClickZoomWireListener
 	                if (interactiveDRCDrag && selected.size() == 1)
 	                {
 	                	Geometric g = selected.get(0);
-	                	Netlist nl = g.getParent().acquireUserNetlist();
+	                	Netlist nl = g.getParent().getNetlist();
 	                	if (g instanceof ArcInst)
 	                	{
 	                		ArcInst ai = (ArcInst)g;
