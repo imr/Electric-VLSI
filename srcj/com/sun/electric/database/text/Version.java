@@ -144,7 +144,7 @@ public class Version implements Comparable<Version>, Serializable {
      * @return Sun Microsystems and Static Free Software
      */
     public static String getCopyrightInformation() {
-        return "Copyright (c) 2009 Sun Microsystems and Static Free Software";
+        return "Copyright (c) 2010 Sun Microsystems and Static Free Software";
     }
 
     /**

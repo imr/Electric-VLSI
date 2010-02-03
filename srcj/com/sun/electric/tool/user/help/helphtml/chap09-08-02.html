@@ -136,7 +136,7 @@ The metal arcs can all be located in the same cell or distributed in different c
 If the arcs are in different cells, the tool will flatten all cells into one with all the signals.
 Networks are matched by name up to the first "_" character.
 For example, arcs in the networks "<i>Vdd_1</i>" and "<i>Vdd_2</i>" will be stitched together.
-The tool also allows you to stitch cell instances without flatting them; it will use the cell exports
+The tool also allows you to stitch cell instances without flattening them; it will use the cell exports
 for the stitching process instead.
 This is the typical case for cells containing cap transistors.
 <p>
@@ -152,16 +152,19 @@ It also has the advantage of being easy to re-run when the fill operation must b
 Each line in the documentation cell follows the syntax below:
 
 <CENTER><TABLE><TR><TD>
-    <i> fillCellName (&lt; options &gt;) : cell1(&lt; option &gt;) cell2(&lt; option &gt;) ... cellN(&lt; option &gt;) </i>
+    <i> fillCellName (&lt; options &gt;) : cell1(&lt; option &gt;) cell2(&lt; option &gt;) ... cellN(&lt; option &gt;) </i><BR>
+    <i> @exports = {layerName1, layerName2} </i>
 </TD></TR></TABLE></CENTER>
-
 <p>
 Where <i>option(s)</i> can be "W" and/or a sequence of title sizes (e.g. 2x2, 4x4, 3x4).
 The option "W" allows the insertion of exports in the middle of the lowest metal arcs and
-different tile sizes can be arrayed depeding on the area to cover.
+different tile sizes can be arrayed depending on the area to cover.
 <p>
-By default all input cells are flatted unless <i>option</i> is "I".
-In that case, the input cell will be instantiated instead of being flatted in the fill cell.
+By default all input cells are flattened unless <i>option</i> is "I".
+In that case, the input cell will be instantiated instead of being flattened in the fill cell.
+<P>
+The <I>@exports</I> line specifies that exports in the generated cells should use only the layers specified.
+If this directive is not present, exports are in the two top layers.
 <!-- NEED 5in -->
 <P>
 Here is an example:

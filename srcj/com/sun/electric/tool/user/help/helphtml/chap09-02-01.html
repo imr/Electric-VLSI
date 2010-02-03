@@ -2,9 +2,16 @@
 
 <!-- COMMAND Tools/DRC/Check Hierarchically -->
 <!-- COMMAND Tools/DRC/Check Selection Hierarchically -->
+<!-- COMMAND Tools/DRC/Add Skip Annotation to Cell -->
 
 There are three built-in design-rule checkers: <I>incremental</I>, <I>hierarchical</I>,
 and <I>schematic</I>.
+After analysis of the circuit,
+you can review the errors by typing "&gt;" and "&lt;" to step to the next and previous error that was found.
+You can also see a list of errors in the cell explorer (see <A HREF="chap04-05-02.html#chap04-05-02">Section 4-5-2</A>).
+
+<P>
+<H4>Incremental DRC</H4>
 <P>
 The incremental design-rule checker is always running, examining your layout,
 and issuing error messages when an error is detected.
@@ -12,10 +19,22 @@ It checks only the current cell, and does not consider the contents of cell inst
 lower in the hierarchy.
 It therefore offers an instant analysis, but not a complete one.
 <P>
+The incremental DRC also shows simple design-rules violations when a node or arc is being moved.
+See <A HREF="chap02-04-01.html#chap02-05-01">Section 2-4-1</A> for more on this.
+<P>
+<H4>Hierarchical DRC</H4>
+<P>
 The hierarchical design-rule checker uses the same rules and techniques as the incremental checker,
 but it checks all levels of hierarchy below the current cell.
 To run it, use the <B>Check Hierarchically</B> command (in menu <B>Tools / DRC</B>).
 To check only a selected subset of the current cell, use <B>Check Selection Hierarchically</B>.
+<P>
+When checking hierarchically, it may be the case that a cell is not designed to be checked in isolation,
+but must have higher levels of the hierarchy considered.
+For example, notches in the well areas may be covered at higher levels of hierarchy.
+When this happens, tell the DRC to ignore the cell by using the command <B>Add Skip Annotation to Cell</B>.
+<P>
+<H4>Schematic DRC</H4>
 <P>
 The schematic design-rule checker looks for issues that make drawing or editing of the cell difficult.
 These are the errors that is finds:
@@ -41,9 +60,5 @@ These are the errors that is finds:
     </UL>
   </LI>
 </OL>
-<P>
-After analysis of the circuit,
-you can review the errors by typing "&gt;" and "&lt;" to step to the next and previous error that was found.
-You can also see a list of errors in the cell explorer (see <A HREF="chap04-05-02.html#chap04-05-02">Section 4-5-2</A>).
 
 <!-- TRAILER -->
