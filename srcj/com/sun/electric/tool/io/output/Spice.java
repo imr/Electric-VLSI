@@ -2388,7 +2388,7 @@ public class Spice extends Topology
 	 * Since the Spice netlister should write a separate copy of schematic cells for each icon,
 	 * this override returns true.
 	 */
-	protected boolean writeCopyForEachIcon() { return true; }
+	protected boolean isWriteCopyForEachIcon() { return false; }
 
     /**
      * Method called when a cell is skipped.

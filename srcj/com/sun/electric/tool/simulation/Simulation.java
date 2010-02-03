@@ -1235,6 +1235,11 @@ public class Simulation extends Tool
     public static boolean getVerilogParameterizeModuleNames() { return cacheVerilogParameterizeModuleNames.getBoolean(); }
     public static boolean getFactoryVerilogParameterizeModuleNames() { return cacheVerilogParameterizeModuleNames.getBooleanFactoryValue(); }
 
+    private static Pref cacheVerilogWriteModuleForEachIcon = Pref.makeBooleanPref("VerilogWriteModuleForEachIcon", tool.prefs, false);
+    public static void setVerilogWriteModuleForEachIcon(boolean b) { cacheVerilogWriteModuleForEachIcon.setBoolean(b); }
+    public static boolean isVerilogWriteModuleForEachIcon() { return cacheVerilogWriteModuleForEachIcon.getBoolean(); }
+    public static boolean isFactoryVerilogWriteModuleForEachIcon() { return cacheVerilogWriteModuleForEachIcon.getBooleanFactoryValue(); }
+
     private static Pref cacheVerilogRunPlacementTool = Pref.makeBooleanPref("cacheVerilogRunPlacementTool", tool.prefs, false);
     public static void setVerilogRunPlacementTool(boolean b) { cacheVerilogRunPlacementTool.setBoolean(b); }
     public static boolean getVerilogRunPlacementTool() { return cacheVerilogRunPlacementTool.getBoolean(); }

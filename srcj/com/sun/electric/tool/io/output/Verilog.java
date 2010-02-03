@@ -209,6 +209,7 @@ public class Verilog extends Topology
         // Verilog factory Prefs
 		public boolean stopAtStandardCells = Simulation.getFactoryVerilogStopAtStandardCells();
 		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
+		public boolean writeModuleForEachIcon = Simulation.isFactoryVerilogWriteModuleForEachIcon();
         public Map<Cell,String> modelFiles = Collections.emptyMap();
 
         // Verilog ouput preferences need VerilogInputPreferences in case of doc cells with Verilog code
@@ -227,6 +228,7 @@ public class Verilog extends Topology
             // Verilog current Prefs
 			stopAtStandardCells = Simulation.getVerilogStopAtStandardCells();
 			parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
+			writeModuleForEachIcon = Simulation.isVerilogWriteModuleForEachIcon();
             modelFiles = CellModelPrefs.verilogModelPrefs.getUnfilteredFileNames(EDatabase.clientDatabase());
 		}
 
@@ -377,7 +379,7 @@ public class Verilog extends Topology
 	 * Since the Verilog netlister should write a separate copy of schematic cells for each icon,
 	 * this override returns true.
 	 */
-	protected boolean writeCopyForEachIcon() { return false; }
+	protected boolean isWriteCopyForEachIcon() { return localPrefs.writeModuleForEachIcon; }
 
 	/**
 	 * Method to write cellGeom

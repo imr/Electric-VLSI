@@ -64,6 +64,7 @@ public class VerilogTab extends PreferencePanel
 		preserveVerilogFormatting.setSelected(Simulation.getPreserveVerilogFormating());
 		parameterizeModuleNames.setSelected(Simulation.getVerilogParameterizeModuleNames());
         runPlacement.setSelected(Simulation.getVerilogRunPlacementTool());
+        writeModuleForEachIcon.setSelected(Simulation.isVerilogWriteModuleForEachIcon());
 
         // project preferences
 		verUseAssign.setSelected(getBoolean(verilogUseAssignSetting));
@@ -81,6 +82,7 @@ public class VerilogTab extends PreferencePanel
 		Simulation.setPreserveVerilogFormating(preserveVerilogFormatting.isSelected());
 		Simulation.setVerilogParameterizeModuleNames(parameterizeModuleNames.isSelected());
 		Simulation.setVerilogRunPlacementTool(runPlacement.isSelected());
+		Simulation.setVerilogWriteModuleForEachIcon(writeModuleForEachIcon.isSelected());
 
 		// project preferences
         setBoolean(verilogUseAssignSetting, verUseAssign.isSelected());
@@ -101,6 +103,8 @@ public class VerilogTab extends PreferencePanel
 			Simulation.setVerilogParameterizeModuleNames(Simulation.getFactoryVerilogParameterizeModuleNames());
 		if (Simulation.getFactoryVerilogRunPlacementTool() != Simulation.getVerilogRunPlacementTool())
 			Simulation.setVerilogRunPlacementTool(Simulation.getFactoryVerilogRunPlacementTool());
+		if (Simulation.isFactoryVerilogWriteModuleForEachIcon() != Simulation.isVerilogWriteModuleForEachIcon())
+			Simulation.setVerilogWriteModuleForEachIcon(Simulation.isFactoryVerilogWriteModuleForEachIcon());
     }
 
 	/** This method is called from within the constructor to
@@ -120,6 +124,7 @@ public class VerilogTab extends PreferencePanel
         stopAtStandardCells = new javax.swing.JCheckBox();
         preserveVerilogFormatting = new javax.swing.JCheckBox();
         parameterizeModuleNames = new javax.swing.JCheckBox();
+        writeModuleForEachIcon = new javax.swing.JCheckBox();
         projectSettings = new javax.swing.JPanel();
         verDefWireTrireg = new javax.swing.JCheckBox();
         verUseAssign = new javax.swing.JCheckBox();
@@ -196,6 +201,20 @@ public class VerilogTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         outputPanel.add(parameterizeModuleNames, gridBagConstraints);
 
+        writeModuleForEachIcon.setText("Write Separate Module for each Icon");
+        writeModuleForEachIcon.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        writeModuleForEachIcon.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                writeModuleForEachIconActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        outputPanel.add(writeModuleForEachIcon, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -253,6 +272,10 @@ public class VerilogTab extends PreferencePanel
         // TODO add your handling code here:
     }//GEN-LAST:event_runPlacementActionPerformed
 
+    private void writeModuleForEachIconActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_writeModuleForEachIconActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_writeModuleForEachIconActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel inputPanel;
     private javax.swing.JSeparator jSeparator1;
@@ -265,6 +288,7 @@ public class VerilogTab extends PreferencePanel
     private javax.swing.JCheckBox stopAtStandardCells;
     private javax.swing.JCheckBox verDefWireTrireg;
     private javax.swing.JCheckBox verUseAssign;
+    private javax.swing.JCheckBox writeModuleForEachIcon;
     // End of variables declaration//GEN-END:variables
 
 }
