@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.PrefPackage;
@@ -205,6 +206,12 @@ public class ERCWellCheck
 		Cell curCell = ui.needCurrentCell();
 		if (curCell == null) return;
 
+		View view = curCell.getView();
+		if (view.isTextView() || view == View.SCHEMATIC || view == View.ICON)
+		{
+			System.out.println("Sorry, Well checking runs only on layout cells");
+			return;
+		}
 		new WellCheckJob(curCell, newAlgorithm, new WellCheckPreferences(false));
 	}
 
@@ -346,6 +353,7 @@ public class ERCWellCheck
 //		int errorCount = doOldWay();
 		int errorCount = doNewWay();
 		showStatistics();
+
 		// report the number of errors found
 		long endTime = System.currentTimeMillis();
 		if (errorCount == 0)
