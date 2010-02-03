@@ -425,7 +425,7 @@ public class PlacementFrame
 	public Cell doPlacement(Cell cell, Placement.PlacementPreferences prefs)
 	{
 		// get network information for the Cell
-		Netlist netList = cell.acquireUserNetlist();
+		Netlist netList = cell.getNetlist();
 		if (netList == null)
 		{
 			System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
