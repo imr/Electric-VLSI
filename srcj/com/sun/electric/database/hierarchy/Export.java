@@ -386,17 +386,38 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         setD(d.withName(newNameKey), true);
         //       parent.notifyRename(false);
 
-        // rename associated export in icon, if any
-        Cell iconCell = parent.iconView();
-        if ((iconCell != null) && (iconCell != parent)) {
-            for (Iterator<Export> it = iconCell.getExports(); it.hasNext();) {
-                Export pp = it.next();
-                if (pp.getName().equals(oldName.toString())) {
-                    pp.rename(newName);
-                    break;
-                }
-            }
+        // rename associated export in icons, if any
+        if (parent.getView() == View.SCHEMATIC)
+        {
+	        for(Iterator<Cell> cIt = parent.getCellGroup().getCells(); cIt.hasNext(); )
+	        {
+	        	Cell iconCell = cIt.next();
+	        	if (iconCell.getView() != View.ICON) continue;
+	            for (Iterator<Export> it = iconCell.getExports(); it.hasNext();)
+	            {
+	                Export pp = it.next();
+	                if (pp.getName().equals(oldName.toString()))
+	                {
+	                    pp.rename(newName);
+	                    break;
+	                }
+	            }
+	        }
         }
+
+//        Cell iconCell = parent.iconView();
+//        if (iconCell != null && iconCell != parent)
+//        {
+//            for (Iterator<Export> it = iconCell.getExports(); it.hasNext();)
+//            {
+//                Export pp = it.next();
+//                if (pp.getName().equals(oldName.toString()))
+//                {
+//                    pp.rename(newName);
+//                    break;
+//                }
+//            }
+//        }
     }
 
     /**

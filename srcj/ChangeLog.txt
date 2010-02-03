@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/3/10, SMR) Renaming schematic exports should rename ALL icon exports (Bug #2644).
+FIX: Fixed in Export.rename().
+
 BUG: (2/3/10, SMR) Verilog netlisting emits strange module names (Bug #2631).
 FIX: Added a Verilog Preference "Write Separate Module for each Icon" which is
      FALSE by default (the old behavior).  Also fixed strange cell names
