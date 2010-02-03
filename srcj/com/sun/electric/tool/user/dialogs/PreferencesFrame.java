@@ -33,7 +33,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.CellModelPrefs;
-import com.sun.electric.tool.ncc.Pie;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -278,16 +277,6 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new FastHenryTab(parent, true), toolSet);
 		addTreeNode(new LogicalEffortTab(this, true), toolSet);
 		addTreeNode(new NCCTab(parent, true), toolSet);
-		if (Pie.hasPie())
-		{
-			try
-			{
-				Class pTab = Class.forName("com.sun.electric.plugins.pie.ui.PIETab");
-				Constructor tab = pTab.getDeclaredConstructor(new Class[]{Frame.class, boolean.class});
-				addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, Boolean.TRUE}), toolSet);
-			}
-			catch (Exception ex) { /* do nothing */ };
-		}
 		addTreeNode(new NetworkTab(this, true), toolSet);
 		addTreeNode(new ParasiticTab(this, true), toolSet);
 		addTreeNode(new PlacementTab(parent, true), toolSet);
