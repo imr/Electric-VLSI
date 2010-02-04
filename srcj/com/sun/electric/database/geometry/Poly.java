@@ -160,6 +160,7 @@ public class Poly extends PolyBase {
 	 */
 	public void setDisplayedText(DisplayedText dt) { this.dt = dt; }
 
+private static final boolean NEWWAY = true;
 	/**
 	 * Method to transformed the points in this Poly.
 	 * @param af transformation to apply.
@@ -170,7 +171,7 @@ public class Poly extends PolyBase {
 		if (af.getType() == AffineTransform.TYPE_IDENTITY) return;
 
 		// special case for text
-		if (getStyle().isText() && descript != null)
+		if (!NEWWAY && getStyle().isText() && descript != null)
 		{
 			// for quadrant rotations, rotate the text angle too
 			if ((af.getType() & AffineTransform.TYPE_QUADRANT_ROTATION) != 0)

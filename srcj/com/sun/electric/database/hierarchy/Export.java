@@ -503,7 +503,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         setCharacteristic(other.getCharacteristic());
     }
 
-    private static final boolean NEWWAY = true;
+    private static final boolean NEWWAY = false;
 
     /****************************** GRAPHICS ******************************/
     /**

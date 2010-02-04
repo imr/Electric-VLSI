@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
@@ -125,6 +126,8 @@ public class CircuitChangeJobs
 			this.highs = highs;
 			startJob();
 		}
+
+private static final boolean NEWWAY = true;
 
 		public boolean doIt() throws JobException
 		{
@@ -237,9 +240,37 @@ public class CircuitChangeJobs
 			for (Geometric geom : markObj) {
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
+				boolean wasMirroredInX = ni.isMirroredAboutXAxis();
+				boolean wasMirroredInY = ni.isMirroredAboutYAxis();
 				trans.transform(ni.getAnchorCenter(), tmpPt1);
 				ni.rotate(dOrient);
 				ni.move(tmpPt1.getX() - ni.getAnchorCenterX(), tmpPt1.getY() - ni.getAnchorCenterY());
+
+				if (NEWWAY)
+				{
+					// rotate any exports on the node
+					for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
+					{
+						Export e = it.next();
+						TextDescriptor td = e.getTextDescriptor(Export.EXPORT_NAME);
+						Poly.Type oldType = td.getPos().getPolyType();
+						if (oldType == Poly.Type.TEXTCENT || oldType == Poly.Type.TEXTBOX) continue;
+
+						// determine change in angle because of node rotation
+						int origAngle = oldType.getTextAngle();
+						if (wasMirroredInX != wasMirroredInY && ((origAngle%1800) == 0 || (origAngle%1800) == 1350))
+							origAngle += 1800;
+						AffineTransform dTrans = dOrient.pureRotate();
+						Point2D pt = new Point2D.Double(100, 0);
+						dTrans.transform(pt, pt);
+						int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
+						int angle = (origAngle + xAngle) % 3600;
+						Poly.Type newType = Poly.Type.getTextTypeFromAngle(angle);
+						TextDescriptor.Position newPos = TextDescriptor.Position.getPosition(newType);
+//System.out.println("ROTATED TEXT ANCHOR FROM "+oldType.name()+" TO "+newType.name()+" AND NEW POSITION IS "+newPos.toString());
+						e.setTextDescriptor(Export.EXPORT_NAME, td.withPos(newPos));
+					}
+				}
 			}
 
 			// Rotate arcs in markObj

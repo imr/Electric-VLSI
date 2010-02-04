@@ -805,7 +805,8 @@ public class VectorCache {
                 Rectangle2D rect = (Rectangle2D) poly.getBounds2D().clone();
                 TextDescriptor descript = poly.getTextDescriptor();
                 Poly.Type style = descript.getPos().getPolyType();
-                style = Poly.rotateType(style, e.getOriginalPort().getNodeInst());
+//                style = Poly.rotateType(style, e.getOriginalPort().getNodeInst());
+                style = Poly.rotateType(style, e);
                 VectorText vt = new VectorText(poly.getBounds2D(), style, descript, e.getName(), VectorText.TEXTTYPEEXPORT, e, null);
                 topOnlyShapes.add(vt);
 

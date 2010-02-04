@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.placement;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
@@ -36,13 +37,13 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.Variable.Key;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -90,12 +91,12 @@ public class PlacementFrame
 	 * When you create a new algorithm, add it to the following list.
 	 */
 	private static PlacementFrame [] placementAlgorithms = {
-//		new Team2SimulatedAnnealing(),
-//		new Team3GeneticPlacement(),
-//		new Team4Genetic(),
-//		new PlacementForceDirected(),
-//		new Team6SimulatedAnnealing(),
-//		new Team7ForceDirected(),
+//		new SimulatedAnnealing(),				// team 2
+//		new GeneticPlacement(),					// team 3
+//		new PlacementGenetic(),					// team 4
+//		new PlacementForceDirected(),			// team 5
+//		new PlacementSimulatedAnnealing(),		// team 6
+//		new PlacementForceDirectedStaged(),		// team 7
 		new PlacementMinCut(),
 		new PlacementSimple(),
 		new PlacementRandom()
@@ -139,6 +140,10 @@ public class PlacementFrame
 		private double xPos, yPos;
 		private Orientation orient;
 		private Map<Key,Object> addedVariables;
+		private Object userObject;
+
+		public Object getUserObject() { return userObject; }
+		public void setUserObject(Object obj) { userObject = obj; }
 
 		/**
 		 * Method to create a PlacementNode object.
@@ -243,7 +248,7 @@ public class PlacementFrame
 		 * @return the technology-specific information of this PlacementNode
 		 * (typically 0 except for specialized Schematics components).
 		 */
-		int getTechBits() { return techBits; }
+		public int getTechBits() { return techBits; }
 
 		public String toString()
 		{
@@ -640,31 +645,33 @@ public class PlacementFrame
 			Export.newInstance(newCell, portToExport, exportName, plExport.getCharacteristic(), iconParameters);
 		}
 
-//System.out.println("Placement finished, now implementing it with 26,000 arcs (will take 18 minutes)"); int totalArcs = 0;
+		ImmutableArcInst a = Generic.tech().unrouted_arc.getDefaultInst(newCell.getEditingPreferences());
+		long gridExtend = a.getGridExtendOverMin();
 		for(PlacementNetwork plNet : allNetworks)
 		{
-			List<PortInst> portsToConnect = new ArrayList<PortInst>();
+			PlacementPort lastPp = null;  PortInst lastPi = null;  EPoint lastPt = null;
 			for(PlacementPort plPort : plNet.getPortsOnNet())
 			{
-				NodeInst newNi = placedNodes.get(plPort.getPlacementNode());
+				PlacementNode plNode = plPort.getPlacementNode();
+				NodeInst newNi = placedNodes.get(plNode);
 				if (newNi != null)
 				{
-					PortInst newPi = newNi.findPortInstFromProto(plPort.getPortProto());
-					portsToConnect.add(newPi);
+					PlacementPort thisPp = plPort;
+					PortInst thisPi = newNi.findPortInstFromProto(thisPp.getPortProto());
+					EPoint thisPt = new EPoint(plNode.getPlacementX() + plPort.getRotatedOffX(),
+						plNode.getPlacementY() + plPort.getRotatedOffY());
+					if (lastPp != null)
+					{
+						// connect them
+						ArcInst.newInstance(newCell, Generic.tech().unrouted_arc, null, null,
+							lastPi, thisPi, lastPt, thisPt, gridExtend, 0, a.flags);						
+					}
+					lastPp = thisPp;
+					lastPi = thisPi;
+					lastPt = thisPt;
 				}
 			}
-
-			// make the connections
-			for(int i=1; i<portsToConnect.size(); i++)
-			{
-				PortInst lastPi = portsToConnect.get(i-1);
-				PortInst thisPi = portsToConnect.get(i);
-//totalArcs++;
-//if ((totalArcs%500) == 0) System.out.println("ROUTED "+totalArcs+" ARCS");
-				ArcInst.makeInstance(Generic.tech().unrouted_arc, lastPi, thisPi);
-			}
 		}
-//System.out.println("Placement finished, now implementing it (wanted to make "+totalArcs+" arcs)");
 
         long endTime = System.currentTimeMillis();
         System.out.println("\t(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
