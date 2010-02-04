@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/4/10, GVG) NPE in min size layer rule if it didn't exist before (Bug #2647)
+FIX: Detect if the rule existed before trying to remove it from the map.
+
 IMP: (2/3/10, GVG) Remove PIE plugin and any reference to it (Bug #2645).
 
 BUG: (2/3/10, SMR) Renaming schematic exports should rename ALL icon exports (Bug #2644).

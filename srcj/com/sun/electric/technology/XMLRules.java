@@ -273,8 +273,9 @@ public class XMLRules implements DRCRules, Serializable
         XMLRule oldRule = getRule(index, type);
         HashMap<XMLRules.XMLRule,XMLRules.XMLRule> map = matrix[index];
 
-        // Remove old rule first
-        map.remove(oldRule);
+        // Remove old rule first but only if exists
+        if (map != null)
+            map.remove(oldRule);
         XMLRule r = new XMLRule(name, new double[]{value}, type, 0, 0, -1, DRCTemplate.DRCMode.ALL.mode());
         addXMLRule(index, r);
     }
