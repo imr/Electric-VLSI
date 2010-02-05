@@ -28,6 +28,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Client;
 
 import java.awt.geom.Point2D;
 import java.io.BufferedOutputStream;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
+import java.security.SecureRandom;
 
 /**
  * Class to log job activity.
@@ -52,21 +54,41 @@ public class ActivityLogger {
     /** Writer */                       private static PrintWriter out = null;
     /** the output file */              private static String outputFile;
     /** log count */                    private static int loggedCount = 0;
+    private static final SecureRandom random = new SecureRandom();
 
     /**
      * Initialize the Activity Logger
      * @param logMenuActivations true to log menu activations
      * @param logJobs true to log jobs starting
      * @param useTimeStamps true to include time stamps (not recommended, makes file harder to read)
+     * @param enableLog true to enable logging of events in Electric's log file
+     * @param multipleLog true to generate different logfile names
      */
-    public static synchronized void initialize(String fileName, boolean logMenuActivations, boolean logJobs, boolean useTimeStamps) {
+    public static synchronized void initialize(String fileName, boolean logMenuActivations, boolean logJobs,
+                                               boolean useTimeStamps, boolean enableLog, boolean multipleLog) {
         ActivityLogger.logMenuActivations = logMenuActivations;
         ActivityLogger.logJobs = logJobs;
         ActivityLogger.logTimeStamps = useTimeStamps;
 
+        if (!enableLog) return; // nothing to do.
+
+        String dirName = Client.isOSMac() ? System.getProperty("user.home") : System.getProperty("user.dir");
+        outputFile = dirName + File.separator + fileName;
+        File dir = new File(dirName);
+        
         try {
-            outputFile = File.createTempFile(fileName+"-", ".log").getAbsolutePath();
-            FileOutputStream fos = new FileOutputStream(outputFile, false);
+//            outputFile = File.createTempFile(fileName+"-", ".log").getAbsolutePath();
+            if (multipleLog)
+            {
+                long n = random.nextLong();
+                n = (n == Long.MIN_VALUE) ? 0 : Math.abs(n); // to cover corner case
+                outputFile = outputFile+"-"+ n+".log";
+            }
+            else
+                outputFile = outputFile + ".log";
+            File file = new File(outputFile);
+
+            FileOutputStream fos = new FileOutputStream(file);
             BufferedOutputStream bout = new BufferedOutputStream(fos);
             out = new PrintWriter(bout);
             // redirect stderr to the log file
@@ -83,8 +105,11 @@ public class ActivityLogger {
      * Return the name of the log file so we can display it in the
      * messages window once the messages window is open.
      */
-    public static String getLogFileName() {
-        return outputFile;
+    public static String getLoggingInformation() 
+    {
+        if (outputFile != null)
+            return "Electric's log file is " + outputFile + ".\n";
+        return "Logging is disable. Electric must be restarted to resume logging.\n";
     }
 
     /**

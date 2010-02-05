@@ -196,12 +196,12 @@ public final class Main
 
         // The server runs in subprocess
         if (hasCommandLineOption(argsList, "-pipeserver")) {
-            ActivityLogger.initialize("electricserver.log", true, true, true/*false*/);
+            ActivityLogger.initialize("electricserver.log", true, true, true/*false*/, true, false);
             Job.pipeServer(numThreads, loggingFilePath, socketPort);
             return;
         }
 
-        ActivityLogger.initialize("electric", true, true, true/*false*/);
+        ActivityLogger.initialize("electric", true, true, true/*false*/, User.isEnableLog(), User.isMultipleLog());
 
         if (hasCommandLineOption(argsList, "-batch")) {
             //System.setProperty("java.awt.headless", "true");

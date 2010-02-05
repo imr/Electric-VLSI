@@ -84,7 +84,7 @@ public class Crash {
 
     private static EditingPreferences initDatabase() {
         Job.setDebug(true);
-        ActivityLogger.initialize("electricserver.log", true, true, true/*false*/);
+        ActivityLogger.initialize("electricserver.log", true, true, true/*false*/, true, false);
 //        Job.threadSafe = true;
         Pref.forbidPreferences();
         EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialEnvironment());

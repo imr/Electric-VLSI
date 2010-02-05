@@ -3201,7 +3201,45 @@ public class User extends Listener
 	 */
 	public static int getFactoryDisplayStyle() { return cacheDisplayStyle.getIntFactoryValue(); }
 
-	private static Pref cacheErrorLimit = Pref.makeIntServerPref("ErrorLimit", tool.prefs, 0);
+    private static Pref cacheEnableLog = Pref.makeBooleanServerPref("EnableLog", tool.prefs, true);
+	/**
+	 * Method to tell if logging into Electric's logfile is enable..
+	 * The default is true.
+	 * @return true if logging is enable.
+	 */
+	public static boolean isEnableLog() { return cacheEnableLog.getBoolean(); }
+	/**
+	 * Method to enable or disable logging in Electric
+	 * @param log true if logging is enable.
+	 */
+	public static void setEnableLog(boolean log) { cacheEnableLog.setBoolean(log); }
+	/**
+	 * Method to tell if logging into Electric's logfile is enable, by default.
+	 * The default is true.
+	 * @return true if logging is enable, by default.
+	 */
+	public static boolean getFactoryEnableLog() { return cacheEnableLog.getBooleanFactoryValue(); }
+
+    private static Pref cacheMultipleLog = Pref.makeBooleanServerPref("MultipleLog", tool.prefs, false);
+	/**
+	 * Method to tell if multiple logfiles are enable. If yes, an extra suffix will be added and the logfile
+     * name will be Electic-*.log. If not, the logfile will be named Electric.log. The default is false.
+	 * @return true if multiple logging is enable.
+	 */
+	public static boolean isMultipleLog() { return cacheMultipleLog.getBoolean(); }
+	/**
+	 * Method to enable or disable the generation of multiple logfiles.
+	 * @param log true if the generation of multiple logfiles is enable.
+	 */
+	public static void setMultipleLog(boolean log) { cacheMultipleLog.setBoolean(log); }
+	/**
+	 * Method to tell if multiple logfiles are enable, by default.
+	 * The default is false which means Electric.log will will be the filename.
+	 * @return true if multiple logging is enable, by default.
+	 */
+	public static boolean getFactoryMultipleLog() { return cacheMultipleLog.getBooleanFactoryValue(); }
+
+    private static Pref cacheErrorLimit = Pref.makeIntServerPref("ErrorLimit", tool.prefs, 0);
 	/**
 	 * Method to tell the maximum number of errors to log.
 	 * The default is 0, which means that there is no limit.

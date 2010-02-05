@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+IMP/MAN (2/4/10, GVG) electric litters files in my home directory without my permission (Bug #2613)
+Two new user preferences added: (1) to enable logging (2) to generate multiple logs.
+Back to original strategy for logfile paths. See details in Bug #2613.
+
 BUG: (2/4/10, SMR) Exports on rotated nodes draws wrong (Bug #2635).
 FIX: Undid change made for Bug #2622; made PolyBase.rotateType() do nothing;
      made Poly.transform() do no text rotating; and made
