@@ -72,7 +72,7 @@ public abstract class AbstractDrawing {
     }
 
     /**
-     * Notifies about visibilit change
+     * Notifies about visibility change
      * Retruns true if full repaint is necessary
      */
     public boolean visibilityChanged() {

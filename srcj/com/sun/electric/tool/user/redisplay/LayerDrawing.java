@@ -521,7 +521,7 @@ class LayerDrawing {
         public boolean visibilityChanged() {
             assert SwingUtilities.isEventDispatchThread();
             needComposite = true;
-            return false;
+            return true;
         }
 
         @Override
