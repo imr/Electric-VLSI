@@ -297,7 +297,8 @@ public class IRSIM extends Output implements ParasiticGenerator
 						extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, unit, TextUtils.UnitScale.NONE);
 					}
 				}
-                rcValue = TextUtils.parsePostFixNumber(extra, null).doubleValue();
+                rcValue = 0;
+                if (extra.length() > 0) rcValue = TextUtils.parsePostFixNumber(extra, null).doubleValue();
 
                 if (fun.isResistor())
                 {

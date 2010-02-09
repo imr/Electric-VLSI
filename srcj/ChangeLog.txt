@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/9/10, SMR) Crash simulating layout resistors in IRSIM (Bug #2397).
+FIX: In IRSIM.createBucket() handle missing values.
+
 BUG: (2/8/10, SMR) Layer drawing does not update screen when exports visibility changes (Bug #2648).
 FIX: Have LayerDrawing.visibilityChanged() return true instead of false.
 
