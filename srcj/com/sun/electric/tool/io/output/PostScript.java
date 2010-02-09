@@ -1372,6 +1372,10 @@ public class PostScript extends Output
 		double sY = Math.abs(psH.getY() - psL.getY());
 		putPSHeader(HEADERSTRING);
 
+		// set text color
+		Color full = EGraphics.getColorFromIndex(td.getColorIndex());
+		setColor(full);
+
 		boolean changedFont = false;
 		String faceName = null;
 		int faceNumber = td.getFace();
