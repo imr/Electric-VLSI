@@ -73,7 +73,6 @@ public class Project extends Listener
 	        static final Variable.Key PROJPATHKEY   = Variable.newKey("PROJ_path");
 	        static final Variable.Key PROJLIBRARYKEY = Variable.newKey("PROJ_library");
 	        static final String PROJECTFILE = "project.proj";
-            static final IconParameters iconParameters = IconParameters.makeInstance(false);
 
     /** the Project tool. */					private static Project tool = new Project();
 	/** nonzero to ignore broadcast changes */	private static boolean ignoreChanges;
@@ -548,6 +547,7 @@ public class Project extends Listener
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
 		NetworkTool.setInformationOutput(false);
+        IconParameters iconParameters = IconParameters.makeInstance(false);
 		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true, iconParameters);
 		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
