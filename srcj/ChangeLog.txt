@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+IMP: (2/10/10, DN) Move plugins.menus.ScanChainXML into tool.simulation.test .
+
 IMP: (2/10/10, DN) Refactor plugins.sctiming.SCRun into
     tool.simulation.sctiming.SCRunBase and plugins.sctiming.SCRun .
 
