@@ -758,7 +758,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 		}
 	}
 
-private static final boolean NEWWAY = true;
 	/**
 	 * Method to rotate a text Type according to the rotation of the object on which it resides.
 	 * @param origType the original text Type.
@@ -767,7 +766,7 @@ private static final boolean NEWWAY = true;
 	 */
 	public static Poly.Type rotateType(Poly.Type origType, ElectricObject eObj)
 	{
-if (NEWWAY) return origType;
+if (Poly.NEWTEXTTREATMENT) return origType;
 		// centered text does not rotate its anchor
 		if (origType == Poly.Type.TEXTCENT || origType == Poly.Type.TEXTBOX) return origType;
 

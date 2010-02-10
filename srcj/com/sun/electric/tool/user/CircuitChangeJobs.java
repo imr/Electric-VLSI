@@ -127,8 +127,6 @@ public class CircuitChangeJobs
 			startJob();
 		}
 
-private static final boolean NEWWAY = true;
-
 		public boolean doIt() throws JobException
 		{
 			// disallow rotating if lock is on
@@ -237,7 +235,8 @@ private static final boolean NEWWAY = true;
 			Point2D.Double tmpPt1 = new Point2D.Double(), tmpPt2 = new Point2D.Double();
 
 			// Rotate nodes in markObj
-			for (Geometric geom : markObj) {
+			for (Geometric geom : markObj)
+			{
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
 				boolean wasMirroredInX = ni.isMirroredAboutXAxis();
@@ -246,35 +245,28 @@ private static final boolean NEWWAY = true;
 				ni.rotate(dOrient);
 				ni.move(tmpPt1.getX() - ni.getAnchorCenterX(), tmpPt1.getY() - ni.getAnchorCenterY());
 
-				if (NEWWAY)
+				if (Poly.NEWTEXTTREATMENT)
 				{
+					// rotate any text on the node
+					rotateText(ni, NodeInst.NODE_NAME, dOrient, wasMirroredInX==wasMirroredInY);
+					for(Iterator<Variable> it = ni.getParametersAndVariables(); it.hasNext(); )
+					{
+						Variable var = it.next();
+						rotateText(ni, var.getKey(), dOrient, wasMirroredInX==wasMirroredInY);
+					}
+
 					// rotate any exports on the node
 					for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 					{
 						Export e = it.next();
-						TextDescriptor td = e.getTextDescriptor(Export.EXPORT_NAME);
-						Poly.Type oldType = td.getPos().getPolyType();
-						if (oldType == Poly.Type.TEXTCENT || oldType == Poly.Type.TEXTBOX) continue;
-
-						// determine change in angle because of node rotation
-						int origAngle = oldType.getTextAngle();
-						if (wasMirroredInX != wasMirroredInY && ((origAngle%1800) == 0 || (origAngle%1800) == 1350))
-							origAngle += 1800;
-						AffineTransform dTrans = dOrient.pureRotate();
-						Point2D pt = new Point2D.Double(100, 0);
-						dTrans.transform(pt, pt);
-						int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
-						int angle = (origAngle + xAngle) % 3600;
-						Poly.Type newType = Poly.Type.getTextTypeFromAngle(angle);
-						TextDescriptor.Position newPos = TextDescriptor.Position.getPosition(newType);
-//System.out.println("ROTATED TEXT ANCHOR FROM "+oldType.name()+" TO "+newType.name()+" AND NEW POSITION IS "+newPos.toString());
-						e.setTextDescriptor(Export.EXPORT_NAME, td.withPos(newPos));
+						rotateText(e, Export.EXPORT_NAME, dOrient, wasMirroredInX==wasMirroredInY);
 					}
 				}
 			}
 
 			// Rotate arcs in markObj
-			for (Geometric geom : markObj) {
+			for (Geometric geom : markObj)
+			{
 				if (!(geom instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)geom;
 				if (markObj.contains(ai.getHeadPortInst().getNodeInst()))
@@ -287,9 +279,85 @@ private static final boolean NEWWAY = true;
 					tmpPt2.setLocation(ai.getTailLocation());
 				ai.modify(tmpPt1.getX() - ai.getHeadLocation().getX(), tmpPt1.getY() - ai.getHeadLocation().getY(),
 					tmpPt2.getX() - ai.getTailLocation().getX(), tmpPt2.getY() - ai.getTailLocation().getY());
+
+				if (Poly.NEWTEXTTREATMENT)
+				{
+					// rotate any text on the arc
+					rotateText(ai, ArcInst.ARC_NAME, dOrient, !mirror);
+					for(Iterator<Variable> it = ai.getParametersAndVariables(); it.hasNext(); )
+					{
+						Variable var = it.next();
+						rotateText(ai, var.getKey(), dOrient, true);
+					}
+				}
 			}
 
 			return true;
+		}
+
+		/**
+		 * Method to rotate text on an object.
+		 * @param eObj the ElectricObject on which the text resides.
+		 * @param key the Key for the text on the object.
+		 * @param dOrient the amount of rotation.
+		 * @param wasSameMirror true if the L-R mirroring was the same as the U-D mirroring.
+		 */
+		private void rotateText(ElectricObject eObj, Variable.Key key, Orientation dOrient, boolean wasSameMirror)
+		{
+			TextDescriptor td = eObj.getTextDescriptor(key);
+			Poly.Type oldType = td.getPos().getPolyType();
+			if (oldType == Poly.Type.TEXTCENT || oldType == Poly.Type.TEXTBOX) return;
+
+			AffineTransform dTrans = dOrient.pureRotate();
+			Poly.Type newType = oldType;
+			if (dOrient == Orientation.X)
+			{
+				// mirror X (left-right)
+				oldType = oldType.rotateTextAnchorIn(td.getRotation());
+				if (oldType == Poly.Type.TEXTLEFT) oldType = Poly.Type.TEXTRIGHT; else
+				if (oldType == Poly.Type.TEXTRIGHT) oldType = Poly.Type.TEXTLEFT; else
+				if (oldType == Poly.Type.TEXTBOTLEFT) oldType = Poly.Type.TEXTBOTRIGHT; else
+				if (oldType == Poly.Type.TEXTBOTRIGHT) oldType = Poly.Type.TEXTBOTLEFT; else
+				if (oldType == Poly.Type.TEXTTOPLEFT) oldType = Poly.Type.TEXTTOPRIGHT; else
+				if (oldType == Poly.Type.TEXTTOPRIGHT) oldType = Poly.Type.TEXTTOPLEFT;
+				oldType = oldType.rotateTextAnchorOut(td.getRotation());
+				newType = oldType;
+			} else if (dOrient == Orientation.Y)
+			{
+				// mirror Y (top-bottom)
+				oldType = oldType.rotateTextAnchorIn(td.getRotation());
+				if (oldType == Poly.Type.TEXTBOT) oldType = Poly.Type.TEXTTOP; else
+				if (oldType == Poly.Type.TEXTTOP) oldType = Poly.Type.TEXTBOT; else
+				if (oldType == Poly.Type.TEXTBOTLEFT) oldType = Poly.Type.TEXTTOPLEFT; else
+				if (oldType == Poly.Type.TEXTTOPLEFT) oldType = Poly.Type.TEXTBOTLEFT; else
+				if (oldType == Poly.Type.TEXTBOTRIGHT) oldType = Poly.Type.TEXTTOPRIGHT; else
+				if (oldType == Poly.Type.TEXTTOPRIGHT) oldType = Poly.Type.TEXTBOTRIGHT;
+				oldType = oldType.rotateTextAnchorOut(td.getRotation());
+				newType = oldType;
+			} else
+			{
+				// determine change in angle because of node rotation
+				int origAngle = oldType.getTextAngle();
+				if (!wasSameMirror && ((origAngle%1800) == 0 || (origAngle%1800) == 1350))
+					origAngle += 1800;
+				Point2D pt = new Point2D.Double(100, 0);
+				dTrans.transform(pt, pt);
+				int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
+				int angle = (origAngle + xAngle) % 3600;
+				newType = Poly.Type.getTextTypeFromAngle(angle);
+			}
+			TextDescriptor.Position newPos = TextDescriptor.Position.getPosition(newType);
+//System.out.println("WAS "+oldType.name()+" ROTATED "+dOrient.toString()+" IS "+newType.name());
+			td = td.withPos(newPos);
+			eObj.setTextDescriptor(key, td);
+
+			// if an arc, rotate the offset point
+			if (eObj instanceof ArcInst)
+			{
+				Point2D pt = new Point2D.Double(td.getXOff(), td.getYOff());
+				dTrans.transform(pt, pt);
+				eObj.setTextDescriptor(key, td.withOff(pt.getX(), pt.getY()));
+			}
 		}
 	}
 

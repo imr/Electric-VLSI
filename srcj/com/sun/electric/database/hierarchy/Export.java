@@ -503,8 +503,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         setCharacteristic(other.getCharacteristic());
     }
 
-    private static final boolean NEWWAY = false;
-
     /****************************** GRAPHICS ******************************/
     /**
      * Method to return a Poly that describes this Export name.
@@ -520,23 +518,23 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         TextDescriptor.Position pos = td.getPos();
         Poly.Type style = pos.getPolyType();
         Point2D[] pointList = new Point2D.Double[1];
-        if (NEWWAY)
-        {
-	        // must untransform the node to apply the offset
-	        NodeInst ni = getOriginalPort().getNodeInst();
-            AffineTransform trans = ni.rotateIn();
-	        pointList[0] = new Point2D.Double(cX, cY);
-	        trans.transform(pointList[0], pointList[0]);
-	        pointList[0].setLocation(pointList[0].getX()+offX, pointList[0].getY()+offY);
-
-	        poly = new Poly(pointList);
-	        poly.setStyle(style);
-	        poly.setPort(this);
-	        poly.setString(getName());
-	        poly.setTextDescriptor(td);
-	        poly.setDisplayedText(new DisplayedText(this, EXPORT_NAME));
-	        poly.transform(ni.rotateOut());
-        } else
+//        if (NEWWAY)
+//        {
+//	        // must untransform the node to apply the offset
+//	        NodeInst ni = getOriginalPort().getNodeInst();
+//            AffineTransform trans = ni.rotateIn();
+//	        pointList[0] = new Point2D.Double(cX, cY);
+//	        trans.transform(pointList[0], pointList[0]);
+//	        pointList[0].setLocation(pointList[0].getX()+offX, pointList[0].getY()+offY);
+//
+//	        poly = new Poly(pointList);
+//	        poly.setStyle(style);
+//	        poly.setPort(this);
+//	        poly.setString(getName());
+//	        poly.setTextDescriptor(td);
+//	        poly.setDisplayedText(new DisplayedText(this, EXPORT_NAME));
+//	        poly.transform(ni.rotateOut());
+//        } else
         {
 	        // must untransform the node to apply the offset
 	        NodeInst ni = getOriginalPort().getNodeInst();

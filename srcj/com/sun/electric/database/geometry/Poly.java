@@ -53,6 +53,8 @@ import java.util.Iterator;
 public class Poly extends PolyBase {
     public static final Poly[] NULL_ARRAY = {};
 
+    public static final boolean NEWTEXTTREATMENT = true;
+
     /** when not null, use this graphics */                 private EGraphics graphicsOverride;
 	/** the string (if of type TEXT) */						private String string;
 	/** the text descriptor (if of type TEXT) */			private TextDescriptor descript;
@@ -160,7 +162,6 @@ public class Poly extends PolyBase {
 	 */
 	public void setDisplayedText(DisplayedText dt) { this.dt = dt; }
 
-private static final boolean NEWWAY = true;
 	/**
 	 * Method to transformed the points in this Poly.
 	 * @param af transformation to apply.
@@ -171,7 +172,7 @@ private static final boolean NEWWAY = true;
 		if (af.getType() == AffineTransform.TYPE_IDENTITY) return;
 
 		// special case for text
-		if (!NEWWAY && getStyle().isText() && descript != null)
+		if (!NEWTEXTTREATMENT && getStyle().isText() && descript != null)
 		{
 			// for quadrant rotations, rotate the text angle too
 			if ((af.getType() & AffineTransform.TYPE_QUADRANT_ROTATION) != 0)
@@ -386,7 +387,6 @@ private static final boolean NEWWAY = true;
 		double cX = (lX + hX) / 2;
 		double cY = (lY + hY) / 2;
 		Point2D corner = getTextCorner(style, cX, cY, scaledWidth, scaledHeight);
-//System.out.println("STRING '"+theString+"' STYLE="+getStyle().name+" ROTSTYLE="+style.name+" FROM ("+cX+","+cY+") HAS CORNER ("+corner.getX()+","+corner.getY()+")");
 		cX = corner.getX();
 		cY = corner.getY();
 		double width = glyphBounds.getWidth() * textScale;
@@ -956,5 +956,33 @@ private static final boolean NEWWAY = true;
 			}
 			return TEXTCENT;
 		}
+
+	    public Poly.Type rotateTextAnchorIn(TextDescriptor.Rotation rot)
+	    {
+	    	Poly.Type newStyle = this;
+	    	if (rot != TextDescriptor.Rotation.ROT0)
+	    	{
+		    	int angle = getTextAngle();
+		    	if (rot == TextDescriptor.Rotation.ROT90) angle += 2700; else
+		        	if (rot == TextDescriptor.Rotation.ROT180) angle += 1800; else
+		            	if (rot == TextDescriptor.Rotation.ROT270) angle += 900;
+		    	newStyle = Poly.Type.getTextTypeFromAngle(angle%3600);
+	    	}
+	    	return newStyle;
+	    }
+
+	    public Poly.Type rotateTextAnchorOut(TextDescriptor.Rotation rot)
+	    {
+	    	Poly.Type newStyle = this;
+	    	if (rot != TextDescriptor.Rotation.ROT0)
+	    	{
+		    	int angle = getTextAngle();
+		    	if (rot == TextDescriptor.Rotation.ROT90) angle += 900; else
+		        	if (rot == TextDescriptor.Rotation.ROT180) angle += 1800; else
+		            	if (rot == TextDescriptor.Rotation.ROT270) angle += 2700;
+		    	newStyle = Poly.Type.getTextTypeFromAngle(angle%3600);
+	    	}
+	    	return newStyle;
+	    }
 	}
 }

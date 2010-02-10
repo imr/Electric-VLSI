@@ -62,7 +62,7 @@ import java.util.Set;
 public abstract class ElectricObject implements Serializable {
     // ------------------------ private data ------------------------------------
 
-    // ------------------------ private and protected methods -------------------
+	// ------------------------ private and protected methods -------------------
     /**
      * The protected constructor.
      */
@@ -328,32 +328,11 @@ public abstract class ElectricObject implements Serializable {
                 Poly[] polys = pi.getPolyList(pi.getVar(varKey), bounds.getCenterX(), bounds.getCenterY(), wnd, false);
                 if (polys.length > 0) {
                     poly = polys[0];
-                    poly.transform(pi.getNodeInst().rotateOut());
+                    if (!Poly.NEWTEXTTREATMENT)
+                    	poly.transform(pi.getNodeInst().rotateOut());
                 }
             } else if (this instanceof Geometric) {
                 Geometric geom = (Geometric) this;
-//                if (varKey == NodeInst.NODE_NAME || varKey == ArcInst.ARC_NAME) {
-//                    TextDescriptor td = geom.getTextDescriptor(varKey);
-//                    Poly.Type style = td.getPos().getPolyType();
-//                    Point2D[] pointList = null;
-//                    if (style == Poly.Type.TEXTBOX) {
-//                        pointList = Poly.makePoints(geom.getBounds());
-//                    } else {
-//                        pointList = new Point2D.Double[1];
-//                        pointList[0] = new Point2D.Double(geom.getTrueCenterX() + td.getXOff(), geom.getTrueCenterY() + td.getYOff());
-//                    }
-//                    poly = new Poly(pointList);
-//                    poly.setStyle(style);
-//                    if (geom instanceof NodeInst) {
-//                        poly.transform(((NodeInst) geom).rotateOutAboutTrueCenter());
-//                    }
-//                    poly.setTextDescriptor(td);
-//                    if (varKey == NodeInst.NODE_NAME) {
-//                        poly.setString(((NodeInst) geom).getName());
-//                    } else {
-//                        poly.setString(((ArcInst) geom).getName());
-//                    }
-//                } else
                 if (varKey == NodeInst.NODE_PROTO) {
                     if (!(geom instanceof NodeInst)) {
                         return null;
@@ -382,24 +361,41 @@ public abstract class ElectricObject implements Serializable {
                         y = uBounds.getCenterY();
                     }
                     Poly[] polys;
-                    if (varKey == NodeInst.NODE_NAME || varKey == ArcInst.ARC_NAME)
-                    {
+//					if (varKey == NodeInst.NODE_NAME || varKey == ArcInst.ARC_NAME)
+//					{
 	                    TextDescriptor td = geom.getTextDescriptor(varKey);
 	                    double offX = td.getXOff();
 	                    double offY = td.getYOff();
 	                    Poly.Type style = td.getPos().getPolyType();
 	                    String theText;
+	                    int varLength = 1;
+	                    Variable var = null;
 	                    if (varKey == NodeInst.NODE_NAME) theText = ((NodeInst)geom).getName(); else
-							theText = ((ArcInst)geom).getName();
-	                    polys = ((ElectricObject)geom).getPolyListInternal(null, x, y, wnd, false, 1, offX, offY,
+	                    	if (varKey == ArcInst.ARC_NAME) theText = ((ArcInst)geom).getName(); else
+                    	{
+                            VarContext context = null;
+                            if (wnd != null) context = wnd.getVarContext();
+                            var = geom.getParameterOrVariable(varKey);
+                    		theText = var.describe(0, context, this);
+                    		varLength = var.getLength();
+                    	}
+	                    polys = ((ElectricObject)geom).getPolyListInternal(var, x, y, wnd, false, varLength, offX, offY,
 	                    	style, td, varKey, theText);
-                    } else
-                    {
-                    	polys = geom.getPolyList(geom.getParameterOrVariable(varKey), x, y, wnd, false);
-                    }
+						if (Poly.NEWTEXTTREATMENT && polys.length > 0 && varLength == 1)
+						{
+						    if (geom instanceof NodeInst)
+						    {
+						        NodeInst ni = (NodeInst) geom;
+						        polys[0].transform(ni.rotateOut());
+						    }
+						}
+//					} else
+//					{
+//						polys = geom.getPolyList(geom.getParameterOrVariable(varKey), x, y, wnd, false);
+//					}
                     if (polys.length > 0) {
                         poly = polys[0];
-                        if (geom instanceof NodeInst) {
+                        if (!Poly.NEWTEXTTREATMENT && geom instanceof NodeInst) {
                             NodeInst ni = (NodeInst) geom;
                             poly.transform(ni.rotateOut());
                         }
@@ -497,10 +493,9 @@ public abstract class ElectricObject implements Serializable {
      * @param multipleStrings true to break multiline text into multiple Polys.
      * @return an array of Poly objects that describe the Variable. May return zero length array.
      */
-    public Poly[] getPolyList(Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings) {
-        if (var == null) {
-            return new Poly[0];
-        }
+    public Poly[] getPolyList(Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings)
+    {
+		if (var == null) return new Poly[0];
 
         double offX = var.getXOff();
         double offY = var.getYOff();
@@ -511,7 +506,8 @@ public abstract class ElectricObject implements Serializable {
         VarContext context = null;
         if (wnd != null) context = wnd.getVarContext();
         String firstLine = var.describe(0, context, this);
-        return getPolyListInternal(var, cX, cY, wnd, multipleStrings, varLength, offX, offY, style, td, var.getKey(), firstLine);
+        Poly[] polys = getPolyListInternal(var, cX, cY, wnd, multipleStrings, varLength, offX, offY, style, td, var.getKey(), firstLine);
+        return polys;
     }
 
     /**
@@ -535,73 +531,88 @@ public abstract class ElectricObject implements Serializable {
     {
         double lineOffX = 0, lineOffY = 0;
         AffineTransform trans = null;
-        if (this instanceof NodeInst && (offX != 0 || offY != 0)) {
+        if (this instanceof NodeInst && (offX != 0 || offY != 0))
+        {
             td = td.withOff(0, 0);
         }
         boolean headerString = false;
         double fontHeight = 1;
         double scale = 1;
-        if (wnd != null) {
+        if (wnd != null)
+        {
             fontHeight = td.getTrueSize(wnd);
             scale = wnd.getScale();
             fontHeight *= wnd.getGlobalTextScale();
         }
-        if (varLength > 1) {
+        if (varLength > 1)
+        {
             // compute text height
             double lineDist = fontHeight / scale;
             int rotQuadrant = td.getRotation().getIndex();
-            switch (rotQuadrant) {
-                case 0:
-                    lineOffY = lineDist;
-                    break;		// 0 degrees rotation
-                case 1:
-                    lineOffX = -lineDist;
-                    break;		// 90 degrees rotation
-                case 2:
-                    lineOffY = -lineDist;
-                    break;		// 180 degrees rotation
-                case 3:
-                    lineOffX = lineDist;
-                    break;		// 270 degrees rotation
+            switch (rotQuadrant)
+            {
+                case 0: lineOffY = lineDist;   break;		// 0 degrees rotation
+                case 1: lineOffX = -lineDist;  break;		// 90 degrees rotation
+                case 2: lineOffY = -lineDist;  break;		// 180 degrees rotation
+                case 3: lineOffX = lineDist;   break;		// 270 degrees rotation
             }
 
             // multiline text on rotated nodes must compensate for node rotation
             Poly.Type rotStyle = style;
-            if (this instanceof NodeInst) {
-                NodeInst ni = (NodeInst) this;
-
-                if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTBOX) {
+            if (this instanceof NodeInst)
+            {
+                if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTBOX)
+                {
+                    NodeInst ni = (NodeInst)this;
                     trans = ni.rotateIn();
                     int origAngle = style.getTextAngle();
-                    if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis()
-                            && ((origAngle % 1800) == 0 || (origAngle % 1800) == 1350)) {
-                        origAngle += 1800;
-                    }
+                    if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
+                    	((origAngle % 1800) == 0 || (origAngle % 1800) == 1350))
+                        	origAngle += 1800;
                     int angle = (origAngle - ni.getAngle() + 3600) % 3600;
-                    style = Poly.Type.getTextTypeFromAngle(angle);
+                    if (!Poly.NEWTEXTTREATMENT)
+                    	style = Poly.Type.getTextTypeFromAngle(angle);
                 }
             }
-            if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE) {
+            if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
+            {
                 headerString = true;
                 varLength++;
             }
-            if (multipleStrings) {
-                if (rotStyle == Poly.Type.TEXTCENT || rotStyle == Poly.Type.TEXTBOX
-                        || rotStyle == Poly.Type.TEXTLEFT || rotStyle == Poly.Type.TEXTRIGHT) {
+			if (Poly.NEWTEXTTREATMENT && trans != null)
+			{
+			  	if (multipleStrings)
+			  	{
+			  		Point2D pt = new Point2D.Double(cX, cY);
+			  		trans.transform(pt, pt);
+			  		cX = pt.getX();   cY = pt.getY();
+			  	}
+			}
+            if (multipleStrings)
+            {
+                if (rotStyle == Poly.Type.TEXTCENT || rotStyle == Poly.Type.TEXTBOX ||
+                	rotStyle == Poly.Type.TEXTLEFT || rotStyle == Poly.Type.TEXTRIGHT)
+                {
                     cX += lineOffX * (varLength - 1) / 2;
                     cY += lineOffY * (varLength - 1) / 2;
                 }
-                if (rotStyle == Poly.Type.TEXTBOT || rotStyle == Poly.Type.TEXTBOTLEFT || rotStyle == Poly.Type.TEXTBOTRIGHT) {
+                if (rotStyle == Poly.Type.TEXTBOT ||
+                	rotStyle == Poly.Type.TEXTBOTLEFT || rotStyle == Poly.Type.TEXTBOTRIGHT)
+                {
                     cX += lineOffX * (varLength - 1);
                     cY += lineOffY * (varLength - 1);
                 }
-            } else {
-                if (rotStyle == Poly.Type.TEXTCENT || rotStyle == Poly.Type.TEXTBOX
-                        || rotStyle == Poly.Type.TEXTLEFT || rotStyle == Poly.Type.TEXTRIGHT) {
+            } else
+            {
+                if (rotStyle == Poly.Type.TEXTCENT || rotStyle == Poly.Type.TEXTBOX ||
+                	rotStyle == Poly.Type.TEXTLEFT || rotStyle == Poly.Type.TEXTRIGHT)
+                {
                     cX -= lineOffX * (varLength - 1) / 2;
                     cY -= lineOffY * (varLength - 1) / 2;
                 }
-                if (rotStyle == Poly.Type.TEXTTOP || rotStyle == Poly.Type.TEXTTOPLEFT || rotStyle == Poly.Type.TEXTTOPRIGHT) {
+                if (rotStyle == Poly.Type.TEXTTOP ||
+                	rotStyle == Poly.Type.TEXTTOPLEFT || rotStyle == Poly.Type.TEXTTOPRIGHT)
+                {
                     cX -= lineOffX * (varLength - 1);
                     cY -= lineOffY * (varLength - 1);
                 }
@@ -611,34 +622,41 @@ public abstract class ElectricObject implements Serializable {
         }
 
         VarContext context = null;
-        if (wnd != null) {
-            context = wnd.getVarContext();
-        }
+        if (wnd != null) context = wnd.getVarContext();
         Poly[] polys = new Poly[varLength];
-        for (int i = 0; i < varLength; i++) {
+        for (int i = 0; i < varLength; i++)
+        {
             String message = null;
             TextDescriptor entryTD = td;
-            if (varLength > 1 && headerString) {
-                if (i == 0) {
+            if (varLength > 1 && headerString)
+            {
+                if (i == 0)
+                {
                     message = var.getTrueName() + "[" + (varLength - 1) + "]:";
                     entryTD = entryTD.withUnderline(true);
-                } else {
+                } else
+                {
                     message = i == 1 ? firstLine : var.describe(i - 1, context, this);
                 }
-            } else {
+            } else
+            {
                 message = i == 0 ? firstLine : var.describe(i, context, this);
             }
 
             Point2D[] pointList = null;
-            if (style == Poly.Type.TEXTBOX && this instanceof Geometric) {
+            if (style == Poly.Type.TEXTBOX && this instanceof Geometric)
+            {
                 Geometric geom = (Geometric) this;
                 Rectangle2D bounds = geom.getBounds();
                 pointList = Poly.makePoints(bounds);
-            } else {
+            } else
+            {
                 pointList = new Point2D.Double[1];
                 pointList[0] = new Point2D.Double(cX + offX, cY + offY);
-                if (trans != null) {
-                    trans.transform(pointList[0], pointList[0]);
+                if (trans != null)
+                {
+                	if (!Poly.NEWTEXTTREATMENT || multipleStrings)
+                		trans.transform(pointList[0], pointList[0]);
                 }
             }
             polys[i] = new Poly(pointList);
