@@ -47,6 +47,12 @@ import com.sun.electric.database.variable.Variable.Key;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.placement.forceDirected1.PlacementForceDirectedTeam5;
+import com.sun.electric.tool.placement.forceDirected2.PlacementForceDirectedStaged;
+import com.sun.electric.tool.placement.genetic1.g1.GeneticPlacement;
+import com.sun.electric.tool.placement.genetic2.PlacementGenetic;
+import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing;
+import com.sun.electric.tool.placement.simulatedAnnealing2.PlacementSimulatedAnnealing;
 import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.AffineTransform;
@@ -91,12 +97,12 @@ public class PlacementFrame
 	 * When you create a new algorithm, add it to the following list.
 	 */
 	private static PlacementFrame [] placementAlgorithms = {
-//		new SimulatedAnnealing(),				// team 2
-//		new GeneticPlacement(),					// team 3
-//		new PlacementGenetic(),					// team 4
-//		new PlacementForceDirected(),			// team 5
-//		new PlacementSimulatedAnnealing(),		// team 6
-//		new PlacementForceDirectedStaged(),		// team 7
+		new SimulatedAnnealing(),				// team 2
+		new PlacementSimulatedAnnealing(),		// team 6
+		new GeneticPlacement(),					// team 3
+		new PlacementGenetic(),					// team 4
+		new PlacementForceDirectedTeam5(),		// team 5
+		new PlacementForceDirectedStaged(),		// team 7
 		new PlacementMinCut(),
 		new PlacementSimple(),
 		new PlacementRandom()
