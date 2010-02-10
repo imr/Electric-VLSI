@@ -303,7 +303,7 @@ if (userDefaults) initFromUserDefaults();
             }
 
             int rotation = portRotation.get(pp).intValue();
-            if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell, rotation, this))
+            if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell, rotation))
                     total++;
         }
 
