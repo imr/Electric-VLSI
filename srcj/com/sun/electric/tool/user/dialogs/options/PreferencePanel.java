@@ -112,7 +112,7 @@ public class PreferencePanel extends EDialog
 	 * Method to Save options from specified PrefPackage into Electric Preferences subtree.
 	 * @param pp PrefPackage with option values
 	 */
-	protected void putPrefs(PrefPackage pp) { pp.putPrefs(Pref.getPrefRoot(), true); }
+	protected void putPrefs(PrefPackage pp) { PrefPackage.lowLevelPutPrefs(pp, Pref.getPrefRoot(), true); }
 
 	protected TechPool getTechPool() { return TechPool.getThreadTechPool(); }
 

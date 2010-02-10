@@ -266,9 +266,9 @@ public class NewArcsTab extends PreferencePanel
 		if (currBoolean != User.isArcsAutoIncremented())
 			User.setArcsAutoIncremented(currBoolean);
 
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
-        ep.fatWires = enableFatWiring.isSelected();
-        putPrefs(ep);
+        EditingPreferences ep = getEditingPreferences();
+        ep = ep.withFatWires(enableFatWiring.isSelected());
+        ep.setThreadEditingPreferences(ep);
 	}
 
 	/**

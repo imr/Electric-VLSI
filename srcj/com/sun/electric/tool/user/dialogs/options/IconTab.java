@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
@@ -97,14 +98,15 @@ public class IconTab extends PreferencePanel
 			public void actionPerformed(ActionEvent evt) { placementChanged(); }
 		});
 
+        EditingPreferences ep = getEditingPreferences();
 		// set how exports are placed (by characteristic or by location in original cell)
-		int how = User.getIconGenExportPlacement();
+		int how = ep.iconGenExportPlacement;
 		if (how == 0) iconPlaceByChar.setSelected(true); else
 		{
 			if (how == 1)
 			{
 				iconPlaceByLoc.setSelected(true);
-				useExactSchemLoc.setSelected(User.getIconGenExportPlacementExact());
+				useExactSchemLoc.setSelected(ep.iconGenExportPlacementExact);
 			}
 		}
 		placementChanged();
@@ -125,17 +127,17 @@ public class IconTab extends PreferencePanel
 
 		// initialize the text rotation for each type of export
 		initRot(iconInputRot);
-		iconInputRot.setSelectedIndex(User.getIconGenInputRot());
+		iconInputRot.setSelectedIndex(ep.iconGenInputRot);
 		initRot(iconOutputRot);
-		iconOutputRot.setSelectedIndex(User.getIconGenOutputRot());
+		iconOutputRot.setSelectedIndex(ep.iconGenOutputRot);
 		initRot(iconBidirRot);
-		iconBidirRot.setSelectedIndex(User.getIconGenBidirRot());
+		iconBidirRot.setSelectedIndex(ep.iconGenBidirRot);
 		initRot(iconPowerRot);
-		iconPowerRot.setSelectedIndex(User.getIconGenPowerRot());
+		iconPowerRot.setSelectedIndex(ep.iconGenPowerRot);
 		initRot(iconGroundRot);
-		iconGroundRot.setSelectedIndex(User.getIconGenGroundRot());
+		iconGroundRot.setSelectedIndex(ep.iconGenGroundRot);
 		initRot(iconClockRot);
-		iconClockRot.setSelectedIndex(User.getIconGenClockRot());
+		iconClockRot.setSelectedIndex(ep.iconGenClockRot);
 
 		initRot(iconTopRot);
 		iconTopRot.setSelectedIndex(User.getIconGenTopRot());
@@ -149,32 +151,32 @@ public class IconTab extends PreferencePanel
 		iconExportPos.addItem("Body");
 		iconExportPos.addItem("Lead End");
 		iconExportPos.addItem("Lead Middle");
-		iconExportPos.setSelectedIndex(User.getIconGenExportLocation());
+		iconExportPos.setSelectedIndex(ep.iconGenExportLocation);
 
 		iconExportStyle.addItem("Centered");
 		iconExportStyle.addItem("Inward");
 		iconExportStyle.addItem("Outward");
-		iconExportStyle.setSelectedIndex(User.getIconGenExportStyle());
+		iconExportStyle.setSelectedIndex(ep.iconGenExportStyle);
 
 		iconExportTechnology.addItem("Universal");
 		iconExportTechnology.addItem("Schematic");
-		iconExportTechnology.setSelectedIndex(User.getIconGenExportTech());
+		iconExportTechnology.setSelectedIndex(ep.iconGenExportTech);
 
 		iconInstancePos.addItem("Upper-right");
 		iconInstancePos.addItem("Upper-left");
 		iconInstancePos.addItem("Lower-right");
 		iconInstancePos.addItem("Lower-left");
 		iconInstancePos.addItem("No Instance");
-		iconInstancePos.setSelectedIndex(User.getIconGenInstanceLocation());
+		iconInstancePos.setSelectedIndex(ep.iconGenInstanceLocation);
 
-		iconDrawLeads.setSelected(User.isIconGenDrawLeads());
-		iconDrawBody.setSelected(User.isIconGenDrawBody());
-		iconTextSize.setText(TextUtils.formatDouble(User.getIconGenBodyTextSize()));
-		iconReverseOrder.setSelected(User.isIconGenReverseExportOrder());
-		iconsAlwaysDrawn.setSelected(User.isIconsAlwaysDrawn());
+		iconDrawLeads.setSelected(ep.iconGenDrawLeads);
+		iconDrawBody.setSelected(ep.iconGenDrawBody);
+		iconTextSize.setText(TextUtils.formatDouble(ep.iconGenBodyTextSize));
+		iconReverseOrder.setSelected(ep.iconGenReverseExportOrder);
+		iconsAlwaysDrawn.setSelected(ep.iconsAlwaysDrawn);
 
-		iconLeadLength.setText(TextUtils.formatDouble(User.getIconGenLeadLength()));
-		iconLeadSpacing.setText(TextUtils.formatDouble(User.getIconGenLeadSpacing()));
+		iconLeadLength.setText(TextUtils.formatDouble(ep.iconGenLeadLength));
+		iconLeadSpacing.setText(TextUtils.formatDouble(ep.iconGenLeadSpacing));
 	}
 
 	private void placementChanged()
@@ -244,14 +246,10 @@ public class IconTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Icon tab.
 	 */
+    @Override
 	public void term()
 	{
-		int currInt = 0;
-		if (iconPlaceByLoc.isSelected()) currInt = 1;
-		if (currInt != User.getIconGenExportPlacement()) User.setIconGenExportPlacement(currInt);
-
-		// Set the checkbox for using the exact placement
-		User.setIconGenExportPlacementExact(useExactSchemLoc.isSelected());
+		int currInt;
 
 		// save which side each export type goes on
 		currInt = iconInputPos.getSelectedIndex();
@@ -268,19 +266,6 @@ public class IconTab extends PreferencePanel
 		if (currInt != User.getIconGenClockSide()) User.setIconGenClockSide(currInt);
 
 		// save which angle each export goes on
-		currInt = iconInputRot.getSelectedIndex();
-		if (currInt != User.getIconGenInputRot()) User.setIconGenInputRot(currInt);
-		currInt = iconOutputRot.getSelectedIndex();
-		if (currInt != User.getIconGenOutputRot()) User.setIconGenOutputRot(currInt);
-		currInt = iconBidirRot.getSelectedIndex();
-		if (currInt != User.getIconGenBidirRot()) User.setIconGenBidirRot(currInt);
-		currInt = iconPowerRot.getSelectedIndex();
-		if (currInt != User.getIconGenPowerRot()) User.setIconGenPowerRot(currInt);
-		currInt = iconGroundRot.getSelectedIndex();
-		if (currInt != User.getIconGenGroundRot()) User.setIconGenGroundRot(currInt);
-		currInt = iconClockRot.getSelectedIndex();
-		if (currInt != User.getIconGenClockRot()) User.setIconGenClockRot(currInt);
-
 		currInt = iconTopRot.getSelectedIndex();
 		if (currInt != User.getIconGenTopRot()) User.setIconGenTopRot(currInt);
 		currInt = iconBottomRot.getSelectedIndex();
@@ -290,62 +275,36 @@ public class IconTab extends PreferencePanel
 		currInt = iconRightRot.getSelectedIndex();
 		if (currInt != User.getIconGenRightRot()) User.setIconGenRightRot(currInt);
 
-		// save other factors
-		currInt = iconExportPos.getSelectedIndex();
-		if (currInt != User.getIconGenExportLocation())
-			User.setIconGenExportLocation(currInt);
+        EditingPreferences ep = getEditingPreferences()
+                .withIconGenExportPlacement(iconPlaceByLoc.isSelected() ? 1 : 0)
+                .withIconGenExportPlacementExact(useExactSchemLoc.isSelected())
+                .withIconGenDrawLeads(iconDrawLeads.isSelected())
+                .withIconsAlwaysDrawn(iconsAlwaysDrawn.isSelected())
+                .withIconGenDrawBody(iconDrawBody.isSelected())
+                .withIconGenReverseExportOrder(iconReverseOrder.isSelected())
+                .withIconGenBodyTextSize(TextUtils.atof(iconTextSize.getText()))
+                .withIconGenExportLocation(iconExportPos.getSelectedIndex())
+                .withIconGenExportStyle(iconExportStyle.getSelectedIndex())
+                .withIconGenExportTech(iconExportTechnology.getSelectedIndex())
+                .withIconGenInstanceLocation(iconInstancePos.getSelectedIndex())
+                .withIconGenInputRot(iconInputRot.getSelectedIndex())
+                .withIconGenOutputRot(iconOutputRot.getSelectedIndex())
+                .withIconGenBidirRot(iconBidirRot.getSelectedIndex())
+                .withIconGenPowerRot(iconPowerRot.getSelectedIndex())
+                .withIconGenGroundRot(iconGroundRot.getSelectedIndex())
+                .withIconGenClockRot(iconClockRot.getSelectedIndex())
+                .withIconGenLeadLength(TextUtils.atof(iconLeadLength.getText()))
+                .withIconGenLeadSpacing(TextUtils.atof(iconLeadSpacing.getText()));
 
-		currInt = iconExportStyle.getSelectedIndex();
-		if (currInt != User.getIconGenExportStyle())
-			User.setIconGenExportStyle(currInt);
-
-		currInt = iconExportTechnology.getSelectedIndex();
-		if (currInt != User.getIconGenExportTech())
-			User.setIconGenExportTech(currInt);
-
-		currInt = iconInstancePos.getSelectedIndex();
-		if (currInt != User.getIconGenInstanceLocation())
-			User.setIconGenInstanceLocation(currInt);
-
-		boolean currBoolean = iconDrawLeads.isSelected();
-		if (currBoolean != User.isIconGenDrawLeads())
-			User.setIconGenDrawLeads(currBoolean);
-
-		currBoolean = iconDrawBody.isSelected();
-		if (currBoolean != User.isIconGenDrawBody())
-			User.setIconGenDrawBody(currBoolean);
-
-		double currDouble = TextUtils.atof(iconTextSize.getText());
-		if (currDouble != User.getIconGenBodyTextSize())
-			User.setIconGenBodyTextSize(currDouble);
-
-		currBoolean = iconReverseOrder.isSelected();
-		if (currBoolean != User.isIconGenReverseExportOrder())
-			User.setIconGenReverseExportOrder(currBoolean);
-
-		currBoolean = iconsAlwaysDrawn.isSelected();
-		if (currBoolean != User.isIconsAlwaysDrawn())
-			User.setIconsAlwaysDrawn(currBoolean);
-
-		currDouble = TextUtils.atof(iconLeadLength.getText());
-		if (currDouble != User.getIconGenLeadLength())
-			User.setIconGenLeadLength(currDouble);
-
-		currDouble = TextUtils.atof(iconLeadSpacing.getText());
-		if (currDouble != User.getIconGenLeadSpacing())
-			User.setIconGenLeadSpacing(currDouble);
+        setEditingPreferences(ep);
 	}
 
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
-		if (User.getFactoryIconGenExportPlacement() != User.getIconGenExportPlacement())
-			User.setIconGenExportPlacement(User.getFactoryIconGenExportPlacement());
-		if (User.getFactoryIconGenExportPlacementExact() != User.getIconGenExportPlacementExact())
-			User.setIconGenExportPlacementExact(User.getFactoryIconGenExportPlacementExact());
-
 		if (User.getFactoryIconGenInputSide() != User.getIconGenInputSide())
 			User.setIconGenInputSide(User.getFactoryIconGenInputSide());
 		if (User.getFactoryIconGenOutputSide() != User.getIconGenOutputSide())
@@ -359,21 +318,6 @@ public class IconTab extends PreferencePanel
 		if (User.getFactoryIconGenClockSide() != User.getIconGenClockSide())
 			User.setIconGenClockSide(User.getFactoryIconGenClockSide());
 
-		if (User.getFactoryIconGenInputRot() != User.getIconGenInputRot())
-			User.setIconGenInputRot(User.getFactoryIconGenInputRot());
-		if (User.getFactoryIconGenOutputRot() != User.getIconGenOutputRot())
-			User.setIconGenOutputRot(User.getFactoryIconGenOutputRot());
-		if (User.getFactoryIconGenBidirRot() != User.getIconGenBidirRot())
-			User.setIconGenBidirRot(User.getFactoryIconGenBidirRot());
-		if (User.getFactoryIconGenGroundRot() != User.getIconGenGroundRot())
-			User.setIconGenGroundRot(User.getFactoryIconGenGroundRot());
-		if (User.getFactoryIconGenPowerRot() != User.getIconGenPowerRot())
-			User.setIconGenPowerRot(User.getFactoryIconGenPowerRot());
-		if (User.getFactoryIconGenClockRot() != User.getIconGenClockRot())
-			User.setIconGenClockRot(User.getFactoryIconGenClockRot());
-		if (User.isFactoryIconGenReverseExportOrder() != User.isIconGenReverseExportOrder())
-			User.setIconGenReverseExportOrder(User.isFactoryIconGenReverseExportOrder());
-
 		if (User.getFactoryIconGenTopRot() != User.getIconGenTopRot())
 			User.setIconGenTopRot(User.getFactoryIconGenTopRot());
 		if (User.getFactoryIconGenBottomRot() != User.getIconGenBottomRot())
@@ -383,29 +327,7 @@ public class IconTab extends PreferencePanel
 		if (User.getFactoryIconGenRightRot() != User.getIconGenRightRot())
 			User.setIconGenRightRot(User.getFactoryIconGenRightRot());
 
-		if (User.isFactoryIconGenDrawLeads() != User.isIconGenDrawLeads())
-			User.setIconGenDrawLeads(User.isFactoryIconGenDrawLeads());
-		if (User.getFactoryIconGenLeadLength() != User.getIconGenLeadLength())
-			User.setIconGenLeadLength(User.getFactoryIconGenLeadLength());
-		if (User.getFactoryIconGenLeadSpacing() != User.getIconGenLeadSpacing())
-			User.setIconGenLeadSpacing(User.getFactoryIconGenLeadSpacing());
-
-		if (User.isFactoryIconGenDrawBody() != User.isIconGenDrawBody())
-			User.setIconGenDrawBody(User.isFactoryIconGenDrawBody());
-		if (User.getFactoryIconGenBodyTextSize() != User.getIconGenBodyTextSize())
-			User.setIconGenBodyTextSize(User.getFactoryIconGenBodyTextSize());
-		if (User.isFactoryIconsAlwaysDrawn() != User.isIconsAlwaysDrawn())
-			User.setIconsAlwaysDrawn(User.isFactoryIconsAlwaysDrawn());
-
-		if (User.getFactoryIconGenExportLocation() != User.getIconGenExportLocation())
-			User.setIconGenExportLocation(User.getFactoryIconGenExportLocation());
-		if (User.getFactoryIconGenExportStyle() != User.getIconGenExportStyle())
-			User.setIconGenExportStyle(User.getFactoryIconGenExportStyle());
-
-		if (User.getFactoryIconGenExportTech() != User.getIconGenExportTech())
-			User.setIconGenExportTech(User.getFactoryIconGenExportTech());
-		if (User.getFactoryIconGenInstanceLocation() != User.getIconGenInstanceLocation())
-			User.setIconGenInstanceLocation(User.getFactoryIconGenInstanceLocation());
+        setEditingPreferences(getEditingPreferences().withIconGenReset());
 	}
 
 	/** This method is called from within the constructor to

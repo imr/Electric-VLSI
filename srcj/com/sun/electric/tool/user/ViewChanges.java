@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -85,7 +85,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -523,7 +522,8 @@ public class ViewChanges
         IconParameters ip = IconParameters.makeInstance(true);
 		if (!fixedValues)
 		{
-			new MakeIconView(curCell, User.getAlignmentToGrid(), User.getIconGenInstanceLocation(), ip, doItNow);
+            EditingPreferences ep = curCell.getEditingPreferences();
+			new MakeIconView(curCell, User.getAlignmentToGrid(), ep.iconGenInstanceLocation, ip, doItNow);
 		}
 		else
 		{
@@ -619,14 +619,8 @@ public class ViewChanges
     /**
 	 * Method to determine the side of the icon that port "pp" belongs on.
 	 */
-	public static int iconTextRotation(Export pp, IconParameters iconParameters)
+	public static int iconTextRotation(Export pp)
 	{
-        int inputRot = iconParameters.getIconGenInputRot();
-        int outputRot = iconParameters.getIconGenOutputRot();
-        int bidirRot = iconParameters.getIconGenBidirRot();
-        int pwrRot = iconParameters.getIconGenPowerRot();
-        int gndRot = iconParameters.getIconGenGroundRot();
-        int clkRot = iconParameters.getIconGenClockRot();
         PortCharacteristic character = pp.getCharacteristic();
 
 		// special detection for power and ground ports
@@ -634,13 +628,14 @@ public class ViewChanges
 		if (pp.isGround()) character = PortCharacteristic.GND;
 
 		// see which side this type of port sits on
-		if (character == PortCharacteristic.IN) return inputRot;
-		if (character == PortCharacteristic.OUT) return outputRot;
-		if (character == PortCharacteristic.BIDIR) return bidirRot;
-		if (character == PortCharacteristic.PWR) return pwrRot;
-		if (character == PortCharacteristic.GND) return gndRot;
-		if (character.isClock()) return clkRot;
-		return inputRot;
+        EditingPreferences ep = pp.getEditingPreferences();
+		if (character == PortCharacteristic.IN) return ep.iconGenInputRot;
+		if (character == PortCharacteristic.OUT) return ep.iconGenOutputRot;
+		if (character == PortCharacteristic.BIDIR) return ep.iconGenBidirRot;
+		if (character == PortCharacteristic.PWR) return ep.iconGenPowerRot;
+		if (character == PortCharacteristic.GND) return ep.iconGenGroundRot;
+		if (character.isClock()) return ep.iconGenClockRot;
+		return ep.iconGenInputRot;
 	}
 
 	/****************************** CONVERT TO SCHEMATICS ******************************/

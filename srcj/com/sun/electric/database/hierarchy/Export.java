@@ -180,6 +180,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         if (protoName == null) {
             return null;
         }
+        EditingPreferences ep = parent.getEditingPreferences();
 
         boolean busNamesAllowed = parent.busNamesAllowed();
         Name protoNameKey = ImmutableExport.validExportName(protoName, busNamesAllowed);
@@ -234,7 +235,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 Dimension2D alignmentToGrid = parent.getEditingPreferences().getAlignmentToGrid();
                 double newlocX = (locX - bounds.getMinX()) / bounds.getWidth() * iconBounds.getWidth() + iconBounds.getMinX();
                 newlocX = DBMath.toNearest(newlocX, alignmentToGrid.getWidth());
-                double bodyDX = iconParameters.getIconGenLeadLength();
+                double bodyDX = ep.iconGenLeadLength;
                 double distToXEdge = locX - bounds.getMinX();
                 if (locX >= bounds.getCenterX()) {
                     bodyDX = -bodyDX;
@@ -242,7 +243,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 }
                 double newlocY = (locY - bounds.getMinY()) / bounds.getHeight() * iconBounds.getHeight() + iconBounds.getMinY();
                 newlocY = DBMath.toNearest(newlocY, alignmentToGrid.getHeight());
-                double bodyDY = iconParameters.getIconGenLeadLength();
+                double bodyDY = ep.iconGenLeadLength;
                 double distToYEdge = locY - bounds.getMinY();
                 if (locY >= bounds.getCenterY()) {
                     bodyDY = -bodyDY;
@@ -261,9 +262,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 newlocY = point.getY();
 
                 // create export in icon
-                int rotation = ViewChanges.iconTextRotation(pp, iconParameters);
-                if (!IconParameters.makeIconExport(pp, 0, newlocX, newlocY, newlocX + bodyDX, newlocY + bodyDY, icon,
-                        rotation, iconParameters)) {
+                int rotation = ViewChanges.iconTextRotation(pp);
+                if (!IconParameters.makeIconExport(pp, 0, newlocX, newlocY, newlocX + bodyDX, newlocY + bodyDY, icon, rotation)) {
                     System.out.println("Warning: Failed to create associated export in icon " + icon.describe(true));
                 }
             }

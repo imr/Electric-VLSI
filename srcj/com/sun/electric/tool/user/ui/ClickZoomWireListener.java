@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -52,6 +51,7 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.EditMenu;
 
 import java.awt.event.ActionEvent;
@@ -1647,9 +1647,9 @@ public class ClickZoomWireListener
             // nothing under mouse to route to/switch between, return
         } else {
             // toggle fat wiring mode
-            EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
-            ep.fatWires = !ep.fatWires;
-            ep.putPrefs(Pref.getPrefRoot(), true);
+            EditingPreferences ep = UserInterfaceMain.getEditingPreferences();
+            ep = ep.withFatWires(!ep.fatWires);
+            UserInterfaceMain.setEditingPreferences(ep);
             if (ep.fatWires) {
                 System.out.println("Enabling fat wiring mode");
             } else {

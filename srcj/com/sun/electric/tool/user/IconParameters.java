@@ -1,6 +1,6 @@
 package com.sun.electric.tool.user;
 
-import com.sun.electric.tool.Job;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -18,6 +18,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.TechPool;
 
 import java.io.Serializable;
 import java.util.*;
@@ -28,31 +29,13 @@ import java.awt.geom.Point2D;
  */
 public class IconParameters implements Serializable
 {
-    /** length of leads from body to export */							double leadLength;
-    /** spacing between leads (or exports) */							double leadSpacing;
-    /** true to place exports by location in original cell */			boolean placeByCellLocation;
-    /** true to place exports exactly by location in original cell */   boolean useExactLocation;
-    /** true to reverse placement of exports */							boolean reverseIconExportOrder;
-    /** true to draw an icon body (a rectangle) */						boolean drawBody;
-    /** size (in units) of text on body */								double bodyTextSize;
-    /** true to draw leads between the body and exports */				boolean drawLeads;
-    /** true to place a cell-center in the icon */						boolean placeCellCenter;
-    /** technology: 0=generic, 1=schematic */							int exportTech;
-    /** text style: 0=centered, 1=inward, 2=outward */					int exportStyle;
-    /** text location: 0=on body, 1=end of lead, 2=middle of lead */	int exportLocation;
-    /** true to make exports "always drawn" */							boolean alwaysDrawn;
+    public final EditingPreferences ep;
     /** side for input ports (when placeByCellLocation false) */		int inputSide;
     /** side for output ports (when placeByCellLocation false) */		int outputSide;
     /** side for bidir ports (when placeByCellLocation false) */		int bidirSide;
     /** side for power ports (when placeByCellLocation false) */		int pwrSide;
     /** side for ground ports (when placeByCellLocation false) */		int gndSide;
     /** side for clock ports (when placeByCellLocation false) */		int clkSide;
-    /** rotation of input text (when placeByCellLocation false) */		int inputRot;
-    /** rotation of output text (when placeByCellLocation false) */		int outputRot;
-    /** rotation of bidir text (when placeByCellLocation false) */		int bidirRot;
-    /** rotation of power text (when placeByCellLocation false) */		int pwrRot;
-    /** rotation of ground text (when placeByCellLocation false) */		int gndRot;
-    /** rotation of clock text (when placeByCellLocation false) */		int clkRot;
     /** rotation of top text (when placeByCellLocation true) */			int topRot;
     /** rotation of bottom text (when placeByCellLocation true) */		int bottomRot;
     /** rotation of left text (when placeByCellLocation true) */		int leftRot;
@@ -65,32 +48,17 @@ public class IconParameters implements Serializable
 
     private IconParameters(boolean userDefaults)
     {
-        boolean drawBodyAndLeads = Job.getDebug();
-        leadLength = 2.0;
-        leadSpacing = 2.0;
-        placeByCellLocation = false;
-        useExactLocation = false;
-        reverseIconExportOrder = false;
-        drawBody = drawBodyAndLeads;
-        bodyTextSize = 1.0;
-        drawLeads = drawBodyAndLeads;
-        placeCellCenter = true;
-        exportTech = 0;
-        exportStyle = 1;
-        exportLocation = 1;
-        alwaysDrawn = false;
+        if (userDefaults) {
+            ep = EditingPreferences.getThreadEditingPreferences();
+        } else {
+            ep = new EditingPreferences(true, TechPool.getThreadTechPool());
+        }
         inputSide = 0;
         outputSide = 1;
         bidirSide = 2;
         pwrSide = 3;
         gndSide = 3;
         clkSide = 0;
-        inputRot = 0;
-        outputRot = 0;
-        bidirRot = 0;
-        pwrRot = 0;
-        gndRot = 0;
-        clkRot = 0;
         topRot = 0;
         bottomRot = 0;
         leftRot = 0;
@@ -100,51 +68,19 @@ if (userDefaults) initFromUserDefaults();
 
     public void initFromUserDefaults()
     {
-        leadLength = User.getIconGenLeadLength();
-        leadSpacing = User.getIconGenLeadSpacing();
-        placeByCellLocation = User.getIconGenExportPlacement() == 1;
-        useExactLocation = User.getIconGenExportPlacementExact();
-        reverseIconExportOrder = User.isIconGenReverseExportOrder();
-        drawBody = User.isIconGenDrawBody();
-        bodyTextSize = User.getIconGenBodyTextSize();
-        drawLeads = User.isIconGenDrawLeads();
-        placeCellCenter = User.isPlaceCellCenter();
-        exportTech = User.getIconGenExportTech();
-        exportStyle = User.getIconGenExportStyle();
-        exportLocation = User.getIconGenExportLocation();
-        alwaysDrawn = User.isIconsAlwaysDrawn();
         inputSide = User.getIconGenInputSide();
         outputSide = User.getIconGenOutputSide();
         bidirSide = User.getIconGenBidirSide();
         pwrSide = User.getIconGenPowerSide();
         gndSide = User.getIconGenGroundSide();
         clkSide = User.getIconGenClockSide();
-        inputRot = User.getIconGenInputRot();
-        outputRot = User.getIconGenOutputRot();
-        bidirRot = User.getIconGenBidirRot();
-        pwrRot = User.getIconGenPowerRot();
-        gndRot = User.getIconGenGroundRot();
-        clkRot = User.getIconGenClockRot();
         topRot = User.getIconGenTopRot();
         bottomRot = User.getIconGenBottomRot();
         leftRot = User.getIconGenLeftRot();
         rightRot = User.getIconGenRightRot();
     }
 
-    public double getIconGenLeadLength() { return leadLength; }
-    public boolean isIconGenDrawLeads() { return drawLeads; }
-    public int getIconGenExportTech() { return exportTech; }
-    public int getIconGenExportStyle() { return exportStyle; }
-    public int getIconGenExportLocation() { return exportLocation; }
-    public boolean isIconsAlwaysDrawn() { return alwaysDrawn; }
-    int getIconGenInputRot() { return inputRot; }
-    int getIconGenOutputRot() { return outputRot; }
-    int getIconGenBidirRot() { return bidirRot; }
-    int getIconGenPowerRot() { return pwrRot; }
-    int getIconGenGroundRot() { return gndRot; }
-    int getIconGenClockRot() { return clkRot; }
-
-/**
+    /**
      * Method to create an icon for a cell.
      * @param curCell the cell to turn into an icon.
      * @return the icon cell (null on error).
@@ -153,6 +89,7 @@ if (userDefaults) initFromUserDefaults();
         throws JobException
 {
         // create the new icon cell
+        EditingPreferences ep = curCell.getEditingPreferences();
         String iconCellName = curCell.getName() + "{ic}";
         Cell iconCell = Cell.makeInstance(curCell.getLibrary(), iconCellName);
         if (iconCell == null)
@@ -173,7 +110,7 @@ if (userDefaults) initFromUserDefaults();
             if (pp.isBodyOnly()) continue;
             exportList.add(pp);
         }
-        if (placeByCellLocation)
+        if (ep.iconGenExportPlacement == 1)
         {
             // place exports according to their location in the cell
             Collections.sort(exportList, new ExportsByAngle());
@@ -261,7 +198,7 @@ if (userDefaults) initFromUserDefaults();
         } else
         {
             // place exports according to their characteristics
-            if (reverseIconExportOrder)
+            if (ep.iconGenReverseExportOrder)
                 Collections.reverse(exportList);
             for(Export pp : exportList)
             {
@@ -274,31 +211,31 @@ if (userDefaults) initFromUserDefaults();
                     case 2: portIndex.put(pp, new Integer(topSide++));     break;
                     case 3: portIndex.put(pp, new Integer(bottomSide++));  break;
                 }
-                int rotation = ViewChanges.iconTextRotation(pp, this);
+                int rotation = ViewChanges.iconTextRotation(pp);
                 portRotation.put(pp, new Integer(rotation));
             }
         }
 
         // determine the size of the "black box" core
         double xSize, ySize;
-        if (placeByCellLocation && useExactLocation)
+        if (ep.iconGenExportPlacement == 1 && ep.iconGenExportPlacementExact)
         {
             xSize = curCell.getDefWidth();
             ySize = curCell.getDefHeight();
         } else
         {
-            ySize = Math.max(Math.max(leftSide, rightSide), 5) * leadSpacing;
-            xSize = Math.max(Math.max(topSide, bottomSide), 3) * leadSpacing;
+            ySize = Math.max(Math.max(leftSide, rightSide), 5) * ep.iconGenLeadSpacing;
+            xSize = Math.max(Math.max(topSide, bottomSide), 3) * ep.iconGenLeadSpacing;
         }
 
         // create the "black box"
         NodeInst bbNi = null;
-        if (drawBody)
+        if (ep.iconGenDrawBody)
         {
             bbNi = NodeInst.newInstance(Artwork.tech().openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
             if (bbNi == null) return null;
             EPoint[] boxOutline = new EPoint[5];
-            if (placeByCellLocation && useExactLocation)
+            if (ep.iconGenExportPlacement == 1 && ep.iconGenExportPlacementExact)
             {
                 boxOutline[0] = new EPoint(curCell.getBounds().getMinX(), curCell.getBounds().getMinY());
                 boxOutline[1] = new EPoint(curCell.getBounds().getMinX(), curCell.getBounds().getMaxY());
@@ -316,7 +253,7 @@ if (userDefaults) initFromUserDefaults();
             bbNi.setTrace(boxOutline);
 
             // put the original cell name on it
-            TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor().withRelSize(bodyTextSize);
+            TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor().withRelSize(ep.iconGenBodyTextSize);
             bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getName(), td);
         }
 
@@ -327,10 +264,10 @@ if (userDefaults) initFromUserDefaults();
             // determine location and side of the port
             int portPosition = portIndex.get(pp).intValue();
             int index = portSide.get(pp).intValue();
-            double spacing = leadSpacing;
+            double spacing = ep.iconGenLeadSpacing;
             double xPos = 0, yPos = 0;
             double xBBPos = 0, yBBPos = 0;
-            if (placeByCellLocation && useExactLocation)
+            if (ep.iconGenExportPlacement == 1 && ep.iconGenExportPlacementExact)
             {
                 xBBPos = xPos = pp.getOriginalPort().getCenter().getX();
                 yBBPos = yPos = pp.getOriginalPort().getCenter().getY();
@@ -340,27 +277,27 @@ if (userDefaults) initFromUserDefaults();
                 {
                     case 0:		// left side
                         xBBPos = -xSize/2;
-                        xPos = xBBPos - leadLength;
-                        if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
+                        xPos = xBBPos - ep.iconGenLeadLength;
+                        if (leftSide*2 < rightSide) spacing = ep.iconGenLeadSpacing * 2;
                         yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + portPosition * spacing);
                         break;
                     case 1:		// right side
                         xBBPos = xSize/2;
-                        xPos = xBBPos + leadLength;
-                        if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
+                        xPos = xBBPos + ep.iconGenLeadLength;
+                        if (rightSide*2 < leftSide) spacing = ep.iconGenLeadSpacing * 2;
                         yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + portPosition * spacing);
                         break;
                     case 2:		// top
-                        if (topSide*2 < bottomSide) spacing = leadSpacing * 2;
+                        if (topSide*2 < bottomSide) spacing = ep.iconGenLeadSpacing * 2;
                         xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + portPosition * spacing);
                         yBBPos = ySize/2;
-                        yPos = yBBPos + leadLength;
+                        yPos = yBBPos + ep.iconGenLeadLength;
                         break;
                     case 3:		// bottom
-                        if (bottomSide*2 < topSide) spacing = leadSpacing * 2;
+                        if (bottomSide*2 < topSide) spacing = ep.iconGenLeadSpacing * 2;
                         xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + portPosition * spacing);
                         yBBPos = -ySize/2;
-                        yPos = yBBPos - leadLength;
+                        yPos = yBBPos - ep.iconGenLeadLength;
                         break;
                 }
             }
@@ -371,7 +308,7 @@ if (userDefaults) initFromUserDefaults();
         }
 
         // if no body, leads, or cell center is drawn, and there is only 1 export, add more
-        if (!drawBody && !drawLeads && placeCellCenter && total <= 1)
+        if (!ep.iconGenDrawBody && !ep.iconGenDrawLeads && ep.placeCellCenter && total <= 1)
         {
             NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
         }
@@ -418,12 +355,13 @@ if (userDefaults) initFromUserDefaults();
      * @return true if the export was created.
      */
     public static boolean makeIconExport(Export pp, int index, double xPos, double yPos, double xBBPos, double yBBPos,
-                                         Cell np, int textRotation, IconParameters iconParameters)
+                                         Cell np, int textRotation)
     {
+        EditingPreferences ep = pp.getEditingPreferences();
         // presume "universal" exports (Generic technology)
         NodeProto pinType = Generic.tech().universalPinNode;
         double pinSizeX = 0, pinSizeY = 0;
-        if (iconParameters.exportTech != 0)
+        if (ep.iconGenExportTech != 0)
         {
             // instead, use "schematic" exports (Schematic Bus Pins)
             pinType = Schematics.tech().busPinNode;
@@ -442,7 +380,7 @@ if (userDefaults) initFromUserDefaults();
         }
 
         // if the export is on the body (no leads) then move it in
-        if (!iconParameters.drawLeads)
+        if (!ep.iconGenDrawLeads)
         {
             xPos = xBBPos;   yPos = yBBPos;
         }
@@ -453,12 +391,12 @@ if (userDefaults) initFromUserDefaults();
 
         // export the port that should be on this pin
         PortInst pi = pinNi.getOnlyPortInst();
-        Export port = Export.newInstance(np, pi, pp.getName(), pp.getCharacteristic(), iconParameters);
+        Export port = Export.newInstance(np, pi, pp.getName(), pp.getCharacteristic(), null);
         if (port != null)
         {
             TextDescriptor td = port.getTextDescriptor(Export.EXPORT_NAME);
             if (textRotation != 0) td = td.withRotation(TextDescriptor.Rotation.getRotationAt(textRotation));
-            switch (iconParameters.exportStyle)
+            switch (ep.iconGenExportStyle)
             {
                 case 0:		// Centered
                     td = td.withPos(TextDescriptor.Position.CENT);
@@ -484,8 +422,8 @@ if (userDefaults) initFromUserDefaults();
             }
             port.setTextDescriptor(Export.EXPORT_NAME, td);
             double xOffset = 0, yOffset = 0;
-            int loc = iconParameters.exportLocation;
-            if (!iconParameters.drawLeads) loc = 0;
+            int loc = ep.iconGenExportLocation;
+            if (!ep.iconGenDrawLeads) loc = 0;
             switch (loc)
             {
                 case 0:		// port on body
@@ -499,12 +437,12 @@ if (userDefaults) initFromUserDefaults();
                     break;
             }
             port.setOff(Export.EXPORT_NAME, xOffset, yOffset);
-            port.setAlwaysDrawn(iconParameters.alwaysDrawn);
+            port.setAlwaysDrawn(ep.iconsAlwaysDrawn);
             port.copyVarsFrom(pp);
         }
 
         // add lead if requested
-        if (iconParameters.drawLeads)
+        if (ep.iconGenDrawLeads)
         {
             pinType = wireType.findPinProto();
             if (pinType == Schematics.tech().busPinNode)

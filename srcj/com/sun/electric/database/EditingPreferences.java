@@ -77,6 +77,7 @@ public class EditingPreferences extends PrefPackage {
     private static final String KEY_TEXT_DESCRIPTOR = "TextDescriptorFor";
     private static final String KEY_TEXT_DESCRIPTOR_COLOR = "TextDescriptorColorFor";
     private static final String KEY_TEXT_DESCRIPTOR_FONT = "TextDescriptorFontFor";
+
     private static final ThreadLocal<EditingPreferences> threadEditingPreferences = new ThreadLocal<EditingPreferences>();
     private transient final TechPool techPool;
     private final HashMap<PrimitiveNodeId, ImmutableNodeInst> defaultNodes;
@@ -90,6 +91,10 @@ public class EditingPreferences extends PrefPackage {
      * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
      * The default is 0.
      */
+
+    @BooleanPref(node = USER_NODE, key = "PlaceCellCenter", factory = true)
+    public final boolean placeCellCenter = true;
+    
     @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementExport", factory = 0)
     public final int smartVerticalPlacementExport = 0;
     /** What type of "smart" horizontal text placement should be done for Exports.
@@ -115,7 +120,155 @@ public class EditingPreferences extends PrefPackage {
      * The default is true.
      */
     @BooleanPref(node = USER_NODE, key = "FatWires", factory = true)
-    public boolean fatWires;
+    public final boolean fatWires = true;
+
+	/**
+	 * How long to make leads in generated icons.
+     * The default is 2.
+	 */
+	@DoublePref(node = USER_NODE, key = "IconGenLeadLength", factory = 2.0)
+    public final double iconGenLeadLength = 2.0;
+
+	/**
+	 * How far apart to space leads in generated icons.
+     * The default is 2.
+	 */
+	@DoublePref(node = USER_NODE, key = "IconGenLeadSpacing", factory = 2.0)
+    public final double iconGenLeadSpacing = 2.0;
+
+	/**
+	 * Whether generated icons should have leads drawn.
+	 * The default is "true".
+	 */
+    @BooleanPref(node = USER_NODE, key = "IconGenDrawLeads", factory = true)
+    public final boolean iconGenDrawLeads = true;
+
+	/**
+	 * Whether generated icon exports should be "always drawn".
+	 * Exports that are "always drawn" have their text shown on instances, even
+	 * when those exports are connected or further exported.
+	 * The default is "false".
+	 */
+    @BooleanPref(node = USER_NODE, key = "IconsAlwaysDrawn", factory = false)
+    public final boolean iconsAlwaysDrawn = false;
+
+	/**
+	 * Whether generated icons should have a body drawn.
+	 * The body is just a rectangle.
+	 * The default is "true".
+	 */
+    @BooleanPref(node = USER_NODE, key = "IconGenDrawBody", factory = true)
+    public final boolean iconGenDrawBody = true;
+
+    @IntegerPref(node = USER_NODE, key = "IconGenExportPlacement", factory = 0)
+    public final int iconGenExportPlacement = 0;
+
+	/**
+	 * Whether exports are placed exactly according to schematics.
+	 * Only valid if icon ports are being placed by location.
+	 * true to place exports exactly according to schematics.
+	 * false: to place exports relative to their location in the original cell.
+	 */
+    @BooleanPref(node = USER_NODE, key = "IconGenExportPlacementExact", factory = true)
+    public final boolean iconGenExportPlacementExact = true;
+
+	/**
+	 * Whether generated icons should reverse the order of exports.
+	 * Normally, exports are drawn top-to-bottom alphabetically.
+	 * The default is "false".
+	 */
+    @BooleanPref(node = USER_NODE, key = "IconGenReverseExportOrder", factory = false)
+    public final boolean iconGenReverseExportOrder = false;
+
+	/**
+	 * The size of body text on generated icons.
+	 * The default is 2 unit.
+	 */
+    @DoublePref(node = USER_NODE, key = "IconGenBodyTextSize", factory = 2.0)
+    public final double iconGenBodyTextSize = 2.0;
+
+	/**
+	 * Where exports should appear along the leads in generated icons.
+	 * 0: on the body   1: (the default) at the end of the lead   2: in the middle of the lead
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenExportLocation", factory = 1)
+    public final int iconGenExportLocation = 1;
+
+	/**
+	 * How the text should appear in generated icons.
+	 * 0: (the default) centered at the export location
+	 * 1: pointing inward from the export location
+	 * 2: pointing outward from the export location
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenExportStyle", factory = 0)
+    public final int iconGenExportStyle = 0;
+
+	/**
+	 * How exports should be constructed in generated icons.
+	 * 0: use Generic:Universal-Pins for non-bus exports (can connect to ANYTHING).
+	 * 1: (the default) use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenExportTech", factory = 1)
+    public final int iconGenExportTech = 1;
+
+	/**
+	 * Where to place an instance of the generated icons in the original schematic.
+	 * 0: (the default) in the upper-right corner.
+	 * 1: in the upper-left corner.
+	 * 2: in the lower-right corner.
+	 * 3: in the lower-left corner.
+	 * 4: no instance in the original schematic
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenInstanceLocation", factory = 0)
+    public final int iconGenInstanceLocation = 0;
+    
+	/**
+	 * What angle Input ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenInputRot", factory = 0)
+    public final int iconGenInputRot = 0;
+
+	/**
+	 * What angle Output ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenOutputRot", factory = 0)
+    public final int iconGenOutputRot = 0;
+
+	/**
+	 * What angle Bidirectional ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenBidirRot", factory = 0)
+    public final int iconGenBidirRot = 0;
+
+	/**
+	 * Method to tell what angle Power ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenPowerRot", factory = 0)
+    public final int iconGenPowerRot = 0;
+
+	/**
+	 * Method to tell what angle Ground ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenGroundRot", factory = 0)
+    public final int iconGenGroundRot = 0;
+
+	/**
+	 * Method to tell what angle Clock ports should go on generated icons.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+    @IntegerPref(node = USER_NODE, key = "IconGenClockRot", factory = 0)
+    public final int iconGenClockRot = 0;
 
     public EditingPreferences(boolean factory, TechPool techPool) {
         super(factory);
@@ -264,7 +417,7 @@ public class EditingPreferences extends PrefPackage {
     }
 
     @Override
-    public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+    protected void putPrefs(Preferences prefRoot, boolean removeDefaults) {
         putPrefs(prefRoot, removeDefaults, null);
     }
 
@@ -451,11 +604,23 @@ public class EditingPreferences extends PrefPackage {
         return (EditingPreferences) withField("defaultNodes", newDefaultNodes);
     }
 
-    public EditingPreferences withNodesReset() {
+    public EditingPreferences withPlaceCellCenter(boolean placeCellCenter) {
+        if (placeCellCenter == this.placeCellCenter) {
+            return this;
+        }
+        return withField("placeCellCenter", placeCellCenter);
+    }
+
+    public EditingPreferences withDefaultNodesReset() {
         if (defaultNodes.isEmpty()) {
             return this;
         }
-        return (EditingPreferences) withField("defaultNodes", new HashMap<PrimitiveNodeId, ImmutableNodeInst>());
+        return withField("defaultNodes", new HashMap<PrimitiveNodeId, ImmutableNodeInst>());
+    }
+
+    public EditingPreferences withNodesReset() {
+        return withDefaultNodesReset()
+                .withPlaceCellCenter(true);
     }
 
     public EditingPreferences withArcFlags(ArcProtoId apId, int flags) {
@@ -582,13 +747,32 @@ public class EditingPreferences extends PrefPackage {
             EditingPreferences that = (EditingPreferences) o;
             return this.techPool == that.techPool
                     && this.defaultNodes.equals(that.defaultNodes)
+                    && this.placeCellCenter == that.placeCellCenter
                     && this.defaultArcs.equals(that.defaultArcs)
                     && this.defaultArcAngleIncrements.equals(that.defaultArcAngleIncrements)
                     && this.defaultArcPins.equals(that.defaultArcPins)
                     && Arrays.equals(this.alignments, that.alignments)
                     && this.alignmentIndex == that.alignmentIndex
                     && Arrays.equals(this.textDescriptors, that.textDescriptors)
-                    && this.fatWires == that.fatWires;
+                    && this.fatWires == that.fatWires
+                    && this.iconGenLeadLength == that.iconGenLeadLength
+                    && this.iconGenLeadSpacing == that.iconGenLeadSpacing
+                    && this.iconGenDrawLeads == that.iconGenDrawLeads
+                    && this.iconsAlwaysDrawn == that.iconsAlwaysDrawn
+                    && this.iconGenDrawBody == that.iconGenDrawBody
+                    && this.iconGenExportPlacement == that.iconGenExportPlacement
+                    && this.iconGenExportPlacementExact == that.iconGenExportPlacementExact
+                    && this.iconGenReverseExportOrder == that.iconGenReverseExportOrder
+                    && this.iconGenBodyTextSize == that.iconGenBodyTextSize
+                    && this.iconGenExportLocation == that.iconGenExportLocation
+                    && this.iconGenExportStyle == that.iconGenExportStyle
+                    && this.iconGenExportTech == that.iconGenExportTech
+                    && this.iconGenInstanceLocation == that.iconGenInstanceLocation
+                    && this.iconGenInputRot == that.iconGenInputRot
+                    && this.iconGenOutputRot == that.iconGenOutputRot
+                    && this.iconGenBidirRot == that.iconGenBidirRot
+                    && this.iconGenPowerRot == that.iconGenPowerRot
+                    && this.iconGenClockRot == that.iconGenClockRot;
         }
         return false;
     }
@@ -676,28 +860,35 @@ public class EditingPreferences extends PrefPackage {
         if (smartVerticalPlacementExport == this.smartVerticalPlacementExport) {
             return this;
         }
-        return (EditingPreferences) withField("smartVerticalPlacementExport", Integer.valueOf(smartVerticalPlacementExport));
+        return withField("smartVerticalPlacementExport", Integer.valueOf(smartVerticalPlacementExport));
     }
 
     public EditingPreferences withSmartHorizontalPlacementExport(int smartHorizontalPlacementExport) {
         if (smartHorizontalPlacementExport == this.smartHorizontalPlacementExport) {
             return this;
         }
-        return (EditingPreferences) withField("smartHorizontalPlacementExport", Integer.valueOf(smartHorizontalPlacementExport));
+        return withField("smartHorizontalPlacementExport", Integer.valueOf(smartHorizontalPlacementExport));
     }
 
     public EditingPreferences withSmartVerticalPlacementArc(int smartVerticalPlacementArc) {
         if (smartVerticalPlacementArc == this.smartVerticalPlacementArc) {
             return this;
         }
-        return (EditingPreferences) withField("smartVerticalPlacementArc", Integer.valueOf(smartVerticalPlacementArc));
+        return withField("smartVerticalPlacementArc", Integer.valueOf(smartVerticalPlacementArc));
     }
 
     public EditingPreferences withSmartHorizontalPlacementArc(int smartHorizontalPlacementArc) {
         if (smartHorizontalPlacementArc == this.smartHorizontalPlacementArc) {
             return this;
         }
-        return (EditingPreferences) withField("smartHorizontalPlacementArc", Integer.valueOf(smartHorizontalPlacementArc));
+        return withField("smartHorizontalPlacementArc", Integer.valueOf(smartHorizontalPlacementArc));
+    }
+
+    public EditingPreferences withFatWires(boolean fatWires) {
+        if (fatWires == this.fatWires) {
+            return this;
+        }
+        return withField("fatWires", fatWires);
     }
 
     public EditingPreferences withPlacementReset() {
@@ -705,7 +896,167 @@ public class EditingPreferences extends PrefPackage {
     }
 
     public EditingPreferences withFatWiresReset() {
-        return (EditingPreferences) withField("fatWires", Boolean.TRUE);
+        return withFatWires(true);
+    }
+
+    public EditingPreferences withIconGenLeadLength(double iconGenLeadLength) {
+        if (iconGenLeadLength == this.iconGenLeadLength) {
+            return this;
+        }
+        return withField("iconGenLeadLength", iconGenLeadLength);
+    }
+
+    public EditingPreferences withIconGenLeadSpacing(double iconGenLeadSpacing) {
+        if (iconGenLeadSpacing == this.iconGenLeadSpacing) {
+            return this;
+        }
+        return withField("iconGenLeadSpacing", iconGenLeadSpacing);
+    }
+
+    public EditingPreferences withIconGenDrawLeads(boolean iconGenDrawLeads) {
+        if (iconGenDrawLeads == this.iconGenDrawLeads) {
+            return this;
+        }
+        return withField("iconGenDrawLeads", iconGenDrawLeads);
+    }
+
+    public EditingPreferences withIconsAlwaysDrawn(boolean iconsAlwaysDrawn) {
+        if (iconsAlwaysDrawn == this.iconsAlwaysDrawn) {
+            return this;
+        }
+        return withField("iconsAlwaysDrawn", iconsAlwaysDrawn);
+    }
+
+    public EditingPreferences withIconGenDrawBody(boolean iconGenDrawBody) {
+        if (iconGenDrawBody == this.iconGenDrawBody) {
+            return this;
+        }
+        return withField("iconGenDrawBody", iconGenDrawBody);
+    }
+
+    public EditingPreferences withIconGenExportPlacement(int iconGenExportPlacement) {
+        if (iconGenExportPlacement == this.iconGenExportPlacement) {
+            return this;
+        }
+        return withField("iconGenExportPlacement", iconGenExportPlacement);
+    }
+
+    public EditingPreferences withIconGenExportPlacementExact(boolean iconGenExportPlacementExact) {
+        if (iconGenExportPlacementExact == this.iconGenExportPlacementExact) {
+            return this;
+        }
+        return withField("iconGenExportPlacementExact", iconGenExportPlacementExact);
+    }
+
+    public EditingPreferences withIconGenReverseExportOrder(boolean iconGenReverseExportOrder) {
+        if (iconGenReverseExportOrder == this.iconGenReverseExportOrder) {
+            return this;
+        }
+        return withField("iconGenReverseExportOrder", iconGenReverseExportOrder);
+    }
+
+    public EditingPreferences withIconGenBodyTextSize(double iconGenBodyTextSize) {
+        if (iconGenBodyTextSize == this.iconGenBodyTextSize) {
+            return this;
+        }
+        return withField("iconGenBodyTextSize", iconGenBodyTextSize);
+    }
+
+    public EditingPreferences withIconGenExportLocation(int iconGenExportLocation) {
+        if (iconGenExportLocation == this.iconGenExportLocation) {
+            return this;
+        }
+        return withField("iconGenExportLocation", iconGenExportLocation);
+    }
+
+    public EditingPreferences withIconGenExportStyle(int iconGenExportStyle) {
+        if (iconGenExportStyle == this.iconGenExportStyle) {
+            return this;
+        }
+        return withField("iconGenExportStyle", iconGenExportStyle);
+    }
+
+    public EditingPreferences withIconGenExportTech(int iconGenExportTech) {
+        if (iconGenExportTech == this.iconGenExportTech) {
+            return this;
+        }
+        return withField("iconGenExportTech", iconGenExportTech);
+    }
+
+    public EditingPreferences withIconGenInstanceLocation(int iconGenInstanceLocation) {
+        if (iconGenInstanceLocation == this.iconGenInstanceLocation) {
+            return this;
+        }
+        return withField("iconGenInstanceLocation", iconGenInstanceLocation);
+    }
+
+    public EditingPreferences withIconGenInputRot(int iconGenInputRot) {
+        if (iconGenInputRot == this.iconGenInputRot) {
+            return this;
+        }
+        return withField("iconGenInputRot", iconGenInputRot);
+    }
+
+    public EditingPreferences withIconGenOutputRot(int iconGenOutputRot) {
+        if (iconGenOutputRot == this.iconGenOutputRot) {
+            return this;
+        }
+        return withField("iconGenOutputRot", iconGenOutputRot);
+    }
+
+    public EditingPreferences withIconGenBidirRot(int iconGenBidirRot) {
+        if (iconGenBidirRot == this.iconGenBidirRot) {
+            return this;
+        }
+        return withField("iconGenBidirRot", iconGenBidirRot);
+    }
+
+    public EditingPreferences withIconGenPowerRot(int iconGenPowerRot) {
+        if (iconGenPowerRot == this.iconGenPowerRot) {
+            return this;
+        }
+        return withField("iconGenPowerRot", iconGenPowerRot);
+    }
+
+    public EditingPreferences withIconGenGroundRot(int iconGenGroundRot) {
+        if (iconGenGroundRot == this.iconGenGroundRot) {
+            return this;
+        }
+        return withField("iconGenGroundRot", iconGenGroundRot);
+    }
+
+    public EditingPreferences withIconGenClockRot(int iconGenClockRot) {
+        if (iconGenClockRot == this.iconGenClockRot) {
+            return this;
+        }
+        return withField("iconGenClockRot", iconGenClockRot);
+    }
+
+    public EditingPreferences withIconGenReset() {
+        return withIconGenLeadLength(2)
+              .withIconGenLeadSpacing(2)
+              .withIconGenDrawLeads(true)
+              .withIconsAlwaysDrawn(false)
+              .withIconGenDrawBody(true)
+              .withIconGenExportPlacement(0)
+              .withIconGenExportPlacementExact(true)
+              .withIconGenReverseExportOrder(false)
+              .withIconGenBodyTextSize(2.0)
+              .withIconGenExportLocation(1)
+              .withIconGenExportStyle(0)
+              .withIconGenExportTech(1)
+              .withIconGenInstanceLocation(0)
+              .withIconGenInputRot(0)
+              .withIconGenOutputRot(0)
+              .withIconGenBidirRot(0)
+              .withIconGenPowerRot(0)
+              .withIconGenGroundRot(0)
+              .withIconGenClockRot(0);
+    }
+
+    @Override
+    protected EditingPreferences withField(String fieldName, Object value) {
+        return (EditingPreferences) super.withField(fieldName, value);
     }
 
     private static Dimension2D[] correctAlignmentGridVector(Dimension2D[] retVal) {

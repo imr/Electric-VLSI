@@ -137,7 +137,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
      * @param prefRoot the root of the Preferences subtree.
      * @param removeDefaults remove from the Preferences subtree options which have factory default value.
      */
-    public void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+    protected void putPrefs(Preferences prefRoot, boolean removeDefaults) {
         Class cls = getClass();
         for (Field field : cls.getDeclaredFields()) {
             try {
@@ -200,6 +200,15 @@ public abstract class PrefPackage implements Serializable, Cloneable {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Store annotated option fields of the subclass into the speciefied Preferences subtree.
+     * @param prefRoot the root of the Preferences subtree.
+     * @param removeDefaults remove from the Preferences subtree options which have factory default value.
+     */
+    public static void lowLevelPutPrefs(PrefPackage prefPackage, Preferences prefRoot, boolean removeDefaults) {
+        prefPackage.putPrefs(prefRoot, removeDefaults);
     }
 
     /**

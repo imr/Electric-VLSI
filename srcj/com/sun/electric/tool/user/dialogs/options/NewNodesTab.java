@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -87,9 +88,10 @@ public class NewNodesTab extends PreferencePanel
 		newNodesPrimPopupChanged();
 
 		// set checkboxes for "Cells" area
+        EditingPreferences ep = getEditingPreferences();
 		nodeCheckCellDates.setSelected(User.isCheckCellDates());
 		nodeSwitchTechnology.setSelected(User.isAutoTechnologySwitch());
-		nodePlaceCellCenter.setSelected(User.isPlaceCellCenter());
+		nodePlaceCellCenter.setSelected(ep.placeCellCenter);
 		nodeReconstructArcsExports.setSelected(User.isReconstructArcsAndExportsToDeletedCells());
 		nodePromptForIndex.setSelected(User.isPromptForIndexWhenDescending());
 
@@ -194,10 +196,6 @@ public class NewNodesTab extends PreferencePanel
 		if (currBoolean != User.isAutoTechnologySwitch())
 			User.setAutoTechnologySwitch(currBoolean);
 
-		currBoolean = nodePlaceCellCenter.isSelected();
-		if (currBoolean != User.isPlaceCellCenter())
-			User.setPlaceCellCenter(currBoolean);
-
 		currBoolean = nodeReconstructArcsExports.isSelected();
 		if (currBoolean != User.isReconstructArcsAndExportsToDeletedCells())
 			User.setReconstructArcsAndExportsToDeletedCells(currBoolean);
@@ -233,6 +231,9 @@ public class NewNodesTab extends PreferencePanel
 		currBoolean = nodeExtractCopyExports.isSelected();
 		if (currBoolean != User.isExtractCopiesExports())
 			User.setExtractCopiesExports(currBoolean);
+
+        EditingPreferences ep = getEditingPreferences();
+        ep = ep.withPlaceCellCenter(nodePlaceCellCenter.isSelected());
 	}
 
 	/**
@@ -247,8 +248,6 @@ public class NewNodesTab extends PreferencePanel
 			User.setCheckCellDates(User.isFactoryCheckCellDates());
 		if (User.isFactoryAutoTechnologySwitch() != User.isAutoTechnologySwitch())
 			User.setAutoTechnologySwitch(User.isFactoryAutoTechnologySwitch());
-		if (User.isFactoryPlaceCellCenter() != User.isPlaceCellCenter())
-			User.setPlaceCellCenter(User.isFactoryPlaceCellCenter());
 		if (User.isFactoryReconstructArcsAndExportsToDeletedCells() != User.isReconstructArcsAndExportsToDeletedCells())
 			User.setReconstructArcsAndExportsToDeletedCells(User.isFactoryReconstructArcsAndExportsToDeletedCells());
 		if (User.isFactoryPromptForIndexWhenDescending() != User.isPromptForIndexWhenDescending())

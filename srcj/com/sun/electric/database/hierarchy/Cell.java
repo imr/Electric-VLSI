@@ -28,6 +28,7 @@ import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.CellTree;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
@@ -576,9 +577,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      */
     public static Cell makeInstance(Library lib, String name) {
         Cell cell = newInstance(lib, name);
+        EditingPreferences ep = cell.getEditingPreferences();
 
         // add cell-center if requested
-        if (User.isPlaceCellCenter()) {
+        if (ep.placeCellCenter) {
             NodeProto cellCenterProto = Generic.tech().cellCenterNode;
             NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0, 0),
                     cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), cell);
