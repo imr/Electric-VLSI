@@ -1,16 +1,13 @@
 # header information:
-HredGeneric180|8.10|USER_electrical_units()I70464
+HredGeneric180|8.11e|USER_electrical_units()I70464
 
 # Views:
 Vicon|ic
 Vschematic|sch
 
 # External Libraries:
+
 LorangeGeneric180|orangeGeneric180
-
-# Tools:
-
-# Technologies:
 
 # Cell NMOS;1{ic}
 CNMOS;1{ic}||artwork|1021415734000|1045501743000|E|ATTR_Delay(D5G1;HNPX3.5;Y-2;)I100|ATTR_X(D5G1.5;HNPX3.5;Y0.5;)I1|ATTR_drain_shared(D5G1;HPX0.5;Y2.5;)I0|ATTR_source_shared(D5G1;HPX0.5;Y-2.5;)I0|prototype_center()I[0,0]
@@ -6425,8 +6422,8 @@ NWire_Pin|pin@4||0|0||||
 Ngeneric:Invisible-Pin|pin@5||-4|17|||||ART_message(D5G5;)StriInv
 Ngeneric:Invisible-Pin|pin@6||-4|13|||||ART_message(D5G2;)Stristate inverter
 Ipms2;1{ic}|pms2@0||0|8|||D5G4;|ATTR_Delay(D5G1;NOJPX-3;Y-1.5;)S@Delay|ATTR_X(D5G1.5;NOJPX2.25;Y1;)S@X
-ItriInv;1{ic}|triInv@2||11|16.5|||D5G4;|ATTR_Delay(D5G1;NPX3.5;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.5;Y2;)I1
-ItriInvn;1{ic}|triInvn@0||11|9.5|||D5G4;
+ItriInv;1{ic}|triInv@2||20|19.5|||D5G4;|ATTR_Delay(D5G1;NPX3.5;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.5;Y2;)I1
+ItriInvn;1{ic}|triInvn@1||20|10|||D5G4;|ATTR_Delay(D5G1;NPX3.5;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.5;Y2;)I1
 Awire|net@0|||2700|nms2@0|d|0|-2|pin@4||0|0
 Awire|net@1|||1800|conn@0|y|-11|0|pin@1||-6|0
 Awire|net@2|||2700|pin@1||-6|0|pin@2||-6|8
@@ -6444,7 +6441,7 @@ Eout||D5G2;|conn@1|y|O
 X
 
 # Cell triInvn;1{ic}
-CtriInvn;1{ic}|triInv|artwork|1092081409000|1263151049129|E|ATTR_Delay(D5G1;HNPX-12;Y-7;)I100|ATTR_X(D5G1;HNPX-12;Y-5;)I1|prototype_center()I[0,0]
+CtriInvn;1{ic}|triInv|artwork|1092081409000|1265917297320|E|ATTR_Delay(D5G1;HNPX3.5;Y-1.5;)I100|ATTR_X(D5G1.5;HNPX2.5;Y2;)I1|prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0||||AV
 NThick-Circle|art@1||0|1.25|0.5|0.5|||ART_color()I10
 NThick-Circle|art@3||-2|0|1|1|||ART_color()I10

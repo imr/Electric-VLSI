@@ -1,5 +1,5 @@
 # header information:
-HpurpleGeneric180|8.10|USER_electrical_units()I70464
+HpurpleGeneric180|8.11e|USER_electrical_units()I70464
 
 # Views:
 Vdocumentation|doc
@@ -7,12 +7,10 @@ Vicon|ic
 Vschematic|sch
 
 # External Libraries:
+
 LorangeGeneric180|orangeGeneric180
+
 LredGeneric180|redGeneric180
-
-# Tools:
-
-# Technologies:
 
 # Cell LEsettings;2{ic}
 CLEsettings;2{ic}||artwork|1023920563000|1255226990574|E|ATTR_LESETTINGS(D5G1;HNPX1.5;Y-4;)I1|ATTR_alpha(D5G1;HNPX1.5;Y-2;)S0.7|ATTR_diffn(D6G1;HNPX-1;Y-5;)F0.7|ATTR_diffp(D6G1;HNPX-1;Y-6;)F0.7|ATTR_epsilon(D5G1;HNPX1.5;Y1;)F0.1|ATTR_gate_cap(D5G1;HNPX1.5;Y-1;)F0.4|ATTR_keeper_ratio(D5G1;HNPX1.5;Y-3;)F0.1|ATTR_max_iter(D5G1;HNPX1.5;)I40|ATTR_su(D5G1;HNPX1.5;Y3;)I4|ATTR_wire_ratio(D5G1;HNPX1.5;Y2;)F0.16|ATTR_x1inverter_length(D5G1;HNPX1.5;Y-7;)I4|ATTR_x1inverter_nwidth(D5G1;HNPX1.5;Y-8;)I12|ATTR_x1inverter_pwidth(D5G1;HNPX1.5;Y-9;)S24|prototype_center()I[0,0]
@@ -57,7 +55,7 @@ Ngeneric:Invisible-Pin|pin@1||-29|96.5|||||ART_message(D5G3;)Sies 11 January 201
 X
 
 # Cell aSimpleGallery;1{sch}
-CaSimpleGallery;1{sch}||schematic|1263076299096|1263221143790|
+CaSimpleGallery;1{sch}||schematic|1263076299096|1265917399002|
 Ngeneric:Facet-Center|art@0||0|0||||AV
 IredGeneric180:inv;1{ic}|inv@0||-36|-6|||D0G4;|ATTR_Delay(D5G1;NPX2;Y-2;)I100|ATTR_X(D5G1.5;NPX1.5;Y2;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Iinv;1{ic}|inv@1||-36|18|||D0G4;|ATTR_Delay(D5G1;NPX2;Y-2;)I100|ATTR_LEGATE(P)I1|ATTR_LEPARALLGRP(P)I-1|ATTR_X(D5G1.5;NOJPX1.5;Y2;)SLE.getdrive()|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_su(P)I-1
@@ -99,7 +97,7 @@ Ngeneric:Invisible-Pin|pin@4||49.5|-27.5|||||ART_message(D5G3;)S[deMorgan's rule
 ItriInv;1{ic}|triInv@0||54|18|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-1.5;)I100|ATTR_LEGATE(P)I1|ATTR_LEPARALLGRP(P)I-1|ATTR_X(D5G1.5;NOJPX2;Y2;)SLE.getdrive()|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_su(P)S""
 IredGeneric180:triInv;1{ic}|triInv@1||54|-6|||D0G4;|ATTR_Delay(D5G1;NPX3.5;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.5;Y2;)I1
 ItriInvn;1{ic}|triInvn@0||54|6|||D0G4;|ATTR_Delay(D5G1;NPX4;Y-1.5;)I100|ATTR_LEGATE(P)I1|ATTR_LEPARALLGRP(P)I-1|ATTR_X(D5G1.5;NOJPX2;Y2;)SLE.getdrive()|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_su(P)S""
-IredGeneric180:triInvn;1{ic}|triInvn@1||54|-18|||D0G4;
+IredGeneric180:triInvn;1{ic}|triInvn@1||54|-18|||D0G4;|ATTR_Delay(D5G1;NPX3.25;Y-1.5;)I100|ATTR_X(D5G1.5;NPX2.25;Y2;)I1
 IredGeneric180:xnor2;1{ic}|xnor2@1||24|-30|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-2;)I100|ATTR_X(D5G1.5;NPX2.25;Y2.25;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
 Ixnor2;1{ic}|xnor2@2||12|-30|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-2;)I100|ATTR_LEGATE(P)I1|ATTR_LEPARALLGRP(P)I-1|ATTR_X(D5G1.5;NOJPX2.25;Y2.25;)SLE.getdrive()|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1|ATTR_su(P)I-1
 IredGeneric180:xor2;1{ic}|xor2@0||-12|-30|||D0G4;|ATTR_Delay(D5G1;NPX2.5;Y-2;)I100|ATTR_X(D5G1.5;NPX2.25;Y2.25;)I1|ATTR_drive0(P)Sstrong0|ATTR_drive1(P)Sstrong1
