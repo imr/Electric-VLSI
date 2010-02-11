@@ -28,9 +28,9 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected;
 
-import java.awt.geom.Point2D;
-
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.Force2D;
+
+import java.awt.geom.Point2D;
 
 /**
  * Parallel Placement

@@ -29,16 +29,16 @@
 package com.sun.electric.tool.placement.simulatedAnnealing1.metrics;
 
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.Vector;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
 import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing.IncrementalState;
 import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing.PlacementNodePosition;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.Vector;
 
 /** Parallel Placement
  **/

@@ -28,14 +28,14 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.metrics;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
 
 /**
  * Parallel Placement
@@ -154,7 +154,7 @@ public class MSTMetric extends AbstractMetric {
 			total += this.compute(net);
 		}
 
-		return total;
+		return new Double(total);
 	}
 
 	/**

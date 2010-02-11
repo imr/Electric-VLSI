@@ -28,12 +28,12 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing1.metrics;
 
-import java.util.List;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
 import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing.PlacementNodePosition;
+
+import java.util.List;
 
 /** Parallel Placement
  * 

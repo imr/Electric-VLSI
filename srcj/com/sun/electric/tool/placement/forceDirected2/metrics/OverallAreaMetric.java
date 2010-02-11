@@ -28,13 +28,13 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.metrics;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.CheckboardingField;
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.CheckboardingPattern;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Parallel Placement
@@ -53,7 +53,7 @@ public class OverallAreaMetric extends AbstractMetric {
 
 	@Override
 	public Double compute() {
-		return this.computeAsBigDecimal().doubleValue();
+		return new Double(this.computeAsBigDecimal().doubleValue());
 	}
 
 	public BigDecimal computeAsBigDecimal() {

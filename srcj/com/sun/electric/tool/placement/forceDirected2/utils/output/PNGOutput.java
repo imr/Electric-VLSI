@@ -28,13 +28,13 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.utils.output;
 
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.util.List;
-
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.util.List;
 
 /**
  * Parallel Placement

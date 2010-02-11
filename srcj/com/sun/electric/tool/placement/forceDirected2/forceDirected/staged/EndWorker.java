@@ -28,11 +28,6 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.staged;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.CheckboardingField;
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.CheckboardingPattern;
 import com.sun.electric.tool.placement.forceDirected2.metrics.AbstractMetric;
@@ -40,6 +35,11 @@ import com.sun.electric.tool.placement.forceDirected2.utils.GlobalVars;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.EmptyException;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.StageWorker;
 import com.sun.electric.tool.placement.forceDirected2.utils.output.PNGOutput;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EndWorker extends StageWorker {
 
@@ -127,13 +127,13 @@ public class EndWorker extends StageWorker {
 
 	public void run() {
 
-		while (!this.abort) {
+		while (!this.abort.booleanValue()) {
 
 			try {
 				PlacementDTO data = this.stage.getInput(this).get();
 				data.incCounter();
 
-				this.elementCounter.put(data, data.getCounter());
+				this.elementCounter.put(data, new Integer(data.getCounter()));
 
 				// current timestamp
 				long now = System.currentTimeMillis();
@@ -142,7 +142,7 @@ public class EndWorker extends StageWorker {
 					// if (data.getCounter() < iterations) {
 					data.setTimestamp(now);
 					if ((data.getCounter() % 6) == 0) {
-						this.formatEnsmallElementCounter.put(data, data.getIndex());
+						this.formatEnsmallElementCounter.put(data, new Integer(data.getIndex()));
 
 						if (this.elementCounter.size() == this.formatEnsmallElementCounter.size()) {
 							// PlacementForceDirectedStaged.setMovementCounter(0);
@@ -152,13 +152,13 @@ public class EndWorker extends StageWorker {
 
 							for (PlacementDTO dto : dtos) {
 								this.stage.sendToNextStage(dto);
-								this.elementCounter.put(dto, dto.getIndex());
+								this.elementCounter.put(dto, new Integer(dto.getIndex()));
 							}
 
 							this.formatEnsmallElementCounter.clear();
 						}
 					} else if ((data.getCounter() % 5) == 0) {
-						this.formatEnlargeElementCounter.put(data, data.getIndex());
+						this.formatEnlargeElementCounter.put(data, new Integer(data.getIndex()));
 						if (this.elementCounter.size() == this.formatEnlargeElementCounter.size()) {
 							this.currentStep = data.getCounter();
 							List<PlacementDTO> dtos = this.enlargeDTO();
@@ -167,7 +167,7 @@ public class EndWorker extends StageWorker {
 							for (PlacementDTO dto : dtos) {
 								dto.setVelocityFactor(this.velocityFactor);
 								this.stage.sendToNextStage(dto);
-								this.elementCounter.put(dto, dto.getIndex());
+								this.elementCounter.put(dto, new Integer(dto.getIndex()));
 							}
 
 							this.formatEnlargeElementCounter.clear();
@@ -177,7 +177,7 @@ public class EndWorker extends StageWorker {
 					}
 
 				} else {
-					GlobalVars.rounds = data.getCounter();
+					GlobalVars.rounds = new Integer(data.getCounter());
 					this.startUpStage.stop();
 				}
 

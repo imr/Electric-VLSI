@@ -28,11 +28,11 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing1.metrics;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
 import java.text.DecimalFormat;
 import java.util.List;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 
 public abstract class AbstractMetric {
 

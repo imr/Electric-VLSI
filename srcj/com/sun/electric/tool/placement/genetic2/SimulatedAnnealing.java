@@ -29,14 +29,14 @@
 package com.sun.electric.tool.placement.genetic2;
 
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
 
 /**

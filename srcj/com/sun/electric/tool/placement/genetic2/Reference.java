@@ -28,16 +28,15 @@
  */
 package com.sun.electric.tool.placement.genetic2;
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.genetic2.metrics.DeltaBBMetric;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-
-import com.sun.electric.tool.placement.genetic2.metrics.DeltaBBMetric;
-
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
 /**
  * Class representing the nodesToPlace and the reference placement for DeltaIndividuals.
@@ -320,8 +319,8 @@ public class Reference
 		for(PlacementNode n : nodesToPlace)
 		{
 			b.valuesFrom(n);
-			xPositions.add(b.getX());
-			yPositions.add(b.getY());
+			xPositions.add(new Double(b.getX()));
+			yPositions.add(new Double(b.getY()));
 			
 			if(b.getWidth() > maxW)
 			{
@@ -335,11 +334,11 @@ public class Reference
 		Collections.sort(xPositions);
 		Collections.sort(yPositions);
 		
-		left = xPositions.get(xPositions.size()/10);
-		right = xPositions.get(xPositions.size()-xPositions.size()/10-1);
+		left = xPositions.get(xPositions.size()/10).doubleValue();
+		right = xPositions.get(xPositions.size()-xPositions.size()/10-1).doubleValue();
 		
-		bottom = yPositions.get(yPositions.size()/10);
-		top = yPositions.get(yPositions.size()-yPositions.size()/10-1);
+		bottom = yPositions.get(yPositions.size()/10).doubleValue();
+		top = yPositions.get(yPositions.size()-yPositions.size()/10-1).doubleValue();
 		
 		/*
 		// version without quantiles (problematic because of outliers

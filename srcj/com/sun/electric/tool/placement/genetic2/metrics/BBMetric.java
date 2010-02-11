@@ -28,22 +28,18 @@
  */
 package com.sun.electric.tool.placement.genetic2.metrics;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.util.HashMap;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import com.sun.electric.tool.placement.genetic2.Block;
-import com.sun.electric.tool.placement.genetic2.metrics.BBMetric;
-import com.sun.electric.tool.placement.genetic2.metrics.BBThread;
-
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+import com.sun.electric.tool.placement.genetic2.Block;
+
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -63,7 +59,7 @@ public class BBMetric
 		Iterator<PlacementNode> it = nodesToPlace.iterator();
 		for(int i = 0; i < nodesToPlace.size(); i++)
 		{
-			nodeBlocks.put(it.next(), i);
+			nodeBlocks.put(it.next(), new Integer(i));
 		}
 	}
 	
@@ -116,7 +112,7 @@ public class BBMetric
 				// iterate over all PlacementPorts and calculate their bounding box
 				for(PlacementPort p : pp)
 				{
-					int blockId = nodeBlocks.get(p.getPlacementNode());
+					int blockId = nodeBlocks.get(p.getPlacementNode()).intValue();
 					
 					// these functions give us non-rotated offsets
 					double offX = p.getOffX();
@@ -189,8 +185,8 @@ public class BBMetric
 			// iterate over all PlacementPorts and calculate their bounding box
 			for(PlacementPort p : pp)
 			{
-				double xpos = (double)(p.getPlacementNode().getPlacementX() + p.getRotatedOffX());
-				double ypos = (double)(p.getPlacementNode().getPlacementY() + p.getRotatedOffY());
+				double xpos = p.getPlacementNode().getPlacementX() + p.getRotatedOffX();
+				double ypos = p.getPlacementNode().getPlacementY() + p.getRotatedOffY();
 				if(xpos < l)
 				{
 					l = xpos;

@@ -28,10 +28,10 @@
  */
 package com.sun.electric.tool.placement.forceDirected2;
 
-import java.util.Map;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+
+import java.util.Map;
 
 /**
  * Parallel Placement

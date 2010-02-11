@@ -28,13 +28,13 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.utils.concurrent;
 
+import com.sun.electric.tool.placement.forceDirected2.forceDirected.staged.PlacementDTO;
+import com.sun.electric.tool.placement.forceDirected2.utils.GlobalVars;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.sun.electric.tool.placement.forceDirected2.forceDirected.staged.PlacementDTO;
-import com.sun.electric.tool.placement.forceDirected2.utils.GlobalVars;
 
 /**
  * Parallel Placement
@@ -67,11 +67,11 @@ public class Stage {
 	public IStructure<PlacementDTO> getInput(StageWorker worker) {
 		if (GlobalVars.showBalancing && worker != null) {
 			if (!this.balancingCounter.containsKey(worker)) {
-				this.balancingCounter.put(worker, 1);
+				this.balancingCounter.put(worker, Integer.valueOf(1));
 			} else {
-				int i = this.balancingCounter.get(worker);
+				int i = this.balancingCounter.get(worker).intValue();
 				i++;
-				this.balancingCounter.put(worker, i);
+				this.balancingCounter.put(worker, new Integer(i));
 			}
 		}
 		return this.input;
@@ -124,14 +124,14 @@ public class Stage {
 		for (StageWorker worker : this.layers) {
 			worker.shutdown();
 			if (this.balancingCounter.containsKey(worker)) {
-				sum += this.balancingCounter.get(worker);
+				sum += this.balancingCounter.get(worker).intValue();
 			}
 		}
 
 		if (GlobalVars.showBalancing) {
 			for (StageWorker worker : this.layers) {
 				if (this.balancingCounter.containsKey(worker)) {
-					double value = (double) this.balancingCounter.get(worker) / (double) sum;
+					double value = (double) this.balancingCounter.get(worker).intValue() / (double) sum;
 					System.out.println(worker.toString() + ": " + value);
 				} else {
 					System.out.println(worker.toString() + ": 0");

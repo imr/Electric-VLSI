@@ -29,19 +29,16 @@
 package com.sun.electric.tool.placement.genetic2;
 
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.genetic2.metrics.BBMetric;
+
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import com.sun.electric.tool.placement.genetic2.metrics.BBMetric;
-
-
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
 
 /**
@@ -87,9 +84,9 @@ public class ClassicIndividual extends Individual<ClassicIndividual>
 		hashes = new double[3];
 
 		
-		Iterator<PlacementNode> it = nodesToPlace.iterator();
+//		Iterator<PlacementNode> it = nodesToPlace.iterator();
 		
-		PlacementNode n; 
+//		PlacementNode n; 
 		for(int i=0; i<nodesToPlace.size(); i++)
 		{
 			/*
@@ -119,7 +116,7 @@ public class ClassicIndividual extends Individual<ClassicIndividual>
 	public void writeToPlacement(List<PlacementNode> nodesToPlace)
 	{
 		Block b;
-		Iterator<PlacementNode> it = nodesToPlace.iterator();	
+//		Iterator<PlacementNode> it = nodesToPlace.iterator();	
 		PlacementNode n; 
 
 		for(int i=0; i<nodesToPlace.size(); i++)
@@ -182,7 +179,7 @@ public class ClassicIndividual extends Individual<ClassicIndividual>
 		}
 		
 		// find a random crossover-Point (one point crossover)
-		int crossingPoint = rand.nextInt(blocks.length);
+//		int crossingPoint = rand.nextInt(blocks.length);
 		
 		for(int i = 0; i < blocks.length; i++)
 		{
@@ -275,21 +272,21 @@ public class ClassicIndividual extends Individual<ClassicIndividual>
 		{
 			int pos = rand.nextInt(blocks.length);
 			blocks[rand.nextInt(blocks.length)].disturb(ref.avgW, rand); // move cell to a random position
-			changedBlocks.add(pos);
+			changedBlocks.add(new Integer(pos));
 		}
 		for(int i = 0; i < disturbedOrientations; i++)
 		{
 			int pos = rand.nextInt(blocks.length);
 			blocks[rand.nextInt(blocks.length)].disturbOrientation(rand); // change Orientation randomly
-			changedBlocks.add(pos);
+			changedBlocks.add(new Integer(pos));
 		}
 		for(int i = 0; i < swaps; i++)
 		{
 			int pos1 = rand.nextInt(blocks.length);
 			int pos2 = rand.nextInt(blocks.length);
 			swapBlocks(pos1, pos2); // swap random blocks
-			changedBlocks.add(pos1);
-			changedBlocks.add(pos2);
+			changedBlocks.add(new Integer(pos1));
+			changedBlocks.add(new Integer(pos2));
 		}
 		
 		if(changedBlocks.size()==0) return; // TODO
@@ -313,7 +310,7 @@ public class ClassicIndividual extends Individual<ClassicIndividual>
 		
 		for(int n = 0; n < changedBlocks.size(); n++)
 		{
-			b = blocks[it.next()];
+			b = blocks[it.next().intValue()];
 			
 			// UniformGrid for fast collision detection with reference blocks
 			//overlap += ref.grid.collide(b, changedBlocks, original.blocks);

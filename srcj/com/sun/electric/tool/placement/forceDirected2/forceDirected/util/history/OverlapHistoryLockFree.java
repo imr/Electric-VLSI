@@ -28,10 +28,10 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.util.history;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
 /**
  * Parallel Placement
@@ -43,9 +43,9 @@ public class OverlapHistoryLockFree extends OverlapHistory<PlacementNode> {
 	public static OverlapHistoryLockFree getInstance(int id) {
 
 		OverlapHistoryLockFree history;
-		if ((history = histories.get(id)) == null) {
+		if ((history = histories.get(new Integer(id))) == null) {
 			history = new OverlapHistoryLockFree();
-			histories.put(id, history);
+			histories.put(new Integer(id), history);
 		}
 
 		return history;

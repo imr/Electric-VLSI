@@ -28,15 +28,19 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing2;
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.simulatedAnnealing2.PositionIndex.AreaSnapshot;
+
 import java.awt.geom.Point2D;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
-
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.tool.placement.PlacementFrame;
-import com.sun.electric.tool.placement.simulatedAnnealing2.ProxyNode;
-import com.sun.electric.tool.placement.simulatedAnnealing2.PositionIndex.AreaSnapshot;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 /**
  *  Implementation of the simulated annealing placement algorithm
@@ -920,7 +924,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 			if ( nets.size() > 0 ) {
 				for ( PlacementNetwork net : nets )
 				{
-					double metric = netLengths.get(net);
+					double metric = netLengths.get(net).doubleValue();
 					if ( metric > maxBoundingBox )
 						maxBoundingBox = metric;
 				}
@@ -967,7 +971,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 			double metric = metricForNode(n1) + metricForNode(n2);
 			for(PlacementNetwork p: n1.getNets())
 				if(n2.getNets().contains(p))
-					metric -= netLengths.get(p);
+					metric -= netLengths.get(p).doubleValue();
 					
 			return metric;
 		}
@@ -981,7 +985,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 		{
 			double metric = 0;
 			for(PlacementNetwork net : node.getNets())
-				metric += netLengths.get(net);
+				metric += netLengths.get(net).doubleValue();
 			
 			return metric;
 		}

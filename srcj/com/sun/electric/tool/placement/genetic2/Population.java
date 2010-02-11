@@ -29,12 +29,12 @@
 package com.sun.electric.tool.placement.genetic2;
 
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
 
 /**
@@ -110,60 +110,60 @@ public class Population<I extends Individual> implements Runnable
 		}
 	}
 	
-	/**
-	 * Method to explore the solution space of individuals by means of repeated selection,
-	 * recombination, mutation. A special form of tournament selection is applied.
-	 */
-	private void evolveTournament()
-	{
-		long t = System.currentTimeMillis();
-		
-		int currPos, otherPos, opponentPos;
-
-		while((System.currentTimeMillis()-t) < evolutionStepTime)
-		{		
-			currPos = rand.nextInt(maxIndividuals);
-			opponentPos = rand.nextInt(maxIndividuals);
-			
-			// overwrite the loser with the crossover of the winner and a random individual
-			if(indis[currPos].getBadness() > indis[opponentPos].getBadness())
-			{
-				otherPos = rand.nextInt(maxIndividuals);
-				indis[currPos].deriveFrom(indis[opponentPos], indis[otherPos], rand);
-			}
-		}
-	}
+//	/**
+//	 * Method to explore the solution space of individuals by means of repeated selection,
+//	 * recombination, mutation. A special form of tournament selection is applied.
+//	 */
+//	private void evolveTournament()
+//	{
+//		long t = System.currentTimeMillis();
+//		
+//		int currPos, otherPos, opponentPos;
+//
+//		while((System.currentTimeMillis()-t) < evolutionStepTime)
+//		{		
+//			currPos = rand.nextInt(maxIndividuals);
+//			opponentPos = rand.nextInt(maxIndividuals);
+//			
+//			// overwrite the loser with the crossover of the winner and a random individual
+//			if(indis[currPos].getBadness() > indis[opponentPos].getBadness())
+//			{
+//				otherPos = rand.nextInt(maxIndividuals);
+//				indis[currPos].deriveFrom(indis[opponentPos], indis[otherPos], rand);
+//			}
+//		}
+//	}
 	
-	/**
-	 * Method to explore the solution space of individuals by means of repeated selection,
-	 * recombination, mutation. Local selection with 1D-neighborhoods is applied.
-	 */
-	private void evolveLocal()
-	{
-		long t = System.currentTimeMillis();
-		
-		int currPos, otherPos, opponentPos;
-
-		while((System.currentTimeMillis()-t) < evolutionStepTime)
-		{		
-			currPos = rand.nextInt(maxIndividuals);
-			
-			opponentPos = (currPos+(int)(10.0*rand.nextGaussian()))%indis.length;
-			if(opponentPos < 0) 
-			{
-				opponentPos += indis.length;
-			}
-			
-			// overwrite the loser with the crossover of the winner and a random individual
-			if(indis[currPos].getBadness() > indis[opponentPos].getBadness())
-			{
-				otherPos = (currPos+(int)(10.0*rand.nextGaussian()))%indis.length;
-				if(otherPos < 0) otherPos += indis.length;
-				
-				indis[currPos].deriveFrom(indis[opponentPos], indis[otherPos], rand);
-			}
-		}
-	}
+//	/**
+//	 * Method to explore the solution space of individuals by means of repeated selection,
+//	 * recombination, mutation. Local selection with 1D-neighborhoods is applied.
+//	 */
+//	private void evolveLocal()
+//	{
+//		long t = System.currentTimeMillis();
+//		
+//		int currPos, otherPos, opponentPos;
+//
+//		while((System.currentTimeMillis()-t) < evolutionStepTime)
+//		{		
+//			currPos = rand.nextInt(maxIndividuals);
+//			
+//			opponentPos = (currPos+(int)(10.0*rand.nextGaussian()))%indis.length;
+//			if(opponentPos < 0) 
+//			{
+//				opponentPos += indis.length;
+//			}
+//			
+//			// overwrite the loser with the crossover of the winner and a random individual
+//			if(indis[currPos].getBadness() > indis[opponentPos].getBadness())
+//			{
+//				otherPos = (currPos+(int)(10.0*rand.nextGaussian()))%indis.length;
+//				if(otherPos < 0) otherPos += indis.length;
+//				
+//				indis[currPos].deriveFrom(indis[opponentPos], indis[otherPos], rand);
+//			}
+//		}
+//	}
 	
 	
 	/**

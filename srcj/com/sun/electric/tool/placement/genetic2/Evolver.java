@@ -29,10 +29,10 @@
 package com.sun.electric.tool.placement.genetic2;
 
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+
 import java.util.List;
 import java.util.Random;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 
 
 
@@ -74,74 +74,74 @@ public class Evolver implements Runnable
 		this.p = p;		
 	}
 	
-	/**
-	 * Local steady-state evolution with diversity bonus.
-	 */
-	private void evoDiverseLocal()
-	{		
-		int comparison;
-		comparison = rand.nextInt(indis.length);
-		while(!indis[comparison].rwLock.writeLock().tryLock())
-		{
-			comparison = rand.nextInt(indis.length);
-		}
-		
-		int[] positions = new int[3];
-		positions[0] = rand.nextInt(indis.length);
-		while(!indis[positions[0]].rwLock.writeLock().tryLock())
-		{
-			positions[0] = rand.nextInt(indis.length);
-		}
-		
-		for(int i = 1; i < positions.length; i++)
-		{
-			positions[i] = (positions[0]+(int)(20.0*rand.nextGaussian()))%indis.length;
-			if(positions[i] < 0) positions[i] += indis.length;
-			while(!indis[positions[i]].rwLock.writeLock().tryLock())
-			{
-				positions[i] = (positions[0]+(int)(20.0*rand.nextGaussian()))%indis.length;
-				if(positions[i] < 0) positions[i] += indis.length;
-			}
-		}
-
-		//double d0 = indis[positions[0]].distance();
-		//double d1 = indis[positions[1]].distance();
-		//double d2 = indis[positions[2]].distance();
-		
-		// diversity bonus:
-		double d0 = indis[positions[0]].distance(indis[comparison]);
-		double d1 = indis[positions[1]].distance(indis[comparison]);
-		double d2 = indis[positions[2]].distance(indis[comparison]);
-		
-		/*
-		if(rand.nextInt(100000) == 0)
-		{
-			System.out.println("d0: " + d0 + " d1: " + d1 + " d2: " + d2);
-		}
-		*/
-		
-		// overwrite the loser with the crossover of the best two
-		if(indis[positions[0]].getBadness()-d0 >= indis[positions[1]].getBadness()-d1 &&
-				indis[positions[0]].getBadness()-d0 >= indis[positions[2]].getBadness()-d2)
-		{
-			indis[positions[0]].deriveFrom(indis[positions[1]], indis[positions[2]], rand);
-		}
-		else if(indis[positions[1]].getBadness()-d1 >= indis[positions[0]].getBadness()-d0 &&
-				indis[positions[1]].getBadness()-d1 >= indis[positions[2]].getBadness()-d2)
-		{
-			indis[positions[1]].deriveFrom(indis[positions[0]], indis[positions[2]], rand);
-		}	
-		else
-		{
-			indis[positions[2]].deriveFrom(indis[positions[0]], indis[positions[1]], rand);
-		}	
-		
-		for(int i = 0; i < positions.length; i++)
-		{
-			indis[positions[i]].rwLock.writeLock().unlock();
-		}
-		indis[comparison].rwLock.writeLock().unlock();
-	}
+//	/**
+//	 * Local steady-state evolution with diversity bonus.
+//	 */
+//	private void evoDiverseLocal()
+//	{		
+//		int comparison;
+//		comparison = rand.nextInt(indis.length);
+//		while(!indis[comparison].rwLock.writeLock().tryLock())
+//		{
+//			comparison = rand.nextInt(indis.length);
+//		}
+//		
+//		int[] positions = new int[3];
+//		positions[0] = rand.nextInt(indis.length);
+//		while(!indis[positions[0]].rwLock.writeLock().tryLock())
+//		{
+//			positions[0] = rand.nextInt(indis.length);
+//		}
+//		
+//		for(int i = 1; i < positions.length; i++)
+//		{
+//			positions[i] = (positions[0]+(int)(20.0*rand.nextGaussian()))%indis.length;
+//			if(positions[i] < 0) positions[i] += indis.length;
+//			while(!indis[positions[i]].rwLock.writeLock().tryLock())
+//			{
+//				positions[i] = (positions[0]+(int)(20.0*rand.nextGaussian()))%indis.length;
+//				if(positions[i] < 0) positions[i] += indis.length;
+//			}
+//		}
+//
+//		//double d0 = indis[positions[0]].distance();
+//		//double d1 = indis[positions[1]].distance();
+//		//double d2 = indis[positions[2]].distance();
+//		
+//		// diversity bonus:
+//		double d0 = indis[positions[0]].distance(indis[comparison]);
+//		double d1 = indis[positions[1]].distance(indis[comparison]);
+//		double d2 = indis[positions[2]].distance(indis[comparison]);
+//		
+//		/*
+//		if(rand.nextInt(100000) == 0)
+//		{
+//			System.out.println("d0: " + d0 + " d1: " + d1 + " d2: " + d2);
+//		}
+//		*/
+//		
+//		// overwrite the loser with the crossover of the best two
+//		if(indis[positions[0]].getBadness()-d0 >= indis[positions[1]].getBadness()-d1 &&
+//				indis[positions[0]].getBadness()-d0 >= indis[positions[2]].getBadness()-d2)
+//		{
+//			indis[positions[0]].deriveFrom(indis[positions[1]], indis[positions[2]], rand);
+//		}
+//		else if(indis[positions[1]].getBadness()-d1 >= indis[positions[0]].getBadness()-d0 &&
+//				indis[positions[1]].getBadness()-d1 >= indis[positions[2]].getBadness()-d2)
+//		{
+//			indis[positions[1]].deriveFrom(indis[positions[0]], indis[positions[2]], rand);
+//		}	
+//		else
+//		{
+//			indis[positions[2]].deriveFrom(indis[positions[0]], indis[positions[1]], rand);
+//		}	
+//		
+//		for(int i = 0; i < positions.length; i++)
+//		{
+//			indis[positions[i]].rwLock.writeLock().unlock();
+//		}
+//		indis[comparison].rwLock.writeLock().unlock();
+//	}
 	
 	/**
 	 * Local steady-state evolution.

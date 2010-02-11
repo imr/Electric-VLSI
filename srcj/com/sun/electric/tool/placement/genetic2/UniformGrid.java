@@ -28,13 +28,13 @@
  */
 package com.sun.electric.tool.placement.genetic2;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
 /**
  * This is a data structure for the acceleration of collision detection,
@@ -106,7 +106,7 @@ public class UniformGrid
 			grid[x][y] = new LinkedList<Integer>();
 		}
 		
-		grid[x][y].add(i);
+		grid[x][y].add(new Integer(i));
 		cellOfNode[i] = grid[x][y];
 		
 		LinkedList<Integer> cellList = cellOfNode[i];
@@ -123,7 +123,7 @@ public class UniformGrid
 		
 		while(it.hasNext())
 		{
-			if(it.next() == nodeIndex)
+			if(it.next().intValue() == nodeIndex)
 			{
 				it.remove();
 				//System.out.println("after: " + cellList);
@@ -197,16 +197,16 @@ public class UniformGrid
 		
 		for(Integer i : grid[x][y])
 		{
-			if(i != b.getNr())
+			if(i.intValue() != b.getNr())
 			{
-				other.valuesFrom(nodesToPlace.get(i));
+				other.valuesFrom(nodesToPlace.get(i.intValue()));
 				
-				while(deltaBlock.getNr() < i && iB.hasNext())
+				while(deltaBlock.getNr() < i.intValue() && iB.hasNext())
 				{
 					deltaBlock = iB.next();
 				}
 				
-				if(deltaBlock.getNr() != i) // only collide with the non-deltas. the deltas don't use this grid
+				if(deltaBlock.getNr() != i.intValue()) // only collide with the non-deltas. the deltas don't use this grid
 				{
 					//overlap -= orig.intersectionArea(other);
 					overlap += b.intersectionArea(other);
@@ -250,7 +250,7 @@ public class UniformGrid
 		{
 			for(int j = -1; j <= 1; j++)
 			{
-				double t = overlap;
+//				double t = overlap;
 				overlap += collideCell(b, nodesToPlace, overlaps, x+i, y+j);
 				
 			}
@@ -278,9 +278,9 @@ public class UniformGrid
 		
 		for(Integer i : grid[x][y])
 		{
-			if(i >= b.getNr()) return overlap;
+			if(i.intValue() >= b.getNr()) return overlap;
 			
-			other.valuesFrom(nodesToPlace.get(i));
+			other.valuesFrom(nodesToPlace.get(i.intValue()));
 
 			overlap += b.intersectionArea(other);
 

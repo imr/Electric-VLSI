@@ -28,14 +28,14 @@
  */
 package com.sun.electric.tool.placement.forceDirected1.metrics;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+
 import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.List;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
 
 public abstract class CustomMetric {
 

@@ -61,7 +61,7 @@ public class DEQueue<T> extends IDEStructure<T> {
 	 */
 	public DEQueue() {
 		this.items = new CircularArray(LOG_CAPACITY);
-		this.top = new AtomicReference<Integer>(0);
+		this.top = new AtomicReference<Integer>(Integer.valueOf(0));
 		this.bottom = 0;
 	}
 
@@ -71,7 +71,7 @@ public class DEQueue<T> extends IDEStructure<T> {
 	@Override
 	public void add(T item) {
 		int oldBottom = this.bottom;
-		int oldTop = this.top.get();
+		int oldTop = this.top.get().intValue();
 
 		CircularArray currentTasks = this.items;
 		int size = oldBottom - oldTop;
@@ -92,7 +92,7 @@ public class DEQueue<T> extends IDEStructure<T> {
 	public T get() throws EmptyException {
 
 		this.bottom--;
-		int oldTop = this.top.get();
+		int oldTop = this.top.get().intValue();
 		int newTop = oldTop + 1;
 		int size = this.bottom - oldTop;
 		if (size < 0) {
@@ -105,7 +105,7 @@ public class DEQueue<T> extends IDEStructure<T> {
 			this.size--;
 			return item;
 		}
-		if (!this.top.compareAndSet(oldTop, newTop)) {
+		if (!this.top.compareAndSet(new Integer(oldTop), new Integer(newTop))) {
 			item = null;
 		}
 		this.bottom = oldTop + 1;
@@ -120,7 +120,7 @@ public class DEQueue<T> extends IDEStructure<T> {
 	@Override
 	public T getFromTop() throws EmptyException {
 
-		int oldTop = this.top.get();
+		int oldTop = this.top.get().intValue();
 		int newTop = oldTop + 1;
 		int oldBottom = this.bottom;
 
@@ -130,7 +130,7 @@ public class DEQueue<T> extends IDEStructure<T> {
 		}
 		T item = (T) this.items.get(oldTop);
 
-		if (this.top.compareAndSet(oldTop, newTop)) {
+		if (this.top.compareAndSet(new Integer(oldTop), new Integer(newTop))) {
 			this.size--;
 			return item;
 		}
@@ -139,7 +139,7 @@ public class DEQueue<T> extends IDEStructure<T> {
 
 	@Override
 	public boolean isEmpty() {
-		int localTop = this.top.get();
+		int localTop = this.top.get().intValue();
 		int localBottom = this.bottom;
 		return (localBottom <= localTop);
 	}

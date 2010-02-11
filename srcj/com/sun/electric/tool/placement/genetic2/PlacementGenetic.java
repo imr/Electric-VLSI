@@ -28,9 +28,9 @@
  */
 package com.sun.electric.tool.placement.genetic2;
 
-import java.util.List;
-
 import com.sun.electric.tool.placement.PlacementFrame;
+
+import java.util.List;
 
 /**
  * Combination of Genetic Algorithm and Simulated Annealing.

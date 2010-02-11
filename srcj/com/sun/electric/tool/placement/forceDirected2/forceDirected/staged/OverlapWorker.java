@@ -28,8 +28,6 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.staged;
 
-import java.util.Random;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.forceDirected2.PlacementForceDirectedStaged;
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.OverlapDirection;
@@ -43,16 +41,16 @@ public class OverlapWorker extends StageWorker {
 
 	private double threshold;
 
-	private PlacementNode node = null;
-
-	private Random rand;
+//	private PlacementNode node = null;
+//
+//	private Random rand;
 
 	@SuppressWarnings("unused")
 	private int index;
 
 	public OverlapWorker(double threshold, int index) {
 		this.threshold = threshold;
-		this.rand = new Random(System.currentTimeMillis());
+//		this.rand = new Random(System.currentTimeMillis());
 		this.index = index;
 	}
 
@@ -152,7 +150,7 @@ public class OverlapWorker extends StageWorker {
 	}
 
 	public void run() {
-		while (!this.abort) {
+		while (!this.abort.booleanValue()) {
 
 			try {
 				PlacementDTO data = this.stage.getInput(this).get();

@@ -28,11 +28,11 @@
  */
 package com.sun.electric.tool.placement.forceDirected1.metric;
 
-import java.awt.geom.Point2D;
-import java.util.List;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+
+import java.awt.geom.Point2D;
+import java.util.List;
 
 /**
  * Estimate wirelength using the bounding box metric

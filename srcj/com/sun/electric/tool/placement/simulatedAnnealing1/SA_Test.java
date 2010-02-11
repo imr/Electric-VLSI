@@ -28,21 +28,19 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing1;
 
-import java.util.List;
-import java.util.Random;
-
 import com.sun.electric.tool.placement.PlacementFrame;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.AOMetric;
 import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.BBMetric;
+
+import java.util.List;
+import java.util.Random;
 
 /** Parallel Placement
  **/
 public class SA_Test extends PlacementFrame {
 
 	private double INITIAL_TEMP = 10000000;
-	private int ITERATIONS = 100000;
+//	private int ITERATIONS = 100000;
 	private int INNER_ITERATIONS = 200;
 	private Random rand = new Random();			
 	
@@ -64,9 +62,9 @@ public class SA_Test extends PlacementFrame {
 		double maxX = 0, maxY = 0;		
 		int accepts = 1;
 		int declines = 1;
-		int acceptRate = 1; //integer is intentional
-		int stuckRate = 0;
-		int minSteps= 100;
+//		int acceptRate = 1; //integer is intentional
+//		int stuckRate = 0;
+//		int minSteps= 100;
 		BBMetric bbMetric = new BBMetric( allNetworks );
 				
 		PlacementNode[] nodes = new PlacementNode[nodesToPlace.size()];
@@ -166,7 +164,7 @@ public class SA_Test extends PlacementFrame {
 			}					
 			temp *= ratio;			
 			
-			acceptRate = accepts / declines;
+//			acceptRate = accepts / declines;
 			
 			System.out.println(temp);			
 			System.out.println( "SCORE: " + beforeScore );

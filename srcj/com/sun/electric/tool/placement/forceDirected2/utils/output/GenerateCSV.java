@@ -55,7 +55,7 @@ public class GenerateCSV {
 		generator.appendToFile();
 	}
 
-	public static void writeToFile(String fileName, Character seperator, List<List<String>> data) throws IOException {
+	public static void writeToFile(String fileName, char seperator, List<List<String>> data) throws IOException {
 		GenerateCSV generator = new GenerateCSV(fileName, seperator);
 		generator.setData(data);
 		generator.writeToFile();
@@ -71,9 +71,9 @@ public class GenerateCSV {
 
 	private String fileName;
 
-	private Character seperator;
+	private char seperator;
 
-	public GenerateCSV(String fileName, Character seperator) {
+	public GenerateCSV(String fileName, char seperator) {
 		this.data = new ArrayList<List<String>>();
 		this.fileName = fileName;
 		this.seperator = seperator;

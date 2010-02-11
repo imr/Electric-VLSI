@@ -28,8 +28,12 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing2;
 
-import java.util.*;
-import com.sun.electric.tool.placement.PlacementFrame.*;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+
+import java.util.Arrays;
+import java.util.Map;
 
 public final class MSTMetric extends Metric
 {

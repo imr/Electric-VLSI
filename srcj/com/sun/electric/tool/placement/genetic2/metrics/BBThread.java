@@ -28,15 +28,14 @@
  */
 package com.sun.electric.tool.placement.genetic2.metrics;
 
-import java.util.List;
-import java.util.Map;
-
-import com.sun.electric.tool.placement.genetic2.Block;
-
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+import com.sun.electric.tool.placement.genetic2.Block;
+
+import java.util.List;
+import java.util.Map;
 
 
 public class BBThread implements Runnable
@@ -79,7 +78,7 @@ public class BBThread implements Runnable
 			// iterate over all PlacementPorts and calculate their bounding box
 			for(PlacementPort p : pp)
 			{
-				int blockId = nodeBlocks.get(p.getPlacementNode());
+				int blockId = nodeBlocks.get(p.getPlacementNode()).intValue();
 				
 				// these functions give us non-rotated offsets
 				// because we have not set a rotation for the nodes

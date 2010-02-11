@@ -28,11 +28,11 @@
  */
 package com.sun.electric.tool.placement.forceDirected1;
 
+import com.sun.electric.tool.placement.forceDirected1.metric.AbstractMetric;
+
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Stack;
-import java.text.DecimalFormat;
-
-import com.sun.electric.tool.placement.forceDirected1.metric.AbstractMetric;
 
 
 /**
@@ -65,13 +65,13 @@ public class Debug {
 	 */
 	public void tick() {
 		long now = System.currentTimeMillis();
-		tick.push( now );
+		tick.push(new Long(now));
 	}
 	public void tack() {
 		tack("Time");
 	}
 	public void tack(String label) {
-		double t = System.currentTimeMillis() - tick.pop();
+		double t = System.currentTimeMillis() - tick.pop().longValue();
 		out.add(align(label) + df.format(t/1000) + " s");
 	}
 	public void tack(String label, boolean implicitTick) {
@@ -96,7 +96,7 @@ public class Debug {
 		out.add(align(label) + value);
 	}
 	public void println(String label, double value) {
-		out.add(align(label) + df.format((double) value));
+		out.add(align(label) + df.format(value));
 	}
 	public void println(String label, String str) {
 		out.add(align(label) + str);

@@ -28,9 +28,9 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.util.history;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Parallel Placement

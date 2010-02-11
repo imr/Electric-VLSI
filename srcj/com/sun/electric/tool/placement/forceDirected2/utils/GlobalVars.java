@@ -35,16 +35,16 @@ package com.sun.electric.tool.placement.forceDirected2.utils;
  */
 public class GlobalVars {
 
-	public static Integer numOfNodes = 0;
+	public static Integer numOfNodes = Integer.valueOf(0);
 	public static final boolean showBalancing = false;
 
-	public static Integer rounds = 0;
+	public static Integer rounds = Integer.valueOf(0);
 
-	public static Integer divergence = 1;
-	public static Integer iterations = 10;
-	public static Integer notMovedMax = 2;
-	public static Integer numOfThreads = 4;
-	public static Double overlappingThreshold = 0.1;
-	public static Integer padding = 0;
-	public static Integer timeout = 10;
+	public static Integer divergence = Integer.valueOf(1);
+	public static Integer iterations = Integer.valueOf(10);
+	public static Integer notMovedMax = Integer.valueOf(2);
+	public static Integer numOfThreads = Integer.valueOf(4);
+	public static Double overlappingThreshold = new Double(0.1);
+	public static Integer padding = Integer.valueOf(0);
+	public static Integer timeout = Integer.valueOf(10);
 }

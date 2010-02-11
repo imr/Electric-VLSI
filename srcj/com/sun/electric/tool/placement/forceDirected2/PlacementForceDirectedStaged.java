@@ -28,11 +28,6 @@
  */
 package com.sun.electric.tool.placement.forceDirected2;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.staged.FinalizeWorker;
@@ -43,12 +38,16 @@ import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.Checkbo
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.CheckboardingPattern;
 import com.sun.electric.tool.placement.forceDirected2.metrics.AbstractMetric;
 import com.sun.electric.tool.placement.forceDirected2.metrics.BBMetric;
-import com.sun.electric.tool.placement.forceDirected2.metrics.MSTMetric;
 import com.sun.electric.tool.placement.forceDirected2.utils.GlobalVars;
 import com.sun.electric.tool.placement.forceDirected2.utils.PlacementProperties;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.Stage;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.StageWorker;
 import com.sun.electric.tool.placement.forceDirected2.utils.output.DebugMessageHandler;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Parallel Placement
@@ -114,7 +113,7 @@ public class PlacementForceDirectedStaged extends PlacementFrame {
 
 		}
 
-		GlobalVars.numOfNodes = nodesToPlace.size();
+		GlobalVars.numOfNodes = new Integer(nodesToPlace.size());
 
 		System.out.println("Algorithm: " + this.getAlgorithmName());
 
@@ -160,7 +159,7 @@ public class PlacementForceDirectedStaged extends PlacementFrame {
 
 		System.out.println("finished: " + (end - start) + " ms.");
 
-		System.out.println("round timhe: " + ((double) (end - start) / (double) GlobalVars.rounds) + " ms.");
+		System.out.println("round timhe: " + ((end - start) / GlobalVars.rounds.doubleValue()) + " ms.");
 
 		DebugMessageHandler.printOnStdOut();
 

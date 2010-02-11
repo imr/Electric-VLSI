@@ -28,11 +28,11 @@
  */
 package com.sun.electric.tool.placement.forceDirected1.metrics;
 
-import java.awt.geom.Rectangle2D;
-import java.util.List;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
+import java.awt.geom.Rectangle2D;
+import java.util.List;
 
 /**
  * Placement Area Metric

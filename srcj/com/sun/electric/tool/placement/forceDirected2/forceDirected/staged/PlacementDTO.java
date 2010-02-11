@@ -28,14 +28,14 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.staged;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.CheckboardingField;
+import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.Force2D;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.CheckboardingField;
-import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.Force2D;
 
 public class PlacementDTO implements Cloneable {
 

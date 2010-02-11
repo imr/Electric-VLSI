@@ -28,10 +28,12 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing2;
 
-import java.util.*;
+import com.sun.electric.database.geometry.Orientation;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import com.sun.electric.database.geometry.Orientation;
 
 /**
  * To speed up the node overlap calculation, this class provides a method

@@ -28,11 +28,6 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.staged;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
@@ -45,6 +40,11 @@ import com.sun.electric.tool.placement.forceDirected2.utils.PlacementProperties;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.Stage;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.StageWorker;
 import com.sun.electric.tool.placement.forceDirected2.utils.output.PNGOutput;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 public class StartUpStageWorker extends StageWorker {
 
@@ -117,13 +117,13 @@ public class StartUpStageWorker extends StageWorker {
 		List<Integer> places = new ArrayList<Integer>(this.heightCheckBoarding * this.widthCheckBoarding);
 
 		for (int i = 0; i < (this.heightCheckBoarding * this.widthCheckBoarding); i++) {
-			places.add(i);
+			places.add(new Integer(i));
 		}
 
 		for (PlacementNode node : this.nodesToPlace) {
 
 			int listPos = rand.nextInt(places.size());
-			int nodePos = places.remove(listPos);
+			int nodePos = places.remove(listPos).intValue();
 
 			int x = nodePos % this.widthCheckBoarding, y = nodePos / this.widthCheckBoarding;
 			CheckboardingField field = this.checkPattern.getField(x, y);

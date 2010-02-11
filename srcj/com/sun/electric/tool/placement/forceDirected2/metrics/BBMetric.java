@@ -28,12 +28,12 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.metrics;
 
-import java.awt.geom.Point2D;
-import java.util.List;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+
+import java.awt.geom.Point2D;
+import java.util.List;
 
 /**
  * Parallel Placement
@@ -60,7 +60,7 @@ public class BBMetric extends AbstractMetric {
 			sum = sum + this.compute(net);
 		}
 
-		return sum;
+		return new Double(sum);
 	}
 
 	private double compute(PlacementNetwork net) {

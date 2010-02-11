@@ -28,13 +28,13 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing1.metrics;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing.PlacementNodePosition;
+
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing.PlacementNodePosition;
 
 /** Parallel Placement
  * 
@@ -119,11 +119,11 @@ public class AreaOverlapMetric {
 			areaOverlap += getIntersectionArea(r1, r2);
 		}
 		
-		double oldScore = oevrlapScores.get(theOne);
+		double oldScore = oevrlapScores.get(theOne).doubleValue();
 		if (oldScore > 0 && Math.abs(oldScore - areaOverlap) > 0.001) {
 //			System.out.println("Score changed from " + oldScore + " to " + areaOverlap);
 		}
-		oevrlapScores.put(theOne, areaOverlap);
+		oevrlapScores.put(theOne, new Double(areaOverlap));
 		currentScore = currentScore - oldScore + areaOverlap;
 		return areaOverlap;
 	}

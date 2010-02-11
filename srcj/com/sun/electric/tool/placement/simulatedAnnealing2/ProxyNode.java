@@ -28,11 +28,15 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing2;
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.util.*;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.tool.placement.PlacementFrame.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * This class is a proxy for the actual placement node.

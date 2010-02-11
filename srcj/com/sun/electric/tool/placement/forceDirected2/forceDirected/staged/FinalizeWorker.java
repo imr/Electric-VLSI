@@ -48,7 +48,7 @@ public class FinalizeWorker extends StageWorker {
 	}
 
 	public void run() {
-		while (!this.abort) {
+		while (!this.abort.booleanValue()) {
 			try {
 				PlacementDTO dto = this.stage.getInput(this).get();
 				CheckboardingField[][] fields = dto.getFieldPart();
@@ -93,7 +93,7 @@ public class FinalizeWorker extends StageWorker {
 						if (i == 0) {
 							for (int j = 0; (j < fields.length) && (x == null); j++) {
 								if (fields[j][i].getNode() != null) {
-									x = fields[j][i].getNode().getPlacementX();
+									x = new Double(fields[j][i].getNode().getPlacementX());
 								}
 							}
 						} else {

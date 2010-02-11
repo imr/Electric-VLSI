@@ -29,12 +29,7 @@
 package com.sun.electric.tool.placement.simulatedAnnealing1.metrics;
 
 
-import java.awt.geom.Rectangle2D;
-import java.util.List;
-import java.util.Map;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing.IncrementalState;
 
 /** Parallel Placement
  **/

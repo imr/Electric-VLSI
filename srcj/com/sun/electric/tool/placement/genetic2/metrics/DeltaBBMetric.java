@@ -28,25 +28,21 @@
  */
 package com.sun.electric.tool.placement.genetic2.metrics;
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+import com.sun.electric.tool.placement.genetic2.Block;
+import com.sun.electric.tool.placement.genetic2.Reference;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.HashMap;
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import com.sun.electric.tool.placement.genetic2.Block;
-import com.sun.electric.tool.placement.genetic2.Reference;
-import com.sun.electric.tool.placement.genetic2.metrics.DeltaBBMetric;
-
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
 
 /**
  * Class for evaluating delta-individuals in genetic algorithm and final placement solution.
@@ -69,7 +65,7 @@ public class DeltaBBMetric
 		Iterator<PlacementNode> it = nodesToPlace.iterator();
 		for(int i = 0; i < nodesToPlace.size(); i++)
 		{
-			nodeBlocks.put(it.next(), i);
+			nodeBlocks.put(it.next(), new Integer(i));
 		}
 		
 		networksOfNode = new LinkedList[nodesToPlace.size()];
@@ -87,7 +83,9 @@ public class DeltaBBMetric
 			for(PlacementPort p : pp)
 			{	
 				n = p.getPlacementNode();
-				if(!networksOfNode[nodeBlocks.get(n)].contains(i)) networksOfNode[nodeBlocks.get(n)].add(i);
+				Integer ii = new Integer(i);
+				if(!networksOfNode[nodeBlocks.get(n).intValue()].contains(ii))
+					networksOfNode[nodeBlocks.get(n).intValue()].add(ii);
 			}
 		}
 	}
@@ -113,13 +111,13 @@ public class DeltaBBMetric
 		{
 			for(Integer j : networksOfNode[b.getNr()])
 			{
-				changedNet.add(j.intValue());
+				changedNet.add(j);
 			}
 		}
 
 		for(Integer i : changedNet)
 		{
-			PlacementNetwork w = allNetworks.get(i);
+			PlacementNetwork w = allNetworks.get(i.intValue());
 			
 			List<PlacementPort> pp = w.getPortsOnNet();
 			
@@ -132,7 +130,7 @@ public class DeltaBBMetric
 			for(PlacementPort p : pp)
 			{
 				
-				int blockId = nodeBlocks.get(p.getPlacementNode());//nodeBlocks.get(p.getPlacementNode());
+				int blockId = nodeBlocks.get(p.getPlacementNode()).intValue();//nodeBlocks.get(p.getPlacementNode());
 				
 				// these functions give us non-rotated offsets
 				double offX = p.getOffX();
@@ -184,10 +182,10 @@ public class DeltaBBMetric
 				}
 			}				
 			
-			netLengths[i] = (right-left)+(top-bottom);
+			netLengths[i.intValue()] = (right-left)+(top-bottom);
 			//completeLength += (right-left)+(top-bottom);
-			completeLength += netLengths[i];
-			completeLength -= ref.netLengths[i];
+			completeLength += netLengths[i.intValue()];
+			completeLength -= ref.netLengths[i.intValue()];
 
 		}
 	
@@ -214,7 +212,7 @@ public class DeltaBBMetric
 			for(PlacementPort p : pp)
 			{
 				
-				int blockId = nodeBlocks.get(p.getPlacementNode());//nodeBlocks.get(p.getPlacementNode());
+				int blockId = nodeBlocks.get(p.getPlacementNode()).intValue();//nodeBlocks.get(p.getPlacementNode());
 				
 				// these functions give us non-rotated offsets
 				double offX = p.getOffX();
@@ -302,8 +300,8 @@ public class DeltaBBMetric
 			// iterate over all PlacementPorts and calculate their bounding box
 			for(PlacementPort p : pp)
 			{
-				double xpos = (double)(p.getPlacementNode().getPlacementX() + p.getRotatedOffX());
-				double ypos = (double)(p.getPlacementNode().getPlacementY() + p.getRotatedOffY());
+				double xpos = p.getPlacementNode().getPlacementX() + p.getRotatedOffX();
+				double ypos = p.getPlacementNode().getPlacementY() + p.getRotatedOffY();
 				if(xpos < l)
 				{
 					l = xpos;

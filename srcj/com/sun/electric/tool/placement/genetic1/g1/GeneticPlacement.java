@@ -142,7 +142,7 @@ public class GeneticPlacement extends PlacementFrame {
 	// level of this class each class should have this!
 	final static Level LOG_LEVEL = Level.INFO;
 
-	public final static boolean IS_PROGRESS_LOGGING_ENABLED = true;
+	public final static boolean IS_PROGRESS_LOGGING_ENABLED = false;
 
 	static String PROGRESS_LOG_FILENAME;
 	static File PROGRESS_LOG_FILE;

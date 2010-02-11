@@ -63,7 +63,7 @@ public class PlacementProperties {
 	 * @return divergence
 	 */
 	public int getDivergence() {
-		return GlobalVars.divergence;
+		return GlobalVars.divergence.intValue();
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class PlacementProperties {
 	 * @return
 	 */
 	public int getIterations() {
-		return GlobalVars.iterations;
+		return GlobalVars.iterations.intValue();
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class PlacementProperties {
 	 * @return
 	 */
 	public int getNotMovedMax() {
-		return GlobalVars.notMovedMax;
+		return GlobalVars.notMovedMax.intValue();
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class PlacementProperties {
 	 * @return number of expected threads
 	 */
 	public int getNumOfThreads() {
-		return GlobalVars.numOfThreads;
+		return GlobalVars.numOfThreads.intValue();
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class PlacementProperties {
 	 * @return
 	 */
 	public double getOverlappingThreshold() {
-		return GlobalVars.overlappingThreshold;
+		return GlobalVars.overlappingThreshold.doubleValue();
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class PlacementProperties {
 	 * @return
 	 */
 	public int getPadding() {
-		return GlobalVars.padding;
+		return GlobalVars.padding.intValue();
 	}
 
 	/**
@@ -111,6 +111,6 @@ public class PlacementProperties {
 	 * @return timeout for running the placement
 	 */
 	public int getTimeout() {
-		return GlobalVars.timeout;
+		return GlobalVars.timeout.intValue();
 	}
 }

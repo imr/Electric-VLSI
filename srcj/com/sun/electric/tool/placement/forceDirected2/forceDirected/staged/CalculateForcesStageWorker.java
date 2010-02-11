@@ -28,11 +28,6 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.staged;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
@@ -44,6 +39,10 @@ import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.Checkbo
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.Force2D;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.EmptyException;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.StageWorker;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Worker to calculate the forces
@@ -110,31 +109,31 @@ public class CalculateForcesStageWorker extends StageWorker {
 		return result;
 	}
 
-	private int getMin(Force2D[] forces) {
-		int result = -1;
-		Force2D min = null;
-		int i = 0;
-		for (Force2D force : forces) {
-			if (result == -1) {
-				min = force;
-				result = i;
-			} else {
-				if (force.getLength() < min.getLength()) {
-					min = force;
-					result = i;
-				}
-			}
-			i++;
-		}
-		return result;
-	}
+//	private int getMin(Force2D[] forces) {
+//		int result = -1;
+//		Force2D min = null;
+//		int i = 0;
+//		for (Force2D force : forces) {
+//			if (result == -1) {
+//				min = force;
+//				result = i;
+//			} else {
+//				if (force.getLength() < min.getLength()) {
+//					min = force;
+//					result = i;
+//				}
+//			}
+//			i++;
+//		}
+//		return result;
+//	}
 
 	/**
 	 * run method
 	 */
 	public void run() {
 
-		while (!this.abort) {
+		while (!this.abort.booleanValue()) {
 			try {
 				PlacementDTO data = this.stage.getInput(this).get();
 				List<CheckboardingField> fields = data.getFieldsList();

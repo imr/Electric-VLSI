@@ -28,8 +28,11 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing2;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+
 import java.util.Map;
-import com.sun.electric.tool.placement.PlacementFrame.*;
 
 /**
  * Class that implements a bounding box net length approximation

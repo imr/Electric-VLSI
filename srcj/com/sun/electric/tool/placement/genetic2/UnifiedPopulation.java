@@ -29,12 +29,11 @@
 package com.sun.electric.tool.placement.genetic2;
 
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
+import java.util.List;
+import java.util.Random;
 
 
 /**

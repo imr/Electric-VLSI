@@ -29,17 +29,15 @@
 package com.sun.electric.tool.placement.genetic2;
 
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.genetic2.metrics.DeltaBBMetric;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-
-import com.sun.electric.tool.placement.genetic2.metrics.DeltaBBMetric;
-
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
 
 /**

@@ -28,10 +28,10 @@
  */
 package com.sun.electric.tool.placement.genetic2;
 
-import java.util.Random;
-
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+
+import java.util.Random;
 
 /**
  * A Block is a simplified PlacementNode for the genome of an Individual in a genetic algorithm.

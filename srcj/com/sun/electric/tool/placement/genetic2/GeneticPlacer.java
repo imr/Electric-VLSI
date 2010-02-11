@@ -28,22 +28,19 @@
  */ 
 package com.sun.electric.tool.placement.genetic2;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-
-import com.sun.electric.tool.placement.genetic2.metrics.BBMetric;
-import com.sun.electric.tool.placement.genetic2.metrics.DeltaBBMetric;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.genetic2.metrics.DeltaBBMetric;
+
+import java.util.List;
+import java.util.Random;
 
 /**
  * Genetic algorithm for placement.
  */
 public class GeneticPlacer
 {
-	private static final int MAX_INDIVIDUALS = 200; // for islands (deprecated)
+//	private static final int MAX_INDIVIDUALS = 200; // for islands (deprecated)
 	private static final int INDIVIDUALS = 1000; // population size for UnifiedPopulation
 
 	private static int EVOLUTION_STEPS;
@@ -68,7 +65,7 @@ public class GeneticPlacer
 			int runtime, int threads, boolean debug)
 	{
 		maxRuntime = runtime*1000;
-		EVOLUTION_STEPS = (int)(maxRuntime/10000);
+		EVOLUTION_STEPS = maxRuntime/10000;
 		numThreads = threads;
 		printDebugInformation = debug;
 		
@@ -91,7 +88,7 @@ public class GeneticPlacer
 		}
 		
 		population = new UnifiedPopulation(nodesToPlace, allNetworks,
-				indis, (long)(maxRuntime/EVOLUTION_STEPS), numThreads, rand);
+				indis, maxRuntime/EVOLUTION_STEPS, numThreads, rand);
 		
 	}
 	
@@ -181,7 +178,7 @@ public class GeneticPlacer
 	{
 		long localStartTime = System.currentTimeMillis();
 		SimulatedAnnealing annealing = new SimulatedAnnealing(nodesToPlace, allNetworks, 
-									(long)(maxRuntime/EVOLUTION_STEPS), numThreads, ref);
+									maxRuntime/EVOLUTION_STEPS, numThreads, ref);
 		
 		
 		if(printDebugInformation)
@@ -234,125 +231,125 @@ public class GeneticPlacer
 		}
 	}
 	
-	/**
-	 * This function is deprecated, use placeUnified or placeAnnealing instead.
-	 * It is only provided for comparison and can be deleted at any time
-	 */
-	private void placeIslands(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
-	{
-		BBMetric m_bb = new BBMetric(nodesToPlace, allNetworks);
-		
-		// create root random number generator
-		Random rand = new Random(System.currentTimeMillis());
-		
-		// create one random number generator per thread
-		int[] seeds = new int[numThreads];
-		Random[] rands = new Random[numThreads];
-		
-		for(int i=0; i<numThreads; i++)
-		{
-			seeds[i] = rand.nextInt();
-			rands[i] = new Random(seeds[i]);
-		}
-
-		
-		// initialize populations (one per thread)
-		Population<ClassicIndividual>[] populations = new Population[numThreads];
-		Thread[] threads = new Thread[numThreads];
-		
-		
-		for(int i=0; i<numThreads; i++) {
-			
-			ClassicIndividual[] indis = new ClassicIndividual[MAX_INDIVIDUALS/numThreads];
-			for(int n = 0; n < MAX_INDIVIDUALS/numThreads; n++)
-				indis[n] = new ClassicIndividual(ref, rand);
-			
-			populations[i] = 
-				new Population<ClassicIndividual>(nodesToPlace, 
-					allNetworks, 
-					indis, 
-					(long)(maxRuntime/EVOLUTION_STEPS),   // Gesamtzeit geteilt durch Evolutionsschritte
-					rands[i]);
-		}
-		
-		if(printDebugInformation)
-		{
-			System.out.println("Starting genetic algorithm...\n" 
-					+ "Total running time is " + maxRuntime/1000 + " seconds (~" +maxRuntime/60000+ " minutes).\n"
-					+ "There will be " + EVOLUTION_STEPS + " text messages while running,\n"
-					+ "each will tell you the current round number and champion badness:");
-		}
-		
-		// periodically start threads and exchange champions between populations
-		int round = 0;
-		long t = 0;
-		
-		while(t < maxRuntime)
-		{
-			for(int i=0; i<numThreads; i++)
-			{
-				populations[i].setProgress(((double)t)/((double)maxRuntime));
-				threads[i] = new Thread(populations[i]);
-				threads[i].start();
-			}
-			
-			// wait until all populations have completed some rounds of evolution
-			for(int i=0; i<numThreads; i++)
-			{
-				try {
-					threads[i].join();
-				} catch (InterruptedException e) { e.printStackTrace(); }
-			}
-			
-			if(printDebugInformation)
-			{
-				System.out.println("(" + round + ") : "
-						+ populations[0].getChampion().getBadness());
-			}
-			
-			
-			// exchange champions so the populations can cooperate
-			for(int i=0; i<numThreads; i++)
-			{
-				//if(rand.nextDouble() > 0.5)
-				{
-					populations[i].insert(populations[(i+1)%numThreads].getChampion());
-					//populations[i].insert(populations[(i+1)%numThreads].getRandomOne());
-				}
-			}
-
-			// write champion placement to nodesToPlace
-			population.getChampion().writeToPlacement(nodesToPlace);
-			population.reEvaluateAll();
-			
-			round++;
-			t = (System.currentTimeMillis()-startTime);
-		}
-		
-		// find the best champion of all populations
-		Individual champion = populations[0].getChampion();	
-		
-		for(int p=1; p<numThreads; p++)
-		{
-			Individual challenger = populations[p].getChampion();
-			if(challenger.getBadness() < champion.getBadness())
-			{
-				champion = challenger;
-			}
-		}
-		
-		// write champion placement to nodesToPlace
-		population.getChampion().writeToPlacement(nodesToPlace);
-		if(printDebugInformation)
-		{
-			System.out.println("final champion badness: " + champion.getBadness());
-			System.out.println("final champion overlap: " + champion.calculateOverlap());
-			System.out.println("final champion semiperimeter length: " + champion.getSemiperimeterLength());
-			System.out.println("final champion bounding box area: " + champion.getBoundingBoxArea());
-			
-			System.out.println("final net length (bb):  " + m_bb.compute());
-		}
-	}
+//	/**
+//	 * This function is deprecated, use placeUnified or placeAnnealing instead.
+//	 * It is only provided for comparison and can be deleted at any time
+//	 */
+//	private void placeIslands(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks)
+//	{
+//		BBMetric m_bb = new BBMetric(nodesToPlace, allNetworks);
+//		
+//		// create root random number generator
+//		Random rand = new Random(System.currentTimeMillis());
+//		
+//		// create one random number generator per thread
+//		int[] seeds = new int[numThreads];
+//		Random[] rands = new Random[numThreads];
+//		
+//		for(int i=0; i<numThreads; i++)
+//		{
+//			seeds[i] = rand.nextInt();
+//			rands[i] = new Random(seeds[i]);
+//		}
+//
+//		
+//		// initialize populations (one per thread)
+//		Population<ClassicIndividual>[] populations = new Population[numThreads];
+//		Thread[] threads = new Thread[numThreads];
+//		
+//		
+//		for(int i=0; i<numThreads; i++) {
+//			
+//			ClassicIndividual[] indis = new ClassicIndividual[MAX_INDIVIDUALS/numThreads];
+//			for(int n = 0; n < MAX_INDIVIDUALS/numThreads; n++)
+//				indis[n] = new ClassicIndividual(ref, rand);
+//			
+//			populations[i] = 
+//				new Population<ClassicIndividual>(nodesToPlace, 
+//					allNetworks, 
+//					indis, 
+//					(long)(maxRuntime/EVOLUTION_STEPS),   // Gesamtzeit geteilt durch Evolutionsschritte
+//					rands[i]);
+//		}
+//		
+//		if(printDebugInformation)
+//		{
+//			System.out.println("Starting genetic algorithm...\n" 
+//					+ "Total running time is " + maxRuntime/1000 + " seconds (~" +maxRuntime/60000+ " minutes).\n"
+//					+ "There will be " + EVOLUTION_STEPS + " text messages while running,\n"
+//					+ "each will tell you the current round number and champion badness:");
+//		}
+//		
+//		// periodically start threads and exchange champions between populations
+//		int round = 0;
+//		long t = 0;
+//		
+//		while(t < maxRuntime)
+//		{
+//			for(int i=0; i<numThreads; i++)
+//			{
+//				populations[i].setProgress(((double)t)/((double)maxRuntime));
+//				threads[i] = new Thread(populations[i]);
+//				threads[i].start();
+//			}
+//			
+//			// wait until all populations have completed some rounds of evolution
+//			for(int i=0; i<numThreads; i++)
+//			{
+//				try {
+//					threads[i].join();
+//				} catch (InterruptedException e) { e.printStackTrace(); }
+//			}
+//			
+//			if(printDebugInformation)
+//			{
+//				System.out.println("(" + round + ") : "
+//						+ populations[0].getChampion().getBadness());
+//			}
+//			
+//			
+//			// exchange champions so the populations can cooperate
+//			for(int i=0; i<numThreads; i++)
+//			{
+//				//if(rand.nextDouble() > 0.5)
+//				{
+//					populations[i].insert(populations[(i+1)%numThreads].getChampion());
+//					//populations[i].insert(populations[(i+1)%numThreads].getRandomOne());
+//				}
+//			}
+//
+//			// write champion placement to nodesToPlace
+//			population.getChampion().writeToPlacement(nodesToPlace);
+//			population.reEvaluateAll();
+//			
+//			round++;
+//			t = (System.currentTimeMillis()-startTime);
+//		}
+//		
+//		// find the best champion of all populations
+//		Individual champion = populations[0].getChampion();	
+//		
+//		for(int p=1; p<numThreads; p++)
+//		{
+//			Individual challenger = populations[p].getChampion();
+//			if(challenger.getBadness() < champion.getBadness())
+//			{
+//				champion = challenger;
+//			}
+//		}
+//		
+//		// write champion placement to nodesToPlace
+//		population.getChampion().writeToPlacement(nodesToPlace);
+//		if(printDebugInformation)
+//		{
+//			System.out.println("final champion badness: " + champion.getBadness());
+//			System.out.println("final champion overlap: " + champion.calculateOverlap());
+//			System.out.println("final champion semiperimeter length: " + champion.getSemiperimeterLength());
+//			System.out.println("final champion bounding box area: " + champion.getBoundingBoxArea());
+//			
+//			System.out.println("final net length (bb):  " + m_bb.compute());
+//		}
+//	}
 	
 	/**
 	 * Method to run the genetic algorithm to find a good placement.

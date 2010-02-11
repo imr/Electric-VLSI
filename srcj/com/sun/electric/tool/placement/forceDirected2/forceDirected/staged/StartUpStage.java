@@ -28,11 +28,11 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.staged;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.Stage;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.StageWorker;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class StartUpStage extends Stage {
 

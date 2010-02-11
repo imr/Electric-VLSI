@@ -28,6 +28,13 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing1;
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
+import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.AreaOverlapMetric;
+import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.BoundingBoxMetric;
+import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.MSTMetric;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -39,16 +46,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
-import com.sun.electric.tool.placement.PlacementFrame;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
-import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.AreaOverlapMetric;
-import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.BoundingBoxMetric;
-import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.MSTMetric;
 
 
 /** Parallel Placement
@@ -172,8 +169,8 @@ public class SimulatedAnnealing extends PlacementFrame {
 						
 //						System.out.println("Thread score: " + threadScore);
 						
-						if (threadScore < minScore) {
-							minScore = threadScore;
+						if (threadScore.doubleValue() < minScore) {
+							minScore = threadScore.doubleValue();
 							bestThread = i;
 						}
 					}
@@ -299,8 +296,8 @@ public class SimulatedAnnealing extends PlacementFrame {
 	 */
 	public class PlacementThread implements Callable<Double> {
 		private IncrementalState incState = null;
-		private List<PlacementNode> allNodes;
-		private List<PlacementNetwork> allNetworks;
+//		private List<PlacementNode> allNodes;
+//		private List<PlacementNetwork> allNetworks;
 		private int numSteps = 0;
 		
 		/**
@@ -310,8 +307,8 @@ public class SimulatedAnnealing extends PlacementFrame {
 		 * @param allNetworks a list of all <code>PlacementNetwork</code>s.
 		 */
 		public PlacementThread(int numSteps, List<PlacementNode> allNodes, List<PlacementNetwork> allNetworks) {
-			this.allNodes = allNodes;
-			this.allNetworks = allNetworks;			
+//			this.allNodes = allNodes;
+//			this.allNetworks = allNetworks;			
 			this.numSteps = numSteps;
 			this.incState = new IncrementalState(allNodes, allNetworks);									
 		}
@@ -337,7 +334,7 @@ public class SimulatedAnnealing extends PlacementFrame {
 				}				
 			}				
 								
-			return incState.getScore();
+			return new Double(incState.getScore());
 		}
 		
 		/**
@@ -366,7 +363,7 @@ public class SimulatedAnnealing extends PlacementFrame {
 		private final double threshholdTemperature = 0.1;
 		private Random rand = null;
 		private double initialChipLength;
-		private List<PlacementNode> nodesToPlace;
+//		private List<PlacementNode> nodesToPlace;
 		
 		/**
 		 * Creates this temeperature object
@@ -377,7 +374,7 @@ public class SimulatedAnnealing extends PlacementFrame {
 			rand.setSeed(System.currentTimeMillis());
 			initialChipLength = Math.sqrt(getMinChipArea(nodesToPlace))*2;
 			System.out.println("Initial Chip Length = " + initialChipLength);
-			this.nodesToPlace = nodesToPlace;
+//			this.nodesToPlace = nodesToPlace;
 			temperature = initialTemperature;
 		}
 		
@@ -548,14 +545,14 @@ public class SimulatedAnnealing extends PlacementFrame {
 		 * @return metric score for the current change.
 		 */
 		public double addNode(int index, PlacementNodePosition newNode) {			
-			changedNodes.put(index, newNode);
+			changedNodes.put(new Integer(index), newNode);
 			currentC1 = C1Metric.update(index);
 			currentC2 = C2Metric.update(index);
 			return currentC1 + currentC2;
 		}
 		
 		public double removeNode(int index) {
-			changedNodes.remove(index);
+			changedNodes.remove(new Integer(index));
 			currentC1 = C1Metric.update(index);
 			currentC2 = C2Metric.update(index);
 			return currentC1 + currentC2;
@@ -694,15 +691,16 @@ public class SimulatedAnnealing extends PlacementFrame {
 		 * @return the <code>PlacementNodePosition</code> for this node.
 		 */
 		public PlacementNodePosition getNodeFromState(int index) {
-			if (changedNodes.containsKey(index)) {
-				return changedNodes.get(index);
+			Integer ii = new Integer(index);
+			if (changedNodes.containsKey(ii)) {
+				return changedNodes.get(ii);
 			} else {
 				return new PlacementNodePosition(originalNodes, index);
 			}			
 		}
 		
 		public boolean isNodeChanged(int index) {
-			return changedNodes.containsKey(index);
+			return changedNodes.containsKey(new Integer(index));
 		}
 		
 		public List<PlacementNode> getOriginalNodes() {
@@ -748,7 +746,7 @@ public class SimulatedAnnealing extends PlacementFrame {
 		public double makeGlobal() {
 			for (Iterator<Entry<Integer, PlacementNodePosition>> it = changedNodes.entrySet().iterator(); it.hasNext(); ) {
 				Entry<Integer, PlacementNodePosition> entry = it.next();
-				int index = entry.getKey();
+				int index = entry.getKey().intValue();
 				PlacementNodePosition n = entry.getValue();
 				PlacementNode originalPlacementNode = originalNodes.get(index);
 				originalPlacementNode.setPlacement(n.getPlacementX(), n.getPlacementY());

@@ -60,7 +60,7 @@ public abstract class IStructure<T> {
 	protected AtomicReference<Node<T>> tail;
 	protected AtomicReference<Node<T>> head;
 
-	protected volatile Integer size = 0;
+	protected volatile Integer size = Integer.valueOf(0);
 
 	/**
 	 * 
@@ -83,7 +83,7 @@ public abstract class IStructure<T> {
 		Node<T> dummy = new Node<T>(null);
 		this.tail = new AtomicReference<Node<T>>(dummy);
 		this.head = new AtomicReference<Node<T>>(dummy);
-		this.size = 0;
+		this.size = Integer.valueOf(0);
 	}
 
 	/**
@@ -99,7 +99,7 @@ public abstract class IStructure<T> {
 	 * @return
 	 */
 	public int getSize() {
-		return this.size;
+		return this.size.intValue();
 	}
 
 	/**
