@@ -185,6 +185,7 @@ public class SimulatedAnnealing extends PlacementFrame {
 					
 				} catch (Exception  e) {
 					System.out.println("An error occured. Aborting. Message:" + e.getMessage());
+					e.printStackTrace(System.out);
 					return;
 				}
 				//System.out.println("Current score = " + minScore);

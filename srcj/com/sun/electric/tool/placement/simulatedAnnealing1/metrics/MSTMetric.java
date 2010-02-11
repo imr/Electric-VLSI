@@ -90,7 +90,7 @@ public class MSTMetric extends AbstractMetric {
         
 		for(PlacementPort port1 : net.getPortsOnNet()) {
 			for(PlacementPort port2 : net.getPortsOnNet()) {
-				edges.add(new Edge(port1.getPlacementNode().toString(), port2.getPlacementNode().toString(), getDistance(port1, port2)));
+				edges.add(new Edge(port1.getPlacementNode().getType().getName(), port2.getPlacementNode().getType().getName(), getDistance(port1, port2)));
 			}
 		}
 		

@@ -247,7 +247,7 @@ public class PlacementFrame
 		 * Method to return the NodeProto of this PlacementNode.
 		 * @return the NodeProto of this PlacementNode.
 		 */
-		NodeProto getType() { return original; }
+		public NodeProto getType() { return original; }
 
 		/**
 		 * Method to return the technology-specific information of this PlacementNode.
