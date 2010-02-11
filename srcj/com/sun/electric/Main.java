@@ -196,7 +196,7 @@ public final class Main
 
         // The server runs in subprocess
         if (hasCommandLineOption(argsList, "-pipeserver")) {
-            ActivityLogger.initialize("electricserver.log", true, true, true/*false*/, true, false);
+            ActivityLogger.initialize("electricserver", true, true, true/*false*/, true, false);
             Job.pipeServer(numThreads, loggingFilePath, socketPort);
             return;
         }
