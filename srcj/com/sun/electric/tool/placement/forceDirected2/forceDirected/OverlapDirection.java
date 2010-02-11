@@ -83,7 +83,6 @@ public enum OverlapDirection {
 	 * 
 	 * @param dir1
 	 * @param dir2
-	 * @return
 	 */
 	public static OverlapDirection mixDirections(OverlapDirection dir1, OverlapDirection dir2) {
 

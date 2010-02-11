@@ -87,24 +87,18 @@ public abstract class IStructure<T> {
 	}
 
 	/**
-	 * 
-	 * @return
 	 * @throws EmptyException
 	 */
 	public abstract T get() throws EmptyException;
 
 	/**
 	 * Get the size of the data structure
-	 * 
-	 * @return
 	 */
 	public int getSize() {
 		return this.size.intValue();
 	}
 
 	/**
-	 * 
-	 * @return
 	 */
 	public abstract boolean isEmpty();
 

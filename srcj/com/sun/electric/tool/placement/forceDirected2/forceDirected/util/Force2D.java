@@ -81,16 +81,12 @@ public class Force2D {
 	}
 
 	/**
-	 * 
-	 * @return
 	 */
 	public double getX() {
 		return this.x;
 	}
 
 	/**
-	 * 
-	 * @return
 	 */
 	public double getY() {
 		return this.y;

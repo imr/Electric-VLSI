@@ -110,8 +110,6 @@ public class CheckboardingField {
 
 	/**
 	 * get cell id
-	 * 
-	 * @return
 	 */
 	public synchronized int getCellId() {
 		return this.cellId;
@@ -156,8 +154,6 @@ public class CheckboardingField {
 
 	/**
 	 * get placement node of this field
-	 * 
-	 * @return
 	 */
 	public synchronized PlacementNode getNode() {
 		return this.node;

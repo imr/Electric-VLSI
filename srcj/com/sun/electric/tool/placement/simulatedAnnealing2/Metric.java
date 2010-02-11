@@ -138,17 +138,15 @@ public abstract class Metric
 	/**
 	 * Method that approximates the conductor length of a net
 	 * @param network
-	 * @return
 	 */
 	public abstract double netLength(PlacementNetwork network);
 	
 	/**
 	 * Method that approximates the conductor length of a net when proxies are used
-	 * @param networks
+	 * @param network
 	 * @param proxyMap
 	 * @param originals
 	 * @param replacements
-	 * @return
 	 */
 	public abstract double netLength(PlacementNetwork network, Map<PlacementNode, ProxyNode> proxyMap, ProxyNode[] originals, ProxyNode[] replacements);
 	
@@ -156,7 +154,6 @@ public abstract class Metric
 	 * Convenience method
 	 * @param network
 	 * @param proxyMap
-	 * @return
 	 */
 	public double netLength(PlacementNetwork network,  Map<PlacementNode, ProxyNode> proxyMap)
 	{
@@ -165,9 +162,8 @@ public abstract class Metric
 
 	/**
 	 * Method that approximates the conductor length of a set of nets when proxies are used
-	 * @param network
+	 * @param networks
 	 * @param proxyMap
-	 * @return
 	 */
 	public double netLength(List<PlacementNetwork> networks, Map<PlacementNode, ProxyNode> proxyMap)
 	{
@@ -181,8 +177,7 @@ public abstract class Metric
 
 	/**
 	 * Method that approximates the conductor length of a set of nets
-	 * @param network
-	 * @return
+	 * @param networks
 	 */
 	public double netLength(List<PlacementNetwork> networks)
 	{

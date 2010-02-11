@@ -346,12 +346,7 @@ if (userDefaults) initFromUserDefaults();
      * @param xBBPos the central box location
      * @param yBBPos the central box location.
      * @param np the cell in which to create the export.
-     * @param exportTech the technology to use (generic or schematic)
-     * @param drawLeads true to draw leads on the icon
-     * @param exportStyle the icon style
-     * @param exportLocation
      * @param textRotation
-     * @param alwaysDrawn true to make export text be "always drawn"
      * @return true if the export was created.
      */
     public static boolean makeIconExport(Export pp, int index, double xPos, double yPos, double xBBPos, double yBBPos,

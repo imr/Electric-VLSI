@@ -82,7 +82,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 	
 	
 	// Debug and performance
-	private final boolean performance_log = true;
+	private final boolean performance_log = false;
 	private final String  performance_log_filename = "placement.log";
 
 	private int accepts = 0;	// moves accepted

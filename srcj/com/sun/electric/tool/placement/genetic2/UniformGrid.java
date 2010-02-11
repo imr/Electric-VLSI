@@ -229,7 +229,6 @@ public class UniformGrid
 	/**
 	 * Gets the collision area for the Block b with the previous nodes.
 	 * ( Compared to the original position of the PlacementNode in the reference placement. )
-	 * @param deltas List of all delta-blocks.
 	 * @param nodesToPlace All PlacementNodes of the reference placement.
 	 * @param overlaps Partial overlaps for potential diversity comparison in the evolution.
 	 */

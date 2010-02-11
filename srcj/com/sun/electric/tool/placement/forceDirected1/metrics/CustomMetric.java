@@ -65,7 +65,7 @@ public abstract class CustomMetric {
 	 * placement.metrics
 	 * 
 	 * @param placementNets
-	 * @return
+	 * @return the absolute position of all ports in the list placementNets
 	 */
 	protected List<Point2D.Double[]> getPositionsOfPorts(List<PlacementNetwork> placementNets) {
 		LinkedList<Point2D.Double[]> posOfPorts = new LinkedList<Point2D.Double[]>();

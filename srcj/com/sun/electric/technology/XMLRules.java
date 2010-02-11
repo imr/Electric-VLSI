@@ -890,7 +890,7 @@ public class XMLRules implements DRCRules, Serializable
 	
     /**
 	 * Method to build "factory" design rules, given the current technology settings.
-	 * @return the "factory" design rules for this Technology.
+	 * Returns the "factory" design rules for this Technology.
 	 * Returns null if there is an error loading the rules.
      */
     public void loadDRCRules(Technology tech, Foundry foundry, DRCTemplate theRule, boolean pSubstrateProcess)

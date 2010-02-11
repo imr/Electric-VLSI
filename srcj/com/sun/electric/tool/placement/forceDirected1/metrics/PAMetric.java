@@ -36,10 +36,6 @@ import java.util.List;
 
 /**
  * Placement Area Metric
- * 
- * @authors Andreas Wagner, Thomas Hauck
- * @team team5ForceDirected
- * @version 1.3
  */
 
 public class PAMetric extends CustomMetric {

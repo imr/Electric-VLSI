@@ -41,7 +41,6 @@ public class AOMetric {
 	/**
 	 * Method to create a AreaOverlapMetric object.
 	 * @param allNodes a list containing all <code>PlacementNode</code> objects.
-	 * @param incState an <code>IncremetntalState</code> object describing the current state.
 	 */
 	public AOMetric(PlacementNode[] allNodes){
 		this.allNodes = allNodes;

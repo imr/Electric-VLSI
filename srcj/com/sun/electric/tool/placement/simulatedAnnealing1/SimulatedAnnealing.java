@@ -339,7 +339,7 @@ public class SimulatedAnnealing extends PlacementFrame {
 		
 		/**
 		 * Returns the <code>IncrementalState</code> object of this runnable
-		 * @return
+		 * @return the <code>IncrementalState</code> object of this runnable
 		 */
 		public IncrementalState getIncState() {
 			return incState;

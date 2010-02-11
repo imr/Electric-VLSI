@@ -330,8 +330,6 @@ public class MessagesWindow
 
     /**
 	 * Method to copy text from the Messages Window.
-	 * @param all true to copy ALL text in the Messages Window; false to copy only the selected text.
-	 * @param cut true to cut instead of copy (delete after copying).
 	 */
 	public void saveAll()
 	{

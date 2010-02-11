@@ -91,7 +91,7 @@ public class MSTMetric extends AbstractMetric
 	 * Calculates the length of the MST for each Network(euclidean distance)
 	 * and returns the sum of all lengths
 	 * @param positionsOfNetworks	list of Networks
-	 * @return
+	 * @return sum of lengths of the MST for each Network(euclidean distance)
 	 */
 	public double compute(List<Point2D.Double[]> positionsOfNetworks) {
 		double result = 0;
@@ -105,7 +105,7 @@ public class MSTMetric extends AbstractMetric
 	 * calculates length of Minimum Spanning Tree
 	 * Manhattan Distance is used
 	 * @param positionsOfPorts
-	 * @return
+	 * @return the length of Minimum Spanning Tree
 	 */
 	public double compute(Point2D.Double[] positionsOfPorts) {
 		double result = 0;

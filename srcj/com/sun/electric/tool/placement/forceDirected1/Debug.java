@@ -37,13 +37,7 @@ import java.util.Stack;
 
 /**
  * Placement algorithm to do Force-Directed placement.
- * 
- * @authors	Andreas Wagner, Thomas Hauck
- * @team	team5ForceDirected
- * @version	1.1 
- * @change	19.12.2009
  */
-
 public class Debug {
 	// data structures
 	private ArrayList<String> out = new ArrayList<String>();
