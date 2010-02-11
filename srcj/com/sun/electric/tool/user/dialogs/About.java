@@ -56,23 +56,37 @@ public class About extends EDialog
 
 		static CastOfThousands [] javaTeam = new CastOfThousands[]
 		{
+			new CastOfThousands("Iskandar Abudiab",			"Placement tool (Simulated Annealing 1)"),
 			new CastOfThousands("Jake Baker",				"Thin Film technology"),
+			new CastOfThousands("Jan Barth",				"Placement tool (Simulated Annealing 1)"),
+			new CastOfThousands("Philippe Bartscherer",		"Placement tool (Force Directed 1)"),
 			new CastOfThousands("Robert Bosnyak",			"Pads library"),
 			new CastOfThousands("Prashanth Busa",			"Thin Film technology"),
+			new CastOfThousands("Ivan Dimitrov",			"Placement tool (Genetic 1)"),
+			new CastOfThousands("Richard Fallert",			"Placement tool (Genetic 2)"),
 			new CastOfThousands("Stephen Friedman",			"NCC"),
 			new CastOfThousands("Jonathan Gainsley",		"User interface, Simulation, Logical effort"),
 			new CastOfThousands("Gilda Garret\u00F3n",		"DRC, ERC, 3D, technologies, fill generation"),
 			new CastOfThousands("David Harris",				"ROM generator, Color printing"),
+			new CastOfThousands("Thomas Hauck",				"Placement tool (Force Directed 1)"),
+			new CastOfThousands("Jochen Huck",				"Placement tool (Force Directed 1)"),
 			new CastOfThousands("Jason Imada",				"ROM generator"),
 			new CastOfThousands("Russell Kao",				"NCC, generators, Hierarchy enumeration, Regressions"),
+			new CastOfThousands("Daniel Lechner",			"Placement tool (Force Directed 2)"),
 			new CastOfThousands("Frank Lee",				"ROM generator"),
+			new CastOfThousands("Jochen Lutz",				"Placement tool (Simulated Annealing 2)"),
 			new CastOfThousands("Ivan Minevskiy",			"NCC display"),
+			new CastOfThousands("Benedikt Mueller",			"Placement tool (Genetic 2)"),
 			new CastOfThousands("Dmitry Nadezhin",			"Database, Networks, Libraries, Simulation, Optimizations"),
 			new CastOfThousands("Bob Reese",				"DEF input"),
+			new CastOfThousands("Sebastian Roether",		"Placement tool (Simulated Annealing 2)"),
+			new CastOfThousands("Felix Schmidt",			"Placement tool (Force Directed 2)"),
 			new CastOfThousands("Ivan Sutherland",			"Inspiration, NCC"),
 			new CastOfThousands("Thomas Valine",			"GDS output"),
 			new CastOfThousands("Brian van Essen",			"Icon generation"),
+			new CastOfThousands("Andreas Wagner",			"Placement tool (Force Directed 1)"),
 			new CastOfThousands("Andrew West",				"Technology Creation Wizard"),
+			new CastOfThousands("Christian Wittner",		"Placement tool (Genetic 1)")
 		};
 		static CastOfThousands [] theCast = new CastOfThousands[]
 		{
