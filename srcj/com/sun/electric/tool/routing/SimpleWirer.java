@@ -24,17 +24,8 @@
 
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.PolyMerge;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -43,6 +34,10 @@ import java.awt.geom.Rectangle2D;
  * A Simple wiring tool for the user to draw wires.
  */
 public class SimpleWirer extends InteractiveRouter {
+
+    public SimpleWirer(boolean fatWires) {
+        super(fatWires);
+    }
 
     /* ----------------------- Router Methods ------------------------------------- */
 

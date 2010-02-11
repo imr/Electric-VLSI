@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
@@ -42,7 +43,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlight;
@@ -78,7 +78,7 @@ import javax.swing.WindowConstants;
  */
 public class MimicStitch
 {
-	/** router to use */            private static InteractiveRouter router = new SimpleWirer();
+	/** router to use */            private static InteractiveRouter router = new SimpleWirer(true);
 
 	private static final int NUMSITUATIONS          =  7;
 	private static final int LIKELYDIFFPORT         =  1;
@@ -710,6 +710,7 @@ public class MimicStitch
 	private static void processPossibilities(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY,
 		Job.Type method, boolean forced, MimicOptions prefs)
 	{
+        router = new SimpleWirer(prefs.fatWires);
 		if (prefs.mimicInteractive)
 		{
 			// do this in a separate thread so that this examine job can finish
@@ -1182,6 +1183,7 @@ public class MimicStitch
 		public boolean matchNodeSize;
 		public boolean noOtherArcsThisDir;
 		public boolean notAlreadyConnected;
+        public boolean fatWires;
 
 		public MimicOptions()
 		{
@@ -1193,7 +1195,8 @@ public class MimicStitch
 			matchNodeType = true;
 			matchNodeSize = false;
 			noOtherArcsThisDir = true;
-			notAlreadyConnected = true;			
+			notAlreadyConnected = true;
+            fatWires = true;
 		}
 
 		public void getOptionsFromPreferences()
@@ -1207,6 +1210,7 @@ public class MimicStitch
 			matchNodeSize = Routing.isMimicStitchMatchNodeSize();
 			noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
 			notAlreadyConnected = Routing.isMimicStitchOnlyNewTopology();
+            fatWires = EditingPreferences.getThreadEditingPreferences().fatWires;
 		}
 	}
 }

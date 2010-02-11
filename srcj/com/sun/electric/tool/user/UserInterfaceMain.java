@@ -907,7 +907,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         lastSavedEp = ep;
         currentGraphicsPreferences = new GraphicsPreferences(false, techPool);
         LayerVisibility.setTechPool(techPool);
-        ClickZoomWireListener.readPrefs();
+        ClickZoomWireListener.theOne.readPrefs();
     }
 
     public static EditingPreferences getEditingPreferences() {
@@ -923,6 +923,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         EditingPreferences.setThreadEditingPreferences(newEp);
         Pref.delayPrefFlushing();
         newEp.putPrefs(Pref.getPrefRoot(), true, lastSavedEp);
+        ClickZoomWireListener.theOne.readPrefs();
         lastSavedEp = newEp;
         Pref.resumePrefFlushing();
     }

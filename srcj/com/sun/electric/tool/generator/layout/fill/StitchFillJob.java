@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.generator.layout.fill;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
@@ -442,7 +443,8 @@ public class StitchFillJob extends Job
     private static boolean generateFill(Cell theCell, boolean wideOption, boolean evenHor, List<String> exportNames,
                                         IconParameters iconParameters)
     {
-        InteractiveRouter router  = new SimpleWirer();
+        EditingPreferences ep = theCell.getEditingPreferences();
+        InteractiveRouter router  = new SimpleWirer(ep.fatWires);
         List<Layer> listOfLayers = new ArrayList<Layer>(12);
 
         for (Iterator<Layer> itL = theCell.getTechnology().getLayers(); itL.hasNext(); )
@@ -663,7 +665,7 @@ public class StitchFillJob extends Job
             // Checking if there are exports overlapping with the arc
             List<String> doneExports = new ArrayList<String>();
             routeList.clear();
-            SimpleWirer niRouter = new SimpleWirer();
+            SimpleWirer niRouter = new SimpleWirer(ep.fatWires);
 
             Netlist netlist = theCell.getNetlist();
             for (Iterator<Export> itE = ni.getExports(); itE.hasNext(); )

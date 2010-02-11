@@ -91,10 +91,10 @@ public class ClickZoomWireListener
         ActionListener
 {
     private static Preferences prefs = Preferences.userNodeForPackage(ClickZoomWireListener.class);
-    private static long cancelMoveDelayMillis; /* cancel move delay in milliseconds */
-    private static long zoomInDelayMillis; /* zoom in delay in milliseconds */
+    private long cancelMoveDelayMillis; /* cancel move delay in milliseconds */
+    private long zoomInDelayMillis; /* zoom in delay in milliseconds */
 //    private static boolean useFatWiringMode;
-    private static boolean interactiveDRCDrag;
+    private boolean interactiveDRCDrag;
 
     private static final boolean debug = false; /* for debugging */
 
@@ -158,8 +158,6 @@ public class ClickZoomWireListener
 
     /** Constructor is private */
     private ClickZoomWireListener() {
-        router = new SimpleWirer();
-        router.setTool(User.getUserTool());
         readPrefs();
     }
 
@@ -1748,7 +1746,9 @@ public class ClickZoomWireListener
     /**
      * Recached Preferences after change
      */
-    public static void readPrefs() {
+    public void readPrefs() {
+        router = new SimpleWirer(UserInterfaceMain.getEditingPreferences().fatWires);
+        router.setTool(User.getUserTool());
         cancelMoveDelayMillis = prefs.getLong(cancelMoveDelayMillisPref, getFactoryCancelMoveDelayMillis());
         zoomInDelayMillis = prefs.getLong(zoomInDelayMillisPref, 120);
 //        useFatWiringMode = prefs.getBoolean(useFatWiringModePref, true);

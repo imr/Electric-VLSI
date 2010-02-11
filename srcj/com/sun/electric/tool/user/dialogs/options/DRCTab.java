@@ -149,7 +149,7 @@ public class DRCTab extends PreferencePanel
         // Setting MTDRC option
         dp.isMultiThreaded = drcMultiDRC.isSelected();
         putPrefs(dp);
-        ClickZoomWireListener.readPrefs();
+        ClickZoomWireListener.theOne.readPrefs();
     }
 
 	/**
@@ -174,7 +174,7 @@ public class DRCTab extends PreferencePanel
         dp.interactiveLog = factoryDp.interactiveLog;
         dp.minAreaAlgoOption = factoryDp.minAreaAlgoOption;
         putPrefs(dp);
-        ClickZoomWireListener.readPrefs();
+        ClickZoomWireListener.theOne.readPrefs();
 	}
 
 	/** This method is called from within the constructor to

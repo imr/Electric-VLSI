@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
@@ -88,7 +89,7 @@ public class AutoStitch
 {
 	/** true to ignore true pin size */								private static final boolean ZEROSIZEPINS = true;
 
-	/** router used to wire */  									private static InteractiveRouter router = new SimpleWirer();
+	/** router used to wire */  									private InteractiveRouter router;
 
 	/** list of all routes to be created at end of analysis */		private List<Route> allRoutes;
 	/** list of pins that may be inline pins due to created arcs */	private List<NodeInst> possibleInlinePins;
@@ -227,16 +228,17 @@ public class AutoStitch
 			return;
 		}
 
-		AutoStitch as = new AutoStitch();
+		AutoStitch as = new AutoStitch(prefs.fatWires);
 		as.alignment = alignment;
 		as.includePureLayerNodes = includePureLayerNodes;
 		as.runNow(cell, nodesToStitch, arcsToStitch, job, stayInside, limitBound, forced, prefs, showProgress);
 	}
 
-	private AutoStitch()
+	private AutoStitch(boolean fatWires)
 	{
 		possibleInlinePins = new ArrayList<NodeInst>();
 		truePinSize = new HashMap<PortInst,Double>();
+        router = new SimpleWirer(fatWires);
 	}
 
 	private List<ArcInst> getArcsToStitch(Cell cell, List<ArcInst> arcsToStitch)
@@ -3118,6 +3120,7 @@ name=null;
 	{
 		public boolean createExports;
 		public ArcProto preferredArc;
+        public boolean fatWires = true;
 
 		public AutoOptions()
 		{
@@ -3129,6 +3132,7 @@ name=null;
 		{
 			createExports = Routing.isAutoStitchCreateExports();
 			preferredArc = Routing.getPreferredRoutingArcProto();
+            fatWires = EditingPreferences.getThreadEditingPreferences().fatWires;
 		}
 	}
 

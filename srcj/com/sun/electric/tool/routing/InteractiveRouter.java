@@ -82,16 +82,18 @@ public abstract class InteractiveRouter extends Router {
     /** for highlighting the start of the route */  private List<Highlight> startRouteHighlights = new ArrayList<Highlight>();
     /** if start has been called */                 private boolean started;
     /** EditWindow we are routing in */             private EditWindow wnd;
+    /** Need fat wires */                           private final boolean fatWires;
 
     /** last bad object routed from: prevent too many error messages */ private ElectricObject badStartObject;
     /** last bad object routing to: prevent too many error messages */  private ElectricObject badEndObject;
 
-    public InteractiveRouter() {
+    public InteractiveRouter(boolean fatWires) {
         verbose = true;
         started = false;
         badStartObject = badEndObject = null;
         wnd = null;
         tool = Routing.getRoutingTool();
+        this.fatWires = fatWires;
     }
 
     public String toString() { return "Interactive Router"; }
@@ -183,8 +185,7 @@ public abstract class InteractiveRouter extends Router {
         ArcProto startArc = vroute.getStartArc();
         ArcProto endArc = vroute.getEndArc();
 
-        EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
-        ContactSize sizer = new ContactSize(startPort, null, startLoc, startLoc, startLoc, startArc, endArc, false, ep.fatWires);
+        ContactSize sizer = new ContactSize(startPort, null, startLoc, startLoc, startLoc, startArc, endArc, false, fatWires);
         Rectangle2D contactArea = sizer.getContactSize();
         Dimension2D contactSize = new Dimension2D.Double(contactArea.getWidth(), contactArea.getHeight());
         int startAngle = sizer.getStartAngle();
@@ -336,11 +337,11 @@ public abstract class InteractiveRouter extends Router {
         double startArcWidth = 0;
         double endArcWidth = 0;
 
-        if (!ep.fatWires) {
+        if (!fatWires) {
             // if not using fat wiring mode, determine arc sizes now, and
             // start and end points based off of arc sizes and startObj and endObj port sizes
-            startArcWidth = getArcWidthToUse(startObj, startArc, 0, true, ep.fatWires);
-            endArcWidth = (endObj == null) ? startArcWidth : getArcWidthToUse(endObj, endArc, 0, true, ep.fatWires);
+            startArcWidth = getArcWidthToUse(startObj, startArc, 0, true, fatWires);
+            endArcWidth = (endObj == null) ? startArcWidth : getArcWidthToUse(endObj, endArc, 0, true, fatWires);
             if (startArc == endArc) {
                 if (startArcWidth > endArcWidth) endArcWidth = startArcWidth;
                 if (endArcWidth > startArcWidth) startArcWidth = endArcWidth;
@@ -364,7 +365,7 @@ public abstract class InteractiveRouter extends Router {
         Point2D startPoint = new Point2D.Double(0, 0);
         Point2D endPoint = new Point2D.Double(0,0);
         getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint, startPoly, endPoly,
-        	startArc, endArc, alignment, ep.fatWires);
+        	startArc, endArc, alignment, fatWires);
 
         PortInst existingStartPort = null;
         PortInst existingEndPort = null;
@@ -451,7 +452,7 @@ public abstract class InteractiveRouter extends Router {
         int endAngle = GenMath.figureAngle(endPoint, cornerLoc);
 
         // figure out sizes to use
-        ContactSize sizer = new ContactSize(startObj, endObj, startPoint, endPoint, cornerLoc, startArc, endArc, false, ep.fatWires);
+        ContactSize sizer = new ContactSize(startObj, endObj, startPoint, endPoint, cornerLoc, startArc, endArc, false, fatWires);
         contactArea = sizer.getContactSize();
         startAngle = sizer.getStartAngle();
         endAngle = sizer.getEndAngle();

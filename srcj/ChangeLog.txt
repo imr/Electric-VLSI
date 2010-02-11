@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/10/10, DN) Routing regressions make fat wires.
+FIX: Make fatWire and explicite field of InteractiveRouter.
+
 IMP: (2/10/10, SMR) Added new placement code from Karlsruhe (Bug #2649).
 
 BUG: (2/10/10, DN) Crash in ProjectTool initializer.
