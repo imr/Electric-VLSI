@@ -100,8 +100,12 @@ public class HelpMenu {
 				System.out.println("Cell '" + cellName + "' does not exist in " + lib);
 			return;
 		}
-		URL url = ManualViewer.class.getResource("helphtml/"+fileName+".jelib");
-		new FileMenu.ReadLibrary(url, FileType.JELIB, cellName);
+		String libName = "helphtml/"+fileName+".jelib";
+		URL url = ManualViewer.class.getResource(libName);
+		if (url != null)
+			new FileMenu.ReadLibrary(url, FileType.JELIB, cellName);
+		else
+			System.out.println("Library '" + libName + "' in Electric's jarfile");
 	}
     
 }

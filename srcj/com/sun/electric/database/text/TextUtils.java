@@ -1478,7 +1478,14 @@ public class TextUtils {
      * @param url the URL
      * @return a String that is the path to that URL.
      */
-    public static String URLtoString(URL url) {
+    public static String URLtoString(URL url) 
+    {
+    	if (url == null)
+    	{
+    		System.out.println("Null URL in TextUtils.URLtoString");
+    		return "";
+    	}
+    	
         String filePath = url.getFile();
 
         // use proper URI to ensure valid path name
