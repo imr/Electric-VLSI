@@ -149,7 +149,7 @@ public class GeneticPlacement extends PlacementFrame {
 	public static PrintWriter PROGRESS_LOGGER;
 
 	// over all switch to disable code passages for logging
-	public final static boolean IS_LOGGING_ENABLED = true;
+	public final static boolean IS_LOGGING_ENABLED = false;
 
 	final static boolean DEBUG = true;
 	final static boolean MEASURE_PERFORMANCE = false;
