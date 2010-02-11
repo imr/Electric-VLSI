@@ -1,6 +1,8 @@
 # 
-# A Makefile for Electric, because the build.xml is a tangled,
-# convoluted mess.
+# A Makefile for Electric, because the build.xml is a tangled, convoluted mess.
+#
+#
+# NOTE: fastjar must be available and it can be downloaded from http://savannah.nongnu.org/projects/fastjar.
 #
 
 #jars    = $(shell find packaging -name \*.jar  | tr ' \n' '::')
