@@ -1747,7 +1747,7 @@ public class ClickZoomWireListener
      * Recached Preferences after change
      */
     public void readPrefs() {
-        router = new SimpleWirer(UserInterfaceMain.getEditingPreferences().fatWires);
+        router = new SimpleWirer(EditingPreferences.getThreadEditingPreferences().fatWires);
         router.setTool(User.getUserTool());
         cancelMoveDelayMillis = prefs.getLong(cancelMoveDelayMillisPref, getFactoryCancelMoveDelayMillis());
         zoomInDelayMillis = prefs.getLong(zoomInDelayMillisPref, 120);
