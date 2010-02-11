@@ -2546,10 +2546,10 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryShowCellsInNewWindow() { return cacheShowCellsInNewWindow.getBooleanFactoryValue(); }
 
-	private static Pref cacheErrorHighlightingPulsate = Pref.makeBooleanPref("ErrorHighlightingPulsate", tool.prefs, true);
+	private static Pref cacheErrorHighlightingPulsate = Pref.makeBooleanPref("ErrorHighlightingPulsate", tool.prefs, false);
 	/**
 	 * Method to tell whether to show error highlights with pulsating outlines.
-	 * The default is "true".
+	 * The default is "false".
 	 * @return true to show error highlights with pulsating outlines.
 	 */
 	public static boolean isErrorHighlightingPulsate() { return cacheErrorHighlightingPulsate.getBoolean(); }

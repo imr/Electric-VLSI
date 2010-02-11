@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/11/10, SMR) Error highlighting fails when done in same cell (Bug #2646).
+FIX: Fixed UserInterfaceMain.reportLog() to use proper window.
+     Also fixed pulsating highlighting in EditWindow so that it uses proper
+     paint() methods, and made it NOT the default.
+
 BUG: (2/11/10, SMR) Placement regression fails (Bug #2650).
 FIX: Make test request Min-Cut algorithm.
 

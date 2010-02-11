@@ -79,9 +79,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
@@ -394,7 +396,19 @@ public class UserInterfaceMain extends AbstractUserInterface
         {
             // in case multiple windows are involved in the action so all will be brought up
             // and properly terminated for display
-            Map<EditWindow, Highlighter> hMap = new HashMap<EditWindow, Highlighter>();
+            Set<EditWindow> updatedWindows = new HashSet<EditWindow>();
+
+            // clear all highlighting
+            for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+            {
+            	WindowFrame wf = it.next();
+            	if (wf.getContent() instanceof EditWindow)
+            	{
+            		EditWindow wnd = (EditWindow)wf.getContent();
+                    Highlighter highlighter = wnd.getHighlighter();
+                    highlighter.clear();
+            	}
+            }
 
             // first show the geometry associated with this error
             int pos = -1;
@@ -405,9 +419,9 @@ public class UserInterfaceMain extends AbstractUserInterface
 
                 // Checking whether a specific geom is displayed
                 pos++;
-                if (position != -1 && pos != position)
-                    continue; // not this one
+                if (position != -1 && pos != position) continue; // not this one
                 Cell cell = eh.getCell(database);
+
                 // validate the cell (it may have been deleted)
                 if (cell != null)
                 {
@@ -426,23 +440,18 @@ public class UserInterfaceMain extends AbstractUserInterface
                     	wnd = EditWindow.getCurrent();
                     	if (wnd != null)
                     	{
-                    		wnd.setCell(cell, eh.getVarContext(), null);
+                    		if (wnd.getCell() != cell)
+                    			wnd.setCell(cell, eh.getVarContext(), null);
                     	} else
                     	{
                         	wnd = EditWindow.showEditWindowForCell(cell, eh.getVarContext());
                     	}
                     }
-                    highlighter = hMap.get(wnd);
 
                     // nothing clean yet
-                    if (highlighter == null)
-                    {
-                        highlighter = wnd.getHighlighter();
-                        highlighter.clear();
-                        hMap.put(wnd, highlighter);
-                    }
-                }
-                else
+                    highlighter = wnd.getHighlighter();
+                    updatedWindows.add(wnd);
+                } else
                 {
                     if (Job.getDebug())
                         System.out.println("Check this case in UserInterfaceMain::reportLog");
@@ -455,10 +464,9 @@ public class UserInterfaceMain extends AbstractUserInterface
 
             // finish all open windows
             boolean nothingDone = true;
-            for (Map.Entry<EditWindow, Highlighter> e : hMap.entrySet())
+            for(EditWindow wnd : updatedWindows)
             {
-                Highlighter highlighter = e.getValue();
-                EditWindow wnd = e.getKey();
+            	Highlighter highlighter = wnd.getHighlighter();
 
                 // Something found to highlight
                 if (highlighter != null)
