@@ -67,16 +67,12 @@ public class PlacementProperties {
 	}
 
 	/**
-	 * 
-	 * @return
 	 */
 	public int getIterations() {
 		return GlobalVars.iterations.intValue();
 	}
 
 	/**
-	 * 
-	 * @return
 	 */
 	public int getNotMovedMax() {
 		return GlobalVars.notMovedMax.intValue();
@@ -91,16 +87,12 @@ public class PlacementProperties {
 	}
 
 	/**
-	 * 
-	 * @return
 	 */
 	public double getOverlappingThreshold() {
 		return GlobalVars.overlappingThreshold.doubleValue();
 	}
 
 	/**
-	 * 
-	 * @return
 	 */
 	public int getPadding() {
 		return GlobalVars.padding.intValue();
