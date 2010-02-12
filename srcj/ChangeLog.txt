@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/11/10, GVG) Part of "Wrong location of silicide block and hi-res layers in analog resistors" (Bug #2657)
+FIX: Changes in TechEditWizardData for now. mocmos.xml must be re-generated
+
 IMP: (2/11/10, GVG) Better error if test library is not found in electric.jar (Bug #2653)
 
 BUG: (2/11/10, SMR) Need fixes to Red and Purple libraries (Bug #2651).
