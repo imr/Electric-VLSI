@@ -67,23 +67,18 @@ import java.util.Set;
 /**
  * This class writes files in SVG format.
  *
- * Things to fix:
+ * Things to finish:
  *    grid
- *    text
- *    ellipses
- *    arcs of circles
+ *    text underlining
+ *    boxed text
  */
 public class SVG extends Output
 {
-	/** scale factor for SVG text */				private static final double PSTEXTSCALE    =  0.75;
-	/** default text plain font */					private static final String DEFAULTFONT = "Times-Roman";
-	/** default text bold font */					private static final String DEFAULTFONTBOLD = "Times-Bold";
-	/** default text italic font */					private static final String DEFAULTFONTITALIC = "Times-Italic";
-	/** default text bold-italic font */			private static final String DEFAULTFONTBI = "Times-BoldItalic";
+	/** scale factor for SVG text */				private static final double SVGTEXTSCALE    =  0.75;
 
 	/** the Cell being written. */										private Cell cell;
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
-	/** matrix from database units to PS units. */						private AffineTransform matrix;
+	/** matrix from database units to SVG units. */						private AffineTransform matrix;
 	/** fake graphics for drawing outlines and text. */					private static EGraphics blackGraphics =
         new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private SVGPreferences localPrefs;
@@ -95,7 +90,6 @@ public class SVG extends Output
 		double pageHeight = IOTool.getFactoryPrintHeight();
 		double printMargin = IOTool.getFactoryPrintMargin();
 		int printRotation = IOTool.getFactoryPrintRotation();
-		double printPSLineWidth = IOTool.getFactoryPrintPSLineWidth();
         GraphicsPreferences gp;
         EditWindow0.EditWindowSmall wnd;
     	ERectangle printBounds;
@@ -127,7 +121,6 @@ public class SVG extends Output
 			pageHeight = IOTool.getPrintHeight();
 			printMargin = IOTool.getPrintMargin();
 			printRotation = IOTool.getPrintRotation();
-			printPSLineWidth = IOTool.getPrintPSLineWidth();
 			UserInterface ui = Job.getUserInterface();
 			EditWindow_ localWnd = ui.getCurrentEditWindow_();
 			wnd = new EditWindow0.EditWindowSmall(localWnd);
@@ -192,8 +185,8 @@ public class SVG extends Output
 		// get control options
 		double pageWid = localPrefs.pageWidth * 75;
 		double pageHei = localPrefs.pageHeight * 75;
-		double pageMarginPS = localPrefs.printMargin * 75;
-		double pageMargin = pageMarginPS;		// not right!!!
+		double pageMarginSVG = localPrefs.printMargin * 75;
+		double pageMargin = pageMarginSVG;		// not right!!!
 
 		boolean rotatePlot = false;
 		switch (localPrefs.printRotation)
@@ -240,14 +233,14 @@ public class SVG extends Output
 		if (rotatePlot) i = j;
 		double matrix00 = i;   double matrix01 = 0;
 		double matrix10 = 0;   double matrix11 = -i;
-		double matrix20 = - i * cX + unitsX / 2 + pageMarginPS;
+		double matrix20 = - i * cX + unitsX / 2 + pageMarginSVG;
 		double matrix21;
 		if (localPrefs.printForPlotter)
 		{
-			matrix21 = i * localPrefs.printBounds.getMinY() - pageMarginPS;
+			matrix21 = i * localPrefs.printBounds.getMinY() - pageMarginSVG;
 		} else
 		{
-			matrix21 = i * cY + unitsY / 2 - pageMarginPS;
+			matrix21 = i * cY + unitsY / 2 - pageMarginSVG;
 		}
 		matrix = new AffineTransform(matrix00, matrix01, matrix10, matrix11, matrix20, matrix21);
 
@@ -350,7 +343,7 @@ public class SVG extends Output
 		 */
 		public void showFrameLine(Point2D from, Point2D to)
 		{
-			writer.psLine(from, to, Color.BLACK, 0);
+			writer.svgLine(from, to, Color.BLACK, 0);
 		}
 
 		/**
@@ -378,7 +371,7 @@ public class SVG extends Output
 			poly.setString(string);
 			TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(size * 0.75);
 			poly.setTextDescriptor(td);
-			writer.psText(poly, Color.BLACK);
+			writer.svgText(poly, Color.BLACK);
 		}
 	}
 
@@ -469,7 +462,7 @@ public class SVG extends Output
 				for (int i=0; i<polys.length; i++)
 				{
 					polys[i].transform(subRot);
-					psPoly(polys[i], real);
+					svgPoly(polys[i], real);
 				}
 				numObjects++;
 				if (progressTotal != 0 && (numObjects%100) == 0)
@@ -491,7 +484,7 @@ public class SVG extends Output
 					poly.setStyle(Poly.Type.CLOSED);
                     poly.setLayer(null);
                     poly.setGraphicsOverride(blackGraphics);
-					psPoly(poly, real);
+					svgPoly(poly, real);
 
 					// Only when the instance names flag is on
 					if (real)
@@ -502,7 +495,7 @@ public class SVG extends Output
 							TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
 							poly.setTextDescriptor(td);
 							poly.setString(ni.getProto().describe(false));
-							psPoly(poly, true);
+							svgPoly(poly, true);
 						}
 						if (topLevel) showCellPorts(ni, trans, null);
 					}
@@ -525,7 +518,7 @@ public class SVG extends Output
 				for (int i=0; i<textPolys.length; i++)
 				{
 					textPolys[i].transform(subRot);
-					psPoly(textPolys[i], true);
+					svgPoly(textPolys[i], true);
 				}
 			}
 
@@ -557,7 +550,7 @@ public class SVG extends Output
 							Poly.Type style = descript.getPos().getPolyType();
 							style = Poly.rotateType(style, ni);
 							poly.setStyle(style);
-							psPoly(poly, true);
+							svgPoly(poly, true);
 						}
 
 						// draw variables on the export
@@ -565,7 +558,7 @@ public class SVG extends Output
 						Poly[] polys = e.getDisplayableVariables(rect, localPrefs.wnd, true);
 						for (int i=0; i<polys.length; i++)
 						{
-							psPoly(polys[i], true);
+							svgPoly(polys[i], true);
 						}
 					}
 					numObjects++;
@@ -586,7 +579,7 @@ public class SVG extends Output
 			for (int i=0; i<polys.length; i++)
 			{
 				polys[i].transform(trans);
-				psPoly(polys[i], real);
+				svgPoly(polys[i], real);
 			}
 			if (real)
 			{
@@ -597,7 +590,7 @@ public class SVG extends Output
 					for (int i=0; i<textPolys.length; i++)
 					{
 						textPolys[i].transform(trans);
-						psPoly(textPolys[i], true);
+						svgPoly(textPolys[i], true);
 					}
 				}
 			}
@@ -616,7 +609,7 @@ public class SVG extends Output
 			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, localPrefs.wnd, true);
 			for (int i=0; i<polys.length; i++)
-				psPoly(polys[i], true);
+				svgPoly(polys[i], true);
 		}
 		return numObjects;
 	}
@@ -672,7 +665,7 @@ public class SVG extends Output
 					}
 					portPoly.setString(portName);
 					portPoly.setTextDescriptor(portDescript);
-					psText(portPoly, portColor);
+					svgText(portPoly, portColor);
 				}
 			}
 		}
@@ -684,7 +677,7 @@ public class SVG extends Output
 	 * Method to plot a polygon.
 	 * @param poly the polygon to plot.
 	 */
-	private void psPoly(PolyBase poly, boolean real)
+	private void svgPoly(PolyBase poly, boolean real)
 	{
 		// ignore null layers
 		Layer layer = poly.getLayer();
@@ -762,33 +755,33 @@ public class SVG extends Output
 					if (!real) return;
 					if (polyBox.getHeight() == 0)
 					{
-						psDot(new Point2D.Double(polyBox.getCenterX(), polyBox.getCenterY()), col, opaque, patternName);
+						svgDot(new Point2D.Double(polyBox.getCenterX(), polyBox.getCenterY()), col, opaque, patternName);
 					} else
 					{
-						psLine(new Point2D.Double(polyBox.getCenterX(), polyBox.getMinY()),
+						svgLine(new Point2D.Double(polyBox.getCenterX(), polyBox.getMinY()),
 							new Point2D.Double(polyBox.getCenterX(), polyBox.getMaxY()), col, 0);
 					}
 					return;
 				} else if (polyBox.getHeight() == 0)
 				{
-					if (real) psLine(new Point2D.Double(polyBox.getMinX(), polyBox.getCenterY()),
+					if (real) svgLine(new Point2D.Double(polyBox.getMinX(), polyBox.getCenterY()),
 						new Point2D.Double(polyBox.getMaxX(), polyBox.getCenterY()), col, 0);
 					return;
 				}
-				psBox(polyBox, col, opaque, patternName);
+				svgBox(polyBox, col, opaque, patternName);
 				return;
 			}
 			if (points.length == 1)
 			{
-				if (real) psDot(points[0], col, opaque, patternName);
+				if (real) svgDot(points[0], col, opaque, patternName);
 				return;
 			}
 			if (points.length == 2)
 			{
-				if (real) psLine(points[0], points[1], col, 0);
+				if (real) svgLine(points[0], points[1], col, 0);
 				return;
 			}
-			psPolygon(poly, col, opaque, patternName);
+			svgPolygon(poly, col, opaque, patternName);
 			return;
 		}
 		if (!real) return;
@@ -797,7 +790,7 @@ public class SVG extends Output
 			Point2D lastPt = points[points.length-1];
 			for (int k = 0; k < points.length; k++)
 			{
-				psLine(lastPt, points[k], col, 0);
+				svgLine(lastPt, points[k], col, 0);
 				lastPt = points[k];
 			}
 			return;
@@ -810,13 +803,13 @@ public class SVG extends Output
 			if (type == Poly.Type.OPENEDT2) lineType = 2; else
 			if (type == Poly.Type.OPENEDT3) lineType = 3;
 			for (int k = 1; k < points.length; k++)
-				psLine(points[k-1], points[k], col, lineType);
+				svgLine(points[k-1], points[k], col, lineType);
 			return;
 		}
 		if (type == Poly.Type.VECTORS)
 		{
 			for(int k=0; k<points.length; k += 2)
-				psLine(points[k], points[k+1], col, 0);
+				svgLine(points[k], points[k+1], col, 0);
 			return;
 		}
 		if (type == Poly.Type.CROSS || type == Poly.Type.BIGCROSS)
@@ -829,32 +822,32 @@ public class SVG extends Output
 		if (type == Poly.Type.CROSSED)
 		{
 			Rectangle2D bounds = poly.getBounds2D();
-			psLine(new Point2D.Double(bounds.getMinX(), bounds.getMinY()), new Point2D.Double(bounds.getMinX(), bounds.getMaxY()), col, 0);
-			psLine(new Point2D.Double(bounds.getMinX(), bounds.getMaxY()), new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()), col, 0);
-			psLine(new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()), new Point2D.Double(bounds.getMaxX(), bounds.getMinY()), col, 0);
-			psLine(new Point2D.Double(bounds.getMaxX(), bounds.getMinY()), new Point2D.Double(bounds.getMinX(), bounds.getMinY()), col, 0);
-			psLine(new Point2D.Double(bounds.getMinX(), bounds.getMinY()), new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()), col, 0);
-			psLine(new Point2D.Double(bounds.getMinX(), bounds.getMaxY()), new Point2D.Double(bounds.getMaxX(), bounds.getMinY()), col, 0);
+			svgLine(new Point2D.Double(bounds.getMinX(), bounds.getMinY()), new Point2D.Double(bounds.getMinX(), bounds.getMaxY()), col, 0);
+			svgLine(new Point2D.Double(bounds.getMinX(), bounds.getMaxY()), new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()), col, 0);
+			svgLine(new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()), new Point2D.Double(bounds.getMaxX(), bounds.getMinY()), col, 0);
+			svgLine(new Point2D.Double(bounds.getMaxX(), bounds.getMinY()), new Point2D.Double(bounds.getMinX(), bounds.getMinY()), col, 0);
+			svgLine(new Point2D.Double(bounds.getMinX(), bounds.getMinY()), new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()), col, 0);
+			svgLine(new Point2D.Double(bounds.getMinX(), bounds.getMaxY()), new Point2D.Double(bounds.getMaxX(), bounds.getMinY()), col, 0);
 			return;
 		}
 		if (type == Poly.Type.DISC)
 		{
-			psDisc(points[0], points[1], col, opaque, patternName);
+			svgDisc(points[0], points[1], col, opaque, patternName);
 			return;
 		}
 		if (type == Poly.Type.CIRCLE || type == Poly.Type.THICKCIRCLE)
 		{
-			psCircle(points[0], points[1], col, opaque, patternName);
+			svgCircle(points[0], points[1], col, opaque, patternName);
 			return;
 		}
 		if (type == Poly.Type.CIRCLEARC || type == Poly.Type.THICKCIRCLEARC)
 		{
-			psArc(points[0], points[1], points[2]);
+			svgArc(points[0], points[1], points[2], col);
 			return;
 		}
 
 		// text
-		psText((Poly)poly, col== null ? Color.black : col);
+		svgText((Poly)poly, col== null ? Color.black : col);
 	}
 
 	/**
@@ -867,17 +860,17 @@ public class SVG extends Output
 	{
 		double amount = 0.25;
 		if (bigCross) amount = 0.5;
-		psLine(new Point2D.Double(x-amount, y), new Point2D.Double(x+amount, y), col, 0);
-		psLine(new Point2D.Double(x, y+amount), new Point2D.Double(x, y-amount), col, 0);
+		svgLine(new Point2D.Double(x-amount, y), new Point2D.Double(x+amount, y), col, 0);
+		svgLine(new Point2D.Double(x, y+amount), new Point2D.Double(x, y-amount), col, 0);
 	}
 
 	/**
 	 * Method to draw a dot
 	 * @param pt the center of the dot.
 	 */
-	private void psDot(Point2D pt, Color col, boolean opaque, String patternName)
+	private void svgDot(Point2D pt, Color col, boolean opaque, String patternName)
 	{
-		Point2D ps = psXform(pt);
+		Point2D ps = svgXform(pt);
 		String style = getStyleDescription(col, opaque, patternName);
 		printWriter.println("<rect x=\"" + TextUtils.formatDouble(ps.getX()) + "\" y=\"" + TextUtils.formatDouble(ps.getY()) +
 			"\" width=\"1\" height=\"1\" " + style + "/>");
@@ -889,10 +882,10 @@ public class SVG extends Output
 	 * @param to the ending point of the line.
 	 * @param pattern the line texture (0 for solid, positive for dot/dash patterns).
 	 */
-	private void psLine(Point2D from, Point2D to, Color col, int pattern)
+	private void svgLine(Point2D from, Point2D to, Color col, int pattern)
 	{
-		Point2D pt1 = psXform(from);
-		Point2D pt2 = psXform(to);
+		Point2D pt1 = svgXform(from);
+		Point2D pt2 = svgXform(to);
 		printWriter.print("<line x1=\"" + pt1.getX() + "\" y1=\"" + pt1.getY() +
 			"\" x2=\"" + pt2.getX() + "\" y2=\"" + pt2.getY() + "\"");
 		switch (pattern)
@@ -919,16 +912,29 @@ public class SVG extends Output
 	 * @param pt1 the starting point of the arc.
 	 * @param pt2 the ending point of the arc.
 	 */
-	private void psArc(Point2D center, Point2D pt1, Point2D pt2)
+	private void svgArc(Point2D center, Point2D pt1, Point2D pt2, Color col)
 	{
-//		Point2D pc = psXform(center);
-//		Point2D ps1 = psXform(pt1);
-//		Point2D ps2 = psXform(pt2);
-//		double radius = pc.distance(ps1);
-//		int startAngle = (DBMath.figureAngle(pc, ps2) + 5) / 10;
-//		int endAngle = (DBMath.figureAngle(pc, ps1) + 5) / 10;
-//		printWriter.println("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " " +
-//			startAngle + " " + endAngle + " arc stroke");
+		// Emit: A<sx,sy> <r1,r2> <a> <l>,<p> <ex,ey>
+		// <sx,sy> is starting point of arc
+		// <r1,r2> are the two radii
+		// <a> is angle of starting point from center
+		// <l> is 1 if arc is more than 180 degrees, 0 otherwise
+		// <p> is 1 if arc goes in positive angle, 0 otherwise
+		// <ex,ey> is ending point of arc
+
+		Point2D pc = svgXform(center);
+		Point2D ps1 = svgXform(pt1);
+		Point2D ps2 = svgXform(pt2);
+		double radius = pc.distance(ps1);
+		double startAngle = ((3600 - DBMath.figureAngle(pc, ps2)) % 3600) / 10;
+		double endAngle = ((3600 - DBMath.figureAngle(pc, ps1)) % 3600) / 10;
+		double angleDiff = endAngle - startAngle;
+		if (angleDiff < 0) angleDiff += 360;
+		int largeAngle = angleDiff >= 180 ? 1 : 0;
+		int positive = 1;
+		printWriter.println("<path d=\"M " + ps1.getX() + "," + ps1.getY() + " A" + radius + "," + radius + " " + startAngle +
+			" " + largeAngle + "," + positive + " " + ps2.getX() + "," + ps2.getY() + "\" fill=\"none\" stroke=\"" +
+			getColorDescription(col) + "\" />");
 	}
 
 	/**
@@ -936,10 +942,10 @@ public class SVG extends Output
 	 * @param center the center of the circle.
 	 * @param pt a point on the circle.
 	 */
-	private void psCircle(Point2D center, Point2D pt, Color col, boolean opaque, String patternName)
+	private void svgCircle(Point2D center, Point2D pt, Color col, boolean opaque, String patternName)
 	{
-		Point2D pc = psXform(center);
-		Point2D ps = psXform(pt);
+		Point2D pc = svgXform(center);
+		Point2D ps = svgXform(pt);
 		double radius = pc.distance(ps);
 		String style = "style=\"stroke:" + getColorDescription(col) + (opaque ? "" : ";opacity:0.5") + ";fill:none\"";
 		printWriter.println("<circle cx=\"" + TextUtils.formatDouble(pc.getX()) + "\" cy=\"" + TextUtils.formatDouble(pc.getY()) +
@@ -951,10 +957,10 @@ public class SVG extends Output
 	 * @param center the center of the circle.
 	 * @param pt a point on the circle.
 	 */
-	private void psDisc(Point2D center, Point2D pt, Color col, boolean opaque, String patternName)
+	private void svgDisc(Point2D center, Point2D pt, Color col, boolean opaque, String patternName)
 	{
-		Point2D pc = psXform(center);
-		Point2D ps = psXform(pt);
+		Point2D pc = svgXform(center);
+		Point2D ps = svgXform(pt);
 		double radius = pc.distance(ps);
 		String style = getStyleDescription(col, opaque, patternName);
 		printWriter.println("<circle cx=\"" + TextUtils.formatDouble(pc.getX()) + "\" cy=\"" + TextUtils.formatDouble(pc.getY()) +
@@ -965,10 +971,10 @@ public class SVG extends Output
 	 * Method to draw a rectangle
 	 * @param polyBox the rectangle to draw.
 	 */
-	private void psBox(Rectangle2D polyBox, Color col, boolean opaque, String patternName)
+	private void svgBox(Rectangle2D polyBox, Color col, boolean opaque, String patternName)
 	{
-		Point2D pLow = psXform(new Point2D.Double(polyBox.getMinX(), polyBox.getMaxY()));
-		Point2D pHigh = psXform(new Point2D.Double(polyBox.getMaxX(), polyBox.getMinY()));
+		Point2D pLow = svgXform(new Point2D.Double(polyBox.getMinX(), polyBox.getMaxY()));
+		Point2D pHigh = svgXform(new Point2D.Double(polyBox.getMaxX(), polyBox.getMinY()));
 		String style = getStyleDescription(col, opaque, patternName);
 		printWriter.println("<rect x=\"" + pLow.getX() + "\" y=\"" + pLow.getY() +
 			"\" width=\"" + (pHigh.getX()-pLow.getX()) + "\" height=\"" + (pHigh.getY()-pLow.getY()) +
@@ -979,7 +985,7 @@ public class SVG extends Output
 	 * Method to draw an irregular polygon.
 	 * @param poly the polygon to draw.
 	 */
-	private void psPolygon(PolyBase poly, Color col, boolean opaque, String patternName)
+	private void svgPolygon(PolyBase poly, Color col, boolean opaque, String patternName)
 	{
 		Point2D [] points = poly.getPoints();
 		if (points.length == 0) return;
@@ -988,7 +994,7 @@ public class SVG extends Output
 		for(int i=0; i<points.length; i++)
 		{
 			if (i != 0) printWriter.print(" ");
-			Point2D ps = psXform(points[i]);
+			Point2D ps = svgXform(points[i]);
 			printWriter.print(TextUtils.formatDouble(ps.getX()) + "," + TextUtils.formatDouble(ps.getY()));
 		}
 		printWriter.println("\" " + getStyleDescription(col, opaque, patternName) + "/>");
@@ -1013,12 +1019,12 @@ public class SVG extends Output
 	 * Method to draw text.
 	 * @param poly the text polygon to draw.
 	 */
-	private void psText(Poly poly, Color col)
+	private void svgText(Poly poly, Color col)
 	{
 		Poly.Type style = poly.getStyle();
 		TextDescriptor td = poly.getTextDescriptor();
 		if (td == null) return;
-		int size = (int)(td.getTrueSize(localPrefs.wnd) * PSTEXTSCALE);
+		int size = (int)(td.getTrueSize(localPrefs.wnd) * SVGTEXTSCALE);
 		Rectangle2D bounds = poly.getBounds2D();
 
 		// get the font size
@@ -1028,148 +1034,88 @@ public class SVG extends Output
 		String text = poly.getString().trim();
 		if (text.length() == 0) return;
 
-//		String faceName = null;
-//		int faceNumber = td.getFace();
-//		if (faceNumber != 0)
-//		{
-//			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(faceNumber);
-//			if (af != null) faceName = af.getName();
-//		}
-//		if (faceName != null)
-//		{
-//			String fixedFaceName = faceName.replace(' ', '-');
-//			printWriter.println("/DefaultFont /" + fixedFaceName + " def");
-//			changedFont = true;
-//		} else
-//		{
-//			if (td.isItalic())
-//			{
-//				if (td.isBold())
-//				{
-//					printWriter.println("/DefaultFont /" + DEFAULTFONTBI + " def");
-//					changedFont = true;
-//				} else
-//				{
-//					printWriter.println("/DefaultFont /" + DEFAULTFONTITALIC + " def");
-//					changedFont = true;
-//				}
-//			} else if (td.isBold())
-//			{
-//				printWriter.println("/DefaultFont /" + DEFAULTFONTBOLD + " def");
-//				changedFont = true;
-//			}
-//		}
+		// TODO: finish boxed text
 		if (poly.getStyle() == Poly.Type.TEXTBOX)
 		{
-//			printWriter.print(TextUtils.formatDouble(cX) + " " + TextUtils.formatDouble(cY) + " " +
-//				TextUtils.formatDouble(sX) + " " + TextUtils.formatDouble(sY) + " ");
-//			writePSString(text);
-//			printWriter.println(" " + size + " Boxstring");
-		} else
-		{
-			Point2D p;
-			String styleMsg = null;
-			double x, y;
-			if (style == Poly.Type.TEXTCENT)
-			{
-				p = psXform(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
-				x = p.getX();   y = p.getY()+size/2;
-				styleMsg = "text-anchor:middle";
-			} else if (style == Poly.Type.TEXTTOP)
-			{
-				p = psXform(new Point2D.Double(bounds.getCenterX(), bounds.getMinY()));
-				x = p.getX();   y = p.getY()+size;
-				styleMsg = "text-anchor:middle";
-			} else if (style == Poly.Type.TEXTBOT)
-			{
-				p = psXform(new Point2D.Double(bounds.getCenterX(), bounds.getMaxY()));
-				x = p.getX();   y = p.getY();
-				styleMsg = "text-anchor:middle";
-			} else if (style == Poly.Type.TEXTLEFT)
-			{
-				p = psXform(new Point2D.Double(bounds.getMinX(), bounds.getCenterY()));
-				x = p.getX();   y = p.getY()+size/2;
-			} else if (style == Poly.Type.TEXTRIGHT)
-			{
-				p = psXform(new Point2D.Double(bounds.getMaxX(), bounds.getCenterY()));
-				x = p.getX();   y = p.getY()+size/2;
-				styleMsg = "text-anchor:end";
-			} else if (style == Poly.Type.TEXTTOPLEFT)
-			{
-				p = psXform(new Point2D.Double(bounds.getMinX(), bounds.getMinY()));
-				x = p.getX();   y = p.getY()+size;
-			} else if (style == Poly.Type.TEXTTOPRIGHT)
-			{
-				p = psXform(new Point2D.Double(bounds.getMaxX(), bounds.getMinY()));
-				x = p.getX();   y = p.getY()+size;
-				styleMsg = "text-anchor:end";
-			} else if (style == Poly.Type.TEXTBOTLEFT)
-			{
-				p = psXform(new Point2D.Double(bounds.getMinX(), bounds.getMaxY()));
-				x = p.getX();   y = p.getY();
-			} else if (style == Poly.Type.TEXTBOTRIGHT)
-			{
-				p = psXform(new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()));
-				x = p.getX();   y = p.getY();
-				styleMsg = "text-anchor:end";
-			} else return;
-
-//			int xoff = (int)x,  yoff = (int)y;
-//			double descenderoffset = size / 12;
-//			TextDescriptor.Rotation rot = td.getRotation();
-//			if (rot == TextDescriptor.Rotation.ROT0) y += descenderoffset; else
-//			if (rot == TextDescriptor.Rotation.ROT90) x -= descenderoffset; else
-//			if (rot == TextDescriptor.Rotation.ROT180) y -= descenderoffset; else
-//			if (rot == TextDescriptor.Rotation.ROT270) x += descenderoffset;
-//			if (rot != TextDescriptor.Rotation.ROT0)
-//			{
-//				if (rot == TextDescriptor.Rotation.ROT90 || rot == TextDescriptor.Rotation.ROT270)
-//				{
-//					if (style == Poly.Type.TEXTTOP) opName = "Rightstring"; else
-//					if (style == Poly.Type.TEXTBOT) opName = "Leftstring"; else
-//					if (style == Poly.Type.TEXTLEFT) opName = "Botstring"; else
-//					if (style == Poly.Type.TEXTRIGHT) opName = "Topstring"; else
-//					if (style == Poly.Type.TEXTTOPLEFT) opName = "Botrightstring"; else
-//					if (style == Poly.Type.TEXTBOTRIGHT) opName = "Topleftstring";
-//				}
-//				x = y = 0;
-//				if (rot == TextDescriptor.Rotation.ROT90)
-//				{
-//					// 90 degrees counterclockwise
-//					printWriter.println(xoff + " " + yoff + " translate 90 rotate");
-//				} else if (rot == TextDescriptor.Rotation.ROT180)
-//				{
-//					// 180 degrees
-//					printWriter.println(xoff + " " + yoff + " translate 180 rotate");
-//				} else if (rot == TextDescriptor.Rotation.ROT270)
-//				{
-//					// 90 degrees clockwise
-//					printWriter.println(xoff + " " + yoff + " translate 270 rotate");
-//				}
-//			}
-			printWriter.print("<text x=\"" + x + "\" y=\"" + y +
-				"\" fill=\"" + getColorDescription(col) + "\" font-size=\"" + size + "\"");
-			if (styleMsg != null) printWriter.print(" style=\"" + styleMsg + "\"");
-			printWriter.println(">");
-			printWriter.println("  " + text);
-			printWriter.println("</text>");
-//			if (rot != TextDescriptor.Rotation.ROT0)
-//			{
-//				if (rot == TextDescriptor.Rotation.ROT90)
-//				{
-//					// 90 degrees counterclockwise
-//					printWriter.println("-90 rotate " + (-xoff) + " " + (-yoff) + " translate");
-//				} else if (rot == TextDescriptor.Rotation.ROT180)
-//				{
-//					// 180 degrees
-//					printWriter.println("-180 rotate " + (-xoff) + " " + (-yoff) + " translate");
-//				} else if (rot == TextDescriptor.Rotation.ROT270)
-//				{
-//					// 90 degrees clockwise
-//					printWriter.println("-270 rotate " + (-xoff) + " " + (-yoff) + " translate");
-//				}
-//			}
+			// treat like centered text
+			style = Poly.Type.TEXTCENT;
 		}
+
+		Point2D p;
+		String styleMsg = null;
+		double x, y;
+		if (style == Poly.Type.TEXTCENT)
+		{
+			p = svgXform(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
+			x = p.getX();   y = p.getY()+size/2;
+			styleMsg = "text-anchor:middle";
+		} else if (style == Poly.Type.TEXTTOP)
+		{
+			p = svgXform(new Point2D.Double(bounds.getCenterX(), bounds.getMinY()));
+			x = p.getX();   y = p.getY()+size;
+			styleMsg = "text-anchor:middle";
+		} else if (style == Poly.Type.TEXTBOT)
+		{
+			p = svgXform(new Point2D.Double(bounds.getCenterX(), bounds.getMaxY()));
+			x = p.getX();   y = p.getY();
+			styleMsg = "text-anchor:middle";
+		} else if (style == Poly.Type.TEXTLEFT)
+		{
+			p = svgXform(new Point2D.Double(bounds.getMinX(), bounds.getCenterY()));
+			x = p.getX();   y = p.getY()+size/2;
+		} else if (style == Poly.Type.TEXTRIGHT)
+		{
+			p = svgXform(new Point2D.Double(bounds.getMaxX(), bounds.getCenterY()));
+			x = p.getX();   y = p.getY()+size/2;
+			styleMsg = "text-anchor:end";
+		} else if (style == Poly.Type.TEXTTOPLEFT)
+		{
+			p = svgXform(new Point2D.Double(bounds.getMinX(), bounds.getMinY()));
+			x = p.getX();   y = p.getY()+size;
+		} else if (style == Poly.Type.TEXTTOPRIGHT)
+		{
+			p = svgXform(new Point2D.Double(bounds.getMaxX(), bounds.getMinY()));
+			x = p.getX();   y = p.getY()+size;
+			styleMsg = "text-anchor:end";
+		} else if (style == Poly.Type.TEXTBOTLEFT)
+		{
+			p = svgXform(new Point2D.Double(bounds.getMinX(), bounds.getMaxY()));
+			x = p.getX();   y = p.getY();
+		} else if (style == Poly.Type.TEXTBOTRIGHT)
+		{
+			p = svgXform(new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()));
+			x = p.getX();   y = p.getY();
+			styleMsg = "text-anchor:end";
+		} else return;
+		if (td.isBold()) styleMsg += "; font-weight: bold";
+		if (td.isItalic()) styleMsg += "; font-style: italic";
+
+		printWriter.print("<text x=\"" + x + "\" y=\"" + y +
+			"\" fill=\"" + getColorDescription(col) + "\" font-size=\"" + size + "\"");
+		String faceName = null;
+		int faceNumber = td.getFace();
+		if (faceNumber != 0)
+		{
+			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(faceNumber);
+			if (af != null) faceName = af.getName();
+		}
+		if (faceName != null)
+		{
+			String fixedFaceName = faceName.replace(' ', '-');
+			printWriter.println(" font-family=\"" + fixedFaceName + "\"");
+		}
+		if (styleMsg != null) printWriter.print(" style=\"" + styleMsg + "\"");
+		TextDescriptor.Rotation rot = td.getRotation();
+		if (rot != TextDescriptor.Rotation.ROT0)
+		{
+			int amt = 270;
+			if (rot == TextDescriptor.Rotation.ROT180) amt = 180; else
+			if (rot == TextDescriptor.Rotation.ROT270) amt = 90;
+			printWriter.println(" transform=\"rotate(" + amt + " " + x + "," + y + ")\"");
+		}
+		printWriter.println(">");
+		printWriter.println("  " + text);
+		printWriter.println("</text>");
 	}
 
 	/****************************** SUPPORT ******************************/
@@ -1179,26 +1125,10 @@ public class SVG extends Output
 	 * @param pt the Electric coordinates.
 	 * @return the SVG coordinates.
 	 */
-	private Point2D psXform(Point2D pt)
+	private Point2D svgXform(Point2D pt)
 	{
 		Point2D result = new Point2D.Double();
 		matrix.transform(pt, result);
 		return result;
-	}
-
-	/**
-	 * Method to write SVG text.
-	 * @param str the text to write in SVG format.
-	 */
-	public void writePSString(String str)
-	{
-		printWriter.print("(");
-		for(int i=0; i<str.length(); i++)
-		{
-			char ca = str.charAt(i);
-			if (ca == '(' || ca == ')' || ca == '\\') printWriter.print("\\");
-			printWriter.print(ca);
-		}
-		printWriter.print(")");
 	}
 }
