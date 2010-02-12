@@ -29,7 +29,6 @@ import java.awt.geom.Point2D;
  */
 public class IconParameters implements Serializable
 {
-    public final EditingPreferences ep;
     /** side for input ports (when placeByCellLocation false) */		int inputSide;
     /** side for output ports (when placeByCellLocation false) */		int outputSide;
     /** side for bidir ports (when placeByCellLocation false) */		int bidirSide;
@@ -48,11 +47,6 @@ public class IconParameters implements Serializable
 
     private IconParameters(boolean userDefaults)
     {
-        if (userDefaults) {
-            ep = EditingPreferences.getThreadEditingPreferences();
-        } else {
-            ep = new EditingPreferences(true, TechPool.getThreadTechPool());
-        }
         inputSide = 0;
         outputSide = 1;
         bidirSide = 2;
