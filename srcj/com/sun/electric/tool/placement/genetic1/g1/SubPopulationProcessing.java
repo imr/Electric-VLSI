@@ -28,11 +28,6 @@
  */
 package com.sun.electric.tool.placement.genetic1.g1;
 
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.genetic1.Crossover;
 import com.sun.electric.tool.placement.genetic1.GenePlacement;
@@ -40,6 +35,11 @@ import com.sun.electric.tool.placement.genetic1.Metric;
 import com.sun.electric.tool.placement.genetic1.Population;
 import com.sun.electric.tool.placement.genetic1.PopulationMutation;
 import com.sun.electric.tool.placement.genetic1.Selection;
+
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
 
 public class SubPopulationProcessing implements Callable<Population> {
 

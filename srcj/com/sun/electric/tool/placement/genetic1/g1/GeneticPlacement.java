@@ -28,6 +28,12 @@
  */
 package com.sun.electric.tool.placement.genetic1.g1;
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.genetic1.Chromosome;
+import com.sun.electric.tool.placement.genetic1.Population;
+import com.sun.electric.tool.placement.genetic1.PopulationCreation;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -48,12 +54,6 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.tool.placement.PlacementFrame;
-import com.sun.electric.tool.placement.genetic1.Chromosome;
-import com.sun.electric.tool.placement.genetic1.Population;
-import com.sun.electric.tool.placement.genetic1.PopulationCreation;
 
 /**
  *         Genetic placement test framework class. Allows to plug in to utilize
@@ -186,7 +186,7 @@ public class GeneticPlacement extends PlacementFrame {
 
 	public GeneticPlacement() {
 
-		maxRuntime = 3 * 60;
+		maxRuntime = 30;
 		numThreads = Runtime.getRuntime().availableProcessors();
 
 		popCreator = new PopulationCreationRandomWithPlaceHolder2(new Random(
@@ -359,7 +359,7 @@ public class GeneticPlacement extends PlacementFrame {
 			// execute threads in pool and wait for their termination
 			try {
 				List<Callable<Population>> copyList = new ArrayList<Callable<Population>>();
-				for(SubPopulationProcessing spp : tasks) copyList.add(spp);
+				for(SubPopulationProcessing pop : tasks) copyList.add(pop);
 				List<Future<Population>> threadResults = threadpool.invokeAll(copyList);
 				assert (threadpool.getPoolSize() == NBR_OF_THREADS);
 

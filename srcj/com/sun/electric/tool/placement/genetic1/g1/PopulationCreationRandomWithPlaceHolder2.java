@@ -28,13 +28,13 @@
  */
 package com.sun.electric.tool.placement.genetic1.g1;
 
-import java.util.List;
-import java.util.Random;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.genetic1.Chromosome;
 import com.sun.electric.tool.placement.genetic1.Population;
 import com.sun.electric.tool.placement.genetic1.PopulationCreation;
+
+import java.util.List;
+import java.util.Random;
 
 public class PopulationCreationRandomWithPlaceHolder2 implements
 		PopulationCreation {

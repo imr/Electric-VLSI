@@ -37,7 +37,7 @@ import com.sun.electric.tool.placement.genetic1.GenePlacement;
 public class GenePlacementLeftRightAlignedDrop implements GenePlacement {
 
 	private static int placementWidth = -1;
-	private static final boolean DEBUG = false;
+//	private static final boolean DEBUG = false;
 
 	int genePosition2Index[];
 

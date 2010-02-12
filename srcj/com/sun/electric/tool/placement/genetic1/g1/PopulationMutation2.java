@@ -28,13 +28,13 @@
  */
 package com.sun.electric.tool.placement.genetic1.g1;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sun.electric.tool.placement.genetic1.Chromosome;
 import com.sun.electric.tool.placement.genetic1.ChromosomeMutation;
 import com.sun.electric.tool.placement.genetic1.Population;
 import com.sun.electric.tool.placement.genetic1.PopulationMutation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Mutate by exchanging gene position in chromosome and randomly apply rotation

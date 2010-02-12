@@ -28,10 +28,10 @@
  */
 package com.sun.electric.tool.placement.genetic1.g1;
 
-import java.util.Random;
-
 import com.sun.electric.tool.placement.genetic1.Chromosome;
 import com.sun.electric.tool.placement.genetic1.ChromosomeMutation;
+
+import java.util.Random;
 
 public class ChromsomeMutationMoveCells implements ChromosomeMutation {
 

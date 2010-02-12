@@ -28,12 +28,12 @@
  */
 package com.sun.electric.tool.placement.genetic1.g1;
 
-import java.util.ArrayList;
-import java.util.Random;
-
 import com.sun.electric.tool.placement.genetic1.Chromosome;
 import com.sun.electric.tool.placement.genetic1.Crossover;
 import com.sun.electric.tool.placement.genetic1.Population;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 /**
  *         Implement Cycle Crossover.

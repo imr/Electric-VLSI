@@ -28,13 +28,14 @@
  */
 package com.sun.electric.tool.placement.genetic1;
 
-import java.util.logging.Level;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+
+import java.util.logging.Level;
 
 /**
  * Chromosome representing Placement.
  */
+
 //TODO: remove comment from root element if you want to use xmlstorage. not java 1.5 compliant. or 
 //include jar with jaxb for java 1.5.
 //@XmlRootElement

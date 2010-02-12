@@ -28,10 +28,10 @@
  */
 package com.sun.electric.tool.placement.genetic1;
 
-import java.util.List;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.genetic1.g1.PlacementNodeProxy;
+
+import java.util.List;
 
 public interface PopulationCreation {
 	public Population generatePopulation(PlacementNodeProxy[] nodeProxies,

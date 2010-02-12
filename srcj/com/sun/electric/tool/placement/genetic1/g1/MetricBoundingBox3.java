@@ -28,15 +28,15 @@
  */
 package com.sun.electric.tool.placement.genetic1.g1;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.logging.Level;
-
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
 import com.sun.electric.tool.placement.genetic1.Chromosome;
 import com.sun.electric.tool.placement.genetic1.Metric;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Calculate Bounding Box metric for all networks in a chromosome.
