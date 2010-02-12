@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/12/10, DN) Importing GDSMap twice causes a crash (Bug #2569).
+FIX: In GDSMap keep savedAssoc in Preferences instead of Prefs.
+
 BUG: (2/12/10, GVG) More stuff for Bug #2658
 FIX: mocmos.xml was re-generated. Database hasn't been amended yet.
 

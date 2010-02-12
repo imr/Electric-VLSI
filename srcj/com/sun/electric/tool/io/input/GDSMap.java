@@ -57,6 +57,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -298,28 +299,32 @@ public class GDSMap extends EDialog
 		dispose();
 	}
 
-	HashMap<String,Pref> savedAssocs = new HashMap<String,Pref>();
+//	HashMap<String,Pref> savedAssocs = new HashMap<String,Pref>();
 
 	private String getSavedAssoc(String mapName)
 	{
-		Pref pref = savedAssocs.get(mapName);
-		if (pref == null)
-		{
-			pref = Pref.makeStringPref("GDSMappingFor" + mapName, IOTool.getIOTool().prefs, "");
-			savedAssocs.put(mapName, pref);
-		}
-		return pref.getString();
+        Preferences preferences = Pref.getPrefRoot().node(IOTool.getIOTool().prefs.relativePath());
+        return preferences.get("GDSMappingFor" + mapName, "");
+//		Pref pref = savedAssocs.get(mapName);
+//		if (pref == null)
+//		{
+//			pref = Pref.makeStringPref("GDSMappingFor" + mapName, IOTool.getIOTool().prefs, "");
+//			savedAssocs.put(mapName, pref);
+//		}
+//		return pref.getString();
 	}
 
 	private void setSavedAssoc(String mapName, String layerName)
 	{
-		Pref pref = savedAssocs.get(mapName);
-		if (pref == null)
-		{
-			pref = Pref.makeStringPref("GDSMappingFor" + mapName, IOTool.getIOTool().prefs, "");
-			savedAssocs.put(mapName, pref);
-		}
-		pref.setString(layerName);
+        Preferences preferences = Pref.getPrefRoot().node(IOTool.getIOTool().prefs.relativePath());
+        preferences.put("GDSMappingFor" + mapName, layerName);
+//		Pref pref = savedAssocs.get(mapName);
+//		if (pref == null)
+//		{
+//			pref = Pref.makeStringPref(, IOTool.getIOTool().prefs, "");
+//			savedAssocs.put(mapName, pref);
+//		}
+//		pref.setString(layerName);
 	}
 
 	/**
