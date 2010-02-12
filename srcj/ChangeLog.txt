@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/12/10, SMR) Crash in Vector drawing algorithm (Bug #2660).
+FIX: Detect null cell in VectorCache.VectorCell.initTopOnlyShapes().
+
 BUG: (2/12/10, DN) Importing GDSMap twice causes a crash (Bug #2569).
 FIX: In GDSMap keep savedAssoc in Preferences instead of Prefs.
 

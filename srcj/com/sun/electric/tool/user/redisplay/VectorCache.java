@@ -776,6 +776,7 @@ public class VectorCache {
 
         private void initTopOnlyShapes() {
             Cell cell = database.getCell(vcg.cellId);
+            if (cell == null) return;
             topOnlyShapes = new ArrayList<VectorBase>();
             // show cell variables
             Poly[] polys = cell.getDisplayableVariables(CENTERRECT, dummyWnd, true);
