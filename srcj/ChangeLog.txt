@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/12/10, DN) IllegalStateException when importing GDS Map file (Bug #2657).
+FIX: In GDSMap.java create OKUpdate Job to save map preferences on server side.
+
 BUG: (2/12/10, DN) NotSerializableException for ImmutableArcInst (Bug #2652).
 FIX: Remove "EditingPreferences ep" from IconParameters.
 

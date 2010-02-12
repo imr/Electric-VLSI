@@ -30,8 +30,14 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.generator.layout.ProjSettings;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -59,6 +65,7 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -280,7 +287,7 @@ public class GDSMap extends EDialog
 			}
             changeBatch.add(foundry.getGDSLayerSetting(layer), layerInfo);
 		}
-		Library.getCurrent().getDatabase().implementSettingChanges(changeBatch);
+        new OKUpdate(changeBatch).startJob();
 	}
 
 	private void ok()
@@ -320,4 +327,28 @@ public class GDSMap extends EDialog
 		pref.setString(layerName);
 	}
 
+	/**
+	 * Class to update GDS Map.
+	 */
+	private static class OKUpdate extends Job
+	{
+		private Setting.SettingChangeBatch changeBatch;
+
+		private OKUpdate(Setting.SettingChangeBatch changeBatch)
+		{
+			super("Update GDS Mapping", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.changeBatch = changeBatch;
+		}
+
+		public boolean doIt() throws JobException
+		{
+			getDatabase().implementSettingChanges(changeBatch);
+			return true;
+		}
+
+		@Override
+		public void terminateOK()
+		{
+		}
+	}
 }
