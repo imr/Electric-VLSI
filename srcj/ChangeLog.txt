@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/13/10, DN) Crash when reconciling preferences (Bug #2661).
+FIX: Update MoCMOS.getPatchedXML because previously <menuNode>Poly1-Poly2-Capacitor</menuNode>
+    was replaced by <menuNodeInst protoName="Poly1-Poly2-Capacitior"...>.
+
 BUG: (2/12/10, SMR) Crash in Vector drawing algorithm (Bug #2660).
 FIX: Detect null cell in VectorCache.VectorCell.initTopOnlyShapes().
 

@@ -815,9 +815,9 @@ public class MoCMOS extends Technology
             // Clear palette box with capacitor if poly2 is on
             if (!secondPolysilicon)
             {
-            	assert tech.menuPalette.menuBoxes.get(0).get(1) == polyCapNode.nodes.get(0);
+            	assert ((Xml.MenuNodeInst)tech.menuPalette.menuBoxes.get(0).get(1)).protoName.equals(polyCapNode.nodes.get(0).name);
             	// location of capacitor 
-            	tech.menuPalette.menuBoxes.get(0).remove(polyCapNode.nodes.get(0));
+            	tech.menuPalette.menuBoxes.get(0).remove(1);
                 polyFlag = true;
             }
         } else {
