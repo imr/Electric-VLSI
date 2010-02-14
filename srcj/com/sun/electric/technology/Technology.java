@@ -4284,7 +4284,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	        			PrimitivePort dTop = traPorts.get(1);
 	        			PrimitivePort pRight = traPorts.get(2);
 	        			PrimitivePort dBot = traPorts.get(3);
-	        			if (!getTechName().equals("tft"))
+	        			if (!getTechName().startsWith("tft"))
 	        			{
 		        			if (!connectsToPoly(pLeft))
 		    					System.out.println("WARNING: Technology " + getTechName() + ", node " + np.getName() +

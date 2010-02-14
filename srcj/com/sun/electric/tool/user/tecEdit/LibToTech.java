@@ -49,6 +49,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.technology.ArcProto.Function;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -1064,6 +1065,7 @@ public class LibToTech
 
 		// now find the poly/active ports for transistor rearranging
 		int pol1Port = -1, pol2Port = -1, dif1Port = -1, dif2Port = -1;
+		int m1Port1 = -1, m1Port2 = -1, m2Port1 = -1, m2Port2 = -1;
 		for(int i=0; i<ports.size(); i++)
 		{
 			NodeInfo.PortDetails nipd = ports.get(i);
@@ -1102,28 +1104,24 @@ public class LibToTech
 					Variable meaningVar = ns.node.getVar(Info.PORTMEANING_KEY);
 					int meaning = 0;
 					if (meaningVar != null) meaning = ((Integer)meaningVar.getObject()).intValue();
-					if (connections[j].func.isPoly() || meaning == 1)
+					Function fun = connections[j].func;
+					if (fun.isPoly() || meaning == 1)
 					{
-						if (pol1Port < 0)
-						{
-							pol1Port = i;
-							break;
-						} else if (pol2Port < 0)
-						{
-							pol2Port = i;
-							break;
-						}
-					} else if (connections[j].func.isDiffusion() || meaning == 2)
+						if (pol1Port < 0) pol1Port = i; else
+							if (pol2Port < 0) pol2Port = i;
+					} else if (fun.isDiffusion() || meaning == 2)
 					{
-						if (dif1Port < 0)
-						{
-							dif1Port = i;
-							break;
-						} else if (dif2Port < 0)
-						{
-							dif2Port = i;
-							break;
-						}
+						if (dif1Port < 0) dif1Port = i; else
+							if (dif2Port < 0) dif2Port = i;
+					}
+					if ((fun.isMetal() && fun.getLevel() == 1) || meaning == 1)
+					{
+						if (m1Port1 < 0) m1Port1 = i; else
+							if (m1Port2 < 0) m1Port2 = i;
+					} else if ((fun.isMetal() && fun.getLevel() == 2) || meaning == 2)
+					{
+						if (m2Port1 < 0) m2Port1 = i; else
+							if (m2Port2 < 0) m2Port2 = i;
 					}
 				}
 			}
@@ -1166,8 +1164,18 @@ public class LibToTech
 		{
 			if (pol1Port < 0 || pol2Port < 0 || dif1Port < 0 || dif2Port < 0)
 			{
-				error.markError(null, np, "Need 2 gate (poly) and 2 gated (active) ports on field-effect transistor");
-				return true;
+				// in TFT transistors, its metal1 crossing metal2
+				if (m1Port1 >= 0 && m1Port2 >= 0 && m2Port1 >= 0 && m2Port2 >= 0)
+				{
+					pol1Port = m1Port1;
+					pol2Port = m1Port2;
+					dif1Port = m2Port1;
+					dif2Port = m2Port2;					
+				} else
+				{
+					error.markError(null, np, "Need 2 gate (poly/m1) and 2 gated (active/m2) ports on field-effect transistor");
+					return true;
+				}
 			}
 
 			// also make sure that dif1Port is positive and dif2Port is negative

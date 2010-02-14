@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/14/10, SMR) Technology editor can't edit TFT technology (Bug #2663).
+FIX: Allow metal1/metal2 instead of poly/active in transistor detection.
+
 BUG: (2/14/10, GVG) Make command doesn't include helphtml/*.jelib and *.txt (Bug #2655)
 FIX: Manual files not filtered by junk command
 
