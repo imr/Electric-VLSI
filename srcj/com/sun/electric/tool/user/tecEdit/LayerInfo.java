@@ -316,7 +316,7 @@ public class LayerInfo extends Info
 				case LAYERPATTERN:
 					if (patternCount == 0)
 					{
-						patternBounds = ni.getBounds();
+						patternBounds = ni.getLambdaBounds(null);
 					} else
 					{
 						Rectangle2D.union(patternBounds, ni.getBounds(), patternBounds);
