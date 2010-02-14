@@ -9,7 +9,8 @@
 jars    = ../packaging/bsh-2.0b4.jar:../packaging/junit-4.5.jar:../packaging/jython.jar:../packaging/prefuse.jar:../packaging/AppleJavaExtensions.jar
 javas   = $(shell find .         -name \*.java | grep -v com/sun/electric/plugins/JMF)
 classes = $(javas:%.java=build/%.class)
-junk    = $(shell find com -not -name \*.java -not -name \*.html -not -type d | grep -v manualRussian | grep -v helphtml)
+junk    = $(shell find com -not -name \*.java -not -name \*.svn* -not -type d | grep -v manualRussian)
+#junk    = $(shell find com -not -name \*.java -not -name \*.html -not -name \*.svn* -not -type d | grep -v manualRussian | grep -v helphtml)
 
 electric.jar: $(javas) Makefile
 	mkdir -p build

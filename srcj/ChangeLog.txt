@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/14/10, GVG) Make command doesn't include helphtml/*.jelib and *.txt (Bug #2655)
+FIX: Manual files not filtered by junk command
+
 BUG: (2/14/10, GVG) Wrong location of silicide block and hi-res layers in analog resistors (Bug #2658)
 FIX: Database amended yet. Considered as done.
 
