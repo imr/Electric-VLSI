@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/14/10, GVG) Wrong location of silicide block and hi-res layers in analog resistors (Bug #2658)
+FIX: Database amended yet. Considered as done.
+
 BUG: (2/14/10, DN) Assertion error after technology editor makes new technology (Bug #2662).
 FIX: Don't modify in LayerInfo.parseCell an reference to internal rectanle returned by ni.getBounds.
 
