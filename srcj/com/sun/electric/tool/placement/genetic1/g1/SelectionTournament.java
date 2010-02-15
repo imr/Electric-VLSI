@@ -61,7 +61,7 @@ public class SelectionTournament implements Selection {
 			}
 
 			// remove the weaker one with the longer wire length
-			if (a.fitness > b.fitness) {
+			if (a.fitness.doubleValue() > b.fitness.doubleValue()) {
 				chromsomes.remove(a);
 			} else {
 				chromsomes.remove(b);

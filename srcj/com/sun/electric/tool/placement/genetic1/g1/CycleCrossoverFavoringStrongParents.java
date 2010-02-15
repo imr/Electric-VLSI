@@ -65,7 +65,7 @@ public class CycleCrossoverFavoringStrongParents implements Crossover {
 
 		assert (r != null) : "set random seed value before first use";
 
-		Integer indexOfProxy;
+		int indexOfProxy;
 		int nbrOfCrossovers = Math.round(population.chromosomes.size() * crossOverRate);
 
 		int nbrOfGenesPerChromsome = GeneticPlacement.nodeProxies.length;
@@ -81,7 +81,7 @@ public class CycleCrossoverFavoringStrongParents implements Crossover {
 		// select parents for offsprings favoring strong individuals
 		double sumOfAllFitnessValues = 0.0;
 		for (Chromosome c : population.chromosomes)
-			sumOfAllFitnessValues += (1 / c.fitness);
+			sumOfAllFitnessValues += (1 / c.fitness.doubleValue());
 		for (int i = 0; i < nbrOfCrossovers; i++) {
 
 			// generate random value between 0 and sumOfAllFitnessValues
@@ -90,7 +90,7 @@ public class CycleCrossoverFavoringStrongParents implements Crossover {
 			// get P1
 			double currentFitnessSum = 0.0;
 			for (Chromosome c : population.chromosomes) {
-				currentFitnessSum += (1 / c.fitness);
+				currentFitnessSum += (1 / c.fitness.doubleValue());
 				if (currentFitnessSum >= canidateSelector) {
 					P1[i] = c;
 					break;
@@ -101,7 +101,7 @@ public class CycleCrossoverFavoringStrongParents implements Crossover {
 			canidateSelector = r.nextDouble() * sumOfAllFitnessValues;
 			currentFitnessSum = 0.0;
 			for (Chromosome c : population.chromosomes) {
-				currentFitnessSum += (1 / c.fitness);
+				currentFitnessSum += (1 / c.fitness.doubleValue());
 				if (currentFitnessSum >= canidateSelector) {
 					// if we just picked P1 again get next
 					if (P1[i] == c) {

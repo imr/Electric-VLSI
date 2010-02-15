@@ -81,7 +81,7 @@ public class DEQueue<T> extends IDEStructure<T> {
 		}
 		this.items.add(oldBottom, (Runnable) item);
 		this.bottom = oldBottom + 1;
-		this.size++;
+		this.size = new Integer(this.size.intValue() + 1);
 	}
 
 	/**
@@ -102,14 +102,14 @@ public class DEQueue<T> extends IDEStructure<T> {
 		T item = (T) this.items.get(this.bottom);
 
 		if (size > 0) {
-			this.size--;
+			this.size = new Integer(this.size.intValue() - 1);
 			return item;
 		}
 		if (!this.top.compareAndSet(new Integer(oldTop), new Integer(newTop))) {
 			item = null;
 		}
 		this.bottom = oldTop + 1;
-		this.size--;
+		this.size = new Integer(this.size.intValue() - 1);
 		return item;
 	}
 
@@ -131,7 +131,7 @@ public class DEQueue<T> extends IDEStructure<T> {
 		T item = (T) this.items.get(oldTop);
 
 		if (this.top.compareAndSet(new Integer(oldTop), new Integer(newTop))) {
-			this.size--;
+			this.size = new Integer(this.size.intValue() - 1);
 			return item;
 		}
 		return null;

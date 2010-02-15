@@ -129,7 +129,7 @@ public class MetricBoundingBox3 implements Metric {
 						if (proxy.node == curPort.getPlacementNode()) {
 							port2ProxyIndexMap.put(
 									net2PlacementPortsXYOffset[netIndex][p],
-									nodeProxyList.indexOf(proxy));
+									new Integer(nodeProxyList.indexOf(proxy)));
 							break;
 						}
 					}
@@ -146,7 +146,7 @@ public class MetricBoundingBox3 implements Metric {
 	public void evaluate(List<Chromosome> population) {
 		for (Chromosome c : population) {
 			if (c.altered)
-				c.fitness = 0.0;
+				c.fitness = Double.valueOf(0);
 		}
 
 		// TODO:Loop Locking auf Targetmachine anpassen :)
@@ -154,7 +154,7 @@ public class MetricBoundingBox3 implements Metric {
 		for (int[][] net : net2PlacementPortsXYOffset) {
 			for (Chromosome c : population) {
 				if (c.altered)
-					c.fitness += compute(net, c);
+					c.fitness = new Double(c.fitness.doubleValue() + compute(net, c));
 			}
 		}
 		for (Chromosome c : population) {
@@ -221,17 +221,22 @@ public class MetricBoundingBox3 implements Metric {
 	private double compute(int[][] net, Chromosome c) {
 
 		double left, right, top, bottom;
-
 		double portX, portY;
 		int indexOfProxy;
 
 		// values of first cell as starting point
 		{
-			indexOfProxy = port2ProxyIndexMap.get(net[0]);
-			portX = getPortXOffset(net[0], c.GeneRotation[indexOfProxy])
-					+ c.GeneXPos[indexOfProxy];
-			portY = getPortYOffset(net[0], c.GeneRotation[indexOfProxy])
-					+ c.GeneYPos[indexOfProxy];
+			indexOfProxy = port2ProxyIndexMap.get(net[0]).intValue();
+			short rotation = 0;
+			int addendX = 0, addendY = 0;
+			if (indexOfProxy < c.GeneRotation.length)
+			{
+				rotation = c.GeneRotation[indexOfProxy];
+				addendX = c.GeneXPos[indexOfProxy];
+				addendY = c.GeneYPos[indexOfProxy];
+			}
+			portX = getPortXOffset(net[0], rotation) + addendX;
+			portY = getPortYOffset(net[0], rotation) + addendY;
 
 			left = right = portX;
 			top = bottom = portY;
@@ -240,11 +245,17 @@ public class MetricBoundingBox3 implements Metric {
 		// calculate rest of cells
 
 		for (int i = 1; i < net.length; i++) {
-			indexOfProxy = port2ProxyIndexMap.get(net[i]);
-			portX = getPortXOffset(net[i], c.GeneRotation[indexOfProxy])
-					+ c.GeneXPos[indexOfProxy];
-			portY = getPortYOffset(net[i], c.GeneRotation[indexOfProxy])
-					+ c.GeneYPos[indexOfProxy];
+			indexOfProxy = port2ProxyIndexMap.get(net[i]).intValue();
+			short rotation = 0;
+			int addendX = 0, addendY = 0;
+			if (indexOfProxy < c.GeneRotation.length)
+			{
+				rotation = c.GeneRotation[indexOfProxy];
+				addendX = c.GeneXPos[indexOfProxy];
+				addendY = c.GeneYPos[indexOfProxy];
+			}
+			portX = getPortXOffset(net[i], rotation) + addendX;
+			portY = getPortYOffset(net[i], rotation) + addendY;
 
 			if (portX < left) {
 				left = portX;

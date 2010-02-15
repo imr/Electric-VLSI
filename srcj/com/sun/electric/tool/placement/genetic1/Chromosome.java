@@ -77,7 +77,7 @@ public class Chromosome implements Comparable<Chromosome> {
 		GeneXPadding = new short[nbrOfGenes];
 		Index2GenePositionInChromosome = new int[nbrOfGenes];
 
-		fitness = Double.MAX_VALUE;
+		fitness = new Double(Double.MAX_VALUE);
 
 	}
 

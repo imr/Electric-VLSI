@@ -53,9 +53,9 @@ public class Population {
 		double best_fitness = Double.MAX_VALUE;
 		
 		for (Chromosome c : chromosomes) {
-			assert (c.fitness > 0);
-			if (c.fitness < best_fitness)
-				best_fitness = c.fitness;
+			assert (c.fitness.doubleValue() > 0);
+			if (c.fitness.doubleValue() < best_fitness)
+				best_fitness = c.fitness.doubleValue();
 		}
 		
 		return best_fitness;
@@ -66,7 +66,7 @@ public class Population {
 
 		// place altered cells before calculating metric
 		for (Chromosome c : chromosomes) {
-			assert (c.altered || c.fitness > 0);
+			assert (c.altered || c.fitness.doubleValue() > 0);
 			placement.placeChromosome(c);
 		}
 

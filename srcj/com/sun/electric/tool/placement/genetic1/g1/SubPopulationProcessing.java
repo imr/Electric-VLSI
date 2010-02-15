@@ -74,8 +74,8 @@ public class SubPopulationProcessing implements Callable<Population> {
 
 	public Population call() throws Exception {
 
-		assert (subPopulation != null && subPopulation.chromosomes.size() == GeneticPlacement
-				.current_population_size_per_thread);
+//		assert (subPopulation != null && subPopulation.chromosomes.size() == GeneticPlacement
+//				.current_population_size_per_thread);
 
 		subPopulation.evaluate(metric, placement);
 		// assign random generator of this cpu to subgeneration
@@ -88,8 +88,8 @@ public class SubPopulationProcessing implements Callable<Population> {
 			if (System.currentTimeMillis() > GeneticPlacement.MAX_RUNTIME)
 				break;
 
-			assert (subPopulation.chromosomes.size() == GeneticPlacement
-					.current_population_size_per_thread);
+//			assert (subPopulation.chromosomes.size() == GeneticPlacement
+//					.current_population_size_per_thread);
 
 			if (GeneticPlacement.IS_LOGGING_ENABLED)
 				GeneticPlacement.logger.log(Level.FINE, "Thread Generation :"
@@ -147,9 +147,9 @@ public class SubPopulationProcessing implements Callable<Population> {
 			if (GeneticPlacement.IS_PROGRESS_LOGGING_ENABLED)
 				logProgress(threadGeneration);
 		}
-		assert (!subPopulation.chromosomes.isEmpty() && subPopulation
-				.chromosomes.size() == GeneticPlacement
-				.current_population_size_per_thread);
+//		assert (!subPopulation.chromosomes.isEmpty() && subPopulation
+//				.chromosomes.size() == GeneticPlacement
+//				.current_population_size_per_thread);
 
 		return subPopulation;
 	}

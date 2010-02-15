@@ -246,9 +246,14 @@ public class GeneticPlacement extends PlacementFrame {
 		return "Genetic-1";
 	}
 
+	private static boolean beenRun = false;
+
 	@Override
 	public void runPlacement(List<PlacementNode> nodesToPlace,
 			List<PlacementNetwork> allNetworks, String cellName) {
+
+		if (beenRun) System.out.println("WARNING: The Genetic-1 placement code is not reentrant and can be run only once in an Electric session.");
+		beenRun = true;
 
 		init();
 
@@ -444,7 +449,7 @@ public class GeneticPlacement extends PlacementFrame {
 
 		// remember fittest solution so far
 		for (Population subp : subPopulations) {
-			if (subp.chromosomes.get(0).fitness < fittestSolution.fitness)
+			if (subp.chromosomes.get(0).fitness.doubleValue() < fittestSolution.fitness.doubleValue())
 				fittestSolution = subp.chromosomes.get(0);
 		}
 
@@ -510,9 +515,9 @@ public class GeneticPlacement extends PlacementFrame {
 		{
 
 			// calculate improvement rate and set mutation rate accordingly
-			improvementRate = (previousFittestSolutionValue - fittestSolution.fitness)
+			improvementRate = (previousFittestSolutionValue - fittestSolution.fitness.doubleValue())
 					/ previousFittestSolutionValue;
-			previousFittestSolutionValue = fittestSolution.fitness;
+			previousFittestSolutionValue = fittestSolution.fitness.doubleValue();
 
 			isMemoryBarrierReached = rt.totalMemory() == rt.maxMemory()
 					&& rt.freeMemory() < 0.1 * rt.maxMemory();
