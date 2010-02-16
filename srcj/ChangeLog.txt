@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+BUG: (2/15/10, AM) Electric litters files in my home directory without
+     my permission (Bug #2613)
+FIX: Stop littering.
+
 BUG: (2/14/10, SMR) Technology editor can't edit TFT technology (Bug #2663).
 FIX: Allow metal1/metal2 instead of poly/active in transistor detection.
 
