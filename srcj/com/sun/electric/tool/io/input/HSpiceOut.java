@@ -126,7 +126,7 @@ public class HSpiceOut extends Simulate
 					for (int eventNum = 0; eventNum < values.length; eventNum++)
 						values[eventNum] = theSweep.get(eventNum)[sigIndex + 1];
                     if (!isUseLegacySimulationCode()) {
-                        BTree<Double,Double,Serializable> tree = NewEpicAnalysis.getTree();
+                        BTree<Double,Double,Serializable> tree = EpicAnalysis.getTree();
                         int evmax = 0;
                         int evmin = 0;
                         double valmax = Double.MIN_VALUE;

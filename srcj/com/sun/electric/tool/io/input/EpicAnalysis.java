@@ -4,7 +4,7 @@
  *
  * File: EpicAnalysis.java
  *
- * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,17 +27,21 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.ActivityLogger;
+
+import com.sun.electric.tool.simulation.*;
+import com.sun.electric.database.geometry.btree.*;
+import com.sun.electric.database.geometry.btree.unboxed.*;
 
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -46,16 +50,16 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Vector;
-
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 /**
- * Class to define a set of simulation data producet by Epic simulators.
+ * Class to define a set of simulation data producet by Epic
+ * simulators, using the new disk-indexed format.
+
  * This class differs from Anylisis base class by less memory consumption.
  * Waveforms are stored in a file in packed form. They are loaded to memory by
  * denand. Hierarchical structure is reconstructed from Epic flat names into Context objects.
@@ -76,7 +80,7 @@ public class EpicAnalysis extends AnalogAnalysis {
     /** Opened file with waveforms. */                  private RandomAccessFile waveFile;
     /** Offsets of packed waveforms in the file. */     int[] waveStarts;
     /** Lengths of packed waveforms in the file. */     int[] waveLengths;
-    
+   
     /** Time resolution of integer time unit. */        private double timeResolution;
     /** Voltage resolution of integer voltage unit. */  private double voltageResolution;
     /** Current resolution of integer current unit. */  private double currentResolution;
@@ -145,7 +149,7 @@ public class EpicAnalysis extends AnalogAnalysis {
      * Free allocated resources before closing.
      */
     @Override
-    public void finished() {
+        public void finished() {
         try {
             waveFile.close();
             waveFileName.delete();
@@ -162,7 +166,7 @@ public class EpicAnalysis extends AnalogAnalysis {
 	 * Returns null if none can be found.
 	 */
     @Override
-    public AnalogSignal findSignalForNetworkQuickly(String netName) {
+        public AnalogSignal findSignalForNetworkQuickly(String netName) {
         AnalogSignal old = super.findSignalForNetworkQuickly(netName);
         
         String lookupName = TextUtils.canonicString(netName);
@@ -176,7 +180,7 @@ public class EpicAnalysis extends AnalogAnalysis {
     }
 
     public List<AnalogSignal> getSignalsFromExtractedNet(Signal ws) {
-    	List<AnalogSignal> ret = new ArrayList<AnalogSignal>();
+        ArrayList<AnalogSignal> ret = new ArrayList<AnalogSignal>();
         ret.add((AnalogSignal)ws);
         return ret;
     }
@@ -224,14 +228,14 @@ public class EpicAnalysis extends AnalogAnalysis {
 	 * @return a List of signals.
 	 */
     @Override
-	public List<AnalogSignal> getSignals() { return signalsUnmodifiable; }
+        public List<AnalogSignal> getSignals() { return signalsUnmodifiable; }
 
     /**
      * This methods overrides Analysis.nameSignal.
      * It doesn't use Analisys.signalNames to use less memory.
      */
     @Override
-	public void nameSignal(AnalogSignal ws, String sigName) {}
+        public void nameSignal(AnalogSignal ws, String sigName) {}
     
     /**
      * Finds signal index of AnalogSignal with given full name.
@@ -305,7 +309,7 @@ public class EpicAnalysis extends AnalogAnalysis {
      * @param strings list of names.
      * @param contexts list of contexts.
      */
-    Context getContext(List<String> strings, List<Context> contexts) {
+    Context getContext(ArrayList<String> strings, ArrayList<Context> contexts) {
         assert strings.size() == contexts.size();
         int hashCode = Context.hashValue(strings, contexts);
         
@@ -354,85 +358,40 @@ public class EpicAnalysis extends AnalogAnalysis {
         contextHash = newHash;
     }
 
-    @Override
-    protected Waveform[] loadWaveforms(AnalogSignal signal) {
-        int index = signal.getIndexInAnalysis();
-        double valueResolution = getValueResolution(index);
-        int start = waveStarts[index];
-        int len = waveLengths[index];
-        byte[] packedWaveform = new byte[len];
-        try {
-            waveFile.seek(start);
-            waveFile.readFully(packedWaveform);
-        } catch (IOException e) {
-            ActivityLogger.logException(e);
-            return new Waveform[] { new WaveformImpl(new double[0], new double[0]) };
-        }
-            
-        int count = 0;
-        for (int i = 0; i < len; count++) {
-            int l;
-            int b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0)
-                l = 0;
-            else if (b < 0xFF)
-                l = 1;
-            else
-                l = 4;
-            i += l;
-            b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0)
-                l = 0;
-            else if (b < 0xFF)
-                l = 1;
-            else
-                l = 4;
-            i += l;
-        }
-
-        double[] time = new double[count];
-        double[] value = new double[count];
-        count = 0;
-        int t = 0;
-        int v = 0;
-        for (int i = 0; i < len; count++) {
-            int l;
-            int b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0) {
-                l = 0;
-            } else if (b < 0xFF) {
-                l = 1;
-                b -= 0xC0;
-            } else {
-                l = 4;
+    private static CachingPageStorage ps = null;
+    public static BTree<Double,Double,Serializable> getTree() {
+        if (ps==null)
+            try {
+                long highWaterMarkInBytes = 50 * 1024 * 1024;
+                PageStorage fps = FilePageStorage.create();
+                PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
+                ps = new CachingPageStorageWrapper(ops, 16 * 1024, false);
+                //ps = new MemoryPageStorage(256);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-            while (l > 0) {
-                b = (b << 8) | packedWaveform[i++] & 0xff;
-                l--;
-            }
-            t = t + b;
-            time[count] = t * timeResolution;
-
-            b = packedWaveform[i++] & 0xff;
-            if (b < 0xC0) {
-                l = 0;
-                b -= 0x60;
-            } else if (b < 0xFF) {
-                l = 1;
-                b -= 0xDF;
-            } else {
-                l = 4;
-            }
-            while (l > 0) {
-                b = (b << 8) | packedWaveform[i++] & 0xff;
-                l--;
-            }
-            v = v + b;
-            value[count] = v * valueResolution;
-        }
-        assert count == time.length;
-        return new Waveform[] { new WaveformImpl(time, value) };
+        return new BTree<Double,Double,Serializable>
+            (ps, UnboxedHalfDouble.instance, UnboxedHalfDouble.instance, null, null);
     }
+
+    HashMap<Integer, Waveform> loadWaveformCache =
+        new HashMap<Integer, Waveform>();
+
+    @Override
+        protected Waveform[] loadWaveforms(AnalogSignal signal) {
+        int index = ((EpicSignal)signal).sigNum;
+        Waveform wave = loadWaveformCache.get(new Integer(index));
+        if (wave == null)
+            return new Waveform[] { new WaveformImpl(new double[0], new double[0]) };
+        return new Waveform[] { wave };
+    }
+
+    void putWaveform(int signum, Waveform w) {
+        loadWaveformCache.put(new Integer(signum), w);
+    }
+    
+
+
     
     /************************* EpicRootTreeNode *********************************************
      * This class is for root node of EpicTreeNode tree.
@@ -451,49 +410,49 @@ public class EpicAnalysis extends AnalogAnalysis {
             this.an = an;
             Vector<EpicTreeNode> children = new Vector<EpicTreeNode>();
 
-//    		// make a list of signal names with "#" in them
-//    		Map<String,DefaultMutableTreeNode> sharpMap = new HashMap<String,DefaultMutableTreeNode>();
-//            for (EpicTreeNode tn: an.rootContext.sortedNodes)
-//    		{
-//    			String sigName = tn.name;
-//    			int hashPos = sigName.indexOf('#');
-//    			if (hashPos <= 0) continue;
-//    			String sharpName = sigName.substring(0, hashPos);
-//    			DefaultMutableTreeNode parent = sharpMap.get(sharpName);
-//    			if (parent == null)
-//    			{
-//    				parent = new DefaultMutableTreeNode(sharpName + "#");
-//    				sharpMap.put(sharpName, parent);
-//    				this.add(parent);
-//    			}
-//    		}
-//
-//    		// add all signals to the tree
-//            for (EpicTreeNode tn: an.rootContext.sortedNodes)
-//    		{
-//    			String nodeName = null;
-//    			String sigName = tn.name;
-//    			int hashPos = sigName.indexOf('#');
-//    			if (hashPos > 0)
-//    			{
-//    				// force a branch with the proper name
-//    				nodeName = sigName.substring(0, hashPos);
-//    			} else
-//    			{
-//    				// if this is the pure name of a hash set, force a branch
-//    				String pureSharpName = sigName;
-//    				if (sharpMap.get(pureSharpName) != null)
-//    					nodeName = pureSharpName;
-//    			}
-//    			if (nodeName != null)
-//    			{
-//    				DefaultMutableTreeNode parent = sharpMap.get(nodeName);
-//    				parent.add(new DefaultMutableTreeNode(tn));
-//    			} else
-//    			{
-//                    children.add(tn);
-//    			}
-//    		}
+            //    		// make a list of signal names with "#" in them
+            //    		Map<String,DefaultMutableTreeNode> sharpMap = new HashMap<String,DefaultMutableTreeNode>();
+            //            for (EpicTreeNode tn: an.rootContext.sortedNodes)
+            //    		{
+            //    			String sigName = tn.name;
+            //    			int hashPos = sigName.indexOf('#');
+            //    			if (hashPos <= 0) continue;
+            //    			String sharpName = sigName.substring(0, hashPos);
+            //    			DefaultMutableTreeNode parent = sharpMap.get(sharpName);
+            //    			if (parent == null)
+            //    			{
+            //    				parent = new DefaultMutableTreeNode(sharpName + "#");
+            //    				sharpMap.put(sharpName, parent);
+            //    				this.add(parent);
+            //    			}
+            //    		}
+            //
+            //    		// add all signals to the tree
+            //            for (EpicTreeNode tn: an.rootContext.sortedNodes)
+            //    		{
+            //    			String nodeName = null;
+            //    			String sigName = tn.name;
+            //    			int hashPos = sigName.indexOf('#');
+            //    			if (hashPos > 0)
+            //    			{
+            //    				// force a branch with the proper name
+            //    				nodeName = sigName.substring(0, hashPos);
+            //    			} else
+            //    			{
+            //    				// if this is the pure name of a hash set, force a branch
+            //    				String pureSharpName = sigName;
+            //    				if (sharpMap.get(pureSharpName) != null)
+            //    					nodeName = pureSharpName;
+            //    			}
+            //    			if (nodeName != null)
+            //    			{
+            //    				DefaultMutableTreeNode parent = sharpMap.get(nodeName);
+            //    				parent.add(new DefaultMutableTreeNode(tn));
+            //    			} else
+            //    			{
+            //                    children.add(tn);
+            //    			}
+            //    		}
 
             for (EpicTreeNode tn: an.rootContext.sortedNodes)
                 children.add(tn);
@@ -555,11 +514,11 @@ public class EpicAnalysis extends AnalogAnalysis {
         /**
          * Map from name of subcontext to EpicTreeNode.
          */
-        private final Map<String,EpicTreeNode> subs = new HashMap<String,EpicTreeNode>();
+        private final HashMap<String,EpicTreeNode> subs = new HashMap<String,EpicTreeNode>();
         /**
          * Map from name of leaf npde to EpicTreeNode.
          */
-        private final Map<String,EpicTreeNode> sigs = new HashMap<String,EpicTreeNode>();
+        private final HashMap<String,EpicTreeNode> sigs = new HashMap<String,EpicTreeNode>();
  
         /**
          * Constructor of leaf fake context.
@@ -580,7 +539,7 @@ public class EpicAnalysis extends AnalogAnalysis {
          * @param contexts list of contexts.
          * @param hashCode precalculated hash code of new Context.
          */
-        private Context(List<String> names, List<Context> contexts, int hashCode) {
+        private Context(ArrayList<String> names, ArrayList<Context> contexts, int hashCode) {
             assert names.size() == contexts.size();
             type = 0;
             this.hashCode = hashCode;
@@ -615,7 +574,7 @@ public class EpicAnalysis extends AnalogAnalysis {
          * Returns true if contenst of this Context is equal to specified lists.
          * @returns true if contenst of this Context is equal to specified lists.
          */
-        private boolean equals(List<String> names, List<Context> contexts) {
+        private boolean equals(ArrayList<String> names, ArrayList<Context> contexts) {
             int len = nodes.length;
             if (names.size() != len || contexts.size() != len) return false;
             for (int i = 0; i < len; i++) {
@@ -637,7 +596,7 @@ public class EpicAnalysis extends AnalogAnalysis {
          * @param contexts list of contexts.
          * @return hash code
          */
-        private static int hashValue(List<String> names, List<Context> contexts) {
+        private static int hashValue(ArrayList<String> names, ArrayList<Context> contexts) {
             assert names.size() == contexts.size();
             int hash = 0;
             for (int i = 0; i < names.size(); i++)
@@ -671,7 +630,7 @@ public class EpicAnalysis extends AnalogAnalysis {
      * It partially implements TreeNode (without getParent).
      */
     public static class EpicTreeNode implements TreeNode {
-//        private final int chronIndex;
+        //        private final int chronIndex;
         private final String name;
         private final Context context;
         private final int nodeOffset;
@@ -681,7 +640,7 @@ public class EpicAnalysis extends AnalogAnalysis {
          * Private constructor.
          */
         private EpicTreeNode(int chronIndex, String name, Context context, int nodeOffset) {
-//            this.chronIndex = chronIndex;
+            //            this.chronIndex = chronIndex;
             this.name = name;
             this.context = context;
             this.nodeOffset = nodeOffset;
@@ -800,7 +759,7 @@ public class EpicAnalysis extends AnalogAnalysis {
          * @param signalContext the context of this simulation signal.
          */
         @Override
-        public void setSignalContext(String signalContext) { throw new UnsupportedOperationException(); }
+            public void setSignalContext(String signalContext) { throw new UnsupportedOperationException(); }
         
         /**
          * Method to return the context of this simulation signal.
@@ -810,7 +769,7 @@ public class EpicAnalysis extends AnalogAnalysis {
          * If there is no context, this returns null.
          */
         @Override
-        public String getSignalContext() {
+            public String getSignalContext() {
             return ((EpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), false);
         }
         
@@ -820,17 +779,29 @@ public class EpicAnalysis extends AnalogAnalysis {
          * @return the full name of this simulation signal.
          */
         @Override
-        public String getFullName() {
+            public String getFullName() {
             return ((EpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), true);
         }
+
         
+        public void calcBounds() {
+            Waveform wave = getWaveform(0);
+            if (!(wave instanceof BTreeNewSignal)) { super.calcBounds(); return; }
+            BTreeNewSignal btns = (BTreeNewSignal)wave;
+            this.bounds = new Rectangle2D.Double(btns.getPreferredApproximation().getTime(0),
+                                                 (btns.getPreferredApproximation().getSample(btns.eventWithMinValue)).getValue(),
+                                                 btns.getPreferredApproximation().getTime(btns.getNumEvents()-1),
+                                                 (btns.getPreferredApproximation().getSample(btns.eventWithMaxValue)).getValue());
+        }
+        /*
         void setBounds(int minV, int maxV) {
             EpicAnalysis an = (EpicAnalysis)getAnalysis();
             double resolution = an.getValueResolution(getIndexInAnalysis());
-            bounds = new Rectangle2D.Double(0, minV*resolution, an.maxTime, (maxV - minV)*resolution);
-            leftEdge = 0;
-            rightEdge = an.maxTime;
-//            rightEdge = minV*resolution;
+            leftEdge = minT;
+            rightEdge = maxT;
+            bounds = new Rectangle2D.Double(leftEdge, minV*resolution, rightEdge, (maxV - minV)*resolution);
+            //            rightEdge = minV*resolution;
         }
+        */
     }
 }

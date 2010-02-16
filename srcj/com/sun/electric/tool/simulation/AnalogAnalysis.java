@@ -135,7 +135,7 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	{
 		AnalogSignal as = addEmptySignal(signalName, signalContext);
         if (!isUseLegacySimulationCode()) {
-            BTree<Double,Double,Serializable> tree = NewEpicAnalysis.getTree();
+            BTree<Double,Double,Serializable> tree = EpicAnalysis.getTree();
             int evmax = 0;
             int evmin = 0;
             double valmax = Double.MIN_VALUE;
