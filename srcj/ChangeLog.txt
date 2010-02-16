@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+IMP: (2/15/10, AM) When reading in SPICE output files, detect the
+     "flavor" automatically.  Now the user no longer has to change
+     his/her preferences in order to read in simulation files.
+
 IMP: (2/15/10, AM) Fix repaint logic in EditWindow to comply with
      guidelines which distinguish "System-triggered" painting from
      "App-triggered" painting; see

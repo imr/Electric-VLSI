@@ -59,11 +59,7 @@ public abstract class Simulate extends Input
 	 */
 	public static void plotSpiceResults()
 	{
-		String format = Simulation.getSpiceOutputFormat();
-		Simulation.SpiceEngine engine = Simulation.getSpiceEngine();
-		FileType type = getSpiceOutputType(format, engine);
-		if (type == null) return;
-		plotSimulationResults(type, null, null, null);
+		plotSimulationResults(FileType.SPICE, null, null, null);
 	}
 
 	/**
@@ -74,11 +70,7 @@ public abstract class Simulate extends Input
 		UserInterface ui = Job.getUserInterface();
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
-		String format = Simulation.getSpiceOutputFormat();
-		Simulation.SpiceEngine engine = Simulation.getSpiceEngine();
-		FileType type = getSpiceOutputType(format, engine);
-		if (type == null) return;
-		plotSimulationResults(type, cell, null, null);
+		plotSimulationResults(FileType.SPICE, cell, null, null);
 	}
 
 	/**
@@ -100,42 +92,31 @@ public abstract class Simulate extends Input
 		plotSimulationResults(FileType.VERILOGOUT, cell, null, null);
 	}
 
-    private static Simulate getSimulate(FileType type) {
+    private static Simulate getSimulate(FileType type, URL fileURL) {
         Simulate is = null;
-        if (type == FileType.HSPICEOUT)
-        {
-            is = new HSpiceOut();
-        } else if (type == FileType.PSPICEOUT)
-        {
-            is = new PSpiceOut();
-        } else if (type == FileType.RAWSPICEOUT)
-        {
-            is = new RawSpiceOut();
-        } else if (type == FileType.RAWLTSPICEOUT)
-        {
-            is = new LTSpiceOut();
-        } else if (type == FileType.RAWSSPICEOUT)
-        {
-            is = new SmartSpiceOut();
-        } else if (type == FileType.SPICEOUT)
-        {
-            is = new SpiceOut();
-        } else if (type == FileType.EPIC)
-        {
-//            if (Simulation.isSpiceEpicReaderProcess())
-            if (!Simulation.isUseLegacySimulationCode())
-        	{
-                is = new NewEpicOutProcess();
-        	} else
-        	{
-                is = new EpicOutProcess();
-        	}
-//            else
-//               is = new EpicOut();
-        } else if (type == FileType.VERILOGOUT)
-        {
-            is = new VerilogOut();
-        }
+        if (type == FileType.SPICE) do { // autodetect
+                String extension = fileURL.getPath();
+                if (extension.indexOf('.')!=-1) extension = extension.substring(extension.lastIndexOf('.')+1);
+                if (extension.equals("txt")) { type = FileType.PSPICEOUT; break; }
+                if (extension.equals("raw")) { type = FileType.RAWLTSPICEOUT; break; }
+                if (extension.equals("dump")) { type = FileType.RAWSPICEOUT; break; }
+                if (extension.equals("spo")) { type = FileType.SPICEOUT; break; }
+                if (extension.equals("out")) { type = FileType.EPIC; break; }
+                if (extension.startsWith("tr") || extension.startsWith("sw") || extension.startsWith("ic") ||
+                    extension.startsWith("ac") || extension.startsWith("mt") || extension.startsWith("pa"))
+                    { type = FileType.HSPICEOUT; break; }
+                // future feature: try to guess the file type from the first few lines
+                throw new RuntimeException("unable to detect type for extension \""+extension+"\"");
+            } while (false);
+
+        if (type == FileType.HSPICEOUT)           is = new HSpiceOut();
+        else if (type == FileType.PSPICEOUT)      is = new PSpiceOut();
+        else if (type == FileType.RAWSPICEOUT)    is = new RawSpiceOut();
+        else if (type == FileType.RAWLTSPICEOUT)  is = new LTSpiceOut();
+        else if (type == FileType.RAWSSPICEOUT)   is = new SmartSpiceOut();
+        else if (type == FileType.SPICEOUT)       is = new SpiceOut();
+        else if (type == FileType.EPIC)           is = Simulation.isUseLegacySimulationCode() ? new EpicOutProcess() : new NewEpicOutProcess();
+        else if (type == FileType.VERILOGOUT)     is = new VerilogOut();
         return is;
     }
 
@@ -144,13 +125,6 @@ public abstract class Simulate extends Input
 	 */
 	public static void plotSimulationResults(FileType type, Cell cell, URL fileURL, WaveformWindow ww)
 	{
-		Simulate is = getSimulate(type);
-		if (is == null)
-		{
-			System.out.println("Cannot handle " + type.getName() + " files yet");
-			return;
-		}
-
 		if (cell == null)
 		{
 			if (fileURL == null)
@@ -186,11 +160,17 @@ public abstract class Simulate extends Input
                 fileURL = TextUtils.makeURLToFile(file.getPath());
 			}
 		}
+		Simulate is = getSimulate(type, fileURL);
+		if (is == null)
+		{
+			System.out.println("Cannot handle " + type.getName() + " files yet");
+			return;
+		}
 		(new ReadSimulationOutput(type, is, fileURL, cell, ww)).start();
 	}
 
     public static Stimuli readSimulationResults(FileType type, Cell cell, URL fileURL) {
-        Simulate is = getSimulate(type);
+        Simulate is = getSimulate(type, fileURL);
         if (is == null)
         {
             System.out.println("Cannot handle " + type.getName() + " files yet");
