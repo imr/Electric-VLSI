@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.11e: ******************************
 
+IMP: (2/15/10, AM) Fix repaint logic in EditWindow to comply with
+     guidelines which distinguish "System-triggered" painting from
+     "App-triggered" painting; see
+     http://java.sun.com/products/jfc/tsc/articles/painting/#triggers
+     for further details.
+
 BUG: (2/15/10, AM) Electric litters files in my home directory without
      my permission (Bug #2613)
 FIX: Stop littering.

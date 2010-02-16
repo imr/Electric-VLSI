@@ -205,7 +205,7 @@ public class EditWindow extends JPanel
 	/** Logger of this package. */							private static Logger logger = Logger.getLogger("com.sun.electric.tool.user.ui");
 	/** Class name for logging. */							private static String CLASS_NAME = EditWindow.class.getName();
     /** Timer object for pulsating errors */                private Timer pulsatingTimer;
-    /** Flag to redisplay only pulsating errors */			private boolean justHighlights = false;
+    /** if true, repaint entire screen (not just errors) */ private boolean dirty;
 
 	private static final int SCROLLBARRESOLUTION = 200;
 
@@ -288,19 +288,8 @@ public class EditWindow extends JPanel
         pulsatingTimer = new Timer(100, new ActionListener() {
                 public void actionPerformed(ActionEvent evt) {
                     if (User.isErrorHighlightingPulsate())
-                    {
-                    	boolean anyErrors = false;
                     	for(Highlight h : getHighlighter().getHighlights())
-                    	{
-                    		if (h.isError) { anyErrors = true;   break; }
-                    	}
-                    	if (anyErrors)
-                    	{
-	                    	justHighlights = true;
-	                    	repaint();
-//							highlighter.showHighlights(EditWindow.this, getGraphics(), true);
-                    	}
-                    }
+                    		if (h.isError) { EditWindow.super.repaint(); return; }
                 }
             });
         pulsatingTimer.start();
@@ -1256,6 +1245,19 @@ public class EditWindow extends JPanel
 
 	// ************************************* REPAINT *************************************
 
+    public void repaint() {
+        dirty = true;
+        super.repaint();
+    }
+
+	public void update(Graphics graphics) {
+        if (dirty) {
+            dirty = false;
+            paint(graphics);
+        }
+        highlighter.showHighlights(this, graphics);
+    }
+
 	/**
 	 * Method to repaint this EditWindow.
 	 * Composites the image (taken from the PixelDrawing object)
@@ -1310,14 +1312,6 @@ public class EditWindow extends JPanel
 
 		// add cross-probed level display
 		showCrossProbeLevels(g);
-
-		// just draw highlights if error-pulsing is animating
-		if (justHighlights)
-		{
-			justHighlights = false;
-			highlighter.showHighlights(this, g);
-			return;
-		}
 
 		if (Job.getDebug()) {
 			// add in highlighting
@@ -3992,4 +3986,5 @@ public class EditWindow extends JPanel
 		getSavedFocusBrowser().updateCurrentFocus();
 		fullRepaint();
 	}
+
 }
