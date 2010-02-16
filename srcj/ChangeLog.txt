@@ -2,6 +2,18 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 9.00a: ******************************
+
+IMP: (2/15/10, AM) Remove old Epic reader.
+
+IMP: (2/15/10, AM) When reading in SPICE output files, detect the
+     "flavor" automatically.  Now the user no longer has to change
+     his/her preferences in order to read in simulation files.
+
+BUG: (2/15/10, AM) Electric litters files in my home directory without
+     my permission (Bug #2613)
+FIX: Stop littering.
+
 ************************* END OF Version 8.11, GNU RELEASE *************
 ************************* Version 8.11e: ******************************
 
