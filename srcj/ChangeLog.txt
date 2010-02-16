@@ -2,23 +2,14 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* END OF Version 8.11, GNU RELEASE *************
 ************************* Version 8.11e: ******************************
-
-IMP: (2/15/10, AM) Remove old Epic reader.
-
-IMP: (2/15/10, AM) When reading in SPICE output files, detect the
-     "flavor" automatically.  Now the user no longer has to change
-     his/her preferences in order to read in simulation files.
 
 IMP: (2/15/10, AM) Fix repaint logic in EditWindow to comply with
      guidelines which distinguish "System-triggered" painting from
      "App-triggered" painting; see
      http://java.sun.com/products/jfc/tsc/articles/painting/#triggers
      for further details.
-
-BUG: (2/15/10, AM) Electric litters files in my home directory without
-     my permission (Bug #2613)
-FIX: Stop littering.
 
 BUG: (2/14/10, SMR) Technology editor can't edit TFT technology (Bug #2663).
 FIX: Allow metal1/metal2 instead of poly/active in transistor detection.
@@ -136,7 +127,7 @@ FIX: Project tool can't call IconParameters.makeInstance() with true.
 BUG: (1/28/10, GVG) Assertion in Verilog running in debug mode (Bug #2634)
 FIX: No checking port names for supplies
 
-IMP/MAN: (1/28/10, SMR) Added first pass of SVG export (Bug #2003).
+IMP: (1/28/10, SMR) Added first pass of SVG export (Bug #2003).
 
 IMP: (1/28/10, GVG) Accessing many user values in Make Export (Bug #2630)
 Important refactorization due to icon preferences used in new exports.
@@ -177,7 +168,7 @@ FIX: Show just one popup at the end.
 MAN: (1/25/10, GVG) NCC gets confused with two lay cells in the same group (Bug #2627)
 Added comment in NCC manual.
 
-BUG/MAN: (1/22/10, GVG) Runtime exception in LoadImage to create logos in Layout (Bug #2626)
+BUG: (1/22/10, GVG) Runtime exception in LoadImage to create logos in Layout (Bug #2626)
 FIX: Added extra code to check if file format is valid (png, jpeg so far)
 
 IMP: (1/21/10, GVG) Message in MessagesWindow that a print job is running even though there is no
@@ -195,7 +186,7 @@ FIX: Prevent the crash and disallow the sizing.
 IMP: (1/21/10, AM) Per Gilda's request, uniquify log file name and
      print it in the messages window on startup. Related to Bug #2613
 
-IMP/MAN: (1/21/10, GVG) Ability to save text in MessagesLog to a file (Bug #2620)
+IMP: (1/21/10, GVG) Ability to save text in MessagesLog to a file (Bug #2620)
      Only available in debug mode.
 
 BUG: (1/20/10, SMR) Change dialog gives popup error messages for every node
@@ -237,7 +228,7 @@ FIX: In NetSchem.updateSchematic clear map exportNameMapOffsets.
 
 ************************* Version 8.11b: ******************************
 
-IMP/MAN: (1/15/10, GVG) Ability to specify exports in top layers (Bug #2610).
+IMP: (1/15/10, GVG) Ability to specify exports in top layers (Bug #2610).
 New syntax: "@exports = {layerName1, layerName2}
 
 BUG: (1/14/10, GVG) ConcurrentModificationException in Netlist.checkForModification from Stitch job (Bug #2609)
@@ -286,7 +277,7 @@ with the same pair of geometries.
 
 IMP: (1/12/10, GVG) More generic contacts geneted by TechEditorWizard (Bug #2597)
 
-BUG/MAN: (1/11/10, GVG) Exception in SPICE with Poly1-Poly2 cap (lay) (Bug #2599)
+BUG: (1/11/10, GVG) Exception in SPICE with Poly1-Poly2 cap (lay) (Bug #2599)
 FIX: Missing port added. Technology.check() will report the error now.
 
 BUG: (1/11/10, SMR) Messages window not scrolled quickly enough (Bug #2575).
@@ -297,11 +288,11 @@ IMP: (1/11/10, SMR) Fixed calls to Cell.copyNodeProto() (Bug #2587).
 BUG: (1/11/10, SMR) "Duplicate Cell" doesn't swap icons (Bug #2598).
 FIX: Fixed CellChangeJobs.DuplicateCell.doIt() to use CellIds.
 
-IMP/MAN: (1/08/10, GVG) Part of "More generic contacts geneted by TechEditorWizard" (Bug #)
+IMP: (1/08/10, GVG) Part of "More generic contacts geneted by TechEditorWizard" (Bug #)
 
 ************************* Version 8.11a: ******************************
 
-IMP/MAN: (01/08/10, GVG) Add DRC annotation to skip cell (Bug #2596)
+IMP: (01/08/10, GVG) Add DRC annotation to skip cell (Bug #2596)
 Added memu Tools -> DRC -> Add Skip Annotation to Cell.
 Many files modified due to the move of LayoutLib.error function to Job.error.
 
@@ -311,10 +302,10 @@ FIX: Add method Netlist.getPortInstsByNetwork to get ports in bulky way.
 BUG: (01/08/10, DN) Difference between immutable and mutable nodes in cell? (Bug #2594).
 FIX: Comment experimental code for now.
 
-IMP/MAN: (01/07/10, GVG) TechEditWizard writing metal-based technologies (Bug #2595).
+IMP: (01/07/10, GVG) TechEditWizard writing metal-based technologies (Bug #2595).
 This also changed the order of elements in tsmcSun40GP.xml and the regression.
 
-IMP/MAN: (01/07/10, SMR) "Change" dialog now shows different types of schematic
+IMP: (01/07/10, SMR) "Change" dialog now shows different types of schematic
      components (nMOS, pMOS, transistors, for example) and also shows
      hierarchical list of new object types (Bug #2550).
 
@@ -350,7 +341,7 @@ FIX: In Cell.copyNodeProtoUsingMapping call NodeInst.copyStateBits instead NodeI
 BUG: (01/05/10, GVG) Exception in CellChangeJobs if it is executed from another job (Bug #2585)
 FIX: Detect the case when this job is started by another one.
 
-IMP/MAN: (01/05/10, SMR) "Change" dialog now reports the number of changes to make (Bug #2583).
+IMP: (01/05/10, SMR) "Change" dialog now reports the number of changes to make (Bug #2583).
 
 BUG: (01/05/10, SMR) Duplicating cells may crash (Bug #2576).
 FIX: Keep a separate copy of the cell group before exploring it.
@@ -362,10 +353,10 @@ FIX: Trying "UTF-8" instead on MacOSX (Snow Leopard)
 BUG: (01/05/10, DN) Wiring problem (Bug #2569).
 FIX: In LayoutCell.doMoveArcInst() use proper ArcInst constructor for arc "ar3".
 
-IMP/MAN: (01/04/10, GVG) Analog flag reported as "Vertical NPN Transistor pbase"
+IMP: (01/04/10, GVG) Analog flag reported as "Vertical NPN Transistor pbase"
      preference (Bug #2581).  Manual might need to be reviewed.
 
-IMP/MAN: (01/04/10, GVG) Calling the default PSubstrate process instead of PWell.
+IMP: (01/04/10, GVG) Calling the default PSubstrate process instead of PWell.
      This goes aligned with the changes done for Bug #2561. Figure in 7-1-2 needs to be updated.
 
 IMP: (01/04/10, GVG) Fix "AlgorithmName is accessed from Place cells" (Bug #2580)
@@ -375,7 +366,7 @@ FIX: Removed the adding of cc.lineNumber in the error report.
 
 ************************* END OF Version 8.10, GNU RELEASE *************
 
-IMP/MAN: (12/30/09, DN) Remove thread-unsafe code.
+IMP: (12/30/09, DN) Remove thread-unsafe code.
    "ToolMenu|Network|Redo Network Numbering" was also removed.
 
 ************************* Version 8.10r: ******************************
@@ -481,7 +472,7 @@ FIX: AnalogSignal.getBounds() was doing a linear scan.  Don't do that.
 
 ************************* Version 8.10p: ******************************
 
-IMP/MAN: (12/15/09, GVG) More changes for new capacitors and resistors in
+IMP: (12/15/09, GVG) More changes for new capacitors and resistors in
 Schematics (Bug #2529). Hi-Res poly2 resistor function is now RESHIRESPOLY2
 
 BUG: (12/15/09, GVG) NPE with Find Unused Libraries and spiceparts (Bug #2548)
@@ -494,7 +485,7 @@ IMP: (12/14/09, GVG) XML reader should report better Function errors in
 XML tech file (Bug #2543). Better detection of the case and sending an
 error message instead of the exception.
 
-BUG/MAN: (12/14/09, GVG) Inconsistency with DRC resolution (Bug #2540)
+BUG: (12/14/09, GVG) Inconsistency with DRC resolution (Bug #2540)
 FIX: Make sure the tech resolution is a lambda value rather than a
 scaled value.
 
@@ -553,7 +544,7 @@ FIX: New names, new p non silicide poly resistor, min/spacing rules for hi-res
 IMP: (12/11/09, GVG) XML Tech reader should verify if layer in DRC rule exists
      (Bug #2534)
 
-IMP/MAN: (12/11/09, GVG) Enable MoCMOS Subm rules with analog flag (Bug #2531)
+IMP: (12/11/09, GVG) Enable MoCMOS Subm rules with analog flag (Bug #2531)
 
 IMP: (12/10/09, GVG) Group mocmos rules options (Bug #2532).
      Subm, scmos and deep options added to a group.
