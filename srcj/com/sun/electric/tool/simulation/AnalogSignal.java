@@ -131,4 +131,22 @@ public class AnalogSignal extends Signal implements MultiSweepSignal
 		}
 		bounds = new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
 	}
+
+    protected Rectangle2D bounds;
+	public double getMinTime() {
+		if (bounds == null) calcBounds();
+		return bounds.getMinX();
+	}
+	public double getMaxTime() {
+		if (bounds == null) calcBounds();
+		return bounds.getMaxX();
+	}
+	public double getMinValue() {
+		if (bounds == null) calcBounds();
+		return bounds.getMinY();
+	}
+	public double getMaxValue() {
+		if (bounds == null) calcBounds();
+		return bounds.getMaxY();
+	}
 }

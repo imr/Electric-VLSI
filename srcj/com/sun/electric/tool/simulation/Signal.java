@@ -43,55 +43,21 @@ public abstract class Signal {
 	/** the context of this signal (qualifications to name) */		private final String signalContext;
     /** the Analysis to which this signal belongs */                private final Analysis analysis;
 
-	/**
-	 * Method to return the Analysis in which this signal resides.
-	 * @return the Analysis in which this signal resides.
-	 */
+	/** the Analysis in which this signal resides. */
 	public final Analysis getAnalysis() { return analysis; }
 
-	/**
-	 * Method to return the name of this simulation signal.
-	 * The name does not include any hierarchical path information: it is just a simple name.
-	 * @return the name of this simulation signal.
-	 */
+	/** The name of this simulation signal, not including hierarchical path information */
 	public final String getSignalName() { return signalName; }
 
-	/**
-	 * Method to return the context of this simulation signal.
-	 * The context is the hierarchical path to the signal, and it usually contains
-	 * instance names of cells farther up the hierarchy, all separated by dots.
-	 * @return the context of this simulation signal.
-	 * If there is no context, this returns null.
-	 */
+	/** Return the context (hierarchical path information) of the signal, or null if none */
 	public final String getSignalContext() { return signalContext; }
 
-	/**
-	 * Method to return the full name of this simulation signal.
-	 * The full name includes the context, if any.
-	 * @return the full name of this simulation signal.
-	 */
-	public final String getFullName() {
-		if (signalContext != null) return signalContext + getAnalysis().getStimuli().getSeparatorChar() + signalName;
-		return signalName;
-	}
+	/** Return the full name (context+signalName) */
+	public final String getFullName() { return signalContext==null ? signalName : signalContext + getAnalysis().getStimuli().getSeparatorChar() + signalName; }
 
+	public abstract double getMinTime();
+	public abstract double getMaxTime();
+	public abstract double getMinValue();
+	public abstract double getMaxValue();
 
-    protected Rectangle2D bounds;
-	public double getMinTime() {
-		if (bounds == null) calcBounds();
-		return bounds.getMinX();
-	}
-	public double getMaxTime() {
-		if (bounds == null) calcBounds();
-		return bounds.getMaxX();
-	}
-	public double getMinValue() {
-		if (bounds == null) calcBounds();
-		return bounds.getMinY();
-	}
-	public double getMaxValue() {
-		if (bounds == null) calcBounds();
-		return bounds.getMaxY();
-	}
-	protected void calcBounds() {}
 }

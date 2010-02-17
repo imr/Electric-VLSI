@@ -232,4 +232,22 @@ public class DigitalSignal extends Signal
 		}
 		bounds = new Rectangle2D.Double(lowTime, 0, highTime-lowTime, 1);
 	}
+
+    protected Rectangle2D bounds;
+	public double getMinTime() {
+		if (bounds == null) calcBounds();
+		return bounds.getMinX();
+	}
+	public double getMaxTime() {
+		if (bounds == null) calcBounds();
+		return bounds.getMaxX();
+	}
+	public double getMinValue() {
+		if (bounds == null) calcBounds();
+		return bounds.getMinY();
+	}
+	public double getMaxValue() {
+		if (bounds == null) calcBounds();
+		return bounds.getMaxY();
+	}
 }
