@@ -27,15 +27,15 @@ import com.sun.electric.database.geometry.btree.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import com.sun.electric.tool.simulation.*;
 
-public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
+public class BTreeSignal extends SignalSimpleImpl implements Waveform {
 
     public final int numEvents;
     public final int eventWithMinValue;
     public final int eventWithMaxValue;
-    private NewSignal.Approximation<ScalarSample> preferredApproximation = null;
+    private Signal.Approximation<ScalarSample> preferredApproximation = null;
     private final BTree<Double,Double,Serializable> tree;
 
-    public BTreeNewSignal(Analysis analysis, String signalName, String signalContext,
+    public BTreeSignal(Analysis analysis, String signalName, String signalContext,
                           int eventWithMinValue,
                           int eventWithMaxValue,
                           BTree<Double,Double,Serializable> tree
@@ -46,10 +46,10 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
         this.eventWithMaxValue = eventWithMaxValue;
         if (tree==null) throw new RuntimeException();
         this.tree = tree;
-        this.preferredApproximation = new BTreeNewSignalApproximation();
+        this.preferredApproximation = new BTreeSignalApproximation();
     }
 
-    public synchronized NewSignal.Approximation<ScalarSample> getPreferredApproximation() {
+    public synchronized Signal.Approximation<ScalarSample> getPreferredApproximation() {
         return preferredApproximation;
     }
 
@@ -68,12 +68,12 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
         result[1] = result[2] = getPreferredApproximation().getSample(index).getValue();
     }
 
-    public NewSignal.Approximation<ScalarSample>
+    public Signal.Approximation<ScalarSample>
         getPixelatedApproximation(double t0, double t1, int numRegions) {
         return new BTreePixelatedApproximation(t0, t1, numRegions);
     }
 
-    private class BTreeNewSignalApproximation implements NewSignal.Approximation<ScalarSample> {
+    private class BTreeSignalApproximation implements Signal.Approximation<ScalarSample> {
         public int getNumEvents() { return numEvents; }
         public double             getTime(int index) {
             Double d = tree.getKeyFromOrd(index);
@@ -91,7 +91,7 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
         public int getEventWithMinValue() { return eventWithMinValue; }
     }
 
-    private class BTreePixelatedApproximation implements NewSignal.Approximation<ScalarSample> {
+    private class BTreePixelatedApproximation implements Signal.Approximation<ScalarSample> {
         int[] events;
         public BTreePixelatedApproximation(double t0, double t1, int numRegions) {
             int[] events = new int[numRegions];

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: NewSignal.java
+ * File: Signal.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -26,7 +26,7 @@ import java.io.*;
 
 /**
  *  A SimulationSample is the data assigned to each point in time by a
- *  NewSignal.
+ *  Signal.
  */
 public interface SimulationSample extends Serializable, Comparable {
 

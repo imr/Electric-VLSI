@@ -26,7 +26,7 @@ package com.sun.electric.tool.simulation;
 /**
  * Simple implementation of Waveform interface
  */
-public class WaveformImpl extends NewSignal<ScalarSample> implements Waveform {
+public class WaveformImpl extends Signal<ScalarSample> implements Waveform {
     private double[] time;
     private double[] value;
     
@@ -69,19 +69,19 @@ public class WaveformImpl extends NewSignal<ScalarSample> implements Waveform {
     // Methods below are strictly for transitional purposes //////////////////////////////////////////////////////////////////////////////
     // INCREDIBLY INEFFICIENT!!!                            //////////////////////////////////////////////////////////////////////////////
 
-    private NewSignal.Approximation<ScalarSample> approximation = null;
+    private Signal.Approximation<ScalarSample> approximation = null;
 
-    public NewSignal.Approximation<ScalarSample> getApproximation(double t0, double t1, int tn,
+    public Signal.Approximation<ScalarSample> getApproximation(double t0, double t1, int tn,
                                                                      ScalarSample v0, ScalarSample v1, int vd) {
         throw new RuntimeException("not implemented");
     }
 
-    public NewSignal.Approximation<ScalarSample>
+    public Signal.Approximation<ScalarSample>
         getPixelatedApproximation(double t0, double t1, int numRegions) {
         throw new RuntimeException("not implemented");
     }
 
-    public synchronized NewSignal.Approximation<ScalarSample> getPreferredApproximation() {
+    public synchronized Signal.Approximation<ScalarSample> getPreferredApproximation() {
         if (approximation==null) approximation = new ApproximationImpl();
         return approximation;
     }
@@ -90,7 +90,7 @@ public class WaveformImpl extends NewSignal<ScalarSample> implements Waveform {
      *  An approximation of the intersection of v(t) and the window
      *  [t0,t1]x[y0,y1] within integer grid "[0..tn]x[0..yn]".
      */
-    private class ApproximationImpl implements NewSignal.Approximation<ScalarSample> {
+    private class ApproximationImpl implements Signal.Approximation<ScalarSample> {
         private final float[] times;
         private final float[] values;
         private final int eventWithMinValue;

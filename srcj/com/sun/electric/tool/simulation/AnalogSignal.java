@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
 /**
  * Class to define an analog signal in the simulation waveform window.
  */
-public class AnalogSignal extends NewSignal<ScalarSample> implements MultiSweepSignal
+public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSignal
 {
 	/** the Analysis object in which this DigitalSignal resides. */		private final AnalogAnalysis an;
 	/** index of this signal in its AnalogAnalysis */					private final int index;
@@ -60,8 +60,8 @@ public class AnalogSignal extends NewSignal<ScalarSample> implements MultiSweepS
 		return an.getWaveform(this, sweep);
 	}
 
-    public NewSignal<ScalarSample> getSweep(int sweep) {
-        return (NewSignal<ScalarSample>)an.getWaveform(this, sweep);
+    public Signal<ScalarSample> getSweep(int sweep) {
+        return (Signal<ScalarSample>)an.getWaveform(this, sweep);
     }
 
 	/**
@@ -88,10 +88,10 @@ public class AnalogSignal extends NewSignal<ScalarSample> implements MultiSweepS
 		for (int sweep = 0, numSweeps = getNumSweeps(); sweep < numSweeps; sweep++)
 		{
 			Waveform waveform = getWaveform(sweep);
-            if (waveform instanceof BTreeNewSignal) {
+            if (waveform instanceof BTreeSignal) {
                 // Hack
-                BTreeNewSignal btns = (BTreeNewSignal)waveform;
-                NewSignal.Approximation<ScalarSample> approx = btns.getPreferredApproximation();
+                BTreeSignal btns = (BTreeSignal)waveform;
+                Signal.Approximation<ScalarSample> approx = btns.getPreferredApproximation();
                 if (approx.getTime(0) < lowTime)
                     lowTime = approx.getTime(0);
                 if (approx.getTime(approx.getNumEvents()-1) > highTime)
@@ -150,15 +150,15 @@ public class AnalogSignal extends NewSignal<ScalarSample> implements MultiSweepS
 		return bounds.getMaxY();
 	}
 
-    public NewSignal.Approximation<ScalarSample>
+    public Signal.Approximation<ScalarSample>
         getApproximation(double t0, double t1, int numEvents,
                          ScalarSample     v0, ScalarSample     v1, int valueResolution) {
         throw new RuntimeException("not implemented");
     }
-    public NewSignal.Approximation<ScalarSample> getPixelatedApproximation(double t0, double t1, int numRegions) {
+    public Signal.Approximation<ScalarSample> getPixelatedApproximation(double t0, double t1, int numRegions) {
         throw new RuntimeException("not implemented");
     }
-    public NewSignal.Approximation<ScalarSample> getPreferredApproximation() {
+    public Signal.Approximation<ScalarSample> getPreferredApproximation() {
         throw new RuntimeException("not implemented");
     }
 }

@@ -30,7 +30,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.BTreeNewSignal;
+import com.sun.electric.tool.simulation.BTreeSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -866,7 +866,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         }
 
         public Waveform getBWaveform() {
-            return new BTreeNewSignal(epicAnalysis, null, null, evmin, evmax, tree);
+            return new BTreeSignal(null, null, null, evmin, evmax, tree);
         }
 
         /**

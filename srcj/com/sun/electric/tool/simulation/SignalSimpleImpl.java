@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: NewSignal.java
+ * File: Signal.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -24,16 +24,16 @@
 package com.sun.electric.tool.simulation;
 
 /**
- *  A crude implementation of NewSignal which implements
+ *  A crude implementation of Signal which implements
  *  getApproximation() for the case where tn=vd=0 by binary search.
  */
-public abstract class NewSignalSimpleImpl extends NewSignal<ScalarSample> {
+public abstract class SignalSimpleImpl extends Signal<ScalarSample> {
 
-    public NewSignalSimpleImpl(Analysis analysis, String signalName, String signalContext) {
+    public SignalSimpleImpl(Analysis analysis, String signalName, String signalContext) {
         super(analysis, signalName, signalContext);
     }
 
-    private NewSignal.Approximation<ScalarSample> pa = null;
+    private Signal.Approximation<ScalarSample> pa = null;
     private double tmin;
     private double tmax;
     private int    emax;
@@ -77,13 +77,13 @@ public abstract class NewSignalSimpleImpl extends NewSignal<ScalarSample> {
     public static int steps = 0;
     public static int numLookups = 0;
 
-    public NewSignal.Approximation<ScalarSample>
+    public Signal.Approximation<ScalarSample>
         getPixelatedApproximation(double t0, double t1, int numRegions) {
         // FIXME: bad
         return getApproximation(t0, t1, numRegions, new ScalarSample(0), new ScalarSample(0), 0);
     }
 
-    public NewSignal.Approximation<ScalarSample> getApproximation(double t0, double t1, int numEvents,
+    public Signal.Approximation<ScalarSample> getApproximation(double t0, double t1, int numEvents,
                                                                   ScalarSample v0, ScalarSample v1, int vd) {
         if (vd!=0) throw new RuntimeException("not implemented");
 
@@ -101,7 +101,7 @@ public abstract class NewSignalSimpleImpl extends NewSignal<ScalarSample> {
         return getPreferredApproximation().getSample(e);
     }
 
-    private class ApproximationSimpleImpl implements NewSignal.Approximation<ScalarSample> {
+    private class ApproximationSimpleImpl implements Signal.Approximation<ScalarSample> {
         private final int    minEvent;
         private final int    maxEvent;
         private final int    numEvents;

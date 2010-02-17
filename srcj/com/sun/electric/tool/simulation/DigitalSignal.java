@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Class to define a digital signal in the simulation waveform window.
  */
-public class DigitalSignal extends NewSignal<ScalarSample>
+public class DigitalSignal extends Signal<ScalarSample>
 {
 	/** the DigitalAnalysis object in which this DigitalSignal resides. */		private DigitalAnalysis an;
 	/** a list of signals on this bussed signal */					private List<DigitalSignal> bussedSignals;
@@ -251,15 +251,15 @@ public class DigitalSignal extends NewSignal<ScalarSample>
 		return bounds.getMaxY();
 	}
 
-    public NewSignal.Approximation<ScalarSample>
+    public Signal.Approximation<ScalarSample>
         getApproximation(double t0, double t1, int numEvents,
                          ScalarSample     v0, ScalarSample     v1, int valueResolution) {
         throw new RuntimeException("not implemented");
     }
-    public NewSignal.Approximation<ScalarSample> getPixelatedApproximation(double t0, double t1, int numRegions) {
+    public Signal.Approximation<ScalarSample> getPixelatedApproximation(double t0, double t1, int numRegions) {
         throw new RuntimeException("not implemented");
     }
-    public NewSignal.Approximation<ScalarSample> getPreferredApproximation() {
+    public Signal.Approximation<ScalarSample> getPreferredApproximation() {
         throw new RuntimeException("not implemented");
     }
 }

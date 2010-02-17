@@ -29,14 +29,25 @@ import java.awt.geom.Rectangle2D;
  * Class to define the basic parts of a signal in the simulation waveform window.
  * This is a superclass for specific signal types: Measurement and TimedSignal
  * (which has under it DigitalSignal and AnalogSignal).
+ *
+ * A Signal holds a signal which has a SimulationSample value
+ * at any given point in time, and for which a piecewise linear
+ * approximation can be obtained for any given [t0,t1]x[v0,v1]
+ * window.
+ *
+ * Subsequent enhancements are likely to include the
+ * ability to invoke methods on the class while the streaming
+ * conversion is taking place; attempts to invoke methods which
+ * require data not yet read will simply block until that part of the
+ * stream is processed.
  */
-public abstract class Signal {
+public abstract class Signal<SS extends SimulationSample> {
 
     public Signal(Analysis analysis, String signalName, String signalContext) {
         this.analysis = analysis;
 		this.signalName = signalName;
 		this.signalContext = signalContext;
-		getAnalysis().nameSignal(this, getFullName());
+		if (analysis!=null) analysis.nameSignal(this, getFullName());
     }
 
 	/** the name of this signal */									private final String signalName;
@@ -55,9 +66,91 @@ public abstract class Signal {
 	/** Return the full name (context+signalName) */
 	public final String getFullName() { return signalContext==null ? signalName : signalContext + getAnalysis().getStimuli().getSeparatorChar() + signalName; }
 
-	public abstract double getMinTime();
-	public abstract double getMaxTime();
-	public abstract double getMinValue();
-	public abstract double getMaxValue();
+    /**
+     *  An Approximation is a collection of events indexed by natural
+     *  numbers.  An event is an ordered pair of a rational number for
+     *  the time and an SS for the value.  All times share a common
+     *  denominator.  Times are guaranteed to be monotonic.
+     *
+     *  The following is true except for rounding errors:
+     *
+     *    getTime(i)  = getTime(0)  + getTimeNumerator(i)/getTimeDenominator()
+     *
+     *  The time-distance between events is NOT guaranteed to be
+     *  uniform.  However, the instances of Approximation returned by
+     *  getApproximation(DDIDDI) <i>do</i> make this guarantee --
+     *  in particular, those instances promise that for all x,
+     *  getTimeNumerator(i)==i.  Instances returned by other methods
+     *  do not offer this guarantee.
+     */
+    public static interface Approximation<SS extends SimulationSample> {
+        /** the number of indices ("events") in this approximation */   int    getNumEvents();
+        /** the absolute time of the event in question */               double getTime(int event);
+        /** the absolute value of the event in question */              SS     getSample(int event);
+        /** the numerator of the time of the specified event */         int    getTimeNumerator(int event);
+        /** the common denominator of all times */                      int    getTimeDenominator();
+        /** returns the index of the event having the least value */    int    getEventWithMinValue();
+        /** returns the index of the event having the greatest value */ int    getEventWithMaxValue();
+    }
+
+    /**
+     * Returns an Approximation in which:
+     *
+     *              getNumEvents() = numEvents
+     *                  getTime(0) = t0
+     *   getTime(getNumEvents()-1) = t1
+     *         getTimeNumerator(i) = i
+     *
+     * Together, the last two guarantees ensure that the time
+     * components of events are uniformly spaced, with the first event
+     * at t0 and the last event at t1.
+     *
+     * Subject to these constraints, the Approximation returned will
+     * be the one which most accurately represents the data in the
+     * window [t0,t1]x[v0,v1] and which has values at resolution
+     * "valueResolution".  The precise meaning of valueResolution may
+     * depend on which subclass of SimulationSample is in use.
+     *
+     * If numEvents==0, the number of time points returned will
+     * be that which is "most natural" for the underlying data.
+     *
+     * If valueResolution==0, the value resolution will be that which
+     * is "most natural" for the underlying data.
+     */
+    public abstract
+        Signal.Approximation<SS>
+        getApproximation(double t0, double t1, int numEvents,
+                         SS     v0, SS     v1, int valueResolution);
+    
+    /**
+     * In general terms, the resulting approximation will divide the
+     * region [t0,t1] into numRegions-many equal-sized regions with AT
+     * MOST one event in each region.  Some regions may lack events.
+     * No additional sample points (which were not already present in
+     * the original data) will be created.
+     *
+     * The amount of time required is linear in numRegions, so callers
+     * must take care not to invoke this method with extremely large
+     * values (the idea is that it should be determined by the pixel
+     * resolution of the user's display, which is probably never
+     * greater than 10,000 or so).
+     */
+    public abstract
+        Signal.Approximation<SS>
+        getPixelatedApproximation(double t0, double t1, int numRegions);
+
+    /**
+     *  Returns an Approximation which is "most natural" for
+     *  the data; this should be the Approximation which
+     *  causes no loss in data fidelity.
+     */
+    public abstract
+        Signal.Approximation<SS>
+        getPreferredApproximation();
+
+	public double getMinTime()  { return getPreferredApproximation().getTime(0); }
+	public double getMaxTime()  { return getPreferredApproximation().getTime(getPreferredApproximation().getNumEvents()-1); }
+	public double getMinValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMinValue())).getValue(); }
+	public double getMaxValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMaxValue())).getValue(); }
 
 }

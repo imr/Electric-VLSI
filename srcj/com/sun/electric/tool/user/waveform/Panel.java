@@ -33,10 +33,10 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.BTreeNewSignal;
+import com.sun.electric.tool.simulation.BTreeSignal;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
-import com.sun.electric.tool.simulation.NewSignal;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
@@ -1463,8 +1463,8 @@ public class Panel extends JPanel
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
                     pw.println();
 					Waveform wave = as.getWaveform(s);
-                    NewSignal.Approximation pref = ((NewSignal)wave).getPreferredApproximation();
-                    NewSignal.Approximation waveform = pref /* FIXME */;
+                    Signal.Approximation pref = ((Signal)wave).getPreferredApproximation();
+                    Signal.Approximation waveform = pref /* FIXME */;
 					int numEvents = waveform.getNumEvents();
 					for(int i=0; i<numEvents; i++)
                         pw.println("\""+waveform.getTime(i) + "\""+
@@ -1507,8 +1507,8 @@ public class Panel extends JPanel
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
                     pw.println();
 					Waveform wave = as.getWaveform(s);
-                    NewSignal.Approximation pref = ((NewSignal)wave).getPreferredApproximation();
-                    NewSignal.Approximation waveform = pref /* FIXME */;
+                    Signal.Approximation pref = ((Signal)wave).getPreferredApproximation();
+                    Signal.Approximation waveform = pref /* FIXME */;
 					int numEvents = waveform.getNumEvents();
 					for(int i=0; i<numEvents; i++) {
                         if (waveform.getTime(i) < min || waveform.getTime(i) > max) continue;
@@ -1551,7 +1551,7 @@ public class Panel extends JPanel
                 isUsingBTrees = false;                
             } else {
                 Waveform wave = ((AnalogSignal)sig).getWaveform(0);
-                if (!(wave instanceof BTreeNewSignal))
+                if (!(wave instanceof BTreeSignal))
                     isUsingBTrees = false;
             }
         }
@@ -1603,11 +1603,11 @@ public class Panel extends JPanel
 					if (!included)
 						continue;
 					Waveform wave = as.getWaveform(s);
-                    NewSignal.Approximation pref = ((NewSignal)wave).getPreferredApproximation();
-                    NewSignal.Approximation waveform =
+                    Signal.Approximation pref = ((Signal)wave).getPreferredApproximation();
+                    Signal.Approximation waveform =
                         (Simulation.isUseLegacySimulationCode() || wave instanceof WaveformImpl)
                         ? pref
-                        : ((NewSignal)wave).getPixelatedApproximation(convertXScreenToData(0),
+                        : ((Signal)wave).getPixelatedApproximation(convertXScreenToData(0),
                                                                       convertXScreenToData(sz.width),
                                                                       sz.width);
                     Waveform xWaveform = null;
@@ -1662,13 +1662,13 @@ public class Panel extends JPanel
 						lastX = x;   lastLY = lowY; lastHY = highY;
 					}
                     /*
-                    System.out.println("misses="+com.sun.electric.tool.simulation.NewSignalSimpleImpl.misses + ", "+
+                    System.out.println("misses="+com.sun.electric.tool.simulation.SignalSimpleImpl.misses + ", "+
                                        "avg steps="+
-                                       (((float)com.sun.electric.tool.simulation.NewSignalSimpleImpl.steps)/
-                                        com.sun.electric.tool.simulation.NewSignalSimpleImpl.numLookups));
-                    com.sun.electric.tool.simulation.NewSignalSimpleImpl.misses=0;
-                    com.sun.electric.tool.simulation.NewSignalSimpleImpl.steps=0;
-                    com.sun.electric.tool.simulation.NewSignalSimpleImpl.numLookups=0;
+                                       (((float)com.sun.electric.tool.simulation.SignalSimpleImpl.steps)/
+                                        com.sun.electric.tool.simulation.SignalSimpleImpl.numLookups));
+                    com.sun.electric.tool.simulation.SignalSimpleImpl.misses=0;
+                    com.sun.electric.tool.simulation.SignalSimpleImpl.steps=0;
+                    com.sun.electric.tool.simulation.SignalSimpleImpl.numLookups=0;
                     */
 				}
 				continue;

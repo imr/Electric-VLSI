@@ -754,8 +754,8 @@ public class EpicAnalysis extends AnalogAnalysis {
 
         public void calcBounds() {
             Waveform wave = getWaveform(0);
-            if (!(wave instanceof BTreeNewSignal)) { super.calcBounds(); return; }
-            BTreeNewSignal btns = (BTreeNewSignal)wave;
+            if (!(wave instanceof BTreeSignal)) { super.calcBounds(); return; }
+            BTreeSignal btns = (BTreeSignal)wave;
             this.bounds = new Rectangle2D.Double(btns.getPreferredApproximation().getTime(0),
                                                  (btns.getPreferredApproximation().getSample(btns.eventWithMinValue)).getValue(),
                                                  btns.getPreferredApproximation().getTime(btns.getNumEvents()-1),
