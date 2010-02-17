@@ -66,16 +66,9 @@ import java.util.Set;
 
 /**
  * This class writes files in SVG format.
- *
- * Things to finish:
- *    grid
- *    text underlining
- *    boxed text
  */
 public class SVG extends Output
 {
-	/** scale factor for SVG text */				private static final double SVGTEXTSCALE    =  0.75;
-
 	/** the Cell being written. */										private Cell cell;
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
 	/** matrix from database units to SVG units. */						private AffineTransform matrix;
@@ -156,7 +149,7 @@ public class SVG extends Output
 	 */
 	private boolean writeCellToFile(String filePath)
 	{
-		if (localPrefs.printBounds == null) return true;
+		if (localPrefs.printBounds == null) localPrefs.printBounds = cell.getBounds();
 		boolean error = false;
 		if (openTextOutputStream(filePath)) error = true; else
 		{
@@ -182,11 +175,10 @@ public class SVG extends Output
 	 */
 	private boolean start()
 	{
-		// get control options
+		// get page size options
 		double pageWid = localPrefs.pageWidth * 75;
 		double pageHei = localPrefs.pageHeight * 75;
-		double pageMarginSVG = localPrefs.printMargin * 75;
-		double pageMargin = pageMarginSVG;		// not right!!!
+		double pageMargin = localPrefs.printMargin * 75;
 
 		boolean rotatePlot = false;
 		switch (localPrefs.printRotation)
@@ -230,17 +222,23 @@ public class SVG extends Output
 			i = Math.min(unitsX / localPrefs.printBounds.getWidth(), unitsY / localPrefs.printBounds.getHeight());
 			j = Math.min(unitsX / localPrefs.printBounds.getHeight(), unitsY / localPrefs.printBounds.getWidth());
 		}
-		if (rotatePlot) i = j;
 		double matrix00 = i;   double matrix01 = 0;
 		double matrix10 = 0;   double matrix11 = -i;
-		double matrix20 = - i * cX + unitsX / 2 + pageMarginSVG;
+		if (rotatePlot)
+		{
+			i = j;
+			matrix00 = 0;   matrix01 = i;
+			matrix10 = j;  matrix11 = 0;
+			double swap = cX;   cX = cY;   cY = swap;
+		}
+		double matrix20 = - i * cX + unitsX / 2 + pageMargin;
 		double matrix21;
 		if (localPrefs.printForPlotter)
 		{
-			matrix21 = i * localPrefs.printBounds.getMinY() - pageMarginSVG;
+			matrix21 = i * (rotatePlot ? localPrefs.printBounds.getMaxX() : localPrefs.printBounds.getMaxY()) + pageMargin;
 		} else
 		{
-			matrix21 = i * cY + unitsY / 2 - pageMarginSVG;
+			matrix21 = i * cY + unitsY / 2 + pageMargin;
 		}
 		matrix = new AffineTransform(matrix00, matrix01, matrix10, matrix11, matrix20, matrix21);
 
@@ -269,46 +267,6 @@ public class SVG extends Output
 	 */
 	private void done()
 	{
-		// draw the grid if requested
-//		printWriter.println("0 0 0 setrgbcolor");
-//		if (localPrefs.wnd != null && localPrefs.isGrid)
-//		{
-//			int gridx = (int)localPrefs.gridXSpacing;
-//			int gridy = (int)localPrefs.gridYSpacing;
-//			int lx = (int)cell.getBounds().getMinX();
-//			int ly = (int)cell.getBounds().getMinY();
-//			int hx = (int)cell.getBounds().getMaxX();
-//			int hy = (int)cell.getBounds().getMaxY();
-//			int gridlx = lx / gridx * gridx;
-//			int gridly = ly / gridy * gridy;
-//
-//			// adjust to ensure that the first point is inside the range
-//			if (gridlx > lx) gridlx -= (gridlx - lx) / gridx * gridx;
-//			if (gridly > ly) gridly -= (gridly - ly) / gridy * gridy;
-//			while (gridlx < lx) gridlx += gridx;
-//			while (gridly < ly) gridly += gridy;
-//
-//			// SVG: write the grid loop
-//			double matrix00 = matrix.getScaleX();
-//			double matrix01 = matrix.getShearX();
-//			double matrix10 = matrix.getShearY();
-//			double matrix11 = matrix.getScaleY();
-//			double matrix20 = matrix.getTranslateX();
-//			double matrix21 = matrix.getTranslateY();
-//			printWriter.println(gridlx + " " + gridx + " " + hx);
-//			printWriter.println("{");
-//			printWriter.println("    " + gridly + " " + gridy + " " + hy);	// x y
-//			printWriter.println("    {");
-//			printWriter.println("        dup 3 -1 roll dup dup");				// y y x x x
-//			printWriter.println("        5 1 roll 3 1 roll");					// x y x y x
-//			printWriter.println("        " + matrix00 + " mul exch " + matrix10 + " mul add " + matrix20 + " add");		// x y x x'
-//			printWriter.println("        3 1 roll");							// x x' y x
-//			printWriter.println("        " + matrix01 + " mul exch " + matrix11 + " mul add " + matrix21 + " add");		// x x' y'
-//			printWriter.println("        newpath moveto 0 0 rlineto stroke");
-//			printWriter.println("    } for");
-//			printWriter.println("} for");
-//		}
-
 		// draw frame if it is there
 		SVGFrame pf = new SVGFrame(cell, this);
 		pf.renderFrame();
@@ -975,10 +933,13 @@ public class SVG extends Output
 	{
 		Point2D pLow = svgXform(new Point2D.Double(polyBox.getMinX(), polyBox.getMaxY()));
 		Point2D pHigh = svgXform(new Point2D.Double(polyBox.getMaxX(), polyBox.getMinY()));
+		double lX = Math.min(pLow.getX(), pHigh.getX());
+		double hX = Math.max(pLow.getX(), pHigh.getX());
+		double lY = Math.min(pLow.getY(), pHigh.getY());
+		double hY = Math.max(pLow.getY(), pHigh.getY());
 		String style = getStyleDescription(col, opaque, patternName);
-		printWriter.println("<rect x=\"" + pLow.getX() + "\" y=\"" + pLow.getY() +
-			"\" width=\"" + (pHigh.getX()-pLow.getX()) + "\" height=\"" + (pHigh.getY()-pLow.getY()) +
-			"\" " + style + "/>");
+		printWriter.println("<rect x=\"" + lX + "\" y=\"" + lY +
+			"\" width=\"" + (hX-lX) + "\" height=\"" + (hY-lY) + "\" " + style + "/>");
 	}
 
 	/**
@@ -1024,7 +985,7 @@ public class SVG extends Output
 		Poly.Type style = poly.getStyle();
 		TextDescriptor td = poly.getTextDescriptor();
 		if (td == null) return;
-		int size = (int)(td.getTrueSize(localPrefs.wnd) * SVGTEXTSCALE);
+		int size = (int)td.getTrueSize(localPrefs.wnd);
 		Rectangle2D bounds = poly.getBounds2D();
 
 		// get the font size
@@ -1092,6 +1053,7 @@ public class SVG extends Output
 
 		printWriter.print("<text x=\"" + x + "\" y=\"" + y +
 			"\" fill=\"" + getColorDescription(col) + "\" font-size=\"" + size + "\"");
+		if (td.isUnderline()) printWriter.print(" text-decoration=\"underline\"");
 		String faceName = null;
 		int faceNumber = td.getFace();
 		if (faceNumber != 0)

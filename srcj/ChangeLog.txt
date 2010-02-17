@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+BUG: (2/17/10, SMR) SVG output not right (Bug #2664).
+FIX: Now handles underline, centers on page, and has a test.
+
 IMP: (2/16/10, AM) Merge NewSignal.java and Signal.java
 
 IMP: (2/16/10, AM) Remove ArchSimOut.java
