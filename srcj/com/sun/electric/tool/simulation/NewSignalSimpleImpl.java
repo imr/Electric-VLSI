@@ -29,6 +29,10 @@ package com.sun.electric.tool.simulation;
  */
 public abstract class NewSignalSimpleImpl extends NewSignal<ScalarSample> {
 
+    public NewSignalSimpleImpl(Analysis analysis, String signalName, String signalContext) {
+        super(analysis, signalName, signalContext);
+    }
+
     private NewSignal.Approximation<ScalarSample> pa = null;
     private double tmin;
     private double tmax;

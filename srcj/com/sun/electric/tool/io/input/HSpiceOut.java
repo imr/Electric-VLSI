@@ -136,7 +136,7 @@ public class HSpiceOut extends Simulate
                             if (values[i] > valmax) { evmax = i; valmax = values[i]; }
                             if (values[i] < valmin) { evmin = i; valmin = values[i]; }
                         }
-                        waveform = new BTreeNewSignal(evmin, evmax, tree);
+                        waveform = new BTreeNewSignal(signal.getAnalysis(), signal.getSignalName(), signal.getSignalContext(), evmin, evmax, tree);
                     } else {
                         waveform = new WaveformImpl(times, values);
                     }

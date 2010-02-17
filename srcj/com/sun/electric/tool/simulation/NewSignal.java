@@ -39,7 +39,11 @@ package com.sun.electric.tool.simulation;
  *  require data not yet read will simply block until that part of the
  *  stream is processed.
  */
-public abstract class NewSignal<SS extends SimulationSample> {
+public abstract class NewSignal<SS extends SimulationSample> extends Signal {
+
+    public NewSignal(Analysis analysis, String signalName, String signalContext) {
+        super(analysis, signalName, signalContext);
+    }
 
     /**
      *  An Approximation is a collection of events indexed by natural
@@ -122,6 +126,9 @@ public abstract class NewSignal<SS extends SimulationSample> {
     public abstract
         NewSignal.Approximation<SS>
         getPreferredApproximation();
+
+	public double getMinTime()  { return getPreferredApproximation().getTime(0); }
+	public double getMaxTime()  { return getPreferredApproximation().getTime(getPreferredApproximation().getNumEvents()-1); }
+	public double getMinValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMinValue())).getValue(); }
+	public double getMaxValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMaxValue())).getValue(); }
 }
-
-

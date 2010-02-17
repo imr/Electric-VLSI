@@ -38,6 +38,7 @@ public class WaveformImpl extends NewSignal<ScalarSample> implements Waveform {
      * @throws IllegalArgumentException if time and value arrays have different size
      */
     public WaveformImpl(double[] time, double[] value) {
+        super(null, null, null);
         if (time.length != value.length)
             throw new IllegalArgumentException();
         this.time = time;

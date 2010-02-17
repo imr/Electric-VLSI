@@ -145,7 +145,7 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
                 if (values[i] > valmax) { evmax = i; valmax = values[i]; }
                 if (values[i] < valmin) { evmin = i; valmin = values[i]; }
             }
-            Waveform[] waveforms = { new BTreeNewSignal(evmin, evmax, tree) };
+            Waveform[] waveforms = { new BTreeNewSignal(this, signalName, signalContext, evmin, evmax, tree) };
             waveformCache.put(as, waveforms);
 //            System.err.println("put a btree");
         } else {

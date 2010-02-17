@@ -34,11 +34,13 @@ public class BTreeNewSignal extends NewSignalSimpleImpl implements Waveform {
     public final int eventWithMaxValue;
     private NewSignal.Approximation<ScalarSample> preferredApproximation = null;
     private final BTree<Double,Double,Serializable> tree;
-    
-    public BTreeNewSignal(int eventWithMinValue,
+
+    public BTreeNewSignal(Analysis analysis, String signalName, String signalContext,
+                          int eventWithMinValue,
                           int eventWithMaxValue,
                           BTree<Double,Double,Serializable> tree
                           ) {
+        super(analysis, signalName, signalContext);
         this.numEvents = tree.size();
         this.eventWithMinValue = eventWithMinValue;
         this.eventWithMaxValue = eventWithMaxValue;

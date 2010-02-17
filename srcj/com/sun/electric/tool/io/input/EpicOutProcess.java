@@ -866,7 +866,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         }
 
         public Waveform getBWaveform() {
-            return new BTreeNewSignal(evmin, evmax, tree);
+            return new BTreeNewSignal(epicAnalysis, null, null, evmin, evmax, tree);
         }
 
         /**
