@@ -305,25 +305,25 @@ public class Stimuli
 	 * the data may not be monotonically increasing (may run backwards, for example).
 	 * @return the leftmost X coordinate of this Stimuli.
 	 */
-	public double getLeftEdge()
+	public double getMinTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
 		for(Analysis an : analysisList)
 		{
 			if (leftEdge == rightEdge)
 			{
-				leftEdge = an.getLeftEdge();
-				rightEdge = an.getRightEdge();
+				leftEdge = an.getMinTime();
+				rightEdge = an.getMaxTime();
 			} else
 			{
 				if (leftEdge < rightEdge)
 				{
-					leftEdge = Math.min(leftEdge, an.getLeftEdge());
-					rightEdge = Math.max(rightEdge, an.getRightEdge());
+					leftEdge = Math.min(leftEdge, an.getMinTime());
+					rightEdge = Math.max(rightEdge, an.getMaxTime());
 				} else
 				{
-					leftEdge = Math.max(leftEdge, an.getLeftEdge());
-					rightEdge = Math.min(rightEdge, an.getRightEdge());
+					leftEdge = Math.max(leftEdge, an.getMinTime());
+					rightEdge = Math.min(rightEdge, an.getMaxTime());
 				}
 			}
 		}
@@ -336,25 +336,25 @@ public class Stimuli
 	 * the data may not be monotonically increasing (may run backwards, for example).
 	 * @return the rightmost X coordinate of this Stimuli.
 	 */
-	public double getRightEdge()
+	public double getMaxTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
 		for(Analysis an : analysisList)
 		{
 			if (leftEdge == rightEdge)
 			{
-				leftEdge = an.getLeftEdge();
-				rightEdge = an.getRightEdge();
+				leftEdge = an.getMinTime();
+				rightEdge = an.getMaxTime();
 			} else
 			{
 				if (leftEdge < rightEdge)
 				{
-					leftEdge = Math.min(leftEdge, an.getLeftEdge());
-					rightEdge = Math.max(rightEdge, an.getRightEdge());
+					leftEdge = Math.min(leftEdge, an.getMinTime());
+					rightEdge = Math.max(rightEdge, an.getMaxTime());
 				} else
 				{
-					leftEdge = Math.max(leftEdge, an.getLeftEdge());
-					rightEdge = Math.min(rightEdge, an.getRightEdge());
+					leftEdge = Math.max(leftEdge, an.getMinTime());
+					rightEdge = Math.min(rightEdge, an.getMaxTime());
 				}
 			}
 		}

@@ -211,6 +211,7 @@ public class DigitalSignal extends Signal
 	{
 		boolean first = true;
 		double lowTime = 0, highTime = 0;
+        double leftEdge = 0, rightEdge = 0;
 		if (state != null)
 		{
 			for(int i=0; i<state.length; i++)

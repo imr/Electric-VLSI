@@ -83,6 +83,7 @@ public class AnalogSignal extends Signal implements MultiSweepSignal
 		// determine extent of the data
 		double lowTime=0, highTime=0, lowValue=0, highValue=0;
 		boolean first = true;
+        double leftEdge=0, rightEdge=0;
 		double[] result = new double[3];
 		for (int sweep = 0, numSweeps = getNumSweeps(); sweep < numSweeps; sweep++)
 		{

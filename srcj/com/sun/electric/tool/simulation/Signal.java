@@ -43,9 +43,6 @@ public abstract class Signal {
 	/** the context of this signal (qualifications to name) */		private final String signalContext;
     /** the Analysis to which this signal belongs */                private final Analysis analysis;
 
-	/** the range of values in the X and Y axes */					protected Rectangle2D bounds;
-	/** the left and right X values */								protected double leftEdge, rightEdge;
-
 	/**
 	 * Method to return the Analysis in which this signal resides.
 	 * @return the Analysis in which this signal resides.
@@ -78,38 +75,23 @@ public abstract class Signal {
 		return signalName;
 	}
 
-	/**
-	 * Method to compute the time and value bounds of this simulation signal.
-	 * @return a Rectangle2D that has time bounds in the X part and
-	 * value bounds in the Y part.
-	 * For digital signals, the Y part is simply 0 to 1.
-	 */
-	public Rectangle2D getBounds() {
-		if (bounds == null) calcBounds();
-		return bounds;
-	}
 
-	/**
-	 * Method to return the leftmost X coordinate of this simulation signal.
-	 * This value may not be the same as the minimum-x of the bounds, because
-	 * the data may not be monotonically increasing (may run backwards, for example).
-	 * @return the leftmost X coordinate of this simulation signal.
-	 */
-	public double getLeftEdge() {
+    protected Rectangle2D bounds;
+	public double getMinTime() {
 		if (bounds == null) calcBounds();
-		return leftEdge;
+		return bounds.getMinX();
 	}
-
-	/**
-	 * Method to return the rightmost X coordinate of this simulation signal.
-	 * This value may not be the same as the maximum-x of the bounds, because
-	 * the data may not be monotonically increasing (may run backwards, for example).
-	 * @return the rightmost X coordinate of this simulation signal.
-	 */
-	public double getRightEdge() {
+	public double getMaxTime() {
 		if (bounds == null) calcBounds();
-		return rightEdge;
+		return bounds.getMaxX();
 	}
-
+	public double getMinValue() {
+		if (bounds == null) calcBounds();
+		return bounds.getMinY();
+	}
+	public double getMaxValue() {
+		if (bounds == null) calcBounds();
+		return bounds.getMaxY();
+	}
 	protected void calcBounds() {}
 }

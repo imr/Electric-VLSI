@@ -214,24 +214,30 @@ public abstract class Analysis<S extends Signal>
 			bounds = null;
 			for(Signal sig : signals)
 			{
-				Rectangle2D sigBounds = sig.getBounds();
 				if (bounds == null)
 				{
-					bounds = new Rectangle2D.Double(sigBounds.getMinX(), sigBounds.getMinY(), sigBounds.getWidth(), sigBounds.getHeight());
-					leftEdge = sig.getLeftEdge();
-					rightEdge = sig.getRightEdge();
+					bounds = new Rectangle2D.Double(sig.getMinTime(),
+                                                    sig.getMinValue(),
+                                                    sig.getMaxTime()-sig.getMinTime(),
+                                                    sig.getMaxValue()-sig.getMinValue());
+					leftEdge = sig.getMinTime();
+					rightEdge = sig.getMaxTime();
 				} else
 				{
+                    Rectangle2D sigBounds = new Rectangle2D.Double(sig.getMinTime(),
+                                                                   sig.getMinValue(),
+                                                                   sig.getMaxTime()-sig.getMinTime(),
+                                                                   sig.getMaxValue()-sig.getMinValue());
 					Rectangle2D.union(bounds, sigBounds, bounds);
 					if (leftEdge < rightEdge)
 					{
-						leftEdge = Math.min(leftEdge, sig.getLeftEdge());
-						rightEdge = Math.max(rightEdge, sig.getRightEdge());
+						leftEdge = Math.min(leftEdge, sig.getMinTime());
+						rightEdge = Math.max(rightEdge, sig.getMaxTime());
 					} else
 					{
 						// backwards time values
-						leftEdge = Math.max(leftEdge, sig.getLeftEdge());
-						rightEdge = Math.min(rightEdge, sig.getRightEdge());
+						leftEdge = Math.max(leftEdge, sig.getMinTime());
+						rightEdge = Math.min(rightEdge, sig.getMaxTime());
 					}
 				}
 			}
@@ -245,7 +251,7 @@ public abstract class Analysis<S extends Signal>
 	 * the data may not be monotonically increasing (may run backwards, for example).
 	 * @return the leftmost X coordinate of this Analysis.
 	 */
-	public double getLeftEdge()
+	public double getMinTime()
 	{
 		getBounds();
 		return leftEdge;
@@ -257,7 +263,7 @@ public abstract class Analysis<S extends Signal>
 	 * the data may not be monotonically increasing (may run backwards, for example).
 	 * @return the rightmost X coordinate of this Analysis.
 	 */
-	public double getRightEdge()
+	public double getMaxTime()
 	{
 		getBounds();
 		return rightEdge;

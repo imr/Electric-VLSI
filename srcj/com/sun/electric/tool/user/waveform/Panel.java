@@ -653,7 +653,7 @@ public class Panel extends JPanel
 			if (!waveWindow.isXAxisLocked() || waveWindow.getNumPanels() == 1)
 			{
 				// set the X range
-				setXAxisRange(an.getLeftEdge(), an.getRightEdge());
+				setXAxisRange(an.getMinTime(), an.getMaxTime());
 			}
 		}
 
@@ -847,9 +847,8 @@ public class Panel extends JPanel
 		if (sSig instanceof AnalogSignal)
 		{
 			AnalogSignal as = (AnalogSignal)sSig;
-			Rectangle2D rangeBounds = as.getBounds();
-			double lowValue = rangeBounds.getMinY();
-			double highValue = rangeBounds.getMaxY();
+			double lowValue = as.getMinValue();
+			double highValue = as.getMaxValue();
 			double range = highValue - lowValue;
 			if (range == 0) range = 2;
 			double rangeExtra = range / 10;

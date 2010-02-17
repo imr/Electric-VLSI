@@ -371,8 +371,8 @@ public class HorizRuler extends JPanel implements MouseListener, MouseMotionList
 	 */
 	private void restoreTime()
 	{
-		double leftEdge = waveWindow.getSimData().getLeftEdge();
-		double rightEdge = waveWindow.getSimData().getRightEdge();
+		double leftEdge = waveWindow.getSimData().getMinTime();
+		double rightEdge = waveWindow.getSimData().getMaxTime();
 
 		boolean notWarned = true;
 		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
