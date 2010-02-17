@@ -105,6 +105,18 @@ public abstract class Simulate extends Input
                 if (extension.startsWith("tr") || extension.startsWith("sw") || extension.startsWith("ic") ||
                     extension.startsWith("ac") || extension.startsWith("mt") || extension.startsWith("pa"))
                     { type = FileType.HSPICEOUT; break; }
+
+                // if the file ends in ".spi" then it is actually not known yet...use the preference
+                if (extension.equals("spi"))
+                {
+                	type = FileType.SPICEOUT;
+            		Simulation.SpiceEngine engine = Simulation.getSpiceEngine();
+            		if (engine == Simulation.SpiceEngine.SPICE_ENGINE_H) type = FileType.HSPICEOUT; else
+            		if (engine == Simulation.SpiceEngine.SPICE_ENGINE_P) type = FileType.PSPICEOUT; else
+            		if (engine == Simulation.SpiceEngine.SPICE_ENGINE_S) type = FileType.RAWSSPICEOUT;
+            		break;
+                }
+
                 // future feature: try to guess the file type from the first few lines
                 throw new RuntimeException("unable to detect type for extension \""+extension+"\"");
             } while (false);
@@ -147,15 +159,17 @@ public abstract class Simulate extends Input
 		{
 			if (fileURL == null)
 			{
-//                String [] extensions = type.getFirstExtension();
                 String fileName = cell.getName() + "." + type.getFirstExtension();
+
                 // look for file in library path
                 String filePath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
                 File file = new File(filePath, fileName);
-                if (!file.exists()) {
+                if (!file.exists())
+                {
                     // look for file in spice working directory
                     String dir = type.getGroupPath();
-                    file = new File(dir, fileName);
+                    File altFile = new File(dir, fileName);
+                    if (altFile.exists()) file = altFile;
                 }
                 fileURL = TextUtils.makeURLToFile(file.getPath());
 			}
