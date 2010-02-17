@@ -742,8 +742,8 @@ public class EpicAnalysis extends AnalogAnalysis {
     static class EpicSignal extends AnalogSignal {
         int sigNum;
         
-        EpicSignal(EpicAnalysis an, byte type, int index, int sigNum) {
-            super(an);
+        EpicSignal(EpicAnalysis an, String signalName, String signalContext, byte type, int index, int sigNum) {
+            super(an, signalName, signalContext);
             assert getIndexInAnalysis() == index;
             if (type == VOLTAGE_TYPE)
                 an.voltageSignals.set(index);

@@ -31,34 +31,26 @@ import java.awt.geom.Rectangle2D;
  * (which has under it DigitalSignal and AnalogSignal).
  */
 public abstract class Signal {
-	/** the name of this signal */									private String signalName;
-	/** the context of this signal (qualifications to name) */		private String signalContext;
+
+    public Signal(Analysis analysis, String signalName, String signalContext) {
+        this.analysis = analysis;
+		this.signalName = signalName;
+		this.signalContext = signalContext;
+		getAnalysis().nameSignal(this, getFullName());
+    }
+
+	/** the name of this signal */									private final String signalName;
+	/** the context of this signal (qualifications to name) */		private final String signalContext;
+    /** the Analysis to which this signal belongs */                private final Analysis analysis;
+
 	/** the range of values in the X and Y axes */					protected Rectangle2D bounds;
 	/** the left and right X values */								protected double leftEdge, rightEdge;
-
-	public void finished()
-	{
-	}
 
 	/**
 	 * Method to return the Analysis in which this signal resides.
 	 * @return the Analysis in which this signal resides.
 	 */
-	public abstract Analysis getAnalysis();
-
-	/**
-	 * Method to set the name and context of this simulation signal.
-	 * The name does not include any hierarchical path information: it is just a simple name.
-	 * The context is the hierarchical path to the signal, and it usually contains
-	 * instance names of cells farther up the hierarchy, all separated by dots.
-	 * @param signalName the name of this simulation signal.
-	 * @param signalContext the context of this simulation signal.
-	 */
-	public final void setSignalName(String signalName, String signalContext) {
-		this.signalName = signalName;
-		this.signalContext = signalContext;
-		getAnalysis().nameSignal(this, getFullName());
-	}
+	public final Analysis getAnalysis() { return analysis; }
 
 	/**
 	 * Method to return the name of this simulation signal.
@@ -66,14 +58,6 @@ public abstract class Signal {
 	 * @return the name of this simulation signal.
 	 */
 	public final String getSignalName() { return signalName; }
-
-	/**
-	 * Method to return the context of this simulation signal.
-	 * The context is the hierarchical path to the signal, and it usually contains
-	 * instance names of cells farther up the hierarchy, all separated by dots.
-	 * @param signalContext the context of this simulation signal.
-	 */
-	public final void setSignalContext(String signalContext) { this.signalContext = signalContext; }
 
 	/**
 	 * Method to return the context of this simulation signal.

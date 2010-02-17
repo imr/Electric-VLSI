@@ -983,9 +983,8 @@ public class ALS extends Engine
 		for(ALSExport e : cr.exList)
 		{
 			if (e.nodePtr.sig != null) continue;
-			DigitalSignal sig = new DigitalSignal(an);
+			DigitalSignal sig = new DigitalSignal(an, (String)e.nodeName, context);
 			e.nodePtr.sig = sig;
-			sig.setSignalName((String)e.nodeName, context);
 			sig.buildTime(2);
 			sig.buildState(2);
 			sig.setTime(0, 0);

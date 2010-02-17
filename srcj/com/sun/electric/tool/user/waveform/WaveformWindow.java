@@ -3590,7 +3590,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (sig instanceof AnalogSignal)
 					{
 						AnalogSignal as = (AnalogSignal)sig;
-						AnalogAnalysis an = as.getAnalysis();
+						AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
 						int numSweeps = as.getNumSweeps();
 						if (numSweeps <= 1)
 						{

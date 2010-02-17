@@ -37,19 +37,13 @@ public class AnalogSignal extends Signal implements MultiSweepSignal
 	 * Constructor for an analog signal.
 	 * @param an the AnalogAnalysis object in which this signal will reside.
 	 */
-	protected AnalogSignal(AnalogAnalysis an)
+	protected AnalogSignal(AnalogAnalysis an, String signalName, String signalContext)
 	{
+        super(an, signalName, signalContext);
 		this.an = an;
 		index = an.getSignals().size();
 		an.addSignal(this);
 	}
-
-	/**
-	 * Method to return the AnalogAnalysis in which this signal resides.
-	 * @return the AnalogAnalysis in which this signal resides.
-	 */
-	@Override
-	public AnalogAnalysis getAnalysis() { return an; }
 
 	/**
 	 * Method to return the index of this AnalogSignal in its AnalogAnalysis.

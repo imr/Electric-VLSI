@@ -98,8 +98,6 @@ public abstract class Analysis<S extends Signal>
 	 */
 	public void finished()
 	{
-		for (S s : signals)
-			s.finished();
 		signals.clear();
 		signalNames.clear();
 	}

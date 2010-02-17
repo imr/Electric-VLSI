@@ -42,32 +42,11 @@ public class DigitalSignal extends Signal
 	 * Constructor for a digital signal.
 	 * @param an the DigitalAnalysis object in which this signal will reside.
 	 */
-	public DigitalSignal(DigitalAnalysis an) {
+	public DigitalSignal(DigitalAnalysis an, String signalName, String signalContext) {
+        super(an, signalName, signalContext);
 		this.an = an;
 		an.addSignal(this);
 	}
-
-	@Override
-	public void finished()
-	{
-		super.finished();
-		if (bussedSignals != null)
-		{
-			for (Signal s : bussedSignals)
-				s.finished();
-			bussedSignals.clear();
-		}
-		busCount = 0;
-		time = null;
-		state = null;
-	}
-
-	/**
-	 * Method to return the DigitalAnalysis in which this signal resides.
-	 * @return the DigitalAnalysis in which this signal resides.
-	 */
-	@Override
-	public DigitalAnalysis getAnalysis() { return an; }
 
 	/**
 	 * Method to request that this signal be a bus.

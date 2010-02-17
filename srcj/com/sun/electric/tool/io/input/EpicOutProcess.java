@@ -170,8 +170,7 @@ public class EpicOutProcess extends Simulate implements Runnable
                     contextBuilder.strings.add(name);
                     byte type = b == 'V' ? EpicAnalysis.VOLTAGE_TYPE: EpicAnalysis.CURRENT_TYPE;
                     contextBuilder.contexts.add(EpicAnalysis.getContext(type));
-                    EpicAnalysis.EpicSignal s = new EpicAnalysis.EpicSignal(an, type, numSignals++, sigNum);
-                    s.setSignalName(name, null);
+                    EpicAnalysis.EpicSignal s = new EpicAnalysis.EpicSignal(an, name, null, type, numSignals++, sigNum);
                     break;
                 case 'D':
                     String down = readString();

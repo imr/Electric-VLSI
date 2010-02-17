@@ -875,8 +875,7 @@ public class Simulation extends Tool
 			if (numSignals <= 1) continue;
 
 			// found a bus of signals: create the bus for it
-			DigitalSignal busSig = new DigitalSignal(an);
-			busSig.setSignalName(prefix, sSig.getSignalContext());
+			DigitalSignal busSig = new DigitalSignal(an, prefix, sSig.getSignalContext());
 			busSig.buildBussedSignalList();
 			for(int k=i; k<j; k++)
 			{

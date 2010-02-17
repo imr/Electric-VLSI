@@ -271,16 +271,12 @@ public class Analyzer extends Engine
 			if (n.nName.equalsIgnoreCase("vdd") || n.nName.equalsIgnoreCase("gnd")) continue;
 
 			// make a signal for it
-			DigitalSignal sig = new DigitalSignal(analysis);
-			n.sig = sig;
 			int slashPos = n.nName.lastIndexOf('/');
-			if (slashPos >= 0)
-			{
-				sig.setSignalName(n.nName.substring(slashPos+1), n.nName.substring(0, slashPos));
-			} else
-			{
-				sig.setSignalName(n.nName, null);
-			}
+			DigitalSignal sig =
+                slashPos >= 0
+                ? new DigitalSignal(analysis, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
+                : new DigitalSignal(analysis, n.nName, null);
+			n.sig = sig;
 			nodeMap.put(sig, n);
 
 			sig.buildTime(2);
@@ -712,8 +708,7 @@ public class Analyzer extends Engine
 					}
 					if (busSig == null)
 					{
-						busSig = new DigitalSignal(analysis);
-						busSig.setSignalName(targ[1], null);
+						busSig = new DigitalSignal(analysis, targ[1], null);
 						busSig.buildBussedSignalList();
 					}
 					List<DigitalSignal> sigs = new ArrayList<DigitalSignal>();

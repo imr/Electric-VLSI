@@ -47,8 +47,6 @@ public class DigitalAnalysis extends Analysis<DigitalSignal> {
     @Override
     public void finished() {
         super.finished();
-        for (DigitalSignal s : allBussedSignals)
-            s.finished();
     }
     
     @Override

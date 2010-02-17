@@ -1597,7 +1597,7 @@ public class Panel extends JPanel
 			{
 				// draw analog trace
 				AnalogSignal as = (AnalogSignal)ws.getSignal();
-				AnalogAnalysis an = as.getAnalysis();
+				AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++)
 				{
 					boolean included = waveWindow.isSweepSignalIncluded(an, s);
@@ -1678,7 +1678,7 @@ public class Panel extends JPanel
 			{
 				// draw digital traces
 				DigitalSignal ds = (DigitalSignal)ws.getSignal();
-				DigitalAnalysis an = ds.getAnalysis();
+				DigitalAnalysis an = (DigitalAnalysis)ds.getAnalysis();
 				List<DigitalSignal> bussedSignals = ds.getBussedSignals();
 				if (bussedSignals != null)
 				{
@@ -2285,7 +2285,7 @@ public class Panel extends JPanel
 			// draw analog trace
 			AnalogSignal as = (AnalogSignal)ws.getSignal();
             double[] result = new double[3];
-            AnalogAnalysis an = as.getAnalysis();
+            AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
 
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
@@ -2318,7 +2318,7 @@ public class Panel extends JPanel
 			AnalogSignal as = (AnalogSignal)ws.getSignal();
             double[] result = new double[3];
             double[] lastResult = new double[3];
-            AnalogAnalysis an = as.getAnalysis();
+            AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
 
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{

@@ -179,8 +179,7 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	 */
 	private AnalogSignal addEmptySignal(String signalName, String signalContext)
 	{
-		AnalogSignal as = new AnalogSignal(this);
-		as.setSignalName(signalName, signalContext);
+		AnalogSignal as = new AnalogSignal(this, signalName, signalContext);
 		return as;
 	}
 
