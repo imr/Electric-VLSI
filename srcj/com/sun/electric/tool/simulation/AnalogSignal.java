@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
 /**
  * Class to define an analog signal in the simulation waveform window.
  */
-public class AnalogSignal extends Signal implements MultiSweepSignal
+public class AnalogSignal extends NewSignal<ScalarSample> implements MultiSweepSignal
 {
 	/** the Analysis object in which this DigitalSignal resides. */		private final AnalogAnalysis an;
 	/** index of this signal in its AnalogAnalysis */					private final int index;
@@ -149,4 +149,16 @@ public class AnalogSignal extends Signal implements MultiSweepSignal
 		if (bounds == null) calcBounds();
 		return bounds.getMaxY();
 	}
+
+    public NewSignal.Approximation<ScalarSample>
+        getApproximation(double t0, double t1, int numEvents,
+                         ScalarSample     v0, ScalarSample     v1, int valueResolution) {
+        throw new RuntimeException("not implemented");
+    }
+    public NewSignal.Approximation<ScalarSample> getPixelatedApproximation(double t0, double t1, int numRegions) {
+        throw new RuntimeException("not implemented");
+    }
+    public NewSignal.Approximation<ScalarSample> getPreferredApproximation() {
+        throw new RuntimeException("not implemented");
+    }
 }
