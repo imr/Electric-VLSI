@@ -27,7 +27,7 @@ package com.sun.electric.tool.simulation;
  *  A crude implementation of NewSignal which implements
  *  getApproximation() for the case where tn=vd=0 by binary search.
  */
-public abstract class NewSignalSimpleImpl implements NewSignal<ScalarSample> {
+public abstract class NewSignalSimpleImpl extends NewSignal<ScalarSample> {
 
     private NewSignal.Approximation<ScalarSample> pa = null;
     private double tmin;

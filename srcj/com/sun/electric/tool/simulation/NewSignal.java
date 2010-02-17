@@ -39,7 +39,7 @@ package com.sun.electric.tool.simulation;
  *  require data not yet read will simply block until that part of the
  *  stream is processed.
  */
-public interface NewSignal<SS extends SimulationSample> {
+public abstract class NewSignal<SS extends SimulationSample> {
 
     /**
      *  An Approximation is a collection of events indexed by natural
@@ -92,7 +92,8 @@ public interface NewSignal<SS extends SimulationSample> {
      * If valueResolution==0, the value resolution will be that which
      * is "most natural" for the underlying data.
      */
-    NewSignal.Approximation<SS>
+    public abstract
+        NewSignal.Approximation<SS>
         getApproximation(double t0, double t1, int numEvents,
                          SS     v0, SS     v1, int valueResolution);
     
@@ -109,7 +110,8 @@ public interface NewSignal<SS extends SimulationSample> {
      * resolution of the user's display, which is probably never
      * greater than 10,000 or so).
      */
-    NewSignal.Approximation<SS>
+    public abstract
+        NewSignal.Approximation<SS>
         getPixelatedApproximation(double t0, double t1, int numRegions);
 
     /**
@@ -117,7 +119,8 @@ public interface NewSignal<SS extends SimulationSample> {
      *  the data; this should be the Approximation which
      *  causes no loss in data fidelity.
      */
-    NewSignal.Approximation<SS>
+    public abstract
+        NewSignal.Approximation<SS>
         getPreferredApproximation();
 }
 
