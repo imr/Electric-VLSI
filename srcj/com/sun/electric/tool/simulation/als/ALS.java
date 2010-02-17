@@ -585,7 +585,7 @@ public class ALS extends Engine
 		}
 		for(Signal sig : signals)
 		{
-			sig.clearControlPoints();
+			sig.getAnalysis().getStimuli().clearControlPoints(sig);
 
 			Link lastSet = null;
 			Link nextSet = null;
@@ -668,7 +668,7 @@ public class ALS extends Engine
 						}
 						if (delete)
 						{
-							sig.removeControlPoint(thisSet.time);
+                            sig.getAnalysis().getStimuli().removeControlPoint(sig, thisSet.time);
 							if (lastSet == null) setRoot = nextSet; else
 								lastSet.right= nextSet;
 							found = true;
@@ -704,7 +704,7 @@ public class ALS extends Engine
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal sig = ws.getSignal();
-				sig.clearControlPoints();
+                sig.getAnalysis().getStimuli().clearControlPoints(sig);
 			}
 		}
 		if (Simulation.isBuiltInResimulateEach())
@@ -853,7 +853,7 @@ public class ALS extends Engine
 			setHead.priority = 2;
 			setHead.time = time;
 			setHead.right = null;
-			sig.addControlPoint(time);
+            sig.getAnalysis().getStimuli().addControlPoint(sig, time);
 			insertSetList(setHead);
 
 //			System.out.println("Node '" + sigName + "' scheduled, state = " + state +
@@ -1048,8 +1048,8 @@ public class ALS extends Engine
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal sig = ws.getSignal();
-				sig.clearControlPoints();
-			}
+                sig.getAnalysis().getStimuli().clearControlPoints(sig);
+            }
 		}
 
 		boolean flag = true;
@@ -1099,7 +1099,7 @@ public class ALS extends Engine
 				setHead.right = null;
 				insertSetList(setHead);
 				if (nodeHead.sig != null)
-					nodeHead.sig.addControlPoint(setHead.time);
+                    nodeHead.sig.getAnalysis().getStimuli().addControlPoint(nodeHead.sig, setHead.time);
 
 				clokHead.delta = TextUtils.atof(parts[3]);
 				clokHead.linear = TextUtils.atof(parts[5]);
@@ -1161,7 +1161,7 @@ public class ALS extends Engine
 				setHead.right = null;
 				insertSetList(setHead);
 				if (nodeHead.sig != null)
-					nodeHead.sig.addControlPoint(setHead.time);
+                    nodeHead.sig.getAnalysis().getStimuli().addControlPoint(nodeHead.sig, setHead.time);
 			}
 		}
 	}

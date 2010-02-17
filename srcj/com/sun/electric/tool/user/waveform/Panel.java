@@ -1872,7 +1872,7 @@ public class Panel extends JPanel
 		{
 			if (g != null) g.setColor(ws.getColor());
 
-			Double [] points = ws.getSignal().getControlPoints();
+			Double [] points = ws.getSignal().getAnalysis().getStimuli().getControlPoints(ws.getSignal());
 			if (points == null) continue;
 			if (g != null) g.setColor(ws.getColor());
 			for(int i=0; i<points.length; i++)

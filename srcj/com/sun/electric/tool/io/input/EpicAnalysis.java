@@ -752,38 +752,6 @@ public class EpicAnalysis extends AnalogAnalysis {
             this.sigNum = sigNum;
         }
 
-        /**
-         * Method to return the context of this simulation signal.
-         * The context is the hierarchical path to the signal, and it usually contains
-         * instance names of cells farther up the hierarchy, all separated by dots.
-         * @param signalContext the context of this simulation signal.
-         */
-        @Override
-            public void setSignalContext(String signalContext) { throw new UnsupportedOperationException(); }
-        
-        /**
-         * Method to return the context of this simulation signal.
-         * The context is the hierarchical path to the signal, and it usually contains
-         * instance names of cells farther up the hierarchy, all separated by dots.
-         * @return the context of this simulation signal.
-         * If there is no context, this returns null.
-         */
-        @Override
-            public String getSignalContext() {
-            return ((EpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), false);
-        }
-        
-        /**
-         * Method to return the full name of this simulation signal.
-         * The full name includes the context, if any.
-         * @return the full name of this simulation signal.
-         */
-        @Override
-            public String getFullName() {
-            return ((EpicAnalysis)getAnalysis()).makeName(getIndexInAnalysis(), true);
-        }
-
-        
         public void calcBounds() {
             Waveform wave = getWaveform(0);
             if (!(wave instanceof BTreeNewSignal)) { super.calcBounds(); return; }
