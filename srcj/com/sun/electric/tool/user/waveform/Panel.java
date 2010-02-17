@@ -1463,7 +1463,7 @@ public class Panel extends JPanel
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
                     pw.println();
 					Waveform wave = as.getWaveform(s);
-                    NewSignal.Approximation pref = wave.getPreferredApproximation();
+                    NewSignal.Approximation pref = ((NewSignal)wave).getPreferredApproximation();
                     NewSignal.Approximation waveform = pref /* FIXME */;
 					int numEvents = waveform.getNumEvents();
 					for(int i=0; i<numEvents; i++)
@@ -1507,7 +1507,7 @@ public class Panel extends JPanel
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
                     pw.println();
 					Waveform wave = as.getWaveform(s);
-                    NewSignal.Approximation pref = wave.getPreferredApproximation();
+                    NewSignal.Approximation pref = ((NewSignal)wave).getPreferredApproximation();
                     NewSignal.Approximation waveform = pref /* FIXME */;
 					int numEvents = waveform.getNumEvents();
 					for(int i=0; i<numEvents; i++) {
@@ -1603,13 +1603,13 @@ public class Panel extends JPanel
 					if (!included)
 						continue;
 					Waveform wave = as.getWaveform(s);
-                    NewSignal.Approximation pref = wave.getPreferredApproximation();
+                    NewSignal.Approximation pref = ((NewSignal)wave).getPreferredApproximation();
                     NewSignal.Approximation waveform =
                         (Simulation.isUseLegacySimulationCode() || wave instanceof WaveformImpl)
                         ? pref
-                        : wave.getPixelatedApproximation(convertXScreenToData(0),
-                                                         convertXScreenToData(sz.width),
-                                                         sz.width);
+                        : ((NewSignal)wave).getPixelatedApproximation(convertXScreenToData(0),
+                                                                      convertXScreenToData(sz.width),
+                                                                      sz.width);
                     Waveform xWaveform = null;
                     if (xSignal != null)
                         xWaveform = ((AnalogSignal)xSignal).getWaveform(s);

@@ -26,7 +26,7 @@ package com.sun.electric.tool.simulation;
 /**
  * Simple implementation of Waveform interface
  */
-public class WaveformImpl implements Waveform {
+public class WaveformImpl implements Waveform, NewSignal<ScalarSample> {
     private double[] time;
     private double[] value;
     
