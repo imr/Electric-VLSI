@@ -49,6 +49,29 @@ public class BTreeSignal extends SignalSimpleImpl implements Waveform {
         this.preferredApproximation = new BTreeSignalApproximation();
     }
 
+    /** produces a BTreeSignal from a preexisting pair of double[]s */
+    /*
+          public static BTreeSignal buildSignalForArray(Analysis analysis, String signalName, String signalContext,
+                                                  double[] time, double[] val) {
+            double minValue = Double.MAX_VALUE;
+            double maxValue = Double.MIN_VALUE;
+            int    evmin = 0;
+            int    evmax = 0;
+            double[] result = new double[10];
+            for(int i=0; i<count; i++) {
+                waveform.getEvent(i, result);
+                times[i]  = (float)result[0];
+                values[i] = (float)result[1];
+                if (values[i] < minValue) minValue = values[evmin = i];
+                if (values[i] > maxValue) maxValue = values[evmax = i];
+                if (i>0 && times[i] < times[i-1])
+                    throw new RuntimeException("got non-monotonic sample data, and I haven't implement sorting yet");
+            }
+            this.eventWithMinValue = evmin;
+            this.eventWithMaxValue = evmax;
+    }
+        */
+
     public synchronized Signal.Approximation<ScalarSample> getPreferredApproximation() {
         return preferredApproximation;
     }

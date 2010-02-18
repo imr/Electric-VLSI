@@ -31,7 +31,6 @@ import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
-import com.sun.electric.tool.simulation.WaveformImpl;
 
 import java.io.IOException;
 import java.net.URL;
@@ -59,20 +58,6 @@ public class LTSpiceOut extends Simulate
 		private SweepAnalysisLT(Stimuli sd, AnalogAnalysis.AnalysisType type)
 		{
 			super(sd, type, false);
-		}
-
-		protected Waveform[] loadWaveforms(AnalogSignal signal)
-		{
-			int sigIndex = signal.getIndexInAnalysis();
-			Waveform[] waveforms = new Waveform[commonTime.length];
-			for (int sweep = 0; sweep < waveforms.length; sweep++)
-			{
-				double[] times = commonTime[sweep];
-				List<double[]> theSweep = theSweeps.get(sweep);
-				Waveform waveform = new WaveformImpl(times, theSweep.get(sigIndex));
-				waveforms[sweep] = waveform;
-			}
-			return waveforms;
 		}
 	}
 

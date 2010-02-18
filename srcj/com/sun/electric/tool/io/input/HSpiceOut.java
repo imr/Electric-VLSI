@@ -30,10 +30,10 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.ComplexWaveform;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
-import com.sun.electric.tool.simulation.WaveformImpl;
+import com.sun.electric.database.geometry.btree.*;
+import com.sun.electric.database.geometry.btree.unboxed.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -113,33 +113,35 @@ public class HSpiceOut extends Simulate
 				List<float[]> theSweep = theSweeps.get(sweep);
 				Waveform waveform;
 				if (getAnalysisType() == ANALYSIS_AC) {
+                    BTree<Double,Pair<Double,Double>,Serializable> tree = EpicAnalysis.getComplexTree();
 					double[] realValues = new double[times.length];
 					double[] imagValues = new double[times.length];
 					for (int eventNum = 0; eventNum < realValues.length; eventNum++) {
 						float[] eventValues = theSweep.get(eventNum);
-						realValues[eventNum] = eventValues[sigIndex*2 + 1];
-						imagValues[eventNum] = eventValues[sigIndex*2 + 2];
+                        /*
+                        tree.insert(times[i],
+                                    eventValues[sigIndex*2 + 1],
+                                    eventValues[sigIndex*2 + 2]);
+                        */
 					}
-					waveform = new ComplexWaveform(times, realValues, imagValues);
+                    // FIXME
+					//waveform = new ComplexWaveform(times, realValues, imagValues);
+                    waveform = null;
 				} else {
 					double[] values = new double[times.length];
 					for (int eventNum = 0; eventNum < values.length; eventNum++)
 						values[eventNum] = theSweep.get(eventNum)[sigIndex + 1];
-                    if (!isUseLegacySimulationCode()) {
-                        BTree<Double,Double,Serializable> tree = EpicAnalysis.getTree();
-                        int evmax = 0;
-                        int evmin = 0;
-                        double valmax = Double.MIN_VALUE;
-                        double valmin = Double.MAX_VALUE;
-                        for(int i=0; i<times.length; i++) {
-                            tree.insert(times[i], values[i]);
-                            if (values[i] > valmax) { evmax = i; valmax = values[i]; }
-                            if (values[i] < valmin) { evmin = i; valmin = values[i]; }
-                        }
-                        waveform = new BTreeSignal(signal.getAnalysis(), signal.getSignalName(), signal.getSignalContext(), evmin, evmax, tree);
-                    } else {
-                        waveform = new WaveformImpl(times, values);
+                    BTree<Double,Double,Serializable> tree = EpicAnalysis.getTree();
+                    int evmax = 0;
+                    int evmin = 0;
+                    double valmax = Double.MIN_VALUE;
+                    double valmin = Double.MAX_VALUE;
+                    for(int i=0; i<times.length; i++) {
+                        tree.insert(times[i], values[i]);
+                        if (values[i] > valmax) { evmax = i; valmax = values[i]; }
+                        if (values[i] < valmin) { evmin = i; valmin = values[i]; }
                     }
+                    waveform = new BTreeSignal(signal.getAnalysis(), signal.getSignalName(), signal.getSignalContext(), evmin, evmax, tree);
 				}
 				waveforms[sweep] = waveform;
 			}

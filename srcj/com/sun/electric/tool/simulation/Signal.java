@@ -41,7 +41,7 @@ import java.awt.geom.Rectangle2D;
  * require data not yet read will simply block until that part of the
  * stream is processed.
  */
-public abstract class Signal<SS extends SimulationSample> {
+public abstract class Signal<SS extends SimulationSample> implements Waveform {
 
     public Signal(Analysis analysis, String signalName, String signalContext) {
         this.analysis = analysis;
@@ -153,4 +153,9 @@ public abstract class Signal<SS extends SimulationSample> {
 	public double getMinValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMinValue())).getValue(); }
 	public double getMaxValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMaxValue())).getValue(); }
 
+    public int getNumEvents() { return getPreferredApproximation().getNumEvents(); }
+    public void getEvent(int index, double[] result) {
+        result[0] = getPreferredApproximation().getTime(index);
+        result[1] = result[2] = ((ScalarSample)getPreferredApproximation().getSample(index)).getValue();
+    }
 }

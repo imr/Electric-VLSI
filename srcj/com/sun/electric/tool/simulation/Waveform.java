@@ -26,7 +26,7 @@ package com.sun.electric.tool.simulation;
 /**
  * Waveform - piecewise linear real function of time
  */
-public interface Waveform /*extends Signal<ScalarSample>*/ {
+public interface Waveform {
 
     /**
      * Method to return the number of events in this signal.

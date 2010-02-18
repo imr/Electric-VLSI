@@ -29,7 +29,6 @@ import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
-import com.sun.electric.tool.simulation.WaveformImpl;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import com.sun.electric.tool.simulation.*;
@@ -373,6 +372,20 @@ public class EpicAnalysis extends AnalogAnalysis {
         return new BTree<Double,Double,Serializable>
             (ps, UnboxedHalfDouble.instance, UnboxedHalfDouble.instance, null, null);
     }
+    public static BTree<Double,Pair<Double,Double>,Serializable> getComplexTree() {
+        if (ps==null)
+            try {
+                long highWaterMarkInBytes = 50 * 1024 * 1024;
+                PageStorage fps = FilePageStorage.create();
+                PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
+                ps = new CachingPageStorageWrapper(ops, 16 * 1024, false);
+                //ps = new MemoryPageStorage(256);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        return new BTree<Double,Pair<Double,Double>,Serializable>
+            (ps, UnboxedHalfDouble.instance, new UnboxedPair(UnboxedHalfDouble.instance, UnboxedHalfDouble.instance), null, null);
+    }
 
     HashMap<Integer, Waveform> loadWaveformCache =
         new HashMap<Integer, Waveform>();
@@ -381,8 +394,7 @@ public class EpicAnalysis extends AnalogAnalysis {
         protected Waveform[] loadWaveforms(AnalogSignal signal) {
         int index = ((EpicSignal)signal).sigNum;
         Waveform wave = loadWaveformCache.get(new Integer(index));
-        if (wave == null)
-            return new Waveform[] { new WaveformImpl(new double[0], new double[0]) };
+        if (wave == null) return new Waveform[] { };
         return new Waveform[] { wave };
     }
 

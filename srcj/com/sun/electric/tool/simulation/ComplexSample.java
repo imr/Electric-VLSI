@@ -25,45 +25,43 @@ package com.sun.electric.tool.simulation;
 import java.io.*;
 
 /**
- *  An implementation of SimulationSample for scalar data.  Holds a
- *  double internally.
+ *  An implementation of SimulationSample for complex data.  Holds 
+ *  two doubles internally: real and imaginary.
  */
-public class ScalarSample implements SimulationSample {
+public class ComplexSample implements SimulationSample {
 
-    private double value;
+    private double real;
+    private double imag;
 
-    public ScalarSample() { this(0); }
-    public ScalarSample(double value) { this.value = value; }
+    public ComplexSample() { this(0,0); }
+    public ComplexSample(double real, double imag) { this.real = real; this.imag = imag; }
 
-    public double getValue() {
-        return value;
-    }
+    public double getReal() { return real; }
+    public double getImag() { return imag; }
+    public double getAmplitude() { return Math.atan2(getImag(), getReal()); }
 
     public boolean equals(Object o) {
-        if (o==null || !(o instanceof ScalarSample)) return false;
-        ScalarSample ss = (ScalarSample)o;
-        return ss.value == value;
+        if (o==null || !(o instanceof ComplexSample)) return false;
+        ComplexSample cs = (ComplexSample)o;
+        return cs.real==real && cs.imag==imag;
     }
 
     public int hashCode() {
-        long l = Double.doubleToLongBits(value);
+        long l = Double.doubleToLongBits(real) ^ Double.doubleToLongBits(imag);
         return ((int)(l & 0xffffffff)) ^ ((int)((l >> 32) & 0xffffffff));
     }
 
     public int compareTo(Object o) {
-        if (o==null || !(o instanceof ScalarSample))
+        if (o==null || !(o instanceof ComplexSample))
             throw new RuntimeException("impossible!");
-        ScalarSample ss = (ScalarSample)o;
-        return Double.compare(value, ss.value);
+        ComplexSample cs = (ComplexSample)o;
+        int ret = Double.compare(real, cs.real);
+        if (ret!=0) return ret;
+        return Double.compare(imag, cs.imag);
     }
 
-    public boolean isLogicX() {
-        return value == Double.POSITIVE_INFINITY;
-    }
-
-    public boolean isLogicZ() {
-        return value == Double.NEGATIVE_INFINITY;
-    }
+    public boolean isLogicX() { return false; }
+    public boolean isLogicZ() { return false; }
 
 }
 

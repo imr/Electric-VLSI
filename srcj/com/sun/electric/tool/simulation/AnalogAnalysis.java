@@ -134,24 +134,18 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	public AnalogSignal addSignal(String signalName, String signalContext, double[] values)
 	{
 		AnalogSignal as = addEmptySignal(signalName, signalContext);
-        if (!isUseLegacySimulationCode()) {
-            BTree<Double,Double,Serializable> tree = EpicAnalysis.getTree();
-            int evmax = 0;
-            int evmin = 0;
-            double valmax = Double.MIN_VALUE;
-            double valmin = Double.MAX_VALUE;
-            for(int i=0; i<commonTime.length; i++) {
-                tree.insert(new Double(commonTime[i]), new Double(values[i]));
-                if (values[i] > valmax) { evmax = i; valmax = values[i]; }
-                if (values[i] < valmin) { evmin = i; valmin = values[i]; }
-            }
-            Waveform[] waveforms = { new BTreeSignal(this, signalName, signalContext, evmin, evmax, tree) };
-            waveformCache.put(as, waveforms);
-//            System.err.println("put a btree");
-        } else {
-            Waveform[] waveforms = { new WaveformImpl(getCommonTimeArray(), values) };
-            waveformCache.put(as, waveforms);
+        BTree<Double,Double,Serializable> tree = EpicAnalysis.getTree();
+        int evmax = 0;
+        int evmin = 0;
+        double valmax = Double.MIN_VALUE;
+        double valmin = Double.MAX_VALUE;
+        for(int i=0; i<commonTime.length; i++) {
+            tree.insert(new Double(commonTime[i]), new Double(values[i]));
+            if (values[i] > valmax) { evmax = i; valmax = values[i]; }
+            if (values[i] < valmin) { evmin = i; valmin = values[i]; }
         }
+        Waveform[] waveforms = { new BTreeSignal(this, signalName, signalContext, evmin, evmax, tree) };
+        waveformCache.put(as, waveforms);
 		return as;
 	}
 
