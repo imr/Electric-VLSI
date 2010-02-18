@@ -105,18 +105,6 @@ public abstract class Simulate extends Input
                 if (extension.startsWith("tr") || extension.startsWith("sw") || extension.startsWith("ic") ||
                     extension.startsWith("ac") || extension.startsWith("mt") || extension.startsWith("pa"))
                     { type = FileType.HSPICEOUT; break; }
-
-                // if the file ends in ".spi" then it is actually not known yet...use the preference
-                if (extension.equals("spi"))
-                {
-                	type = FileType.SPICEOUT;
-            		Simulation.SpiceEngine engine = Simulation.getSpiceEngine();
-            		if (engine == Simulation.SpiceEngine.SPICE_ENGINE_H) type = FileType.HSPICEOUT; else
-            		if (engine == Simulation.SpiceEngine.SPICE_ENGINE_P) type = FileType.PSPICEOUT; else
-            		if (engine == Simulation.SpiceEngine.SPICE_ENGINE_S) type = FileType.RAWSSPICEOUT;
-            		break;
-                }
-
                 // future feature: try to guess the file type from the first few lines
                 throw new RuntimeException("unable to detect type for extension \""+extension+"\"");
             } while (false);
@@ -159,6 +147,15 @@ public abstract class Simulate extends Input
 		{
 			if (fileURL == null)
 			{
+                if (type == FileType.SPICE) {
+                    if      (new File(type.getGroupPath(), cell.getName()+".raw").exists()) type = FileType.RAWLTSPICEOUT;
+                    else if (new File(type.getGroupPath(), cell.getName()+".dump").exists()) type = FileType.RAWSPICEOUT;
+                    else if (new File(type.getGroupPath(), cell.getName()+".spo").exists()) type = FileType.SPICEOUT;
+                    else if (new File(type.getGroupPath(), cell.getName()+".out").exists()) type = FileType.EPIC;
+                    else if (new File(type.getGroupPath(), cell.getName()+".tr0").exists()) type = FileType.HSPICEOUT;
+                    else if (new File(type.getGroupPath(), cell.getName()+".txt").exists()) type = FileType.PSPICEOUT;
+                }
+
                 String fileName = cell.getName() + "." + type.getFirstExtension();
 
                 // look for file in library path
