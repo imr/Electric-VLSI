@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+BUG: (2/18/10, GVG) Electric litters files in my home directory without
+     my permission (Bug #2613)
+FIX: Not using File.createTempFile for now.
+
 IMP: (2/17/10, AM) Remove SignalSimpleImpl.
 
 IMP: (2/17/10, AM) Rename SimulationSample to Sample.

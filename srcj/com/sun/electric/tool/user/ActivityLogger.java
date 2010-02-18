@@ -77,7 +77,7 @@ public class ActivityLogger {
         File dir = new File(dirName);
         
         try {
-            outputFile = File.createTempFile(fileName+"-", ".log").getAbsolutePath();
+//            outputFile = File.createTempFile(fileName+"-", ".log").getAbsolutePath();
             if (multipleLog)
             {
                 long n = random.nextLong();
