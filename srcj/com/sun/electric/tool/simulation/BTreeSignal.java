@@ -27,7 +27,7 @@ import com.sun.electric.database.geometry.btree.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import com.sun.electric.tool.simulation.*;
 
-public class BTreeSignal extends SignalSimpleImpl implements Waveform {
+public class BTreeSignal extends Signal<ScalarSample> implements Waveform {
 
     public final int numEvents;
     public final int eventWithMinValue;
@@ -71,6 +71,53 @@ public class BTreeSignal extends SignalSimpleImpl implements Waveform {
             this.eventWithMaxValue = evmax;
     }
         */
+
+    private Signal.Approximation<ScalarSample> pa = null;
+    private double tmin;
+    private double tmax;
+    private int    emax;
+
+    public static int misses = 0;
+    public static int steps = 0;
+    public static int numLookups = 0;
+
+    public Signal.Approximation<ScalarSample> getApproximation(double t0, double t1, int numEvents,
+                                                                  ScalarSample v0, ScalarSample v1, int vd) {
+        if (vd!=0) throw new RuntimeException("not implemented");
+
+        // FIXME: currently ignoring v0/v1
+        int e0 = getEventForTime(t0, true);
+        int e1 = getEventForTime(t1, false);
+        //System.err.println("t0="+t0+", e0="+e0+", getPreferredApproximation().getTime(e0)="+getPreferredApproximation().getTime(e0));
+        //System.err.println("t1="+t1+", e1="+e1+", getPreferredApproximation().getTime(e1)="+getPreferredApproximation().getTime(e1));
+        if (numEvents==0) throw new RuntimeException("invalid!");
+        return new ApproximationSimpleImpl(e0, e1, numEvents, t0, t1);
+    }
+
+    private class ApproximationSimpleImpl implements Signal.Approximation<ScalarSample> {
+        private final int    minEvent;
+        private final int    maxEvent;
+        private final int    numEvents;
+        private final double t0;
+        private final double t1;
+        public ApproximationSimpleImpl(int minEvent, int maxEvent, int numEvents, double t0, double t1) {
+            this.minEvent=minEvent;
+            this.maxEvent=maxEvent;
+            this.t0 = t0;
+            this.t1 = t1;
+            this.numEvents = numEvents;
+            //System.err.println("minEvent="+minEvent+", maxEvent="+maxEvent+", ne="+numEvents + " t0="+t0+ " t1="+t1);
+        }
+        public int    getNumEvents() { return numEvents; }
+        public double getTime(int event) { return t0 + (event*(t1-t0))/(numEvents-1); }
+        public ScalarSample getSample(int event) {
+            return getSampleForTime(getTime(event), /* FIXME: should interpolate */ true);
+        }
+        public int    getTimeDenominator() { throw new RuntimeException("not implemented"); }
+        public int    getEventWithMinValue() { throw new RuntimeException("not implemented"); }
+        public int    getEventWithMaxValue() { throw new RuntimeException("not implemented"); }
+        public int    getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }
+    }
 
     public synchronized Signal.Approximation<ScalarSample> getPreferredApproximation() {
         return preferredApproximation;
@@ -158,3 +205,41 @@ public class BTreeSignal extends SignalSimpleImpl implements Waveform {
         }
     }
 }
+
+/*
+    // This binary search is done carefully so that it takes the
+    // same search path as far as possible even for different
+    // t0/t1 inputs.  That is, for example, why we don't use e0 to
+    // help start the search for e1.  This ensures that any
+    // caching done by the subclass is exploited as fully as
+    // possible.
+    protected int getEventForTime(double t, boolean justLessThan) {
+        if (pa==null) {
+            this.pa = getPreferredApproximation();
+            this.emax = pa.getNumEvents()-1;
+            this.tmin = pa.getTime(0);
+            this.tmax = pa.getTime(this.emax);
+        }
+        numLookups++;
+        int emin  = 0;
+        int emax  = this.emax;
+        double tmin = this.tmin;
+        double tmax = this.tmax;
+        boolean last = true;
+        while(true) {
+            if (emin==emax) return emin;
+            if (emin+1 == emax) return justLessThan ? emin : emax;
+            double est = ((t-tmin)*(emax-emin))/(tmax-tmin);
+            //int e = (emin+emax)/2;
+            int e = emin + (last ? ((int)Math.ceil(est)) : ((int)Math.floor(est)));
+            last = !last;
+            if (e<=emin) return emin;
+            if (e>=emax) return emax;
+            double te = pa.getTime(e);
+            steps++;
+            if      (te < t) { emin = e; tmin = te; }
+            else if (te > t) { emax = e; tmax = te; }
+            else             return e;
+        }
+    }
+*/

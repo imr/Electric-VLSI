@@ -30,7 +30,7 @@ import java.awt.geom.Rectangle2D;
  * This is a superclass for specific signal types: Measurement and TimedSignal
  * (which has under it DigitalSignal and AnalogSignal).
  *
- * A Signal holds a signal which has a SimulationSample value
+ * A Signal holds a signal which has a Sample value
  * at any given point in time, and for which a piecewise linear
  * approximation can be obtained for any given [t0,t1]x[v0,v1]
  * window.
@@ -41,7 +41,7 @@ import java.awt.geom.Rectangle2D;
  * require data not yet read will simply block until that part of the
  * stream is processed.
  */
-public abstract class Signal<SS extends SimulationSample> implements Waveform {
+public abstract class Signal<SS extends Sample> implements Waveform {
 
     public Signal(Analysis analysis, String signalName, String signalContext) {
         this.analysis = analysis;
@@ -83,7 +83,7 @@ public abstract class Signal<SS extends SimulationSample> implements Waveform {
      *  getTimeNumerator(i)==i.  Instances returned by other methods
      *  do not offer this guarantee.
      */
-    public static interface Approximation<SS extends SimulationSample> {
+    public static interface Approximation<SS extends Sample> {
         /** the number of indices ("events") in this approximation */   int    getNumEvents();
         /** the absolute time of the event in question */               double getTime(int event);
         /** the absolute value of the event in question */              SS     getSample(int event);
@@ -109,7 +109,7 @@ public abstract class Signal<SS extends SimulationSample> implements Waveform {
      * be the one which most accurately represents the data in the
      * window [t0,t1]x[v0,v1] and which has values at resolution
      * "valueResolution".  The precise meaning of valueResolution may
-     * depend on which subclass of SimulationSample is in use.
+     * depend on which subclass of Sample is in use.
      *
      * If numEvents==0, the number of time points returned will
      * be that which is "most natural" for the underlying data.

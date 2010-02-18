@@ -1659,13 +1659,13 @@ public class Panel extends JPanel
 						lastX = x;   lastLY = lowY; lastHY = highY;
 					}
                     /*
-                    System.out.println("misses="+com.sun.electric.tool.simulation.SignalSimpleImpl.misses + ", "+
+                    System.out.println("misses="+com.sun.electric.tool.simulation.BTreeSignal.misses + ", "+
                                        "avg steps="+
-                                       (((float)com.sun.electric.tool.simulation.SignalSimpleImpl.steps)/
-                                        com.sun.electric.tool.simulation.SignalSimpleImpl.numLookups));
-                    com.sun.electric.tool.simulation.SignalSimpleImpl.misses=0;
-                    com.sun.electric.tool.simulation.SignalSimpleImpl.steps=0;
-                    com.sun.electric.tool.simulation.SignalSimpleImpl.numLookups=0;
+                                       (((float)com.sun.electric.tool.simulation.BTreeSignal.steps)/
+                                        com.sun.electric.tool.simulation.BTreeSignal.numLookups));
+                    com.sun.electric.tool.simulation.BTreeSignal.misses=0;
+                    com.sun.electric.tool.simulation.BTreeSignal.steps=0;
+                    com.sun.electric.tool.simulation.BTreeSignal.numLookups=0;
                     */
 				}
 				continue;

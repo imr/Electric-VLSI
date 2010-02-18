@@ -25,10 +25,10 @@ package com.sun.electric.tool.simulation;
 import java.io.*;
 
 /**
- *  An implementation of SimulationSample for complex data.  Holds 
+ *  An implementation of Sample for complex data.  Holds 
  *  two doubles internally: real and imaginary.
  */
-public class ComplexSample implements SimulationSample {
+public class ComplexSample implements Sample {
 
     private double real;
     private double imag;

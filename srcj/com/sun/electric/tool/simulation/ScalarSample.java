@@ -25,10 +25,10 @@ package com.sun.electric.tool.simulation;
 import java.io.*;
 
 /**
- *  An implementation of SimulationSample for scalar data.  Holds a
+ *  An implementation of Sample for scalar data.  Holds a
  *  double internally.
  */
-public class ScalarSample implements SimulationSample {
+public class ScalarSample implements Sample {
 
     private double value;
 

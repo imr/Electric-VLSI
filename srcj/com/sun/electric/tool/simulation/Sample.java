@@ -25,10 +25,10 @@ package com.sun.electric.tool.simulation;
 import java.io.*;
 
 /**
- *  A SimulationSample is the data assigned to each point in time by a
+ *  A Sample is the data assigned to each point in time by a
  *  Signal.
  */
-public interface SimulationSample extends Serializable, Comparable {
+public interface Sample extends Serializable, Comparable {
 
     /** returns true iff this sample is "X" (unknown) */
     public boolean isLogicX();

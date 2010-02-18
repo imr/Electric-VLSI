@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.simulation;
 
-public interface MultiSweepSignal<SS extends SimulationSample> {
+public interface MultiSweepSignal<SS extends Sample> {
 
     public Signal<SS> getSweep(int sweep);
 

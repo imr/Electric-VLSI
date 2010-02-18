@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+IMP: (2/17/10, AM) Remove SignalSimpleImpl.
+
 IMP: (2/17/10, AM) Rename SimulationSample to Sample.
 
 IMP: (2/17/10, AM) Remove WaveformImpl and ComplexWaveform, add ComplexSample.
