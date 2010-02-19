@@ -964,6 +964,11 @@ public class Change extends EModelessDialog implements HighlightListener
 		if (geomToChange instanceof NodeInst)
 		{
 			np = changeNodeProtoList.get(currentlySelected);
+			if (np == null)
+			{
+				System.out.println("Nothing to change");
+				return;
+			}
 			func = changeNodeProtoFunctionList.get(currentlySelected);
 		} else
 		{
