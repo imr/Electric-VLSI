@@ -26,14 +26,15 @@ package com.sun.electric.tool.simulation;
 import java.awt.geom.Rectangle2D;
 
 /**
- * Class to define the basic parts of a signal in the simulation waveform window.
- * This is a superclass for specific signal types: Measurement and TimedSignal
- * (which has under it DigitalSignal and AnalogSignal).
+ * A Signal represents simulation data captured for a particular node
+ * over a stretch of time.  Internally, it associates Samples to
+ * points in time (measured by a double).  Each Signal also belongs to
+ * an Analysis, and has a Name and a Context (which are both Strings).
  *
- * A Signal holds a signal which has a Sample value
- * at any given point in time, and for which a piecewise linear
- * approximation can be obtained for any given [t0,t1]x[v0,v1]
- * window.
+ * Because the simulation data set may be extremely large, one does
+ * not access the data directly through the Signal class.  Instead,
+ * one asks for a View of the signal.  Views offer access to the
+ * simulation data in various summarized forms.
  *
  * Subsequent enhancements are likely to include the
  * ability to invoke methods on the class while the streaming
@@ -83,7 +84,7 @@ public abstract class Signal<SS extends Sample> {
      *  getTimeNumerator(i)==i.  Instances returned by other methods
      *  do not offer this guarantee.
      */
-    public static interface Approximation<SS extends Sample> {
+    public static interface View<SS extends Sample> {
         /** the number of indices ("events") in this approximation */   int    getNumEvents();
         /** the absolute time of the event in question */               double getTime(int event);
         /** the absolute value of the event in question */              SS     getSample(int event);
@@ -94,63 +95,40 @@ public abstract class Signal<SS extends Sample> {
     }
 
     /**
-     * Returns an Approximation in which:
-     *
-     *              getNumEvents() = numEvents
-     *                  getTime(0) = t0
-     *   getTime(getNumEvents()-1) = t1
-     *         getTimeNumerator(i) = i
-     *
-     * Together, the last two guarantees ensure that the time
-     * components of events are uniformly spaced, with the first event
-     * at t0 and the last event at t1.
-     *
-     * Subject to these constraints, the Approximation returned will
-     * be the one which most accurately represents the data in the
-     * window [t0,t1]x[v0,v1] and which has values at resolution
-     * "valueResolution".  The precise meaning of valueResolution may
-     * depend on which subclass of Sample is in use.
-     *
-     * If numEvents==0, the number of time points returned will
-     * be that which is "most natural" for the underlying data.
-     *
-     * If valueResolution==0, the value resolution will be that which
-     * is "most natural" for the underlying data.
+     *  Returns a View appropriate for rasterization, including data
+     *  from time t0 to time t1, optimized for rasterization on a
+     *  display region numPixels wide.  Note that the View returned is
+     *  of type View<RangeSample<SS>> -- this means that getSample(i)
+     *  will give a CONSERVATIVE approximation of the true value of
+     *  the signal between getTime(i) and getTime(i+1).  In other
+     *  words, the signal is guaranteed not to exceed
+     *  getSample(i).getMax() in that window, but the actual value
+     *  returned by getMax() might be much larger than the true
+     *  maximum over that range.
      */
-    public abstract
-        Signal.Approximation<SS>
-        getApproximation(double t0, double t1, int numEvents,
-                         SS     v0, SS     v1, int valueResolution);
-    
-    /**
-     * In general terms, the resulting approximation will divide the
-     * region [t0,t1] into numRegions-many equal-sized regions with AT
-     * MOST one event in each region.  Some regions may lack events.
-     * No additional sample points (which were not already present in
-     * the original data) will be created.
-     *
-     * The amount of time required is linear in numRegions, so callers
-     * must take care not to invoke this method with extremely large
-     * values (the idea is that it should be determined by the pixel
-     * resolution of the user's display, which is probably never
-     * greater than 10,000 or so).
-     */
-    public abstract
-        Signal.Approximation<SS>
-        getPixelatedApproximation(double t0, double t1, int numRegions);
+    public abstract Signal.View<RangeSample<SS>> getRasterView(double t0, double t1, int numPixels);
 
-    /**
-     *  Returns an Approximation which is "most natural" for
-     *  the data; this should be the Approximation which
-     *  causes no loss in data fidelity.
-     */
-    public abstract
-        Signal.Approximation<SS>
-        getPreferredApproximation();
+    /** Returns a view with all the data, no loss in fidelity. */
+    public abstract Signal.View<SS> getExactView();
 
-	public double getMinTime()  { return getPreferredApproximation().getTime(0); }
-	public double getMaxTime()  { return getPreferredApproximation().getTime(getPreferredApproximation().getNumEvents()-1); }
-	public double getMinValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMinValue())).getValue(); }
-	public double getMaxValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMaxValue())).getValue(); }
+	public double getMinTime()  { return getExactView().getTime(0); }
+	public double getMaxTime()  { return getExactView().getTime(getExactView().getNumEvents()-1); }
+	public double getMinValue() { return ((ScalarSample)getExactView().getSample(getExactView().getEventWithMinValue())).getValue(); }
+	public double getMaxValue() { return ((ScalarSample)getExactView().getSample(getExactView().getEventWithMaxValue())).getValue(); }
+
+    protected static class DumbRasterView<SS extends Sample> implements Signal.View<RangeSample<SS>> {
+        private final Signal.View<SS> exactView;
+        public DumbRasterView(Signal.View<SS> exactView) { this.exactView = exactView; }
+        public int getNumEvents() { return exactView.getNumEvents(); }
+        public double getTime(int index) { return exactView.getTime(index); }
+        public RangeSample<SS> getSample(int index) {
+            SS ss = exactView.getSample(index);
+            return new RangeSample(ss, ss);
+        }
+        public int getTimeNumerator(int index) { return exactView.getTimeNumerator(index); }
+        public int getTimeDenominator() { return exactView.getTimeDenominator(); }
+        public int getEventWithMaxValue() { return exactView.getEventWithMaxValue(); }
+        public int getEventWithMinValue() { return exactView.getEventWithMinValue(); }
+    }
 
 }

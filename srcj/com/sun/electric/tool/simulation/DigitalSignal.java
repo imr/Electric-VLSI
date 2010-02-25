@@ -240,19 +240,19 @@ public class DigitalSignal extends Signal<ScalarSample>
 		return bounds.getMaxY();
 	}
 
-    public Signal.Approximation<ScalarSample>
+    public Signal.View<ScalarSample>
         getApproximation(double t0, double t1, int numEvents,
                          ScalarSample     v0, ScalarSample     v1, int valueResolution) {
         throw new RuntimeException("not implemented");
     }
-    public Signal.Approximation<ScalarSample> getPixelatedApproximation(double t0, double t1, int numRegions) {
-        throw new RuntimeException("not implemented");
+    public Signal.View<RangeSample<ScalarSample>> getRasterView(double t0, double t1, int numPixels) {
+        return new DumbRasterView<ScalarSample>(getExactView());
     }
-    public Signal.Approximation<ScalarSample> getPreferredApproximation() {
+    public Signal.View<ScalarSample> getExactView() {
         throw new RuntimeException("not implemented");
     }
 
-    private abstract class DigitalSignalApproximation implements Signal.Approximation<ScalarSample> {
+    private abstract class DigitalSignalApproximation implements Signal.View<ScalarSample> {
         /**
          * Method to return the number of events in this signal.
          * This is the number of events along the horizontal axis, usually "time".

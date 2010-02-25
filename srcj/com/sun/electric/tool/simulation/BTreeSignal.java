@@ -32,7 +32,7 @@ public class BTreeSignal extends Signal<ScalarSample> {
     public final int numEvents;
     public final int eventWithMinValue;
     public final int eventWithMaxValue;
-    private Signal.Approximation<ScalarSample> preferredApproximation = null;
+    private Signal.View<ScalarSample> preferredApproximation = null;
     private final BTree<Double,Double,Serializable> tree;
 
     public BTreeSignal(Analysis analysis, String signalName, String signalContext,
@@ -72,7 +72,7 @@ public class BTreeSignal extends Signal<ScalarSample> {
     }
         */
 
-    private Signal.Approximation<ScalarSample> pa = null;
+    private Signal.View<ScalarSample> pa = null;
     private double tmin;
     private double tmax;
     private int    emax;
@@ -81,20 +81,20 @@ public class BTreeSignal extends Signal<ScalarSample> {
     public static int steps = 0;
     public static int numLookups = 0;
 
-    public Signal.Approximation<ScalarSample> getApproximation(double t0, double t1, int numEvents,
+    public Signal.View<ScalarSample> getApproximation(double t0, double t1, int numEvents,
                                                                   ScalarSample v0, ScalarSample v1, int vd) {
         if (vd!=0) throw new RuntimeException("not implemented");
 
         // FIXME: currently ignoring v0/v1
         int e0 = getEventForTime(t0, true);
         int e1 = getEventForTime(t1, false);
-        //System.err.println("t0="+t0+", e0="+e0+", getPreferredApproximation().getTime(e0)="+getPreferredApproximation().getTime(e0));
-        //System.err.println("t1="+t1+", e1="+e1+", getPreferredApproximation().getTime(e1)="+getPreferredApproximation().getTime(e1));
+        //System.err.println("t0="+t0+", e0="+e0+", getExactView().getTime(e0)="+getExactView().getTime(e0));
+        //System.err.println("t1="+t1+", e1="+e1+", getExactView().getTime(e1)="+getExactView().getTime(e1));
         if (numEvents==0) throw new RuntimeException("invalid!");
         return new ApproximationSimpleImpl(e0, e1, numEvents, t0, t1);
     }
 
-    private class ApproximationSimpleImpl implements Signal.Approximation<ScalarSample> {
+    private class ApproximationSimpleImpl implements Signal.View<ScalarSample> {
         private final int    minEvent;
         private final int    maxEvent;
         private final int    numEvents;
@@ -119,7 +119,7 @@ public class BTreeSignal extends Signal<ScalarSample> {
         public int    getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }
     }
 
-    public synchronized Signal.Approximation<ScalarSample> getPreferredApproximation() {
+    public synchronized Signal.View<ScalarSample> getExactView() {
         return preferredApproximation;
     }
 
@@ -133,12 +133,11 @@ public class BTreeSignal extends Signal<ScalarSample> {
         return tree.getOrdFromKeyFloor(t);
     }
 
-    public Signal.Approximation<ScalarSample>
-        getPixelatedApproximation(double t0, double t1, int numRegions) {
-        return new BTreePixelatedApproximation(t0, t1, numRegions);
+    public Signal.View<RangeSample<ScalarSample>> getRasterView(double t0, double t1, int numPixels) {
+        return new BTreeRasterView(t0, t1, numPixels);
     }
 
-    private class BTreeSignalApproximation implements Signal.Approximation<ScalarSample> {
+    private class BTreeSignalApproximation implements Signal.View<ScalarSample> {
         public int getNumEvents() { return numEvents; }
         public double             getTime(int index) {
             Double d = tree.getKeyFromOrd(index);
@@ -156,9 +155,9 @@ public class BTreeSignal extends Signal<ScalarSample> {
         public int getEventWithMinValue() { return eventWithMinValue; }
     }
 
-    private class BTreePixelatedApproximation implements Signal.Approximation<ScalarSample> {
+    private class BTreeRasterView implements Signal.View<RangeSample<ScalarSample>> {
         int[] events;
-        public BTreePixelatedApproximation(double t0, double t1, int numRegions) {
+        public BTreeRasterView(double t0, double t1, int numRegions) {
             int[] events = new int[numRegions];
             int j = 0;
             double stride = (t1-t0)/(numRegions*2);
@@ -183,10 +182,11 @@ public class BTreeSignal extends Signal<ScalarSample> {
             if (d==null) throw new RuntimeException("index "+index+"/"+events[index]+" out of bounds, size="+tree.size());
             return d.doubleValue();
         }
-        public ScalarSample getSample(int index) {
+        public RangeSample<ScalarSample> getSample(int index) {
             Double d = tree.getValFromOrd(events[index]);
             if (d==null) throw new RuntimeException("index out of bounds");
-            return new ScalarSample(d.doubleValue());
+            ScalarSample ss = new ScalarSample(d.doubleValue());
+            return new RangeSample(ss, ss);
         }
         public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
         public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
@@ -210,7 +210,7 @@ public class BTreeSignal extends Signal<ScalarSample> {
     // possible.
     protected int getEventForTime(double t, boolean justLessThan) {
         if (pa==null) {
-            this.pa = getPreferredApproximation();
+            this.pa = getExactView();
             this.emax = pa.getNumEvents()-1;
             this.tmin = pa.getTime(0);
             this.tmax = pa.getTime(this.emax);

@@ -3339,7 +3339,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (net == null) return;
 
 		// find the proper data for the main cursor
-		int numEvents = ds.getPreferredApproximation().getNumEvents();
+		int numEvents = ds.getExactView().getNumEvents();
 		int state = Stimuli.LOGIC_X;
 		for(int i=numEvents-1; i>=0; i--)
 		{
@@ -3642,10 +3642,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (sig instanceof AnalogSignal)
 					{
 						Signal waveform = dumpWaveforms.get(i - 1);
-						if (j < waveform.getPreferredApproximation().getNumEvents())
+						if (j < waveform.getExactView().getNumEvents())
 						{
-                            double t = waveform.getPreferredApproximation().getTime(j);
-                            double v = ((ScalarSample)waveform.getPreferredApproximation().getSample(j)).getValue();
+                            double t = waveform.getExactView().getTime(j);
+                            double v = ((ScalarSample)waveform.getExactView().getSample(j)).getValue();
 							if (entries[0] == null) entries[0] = "" + t;
 							entries[i] = "" + v;
 							haveData = true;
@@ -3653,7 +3653,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					} else if (sig instanceof DigitalSignal)
 					{
 						DigitalSignal ds = (DigitalSignal)sig;
-						if (j < ds.getPreferredApproximation().getNumEvents())
+						if (j < ds.getExactView().getNumEvents())
 						{
 							if (entries[0] == null) entries[0] = "" + ds.getTime(j);
 							entries[i] = "" + ds.getState(j);

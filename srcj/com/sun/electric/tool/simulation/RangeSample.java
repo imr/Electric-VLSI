@@ -29,7 +29,7 @@ import java.io.*;
  *  a Signal<RangeSample<S>> gives the bounds of a Signal<S> over a
  *  period of time.  Signal.View<RangeSample<S>> is a very useful type.
  */
-public class RangeSample<S extends Sample & Comparable> implements Sample {
+public class RangeSample<S extends Sample> implements Sample {
 
     private final S min;
     private final S max;

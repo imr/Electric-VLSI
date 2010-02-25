@@ -91,7 +91,7 @@ public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSign
             if (waveform instanceof BTreeSignal) {
                 // Hack
                 BTreeSignal btns = (BTreeSignal)waveform;
-                Signal.Approximation<ScalarSample> approx = btns.getPreferredApproximation();
+                Signal.View<ScalarSample> approx = btns.getExactView();
                 if (approx.getTime(0) < lowTime)
                     lowTime = approx.getTime(0);
                 if (approx.getTime(approx.getNumEvents()-1) > highTime)
@@ -103,10 +103,10 @@ public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSign
                 continue;
             }
 
-			for(int i=0, numEvents = waveform.getPreferredApproximation().getNumEvents(); i<numEvents; i++)
+			for(int i=0, numEvents = waveform.getExactView().getNumEvents(); i<numEvents; i++)
 			{
-                result[0] = waveform.getPreferredApproximation().getTime(i);
-                result[1] = result[2] = ((ScalarSample)waveform.getPreferredApproximation().getSample(i)).getValue();
+                result[0] = waveform.getExactView().getTime(i);
+                result[1] = result[2] = ((ScalarSample)waveform.getExactView().getSample(i)).getValue();
 
 				double time = result[0];
 				if (sweep == 0)
@@ -152,15 +152,15 @@ public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSign
 		return bounds.getMaxY();
 	}
 
-    public Signal.Approximation<ScalarSample>
+    public Signal.View<ScalarSample>
         getApproximation(double t0, double t1, int numEvents,
                          ScalarSample     v0, ScalarSample     v1, int valueResolution) {
         throw new RuntimeException("not implemented");
     }
-    public Signal.Approximation<ScalarSample> getPixelatedApproximation(double t0, double t1, int numRegions) {
-        throw new RuntimeException("not implemented");
+    public Signal.View<RangeSample<ScalarSample>> getRasterView(double t0, double t1, int numPixels) {
+        return new DumbRasterView<ScalarSample>(getExactView());
     }
-    public Signal.Approximation<ScalarSample> getPreferredApproximation() {
+    public Signal.View<ScalarSample> getExactView() {
         throw new RuntimeException("not implemented");
     }
 }
