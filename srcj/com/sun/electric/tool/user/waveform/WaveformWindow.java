@@ -58,7 +58,6 @@ import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -3576,7 +3575,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			List<Signal> dumpSignals = new ArrayList<Signal>();
 			List<Integer> dumpSweeps = new ArrayList<Integer>();
-			List<Waveform> dumpWaveforms = new ArrayList<Waveform>();
+			List<Signal> dumpWaveforms = new ArrayList<Signal>();
 			for(Panel wp : ww.wavePanels)
 			{
 				if (wp.isHidden()) continue;
@@ -3641,7 +3640,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					Signal sig = dumpSignals.get(i-1);
 					if (sig instanceof AnalogSignal)
 					{
-						Waveform waveform = dumpWaveforms.get(i - 1);
+						Signal waveform = dumpWaveforms.get(i - 1);
 						if (j < waveform.getNumEvents())
 						{
 							waveform.getEvent(j, result);
@@ -3678,7 +3677,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		System.out.println("Wrote " + configurationFileName);
 	}
 
-	private static void addSignalSweep(Signal sig, int s, List<Signal> dumpSignals, List<Integer> dumpSweeps, List<Waveform> waveforms)
+	private static void addSignalSweep(Signal sig, int s, List<Signal> dumpSignals, List<Integer> dumpSweeps, List<Signal> waveforms)
 	{
 		for(int i=0; i<dumpSignals.size(); i++)
 		{
@@ -3686,7 +3685,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 		dumpSignals.add(sig);
 		dumpSweeps.add(new Integer(s));
-		Waveform waveform = null;
+		Signal waveform = null;
 		if (sig instanceof AnalogSignal)
 			waveform = ((AnalogSignal)sig).getWaveform(s == -1 ? 0 : s);
 		waveforms.add(waveform);

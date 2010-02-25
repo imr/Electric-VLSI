@@ -56,7 +56,7 @@ public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSign
 	 * @param sweep sweep index
 	 * @return the waveform of this signal in specified sweep.
 	 */
-	public Waveform getWaveform(int sweep) {
+	public Signal getWaveform(int sweep) {
 		return an.getWaveform(this, sweep);
 	}
 
@@ -87,7 +87,7 @@ public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSign
 		double[] result = new double[3];
 		for (int sweep = 0, numSweeps = getNumSweeps(); sweep < numSweeps; sweep++)
 		{
-			Waveform waveform = getWaveform(sweep);
+			Signal waveform = getWaveform(sweep);
             if (waveform instanceof BTreeSignal) {
                 // Hack
                 BTreeSignal btns = (BTreeSignal)waveform;

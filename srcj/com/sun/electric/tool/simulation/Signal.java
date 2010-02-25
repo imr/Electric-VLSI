@@ -41,7 +41,7 @@ import java.awt.geom.Rectangle2D;
  * require data not yet read will simply block until that part of the
  * stream is processed.
  */
-public abstract class Signal<SS extends Sample> implements Waveform {
+public abstract class Signal<SS extends Sample> {
 
     public Signal(Analysis analysis, String signalName, String signalContext) {
         this.analysis = analysis;
@@ -153,9 +153,25 @@ public abstract class Signal<SS extends Sample> implements Waveform {
 	public double getMinValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMinValue())).getValue(); }
 	public double getMaxValue() { return ((ScalarSample)getPreferredApproximation().getSample(getPreferredApproximation().getEventWithMaxValue())).getValue(); }
 
+
+    // methods formerly part of Waveform.java
+
+    /**
+     * Method to return the number of events in this signal.
+     * This is the number of events along the horizontal axis, usually "time".
+     * @return the number of events in this signal.
+     */
     public int getNumEvents() { return getPreferredApproximation().getNumEvents(); }
+
+    /**
+     * Method to return the value of this signal at a given event index.
+     * @param index the event index (0-based).
+     * @param result double array of length 3 to return (time, lowValue, highValue)
+     * If this signal is not a basic signal, return 0 and print an error message.
+     */
     public void getEvent(int index, double[] result) {
         result[0] = getPreferredApproximation().getTime(index);
         result[1] = result[2] = ((ScalarSample)getPreferredApproximation().getSample(index)).getValue();
     }
+
 }

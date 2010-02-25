@@ -32,7 +32,7 @@ import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.BTreeSignal;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Waveform;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.io.BufferedOutputStream;
@@ -865,7 +865,7 @@ public class EpicOutProcess extends Simulate implements Runnable
             this.tree = tree;
         }
 
-        public Waveform getBWaveform() {
+        public Signal getBWaveform() {
             return new BTreeSignal(null, null, null, evmin, evmax, tree);
         }
 

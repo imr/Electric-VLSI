@@ -28,7 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Waveform;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import com.sun.electric.tool.simulation.*;
@@ -387,18 +387,18 @@ public class EpicAnalysis extends AnalogAnalysis {
             (ps, UnboxedHalfDouble.instance, new UnboxedPair(UnboxedHalfDouble.instance, UnboxedHalfDouble.instance), null, null);
     }
 
-    HashMap<Integer, Waveform> loadWaveformCache =
-        new HashMap<Integer, Waveform>();
+    HashMap<Integer, Signal> loadWaveformCache =
+        new HashMap<Integer, Signal>();
 
     @Override
-        protected Waveform[] loadWaveforms(AnalogSignal signal) {
+        protected Signal[] loadWaveforms(AnalogSignal signal) {
         int index = ((EpicSignal)signal).sigNum;
-        Waveform wave = loadWaveformCache.get(new Integer(index));
-        if (wave == null) return new Waveform[] { };
-        return new Waveform[] { wave };
+        Signal wave = loadWaveformCache.get(new Integer(index));
+        if (wave == null) return new Signal[] { };
+        return new Signal[] { wave };
     }
 
-    void putWaveform(int signum, Waveform w) {
+    void putWaveform(int signum, Signal w) {
         loadWaveformCache.put(new Integer(signum), w);
     }
     
@@ -765,7 +765,7 @@ public class EpicAnalysis extends AnalogAnalysis {
         }
 
         public void calcBounds() {
-            Waveform wave = getWaveform(0);
+            Signal wave = getWaveform(0);
             if (!(wave instanceof BTreeSignal)) { super.calcBounds(); return; }
             BTreeSignal btns = (BTreeSignal)wave;
             this.bounds = new Rectangle2D.Double(btns.getPreferredApproximation().getTime(0),

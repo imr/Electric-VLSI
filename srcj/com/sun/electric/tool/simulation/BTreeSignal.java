@@ -27,7 +27,7 @@ import com.sun.electric.database.geometry.btree.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import com.sun.electric.tool.simulation.*;
 
-public class BTreeSignal extends Signal<ScalarSample> implements Waveform {
+public class BTreeSignal extends Signal<ScalarSample> {
 
     public final int numEvents;
     public final int eventWithMinValue;

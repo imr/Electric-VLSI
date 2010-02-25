@@ -34,7 +34,7 @@ import java.io.*;
 public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	/** all sweeps in this Analysis */							private List<Object> sweeps;
 	/** the common time array (if there is common time) */		private double [] commonTime;
-	/** the common time array (if there is common time) */		private HashMap<AnalogSignal,Waveform[]> waveformCache = new HashMap<AnalogSignal,Waveform[]>();
+	/** the common time array (if there is common time) */		private HashMap<AnalogSignal,Signal[]> waveformCache = new HashMap<AnalogSignal,Signal[]>();
 
 	/**
 	 * Constructor for a collection of analog simulation data.
@@ -144,7 +144,7 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
             if (values[i] > valmax) { evmax = i; valmax = values[i]; }
             if (values[i] < valmin) { evmin = i; valmin = values[i]; }
         }
-        Waveform[] waveforms = { new BTreeSignal(this, signalName, signalContext, evmin, evmax, tree) };
+        Signal[] waveforms = { new BTreeSignal(this, signalName, signalContext, evmin, evmax, tree) };
         waveformCache.put(as, waveforms);
 		return as;
 	}
@@ -183,9 +183,9 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	 * @param sweep sweep index
 	 * @return the waveform of this signal in specified sweep.
 	 */
-	public Waveform getWaveform(AnalogSignal signal, int sweep)
+	public Signal getWaveform(AnalogSignal signal, int sweep)
 	{
-		Waveform[] waveforms = waveformCache.get(signal);
+		Signal[] waveforms = waveformCache.get(signal);
 		if (waveforms == null)
 		{
 			if (signal.getAnalysis() != this)
@@ -197,7 +197,7 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 		return waveforms[sweep];
 	}
 
-	protected Waveform[] loadWaveforms(AnalogSignal signal)
+	protected Signal[] loadWaveforms(AnalogSignal signal)
 	{
 		throw new UnsupportedOperationException();
 	}

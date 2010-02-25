@@ -41,7 +41,6 @@ import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -1461,7 +1460,7 @@ public class Panel extends JPanel
 //				AnalogAnalysis an = as.getAnalysis();
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
                     pw.println();
-					Waveform wave = as.getWaveform(s);
+					Signal wave = as.getWaveform(s);
                     Signal.Approximation pref = ((Signal)wave).getPreferredApproximation();
                     Signal.Approximation waveform = pref /* FIXME */;
 					int numEvents = waveform.getNumEvents();
@@ -1505,7 +1504,7 @@ public class Panel extends JPanel
 				AnalogSignal as = (AnalogSignal)ws.getSignal();
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
                     pw.println();
-					Waveform wave = as.getWaveform(s);
+					Signal wave = as.getWaveform(s);
                     Signal.Approximation pref = ((Signal)wave).getPreferredApproximation();
                     Signal.Approximation waveform = pref /* FIXME */;
 					int numEvents = waveform.getNumEvents();
@@ -1549,7 +1548,7 @@ public class Panel extends JPanel
             if (!(sig instanceof AnalogSignal)) {
                 isUsingBTrees = false;                
             } else {
-                Waveform wave = ((AnalogSignal)sig).getWaveform(0);
+                Signal wave = ((AnalogSignal)sig).getWaveform(0);
                 if (!(wave instanceof BTreeSignal))
                     isUsingBTrees = false;
             }
@@ -1601,13 +1600,13 @@ public class Panel extends JPanel
 					boolean included = waveWindow.isSweepSignalIncluded(an, s);
 					if (!included)
 						continue;
-					Waveform wave = as.getWaveform(s);
+					Signal wave = as.getWaveform(s);
                     Signal.Approximation pref = ((Signal)wave).getPreferredApproximation();
                     Signal.Approximation waveform =
                         ((Signal)wave).getPixelatedApproximation(convertXScreenToData(0),
                                                                  convertXScreenToData(sz.width),
                                                                  sz.width);
-                    Waveform xWaveform = null;
+                    Signal xWaveform = null;
                     if (xSignal != null)
                         xWaveform = ((AnalogSignal)xSignal).getWaveform(s);
 					int lastX = 0, lastLY = 0, lastHY = 0;
@@ -2286,7 +2285,7 @@ public class Panel extends JPanel
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
-                Waveform waveform = as.getWaveform(s);
+                Signal waveform = as.getWaveform(s);
 				int numEvents = waveform.getNumEvents();
 				for(int i=0; i<numEvents; i++)
 				{
@@ -2319,7 +2318,7 @@ public class Panel extends JPanel
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
-                Waveform waveform = as.getWaveform(s);
+                Signal waveform = as.getWaveform(s);
 				int numEvents = waveform.getNumEvents();
                 waveform.getEvent(0, lastResult);
 				Point2D lastPt = new Point2D.Double(convertXDataToScreen(lastResult[0]), convertYDataToScreen((lastResult[1] + lastResult[2]) / 2));

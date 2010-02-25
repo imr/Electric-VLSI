@@ -31,7 +31,7 @@ import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Waveform;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.database.geometry.btree.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 
@@ -105,13 +105,13 @@ public class HSpiceOut extends Simulate
 			super(sd, type, false);
 		}
 
-		protected Waveform[] loadWaveforms(AnalogSignal signal) {
+		protected Signal[] loadWaveforms(AnalogSignal signal) {
 			int sigIndex = signal.getIndexInAnalysis();
-			Waveform[] waveforms = new Waveform[commonTime.length];
+			Signal[] waveforms = new Signal[commonTime.length];
 			for (int sweep = 0; sweep < waveforms.length; sweep++) {
 				double[] times = commonTime[sweep];
 				List<float[]> theSweep = theSweeps.get(sweep);
-				Waveform waveform;
+				Signal waveform;
 				if (getAnalysisType() == ANALYSIS_AC) {
                     BTree<Double,Pair<Double,Double>,Serializable> tree = EpicAnalysis.getComplexTree();
 					double[] realValues = new double[times.length];
