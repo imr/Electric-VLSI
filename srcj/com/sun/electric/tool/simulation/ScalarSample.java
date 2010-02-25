@@ -28,7 +28,7 @@ import java.io.*;
  *  An implementation of Sample for scalar data.  Holds a
  *  double internally.
  */
-public class ScalarSample implements Sample {
+public class ScalarSample implements Sample, Comparable {
 
     private double value;
 

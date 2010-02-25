@@ -28,7 +28,7 @@ import java.io.*;
  *  A Sample is the data assigned to each point in time by a
  *  Signal.
  */
-public interface Sample extends Serializable, Comparable {
+public interface Sample extends Serializable {
 
     /** returns true iff this sample is "X" (unknown) */
     public boolean isLogicX();

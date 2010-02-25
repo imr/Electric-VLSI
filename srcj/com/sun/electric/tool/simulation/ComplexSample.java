@@ -51,15 +51,6 @@ public class ComplexSample implements Sample {
         return ((int)(l & 0xffffffff)) ^ ((int)((l >> 32) & 0xffffffff));
     }
 
-    public int compareTo(Object o) {
-        if (o==null || !(o instanceof ComplexSample))
-            throw new RuntimeException("impossible!");
-        ComplexSample cs = (ComplexSample)o;
-        int ret = Double.compare(real, cs.real);
-        if (ret!=0) return ret;
-        return Double.compare(imag, cs.imag);
-    }
-
     public boolean isLogicX() { return false; }
     public boolean isLogicZ() { return false; }
 

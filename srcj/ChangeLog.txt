@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+IMP: (2/24/10, AM) Sample does not implement Comparable (but
+     ScalarSample does).
+
 IMP: (2/24/10, AM) Remove old Waveform.java methods.
 
 IMP: (2/24/10, AM) Remove "using old/new code" marker on waveform window.
