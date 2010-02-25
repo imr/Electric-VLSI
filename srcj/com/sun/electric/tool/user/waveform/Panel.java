@@ -1532,38 +1532,6 @@ public class Panel extends JPanel
 		int linePointMode = waveWindow.getLinePointMode();
 		Collection<WaveSignal> sigs = waveSignals.values();
 
-        //
-        // At the moment we have two simulation data storage
-        // mechanisms: the old array-based mechanism and the new
-        // BTree-based mechanism.  Sometimes people forget which one
-        // they have turned on, so until the BTree code replaces the
-        // old code (ie until we delete the old code) we display this
-        // reminder so people know which backend they are using and
-        // can report bugs appropriately.  This code will be removed
-        // once the BTree mechanism replaces the old mechanism.
-        //
-        boolean isUsingBTrees = true;
-        for(WaveSignal ws : sigs) {
-            Signal sig = ws.getSignal();
-            if (!(sig instanceof AnalogSignal)) {
-                isUsingBTrees = false;                
-            } else {
-                Signal wave = ((AnalogSignal)sig).getWaveform(0);
-                if (!(wave instanceof BTreeSignal))
-                    isUsingBTrees = false;
-            }
-        }
-        if (Job.getDebug() && g!=null) {
-            g.setColor(gridColor);
-            g.setColor(Color.gray);
-            g.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
-            String msg = isUsingBTrees ? "(using new code)" : "(using legacy simulation code)";
-            g.drawString(msg,
-                         getWidth()-g.getFontMetrics().stringWidth(msg)-10,
-                         getHeight()-10
-                         );
-        }
-
 		int sigIndex = 0;
 		for(WaveSignal ws : sigs)
 		{

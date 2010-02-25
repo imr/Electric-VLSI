@@ -133,11 +133,6 @@ public abstract class Analysis<S extends Signal>
 		return extrapolateToRight;
 	}
 
-    public boolean isUseLegacySimulationCode()
-    {
-        return sd.isUseLegacySimulationCode();
-    }
-
     /**
 	 * Method to get the list of signals in this Simulation Data object.
 	 * @return a List of signals.

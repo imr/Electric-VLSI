@@ -67,7 +67,6 @@ public class SimulatorsTab extends PreferencePanel
 		resimulateEachChange.setSelected(Simulation.isBuiltInResimulateEach());
 		autoAdvanceTime.setSelected(Simulation.isBuiltInAutoAdvance());
 		multistateDisplay.setSelected(Simulation.isWaveformDisplayMultiState());
-		useLegacySimulationCode.setSelected(Simulation.isUseLegacySimulationCode());
 
 		// for IRSIM
 		showCommands.setSelected(Simulation.isIRSIMShowsCommands());
@@ -117,10 +116,6 @@ public class SimulatorsTab extends PreferencePanel
 		currBoolean = multistateDisplay.isSelected();
 		if (currBoolean != Simulation.isWaveformDisplayMultiState())
 			Simulation.setWaveformDisplayMultiState(currBoolean);
-		
-		currBoolean = useLegacySimulationCode.isSelected();
-		if (currBoolean != Simulation.isUseLegacySimulationCode())
-			Simulation.setUseLegacySimulationCode(currBoolean);
 		
 		currBoolean = showCommands.isSelected();
 		if (currBoolean != Simulation.isIRSIMShowsCommands())
@@ -188,7 +183,6 @@ public class SimulatorsTab extends PreferencePanel
         autoAdvanceTime = new javax.swing.JCheckBox();
         resimulateEachChange = new javax.swing.JCheckBox();
         multistateDisplay = new javax.swing.JCheckBox();
-        useLegacySimulationCode = new javax.swing.JCheckBox();
         jPanel2 = new javax.swing.JPanel();
         setParameterFile = new javax.swing.JButton();
         parameterFile = new javax.swing.JTextField();
@@ -245,14 +239,6 @@ public class SimulatorsTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(multistateDisplay, gridBagConstraints);
-
-        useLegacySimulationCode.setText("Use Legacy Code");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(useLegacySimulationCode, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -430,7 +416,6 @@ public class SimulatorsTab extends PreferencePanel
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JCheckBox multistateDisplay;
-    private javax.swing.JCheckBox useLegacySimulationCode;
     private javax.swing.JTextField parameterFile;
     private javax.swing.JCheckBox resimulateEachChange;
     private javax.swing.JButton setParameterFile;

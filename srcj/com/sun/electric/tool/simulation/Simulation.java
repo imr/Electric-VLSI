@@ -2130,8 +2130,4 @@ public class Simulation extends Tool
     public static void setSpiceExtractedNetDelimiter(String s) { cacheSpiceExtractedNetDelimiter.setString(s); }
 	public static String getFactorySpiceExtractedNetDelimiter() { return cacheSpiceExtractedNetDelimiter.getStringFactoryValue(); }
 
-	private static Pref cachedUseLegacySimulationCode = Pref.makeBooleanPref("UseLegacySimulationCode", tool.prefs, false);
-	public static boolean isUseLegacySimulationCode() { return cachedUseLegacySimulationCode.getBoolean(); }
-	public static void setUseLegacySimulationCode(boolean b) { cachedUseLegacySimulationCode.setBoolean(b); }
-	public static boolean isFactoryUseLegacySimulationCode() { return cachedUseLegacySimulationCode.getBooleanFactoryValue(); }
 }

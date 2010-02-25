@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+IMP: (2/24/10, AM) Remove "using old/new code" marker on waveform window.
+
 IMP: (2/24/10, AM) Merge Waveform.java into Signal.java.
 
 BUG: (2/18/10, GVG) Electric litters files in my home directory without
