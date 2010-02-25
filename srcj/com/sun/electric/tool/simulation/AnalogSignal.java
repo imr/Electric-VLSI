@@ -103,9 +103,11 @@ public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSign
                 continue;
             }
 
-			for(int i=0, numEvents = waveform.getNumEvents(); i<numEvents; i++)
+			for(int i=0, numEvents = waveform.getPreferredApproximation().getNumEvents(); i<numEvents; i++)
 			{
-				waveform.getEvent(i, result);
+                result[0] = waveform.getPreferredApproximation().getTime(i);
+                result[1] = result[2] = ((ScalarSample)waveform.getPreferredApproximation().getSample(i)).getValue();
+
 				double time = result[0];
 				if (sweep == 0)
 				{

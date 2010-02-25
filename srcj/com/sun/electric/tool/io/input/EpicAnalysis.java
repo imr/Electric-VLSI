@@ -770,7 +770,7 @@ public class EpicAnalysis extends AnalogAnalysis {
             BTreeSignal btns = (BTreeSignal)wave;
             this.bounds = new Rectangle2D.Double(btns.getPreferredApproximation().getTime(0),
                                                  (btns.getPreferredApproximation().getSample(btns.eventWithMinValue)).getValue(),
-                                                 btns.getPreferredApproximation().getTime(btns.getNumEvents()-1),
+                                                 btns.getPreferredApproximation().getTime(btns.getPreferredApproximation().getNumEvents()-1),
                                                  (btns.getPreferredApproximation().getSample(btns.eventWithMaxValue)).getValue());
         }
         /*

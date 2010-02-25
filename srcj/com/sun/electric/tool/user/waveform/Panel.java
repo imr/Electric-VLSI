@@ -1586,8 +1586,7 @@ public class Panel extends JPanel
                         int highY = convertYDataToScreen(((ScalarSample)waveform.getSample(i)).getValue());
 						if (xWaveform != null)
 						{
-							xWaveform.getEvent(i, result);
-							x = convertXDataToScreen(result[1]);
+							x = convertXDataToScreen(((ScalarSample)xWaveform.getPreferredApproximation().getSample(i)).getValue());
 						}
 
 						// draw lines if requested and line is on-screen
@@ -1657,7 +1656,7 @@ public class Panel extends JPanel
 						for(Signal subSig : bussedSignals)
 						{
 							DigitalSignal subDS = (DigitalSignal)subSig;
-							int numEvents = subDS.getNumEvents();
+							int numEvents = subDS.getPreferredApproximation().getNumEvents();
 							boolean undefined = false;
 							for(int i=0; i<numEvents; i++)
 							{
@@ -1742,7 +1741,7 @@ public class Panel extends JPanel
 				int lastx = vertAxisPos;
 				int lastState = 0;
 				if (ds.getStateVector() == null) continue;
-				int numEvents = ds.getNumEvents();
+				int numEvents = ds.getPreferredApproximation().getNumEvents();
 				int lastLowy = 0, lastHighy = 0;
 				for(int i=0; i<numEvents; i++)
 				{
@@ -2254,10 +2253,11 @@ public class Panel extends JPanel
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
                 Signal waveform = as.getWaveform(s);
-				int numEvents = waveform.getNumEvents();
+				int numEvents = waveform.getPreferredApproximation().getNumEvents();
 				for(int i=0; i<numEvents; i++)
 				{
-                    waveform.getEvent(i, result);
+                    result[0] = waveform.getPreferredApproximation().getTime(i);                                            
+                    result[1] = result[2] = ((ScalarSample)waveform.getPreferredApproximation().getSample(i)).getValue();   
 					int x = convertXDataToScreen(result[0]);
                     int lowY = convertYDataToScreen(result[1]);
                     int highY = convertYDataToScreen(result[2]);
@@ -2287,12 +2287,14 @@ public class Panel extends JPanel
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
                 Signal waveform = as.getWaveform(s);
-				int numEvents = waveform.getNumEvents();
-                waveform.getEvent(0, lastResult);
+				int numEvents = waveform.getPreferredApproximation().getNumEvents();
+                result[0] = waveform.getPreferredApproximation().getTime(0);                                            
+                result[1] = result[2] = ((ScalarSample)waveform.getPreferredApproximation().getSample(0)).getValue();   
 				Point2D lastPt = new Point2D.Double(convertXDataToScreen(lastResult[0]), convertYDataToScreen((lastResult[1] + lastResult[2]) / 2));
 				for(int i=1; i<numEvents; i++)
 				{
-                    waveform.getEvent(i, result);
+                    result[0] = waveform.getPreferredApproximation().getTime(i);                                            
+                    result[1] = result[2] = ((ScalarSample)waveform.getPreferredApproximation().getSample(i)).getValue();   
 					Point2D thisPt = new Point2D.Double(convertXDataToScreen(result[0]), convertYDataToScreen((result[1] + result[2]) / 2));
 					Point2D closest = GenMath.closestPointToSegment(lastPt, thisPt, snap);
 					if (closest.distance(snap) < 5)

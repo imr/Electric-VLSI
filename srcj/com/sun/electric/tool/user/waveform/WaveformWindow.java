@@ -57,6 +57,7 @@ import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
@@ -3338,7 +3339,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (net == null) return;
 
 		// find the proper data for the main cursor
-		int numEvents = ds.getNumEvents();
+		int numEvents = ds.getPreferredApproximation().getNumEvents();
 		int state = Stimuli.LOGIC_X;
 		for(int i=numEvents-1; i>=0; i--)
 		{
@@ -3641,17 +3642,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (sig instanceof AnalogSignal)
 					{
 						Signal waveform = dumpWaveforms.get(i - 1);
-						if (j < waveform.getNumEvents())
+						if (j < waveform.getPreferredApproximation().getNumEvents())
 						{
-							waveform.getEvent(j, result);
-							if (entries[0] == null) entries[0] = "" + result[0];
-							entries[i] = "" + result[1];
+                            double t = waveform.getPreferredApproximation().getTime(j);
+                            double v = ((ScalarSample)waveform.getPreferredApproximation().getSample(j)).getValue();
+							if (entries[0] == null) entries[0] = "" + t;
+							entries[i] = "" + v;
 							haveData = true;
 						}
 					} else if (sig instanceof DigitalSignal)
 					{
 						DigitalSignal ds = (DigitalSignal)sig;
-						if (j < ds.getNumEvents())
+						if (j < ds.getPreferredApproximation().getNumEvents())
 						{
 							if (entries[0] == null) entries[0] = "" + ds.getTime(j);
 							entries[i] = "" + ds.getState(j);

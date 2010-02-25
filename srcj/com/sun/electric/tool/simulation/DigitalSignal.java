@@ -193,17 +193,6 @@ public class DigitalSignal extends Signal<ScalarSample>
 	}
 
 	/**
-	 * Method to return the number of events in this signal.
-	 * This is the number of events along the horizontal axis, usually "time".
-	 * @return the number of events in this signal.
-	 */
-	public int getNumEvents()
-	{
-		if (state == null) return 0;
-		return state.length;
-	}
-
-	/**
 	 * Method to compute the low and high range of time value on this signal.
 	 * The result is stored in the "bounds", "leftEdge", and "rightEdge" field variables.
 	 */
@@ -261,5 +250,18 @@ public class DigitalSignal extends Signal<ScalarSample>
     }
     public Signal.Approximation<ScalarSample> getPreferredApproximation() {
         throw new RuntimeException("not implemented");
+    }
+
+    private abstract class DigitalSignalApproximation implements Signal.Approximation<ScalarSample> {
+        /**
+         * Method to return the number of events in this signal.
+         * This is the number of events along the horizontal axis, usually "time".
+         * @return the number of events in this signal.
+         */
+        public int getNumEvents()
+        {
+            if (state == null) return 0;
+            return state.length;
+        }
     }
 }
