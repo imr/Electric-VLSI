@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+IMP: (2/24/10, AM) Add RangeSample.
+
 IMP: (2/24/10, AM) Sample does not implement Comparable (but
      ScalarSample does).
 
