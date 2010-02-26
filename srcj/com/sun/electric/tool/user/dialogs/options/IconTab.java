@@ -29,6 +29,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
@@ -44,7 +45,7 @@ import javax.swing.JPanel;
 public class IconTab extends PreferencePanel
 {
 	/** Creates new form IconTab */
-	public IconTab(Frame parent, boolean modal)
+	public IconTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();

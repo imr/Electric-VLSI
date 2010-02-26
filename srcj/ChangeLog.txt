@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+BUG: (2/25/10, GVG) NPE in Preferences -> Technology -> Icon
+FIX: Switch IconTab from Frame to PreferencesFrame constructor
+
 IMP: (2/24/10, AM) Rename Approximation->View, add
      Signal.getRasterView() which returns a RangeSample
 

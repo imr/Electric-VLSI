@@ -303,7 +303,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new DesignRulesTab(this, true), techSet);
 		addTreeNode(new ScaleTab(this, true), techSet);
 		addTreeNode(new UnitsTab(parent, true), techSet);
-		addTreeNode(new IconTab(parent, true), techSet);
+		addTreeNode(new IconTab(this, true), techSet);
 
 		// pre-expand the tree
 		TreePath topPath = optionTree.getPathForRow(0);
