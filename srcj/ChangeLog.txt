@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+IMP/MAN: (2/26/10, GVG) -debug and -regression don't work very well (Bug #2668)
+
 BUG: (2/25/10, DN) Icon vs sch ports (Bug #2533).
 FIX: In NetSchem connect exports by Name instead of by portImplementation.
 
