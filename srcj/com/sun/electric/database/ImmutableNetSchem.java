@@ -842,11 +842,11 @@ class ImmutableNetSchem {
                 continue;
             }
             IconInst iconInst = iconInsts[k];
-            assert iconInst.nodeInst == n;
             if (iconInst == null || iconInst.iconOfParent) {
                 continue;
             }
 
+            assert iconInst.nodeInst == n;
             CellId subCellId = (CellId)n.protoId;
             assert subCellId.isIcon() || subCellId.isSchematic();
             EquivalentSchematicExports iconEq = iconInst.eq;
