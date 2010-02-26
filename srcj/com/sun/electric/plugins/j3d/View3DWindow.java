@@ -666,13 +666,15 @@ public class View3DWindow extends JPanel
             {
                 int[] active = new int[2];
                 boolean isSerpentine = no.isSerpentineTransistor();
+                boolean isCBTransistor = no.getFunction().isCNTransistor();
                 boxList = new ArrayList<Shape3D>(4);
 
                 // Merge active regions
                 for (int i = 0; i < polys.length; i++)
                 {
                     Layer.Function fun = polys[i].getLayer().getFunction();
-                    if (!isSerpentine && fun.isDiff())
+                    // count the # of active regions first. Merge only if 2 are founded (assumption of simple transistor)
+                    if (!isSerpentine && !isCBTransistor && fun.isDiff())
                     {
                         // The 3D code will merge the active only for simple transistors.
                         // Only 2 active regions are allowed for non-serpentine

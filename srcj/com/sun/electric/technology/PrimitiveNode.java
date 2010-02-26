@@ -645,7 +645,16 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 */
 		public boolean isTransistor() { return isTransistor; }
 
-		/**
+        /**
+         * Method to tell whether this function describes a carbon-nanotube transistor.
+         * @return true if this function describes a carbon-nanotube transistor.
+         */
+        public boolean isCNTransistor()
+        {
+            return this == TRANMOSCN || this == TRA4NMOSCN || this == TRAPMOSCN || this == TRA4PMOSCN;
+        }
+
+        /**
 		 * Method to tell whether this function describes a field-effect transtor.
 		 * This includes the nMOS, PMOS, and DMOS transistors, as well as the DMES and EMES transistors.
 		 * @return true if this function describes a field-effect transtor.
