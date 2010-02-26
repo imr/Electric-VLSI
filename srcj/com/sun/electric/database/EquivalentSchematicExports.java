@@ -25,7 +25,6 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.text.ImmutableArrayList;
 
@@ -33,7 +32,6 @@ import com.sun.electric.database.text.Name;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Map;
 
 /**
  *
@@ -48,7 +46,7 @@ public class EquivalentSchematicExports {
     public final int[] portOffsets;
     public final int numExpandedExports;
     final ImmutableArrayList<ImmutableExport> exports;
-    private final HashMap<ExportId, Global.Set[]> globalPartitions;
+    public final IdentityHashMap<Name, Global.Set> globalPartitions;
     private IdentityHashMap<Name, Integer> exportNameMapOffsets;
     /**
      * Equivalence of ports.
@@ -162,16 +160,8 @@ public class EquivalentSchematicExports {
                 return false;
             }
         } else {
-            if (this.globalPartitions.size() != that.globalPartitions.size()) {
+            if (!this.globalPartitions.equals(that.globalPartitions)) {
                 return false;
-            }
-            for (Map.Entry<ExportId, Global.Set[]> e : this.globalPartitions.entrySet()) {
-                ExportId eId = e.getKey();
-                Global.Set[] thisG = e.getValue();
-                Global.Set[] thatG = that.globalPartitions.get(eId);
-                if (!Arrays.equals(thisG, thatG)) {
-                    return false;
-                }
             }
         }
         return Arrays.equals(this.equivPortsN, that.equivPortsN)

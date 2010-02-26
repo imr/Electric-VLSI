@@ -474,45 +474,42 @@ class NetSchem extends NetCell {
                 Global.Set gs = eq.implementation.globals;
 
                 // Check for rebinding globals
-                int numPortInsts = np.getNumPorts();
-                Set<Global> gb = null;
-                for (int j = 0; j < numPortInsts; j++) {
-                    PortInst pi = ni.getPortInst(j);
-                    int piOffset = getPortInstOffset(pi);
-                    int drawn = drawns[piOffset];
-                    if (drawn < 0 || drawn >= numConnectedDrawns) {
-                        continue;
-                    }
-                    int portIndex = eq.portImplementation[j];
-                    if (portIndex < 0) {
-                        continue;
-                    }
-                    Export e = database.getCell(eq.implementation.cellId).getPort(portIndex);
-                    if (!e.isGlobalPartition()) {
-                        continue;
-                    }
-                    if (gb == null) {
-                        gb = new HashSet<Global>();
-                    }
-                    int[] eqN = eq.implementation.getEquivPortsN();
-                    for (int k = 0, busWidth = e.getNameKey().busWidth(); k < busWidth; k++) {
-                        int q = eqN[eq.implementation.portOffsets[portIndex] + k];
-                        for (int l = 0; l < eq.implementation.globals.size(); l++) {
-                            if (eqN[l] == q) {
-                                Global g = eq.implementation.globals.get(l);
+                if (eq.implementation.globalPartitions != null) {
+                    int numPortInsts = np.getNumPorts();
+                    Set<Global> gb = null;
+                    for (int j = 0; j < numPortInsts; j++) {
+                        PortInst pi = ni.getPortInst(j);
+                        int piOffset = getPortInstOffset(pi);
+                        int drawn = drawns[piOffset];
+                        if (drawn < 0 || drawn >= numConnectedDrawns) {
+                            continue;
+                        }
+                        Export e = (Export)pi.getPortProto();
+                        Name busName = e.getNameKey();
+                        for (int busIndex = 0; busIndex < busName.busWidth(); busIndex++) {
+                            Name exportName = busName.subname(busIndex);
+                            Global.Set globalsOnElement = eq.implementation.globalPartitions.get(exportName);
+                            if (globalsOnElement == null) {
+                                continue;
+                            }
+                            if (gb == null) {
+                                gb = new HashSet<Global>();
+                            }
+                            for (int l = 0; l < globalsOnElement.size(); l++) {
+                                Global g = globalsOnElement.get(l);
                                 gb.add(g);
                             }
                         }
                     }
-                }
-                if (gb != null) {
-                    // remember excluded globals for this NodeInst
-                    if (nodeInstExcludeGlobal == null) {
-                        nodeInstExcludeGlobal = new HashMap<NodeInst, Set<Global>>();
+                    if (gb != null) {
+                        // remember excluded globals for this NodeInst
+                        if (nodeInstExcludeGlobal == null) {
+                            nodeInstExcludeGlobal = new HashMap<NodeInst, Set<Global>>();
+                        }
+                        nodeInstExcludeGlobal.put(ni, gb);
+                        // fix Set of globals
+                        gs = gs.remove(gb.iterator());
                     }
-                    nodeInstExcludeGlobal.put(ni, gb);
-                    // fix Set of globals
-                    gs = gs.remove(gb.iterator());
                 }
 
                 String errorMsg = globalBuf.addToBuf(gs);

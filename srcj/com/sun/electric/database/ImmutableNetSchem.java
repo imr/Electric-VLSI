@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -110,7 +111,7 @@ class ImmutableNetSchem {
     int[] equivPortsN;
     int[] equivPortsP;
     int[] equivPortsA;
-    HashMap<ExportId,Global.Set[]> globalPartitions;
+    IdentityHashMap<Name,Global.Set> globalPartitions;
 
     /* Implementation of this NetSchem. */ CellId implementationCellId;
     /* Mapping from ports of this to ports of implementation. */ int[] portImplementation;
@@ -626,44 +627,43 @@ class ImmutableNetSchem {
                 Global.Set gs = schemEq.getGlobals();
 
                 // Check for rebinding globals
-                int numPortInsts = getNumPorts(n.protoId);
-                Set<Global> gb = null;
-                for (int j = 0; j < numPortInsts; j++) {
-                    PortInst pi = new PortInst(n.nodeId, getPortIdByIndex(n.protoId, j));
-                    int piOffset = pi.getPortInstOffset();
-                    int drawn = drawns[piOffset];
-                    if (drawn < 0 || drawn >= numConnectedDrawns) {
-                        continue;
-                    }
-                    int portIndex = netEq.portImplementation[j];
-                    if (portIndex < 0) {
-                        continue;
-                    }
-                    ImmutableExport e = schemEq.exports.get(portIndex);
-                    if (!isGlobalPartition(e)) {
-                        continue;
-                    }
-                    if (gb == null) {
-                        gb = new HashSet<Global>();
-                    }
-                    for (int k = 0, busWidth = e.name.busWidth(); k < busWidth; k++) {
-                        int q = schemEq.equivPortsN[schemEq.portOffsets[portIndex] + k];
-                        for (int l = 0; l < schemEq.getGlobals().size(); l++) {
-                            if (schemEq.equivPortsN[l] == q) {
-                                Global g = schemEq.getGlobals().get(l);
+                if (schemEq.implementation.globalPartitions != null) {
+                    int numPortInsts = getNumPorts(n.protoId);
+                    Set<Global> gb = null;
+                    for (int j = 0; j < numPortInsts; j++) {
+                        PortInst pi = new PortInst(n.nodeId, getPortIdByIndex(n.protoId, j));
+                        int piOffset = pi.getPortInstOffset();
+                        int drawn = drawns[piOffset];
+                        if (drawn < 0 || drawn >= numConnectedDrawns) {
+                            continue;
+                        }
+                        ImmutableExport e = netEq.exports.get(j);
+                        assert e.exportId == pi.portId;
+                        Name busName = e.name;
+                        for (int busIndex = 0; busIndex < busName.busWidth(); busIndex++) {
+                            Name exportName = busName.subname(busIndex);
+                            Global.Set globalsOnElement = schemEq.globalPartitions.get(exportName);
+                            if (globalsOnElement == null) {
+                                continue;
+                            }
+                            if (gb == null) {
+                                gb = new HashSet<Global>();
+                            }
+                            for (int l = 0; l < globalsOnElement.size(); l++) {
+                                Global g = globalsOnElement.get(l);
                                 gb.add(g);
                             }
                         }
                     }
-                }
-                if (gb != null) {
-                    // remember excluded globals for this NodeInst
-                    if (nodeInstExcludeGlobal == null) {
-                        nodeInstExcludeGlobal = new HashMap<ImmutableNodeInst, Set<Global>>();
+                    if (gb != null) {
+                        // remember excluded globals for this NodeInst
+                        if (nodeInstExcludeGlobal == null) {
+                            nodeInstExcludeGlobal = new HashMap<ImmutableNodeInst, Set<Global>>();
+                        }
+                        nodeInstExcludeGlobal.put(n, gb);
+                        // fix Set of globals
+                        gs = gs.remove(gb.iterator());
                     }
-                    nodeInstExcludeGlobal.put(n, gb);
-                    // fix Set of globals
-                    gs = gs.remove(gb.iterator());
                 }
 
                 String errorMsg = globalBuf.addToBuf(gs);
@@ -1148,7 +1148,9 @@ class ImmutableNetSchem {
             if (!isGlobalPartition(e)) {
                 continue;
             }
-            Global.Set[] globs = null;
+            if (globalPartitions == null) {
+                globalPartitions = new IdentityHashMap<Name,Global.Set>();
+            }
             for (int k = 0, busWidth = e.name.busWidth(); k < busWidth; k++) {
                 Global.Buf globalBuf = null;
                 int q = equivPortsN[portOffsets[exportIndex] + k];
@@ -1160,16 +1162,13 @@ class ImmutableNetSchem {
                     }
                 }
                 if (globalBuf == null) continue;
-                if (globs == null) {
-                    globs = new Global.Set[busWidth];
+                Name n = e.name.subname(k);
+                Global.Set globs = globalPartitions.get(n);
+                if (globs != null) {
+                    globalBuf.addToBuf(globs);
                 }
-                globs[k] = globalBuf.getBuf();
+                globalPartitions.put(n, globalBuf.getBuf());
             }
-            if (globs == null) continue;
-            if (globalPartitions == null) {
-                globalPartitions = new HashMap<ExportId,Global.Set[]>();
-            }
-            globalPartitions.put(e.exportId, globs);
         }
     }
 
