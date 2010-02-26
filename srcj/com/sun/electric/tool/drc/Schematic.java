@@ -50,8 +50,10 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -185,6 +187,7 @@ public class Schematic
         }
 
         checkCaseInsensitiveNetworks(netlist, eg);
+        checkArrayedIconsConflicts(cell, eg);
 
         int errorCount = errorLogger.getNumErrors();
         int thisErrors = errorCount - initialErrorCount;
@@ -554,6 +557,28 @@ public class Schematic
                     push(geomList, net);
                     push(geomList, net1);
                     errorLogger.logMessage(message, geomList, cell, eg.getSortKey(), sameName);
+                }
+            }
+        }
+    }
+
+    private void checkArrayedIconsConflicts(Cell cell, ErrorGrouper eg) {
+        IdentityHashMap<Name,NodeInst> name2node = new IdentityHashMap<Name,NodeInst>();
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = it.next();
+            Name n = ni.getNameKey();
+            if (n.isTempname()) {
+                continue;
+            }
+            for (int arrayIndex = 0; arrayIndex < n.busWidth(); arrayIndex++) {
+                Name subName = n.subname(arrayIndex);
+                NodeInst oni = name2node.get(subName);
+                if (oni != null) {
+                        String msg = "Network: " + cell + " has instances " + ni + " and "
+                                + oni + " with same name <" + subName + ">";
+                        System.out.println(msg);
+                        List<Geometric> geomList = Arrays.<Geometric>asList(ni, oni);
+                        errorLogger.logMessage(msg, geomList, cell, eg.getSortKey(), true);
                 }
             }
         }

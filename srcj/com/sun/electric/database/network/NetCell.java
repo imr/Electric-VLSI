@@ -638,9 +638,9 @@ public class NetCell {
         return ni_pi[pi.getNodeInst().getNodeIndex()] + pi.getPortProto().getPortIndex();
     }
 
-    int getPortOffset(int portIndex, int busIndex) {
-        return busIndex == 0 ? portIndex : -1;
-    }
+//    int getPortOffset(int portIndex, int busIndex) {
+//        return busIndex == 0 ? portIndex : -1;
+//    }
 
     NetSchem getSchem() {
         return null;

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+BUG: (2/25/10, DN) Icon vs sch ports (Bug #2533).
+FIX: In NetSchem connect exports by Name instead of by portImplementation.
+
 BUG: (2/25/10, GVG) NPE in Preferences -> Technology -> Icon
 FIX: Switch IconTab from Frame to PreferencesFrame constructor
 

@@ -158,6 +158,14 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
     }
 
     /**
+     * Returns true if this NodeProtoId is Id of schematic Cell.
+     * @return true if this NodeProtoId is Id of schematic Cell.
+     */
+    public boolean isSchematic() {
+        return false;
+    }
+
+    /**
      * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.
      * @return the NodeProto representing NodeProtoId in the specified database.

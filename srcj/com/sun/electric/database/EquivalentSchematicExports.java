@@ -40,7 +40,6 @@ public class EquivalentSchematicExports {
 
     public final CellId cellId;
     public final EquivalentSchematicExports implementation;
-    public final int[] portImplementation;
     public final Global.Set globals;
     public final int numExports;
     public final int[] portOffsets;
@@ -60,7 +59,6 @@ public class EquivalentSchematicExports {
     EquivalentSchematicExports(ImmutableNetSchem netSchem) {
         cellId = netSchem.cellTree.top.cellRevision.d.cellId;
         implementation = cellId == netSchem.implementationCellId ? this : netSchem.snapshot.equivSchemExports[netSchem.implementationCellId.cellIndex];
-        portImplementation = netSchem.portImplementation;
         exports = netSchem.cellTree.top.cellRevision.exports;
         numExports = exports.size();
         numExpandedExports = netSchem.equivPortsN.length;
@@ -133,9 +131,6 @@ public class EquivalentSchematicExports {
             return false;
         }
         if (cellId != implementation.cellId && !this.implementation.equals(that.implementation)) {
-            return false;
-        }
-        if (!Arrays.equals(this.portImplementation, that.portImplementation)) {
             return false;
         }
         if (this.globals != that.globals) {
