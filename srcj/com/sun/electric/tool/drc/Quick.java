@@ -4199,7 +4199,8 @@ public class Quick
             if (isTransistor)
             {
                 Poly [] list = tech.getShapeOfNode(ni, false, true, activeLayers);
-                assert(list.length == 1);
+                boolean isCBTransistor = pNp.getFunction().isCNTransistor();
+                if (!isCBTransistor) assert(list.length == 1);
                 activePoly = list[0];
             }
             // Don't get electric layers in case of transistors otherwise it is hard to detect ports
@@ -4356,7 +4357,8 @@ public class Quick
             if (isTransistor)
             {
                 Poly [] list = tech.getShapeOfNode(ni, false, true, activeLayers);
-                assert(list.length == 1);
+                boolean isCBTransistor = pNp.getFunction().isCNTransistor();
+                if (!isCBTransistor) assert(list.length == 1);
                 activePoly = list[0];
             }
             // Don't get electric layers in case of transistors otherwise it is hard to detect ports

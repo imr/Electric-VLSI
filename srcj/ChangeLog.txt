@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+BUG: (2/26/10, GVG) DRC fails when transistor has more than 1 active layer (Bug #2669)
+FIX: Condition removed for carbon-nanotube transistors.
+
 BUG: (2/26/10, GVG) 3D View doesn't allow transistors with more than 2 active regions (Bug #2670)
 FIX: Detecting CN transistors now whose active layers are not merged
 
