@@ -31,6 +31,7 @@ package com.sun.electric.tool.placement.forceDirected1;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementParameter;
 import com.sun.electric.tool.placement.forceDirected1.metric.BBMetric;
 import com.sun.electric.tool.placement.forceDirected1.metrics.PAMetric;
 
@@ -50,9 +51,11 @@ import java.util.concurrent.CyclicBarrier;
 public class PlacementForceDirectedTeam5 extends PlacementFrame {
 	//------ Parameters from the standalone Placementframe -------------
 	// maximum runtime of the placement algorithm in seconds
-	public int maxRuntime = 60;
+	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime", "Runtime (seconds):", 60);
+//	public int maxRuntime = 60;
 	// number of threads
-	public int numThreads = 4;
+	public PlacementParameter maxThreadsParam = new PlacementParameter("threads", "Number of threads:", 4);
+//	public int numThreads = 4;
 	// if false: NO system.out.println statements
 	public boolean printDebugInformation = true;
 	
@@ -88,11 +91,23 @@ public class PlacementForceDirectedTeam5 extends PlacementFrame {
 		return "Force-Directed-1";
 	}
 
-	public void setBenchmarkValues(int runtime, int threads, boolean debug) {
-		maxRuntime = runtime;
-		numThreads = threads;
-		printDebugInformation = debug;
+	/**
+	 * Method to return a list of parameters for this placement algorithm.
+	 * @return a list of parameters for this placement algorithm.
+	 */
+	public List<PlacementParameter> getParameters()
+	{
+		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
+		allParams.add(maxRuntimeParam);
+		allParams.add(maxThreadsParam);
+		return allParams;
 	}
+
+//	public void setBenchmarkValues(int runtime, int threads, boolean debug) {
+//		maxRuntime = runtime;
+//		numThreads = threads;
+//		printDebugInformation = debug;
+//	}
 	
 	// --- Force-Directed placement -------------------------------------------
 
@@ -216,7 +231,7 @@ public class PlacementForceDirectedTeam5 extends PlacementFrame {
 
 		// force directed placement
 		if(printDebugInformation) {
-			dbg.println("Threads",numThreads);
+			dbg.println("Threads",maxThreadsParam.getIntValue());
 			dbg.println("Nodes",nodesToPlace.size());
 			dbg.tick();
 		}
@@ -242,7 +257,7 @@ public class PlacementForceDirectedTeam5 extends PlacementFrame {
 			chipArea.compute();
 			whRatio = chipArea.getWidth() / chipArea.getHeight();
 			if(nodesToPlace.size()>3000 ||((nodesToPlace.size() > 1000 && 
-					nodesToPlace.size() < 3000 && maxRuntime < 120))) {
+					nodesToPlace.size() < 3000 && maxRuntimeParam.getIntValue() < 120))) {
 				overlap = resolveOverlapsFast(overlapWeightingFactor, whRatio);
 			} else {
 				overlap = resolveOverlaps(overlapWeightingFactor, whRatio);
@@ -716,6 +731,7 @@ public class PlacementForceDirectedTeam5 extends PlacementFrame {
 	private void startThreads() {
 		// inputs: nodesToPlace
 		// outputs: task[], worker[]
+		int numThreads = maxThreadsParam.getIntValue();
 		task = new Thread[numThreads];
 		worker = new WorkerThread[numThreads];
 		barrier = new CyclicBarrier(numThreads,new JoinThread());
@@ -756,7 +772,7 @@ public class PlacementForceDirectedTeam5 extends PlacementFrame {
 				e.printStackTrace();
 			}
 		if (printDebugInformation) {
-			for (int i = 0; i < numThreads; i++) {
+			for (int i = 0; i < maxThreadsParam.getIntValue(); i++) {
 				worker[i].dbg.flush("=== THREAD-"+i+" ===========================");
 				task[i] = null;
 				worker[i] = null;
@@ -772,6 +788,7 @@ public class PlacementForceDirectedTeam5 extends PlacementFrame {
 	private long timeoutEnd;		// timeout for the complete algorithm, hard deadline
 	private long timeoutLevel;		// timeout for current phase
 	private void initTimeout(int phase) {
+		int maxRuntime = maxRuntimeParam.getIntValue();
 		switch(phase) {
 			case 0: // swapNodes 
 				timeoutStart = System.currentTimeMillis();

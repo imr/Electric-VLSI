@@ -37,6 +37,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -127,6 +128,97 @@ public class PlacementFrame
 	 * @return the name of the placement algorithm.
 	 */
 	public String getAlgorithmName() { return "?"; }
+
+	/**
+	 * Method to return a list of parameters for this placement algorithm.
+	 * @return a list of parameters for this placement algorithm.
+	 */
+	public List<PlacementParameter> getParameters() { return null; }
+
+	/**
+	 * Class to define a parameter for a placement algorithm.
+	 */
+	public class PlacementParameter
+	{
+		public static final int TYPEINTEGER = 1;
+		public static final int TYPESTRING = 2;
+		public static final int TYPEDOUBLE = 3;
+
+		private String title;
+		private int type;
+		private Pref pref;
+		private int tempInt;
+		private String tempString;
+		private double tempDouble;
+		private boolean tempValueSet;
+
+		public PlacementParameter(String name, String title, int factory)
+		{
+			this.title = title;
+			type = TYPEINTEGER;
+			tempValueSet = false;
+			pref = Pref.makeIntPref(getAlgorithmName()+"-"+name, Placement.getPlacementTool().prefs, factory);
+		}
+
+		public PlacementParameter(String name, String title, String factory)
+		{
+			this.title = title;
+			type = TYPESTRING;
+			tempValueSet = false;
+			pref = Pref.makeStringPref(getAlgorithmName()+"-"+name, Placement.getPlacementTool().prefs, factory);
+		}
+
+		public PlacementParameter(String name, String title, double factory)
+		{
+			this.title = title;
+			type = TYPEDOUBLE;
+			tempValueSet = false;
+			pref = Pref.makeDoublePref(getAlgorithmName()+"-"+name, Placement.getPlacementTool().prefs, factory);
+		}
+
+		public String getName() { return title; }
+
+		public int getType() { return type; }
+
+		public int getIntValue() { return pref.getInt(); }
+
+		public String getStringValue() { return pref.getString(); }
+
+		public double getDoubleValue() { return pref.getDouble(); }
+
+		public void resetToFactory() { pref.factoryReset(); }
+
+		/******************** TEMP VALUES DURING THE PREFERENCES DIALOG ********************/ 
+
+		public int getTempIntValue() { return tempInt; }
+
+		public String getTempStringValue() { return tempString; }
+
+		public double getTempDoubleValue() { return tempDouble; }
+		
+		public void setTempIntValue(int i) { tempInt = i;   tempValueSet = true; }
+
+		public void setTempStringValue(String s) { tempString = s;   tempValueSet = true; }
+
+		public void setTempDoubleValue(double d) { tempDouble = d;   tempValueSet = true; }
+
+		public boolean hasTempValue() { return tempValueSet; }
+
+		public void clearTempValue() { tempValueSet = false; }
+
+		public void makeTempSettingReal()
+		{
+			if (tempValueSet)
+			{
+				switch (type)
+				{
+					case TYPEINTEGER: pref.setInt(tempInt);        break;
+					case TYPESTRING:  pref.setString(tempString);  break;
+					case TYPEDOUBLE:  pref.setDouble(tempDouble);  break;
+				}
+			}
+		}
+	}
 
 	/**
 	 * Class to define a node that is being placed.

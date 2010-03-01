@@ -30,6 +30,7 @@ package com.sun.electric.tool.placement.simulatedAnnealing2;
 
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementParameter;
 import com.sun.electric.tool.placement.simulatedAnnealing2.PositionIndex.AreaSnapshot;
 
 import java.awt.geom.Point2D;
@@ -52,8 +53,9 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 	String studentName1 = "Sebastian";
 	String studentName2 = "Jochen";
 	String algorithmType = "simulated annealing";
-	
-	public int numThreads = 2;
+
+	public PlacementParameter numThreadsParam = new PlacementParameter("threads", "Number of threads:", 2);
+
 	public int maxRuntime = 0; // in seconds, 0 means no time limit
 
 	public boolean printDebugInformation = false;
@@ -126,6 +128,17 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 	 * @return the name of this placement algorithm.
 	 */
 	public String getAlgorithmName() { return "Simulated-Annealing-2"; }
+
+	/**
+	 * Method to return a list of parameters for this placement algorithm.
+	 * @return a list of parameters for this placement algorithm.
+	 */
+	public List<PlacementParameter> getParameters()
+	{
+		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
+		allParams.add(numThreadsParam);
+		return allParams;
+	}
 
 	/**
 	 * Method that counts how often the temperature will be decreased before going below 1
@@ -202,7 +215,8 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 			netLengths.put(net, new Double(metric.netLength( net, proxyMap )));
 			
 		stepStartTime = System.nanoTime();
-		
+
+		int numThreads = numThreadsParam.getIntValue();
 		SimulatedAnnealing[] threads = new SimulatedAnnealing[numThreads];
 
 		for(int n = 0; n < numThreads; n++)
@@ -312,6 +326,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 	{
 		double time = System.currentTimeMillis();
 		double sampleSize = 20000;
+		int numThreads = numThreadsParam.getIntValue();
 		Thread gatherers[] = new Thread[numThreads];
 		
 		// start the threads

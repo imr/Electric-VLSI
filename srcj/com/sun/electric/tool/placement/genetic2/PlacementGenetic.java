@@ -29,7 +29,9 @@
 package com.sun.electric.tool.placement.genetic2;
 
 import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementParameter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,9 +59,9 @@ public class PlacementGenetic extends PlacementFrame
 	GeneticPlacer placer = null;
 	
 	// maximum runtime of the placement algorithm in seconds
-	public int maxRuntime = 240;
+	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime", "Runtime (seconds):", 240);
 	// number of threads
-	public int numThreads = 4;
+	public PlacementParameter maxThreadsParam = new PlacementParameter("threads", "Number of threads:", 4);
 	// if false: NO system.out.println statements
 	public boolean printDebugInformation = true;
 	
@@ -69,13 +71,25 @@ public class PlacementGenetic extends PlacementFrame
 	String studentName2 = "Richard Fallert";
 	String algorithmType = "genetic";
 	
-	public void setBenchmarkValues(int runtime, int threads, boolean debug) {
-		maxRuntime = runtime;
-		numThreads = threads;
-		printDebugInformation = debug;
-	}
+//	public void setBenchmarkValues(int runtime, int threads, boolean debug) {
+//		maxRuntime = runtime;
+//		numThreads = threads;
+//		printDebugInformation = debug;
+//	}
 	
 	public String getAlgorithmName() { return "Genetic-2"; }
+
+	/**
+	 * Method to return a list of parameters for this placement algorithm.
+	 * @return a list of parameters for this placement algorithm.
+	 */
+	public List<PlacementParameter> getParameters()
+	{
+		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
+		allParams.add(maxRuntimeParam);
+		allParams.add(maxThreadsParam);
+		return allParams;
+	}
 	
 	public UnifiedPopulation getPopulation()
 	{
@@ -95,7 +109,8 @@ public class PlacementGenetic extends PlacementFrame
 	 */
 	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName)
 	{
-		placer = new GeneticPlacer(nodesToPlace, allNetworks, maxRuntime, numThreads, printDebugInformation);
+		placer = new GeneticPlacer(nodesToPlace, allNetworks, maxRuntimeParam.getIntValue(),
+			maxThreadsParam.getIntValue(), printDebugInformation);
 		placer.runPlacement(nodesToPlace, allNetworks);
 	}	
 }
