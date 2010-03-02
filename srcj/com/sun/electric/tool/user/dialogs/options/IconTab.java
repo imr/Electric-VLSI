@@ -32,7 +32,6 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
