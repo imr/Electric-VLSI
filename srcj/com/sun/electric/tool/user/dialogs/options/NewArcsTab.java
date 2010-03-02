@@ -268,7 +268,7 @@ public class NewArcsTab extends PreferencePanel
 
         EditingPreferences ep = getEditingPreferences();
         ep = ep.withFatWires(enableFatWiring.isSelected());
-        ep.setThreadEditingPreferences(ep);
+        setEditingPreferences(ep);
 	}
 
 	/**

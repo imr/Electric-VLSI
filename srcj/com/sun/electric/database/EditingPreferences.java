@@ -93,55 +93,55 @@ public class EditingPreferences extends PrefPackage {
      */
 
     @BooleanPref(node = USER_NODE, key = "PlaceCellCenter", factory = true)
-    public final boolean placeCellCenter = true;
+    public /*final*/ boolean placeCellCenter /*= true*/;
     
     @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementExport", factory = 0)
-    public final int smartVerticalPlacementExport = 0;
+    public /*final*/ int smartVerticalPlacementExport /*= 0*/;
     /** What type of "smart" horizontal text placement should be done for Exports.
      * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
      * The default is 0.
      */
     @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementExport", factory = 0)
-    public final int smartHorizontalPlacementExport = 0;
+    public /*final*/ int smartHorizontalPlacementExport /*= 0*/;
     /** What type of "smart" text placement should be done for vertical Arcs.
      * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
      * The default is 0.
      */
     @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementArc", factory = 0)
-    public final int smartVerticalPlacementArc = 0;
+    public /*final*/ int smartVerticalPlacementArc /*= 0*/;
     /** What type of "smart" text placement should be done for horizontal Arcs.
      * The values can be 0: place text inside; 1: place text above; 2: place text below.
      * The default is 0.
      */
     @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementArc", factory = 0)
-    public final int smartHorizontalPlacementArc = 0;
+    public /*final*/ int smartHorizontalPlacementArc /*= 0*/;
     /** What type of arcs are drawn: true to make them as wide as connecting nodes,
      * false to make them normal size.
      * The default is true.
      */
     @BooleanPref(node = USER_NODE, key = "FatWires", factory = true)
-    public final boolean fatWires = true;
+    public /*final*/ boolean fatWires /*= true*/;
 
 	/**
 	 * How long to make leads in generated icons.
      * The default is 2.
 	 */
 	@DoublePref(node = USER_NODE, key = "IconGenLeadLength", factory = 2.0)
-    public final double iconGenLeadLength = 2.0;
+    public /*final*/ double iconGenLeadLength /*= 2.0*/;
 
 	/**
 	 * How far apart to space leads in generated icons.
      * The default is 2.
 	 */
 	@DoublePref(node = USER_NODE, key = "IconGenLeadSpacing", factory = 2.0)
-    public final double iconGenLeadSpacing = 2.0;
+    public /*final*/ double iconGenLeadSpacing /*= 2.0*/;
 
 	/**
 	 * Whether generated icons should have leads drawn.
 	 * The default is "true".
 	 */
     @BooleanPref(node = USER_NODE, key = "IconGenDrawLeads", factory = true)
-    public final boolean iconGenDrawLeads = true;
+    public /*final*/ boolean iconGenDrawLeads /*= true*/;
 
 	/**
 	 * Whether generated icon exports should be "always drawn".
@@ -150,7 +150,7 @@ public class EditingPreferences extends PrefPackage {
 	 * The default is "false".
 	 */
     @BooleanPref(node = USER_NODE, key = "IconsAlwaysDrawn", factory = false)
-    public final boolean iconsAlwaysDrawn = false;
+    public /*final*/ boolean iconsAlwaysDrawn /*= false*/;
 
 	/**
 	 * Whether generated icons should have a body drawn.
@@ -158,10 +158,10 @@ public class EditingPreferences extends PrefPackage {
 	 * The default is "true".
 	 */
     @BooleanPref(node = USER_NODE, key = "IconGenDrawBody", factory = true)
-    public final boolean iconGenDrawBody = true;
+    public /*final*/ boolean iconGenDrawBody /*= true*/;
 
     @IntegerPref(node = USER_NODE, key = "IconGenExportPlacement", factory = 0)
-    public final int iconGenExportPlacement = 0;
+    public /*final*/ int iconGenExportPlacement /*= 0*/;
 
 	/**
 	 * Whether exports are placed exactly according to schematics.
@@ -170,7 +170,7 @@ public class EditingPreferences extends PrefPackage {
 	 * false: to place exports relative to their location in the original cell.
 	 */
     @BooleanPref(node = USER_NODE, key = "IconGenExportPlacementExact", factory = true)
-    public final boolean iconGenExportPlacementExact = true;
+    public /*final*/ boolean iconGenExportPlacementExact /*= true*/;
 
 	/**
 	 * Whether generated icons should reverse the order of exports.
@@ -178,21 +178,21 @@ public class EditingPreferences extends PrefPackage {
 	 * The default is "false".
 	 */
     @BooleanPref(node = USER_NODE, key = "IconGenReverseExportOrder", factory = false)
-    public final boolean iconGenReverseExportOrder = false;
+    public /*final*/ boolean iconGenReverseExportOrder /*= false*/;
 
 	/**
 	 * The size of body text on generated icons.
 	 * The default is 2 unit.
 	 */
     @DoublePref(node = USER_NODE, key = "IconGenBodyTextSize", factory = 2.0)
-    public final double iconGenBodyTextSize = 2.0;
+    public /*final*/ double iconGenBodyTextSize /*= 2.0*/;
 
 	/**
 	 * Where exports should appear along the leads in generated icons.
 	 * 0: on the body   1: (the default) at the end of the lead   2: in the middle of the lead
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenExportLocation", factory = 1)
-    public final int iconGenExportLocation = 1;
+    public /*final*/ int iconGenExportLocation /*= 1*/;
 
 	/**
 	 * How the text should appear in generated icons.
@@ -201,7 +201,7 @@ public class EditingPreferences extends PrefPackage {
 	 * 2: pointing outward from the export location
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenExportStyle", factory = 0)
-    public final int iconGenExportStyle = 0;
+    public /*final*/ int iconGenExportStyle /*= 0*/;
 
 	/**
 	 * How exports should be constructed in generated icons.
@@ -209,7 +209,7 @@ public class EditingPreferences extends PrefPackage {
 	 * 1: (the default) use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenExportTech", factory = 1)
-    public final int iconGenExportTech = 1;
+    public /*final*/ int iconGenExportTech /*= 1*/;
 
 	/**
 	 * Where to place an instance of the generated icons in the original schematic.
@@ -220,7 +220,7 @@ public class EditingPreferences extends PrefPackage {
 	 * 4: no instance in the original schematic
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenInstanceLocation", factory = 0)
-    public final int iconGenInstanceLocation = 0;
+    public /*final*/ int iconGenInstanceLocation /*= 0*/;
     
 	/**
 	 * What angle Input ports should go on generated icons.
@@ -228,7 +228,7 @@ public class EditingPreferences extends PrefPackage {
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenInputRot", factory = 0)
-    public final int iconGenInputRot = 0;
+    public /*final*/ int iconGenInputRot /*= 0*/;
 
 	/**
 	 * What angle Output ports should go on generated icons.
@@ -236,7 +236,7 @@ public class EditingPreferences extends PrefPackage {
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenOutputRot", factory = 0)
-    public final int iconGenOutputRot = 0;
+    public /*final*/ int iconGenOutputRot /*= 0*/;
 
 	/**
 	 * What angle Bidirectional ports should go on generated icons.
@@ -244,7 +244,7 @@ public class EditingPreferences extends PrefPackage {
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenBidirRot", factory = 0)
-    public final int iconGenBidirRot = 0;
+    public /*final*/ int iconGenBidirRot /*= 0*/;
 
 	/**
 	 * Method to tell what angle Power ports should go on generated icons.
@@ -252,7 +252,7 @@ public class EditingPreferences extends PrefPackage {
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenPowerRot", factory = 0)
-    public final int iconGenPowerRot = 0;
+    public /*final*/ int iconGenPowerRot /*= 0*/;
 
 	/**
 	 * Method to tell what angle Ground ports should go on generated icons.
@@ -260,7 +260,7 @@ public class EditingPreferences extends PrefPackage {
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenGroundRot", factory = 0)
-    public final int iconGenGroundRot = 0;
+    public /*final*/ int iconGenGroundRot /*= 0*/;
 
 	/**
 	 * Method to tell what angle Clock ports should go on generated icons.
@@ -268,7 +268,7 @@ public class EditingPreferences extends PrefPackage {
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
     @IntegerPref(node = USER_NODE, key = "IconGenClockRot", factory = 0)
-    public final int iconGenClockRot = 0;
+    public /*final*/ int iconGenClockRot /*= 0*/;
 
     public EditingPreferences(boolean factory, TechPool techPool) {
         super(factory);

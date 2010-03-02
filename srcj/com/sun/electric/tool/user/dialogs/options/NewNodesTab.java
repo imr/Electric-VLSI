@@ -234,6 +234,7 @@ public class NewNodesTab extends PreferencePanel
 
         EditingPreferences ep = getEditingPreferences();
         ep = ep.withPlaceCellCenter(nodePlaceCellCenter.isSelected());
+        setEditingPreferences(ep);
 	}
 
 	/**
