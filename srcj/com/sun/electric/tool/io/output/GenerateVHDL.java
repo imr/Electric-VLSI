@@ -45,6 +45,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.CompileVHDL;
@@ -488,6 +489,24 @@ public class GenerateVHDL extends Topology
 	}
 
 	/**
+	 * Method to determine whether a port connects to well/substrate.
+	 * This is used on transistors to detect the bias port.
+	 * @param pp the port in question.
+	 * @return true if the port connects to well/substrate arcs.
+	 */
+	private boolean isBiasPort(PrimitivePort pp)
+	{
+		ArcProto [] connections = pp.getConnections();
+		for(int i=0; i<connections.length; i++)
+		{
+			ArcProto ap = connections[i];
+			if (ap.getTechnology() == Generic.tech()) continue;
+			if (ap.getFunction() == ArcProto.Function.WELL) return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Method to write actual signals that connect to a primitive instance.
 	 * @param no the primitive node.
 	 * @param special a code describing special features of the primitive.
@@ -513,6 +532,10 @@ public class GenerateVHDL extends Topology
 				{
 					if (pp.getName().equals("b")) continue;
 				}
+
+				// ignore the bias port of layout transistors
+				if (np.getFunction().isTransistor() && isBiasPort((PrimitivePort)pp)) continue;
+
 				if (!matchesPass(pp.getCharacteristic(), pass)) continue;
 
 				if (special == BLOCKMOSTRAN)
@@ -681,6 +704,10 @@ public class GenerateVHDL extends Topology
 					// ignore ports not named "a" or "y"
 					if (!portName.equals("a") && !portName.equals("y")) continue;
 				}
+
+				// ignore the bias port of layout transistors
+				if (pnp.getFunction().isTransistor() && isBiasPort(pp)) continue;
+
 				if (pp.getBasePort().isIsolated())
 				{
 					int inst = 1;
@@ -694,6 +721,16 @@ public class GenerateVHDL extends Topology
 					}
 				} else
 				{
+					// ignore if connected to an earlier port
+					boolean seen = false;
+					for(Iterator<PrimitivePort> eIt = pnp.getPrimitivePorts(); eIt.hasNext(); )
+					{
+						PrimitivePort ePp = eIt.next();
+						if (ePp == pp) break;
+						if (ePp.getTopology() == pp.getTopology()) seen = true;
+					}
+					if (seen) continue;
+
 					infstr.append(before);   before = ", ";
 					infstr.append(addString(portName, null));
 				}

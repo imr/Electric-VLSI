@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+BUG: (3/2/10, SMR) ALS cannot simulate transistors (Bug #2674).
+FIX: Redid "GenerateVHDL.java" to handle layout transistors correctly.
+
 IMP/MAN: (3/1/10, SMR) Placement preferences now allows algorithm-specific
      parameters (Bug #2673).
 
