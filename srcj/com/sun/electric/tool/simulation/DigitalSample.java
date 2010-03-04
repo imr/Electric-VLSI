@@ -28,7 +28,7 @@ import java.io.*;
 /**
  *  An implementation of Sample for digital data.
  */
-public class DigitalSample implements Sample {
+public class DigitalSample implements Sample, Comparable {
 
     private byte value;
     private DigitalSample(byte value) { this.value = value; }
@@ -41,6 +41,9 @@ public class DigitalSample implements Sample {
 
     public boolean equals(Object o) { return this==o; }
     public int hashCode() { return value & 0xff; }
+    public int compareTo(Object o) {
+        return (value & 0xff) - (((DigitalSample)o).value & 0xff);
+    }
 
     public boolean isLogic0() { return value==0; }
     public boolean isLogic1() { return value==1; }
