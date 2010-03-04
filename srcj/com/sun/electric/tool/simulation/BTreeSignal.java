@@ -205,6 +205,23 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
             throw new RuntimeException("not implemented");
         }
     }
+
+    private static CachingPageStorage ps = null;
+    static <SS extends Sample> BTree<Double,SS,Serializable> getTree(Unboxed<SS> unboxer) {
+        if (ps==null)
+            try {
+                long highWaterMarkInBytes = 50 * 1024 * 1024;
+                PageStorage fps = FilePageStorage.create();
+                PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
+                ps = new CachingPageStorageWrapper(ops, 16 * 1024, false);
+                //ps = new MemoryPageStorage(256);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        return new BTree<Double,SS,Serializable>
+            (ps, UnboxedHalfDouble.instance, unboxer, null, null);
+    }
+
 }
 
 /*

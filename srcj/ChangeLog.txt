@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+IMP: (3/3/10, AM) Move getTree() from ScalarSignal to BTreeSignal.
+
 IMP: (3/3/10, AM) Create new subclass ScalarSignal of BTreeSignal,
      make BTreeSignal package-private.
 

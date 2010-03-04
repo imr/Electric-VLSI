@@ -30,22 +30,6 @@ import com.sun.electric.tool.simulation.*;
 public class ScalarSignal extends BTreeSignal<ScalarSample> {
 
     public ScalarSignal(Analysis analysis, String signalName, String signalContext) {
-        super(analysis, signalName, signalContext, getTree());
-    }
-
-    private static CachingPageStorage ps = null;
-    private static BTree<Double,ScalarSample,Serializable> getTree() {
-        if (ps==null)
-            try {
-                long highWaterMarkInBytes = 50 * 1024 * 1024;
-                PageStorage fps = FilePageStorage.create();
-                PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
-                ps = new CachingPageStorageWrapper(ops, 16 * 1024, false);
-                //ps = new MemoryPageStorage(256);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        return new BTree<Double,ScalarSample,Serializable>
-            (ps, UnboxedHalfDouble.instance, ScalarSample.unboxer, null, null);
+        super(analysis, signalName, signalContext, BTreeSignal.getTree(ScalarSample.unboxer));
     }
 }
