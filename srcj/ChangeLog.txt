@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00a: ******************************
 
+IMP/MAN: (3/3/10, GVG) Ability to define exports per cell in Stitch fill gen (Bug #2677)
+Part of the implementation.
+
 BUG: (3/2/10, DN) "Fat mode" option can't be turn off in Arcs pref (Bug #2672).
 FIX: Temorary solution: Remove "final" attribute from annotaeted fileds of EditingPreferences.
 

@@ -64,7 +64,7 @@ public class StitchFillJob extends Job
     private Library outLibrary;
     private List<Cell> generatedCells = new ArrayList<Cell>();
     private boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption
-    private List<String> layersWithExports = new ArrayList<String>();
+    private List<String> globalLayersWithExports = new ArrayList<String>();   // global definition of layers with exports
     private IconParameters iconParameters = IconParameters.makeInstance(true);
 
 //    private static final boolean doFill = false;
@@ -174,7 +174,7 @@ public class StitchFillJob extends Job
                 fillGeoms.add(ni);
             }
             // actual fill gen
-            doTheJob(newCell, fillCellName, fillCells, fillGeoms, null, false, this);
+            doTheJob(newCell, fillCellName, fillCells, fillGeoms, null, false,Collections.<String>emptyList(), this);
             return true; // done at this point
         }
 
@@ -223,6 +223,7 @@ public class StitchFillJob extends Job
             }
             else if (line.startsWith("@exports"))
             {
+                // format @export = {9, 10}
                 int index = line.indexOf("=");
                 assert(index != -1);
                 // exports is the only command for now
@@ -230,7 +231,7 @@ public class StitchFillJob extends Job
                 while (parse.hasMoreTokens())
                 {
                     String value = parse.nextToken();
-                    layersWithExports.add(value);
+                    globalLayersWithExports.add(value);
                 }
                 continue;
             }
@@ -258,10 +259,14 @@ public class StitchFillJob extends Job
             int index = fillCellName.indexOf("(");
             boolean wideOption = false;
             List<TileInfo> tileList = new ArrayList<TileInfo>();
+            List<String> localLayersWithExports = new ArrayList<String>();
+
+            // default: take the global definition
+            localLayersWithExports.addAll(globalLayersWithExports);
 
             if (index != -1)
             {
-                // Getting options like (W)
+                // Getting options like (W), (2x3) or (e[n;y] (exports)
                 String options = fillCellName.substring(index);
                 fillCellName = fillCellName.substring(0, index);
                 parse = new StringTokenizer(options, "(), ", false);
@@ -270,12 +275,22 @@ public class StitchFillJob extends Job
                     String option = parse.nextToken();
                     String lowerCase = option.toLowerCase();
                     // wide option where exports are added in lowest layer
-                    if (lowerCase.equals("w"))
+                    if (lowerCase.equals("w"))  // wide option
                     {
                         wideOption = true;
                         fillCellName += "W";
                     }
-                    else if (lowerCase.contains("x"))
+                    else if (lowerCase.startsWith("e")) // overwrites global definition
+                    {
+                        localLayersWithExports.clear();
+                        StringTokenizer lNames = new StringTokenizer(options, "[];", false);
+                        while (lNames.hasMoreTokens())
+                        {
+                            String lName = lNames.nextToken();
+                            localLayersWithExports.add(lName);
+                        }
+                    }
+                    else if (lowerCase.contains("x"))    // tiles
                     {
                         index = lowerCase.indexOf("x");
                         String str = lowerCase.substring(0, index);
@@ -342,7 +357,7 @@ public class StitchFillJob extends Job
             generatedCells.add(newCell);
 
             // actual fill gen
-            doTheJob(newCell, fillCellName, fillCells, fillGeoms, tileList, wideOption, this);
+            doTheJob(newCell, fillCellName, fillCells, fillGeoms, tileList, wideOption, localLayersWithExports, this);
         }
         return true;
     }
@@ -351,17 +366,10 @@ public class StitchFillJob extends Job
 
     /**
      * Method that executes the different functions to get the tool working
-     * @param newCell
-     * @param fillCellName
-     * @param fillCells
-     * @param fillGeoms
-     * @param tileList
-     * @param wideOption
-     * @param job
      */
     private static void doTheJob(Cell newCell, String fillCellName, List<NodeInst> fillCells,
                                  List<Geometric> fillGeoms, List<TileInfo> tileList,
-                                 boolean wideOption, StitchFillJob job)
+                                 boolean wideOption, List<String> layersWithExports, StitchFillJob job)
     {
         // Re-exporting
         ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true, true, job.iconParameters);
@@ -371,7 +379,7 @@ public class StitchFillJob extends Job
         new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true, true);
         
         // generation of master fill
-        generateFill(newCell, wideOption, job.evenHorizontal, job.layersWithExports, job.iconParameters);
+        generateFill(newCell, wideOption, job.evenHorizontal, layersWithExports, job.iconParameters);
 
         // tiles generation. Flat generation for now
         generateTiles(newCell, fillCellName, tileList, job);
@@ -715,7 +723,7 @@ public class StitchFillJob extends Job
                         Layer l = ai.getProto().getLayer(0);
 
                         if (l == layer)
-                            System.out.println("found in same layer");
+                            System.out.println("found in same layer " + layer.getName() + " in export " + ex.getName());
                         else
                         {
                             int level = Layer.LayerSortByFunctionLevel.getNeighborLevel(l, layer);
