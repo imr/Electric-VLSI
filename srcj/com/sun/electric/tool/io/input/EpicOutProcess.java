@@ -30,9 +30,10 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.BTreeSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.ScalarSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.io.BufferedOutputStream;
@@ -451,7 +452,7 @@ public class EpicOutProcess extends Simulate implements Runnable
                         signalsByEpicIndex.add(null);
                     EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
                     if (s == null) {
-                        s = new EpicReaderSignal(sigNum, EpicAnalysis.getTree());
+                        s = new EpicReaderSignal(sigNum);
                         signalsByEpicIndex.set(sigNum, s);
                     }
                 
@@ -852,21 +853,17 @@ public class EpicOutProcess extends Simulate implements Runnable
         /** Packed waveform. */                 byte[] waveform = new byte[512];
         /** Count of bytes used in waveform. */ int len;
 
-        int    evmin = 0;
-        int    evmax = 0;
-        double minValue = Double.MAX_VALUE;
-        double maxValue = Double.MIN_VALUE;
-        BTree<Double,Double,Serializable> tree;
+        ScalarSignal signal;
         int sigNum;
         int count = 0;
 
-        public EpicReaderSignal(int sigNum, BTree<Double,Double,Serializable> tree) {
+        public EpicReaderSignal(int sigNum) {
             this.sigNum = sigNum;
-            this.tree = tree;
+            this.signal = new ScalarSignal(null, null, null);
         }
 
         public Signal getBWaveform() {
-            return new BTreeSignal(null, null, null, evmin, evmax, tree);
+            return signal;
         }
 
         /**
@@ -876,10 +873,8 @@ public class EpicOutProcess extends Simulate implements Runnable
          */
         void putEvent(int t, int v) {
             double value = v * voltageResolution;
-            if (value < minValue) { minValue = value; evmin = count; }
-            if (value > maxValue) { maxValue = value; evmax = count; }
             count++;
-            tree.insert(new Double(t*timeResolution), new Double(value));
+            signal.addSample(new Double(t*timeResolution), new ScalarSample(value));
         }
 
         /**

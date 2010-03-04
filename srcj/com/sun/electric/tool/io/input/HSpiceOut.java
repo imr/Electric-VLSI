@@ -32,6 +32,8 @@ import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.ScalarSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.database.geometry.btree.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 
@@ -113,7 +115,6 @@ public class HSpiceOut extends Simulate
 				List<float[]> theSweep = theSweeps.get(sweep);
 				Signal waveform;
 				if (getAnalysisType() == ANALYSIS_AC) {
-                    BTree<Double,Pair<Double,Double>,Serializable> tree = EpicAnalysis.getComplexTree();
 					double[] realValues = new double[times.length];
 					double[] imagValues = new double[times.length];
 					for (int eventNum = 0; eventNum < realValues.length; eventNum++) {
@@ -131,17 +132,12 @@ public class HSpiceOut extends Simulate
 					double[] values = new double[times.length];
 					for (int eventNum = 0; eventNum < values.length; eventNum++)
 						values[eventNum] = theSweep.get(eventNum)[sigIndex + 1];
-                    BTree<Double,Double,Serializable> tree = EpicAnalysis.getTree();
-                    int evmax = 0;
-                    int evmin = 0;
-                    double valmax = Double.MIN_VALUE;
-                    double valmin = Double.MAX_VALUE;
-                    for(int i=0; i<times.length; i++) {
-                        tree.insert(times[i], values[i]);
-                        if (values[i] > valmax) { evmax = i; valmax = values[i]; }
-                        if (values[i] < valmin) { evmin = i; valmin = values[i]; }
-                    }
-                    waveform = new BTreeSignal(signal.getAnalysis(), signal.getSignalName(), signal.getSignalContext(), evmin, evmax, tree);
+                    ScalarSignal scalarsignal = new ScalarSignal(signal.getAnalysis(),
+                                                                 signal.getSignalName(),
+                                                                 signal.getSignalContext());
+                    for(int i=0; i<times.length; i++)
+                        scalarsignal.addSample(times[i], new ScalarSample(values[i]));
+                    waveform = scalarsignal;
 				}
 				waveforms[sweep] = waveform;
 			}

@@ -33,7 +33,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.BTreeSignal;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;

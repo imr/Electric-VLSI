@@ -27,23 +27,19 @@ import com.sun.electric.database.geometry.btree.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import com.sun.electric.tool.simulation.*;
 
-public class BTreeSignal extends Signal<ScalarSample> {
+abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
 
-    public final int numEvents;
-    public final int eventWithMinValue;
-    public final int eventWithMaxValue;
-    private Signal.View<ScalarSample> preferredApproximation = null;
-    private final BTree<Double,Double,Serializable> tree;
+    public int eventWithMinValue; // FIXME: get rid of this
+    public int eventWithMaxValue; // FIXME: get rid of this
+    private S minValue = null;
+    private S maxValue = null;
+    private Signal.View<S> preferredApproximation = null;
+    private final BTree<Double,S,Serializable> tree;
 
     public BTreeSignal(Analysis analysis, String signalName, String signalContext,
-                          int eventWithMinValue,
-                          int eventWithMaxValue,
-                          BTree<Double,Double,Serializable> tree
-                          ) {
+                       BTree<Double,S,Serializable> tree
+                       ) {
         super(analysis, signalName, signalContext);
-        this.numEvents = tree.size();
-        this.eventWithMinValue = eventWithMinValue;
-        this.eventWithMaxValue = eventWithMaxValue;
         if (tree==null) throw new RuntimeException();
         this.tree = tree;
         this.preferredApproximation = new BTreeSignalApproximation();
@@ -72,7 +68,7 @@ public class BTreeSignal extends Signal<ScalarSample> {
     }
         */
 
-    private Signal.View<ScalarSample> pa = null;
+    private Signal.View<S> pa = null;
     private double tmin;
     private double tmax;
     private int    emax;
@@ -81,8 +77,7 @@ public class BTreeSignal extends Signal<ScalarSample> {
     public static int steps = 0;
     public static int numLookups = 0;
 
-    public Signal.View<ScalarSample> getApproximation(double t0, double t1, int numEvents,
-                                                                  ScalarSample v0, ScalarSample v1, int vd) {
+    public Signal.View<S> getApproximation(double t0, double t1, int numEvents, S v0, S v1, int vd) {
         if (vd!=0) throw new RuntimeException("not implemented");
 
         // FIXME: currently ignoring v0/v1
@@ -94,7 +89,7 @@ public class BTreeSignal extends Signal<ScalarSample> {
         return new ApproximationSimpleImpl(e0, e1, numEvents, t0, t1);
     }
 
-    private class ApproximationSimpleImpl implements Signal.View<ScalarSample> {
+    private class ApproximationSimpleImpl implements Signal.View<S> {
         private final int    minEvent;
         private final int    maxEvent;
         private final int    numEvents;
@@ -110,7 +105,7 @@ public class BTreeSignal extends Signal<ScalarSample> {
         }
         public int    getNumEvents() { return numEvents; }
         public double getTime(int event) { return t0 + (event*(t1-t0))/(numEvents-1); }
-        public ScalarSample getSample(int event) {
+        public S getSample(int event) {
             return getSampleForTime(getTime(event), /* FIXME: should interpolate */ true);
         }
         public int    getTimeDenominator() { throw new RuntimeException("not implemented"); }
@@ -119,35 +114,47 @@ public class BTreeSignal extends Signal<ScalarSample> {
         public int    getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }
     }
 
-    public synchronized Signal.View<ScalarSample> getExactView() {
+    public void addSample(double time, S sample) {
+        tree.insert(time, sample);
+        if (minValue==null || sample.compareTo(minValue) < 0) {
+            this.eventWithMinValue = getEventForTime(time, false);
+            minValue = sample;
+        }
+        if (maxValue==null || sample.compareTo(maxValue) > 0) {
+            this.eventWithMaxValue = getEventForTime(time, false);
+            maxValue = sample;
+        }
+    }
+
+    public synchronized Signal.View<S> getExactView() {
         return preferredApproximation;
     }
 
-    protected ScalarSample getSampleForTime(double t, boolean justLessThan) {
-        Double d = tree.getValFromKeyFloor(t);
-        if (d==null) throw new RuntimeException("index out of bounds");
-        return new ScalarSample(d.doubleValue());
+    protected S getSampleForTime(double t, boolean justLessThan) {
+        S ret = tree.getValFromKeyFloor(t);
+        if (ret==null) throw new RuntimeException("index out of bounds");
+        return ret;
     }
 
     protected int getEventForTime(double t, boolean justLessThan) {
         return tree.getOrdFromKeyFloor(t);
     }
 
-    public Signal.View<RangeSample<ScalarSample>> getRasterView(double t0, double t1, int numPixels) {
+    public Signal.View<RangeSample<S>> getRasterView(double t0, double t1, int numPixels) {
         return new BTreeRasterView(t0, t1, numPixels);
     }
 
-    private class BTreeSignalApproximation implements Signal.View<ScalarSample> {
-        public int getNumEvents() { return numEvents; }
+    private class BTreeSignalApproximation implements Signal.View<S> {
+        public int getNumEvents() { return tree.size(); }
         public double             getTime(int index) {
             Double d = tree.getKeyFromOrd(index);
             if (d==null) throw new RuntimeException("index out of bounds");
             return d.doubleValue();
         }
-        public ScalarSample       getSample(int index) {
-            Double d = tree.getValFromOrd(index);
-            if (d==null) throw new RuntimeException("index out of bounds");
-            return new ScalarSample(d.doubleValue());
+        public S       getSample(int index) {
+            S ret = tree.getValFromOrd(index);
+            if (ret==null) throw new RuntimeException("index out of bounds");
+            return ret;
         }
         public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
         public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
@@ -155,7 +162,7 @@ public class BTreeSignal extends Signal<ScalarSample> {
         public int getEventWithMinValue() { return eventWithMinValue; }
     }
 
-    private class BTreeRasterView implements Signal.View<RangeSample<ScalarSample>> {
+    private class BTreeRasterView implements Signal.View<RangeSample<S>> {
         int[] events;
         public BTreeRasterView(double t0, double t1, int numRegions) {
             int[] events = new int[numRegions];
@@ -182,11 +189,10 @@ public class BTreeSignal extends Signal<ScalarSample> {
             if (d==null) throw new RuntimeException("index "+index+"/"+events[index]+" out of bounds, size="+tree.size());
             return d.doubleValue();
         }
-        public RangeSample<ScalarSample> getSample(int index) {
-            Double d = tree.getValFromOrd(events[index]);
-            if (d==null) throw new RuntimeException("index out of bounds");
-            ScalarSample ss = new ScalarSample(d.doubleValue());
-            return new RangeSample(ss, ss);
+        public RangeSample<S> getSample(int index) {
+            S ret = tree.getValFromOrd(events[index]);
+            if (ret==null) throw new RuntimeException("index out of bounds");
+            return new RangeSample<S>(ret, ret);
         }
         public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
         public int getTimeDenominator() { throw new RuntimeException("not implemented"); }

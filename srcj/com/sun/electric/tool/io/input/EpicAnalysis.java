@@ -357,36 +357,6 @@ public class EpicAnalysis extends AnalogAnalysis {
         contextHash = newHash;
     }
 
-    private static CachingPageStorage ps = null;
-    public static BTree<Double,Double,Serializable> getTree() {
-        if (ps==null)
-            try {
-                long highWaterMarkInBytes = 50 * 1024 * 1024;
-                PageStorage fps = FilePageStorage.create();
-                PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
-                ps = new CachingPageStorageWrapper(ops, 16 * 1024, false);
-                //ps = new MemoryPageStorage(256);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        return new BTree<Double,Double,Serializable>
-            (ps, UnboxedHalfDouble.instance, UnboxedHalfDouble.instance, null, null);
-    }
-    public static BTree<Double,Pair<Double,Double>,Serializable> getComplexTree() {
-        if (ps==null)
-            try {
-                long highWaterMarkInBytes = 50 * 1024 * 1024;
-                PageStorage fps = FilePageStorage.create();
-                PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
-                ps = new CachingPageStorageWrapper(ops, 16 * 1024, false);
-                //ps = new MemoryPageStorage(256);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        return new BTree<Double,Pair<Double,Double>,Serializable>
-            (ps, UnboxedHalfDouble.instance, new UnboxedPair(UnboxedHalfDouble.instance, UnboxedHalfDouble.instance), null, null);
-    }
-
     HashMap<Integer, Signal> loadWaveformCache =
         new HashMap<Integer, Signal>();
 
@@ -766,8 +736,8 @@ public class EpicAnalysis extends AnalogAnalysis {
 
         public void calcBounds() {
             Signal wave = getWaveform(0);
-            if (!(wave instanceof BTreeSignal)) { super.calcBounds(); return; }
-            BTreeSignal btns = (BTreeSignal)wave;
+            if (!(wave instanceof ScalarSignal)) { super.calcBounds(); return; }
+            ScalarSignal btns = (ScalarSignal)wave;
             this.bounds = new Rectangle2D.Double(btns.getExactView().getTime(0),
                                                  (btns.getExactView().getSample(btns.eventWithMinValue)).getValue(),
                                                  btns.getExactView().getTime(btns.getExactView().getNumEvents()-1),
