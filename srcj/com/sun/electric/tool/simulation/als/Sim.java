@@ -171,9 +171,8 @@ public class Sim
 			int [] stateVector = new int[count+1];
 			timeVector[0] = 0;
 			stateVector[0] = Stimuli.LOGIC_LOW | Stimuli.OFF_STRENGTH;
-			int j=1;
 			for(ALS.Trak trakHead : trakHeads)
-                sig.addSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state));
+                sig.addSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state&Stimuli.LOGIC));
 			sigsChanged.add(sig);
 		}
 
