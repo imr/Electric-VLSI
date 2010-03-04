@@ -283,7 +283,7 @@ public class StitchFillJob extends Job
                     else if (lowerCase.startsWith("e")) // overwrites global definition
                     {
                         localLayersWithExports.clear();
-                        StringTokenizer lNames = new StringTokenizer(options, "[];", false);
+                        StringTokenizer lNames = new StringTokenizer(option.substring(1), "[];", false);
                         while (lNames.hasMoreTokens())
                         {
                             String lName = lNames.nextToken();
