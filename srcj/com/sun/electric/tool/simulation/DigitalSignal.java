@@ -30,30 +30,36 @@ import java.util.List;
 /**
  * Class to define a digital signal in the simulation waveform window.
  */
-public class DigitalSignal extends Signal<ScalarSample>
-{
+public class DigitalSignal extends BTreeSignal<DigitalSample> {
+
 	/** the DigitalAnalysis object in which this DigitalSignal resides. */		private DigitalAnalysis an;
 	/** a list of signals on this bussed signal */					private List<DigitalSignal> bussedSignals;
 	/** the number of busses that reference this signal */			private int busCount;
-	/** an array of time values on this signal (null to use common time) */	private double [] time;
-	private int [] state;
 
 	/**
 	 * Constructor for a digital signal.
 	 * @param an the DigitalAnalysis object in which this signal will reside.
 	 */
 	public DigitalSignal(DigitalAnalysis an, String signalName, String signalContext) {
-        super(an, signalName, signalContext);
+        super(an, signalName, signalContext, BTreeSignal.getTree(DigitalSample.unboxer));
 		this.an = an;
 		an.addSignal(this);
 	}
+
+    public void reset() {
+        // temporary workaround
+    }
+
+    public void addSample(double time, DigitalSample sample) {
+        if (sample==null) return; // temporary workaround
+        super.addSample(time, sample);
+    }
 
 	/**
 	 * Method to request that this signal be a bus.
 	 * Builds the necessary data structures to hold bus information.
 	 */
-	public void buildBussedSignalList()
-	{
+	public void buildBussedSignalList() {
 		bussedSignals = new ArrayList<DigitalSignal>();
 		an.getBussedSignals().add(this);
 	}
@@ -68,8 +74,7 @@ public class DigitalSignal extends Signal<ScalarSample>
 	/**
 	 * Method to request that this bussed signal be cleared of all signals on it.
 	 */
-	public void clearBussedSignalList()
-	{
+	public void clearBussedSignalList() {
 		for(DigitalSignal sig : bussedSignals)
 			sig.busCount--;
 		bussedSignals.clear();
@@ -79,8 +84,7 @@ public class DigitalSignal extends Signal<ScalarSample>
 	 * Method to add a signal to this bus signal.
 	 * @param ws a single-wire signal to be added to this bus signal.
 	 */
-	public void addToBussedSignalList(DigitalSignal ws)
-	{
+	public void addToBussedSignalList(DigitalSignal ws) {
 		bussedSignals.add(ws);
 		ws.busCount++;
 	}
@@ -91,177 +95,17 @@ public class DigitalSignal extends Signal<ScalarSample>
 	 */
 	public boolean isInBus() { return busCount != 0; }
 
-	// time
-
-	/**
-	 * Method to build a time vector for this TimedSignal.
-	 * TimedSignals can have their own time information, or they can use a "common time" array
-	 * that is part of the simulation data.
-	 * If using common time, then each TimedSignal must have the same number of entries, and
-	 * each entry must be at the same time as the corresponding entries in other TimedSignals.
-	 * Using common time saves memory, because the time information does not have to be
-	 * stored with each TimedSignal.
-	 * This method requests that the TimedSignal have its own time array, and not use common time data.
-	 * @param numEvents the number of events on this TimedSignal (the length of the time array).
-	 */
-	public void buildTime(int numEvents) { time = new double[numEvents]; }
-
-	/**
-	 * Method to return the value of time for a given event on this TimedSignal.
-	 * Depending on whether common time data is being used, the time information is
-	 * found on this TimedSignal or on the overall simulation data.
-	 * @param index the event being querried (0-based).
-	 * @return the value of time at that event.
-	 */
-	public double getTime(int index)
-	{
-		return time[index];
+	public double getTime(int index) {
+        return getExactView().getTime(index);
 	}
 
-	/**
-	 * Method to return the time vector for this TimedSignal.
-	 * The vector is only valid if this TimedSignal is NOT using common time.
-	 * TimedSignals can have their own time information, or they can use a "common time" array
-	 * that is part of the simulation data.
-	 * If using common time, then each TimedSignal must have the same number of entries, and
-	 * each entry must be at the same time as the corresponding entries in other TimedSignals.
-	 * @return the time array for this TimedSignal.
-	 * Returns null if this TimedSignal uses common time.
-	 */
-	public double [] getTimeVector() { return time; }
-
-	/**
-	 * Method to set the time vector for this TimedSignal.
-	 * Overrides any previous time vector that may be on this TimedSignal.
-	 * TimedSignals can have their own time information, or they can use a "common time" array
-	 * that is part of the simulation data.
-	 * If using common time, then each TimedSignal must have the same number of entries, and
-	 * each entry must be at the same time as the corresponding entries in other TimedSignals.
-	 * @param time a new time vector for this TimedSignal.
-	 */
-	public void setTimeVector(double [] time) { bounds = null;   this.time = time; }
-
-	/**
-	 * Method to set an individual time entry for this TimedSignal.
-	 * Only applies if common time is NOT being used for this TimedSignal.
-	 * TimedSignals can have their own time information, or they can use a "common time" array
-	 * that is part of the simulation data.
-	 * If using common time, then each TimedSignal must have the same number of entries, and
-	 * each entry must be at the same time as the corresponding entries in other TimedSignals.
-	 * @param entry the entry in the event array of this TimedSignal (0-based).
-	 * @param t the new value of time at this event.
-	 */
-	public void setTime(int entry, double t) { bounds = null;   time[entry] = t; }
-
-	// state values
-
-	/**
-	 * Method to initialize this simulation signal with a specified number of events.
-	 * Allocates an array to hold those events.
-	 * @param numEvents the number of events in this signal.
-	 */
-	public void buildState(int numEvents) { state = new int[numEvents]; }
-
-	/**
-	 * Method to set the state of this signal at a given event.
-	 * @param index the event index (0-based).
-	 * @param st the state of the signal at that event.
-	 */
-	public void setState(int index, int st) { state[index] = st;   bounds = null; }
-
-	/**
-	 * Method to get the state of this signal at a given event.
-	 * @param index the event index (0-based).
-	 * @return the state of the signal at that event.
-	 */
-	public int getState(int index) { return state[index]; }
-
-	/**
-	 * Method to return the state information for all events in this signal.
-	 * @return the state array for this signal.
-	 */
-	public int [] getStateVector() { return state; }
-
-	/**
-	 * Method to set the state information for all events in this signal.
-	 * @param state an array of state information for every event on this signal.
-	 */
-	public void setStateVector(int [] state)
-	{
-		this.state = state;
-		bounds = null;
-	}
-
-	/**
-	 * Method to compute the low and high range of time value on this signal.
-	 * The result is stored in the "bounds", "leftEdge", and "rightEdge" field variables.
-	 */
-	protected void calcBounds()
-	{
-		boolean first = true;
-		double lowTime = 0, highTime = 0;
-        double leftEdge = 0, rightEdge = 0;
-		if (state != null)
-		{
-			for(int i=0; i<state.length; i++)
-			{
-				double time = getTime(i);
-				if (i == 0) leftEdge = time; else
-					if (i == state.length-1) rightEdge = time;
-				if (first)
-				{
-					first = false;
-					lowTime = highTime = time;
-				} else
-				{
-					if (time < lowTime) lowTime = time;
-					if (time > highTime) highTime = time;
-				}
-			}
-		}
-		bounds = new Rectangle2D.Double(lowTime, 0, highTime-lowTime, 1);
-	}
-
-    protected Rectangle2D bounds;
-	public double getMinTime() {
-		if (bounds == null) calcBounds();
-		return bounds.getMinX();
-	}
-	public double getMaxTime() {
-		if (bounds == null) calcBounds();
-		return bounds.getMaxX();
-	}
-	public double getMinValue() {
-		if (bounds == null) calcBounds();
-		return bounds.getMinY();
-	}
-	public double getMaxValue() {
-		if (bounds == null) calcBounds();
-		return bounds.getMaxY();
-	}
-
-    public Signal.View<ScalarSample>
-        getApproximation(double t0, double t1, int numEvents,
-                         ScalarSample     v0, ScalarSample     v1, int valueResolution) {
-        throw new RuntimeException("not implemented");
-    }
-    public Signal.View<RangeSample<ScalarSample>> getRasterView(double t0, double t1, int numPixels) {
-        return new DumbRasterView<ScalarSample>(getExactView());
-    }
-    public Signal.View<ScalarSample> getExactView() {
-        throw new RuntimeException("not implemented");
+	public int getState(int index) {
+        DigitalSample ds = getExactView().getSample(index);
+        if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
+        if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;
+        if (ds.isLogicX()) return Stimuli.LOGIC_X;
+        if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
+        throw new RuntimeException("ack!");
     }
 
-    private abstract class DigitalSignalApproximation implements Signal.View<ScalarSample> {
-        /**
-         * Method to return the number of events in this signal.
-         * This is the number of events along the horizontal axis, usually "time".
-         * @return the number of events in this signal.
-         */
-        public int getNumEvents()
-        {
-            if (state == null) return 0;
-            return state.length;
-        }
-    }
 }

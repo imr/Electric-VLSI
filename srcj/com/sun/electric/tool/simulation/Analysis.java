@@ -211,18 +211,32 @@ public abstract class Analysis<S extends Signal>
 			{
 				if (bounds == null)
 				{
-					bounds = new Rectangle2D.Double(sig.getMinTime(),
-                                                    sig.getMinValue(),
-                                                    sig.getMaxTime()-sig.getMinTime(),
-                                                    sig.getMaxValue()-sig.getMinValue());
+                    Rectangle2D bounds =
+                        sig instanceof DigitalSignal
+                        ? new Rectangle2D.Double(sig.getMinTime(),
+                                                 0,
+                                                 sig.getMaxTime()-sig.getMinTime(),
+                                                 1)
+                        : new Rectangle2D.Double(sig.getMinTime(),
+                                                 ((Signal<ScalarSample>)sig).getMinValue().getValue(),
+                                                 sig.getMaxTime()-sig.getMinTime(),
+                                                 ((Signal<ScalarSample>)sig).getMaxValue().getValue()-
+                                                 ((Signal<ScalarSample>)sig).getMinValue().getValue());
 					leftEdge = sig.getMinTime();
 					rightEdge = sig.getMaxTime();
 				} else
 				{
-                    Rectangle2D sigBounds = new Rectangle2D.Double(sig.getMinTime(),
-                                                                   sig.getMinValue(),
-                                                                   sig.getMaxTime()-sig.getMinTime(),
-                                                                   sig.getMaxValue()-sig.getMinValue());
+                    Rectangle2D sigBounds =
+                        sig instanceof DigitalSignal
+                        ? new Rectangle2D.Double(sig.getMinTime(),
+                                                 0,
+                                                 sig.getMaxTime()-sig.getMinTime(),
+                                                 1)
+                        : new Rectangle2D.Double(sig.getMinTime(),
+                                                 ((Signal<ScalarSample>)sig).getMinValue().getValue(),
+                                                 sig.getMaxTime()-sig.getMinTime(),
+                                                 ((Signal<ScalarSample>)sig).getMaxValue().getValue()-
+                                                 ((Signal<ScalarSample>)sig).getMinValue().getValue());
 					Rectangle2D.union(bounds, sigBounds, bounds);
 					if (leftEdge < rightEdge)
 					{

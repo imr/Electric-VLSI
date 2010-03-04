@@ -30,6 +30,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
 
@@ -334,23 +335,16 @@ public class VerilogOut extends Simulate
 			List<VerilogStimuli> listForSig = dataMap.get(sig);
 			int numStimuli = listForSig.size();
 			if (numStimuli == 0) continue;
-			sig.buildTime(numStimuli);
-			sig.buildState(numStimuli);
 			int i = 0;
 			for(VerilogStimuli vs : listForSig)
-			{
-				sig.setTime(i, vs.time);
-				sig.setState(i, vs.state);
-				i++;
-			}
+                sig.addSample(vs.time, DigitalSample.fromOldStyle(vs.state));
+            /*
 			if (fullList != null)
-			{
-				for(DigitalSignal oSig : fullList)
-				{
-					if (oSig.getTimeVector() == null) oSig.setTimeVector(sig.getTimeVector());
-					if (oSig.getStateVector() == null) oSig.setStateVector(sig.getStateVector());
-				}
-			}
+				for(DigitalSignal oSig : fullList) {
+                    if (oSig.getTimeVector() == null) oSig.setTimeVector(sig.getTimeVector());
+                    if (oSig.getStateVector() == null) oSig.setStateVector(sig.getStateVector());
+                }
+            */
 		}
 
 		// remove singular top-level signal name (this code also occurs in HSpiceOut.readTRDCACFile)

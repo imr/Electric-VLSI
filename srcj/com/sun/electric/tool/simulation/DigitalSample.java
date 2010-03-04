@@ -50,6 +50,16 @@ public class DigitalSample implements Sample, Comparable {
     public boolean isLogicX() { return value==2; }
     public boolean isLogicZ() { return value==3; }
 
+    public static DigitalSample fromOldStyle(int i) {
+        switch(i) {
+            case Stimuli.LOGIC_LOW: return LOGIC_0;
+            case Stimuli.LOGIC_HIGH: return LOGIC_1;
+            case Stimuli.LOGIC_X: return LOGIC_X;
+            case Stimuli.LOGIC_Z: return LOGIC_Z;
+            default: return null;
+        }
+    }
+
     public static final Unboxed<DigitalSample> unboxer = new Unboxed<DigitalSample>() {
         public int getSize() { return UnboxedByte.instance.getSize(); }
         public DigitalSample deserialize(byte[] buf, int ofs) {

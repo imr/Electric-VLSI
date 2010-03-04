@@ -32,6 +32,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
@@ -985,12 +986,8 @@ public class ALS extends Engine
 			if (e.nodePtr.sig != null) continue;
 			DigitalSignal sig = new DigitalSignal(an, (String)e.nodeName, context);
 			e.nodePtr.sig = sig;
-			sig.buildTime(2);
-			sig.buildState(2);
-			sig.setTime(0, 0);
-			sig.setTime(1, DEFTIMERANGE);
-			sig.setState(0, 0);
-			sig.setState(1, 0);
+            sig.addSample(0, DigitalSample.LOGIC_0);
+            sig.addSample(DEFTIMERANGE, DigitalSample.LOGIC_0);
 		}
 		String subContext = context;
 		if (subContext == null) subContext = ""; else subContext += ".";

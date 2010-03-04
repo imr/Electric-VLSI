@@ -27,6 +27,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
@@ -279,12 +280,8 @@ public class Analyzer extends Engine
 			n.sig = sig;
 			nodeMap.put(sig, n);
 
-			sig.buildTime(2);
-			sig.buildState(2);
-			sig.setTime(0, 0);
-			sig.setTime(1, 0.00000001);
-			sig.setState(0, 0);
-			sig.setState(1, 0);
+            sig.addSample(0, DigitalSample.LOGIC_0);
+            sig.addSample(0.00000001, DigitalSample.LOGIC_0);
 		}
 	}
 
@@ -2343,12 +2340,7 @@ public class Analyzer extends Engine
 			double [] timeVector = new double[count];
 			int [] stateVector = new int[count];
 			for(int i=0; i<count; i++)
-			{
-				timeVector[i] = traceTime[i];
-				stateVector[i] = traceState[i];
-			}
-			nd.sig.setTimeVector(timeVector);
-			nd.sig.setStateVector(stateVector);
+                nd.sig.addSample(traceTime[i], DigitalSample.fromOldStyle(traceState[i]));
 		}
 		ww.repaint();
 	}

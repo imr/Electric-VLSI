@@ -25,6 +25,7 @@ package com.sun.electric.tool.simulation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Analysis which contains digital signals
@@ -57,5 +58,14 @@ public class DigitalAnalysis extends Analysis<DigitalSignal> {
 	 * @return a List of signals.
 	 */
 	public List<DigitalSignal> getBussedSignals() { return allBussedSignals; }
+
+    public Rectangle2D getBounds() {
+        Rectangle2D bounds = new Rectangle2D.Double(0,0,0,0);
+        for(Signal sig : getSignals())
+            Rectangle2D.union(bounds,
+                              new Rectangle2D.Double(sig.getMinTime(), 0, sig.getMaxTime()-sig.getMinTime(), 1),
+                              bounds);
+        return bounds;
+    }
 
 }

@@ -2411,8 +2411,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (isAnalog)
 				{
 					AnalogSignal as = (AnalogSignal)sSig;
-					double lowValue = as.getMinValue();
-					double highValue = as.getMaxValue();
+					double lowValue = as.getMinValue().getValue();
+					double highValue = as.getMaxValue().getValue();
 					double range = highValue - lowValue;
 					if (range == 0) range = 2;
 					double rangeExtra = range / 10;
@@ -4111,8 +4111,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				// create a new panel for the signal
 				Panel wp = makeNewPanel(as.getAnalysis());
-				double lowValue = as.getMinValue();
-				double highValue = as.getMaxValue();
+				double lowValue = as.getMinValue().getValue();
+				double highValue = as.getMaxValue().getValue();
 				double range = highValue - lowValue;
 				if (range == 0) range = 2;
 				double rangeExtra = range / 10;
@@ -4273,17 +4273,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Rectangle2D sigBounds =
-                    new Rectangle2D.Double(ws.getSignal().getMinTime(),
-                                           ws.getSignal().getMinValue(),
-                                           ws.getSignal().getMaxTime()-ws.getSignal().getMinTime(),
-                                           ws.getSignal().getMaxValue()-ws.getSignal().getMinValue());
-				if (yBounds == null)
-				{
-					yBounds = sigBounds;
-				} else
-				{
-					Rectangle2D.union(yBounds, sigBounds, yBounds);
-				}
+                    ws.getSignal() instanceof DigitalSignal
+                    ? new Rectangle2D.Double(ws.getSignal().getMinTime(),
+                                             0,
+                                             ws.getSignal().getMaxTime()-ws.getSignal().getMinTime(),
+                                             1)
+                    : new Rectangle2D.Double(ws.getSignal().getMinTime(),
+                                             ((Signal<ScalarSample>)ws.getSignal()).getMinValue().getValue(),
+                                             ws.getSignal().getMaxTime()-ws.getSignal().getMinTime(),
+                                             ((Signal<ScalarSample>)ws.getSignal()).getMaxValue().getValue()-
+                                             ((Signal<ScalarSample>)ws.getSignal()).getMinValue().getValue());
+				if (yBounds == null) yBounds = sigBounds;
+                else Rectangle2D.union(yBounds, sigBounds, yBounds);
 			}
 			if (yBounds == null)
 			{

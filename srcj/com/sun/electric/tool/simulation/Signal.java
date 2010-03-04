@@ -113,8 +113,8 @@ public abstract class Signal<SS extends Sample> {
 
 	public double getMinTime()  { return getExactView().getTime(0); }
 	public double getMaxTime()  { return getExactView().getTime(getExactView().getNumEvents()-1); }
-	public double getMinValue() { return ((ScalarSample)getExactView().getSample(getExactView().getEventWithMinValue())).getValue(); }
-	public double getMaxValue() { return ((ScalarSample)getExactView().getSample(getExactView().getEventWithMaxValue())).getValue(); }
+	public SS getMinValue() { return getExactView().getSample(getExactView().getEventWithMinValue()); }
+	public SS getMaxValue() { return getExactView().getSample(getExactView().getEventWithMaxValue()); }
 
     protected static class DumbRasterView<SS extends Sample> implements Signal.View<RangeSample<SS>> {
         private final Signal.View<SS> exactView;

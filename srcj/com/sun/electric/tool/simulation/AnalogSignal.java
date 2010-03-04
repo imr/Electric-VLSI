@@ -143,13 +143,13 @@ public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSign
 		if (bounds == null) calcBounds();
 		return bounds.getMaxX();
 	}
-	public double getMinValue() {
+	public ScalarSample getMinValue() {
 		if (bounds == null) calcBounds();
-		return bounds.getMinY();
+		return new ScalarSample(bounds.getMinY());
 	}
-	public double getMaxValue() {
+	public ScalarSample getMaxValue() {
 		if (bounds == null) calcBounds();
-		return bounds.getMaxY();
+		return new ScalarSample(bounds.getMaxY());
 	}
 
     public Signal.View<ScalarSample>
