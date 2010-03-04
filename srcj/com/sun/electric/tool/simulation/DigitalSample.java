@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
+import com.sun.electric.database.geometry.btree.unboxed.*;
 import java.io.*;
 
 /**
@@ -46,6 +47,15 @@ public class DigitalSample implements Sample {
     public boolean isLogicX() { return value==2; }
     public boolean isLogicZ() { return value==3; }
 
+    public static final Unboxed<DigitalSample> unboxer = new Unboxed<DigitalSample>() {
+        public int getSize() { return UnboxedByte.instance.getSize(); }
+        public DigitalSample deserialize(byte[] buf, int ofs) {
+            return new DigitalSample(UnboxedByte.instance.deserialize(buf, ofs));
+        }
+        public void serialize(DigitalSample v, byte[] buf, int ofs) {
+            UnboxedByte.instance.serialize(v.value, buf, ofs);
+        }
+    };
 }
 
 

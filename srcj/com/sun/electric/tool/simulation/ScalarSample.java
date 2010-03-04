@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
+import com.sun.electric.database.geometry.btree.unboxed.*;
 import java.io.*;
 
 /**
@@ -64,6 +65,16 @@ public class ScalarSample implements Sample, Comparable {
     public boolean isLogicZ() {
         return value == Double.NEGATIVE_INFINITY;
     }
+
+    public static final Unboxed<ScalarSample> unboxer = new Unboxed<ScalarSample>() {
+        public int getSize() { return UnboxedHalfDouble.instance.getSize(); }
+        public ScalarSample deserialize(byte[] buf, int ofs) {
+            return new ScalarSample(UnboxedHalfDouble.instance.deserialize(buf, ofs));
+        }
+        public void serialize(ScalarSample v, byte[] buf, int ofs) {
+            UnboxedHalfDouble.instance.serialize(v.value, buf, ofs);
+        }
+    };
 
 }
 
