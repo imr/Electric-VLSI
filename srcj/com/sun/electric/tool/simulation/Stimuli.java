@@ -35,13 +35,11 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Class to define a set of simulation data.
- * This class encapsulates all of the simulation data that is displayed in a waveform window.
- * It includes the labels and values.
- * It can handle digital, analog, and many variations (intervals, sweeps).
+ *  This class represents a set of simulation *inputs* -- that is,
+ *  "force" and "release" events -- in contrast to Signal, which
+ *  represents simulation *outputs*.
  */
-public class Stimuli
-{
+public class Stimuli {
 	// logic levels and signal strengths for digital signals
 	public static final int LOGIC         =  03;
 	public static final int LOGIC_LOW     =   0;

@@ -26,49 +26,145 @@ import com.sun.electric.database.geometry.btree.unboxed.*;
 import java.io.*;
 
 /**
- *  An implementation of Sample for digital data.
+ *  An implementation of Sample for digital data; supports HIGH/LOW
+ *  (at the IEEE-standard drive strengths) as well as X and Z (at only
+ *  a single drive strength).
+ *
+ *  Instances of DigitalSample are interned for efficiency; there is
+ *  only ever one instance of DigitalSample with any given
+ *  value/strength, so == can be used for equality tests.
  */
 public class DigitalSample implements Sample, Comparable {
 
-    private byte value;
-    private DigitalSample(byte value) { this.value = value; }
-
     // no need for more than one instance of each...
-    public static final DigitalSample LOGIC_0 = new DigitalSample((byte)0);
-    public static final DigitalSample LOGIC_1 = new DigitalSample((byte)1);
-    public static final DigitalSample LOGIC_X = new DigitalSample((byte)2);
-    public static final DigitalSample LOGIC_Z = new DigitalSample((byte)3);
+    public static final DigitalSample LOGIC_0;
+    public static final DigitalSample LOGIC_1;
+    public static final DigitalSample LOGIC_X;
+    public static final DigitalSample LOGIC_Z;
+
+    private static DigitalSample[][] cache;
+
+    static {
+        cache = new DigitalSample[4][];
+        for(int i=0; i<4; i++) cache[i] = new DigitalSample[8];
+        for(Value value : Value.values())
+            for(Strength strength : Strength.values())
+                if (!((value == Value.Z) ^ (strength == Strength.HIGH_IMPEDANCE)))
+                    cache[value.v+1][strength.v] = new DigitalSample(value, strength);
+        LOGIC_0 = getSample(Value.LOW,  Strength.STRONG_PULL);
+        LOGIC_1 = getSample(Value.HIGH, Strength.STRONG_PULL);
+        LOGIC_X = getSample(Value.X,    Strength.STRONG_PULL);
+        LOGIC_Z = getSample(Value.Z,    Strength.HIGH_IMPEDANCE);
+    }
+
+    public static DigitalSample getSample(Value value, Strength strength) {
+        if ((value == Value.Z) ^ (strength == Strength.HIGH_IMPEDANCE))
+            throw new RuntimeException("Logic=Z and Strength=HIGH_IMPEDANCE may only be used together");
+        return cache[value.v+1][strength.v];
+    }
+
+    private Value value;
+    private Strength strength;
+
+    private DigitalSample(Value value, Strength strength) {
+        if ((value == Value.Z) ^ (strength == Strength.HIGH_IMPEDANCE))
+            throw new RuntimeException("Logic=Z and Strength=HIGH_IMPEDANCE may only be used together");
+        this.value = value;
+        this.strength = strength;
+    }
+
+    /** 
+     *  Possible signal values; sort order is low-to-high-to-unknown,
+     *  with high-impedence between low and high.
+     */
+    public static enum Value {
+        LOW(-1),
+        Z(0),
+        HIGH(1),
+        X(2);
+        private final int v;
+        private Value(int v) { this.v = v; }
+    }
+
+    /** 
+     *  These are the strength levels from the IEEE Verilog standard;
+     *  they weren't just arbitrarily made up; sort order is
+     *  weak-to-strong.
+     */
+    public static enum Strength {
+        SUPPLY_DRIVE(7),
+        STRONG_PULL(6),         // IEEE standard says "STRONG_PULL" is the default
+        PULL_DRIVE(5),
+        LARGE_CAPACITANCE(4),
+        WEAK_DRIVE(3),
+        MEDIUM_CAPACITANCE(2),
+        SMALL_CAPACITANCE(1),
+        HIGH_IMPEDANCE(0);      // valid only for LOGIC_Z
+        private final int v;
+        private Strength(int v) { this.v = v; }
+    };
 
     public boolean equals(Object o) { return this==o; }
-    public int hashCode() { return value & 0xff; }
-    public int compareTo(Object o) {
-        return (value & 0xff) - (((DigitalSample)o).value & 0xff);
-    }
+    public int hashCode() { return getByteRepresentation() & 0xff; }
+    public int compareTo(Object o) { return (getByteRepresentation() & 0xff) - (((DigitalSample)o).getByteRepresentation() & 0xff); }
 
-    public boolean isLogic0() { return value==0; }
-    public boolean isLogic1() { return value==1; }
-    public boolean isLogicX() { return value==2; }
-    public boolean isLogicZ() { return value==3; }
+    public boolean isLogic0() { return value==Value.LOW; }
+    public boolean isLogic1() { return value==Value.HIGH; }
+    public boolean isLogicX() { return value==Value.X; }
+    public boolean isLogicZ() { return value==Value.Z; }
 
-    public static DigitalSample fromOldStyle(int i) {
-        switch(i) {
-            case Stimuli.LOGIC_LOW: return LOGIC_0;
-            case Stimuli.LOGIC_HIGH: return LOGIC_1;
-            case Stimuli.LOGIC_X: return LOGIC_X;
-            case Stimuli.LOGIC_Z: return LOGIC_Z;
-            default: return null;
-        }
-    }
+    private byte getByteRepresentation() { return (byte)(((value.v+1) << 3) | strength.v); }
+    private static DigitalSample fromByteRepresentation(byte b) { return cache[(b >> 3) & 3][b & 7]; }
 
     public static final Unboxed<DigitalSample> unboxer = new Unboxed<DigitalSample>() {
-        public int getSize() { return UnboxedByte.instance.getSize(); }
-        public DigitalSample deserialize(byte[] buf, int ofs) {
-            return new DigitalSample(UnboxedByte.instance.deserialize(buf, ofs));
-        }
-        public void serialize(DigitalSample v, byte[] buf, int ofs) {
-            UnboxedByte.instance.serialize(v.value, buf, ofs);
-        }
+        public int getSize() { return 1; }
+        public DigitalSample deserialize(byte[] buf, int ofs) { return fromByteRepresentation(buf[ofs]); }
+        public void serialize(DigitalSample v, byte[] buf, int ofs) { buf[ofs] = v.getByteRepresentation(); }
     };
+
+    // Backward-Compatibility //////////////////////////////////////////////////////////////////////////////
+
+    public int toOldStyle() {
+        int ret = 0;
+        switch(value) {
+            case LOW: ret |= Stimuli.LOGIC_LOW; break;
+            case HIGH: ret |= Stimuli.LOGIC_HIGH; break;
+            case X: ret |= Stimuli.LOGIC_X; break;
+            case Z: ret |= Stimuli.LOGIC_Z; break;
+        }
+        switch(strength) {
+            case SUPPLY_DRIVE:       ret |= Stimuli.VDD_STRENGTH;  break;
+            case STRONG_PULL:        ret |= Stimuli.NODE_STRENGTH; break;
+            case PULL_DRIVE:         ret |= Stimuli.NODE_STRENGTH; break;
+            case LARGE_CAPACITANCE:  ret |= Stimuli.GATE_STRENGTH; break;
+            case WEAK_DRIVE:         ret |= Stimuli.GATE_STRENGTH; break;
+            case MEDIUM_CAPACITANCE: ret |= Stimuli.GATE_STRENGTH; break;
+            case SMALL_CAPACITANCE:  ret |= Stimuli.OFF_STRENGTH;  break;
+            case HIGH_IMPEDANCE:     ret |= Stimuli.OFF_STRENGTH;  break;
+        }
+        return ret;
+    }
+    
+    public static DigitalSample fromOldStyle(int i) {
+        Strength strength = null;
+        Value value = null;
+        switch(i & Stimuli.LOGIC) {
+            case Stimuli.LOGIC_LOW:  value = Value.LOW; break;
+            case Stimuli.LOGIC_HIGH: value = Value.HIGH; break;
+            case Stimuli.LOGIC_X:    value = Value.X; break;
+            case Stimuli.LOGIC_Z:    value = Value.Z; break;
+            default: throw new RuntimeException("unknown value: " + (i & Stimuli.LOGIC));
+        }
+        switch(i & Stimuli.STRENGTH) {
+            case Stimuli.OFF_STRENGTH:  strength = Strength.SMALL_CAPACITANCE; break;
+            case Stimuli.NODE_STRENGTH: strength = Strength.STRONG_PULL;       break;
+            case Stimuli.GATE_STRENGTH: strength = Strength.LARGE_CAPACITANCE; break;
+            case Stimuli.VDD_STRENGTH:  strength = Strength.SUPPLY_DRIVE;      break;
+            default: throw new RuntimeException("unknown strength: " + (i & Stimuli.STRENGTH));
+        }
+        return getSample(value, strength);
+    }
+
 }
 
 

@@ -26,7 +26,7 @@ import java.io.*;
 
 /**
  *  A Sample is the data assigned to each point in time by a
- *  Signal.
+ *  Signal.  Subclasses of Sample MUST BE IMMUTABLE.
  */
 public interface Sample extends Serializable {
 
