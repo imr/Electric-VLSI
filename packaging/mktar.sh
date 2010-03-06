@@ -24,8 +24,6 @@ cd ~/electricExport/$VERSION
 rm packaging/*.jar
 rm -Rf srcj/com/sun/electric/plugins/*
 rm -Rf srcj/com/sun/electric/tool/simulation/eventsim
-rm -Rf srcj/com/sun/electric/tool/simulation/interval/BigBinary.java
-rm -Rf srcj/com/sun/electric/tool/simulation/interval/UnivariateBigPolynomial.java
 cd ~/electricExport
 gtar -czf $VERSION.tar.gz $VERSION
 rm -Rf $VERSION
