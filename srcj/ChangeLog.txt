@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+IMP: (3/7/10, AM) Add skeleton for MinMaxOperation.
+
 IMP: (3/7/10, AM) Re-enable summary update on BTree.insert()
 
 IMP: (3/7/10, AM) Re-enable LeafNodeCursor.getSummary().
