@@ -171,12 +171,8 @@ public class BTree
                  AssociativeOperation<S> combine) {
         AssociativeOperation<S> ao = combine;
         this.summarize = summarize;
-        if (ao!=null) {
-            if (!(ao instanceof AssociativeCommutativeOperation))
+        if (ao!=null && !(ao instanceof AssociativeCommutativeOperation))
                 throw new RuntimeException("Only commutative summary operations are supported (allows one-pass insertion)");
-            // FIXME: if the summary is not invertible (ie a group) and commutative, we cannot do DELETE in a single pass
-            // I don't think we can ever do REPLACE in one pass unless we knew the previous value
-        }
         this.ps = ps;
         this.uk = uk;
         this.ao = ao;
@@ -209,37 +205,37 @@ public class BTree
     /** returns the value in the tree, or null if not found */
     public V getValFromKey(K key) {
         uk.serialize(key, keybuf, 0);
-        return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY, 0);
+        return (V)walk(keybuf, 0, null, null, Op.GET_VAL_FROM_KEY, 0);
     }
 
     /** returns the value of the largest key less than or equal to the one supplied */
     public V getValFromKeyFloor(K key) {
         uk.serialize(key, keybuf, 0);
-        return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY_FLOOR, 0);
+        return (V)walk(keybuf, 0, null, null, Op.GET_VAL_FROM_KEY_FLOOR, 0);
     }
 
     /** returns the value of the smallest key greater than or equal to the one supplied */
     public V getValFromKeyCeiling(K key) {
         uk.serialize(key, keybuf, 0);
-        return (V)walk(keybuf, 0, null, Op.GET_VAL_FROM_KEY_CEIL, 0);
+        return (V)walk(keybuf, 0, null, null, Op.GET_VAL_FROM_KEY_CEIL, 0);
     }
 
     /** returns the ordinal of the given key, or -1 if not found */
     public int getOrdFromKey(K key) {
         uk.serialize(key, keybuf, 0);
-        return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY, 0)).intValue();
+        return ((Integer)walk(keybuf, 0, null, null, Op.GET_ORD_FROM_KEY, 0)).intValue();
     }
 
     /** returns the ordinal of the largest key less than or equal to the one supplied */
     public int getOrdFromKeyFloor(K key) {
         uk.serialize(key, keybuf, 0);
-        return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_FLOOR, 0)).intValue();
+        return ((Integer)walk(keybuf, 0, null, null, Op.GET_ORD_FROM_KEY_FLOOR, 0)).intValue();
     }
 
     /** returns the ordinal of the smallest key greater than or equal to the one supplied */
     public int getOrdFromKeyCeiling(K key) {
         uk.serialize(key, keybuf, 0);
-        return ((Integer)walk(keybuf, 0, null, Op.GET_ORD_FROM_KEY_CEIL, 0)).intValue();
+        return ((Integer)walk(keybuf, 0, null, null, Op.GET_ORD_FROM_KEY_CEIL, 0)).intValue();
     }
 
     /** returns the least key <i>strictly</i> greater than the argument */
@@ -254,25 +250,35 @@ public class BTree
 
     /** returns the i^th value in the tree */
     public V getValFromOrd(int ord) {
-        return (V)walk(null, 0, null, Op.GET_VAL_FROM_ORD, ord);
+        return (V)walk(null, 0, null, null, Op.GET_VAL_FROM_ORD, ord);
     }
 
     /** returns the i^th key in the tree */
     public K getKeyFromOrd(int ord) {
-        return (K)walk(null, 0, null, Op.GET_KEY_FROM_ORD, ord);
+        return (K)walk(null, 0, null, null, Op.GET_KEY_FROM_ORD, ord);
     }
 
     /** will throw an exception if the key is already in the tree */
     public void insert(K key, V val) {
         uk.serialize(key, keybuf, 0);
-        walk(keybuf, 0, val, Op.INSERT, 0);
+        walk(keybuf, 0, null, val, Op.INSERT, 0);
         size++;
     }
 
     /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
-    public V replace(K key, V val) {
+    public V replace(K key, V newval) { return replace(key, null, newval); }
+
+    /** 
+     *  Returns value previously in the tree; to support one-pass
+     *  replacement you must know the value which was previously in the
+     *  tree; if that turns out to be incorrect an exception will be
+     *  thrown
+     */
+    public V replace(K key, V oldval, V newval) {
         uk.serialize(key, keybuf, 0);
-        return (V)walk(keybuf, 0, val, Op.REPLACE, 0);
+        if (oldval==null && ao!=null)
+            throw new RuntimeException("in order to replace an item in a BTree with a summary, you must specify the old value");
+        return (V)walk(keybuf, 0, oldval, newval, Op.REPLACE, 0);
     }
 
     /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
@@ -290,9 +296,9 @@ public class BTree
     public S getSummaryFromKeys(K min, K max) {
         uk.serialize(min, keybuf, 0);
         uk.serialize(max, keybuf2, 0);
-        walk(keybuf, 0, null, Op.SUMMARIZE_LEFT,  0, keybuf2, 0, sbuf, 0);
-        walk(keybuf, 0, null, Op.SUMMARIZE_MID,   0, keybuf2, 0, sbuf, 0);
-        walk(keybuf, 0, null, Op.SUMMARIZE_RIGHT, 0, keybuf2, 0, sbuf, 0);
+        walk(keybuf, 0, null, null, Op.SUMMARIZE_LEFT,  0, keybuf2, 0, sbuf, 0);
+        walk(keybuf, 0, null, null, Op.SUMMARIZE_MID,   0, keybuf2, 0, sbuf, 0);
+        walk(keybuf, 0, null, null, Op.SUMMARIZE_RIGHT, 0, keybuf2, 0, sbuf, 0);
         return (S)ao.deserialize(sbuf, 0);
     }
     
@@ -367,8 +373,8 @@ public class BTree
     }
     
 
-    private Object walk(byte[] key, int key_ofs, V val, Op op, int ord) {
-        return walk(key, key_ofs, val, op, ord, null, 0, null, 0);
+    private Object walk(byte[] key, int key_ofs, V oldval, V newval, Op op, int ord) {
+        return walk(key, key_ofs, oldval, newval, op, ord, null, 0, null, 0);
     }
 
     /**
@@ -385,7 +391,7 @@ public class BTree
      *  On writes/deletes, this returns the previous value.
      *
      */
-    private Object walk(byte[] key, int key_ofs, V val, Op op, int ord, byte[] key2, int key2_ofs, byte[] ret, int ret_ofs) {
+    private Object walk(byte[] key, int key_ofs, V oldval, V newval, Op op, int ord, byte[] key2, int key2_ofs, byte[] ret, int ret_ofs) {
         int pageid = rootpage;
         int idx = -1;
         int global_ord = 0;
@@ -510,14 +516,17 @@ public class BTree
                     System.arraycopy(key, key_ofs, largestKey, 0, largestKey.length);
                 if (largestKeyPage==-1) largestKeyPage = pageid;
                 if (comp==0) {
-                    if (val==null) throw new RuntimeException("deletion is not yet implemented");
-                    return leafNodeCursor.setVal(idx, val);
+                    if (newval==null) throw new RuntimeException("deletion is not yet implemented");
+                    return leafNodeCursor.setVal(idx, newval);
                 }
-                leafNodeCursor.insertVal(idx+1, key, key_ofs, val);
+                leafNodeCursor.insertVal(idx+1, key, key_ofs, newval);
                 return null;
             } else {
-                if (op==Op.REMOVE)
+                if (op==Op.REMOVE) {
+                    if (ao!=null && !(ao instanceof InvertibleOperation))
+                        throw new RuntimeException("cannot remove values from a BTree with a non-InvertibleOperation summary");
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
+                }
                 if (op==Op.INSERT) {
                     boolean wb = false;
                     if (idx < interiorNodeCursor.getNumBuckets()-1) {

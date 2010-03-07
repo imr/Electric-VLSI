@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+IMP: (3/7/10, AM) BTree.java: let REPLACE specify the old value;
+     enables one-pass replacements.
+
 IMP: (3/7/10, AM) Add InvertibleOperation.
 
 IMP: (3/6/10, AM) DigitalSignal: add support for varying drive strength.
