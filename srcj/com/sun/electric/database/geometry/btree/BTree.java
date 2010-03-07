@@ -533,15 +533,12 @@ public class BTree
                         wb = true;
                     }
                     if (mergeSummaries != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
-                        throw new RuntimeException("not implemented");
-                        /*
-                          // FIXME
-                        byte[] monbuf = new byte[summary.getSize()];
-                        byte[] vbuf = new byte[uv.getSize()];
-                        uv.serialize(val, vbuf, 0);
-                        summarize.call(key, key_ofs, vbuf, 0, monbuf, 0);
-                        interiorNodeCursor.multiplySummaryCommutative(idx, monbuf, 0);
-                        */
+                        byte[] vbuf = new byte[uk.getSize()+uv.getSize()];
+                        System.arraycopy(key, 0, vbuf, 0, uk.getSize());
+                        uv.serialize(newval, vbuf, uk.getSize());
+                        byte[] sumbuf = new byte[mergeSummaries.getSize()];
+                        summarize.call(vbuf, 0, sumbuf, 0);
+                        interiorNodeCursor.multiplySummaryCommutative(idx, sumbuf, 0);
                     }
                     if (wb) interiorNodeCursor.writeBack();
                 }
