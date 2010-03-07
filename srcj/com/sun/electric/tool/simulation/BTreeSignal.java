@@ -34,10 +34,10 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
     private S minValue = null;
     private S maxValue = null;
     private Signal.View<S> preferredApproximation = null;
-    private final BTree<Double,S,Serializable> tree;
+    private final BTree<Double,S,?> tree;
 
     public BTreeSignal(Analysis analysis, String signalName, String signalContext,
-                       BTree<Double,S,Serializable> tree
+                       BTree<Double,S,?> tree
                        ) {
         super(analysis, signalName, signalContext);
         if (tree==null) throw new RuntimeException();
@@ -207,7 +207,7 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
     }
 
     private static CachingPageStorage ps = null;
-    static <SS extends Sample> BTree<Double,SS,Serializable> getTree(Unboxed<SS> unboxer) {
+    static <SS extends Sample> BTree<Double,SS,Pair<Pair<Double,SS>,Pair<Double,SS>>> getTree(Unboxed<SS> unboxer) {
         if (ps==null)
             try {
                 long highWaterMarkInBytes = 50 * 1024 * 1024;
@@ -218,8 +218,9 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        return new BTree<Double,SS,Serializable>
-            (ps, UnboxedHalfDouble.instance, unboxer, null, null);
+        MinMaxOperation<Double,SS> summary = new MinMaxOperation<Double,SS>(UnboxedHalfDouble.instance, unboxer);
+        return new BTree<Double,SS,Pair<Pair<Double,SS>,Pair<Double,SS>>>
+            (ps, UnboxedHalfDouble.instance, unboxer, summary, summary);
     }
 
 }
