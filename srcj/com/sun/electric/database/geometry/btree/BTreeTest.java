@@ -47,6 +47,8 @@ public class BTreeTest {
             System.err.println("");
             System.exit(-1);
         }
+        if (!BTree.class.desiredAssertionStatus())
+            throw new RuntimeException("You need to run this test with assertions enabled!");
         Random rand = new Random(Integer.parseInt(s[3], 16));
         int cachesize = Integer.parseInt(s[2]);
         int numops = Integer.parseInt(s[1]);

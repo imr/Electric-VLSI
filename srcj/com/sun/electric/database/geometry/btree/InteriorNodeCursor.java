@@ -69,7 +69,7 @@ class InteriorNodeCursor
 
     public InteriorNodeCursor(BTree<K,V,S> bt) {
         super(bt);
-        this.SIZEOF_SUMMARY       = bt.ao==null ? 0 : bt.ao.getSize();
+        this.SIZEOF_SUMMARY       = bt.mergeSummaries==null ? 0 : bt.mergeSummaries.getSize();
         this.INTERIOR_HEADER_SIZE = 2*SIZEOF_INT;
         this.INTERIOR_ENTRY_SIZE  = bt.uk.getSize() + SIZEOF_SUMMARY + SIZEOF_INT + SIZEOF_INT;
         this.INTERIOR_MAX_BUCKETS = ((ps.getPageSize()-INTERIOR_HEADER_SIZE-SIZEOF_INT-this.SIZEOF_SUMMARY) / INTERIOR_ENTRY_SIZE);
@@ -149,11 +149,7 @@ class InteriorNodeCursor
 
     public int getNumValsBelowBucket(int bucket) {
         if (bucket>=getNumBuckets()) return 0;
-
-        // FIXME: should be an assertion
-        if (bucket==getNumBuckets()-1)
-            throw new RuntimeException("InteriorNodeCursors don't store numValuesBelowBucket() for their last bucket");
-
+        assert bucket < getNumBuckets()-1;
         return bt.ui.deserializeInt(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*bucket);
     }
 
@@ -161,9 +157,9 @@ class InteriorNodeCursor
         if (idx==getNumBuckets()-1 && isRightMost())
             throw new RuntimeException("RightMost InteriorNodeCursors don't store a summary value for their last bucket");
         assert idx>=0 && idx<getNumBuckets();
-        bt.ao.multiply(buf, ofs,
-                           getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
-                           getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx);
+        bt.mergeSummaries.multiply(buf, ofs,
+                                   getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
+                                   getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx);
     }
 
     public void getSummary(int idx, byte[] buf, int ofs) {
@@ -172,6 +168,6 @@ class InteriorNodeCursor
         assert idx>=0 && idx<getNumBuckets();
         System.arraycopy(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
                          buf, ofs,
-                         bt.ao.getSize());
+                         bt.mergeSummaries.getSize());
     }
 }
