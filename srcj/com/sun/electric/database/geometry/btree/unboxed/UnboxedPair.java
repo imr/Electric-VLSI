@@ -30,8 +30,8 @@ import java.util.*;
 public class UnboxedPair<A extends Serializable,B extends Serializable>
     implements Unboxed<Pair<A,B>> {
 
-    private final Unboxed<A> ua;
-    private final Unboxed<B> ub;
+    protected final Unboxed<A> ua;
+    protected final Unboxed<B> ub;
     public UnboxedPair(Unboxed<A> ua, Unboxed<B> ub) { this.ua = ua; this.ub = ub; }
     public int getSize() { return ua.getSize()+ub.getSize(); }
     public Pair<A,B> deserialize(byte[] buf, int ofs) {

@@ -34,7 +34,7 @@ public interface UnboxedFunction<A extends Serializable, B extends Serializable>
      *  The function <b>MUST</b> support situations where the argument
      *  and return buffers overlap.
      */
-    public void call(byte[] buf_a, int ofs_a,
-                     byte[] buf_b, int ofs_b);
+    public void call(byte[] buf_arg, int ofs_arg,
+                     byte[] buf_result, int ofs_result);
 
 }

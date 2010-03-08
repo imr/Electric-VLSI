@@ -116,10 +116,11 @@ public class DigitalSample implements Sample, Comparable {
     private byte getByteRepresentation() { return (byte)(((value.v+1) << 3) | strength.v); }
     private static DigitalSample fromByteRepresentation(byte b) { return cache[(b >> 3) & 3][b & 7]; }
 
-    public static final Unboxed<DigitalSample> unboxer = new Unboxed<DigitalSample>() {
+    public static final UnboxedComparable<DigitalSample> unboxer = new UnboxedComparable<DigitalSample>() {
         public int getSize() { return 1; }
         public DigitalSample deserialize(byte[] buf, int ofs) { return fromByteRepresentation(buf[ofs]); }
         public void serialize(DigitalSample v, byte[] buf, int ofs) { buf[ofs] = v.getByteRepresentation(); }
+        public int compare(byte[] buf1, int ofs1, byte[] buf2, int ofs2) { return (buf1[ofs1]&0xff)-(buf2[ofs2]&0xff); }
     };
 
     // Backward-Compatibility //////////////////////////////////////////////////////////////////////////////

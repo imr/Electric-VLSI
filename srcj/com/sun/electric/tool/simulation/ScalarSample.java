@@ -66,13 +66,16 @@ public class ScalarSample implements Sample, Comparable {
         return value == Double.NEGATIVE_INFINITY;
     }
 
-    public static final Unboxed<ScalarSample> unboxer = new Unboxed<ScalarSample>() {
+    public static final UnboxedComparable<ScalarSample> unboxer = new UnboxedComparable<ScalarSample>() {
         public int getSize() { return UnboxedHalfDouble.instance.getSize(); }
         public ScalarSample deserialize(byte[] buf, int ofs) {
             return new ScalarSample(UnboxedHalfDouble.instance.deserialize(buf, ofs));
         }
         public void serialize(ScalarSample v, byte[] buf, int ofs) {
             UnboxedHalfDouble.instance.serialize(v.value, buf, ofs);
+        }
+        public int compare(byte[] buf1, int ofs1, byte[] buf2, int ofs2) {
+            return UnboxedHalfDouble.instance.compare(buf1, ofs1, buf2, ofs2);
         }
     };
 

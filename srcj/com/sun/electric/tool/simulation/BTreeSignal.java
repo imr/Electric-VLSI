@@ -207,7 +207,8 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
     }
 
     private static CachingPageStorage ps = null;
-    static <SS extends Sample> BTree<Double,SS,Pair<Pair<Double,SS>,Pair<Double,SS>>> getTree(Unboxed<SS> unboxer) {
+    static <SS extends Sample & Comparable>
+        BTree<Double,SS,Pair<Pair<Double,SS>,Pair<Double,SS>>> getTree(UnboxedComparable<SS> unboxer) {
         if (ps==null)
             try {
                 long highWaterMarkInBytes = 50 * 1024 * 1024;

@@ -31,7 +31,7 @@ import java.io.*;
  *  http://en.wikipedia.org/wiki/Monoid
  *  http://en.wikipedia.org/wiki/Semigroup
  */
-public class MinMaxOperation<K extends Serializable, V extends Serializable>
+public class MinMaxOperation<K extends Serializable, V extends Serializable & Comparable>
     extends
         UnboxedPair< Pair<K,V> , Pair<K,V> >
     implements
@@ -40,20 +40,39 @@ public class MinMaxOperation<K extends Serializable, V extends Serializable>
         AssociativeCommutativeOperation< Pair< Pair<K,V> , Pair<K,V> > >,
         UnboxedFunction< Pair<K,V> , Pair< Pair<K,V> , Pair<K,V> > > {
 
-    public MinMaxOperation(Unboxed<K> uk, Unboxed<V> uv) {
+    private final Unboxed<K> uk;
+    private final UnboxedComparable<V> uv;
+
+    public MinMaxOperation(Unboxed<K> uk, UnboxedComparable<V> uv) {
         super( new UnboxedPair(uk, uv),
                new UnboxedPair(uk, uv) );
+        this.uk = uk;
+        this.uv = uv;
     }
 
-    public void call(byte[] buf_a, int ofs_a,
-                     byte[] buf_b, int ofs_b) {
-        // FIXME: no-op for now
+    public void call(byte[] buf_arg, int ofs_arg,
+                     byte[] buf_result, int ofs_result) {
+        System.arraycopy(buf_arg, ofs_arg, buf_result,
+                         ofs_result, ua.getSize()+ub.getSize());
+        System.arraycopy(buf_arg, ofs_arg, buf_result,
+                         ofs_result+ua.getSize()+ub.getSize(), ua.getSize()+ub.getSize());
     }
 
     public void multiply(byte[] buf1, int ofs1,
                          byte[] buf2, int ofs2,
                          byte[] buf_dest, int ofs_dest) {
-        // FIXME: no-op for now
+        int compareMin = uv.compare(buf1, ofs1+uk.getSize(), buf2, ofs2+uk.getSize());
+        int compareMax = uv.compare(buf1, ofs1+2*uk.getSize()+uv.getSize(), buf2, ofs2+2*uk.getSize()+uv.getSize());
+        System.arraycopy(compareMin<0 ? buf1 : buf2,
+                         compareMin<0 ? ofs1 : ofs2,
+                         buf_dest,
+                         ofs_dest,
+                         uk.getSize()+uv.getSize());
+        System.arraycopy(compareMax>=0 ? buf1 : buf2,
+                         (compareMax>=0 ? ofs1 : ofs2)+uk.getSize()+uv.getSize(),
+                         buf_dest,
+                         ofs_dest+uk.getSize()+uv.getSize(),
+                         uk.getSize()+uv.getSize());
     }
 
 }
