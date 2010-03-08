@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+IMP: (3/8/10, GVG) Add OD18ud15 Transitors to the 40nm tech (Bug #2680)
+
 IMP: (3/8/10, AM) Finish implementation of MinMaxOperation.
 
 IMP: (3/7/10, AM) Start using MinMaxOperation.

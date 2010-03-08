@@ -3963,6 +3963,40 @@ public class TechEditWizardData
                 g.addElement(n, "18-" + name + "-S");
 
                 /*************************************/
+                // Short transistors with OD18ud15
+                WizardField gateOD18ud1Len = findWizardField("gate_od18ud15_length");
+
+                nodePorts.clear();
+                nodesList.clear();
+                prepareTransistor(gate_od18_width.value, gateOD18ud1Len.value, poly_endcap.value, diff_poly_overhang.value,
+                    gate_contact_spacing.value, contact_size.value, activeLayer, polyLayer, polyGateLayer, nodesList, nodePorts);
+
+                // OD18. od18y is corrected to match gateOD18ud1Len
+                od18y = scaledValue(gateOD18ud1Len.value /2+diff_poly_overhang.value +od18_diff_overhang[1].value);
+                addXmlNodeLayer(nodesList, t, "OD_18", od18x, od18y);
+                // OD18ud15. Same side as OD18
+                addXmlNodeLayer(nodesList, t, "OD_18ud15", od18x, od18y);
+
+                // adding short select
+                shortSelectX = scaledValue(gate_od18_width.value /2+poly_endcap.value);
+                selecty = scaledValue(gateOD18ud1Len.value /2+diff_poly_overhang.value +extraSelY);
+                xTranSelLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, selecty, selecty, selectLayer, Poly.Type.FILLED));
+                nodesList.add(xTranSelLayer);
+
+                // adding well
+                if (wellLayer != null)
+                {
+                    xTranWellLayer = (makeXmlNodeLayer(od18x, od18x, od18y, od18y, wellLayer, Poly.Type.FILLED));
+                    nodesList.add(xTranWellLayer);
+                }
+
+                sox = scaledValue(od18_diff_overhang[0].value);
+                soy = scaledValue(diff_poly_overhang.value +od18_diff_overhang[1].value);
+                n = makeXmlPrimitive(t.nodeGroups, "OD18ud15-" + name + "-Transistor-S", func, 0, 0, 0, 0,
+                new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                g.addElement(n, "18ud15-" + name + "-S");
+
+                /*************************************/
                 // Short transistors with native
 
                 if (i==Technology.N_TYPE)
