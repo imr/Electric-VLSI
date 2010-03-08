@@ -53,9 +53,9 @@ public class MinMaxOperation<K extends Serializable, V extends Serializable & Co
     public void call(byte[] buf_arg, int ofs_arg,
                      byte[] buf_result, int ofs_result) {
         System.arraycopy(buf_arg, ofs_arg, buf_result,
-                         ofs_result, ua.getSize()+ub.getSize());
+                         ofs_result, uk.getSize()+uv.getSize());
         System.arraycopy(buf_arg, ofs_arg, buf_result,
-                         ofs_result+ua.getSize()+ub.getSize(), ua.getSize()+ub.getSize());
+                         ofs_result+uk.getSize()+uv.getSize(), uk.getSize()+uv.getSize());
     }
 
     public void multiply(byte[] buf1, int ofs1,
