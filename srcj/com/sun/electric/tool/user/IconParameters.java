@@ -104,7 +104,7 @@ if (userDefaults) initFromUserDefaults();
             if (pp.isBodyOnly()) continue;
             exportList.add(pp);
         }
-        if (ep.iconGenExportPlacement == 1)
+        if (ep.getIconGenExportPlacement() == 1)
         {
             // place exports according to their location in the cell
             Collections.sort(exportList, new ExportsByAngle());
@@ -192,7 +192,7 @@ if (userDefaults) initFromUserDefaults();
         } else
         {
             // place exports according to their characteristics
-            if (ep.iconGenReverseExportOrder)
+            if (ep.isIconGenReverseExportOrder())
                 Collections.reverse(exportList);
             for(Export pp : exportList)
             {
@@ -212,24 +212,24 @@ if (userDefaults) initFromUserDefaults();
 
         // determine the size of the "black box" core
         double xSize, ySize;
-        if (ep.iconGenExportPlacement == 1 && ep.iconGenExportPlacementExact)
+        if (ep.getIconGenExportPlacement() == 1 && ep.isIconGenExportPlacementExact())
         {
             xSize = curCell.getDefWidth();
             ySize = curCell.getDefHeight();
         } else
         {
-            ySize = Math.max(Math.max(leftSide, rightSide), 5) * ep.iconGenLeadSpacing;
-            xSize = Math.max(Math.max(topSide, bottomSide), 3) * ep.iconGenLeadSpacing;
+            ySize = Math.max(Math.max(leftSide, rightSide), 5) * ep.getIconGenLeadSpacing();
+            xSize = Math.max(Math.max(topSide, bottomSide), 3) * ep.getIconGenLeadSpacing();
         }
 
         // create the "black box"
         NodeInst bbNi = null;
-        if (ep.iconGenDrawBody)
+        if (ep.isIconGenDrawBody())
         {
             bbNi = NodeInst.newInstance(Artwork.tech().openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
             if (bbNi == null) return null;
             EPoint[] boxOutline = new EPoint[5];
-            if (ep.iconGenExportPlacement == 1 && ep.iconGenExportPlacementExact)
+            if (ep.getIconGenExportPlacement() == 1 && ep.isIconGenExportPlacementExact())
             {
                 boxOutline[0] = new EPoint(curCell.getBounds().getMinX(), curCell.getBounds().getMinY());
                 boxOutline[1] = new EPoint(curCell.getBounds().getMinX(), curCell.getBounds().getMaxY());
@@ -247,7 +247,7 @@ if (userDefaults) initFromUserDefaults();
             bbNi.setTrace(boxOutline);
 
             // put the original cell name on it
-            TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor().withRelSize(ep.iconGenBodyTextSize);
+            TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor().withRelSize(ep.getIconGenBodyTextSize());
             bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getName(), td);
         }
 
@@ -258,10 +258,10 @@ if (userDefaults) initFromUserDefaults();
             // determine location and side of the port
             int portPosition = portIndex.get(pp).intValue();
             int index = portSide.get(pp).intValue();
-            double spacing = ep.iconGenLeadSpacing;
+            double spacing = ep.getIconGenLeadSpacing();
             double xPos = 0, yPos = 0;
             double xBBPos = 0, yBBPos = 0;
-            if (ep.iconGenExportPlacement == 1 && ep.iconGenExportPlacementExact)
+            if (ep.getIconGenExportPlacement() == 1 && ep.isIconGenExportPlacementExact())
             {
                 xBBPos = xPos = pp.getOriginalPort().getCenter().getX();
                 yBBPos = yPos = pp.getOriginalPort().getCenter().getY();
@@ -271,27 +271,27 @@ if (userDefaults) initFromUserDefaults();
                 {
                     case 0:		// left side
                         xBBPos = -xSize/2;
-                        xPos = xBBPos - ep.iconGenLeadLength;
-                        if (leftSide*2 < rightSide) spacing = ep.iconGenLeadSpacing * 2;
+                        xPos = xBBPos - ep.getIconGenLeadLength();
+                        if (leftSide*2 < rightSide) spacing = ep.getIconGenLeadSpacing() * 2;
                         yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + portPosition * spacing);
                         break;
                     case 1:		// right side
                         xBBPos = xSize/2;
-                        xPos = xBBPos + ep.iconGenLeadLength;
-                        if (rightSide*2 < leftSide) spacing = ep.iconGenLeadSpacing * 2;
+                        xPos = xBBPos + ep.getIconGenLeadLength();
+                        if (rightSide*2 < leftSide) spacing = ep.getIconGenLeadSpacing() * 2;
                         yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + portPosition * spacing);
                         break;
                     case 2:		// top
-                        if (topSide*2 < bottomSide) spacing = ep.iconGenLeadSpacing * 2;
+                        if (topSide*2 < bottomSide) spacing = ep.getIconGenLeadSpacing() * 2;
                         xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + portPosition * spacing);
                         yBBPos = ySize/2;
-                        yPos = yBBPos + ep.iconGenLeadLength;
+                        yPos = yBBPos + ep.getIconGenLeadLength();
                         break;
                     case 3:		// bottom
-                        if (bottomSide*2 < topSide) spacing = ep.iconGenLeadSpacing * 2;
+                        if (bottomSide*2 < topSide) spacing = ep.getIconGenLeadSpacing() * 2;
                         xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + portPosition * spacing);
                         yBBPos = -ySize/2;
-                        yPos = yBBPos - ep.iconGenLeadLength;
+                        yPos = yBBPos - ep.getIconGenLeadLength();
                         break;
                 }
             }
@@ -302,7 +302,7 @@ if (userDefaults) initFromUserDefaults();
         }
 
         // if no body, leads, or cell center is drawn, and there is only 1 export, add more
-        if (!ep.iconGenDrawBody && !ep.iconGenDrawLeads && ep.placeCellCenter && total <= 1)
+        if (!ep.isIconGenDrawBody() && !ep.isIconGenDrawLeads() && ep.isPlaceCellCenter() && total <= 1)
         {
             NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
         }
@@ -350,7 +350,7 @@ if (userDefaults) initFromUserDefaults();
         // presume "universal" exports (Generic technology)
         NodeProto pinType = Generic.tech().universalPinNode;
         double pinSizeX = 0, pinSizeY = 0;
-        if (ep.iconGenExportTech != 0)
+        if (ep.getIconGenExportTech() != 0)
         {
             // instead, use "schematic" exports (Schematic Bus Pins)
             pinType = Schematics.tech().busPinNode;
@@ -369,7 +369,7 @@ if (userDefaults) initFromUserDefaults();
         }
 
         // if the export is on the body (no leads) then move it in
-        if (!ep.iconGenDrawLeads)
+        if (!ep.isIconGenDrawLeads())
         {
             xPos = xBBPos;   yPos = yBBPos;
         }
@@ -385,7 +385,7 @@ if (userDefaults) initFromUserDefaults();
         {
             TextDescriptor td = port.getTextDescriptor(Export.EXPORT_NAME);
             if (textRotation != 0) td = td.withRotation(TextDescriptor.Rotation.getRotationAt(textRotation));
-            switch (ep.iconGenExportStyle)
+            switch (ep.getIconGenExportStyle())
             {
                 case 0:		// Centered
                     td = td.withPos(TextDescriptor.Position.CENT);
@@ -411,8 +411,8 @@ if (userDefaults) initFromUserDefaults();
             }
             port.setTextDescriptor(Export.EXPORT_NAME, td);
             double xOffset = 0, yOffset = 0;
-            int loc = ep.iconGenExportLocation;
-            if (!ep.iconGenDrawLeads) loc = 0;
+            int loc = ep.getIconGenExportLocation();
+            if (!ep.isIconGenDrawLeads()) loc = 0;
             switch (loc)
             {
                 case 0:		// port on body
@@ -426,12 +426,12 @@ if (userDefaults) initFromUserDefaults();
                     break;
             }
             port.setOff(Export.EXPORT_NAME, xOffset, yOffset);
-            port.setAlwaysDrawn(ep.iconsAlwaysDrawn);
+            port.setAlwaysDrawn(ep.isIconsAlwaysDrawn());
             port.copyVarsFrom(pp);
         }
 
         // add lead if requested
-        if (ep.iconGenDrawLeads)
+        if (ep.isIconGenDrawLeads())
         {
             pinType = wireType.findPinProto();
             if (pinType == Schematics.tech().busPinNode)

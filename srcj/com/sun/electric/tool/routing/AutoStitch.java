@@ -3132,7 +3132,7 @@ name=null;
 		{
 			createExports = Routing.isAutoStitchCreateExports();
 			preferredArc = Routing.getPreferredRoutingArcProto();
-            fatWires = EditingPreferences.getThreadEditingPreferences().fatWires;
+            fatWires = EditingPreferences.getThreadEditingPreferences().isFatWires();
 		}
 	}
 

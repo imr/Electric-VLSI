@@ -91,7 +91,7 @@ public class NewNodesTab extends PreferencePanel
         EditingPreferences ep = getEditingPreferences();
 		nodeCheckCellDates.setSelected(User.isCheckCellDates());
 		nodeSwitchTechnology.setSelected(User.isAutoTechnologySwitch());
-		nodePlaceCellCenter.setSelected(ep.placeCellCenter);
+		nodePlaceCellCenter.setSelected(ep.isPlaceCellCenter());
 		nodeReconstructArcsExports.setSelected(User.isReconstructArcsAndExportsToDeletedCells());
 		nodePromptForIndex.setSelected(User.isPromptForIndexWhenDescending());
 

@@ -452,7 +452,7 @@ public class StitchFillJob extends Job
                                         IconParameters iconParameters)
     {
         EditingPreferences ep = theCell.getEditingPreferences();
-        InteractiveRouter router  = new SimpleWirer(ep.fatWires);
+        InteractiveRouter router  = new SimpleWirer(ep.isFatWires());
         List<Layer> listOfLayers = new ArrayList<Layer>(12);
 
         for (Iterator<Layer> itL = theCell.getTechnology().getLayers(); itL.hasNext(); )
@@ -673,7 +673,7 @@ public class StitchFillJob extends Job
             // Checking if there are exports overlapping with the arc
             List<String> doneExports = new ArrayList<String>();
             routeList.clear();
-            SimpleWirer niRouter = new SimpleWirer(ep.fatWires);
+            SimpleWirer niRouter = new SimpleWirer(ep.isFatWires());
 
             Netlist netlist = theCell.getNetlist();
             for (Iterator<Export> itE = ni.getExports(); itE.hasNext(); )

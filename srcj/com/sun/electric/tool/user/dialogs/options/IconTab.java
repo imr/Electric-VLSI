@@ -100,13 +100,13 @@ public class IconTab extends PreferencePanel
 
         EditingPreferences ep = getEditingPreferences();
 		// set how exports are placed (by characteristic or by location in original cell)
-		int how = ep.iconGenExportPlacement;
+		int how = ep.getIconGenExportPlacement();
 		if (how == 0) iconPlaceByChar.setSelected(true); else
 		{
 			if (how == 1)
 			{
 				iconPlaceByLoc.setSelected(true);
-				useExactSchemLoc.setSelected(ep.iconGenExportPlacementExact);
+				useExactSchemLoc.setSelected(ep.isIconGenExportPlacementExact());
 			}
 		}
 		placementChanged();
@@ -127,17 +127,17 @@ public class IconTab extends PreferencePanel
 
 		// initialize the text rotation for each type of export
 		initRot(iconInputRot);
-		iconInputRot.setSelectedIndex(ep.iconGenInputRot);
+		iconInputRot.setSelectedIndex(ep.getIconGenInputRot());
 		initRot(iconOutputRot);
-		iconOutputRot.setSelectedIndex(ep.iconGenOutputRot);
+		iconOutputRot.setSelectedIndex(ep.getIconGenOutputRot());
 		initRot(iconBidirRot);
-		iconBidirRot.setSelectedIndex(ep.iconGenBidirRot);
+		iconBidirRot.setSelectedIndex(ep.getIconGenBidirRot());
 		initRot(iconPowerRot);
-		iconPowerRot.setSelectedIndex(ep.iconGenPowerRot);
+		iconPowerRot.setSelectedIndex(ep.getIconGenPowerRot());
 		initRot(iconGroundRot);
-		iconGroundRot.setSelectedIndex(ep.iconGenGroundRot);
+		iconGroundRot.setSelectedIndex(ep.getIconGenGroundRot());
 		initRot(iconClockRot);
-		iconClockRot.setSelectedIndex(ep.iconGenClockRot);
+		iconClockRot.setSelectedIndex(ep.getIconGenClockRot());
 
 		initRot(iconTopRot);
 		iconTopRot.setSelectedIndex(User.getIconGenTopRot());
@@ -151,32 +151,32 @@ public class IconTab extends PreferencePanel
 		iconExportPos.addItem("Body");
 		iconExportPos.addItem("Lead End");
 		iconExportPos.addItem("Lead Middle");
-		iconExportPos.setSelectedIndex(ep.iconGenExportLocation);
+		iconExportPos.setSelectedIndex(ep.getIconGenExportLocation());
 
 		iconExportStyle.addItem("Centered");
 		iconExportStyle.addItem("Inward");
 		iconExportStyle.addItem("Outward");
-		iconExportStyle.setSelectedIndex(ep.iconGenExportStyle);
+		iconExportStyle.setSelectedIndex(ep.getIconGenExportStyle());
 
 		iconExportTechnology.addItem("Universal");
 		iconExportTechnology.addItem("Schematic");
-		iconExportTechnology.setSelectedIndex(ep.iconGenExportTech);
+		iconExportTechnology.setSelectedIndex(ep.getIconGenExportTech());
 
 		iconInstancePos.addItem("Upper-right");
 		iconInstancePos.addItem("Upper-left");
 		iconInstancePos.addItem("Lower-right");
 		iconInstancePos.addItem("Lower-left");
 		iconInstancePos.addItem("No Instance");
-		iconInstancePos.setSelectedIndex(ep.iconGenInstanceLocation);
+		iconInstancePos.setSelectedIndex(ep.getIconGenInstanceLocation());
 
-		iconDrawLeads.setSelected(ep.iconGenDrawLeads);
-		iconDrawBody.setSelected(ep.iconGenDrawBody);
-		iconTextSize.setText(TextUtils.formatDouble(ep.iconGenBodyTextSize));
-		iconReverseOrder.setSelected(ep.iconGenReverseExportOrder);
-		iconsAlwaysDrawn.setSelected(ep.iconsAlwaysDrawn);
+		iconDrawLeads.setSelected(ep.isIconGenDrawLeads());
+		iconDrawBody.setSelected(ep.isIconGenDrawBody());
+		iconTextSize.setText(TextUtils.formatDouble(ep.getIconGenBodyTextSize()));
+		iconReverseOrder.setSelected(ep.isIconGenReverseExportOrder());
+		iconsAlwaysDrawn.setSelected(ep.isIconsAlwaysDrawn());
 
-		iconLeadLength.setText(TextUtils.formatDouble(ep.iconGenLeadLength));
-		iconLeadSpacing.setText(TextUtils.formatDouble(ep.iconGenLeadSpacing));
+		iconLeadLength.setText(TextUtils.formatDouble(ep.getIconGenLeadLength()));
+		iconLeadSpacing.setText(TextUtils.formatDouble(ep.getIconGenLeadSpacing()));
 	}
 
 	private void placementChanged()

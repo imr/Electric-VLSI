@@ -1210,7 +1210,7 @@ public class MimicStitch
 			matchNodeSize = Routing.isMimicStitchMatchNodeSize();
 			noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
 			notAlreadyConnected = Routing.isMimicStitchOnlyNewTopology();
-            fatWires = EditingPreferences.getThreadEditingPreferences().fatWires;
+            fatWires = EditingPreferences.getThreadEditingPreferences().isFatWires();
 		}
 	}
 }

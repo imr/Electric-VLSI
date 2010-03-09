@@ -133,7 +133,7 @@ public class NewArcsTab extends PreferencePanel
 		incrementArcNames.setSelected(User.isArcsAutoIncremented());
 
         EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
-		enableFatWiring.setSelected(ep.fatWires);
+		enableFatWiring.setSelected(ep.isFatWires());
 	}
 
     /**

@@ -87,188 +87,57 @@ public class EditingPreferences extends PrefPackage {
     private Dimension2D[] alignments;
     private int alignmentIndex;
     private TextDescriptor[] textDescriptors;
-    /** What type of "smart" vertical text placement should be done for Exports.
-     * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
-     * The default is 0.
-     */
 
     @BooleanPref(node = USER_NODE, key = "PlaceCellCenter", factory = true)
-    public /*final*/ boolean placeCellCenter /*= true*/;
-    
+    private /*final*/ boolean placeCellCenter /*= 0*/;
     @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementExport", factory = 0)
-    public /*final*/ int smartVerticalPlacementExport /*= 0*/;
-    /** What type of "smart" horizontal text placement should be done for Exports.
-     * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
-     * The default is 0.
-     */
+    private int smartVerticalPlacementExport;
     @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementExport", factory = 0)
-    public /*final*/ int smartHorizontalPlacementExport /*= 0*/;
-    /** What type of "smart" text placement should be done for vertical Arcs.
-     * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
-     * The default is 0.
-     */
+    private int smartHorizontalPlacementExport;
     @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementArc", factory = 0)
-    public /*final*/ int smartVerticalPlacementArc /*= 0*/;
-    /** What type of "smart" text placement should be done for horizontal Arcs.
-     * The values can be 0: place text inside; 1: place text above; 2: place text below.
-     * The default is 0.
-     */
+    private int smartVerticalPlacementArc;
     @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementArc", factory = 0)
-    public /*final*/ int smartHorizontalPlacementArc /*= 0*/;
-    /** What type of arcs are drawn: true to make them as wide as connecting nodes,
-     * false to make them normal size.
-     * The default is true.
-     */
+    private int smartHorizontalPlacementArc;
     @BooleanPref(node = USER_NODE, key = "FatWires", factory = true)
-    public /*final*/ boolean fatWires /*= true*/;
-
-	/**
-	 * How long to make leads in generated icons.
-     * The default is 2.
-	 */
-	@DoublePref(node = USER_NODE, key = "IconGenLeadLength", factory = 2.0)
-    public /*final*/ double iconGenLeadLength /*= 2.0*/;
-
-	/**
-	 * How far apart to space leads in generated icons.
-     * The default is 2.
-	 */
-	@DoublePref(node = USER_NODE, key = "IconGenLeadSpacing", factory = 2.0)
-    public /*final*/ double iconGenLeadSpacing /*= 2.0*/;
-
-	/**
-	 * Whether generated icons should have leads drawn.
-	 * The default is "true".
-	 */
+    private boolean fatWires;
+    @DoublePref(node = USER_NODE, key = "IconGenLeadLength", factory = 2.0)
+    private double iconGenLeadLength;
+    @DoublePref(node = USER_NODE, key = "IconGenLeadSpacing", factory = 2.0)
+    private double iconGenLeadSpacing;
     @BooleanPref(node = USER_NODE, key = "IconGenDrawLeads", factory = true)
-    public /*final*/ boolean iconGenDrawLeads /*= true*/;
-
-	/**
-	 * Whether generated icon exports should be "always drawn".
-	 * Exports that are "always drawn" have their text shown on instances, even
-	 * when those exports are connected or further exported.
-	 * The default is "false".
-	 */
+    private boolean iconGenDrawLeads;
     @BooleanPref(node = USER_NODE, key = "IconsAlwaysDrawn", factory = false)
-    public /*final*/ boolean iconsAlwaysDrawn /*= false*/;
-
-	/**
-	 * Whether generated icons should have a body drawn.
-	 * The body is just a rectangle.
-	 * The default is "true".
-	 */
+    private boolean iconsAlwaysDrawn;
     @BooleanPref(node = USER_NODE, key = "IconGenDrawBody", factory = true)
-    public /*final*/ boolean iconGenDrawBody /*= true*/;
-
+    private boolean iconGenDrawBody;
     @IntegerPref(node = USER_NODE, key = "IconGenExportPlacement", factory = 0)
-    public /*final*/ int iconGenExportPlacement /*= 0*/;
-
-	/**
-	 * Whether exports are placed exactly according to schematics.
-	 * Only valid if icon ports are being placed by location.
-	 * true to place exports exactly according to schematics.
-	 * false: to place exports relative to their location in the original cell.
-	 */
+    private int iconGenExportPlacement;
     @BooleanPref(node = USER_NODE, key = "IconGenExportPlacementExact", factory = true)
-    public /*final*/ boolean iconGenExportPlacementExact /*= true*/;
-
-	/**
-	 * Whether generated icons should reverse the order of exports.
-	 * Normally, exports are drawn top-to-bottom alphabetically.
-	 * The default is "false".
-	 */
+    private boolean iconGenExportPlacementExact;
     @BooleanPref(node = USER_NODE, key = "IconGenReverseExportOrder", factory = false)
-    public /*final*/ boolean iconGenReverseExportOrder /*= false*/;
-
-	/**
-	 * The size of body text on generated icons.
-	 * The default is 2 unit.
-	 */
+    private boolean iconGenReverseExportOrder;
     @DoublePref(node = USER_NODE, key = "IconGenBodyTextSize", factory = 2.0)
-    public /*final*/ double iconGenBodyTextSize /*= 2.0*/;
-
-	/**
-	 * Where exports should appear along the leads in generated icons.
-	 * 0: on the body   1: (the default) at the end of the lead   2: in the middle of the lead
-	 */
+    private double iconGenBodyTextSize;
     @IntegerPref(node = USER_NODE, key = "IconGenExportLocation", factory = 1)
-    public /*final*/ int iconGenExportLocation /*= 1*/;
-
-	/**
-	 * How the text should appear in generated icons.
-	 * 0: (the default) centered at the export location
-	 * 1: pointing inward from the export location
-	 * 2: pointing outward from the export location
-	 */
+    private int iconGenExportLocation;
     @IntegerPref(node = USER_NODE, key = "IconGenExportStyle", factory = 0)
-    public /*final*/ int iconGenExportStyle /*= 0*/;
-
-	/**
-	 * How exports should be constructed in generated icons.
-	 * 0: use Generic:Universal-Pins for non-bus exports (can connect to ANYTHING).
-	 * 1: (the default) use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
-	 */
+    private int iconGenExportStyle;
     @IntegerPref(node = USER_NODE, key = "IconGenExportTech", factory = 1)
-    public /*final*/ int iconGenExportTech /*= 1*/;
-
-	/**
-	 * Where to place an instance of the generated icons in the original schematic.
-	 * 0: (the default) in the upper-right corner.
-	 * 1: in the upper-left corner.
-	 * 2: in the lower-right corner.
-	 * 3: in the lower-left corner.
-	 * 4: no instance in the original schematic
-	 */
+    private int iconGenExportTech;
     @IntegerPref(node = USER_NODE, key = "IconGenInstanceLocation", factory = 0)
-    public /*final*/ int iconGenInstanceLocation /*= 0*/;
-    
-	/**
-	 * What angle Input ports should go on generated icons.
-	 * This applies only when ports are placed by "characteristic", not "location".
-	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
-	 */
+    private int iconGenInstanceLocation;
     @IntegerPref(node = USER_NODE, key = "IconGenInputRot", factory = 0)
-    public /*final*/ int iconGenInputRot /*= 0*/;
-
-	/**
-	 * What angle Output ports should go on generated icons.
-	 * This applies only when ports are placed by "characteristic", not "location".
-	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
-	 */
+    private int iconGenInputRot;
     @IntegerPref(node = USER_NODE, key = "IconGenOutputRot", factory = 0)
-    public /*final*/ int iconGenOutputRot /*= 0*/;
-
-	/**
-	 * What angle Bidirectional ports should go on generated icons.
-	 * This applies only when ports are placed by "characteristic", not "location".
-	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
-	 */
+    private int iconGenOutputRot;
     @IntegerPref(node = USER_NODE, key = "IconGenBidirRot", factory = 0)
-    public /*final*/ int iconGenBidirRot /*= 0*/;
-
-	/**
-	 * Method to tell what angle Power ports should go on generated icons.
-	 * This applies only when ports are placed by "characteristic", not "location".
-	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
-	 */
+    private int iconGenBidirRot;
     @IntegerPref(node = USER_NODE, key = "IconGenPowerRot", factory = 0)
-    public /*final*/ int iconGenPowerRot /*= 0*/;
-
-	/**
-	 * Method to tell what angle Ground ports should go on generated icons.
-	 * This applies only when ports are placed by "characteristic", not "location".
-	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
-	 */
+    private int iconGenPowerRot;
     @IntegerPref(node = USER_NODE, key = "IconGenGroundRot", factory = 0)
-    public /*final*/ int iconGenGroundRot /*= 0*/;
-
-	/**
-	 * Method to tell what angle Clock ports should go on generated icons.
-	 * This applies only when ports are placed by "characteristic", not "location".
-	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
-	 */
+    private int iconGenGroundRot;
     @IntegerPref(node = USER_NODE, key = "IconGenClockRot", factory = 0)
-    public /*final*/ int iconGenClockRot /*= 0*/;
+    private int iconGenClockRot;
 
     public EditingPreferences(boolean factory, TechPool techPool) {
         super(factory);
@@ -605,7 +474,7 @@ public class EditingPreferences extends PrefPackage {
     }
 
     public EditingPreferences withPlaceCellCenter(boolean placeCellCenter) {
-        if (placeCellCenter == this.placeCellCenter) {
+        if (placeCellCenter == this.isPlaceCellCenter()) {
             return this;
         }
         return withField("placeCellCenter", placeCellCenter);
@@ -747,32 +616,32 @@ public class EditingPreferences extends PrefPackage {
             EditingPreferences that = (EditingPreferences) o;
             return this.techPool == that.techPool
                     && this.defaultNodes.equals(that.defaultNodes)
-                    && this.placeCellCenter == that.placeCellCenter
+                    && this.isPlaceCellCenter() == that.isPlaceCellCenter()
                     && this.defaultArcs.equals(that.defaultArcs)
                     && this.defaultArcAngleIncrements.equals(that.defaultArcAngleIncrements)
                     && this.defaultArcPins.equals(that.defaultArcPins)
                     && Arrays.equals(this.alignments, that.alignments)
                     && this.alignmentIndex == that.alignmentIndex
                     && Arrays.equals(this.textDescriptors, that.textDescriptors)
-                    && this.fatWires == that.fatWires
-                    && this.iconGenLeadLength == that.iconGenLeadLength
-                    && this.iconGenLeadSpacing == that.iconGenLeadSpacing
-                    && this.iconGenDrawLeads == that.iconGenDrawLeads
-                    && this.iconsAlwaysDrawn == that.iconsAlwaysDrawn
-                    && this.iconGenDrawBody == that.iconGenDrawBody
-                    && this.iconGenExportPlacement == that.iconGenExportPlacement
-                    && this.iconGenExportPlacementExact == that.iconGenExportPlacementExact
-                    && this.iconGenReverseExportOrder == that.iconGenReverseExportOrder
-                    && this.iconGenBodyTextSize == that.iconGenBodyTextSize
-                    && this.iconGenExportLocation == that.iconGenExportLocation
-                    && this.iconGenExportStyle == that.iconGenExportStyle
-                    && this.iconGenExportTech == that.iconGenExportTech
-                    && this.iconGenInstanceLocation == that.iconGenInstanceLocation
-                    && this.iconGenInputRot == that.iconGenInputRot
-                    && this.iconGenOutputRot == that.iconGenOutputRot
-                    && this.iconGenBidirRot == that.iconGenBidirRot
-                    && this.iconGenPowerRot == that.iconGenPowerRot
-                    && this.iconGenClockRot == that.iconGenClockRot;
+                    && this.isFatWires() == that.isFatWires()
+                    && this.getIconGenLeadLength() == that.getIconGenLeadLength()
+                    && this.getIconGenLeadSpacing() == that.getIconGenLeadSpacing()
+                    && this.isIconGenDrawLeads() == that.isIconGenDrawLeads()
+                    && this.isIconsAlwaysDrawn() == that.isIconsAlwaysDrawn()
+                    && this.isIconGenDrawBody() == that.isIconGenDrawBody()
+                    && this.getIconGenExportPlacement() == that.getIconGenExportPlacement()
+                    && this.isIconGenExportPlacementExact() == that.isIconGenExportPlacementExact()
+                    && this.isIconGenReverseExportOrder() == that.isIconGenReverseExportOrder()
+                    && this.getIconGenBodyTextSize() == that.getIconGenBodyTextSize()
+                    && this.getIconGenExportLocation() == that.getIconGenExportLocation()
+                    && this.getIconGenExportStyle() == that.getIconGenExportStyle()
+                    && this.getIconGenExportTech() == that.getIconGenExportTech()
+                    && this.getIconGenInstanceLocation() == that.getIconGenInstanceLocation()
+                    && this.getIconGenInputRot() == that.getIconGenInputRot()
+                    && this.getIconGenOutputRot() == that.getIconGenOutputRot()
+                    && this.getIconGenBidirRot() == that.getIconGenBidirRot()
+                    && this.getIconGenPowerRot() == that.getIconGenPowerRot()
+                    && this.getIconGenClockRot() == that.getIconGenClockRot();
         }
         return false;
     }
@@ -857,35 +726,35 @@ public class EditingPreferences extends PrefPackage {
     }
 
     public EditingPreferences withSmartVerticalPlacementExport(int smartVerticalPlacementExport) {
-        if (smartVerticalPlacementExport == this.smartVerticalPlacementExport) {
+        if (smartVerticalPlacementExport == this.getSmartVerticalPlacementExport()) {
             return this;
         }
         return withField("smartVerticalPlacementExport", Integer.valueOf(smartVerticalPlacementExport));
     }
 
     public EditingPreferences withSmartHorizontalPlacementExport(int smartHorizontalPlacementExport) {
-        if (smartHorizontalPlacementExport == this.smartHorizontalPlacementExport) {
+        if (smartHorizontalPlacementExport == this.getSmartHorizontalPlacementExport()) {
             return this;
         }
         return withField("smartHorizontalPlacementExport", Integer.valueOf(smartHorizontalPlacementExport));
     }
 
     public EditingPreferences withSmartVerticalPlacementArc(int smartVerticalPlacementArc) {
-        if (smartVerticalPlacementArc == this.smartVerticalPlacementArc) {
+        if (smartVerticalPlacementArc == this.getSmartVerticalPlacementArc()) {
             return this;
         }
         return withField("smartVerticalPlacementArc", Integer.valueOf(smartVerticalPlacementArc));
     }
 
     public EditingPreferences withSmartHorizontalPlacementArc(int smartHorizontalPlacementArc) {
-        if (smartHorizontalPlacementArc == this.smartHorizontalPlacementArc) {
+        if (smartHorizontalPlacementArc == this.getSmartHorizontalPlacementArc()) {
             return this;
         }
         return withField("smartHorizontalPlacementArc", Integer.valueOf(smartHorizontalPlacementArc));
     }
 
     public EditingPreferences withFatWires(boolean fatWires) {
-        if (fatWires == this.fatWires) {
+        if (fatWires == this.isFatWires()) {
             return this;
         }
         return withField("fatWires", fatWires);
@@ -900,133 +769,133 @@ public class EditingPreferences extends PrefPackage {
     }
 
     public EditingPreferences withIconGenLeadLength(double iconGenLeadLength) {
-        if (iconGenLeadLength == this.iconGenLeadLength) {
+        if (iconGenLeadLength == this.getIconGenLeadLength()) {
             return this;
         }
         return withField("iconGenLeadLength", iconGenLeadLength);
     }
 
     public EditingPreferences withIconGenLeadSpacing(double iconGenLeadSpacing) {
-        if (iconGenLeadSpacing == this.iconGenLeadSpacing) {
+        if (iconGenLeadSpacing == this.getIconGenLeadSpacing()) {
             return this;
         }
         return withField("iconGenLeadSpacing", iconGenLeadSpacing);
     }
 
     public EditingPreferences withIconGenDrawLeads(boolean iconGenDrawLeads) {
-        if (iconGenDrawLeads == this.iconGenDrawLeads) {
+        if (iconGenDrawLeads == this.isIconGenDrawLeads()) {
             return this;
         }
         return withField("iconGenDrawLeads", iconGenDrawLeads);
     }
 
     public EditingPreferences withIconsAlwaysDrawn(boolean iconsAlwaysDrawn) {
-        if (iconsAlwaysDrawn == this.iconsAlwaysDrawn) {
+        if (iconsAlwaysDrawn == this.isIconsAlwaysDrawn()) {
             return this;
         }
         return withField("iconsAlwaysDrawn", iconsAlwaysDrawn);
     }
 
     public EditingPreferences withIconGenDrawBody(boolean iconGenDrawBody) {
-        if (iconGenDrawBody == this.iconGenDrawBody) {
+        if (iconGenDrawBody == this.isIconGenDrawBody()) {
             return this;
         }
         return withField("iconGenDrawBody", iconGenDrawBody);
     }
 
     public EditingPreferences withIconGenExportPlacement(int iconGenExportPlacement) {
-        if (iconGenExportPlacement == this.iconGenExportPlacement) {
+        if (iconGenExportPlacement == this.getIconGenExportPlacement()) {
             return this;
         }
         return withField("iconGenExportPlacement", iconGenExportPlacement);
     }
 
     public EditingPreferences withIconGenExportPlacementExact(boolean iconGenExportPlacementExact) {
-        if (iconGenExportPlacementExact == this.iconGenExportPlacementExact) {
+        if (iconGenExportPlacementExact == this.isIconGenExportPlacementExact()) {
             return this;
         }
         return withField("iconGenExportPlacementExact", iconGenExportPlacementExact);
     }
 
     public EditingPreferences withIconGenReverseExportOrder(boolean iconGenReverseExportOrder) {
-        if (iconGenReverseExportOrder == this.iconGenReverseExportOrder) {
+        if (iconGenReverseExportOrder == this.isIconGenReverseExportOrder()) {
             return this;
         }
         return withField("iconGenReverseExportOrder", iconGenReverseExportOrder);
     }
 
     public EditingPreferences withIconGenBodyTextSize(double iconGenBodyTextSize) {
-        if (iconGenBodyTextSize == this.iconGenBodyTextSize) {
+        if (iconGenBodyTextSize == this.getIconGenBodyTextSize()) {
             return this;
         }
         return withField("iconGenBodyTextSize", iconGenBodyTextSize);
     }
 
     public EditingPreferences withIconGenExportLocation(int iconGenExportLocation) {
-        if (iconGenExportLocation == this.iconGenExportLocation) {
+        if (iconGenExportLocation == this.getIconGenExportLocation()) {
             return this;
         }
         return withField("iconGenExportLocation", iconGenExportLocation);
     }
 
     public EditingPreferences withIconGenExportStyle(int iconGenExportStyle) {
-        if (iconGenExportStyle == this.iconGenExportStyle) {
+        if (iconGenExportStyle == this.getIconGenExportStyle()) {
             return this;
         }
         return withField("iconGenExportStyle", iconGenExportStyle);
     }
 
     public EditingPreferences withIconGenExportTech(int iconGenExportTech) {
-        if (iconGenExportTech == this.iconGenExportTech) {
+        if (iconGenExportTech == this.getIconGenExportTech()) {
             return this;
         }
         return withField("iconGenExportTech", iconGenExportTech);
     }
 
     public EditingPreferences withIconGenInstanceLocation(int iconGenInstanceLocation) {
-        if (iconGenInstanceLocation == this.iconGenInstanceLocation) {
+        if (iconGenInstanceLocation == this.getIconGenInstanceLocation()) {
             return this;
         }
         return withField("iconGenInstanceLocation", iconGenInstanceLocation);
     }
 
     public EditingPreferences withIconGenInputRot(int iconGenInputRot) {
-        if (iconGenInputRot == this.iconGenInputRot) {
+        if (iconGenInputRot == this.getIconGenInputRot()) {
             return this;
         }
         return withField("iconGenInputRot", iconGenInputRot);
     }
 
     public EditingPreferences withIconGenOutputRot(int iconGenOutputRot) {
-        if (iconGenOutputRot == this.iconGenOutputRot) {
+        if (iconGenOutputRot == this.getIconGenOutputRot()) {
             return this;
         }
         return withField("iconGenOutputRot", iconGenOutputRot);
     }
 
     public EditingPreferences withIconGenBidirRot(int iconGenBidirRot) {
-        if (iconGenBidirRot == this.iconGenBidirRot) {
+        if (iconGenBidirRot == this.getIconGenBidirRot()) {
             return this;
         }
         return withField("iconGenBidirRot", iconGenBidirRot);
     }
 
     public EditingPreferences withIconGenPowerRot(int iconGenPowerRot) {
-        if (iconGenPowerRot == this.iconGenPowerRot) {
+        if (iconGenPowerRot == this.getIconGenPowerRot()) {
             return this;
         }
         return withField("iconGenPowerRot", iconGenPowerRot);
     }
 
     public EditingPreferences withIconGenGroundRot(int iconGenGroundRot) {
-        if (iconGenGroundRot == this.iconGenGroundRot) {
+        if (iconGenGroundRot == this.getIconGenGroundRot()) {
             return this;
         }
         return withField("iconGenGroundRot", iconGenGroundRot);
     }
 
     public EditingPreferences withIconGenClockRot(int iconGenClockRot) {
-        if (iconGenClockRot == this.iconGenClockRot) {
+        if (iconGenClockRot == this.getIconGenClockRot()) {
             return this;
         }
         return withField("iconGenClockRot", iconGenClockRot);
@@ -1166,6 +1035,251 @@ public class EditingPreferences extends PrefPackage {
         sb.append(')');
         String dir = sb.toString();
         return dir;
+    }
+
+    /**
+     * What type of "smart" vertical text placement should be done for Exports.
+     * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+     * The default is 0.
+     * @return the placeCellCenter
+     */
+    public boolean isPlaceCellCenter() {
+        return placeCellCenter;
+    }
+
+    /**
+     * @return the smartVerticalPlacementExport
+     */
+    public int getSmartVerticalPlacementExport() {
+        return smartVerticalPlacementExport;
+    }
+
+    /**
+     * What type of "smart" horizontal text placement should be done for Exports.
+     * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+     * The default is 0.
+     * @return the smartHorizontalPlacementExport
+     */
+    public int getSmartHorizontalPlacementExport() {
+        return smartHorizontalPlacementExport;
+    }
+
+    /**
+     * What type of "smart" text placement should be done for vertical Arcs.
+     * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
+     * The default is 0.
+     * @return the smartVerticalPlacementArc
+     */
+    public int getSmartVerticalPlacementArc() {
+        return smartVerticalPlacementArc;
+    }
+
+    /**
+     * What type of "smart" text placement should be done for horizontal Arcs.
+     * The values can be 0: place text inside; 1: place text above; 2: place text below.
+     * The default is 0.
+     * @return the smartHorizontalPlacementArc
+     */
+    public int getSmartHorizontalPlacementArc() {
+        return smartHorizontalPlacementArc;
+    }
+
+    /**
+     * What type of arcs are drawn: true to make them as wide as connecting nodes,
+     * false to make them normal size.
+     * The default is true.
+     * @return the fatWires
+     */
+    public boolean isFatWires() {
+        return fatWires;
+    }
+
+    /**
+     * How long to make leads in generated icons.
+     * The default is 2.
+     * @return the iconGenLeadLength
+     */
+    public double getIconGenLeadLength() {
+        return iconGenLeadLength;
+    }
+
+    /**
+     * How far apart to space leads in generated icons.
+     * The default is 2.
+     * @return the iconGenLeadSpacing
+     */
+    public double getIconGenLeadSpacing() {
+        return iconGenLeadSpacing;
+    }
+
+    /**
+     * Whether generated icons should have leads drawn.
+     * The default is "true".
+     * @return the iconGenDrawLeads
+     */
+    public boolean isIconGenDrawLeads() {
+        return iconGenDrawLeads;
+    }
+
+    /**
+     * Whether generated icon exports should be "always drawn".
+     * Exports that are "always drawn" have their text shown on instances, even
+     * when those exports are connected or further exported.
+     * The default is "false".
+     * @return the iconsAlwaysDrawn
+     */
+    public boolean isIconsAlwaysDrawn() {
+        return iconsAlwaysDrawn;
+    }
+
+    /**
+     * Whether generated icons should have a body drawn.
+     * The body is just a rectangle.
+     * The default is "true".
+     * @return the iconGenDrawBody
+     */
+    public boolean isIconGenDrawBody() {
+        return iconGenDrawBody;
+    }
+
+    /**
+     * @return the iconGenExportPlacement
+     */
+    public int getIconGenExportPlacement() {
+        return iconGenExportPlacement;
+    }
+
+    /**
+     * Whether exports are placed exactly according to schematics.
+     * Only valid if icon ports are being placed by location.
+     * true to place exports exactly according to schematics.
+     * false: to place exports relative to their location in the original cell.
+     * @return the iconGenExportPlacementExact
+     */
+    public boolean isIconGenExportPlacementExact() {
+        return iconGenExportPlacementExact;
+    }
+
+    /**
+     * Whether generated icons should reverse the order of exports.
+     * Normally, exports are drawn top-to-bottom alphabetically.
+     * The default is "false".
+     * @return the iconGenReverseExportOrder
+     */
+    public boolean isIconGenReverseExportOrder() {
+        return iconGenReverseExportOrder;
+    }
+
+    /**
+     * The size of body text on generated icons.
+     * The default is 2 unit.
+     * @return the iconGenBodyTextSize
+     */
+    public double getIconGenBodyTextSize() {
+        return iconGenBodyTextSize;
+    }
+
+    /**
+     * Where exports should appear along the leads in generated icons.
+     * 0: on the body   1: (the default) at the end of the lead   2: in the middle of the lead
+     * @return the iconGenExportLocation
+     */
+    public int getIconGenExportLocation() {
+        return iconGenExportLocation;
+    }
+
+    /**
+     * How the text should appear in generated icons.
+     * 0: (the default) centered at the export location
+     * 1: pointing inward from the export location
+     * 2: pointing outward from the export location
+     * @return the iconGenExportStyle
+     */
+    public int getIconGenExportStyle() {
+        return iconGenExportStyle;
+    }
+
+    /**
+     * How exports should be constructed in generated icons.
+     * 0: use Generic:Universal-Pins for non-bus exports (can connect to ANYTHING).
+     * 1: (the default) use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
+     * @return the iconGenExportTech
+     */
+    public int getIconGenExportTech() {
+        return iconGenExportTech;
+    }
+
+    /**
+     * Where to place an instance of the generated icons in the original schematic.
+     * 0: (the default) in the upper-right corner.
+     * 1: in the upper-left corner.
+     * 2: in the lower-right corner.
+     * 3: in the lower-left corner.
+     * 4: no instance in the original schematic
+     * @return the iconGenInstanceLocation
+     */
+    public int getIconGenInstanceLocation() {
+        return iconGenInstanceLocation;
+    }
+
+    /**
+     * What angle Input ports should go on generated icons.
+     * This applies only when ports are placed by "characteristic", not "location".
+     * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+     * @return the iconGenInputRot
+     */
+    public int getIconGenInputRot() {
+        return iconGenInputRot;
+    }
+
+    /**
+     * What angle Output ports should go on generated icons.
+     * This applies only when ports are placed by "characteristic", not "location".
+     * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+     * @return the iconGenOutputRot
+     */
+    public int getIconGenOutputRot() {
+        return iconGenOutputRot;
+    }
+
+    /**
+     * What angle Bidirectional ports should go on generated icons.
+     * This applies only when ports are placed by "characteristic", not "location".
+     * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+     * @return the iconGenBidirRot
+     */
+    public int getIconGenBidirRot() {
+        return iconGenBidirRot;
+    }
+
+    /**
+     * Method to tell what angle Power ports should go on generated icons.
+     * This applies only when ports are placed by "characteristic", not "location".
+     * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+     * @return the iconGenPowerRot
+     */
+    public int getIconGenPowerRot() {
+        return iconGenPowerRot;
+    }
+
+    /**
+     * Method to tell what angle Ground ports should go on generated icons.
+     * This applies only when ports are placed by "characteristic", not "location".
+     * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+     * @return the iconGenGroundRot
+     */
+    public int getIconGenGroundRot() {
+        return iconGenGroundRot;
+    }
+
+    /**
+     * Method to tell what angle Clock ports should go on generated icons.
+     * This applies only when ports are placed by "characteristic", not "location".
+     * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+     * @return the iconGenClockRot
+     */
+    public int getIconGenClockRot() {
+        return iconGenClockRot;
     }
 
     private static class ImmutableDimension2D extends Dimension2D {

@@ -235,7 +235,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 Dimension2D alignmentToGrid = parent.getEditingPreferences().getAlignmentToGrid();
                 double newlocX = (locX - bounds.getMinX()) / bounds.getWidth() * iconBounds.getWidth() + iconBounds.getMinX();
                 newlocX = DBMath.toNearest(newlocX, alignmentToGrid.getWidth());
-                double bodyDX = ep.iconGenLeadLength;
+                double bodyDX = ep.getIconGenLeadLength();
                 double distToXEdge = locX - bounds.getMinX();
                 if (locX >= bounds.getCenterX()) {
                     bodyDX = -bodyDX;
@@ -243,7 +243,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 }
                 double newlocY = (locY - bounds.getMinY()) / bounds.getHeight() * iconBounds.getHeight() + iconBounds.getMinY();
                 newlocY = DBMath.toNearest(newlocY, alignmentToGrid.getHeight());
-                double bodyDY = ep.iconGenLeadLength;
+                double bodyDY = ep.getIconGenLeadLength();
                 double distToYEdge = locY - bounds.getMinY();
                 if (locY >= bounds.getCenterY()) {
                     bodyDY = -bodyDY;
@@ -746,8 +746,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     private static TextDescriptor smartPlacement(PortInst originalPort) {
         // handle smart text placement relative to attached object
         EditingPreferences ep = originalPort.getEditingPreferences();
-        int smartVertical = ep.smartVerticalPlacementExport;
-        int smartHorizontal = ep.smartHorizontalPlacementExport;
+        int smartVertical = ep.getSmartVerticalPlacementExport();
+        int smartHorizontal = ep.getSmartHorizontalPlacementExport();
         if (smartVertical == 0 && smartHorizontal == 0) {
             return TextDescriptor.getExportTextDescriptor();
         }

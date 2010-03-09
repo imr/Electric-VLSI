@@ -1046,8 +1046,8 @@ public class PadGenerator
 			// into CircuitChanges.makeIconViewCommand()
 
 			// get icon style controls
-			double leadLength = ep.iconGenLeadLength;
-			double leadSpacing = ep.iconGenLeadSpacing;
+			double leadLength = ep.getIconGenLeadLength();
+			double leadSpacing = ep.getIconGenLeadSpacing();
 
 			// create the new icon cell
 			String iconCellName = framecell.getName() + "{ic}";
@@ -1066,7 +1066,7 @@ public class PadGenerator
 
 			// create the "black box"
 			NodeInst bbNi = null;
-			if (ep.iconGenDrawBody)
+			if (ep.isIconGenDrawBody())
 			{
 				bbNi = NodeInst.newInstance(Artwork.tech().openedThickerPolygonNode, new Point2D.Double(0, 0), xSize, ySize, iconCell);
 				if (bbNi == null) return framecell;
@@ -1085,11 +1085,11 @@ public class PadGenerator
 			}
 
 			// get icon preferences
-			int exportTech = ep.iconGenExportTech;
-			boolean drawLeads = ep.iconGenDrawLeads;
-			int exportStyle = ep.iconGenExportStyle;
-			int exportLocation = ep.iconGenExportLocation;
-			boolean ad = ep.iconsAlwaysDrawn;
+			int exportTech = ep.getIconGenExportTech();
+			boolean drawLeads = ep.isIconGenDrawLeads();
+			int exportStyle = ep.getIconGenExportStyle();
+			int exportLocation = ep.getIconGenExportLocation();
+			boolean ad = ep.isIconsAlwaysDrawn();
 
 			if (coreAllOnOneSide)
 			{
@@ -1166,14 +1166,14 @@ public class PadGenerator
 			}
 
 			// if no body, leads, or cell center is drawn, and there is only 1 export, add more
-			if (!ep.iconGenDrawBody && !ep.iconGenDrawLeads &&
-				ep.placeCellCenter && total <= 1)
+			if (!ep.isIconGenDrawBody() && !ep.isIconGenDrawLeads() &&
+				ep.isPlaceCellCenter() && total <= 1)
 			{
 				NodeInst.newInstance(Generic.tech().invisiblePinNode, new Point2D.Double(0, 0), xSize, ySize, iconCell);
 			}
 
 			// place an icon in the schematic
-			int exampleLocation = ep.iconGenInstanceLocation;
+			int exampleLocation = ep.getIconGenInstanceLocation();
 			Point2D iconPos = new Point2D.Double(0, 0);
 			Rectangle2D cellBounds = framecell.getBounds();
 			Rectangle2D iconBounds = iconCell.getBounds();

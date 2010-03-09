@@ -1646,9 +1646,9 @@ public class ClickZoomWireListener
         } else {
             // toggle fat wiring mode
             EditingPreferences ep = UserInterfaceMain.getEditingPreferences();
-            ep = ep.withFatWires(!ep.fatWires);
+            ep = ep.withFatWires(!ep.isFatWires());
             UserInterfaceMain.setEditingPreferences(ep);
-            if (ep.fatWires) {
+            if (ep.isFatWires()) {
                 System.out.println("Enabling fat wiring mode");
             } else {
                 System.out.println("Disabling fat wiring mode");
@@ -1747,7 +1747,7 @@ public class ClickZoomWireListener
      * Recached Preferences after change
      */
     public void readPrefs() {
-        router = new SimpleWirer(EditingPreferences.getThreadEditingPreferences().fatWires);
+        router = new SimpleWirer(EditingPreferences.getThreadEditingPreferences().isFatWires());
         router.setTool(User.getUserTool());
         cancelMoveDelayMillis = prefs.getLong(cancelMoveDelayMillisPref, getFactoryCancelMoveDelayMillis());
         zoomInDelayMillis = prefs.getLong(zoomInDelayMillisPref, 120);

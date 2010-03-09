@@ -57,13 +57,13 @@ public class SmartTextTab extends PreferencePanel
 	{
         EditingPreferences ep = getEditingPreferences();
 		// set arc defaults
-		switch (ep.smartVerticalPlacementArc)
+		switch (ep.getSmartVerticalPlacementArc())
 		{
 			case 0: arcVerticalInside.setSelected(true);    break;
 			case 1: arcVerticalLeft.setSelected(true);      break;
 			case 2: arcVerticalRight.setSelected(true);     break;
 		}
-		switch (ep.smartHorizontalPlacementArc)
+		switch (ep.getSmartHorizontalPlacementArc())
 		{
 			case 0: arcHorizontalInside.setSelected(true);    break;
 			case 1: arcHorizontalAbove.setSelected(true);     break;
@@ -71,13 +71,13 @@ public class SmartTextTab extends PreferencePanel
 		}
 
 		// set export defaults
-		switch (ep.smartVerticalPlacementExport)
+		switch (ep.getSmartVerticalPlacementExport())
 		{
 			case 0: textSmartVerticalOff.setSelected(true);       break;
 			case 1: textSmartVerticalInside.setSelected(true);    break;
 			case 2: textSmartVerticalOutside.setSelected(true);   break;
 		}
-		switch (ep.smartHorizontalPlacementExport)
+		switch (ep.getSmartHorizontalPlacementExport())
 		{
 			case 0: textSmartHorizontalOff.setSelected(true);       break;
 			case 1: textSmartHorizontalInside.setSelected(true);    break;

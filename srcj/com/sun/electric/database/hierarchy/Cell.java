@@ -580,7 +580,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         EditingPreferences ep = cell.getEditingPreferences();
 
         // add cell-center if requested
-        if (ep.placeCellCenter) {
+        if (ep.isPlaceCellCenter()) {
             NodeProto cellCenterProto = Generic.tech().cellCenterNode;
             NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0, 0),
                     cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), cell);

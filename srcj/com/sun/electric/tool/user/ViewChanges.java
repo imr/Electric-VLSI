@@ -523,7 +523,7 @@ public class ViewChanges
 		if (!fixedValues)
 		{
             EditingPreferences ep = curCell.getEditingPreferences();
-			new MakeIconView(curCell, User.getAlignmentToGrid(), ep.iconGenInstanceLocation, ip, doItNow);
+			new MakeIconView(curCell, User.getAlignmentToGrid(), ep.getIconGenInstanceLocation(), ip, doItNow);
 		}
 		else
 		{
@@ -629,13 +629,13 @@ public class ViewChanges
 
 		// see which side this type of port sits on
         EditingPreferences ep = pp.getEditingPreferences();
-		if (character == PortCharacteristic.IN) return ep.iconGenInputRot;
-		if (character == PortCharacteristic.OUT) return ep.iconGenOutputRot;
-		if (character == PortCharacteristic.BIDIR) return ep.iconGenBidirRot;
-		if (character == PortCharacteristic.PWR) return ep.iconGenPowerRot;
-		if (character == PortCharacteristic.GND) return ep.iconGenGroundRot;
-		if (character.isClock()) return ep.iconGenClockRot;
-		return ep.iconGenInputRot;
+		if (character == PortCharacteristic.IN) return ep.getIconGenInputRot();
+		if (character == PortCharacteristic.OUT) return ep.getIconGenOutputRot();
+		if (character == PortCharacteristic.BIDIR) return ep.getIconGenBidirRot();
+		if (character == PortCharacteristic.PWR) return ep.getIconGenPowerRot();
+		if (character == PortCharacteristic.GND) return ep.getIconGenGroundRot();
+		if (character.isClock()) return ep.getIconGenClockRot();
+		return ep.getIconGenInputRot();
 	}
 
 	/****************************** CONVERT TO SCHEMATICS ******************************/

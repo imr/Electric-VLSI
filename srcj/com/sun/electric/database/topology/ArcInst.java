@@ -1124,7 +1124,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         // assigning valid name: do smart text placement
         if ((angle % 1800) == 0) {
             // horizontal arc
-            int smart = ep.smartHorizontalPlacementArc;
+            int smart = ep.getSmartHorizontalPlacementArc();
             if (smart == 1) {
                 // arc text above
                 return prev.withPos(TextDescriptor.Position.UP).withOff(0, width / 2);
@@ -1134,7 +1134,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             }
         } else if ((angle % 1800) == 900) {
             // vertical arc
-            int smart = ep.smartVerticalPlacementArc;
+            int smart = ep.getSmartVerticalPlacementArc();
             if (smart == 1) {
                 // arc text to the left
                 return prev.withPos(TextDescriptor.Position.LEFT).withOff(-width / 2, 0);
