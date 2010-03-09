@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+BUG: (3/9/10, DN) Exception in regression due to private in EditingPreferences (Bug #2681).
+FIX: In PrefPackage.putPrefs insert "field.setAccessible(true)".
+
 IMP: (3/9/10, DN) Encapsulate fields in EditingPreferences (Bug #2672).
 
 IMP: (3/8/10, GVG) Add OD18ud15 Transitors to the 40nm tech (Bug #2680)

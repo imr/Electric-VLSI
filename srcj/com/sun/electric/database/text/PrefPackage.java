@@ -144,6 +144,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
                 BooleanPref ba = field.getAnnotation(BooleanPref.class);
                 if (ba != null) {
                     assert field.getType() == Boolean.TYPE;
+                    field.setAccessible(true);
                     boolean v = field.getBoolean(this);
                     Preferences prefs = prefRoot.node(ba.node());
                     if (removeDefaults && v == ba.factory()) {
@@ -155,6 +156,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
                 IntegerPref ia = field.getAnnotation(IntegerPref.class);
                 if (ia != null) {
                     assert field.getType() == Integer.TYPE;
+                    field.setAccessible(true);
                     int v = field.getInt(this);
                     Preferences prefs = prefRoot.node(ia.node());
                     if (removeDefaults && v == ia.factory()) {
@@ -166,6 +168,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
                 LongPref la = field.getAnnotation(LongPref.class);
                 if (la != null) {
                     assert field.getType() == Long.TYPE;
+                    field.setAccessible(true);
                     long v = field.getLong(this);
                     Preferences prefs = prefRoot.node(la.node());
                     if (removeDefaults && v == la.factory()) {
@@ -177,6 +180,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
                 DoublePref da = field.getAnnotation(DoublePref.class);
                 if (da != null) {
                     assert field.getType() == Double.TYPE;
+                    field.setAccessible(true);
                     double v = field.getDouble(this);
                     Preferences prefs = prefRoot.node(da.node());
                     if (removeDefaults && v == da.factory()) {
@@ -188,6 +192,7 @@ public abstract class PrefPackage implements Serializable, Cloneable {
                 StringPref sa = field.getAnnotation(StringPref.class);
                 if (sa != null) {
                     assert field.getType() == String.class;
+                    field.setAccessible(true);
                     String v = (String) field.get(this);
                     Preferences prefs = prefRoot.node(sa.node());
                     if (removeDefaults && v.equals(sa.factory())) {

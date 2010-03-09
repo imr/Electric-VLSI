@@ -89,7 +89,7 @@ public class EditingPreferences extends PrefPackage {
     private TextDescriptor[] textDescriptors;
 
     @BooleanPref(node = USER_NODE, key = "PlaceCellCenter", factory = true)
-    private /*final*/ boolean placeCellCenter /*= 0*/;
+    private boolean placeCellCenter;
     @IntegerPref(node = USER_NODE, key = "SmartVerticalPlacementExport", factory = 0)
     private int smartVerticalPlacementExport;
     @IntegerPref(node = USER_NODE, key = "SmartHorizontalPlacementExport", factory = 0)
