@@ -48,12 +48,14 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class reads files in CIF files.
@@ -140,7 +142,6 @@ public class CIF extends Input
 
 	static class BackCIFCell
 	{
-		/** cell index given in the define statement */	int  cIndex;
 		/** bounding box of cell */						int  l, r, t, b;
 		/** the address of the cif cell */				Cell addr;
 	};
@@ -148,8 +149,8 @@ public class CIF extends Input
 	static class BackCIFList
 	{
 		/** specifies the nature of the entry */	int         identity;
+		/** the line number in the original CIF */	int         lineNumber;
 		/** will point to member's structure */		Object      member;
-		/** next entry in list */					BackCIFList next;
 	};
 
 	static class BackCIFStart
@@ -294,7 +295,6 @@ public class CIF extends Input
 	/** items in item tree */
 	static class FrontItem
 	{
-		/** links for tree */					FrontItem same;
 		/** pointer into symbol structure */	FrontObjBase   what;
 	};
 
@@ -315,6 +315,7 @@ public class CIF extends Input
 	static class FrontCall extends FrontObjBase
 	{
 		/** rest is noncritical */				int symNumber;
+		int lineNumber;
 		FrontSymbol unID;
 		FrontMatrix matrix;
 		/** trans list for this call */			FrontTransformList transList;
@@ -359,9 +360,9 @@ public class CIF extends Input
 	};
 
 	/** current transformation */			private BackCIFTransform currentCTrans;
-	/** head of the list */					private BackCIFList      currentFrontList = null;
-	/** current location in list */			private BackCIFList      currentFrontElement;
-	/** head of item list */				private FrontItem        currentItemList;
+	/** list of front-end objects */		private List<BackCIFList> currentFrontList = null;
+	/** current object in list */			private BackCIFList      currentFrontElement;
+	/** item list */						private List<FrontItem>  currentItemList;
 	/** A/B from DS */						private double           cellScaleFactor;
 	/** current symbol being defined */		private FrontSymbol      currentFrontSymbol;
 	/** place to save layer during def */	private Layer            backupLayer;
@@ -378,7 +379,7 @@ public class CIF extends Input
 	/** 91 pending */						private boolean          namePending;
 	/** end command flag */					private boolean          endCommandFound;
 	/** current layer */					private Layer            currentLayer;
-	/** symbol table */						private HashMap<Integer,FrontSymbol> symbolTable;
+	/** symbol table */						private Map<Integer,FrontSymbol> symbolTable;
 	/** the top of stack */					private FrontMatrix      matrixStackTop;
 	/** lookahead character */				private int              nextInputCharacter;
 	/** # statements since 91 com */		private boolean          statementsSince91;
@@ -387,11 +388,11 @@ public class CIF extends Input
 	/** min/max stack: right edge */		private int []           minMaxStackRight;
 	/** min/max stack: bottom edge */		private int []           minMaxStackBottom;
 	/** min/max stack: top edge */			private int []           minMaxStackTop;
-	/** map from cell numbers to cells */	private HashMap<Integer,BackCIFCell> cifCellMap;
+	/** map from cell numbers to cells */	private Map<Integer,BackCIFCell> cifCellMap;
 	/** the current cell */					private BackCIFCell      currentBackCell;
 	/** current technology for layers */	private Technology       curTech;
-	/** map from layer names to layers */	private HashMap<String,Layer> cifLayerNames;
-	/** set of unknown layers */			private HashSet<String>  unknownLayerNames;
+	/** map from layer names to layers */	private Map<String,Layer> cifLayerNames;
+	/** set of unknown layers */			private Set<String>      unknownLayerNames;
 	/** address of cell being defined */	private Cell             cellBeingBuilt;
 	/** name of the current cell */			private String           currentNodeProtoName;
 	/** the line being read */				private StringBuffer     inputBuffer;
@@ -458,8 +459,9 @@ public class CIF extends Input
 	private boolean listToNodes(Library lib)
 	{
 		cellBeingBuilt = null;
-		for(currentFrontElement = currentFrontList; currentFrontElement != null; currentFrontElement = currentFrontElement.next)
+		for(BackCIFList x : currentFrontList)
 		{
+			currentFrontElement = x;
 			if (currentFrontElement.identity == CSTART)
 			{
 				cellBeingBuilt = nodesStart(lib);
@@ -766,8 +768,7 @@ public class CIF extends Input
 	{
 		BackCIFCell newCC = new BackCIFCell();
 		newCC.addr = null;
-		newCC.cIndex = cIndex;
-		cifCellMap.put(new Integer(newCC.cIndex), newCC);
+		cifCellMap.put(new Integer(cIndex), newCC);
 
 		currentBackCell = newCC;
 		return newCC;
@@ -811,7 +812,7 @@ public class CIF extends Input
 		namePending = false;
 		endCommandFound = false;
 		currentLayer = null;
-		currentItemList = null;
+		currentItemList = new ArrayList<FrontItem>();
 		initUtilities();
 		initMatrices();
 	}
@@ -853,17 +854,10 @@ public class CIF extends Input
 
 	private Rectangle getInterpreterBounds()
 	{
-		FrontItem h = currentItemList;
 		boolean first = true;
 
-		if (h == null)
-		{
-			errorReport("item list is empty!", ADVISORY);
-			return null;
-		}
-
 		pushTransform();
-		while (h != null)
+		for(FrontItem h : currentItemList)
 		{
 			FrontObjBase obj = h.what;
 			Point temp = new Point();
@@ -890,7 +884,6 @@ public class CIF extends Input
 			if (first) {first = false; initMinMax(temp);} else minMax(temp);
 			temp.x = right;   temp.y = top;
 			minMax(temp);
-			h = h.same;
 		}
 		Rectangle ret = new Rectangle(getMinMaxMinX(), getMinMaxMinY(),
 			getMinMaxMaxX()-getMinMaxMinX(), getMinMaxMaxY()-getMinMaxMinY());
@@ -907,15 +900,10 @@ public class CIF extends Input
 		currentItemList = null;
 	}
 
-	private void sendList(FrontItem list)
+	private void sendList(List<FrontItem> list)
 	{
-		FrontItem h = list;
-		while (h != null)
-		{
-			FrontItem save = h.same;
+		for(FrontItem h : list)
 			outItem(h);
-			h = save;
-		}
 	}
 
 	/**
@@ -970,7 +958,7 @@ public class CIF extends Input
 			FrontTransformList tList = new FrontTransformList();
 			dupTransformList(sc.transList, tList);
 			dumpDefinition(sc.unID);
-			outputCall(sc.symNumber, sc.unID.name, tList);
+			outputCall(sc.symNumber, sc.unID.name, tList, sc.lineNumber);
 			popTransform();
 			return;
 		}
@@ -1003,9 +991,10 @@ public class CIF extends Input
 		cg.lay = lay;
 	}
 
-	private void outputCall(int number, String name, FrontTransformList list)
+	private void outputCall(int number, String name, FrontTransformList list, int lineNumber)
 	{
 		placeCIFList(CCALL);
+		currentFrontElement.lineNumber = lineNumber;
 		BackCIFCall cc = (BackCIFCall)currentFrontElement.member;
 		cc.cIndex = number;
 		cc.name = name;
@@ -1105,7 +1094,7 @@ public class CIF extends Input
 				FrontCall sc = (FrontCall)ro;
 				FrontTransformList tList = new FrontTransformList();
 				dupTransformList(sc.transList, tList);
-				outputCall(sc.symNumber, sc.unID.name, tList);
+				outputCall(sc.symNumber, sc.unID.name, tList, sc.lineNumber);
 			} else if (ro instanceof FrontGeomName)
 			{
 				FrontGeomName gn = (FrontGeomName)ro;
@@ -1161,19 +1150,15 @@ public class CIF extends Input
 	{
 		BackCIFList cl = newBackCIFList(id);
 		if (cl == null) return;
-		if (currentFrontList == null) currentFrontList = currentFrontElement = cl; else
-		{
-			while(currentFrontElement.next != null)
-				currentFrontElement = currentFrontElement.next;
-			currentFrontElement.next = cl;
-			currentFrontElement = currentFrontElement.next;
-		}
+
+		if (currentFrontList == null) currentFrontList = new ArrayList<BackCIFList>();
+		currentFrontList.add(cl);
+		currentFrontElement = cl;
 	}
 
 	private BackCIFList newBackCIFList(int id)
 	{
 		BackCIFList newCL = new BackCIFList();
-		newCL.next = null;
 		newCL.identity = id;
 		switch (id)
 		{
@@ -2007,6 +1992,7 @@ public class CIF extends Input
 		}
 
 		FrontCall obj = new FrontCall();
+		obj.lineNumber = lineReader.getLineNumber();
 
 		// must make a copy of the matrix
 		obj.matrix = new FrontMatrix();
@@ -2380,8 +2366,7 @@ public class CIF extends Input
 		}
 
 		FrontItem newItem = new FrontItem();
-		newItem.same = currentItemList;		// hook into linked list
-		currentItemList = newItem;
+		currentItemList.add(newItem);
 		newItem.what = object;
 
 		// symbol calls only

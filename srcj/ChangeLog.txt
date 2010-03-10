@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+BUG: (3/10/10, SMR) CIF input fails on some cell instances (Bug #2684).
+FIX: Use lists instead of linked-lists so that objects are processed in proper order.
+
 BUG: (3/9/10, DN) Exception in regression due to private in EditingPreferences (Bug #2681).
 FIX: In PrefPackage.putPrefs insert "field.setAccessible(true)".
 
