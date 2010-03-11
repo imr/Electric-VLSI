@@ -598,7 +598,7 @@ public class ReadableDump extends LibraryFiles
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> markCellForNodes, String scaledCellName, double scale)
+	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> markCellForNodes, HashSet<Cell> patchedCells, String scaledCellName, double scale)
 	{
 		// do not realize cross-library references
 		if (cell.getLibrary() != lib) return;
@@ -618,7 +618,7 @@ public class ReadableDump extends LibraryFiles
 			nodePrototypes = nil.protoType;
 			numNodes = nodePrototypes.length;
 		}
-		scanNodesForRecursion(cell, markCellForNodes, nodePrototypes, 0, numNodes);
+		scanNodesForRecursion(cell, markCellForNodes, patchedCells, nodePrototypes, 0, numNodes);
 
 		// report progress
 		if (LibraryFiles.VERBOSE)

@@ -47,6 +47,7 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -790,11 +791,23 @@ public class Library extends ElectricObject implements Comparable<Library> {
      * Method to indicate that this Library has not changed.
      */
     public void clearChanged() {
+        clearChanged(Collections.<Cell>emptySet());
+    }
+
+    /**
+     * Method to indicate that this Library has not changed.
+     */
+    public void clearChanged(Set<Cell> exceptCells) {
         checkChanging();
+        boolean hasExceptions = false;
         for (Cell cell : cells.values()) {
+            if (exceptCells.contains(cell)) {
+                hasExceptions = true;
+                continue;
+            }
             cell.clearModified();
         }
-        if (isChanged()) {
+        if (isChanged() && !hasExceptions) {
             updateBackup(d, false, backup.referencedLibs);
         }
     }

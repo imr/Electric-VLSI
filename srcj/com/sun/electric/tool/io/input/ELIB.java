@@ -1207,7 +1207,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, String scaledCellName, double scale)
+	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, HashSet<Cell> patchedCells, String scaledCellName, double scale)
 	{
 		// do not realize cross-library references
 		if (cell.getLibrary() != lib) return;
@@ -1241,7 +1241,7 @@ public class ELIB extends LibraryFiles
 				{
 					LibraryFiles reader = getReaderForLib(subCell.getLibrary());
 					if (reader != null)
-						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0);
+						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, patchedCells, null, 0);
 				}
 
 				int startPort = firstPortIndex[cI];
@@ -1268,7 +1268,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// recursively scan the nodes to the bottom and only proceed when everything below is built
-		scanNodesForRecursion(cell, recursiveSetupFlag, nodeInstList.protoType, startNode, endNode);
+		scanNodesForRecursion(cell, recursiveSetupFlag, patchedCells, nodeInstList.protoType, startNode, endNode);
 
 		// report progress
 		if (LibraryFiles.VERBOSE)
@@ -1322,7 +1322,7 @@ public class ELIB extends LibraryFiles
             NodeProto np = nodeInstList.protoType[i];
 			if (np == Generic.tech().cellCenterNode) continue;
 			if (np instanceof Cell)
-				np = scaleCell(i, lambda, cell, recursiveSetupFlag);
+				np = scaleCell(i, lambda, cell, recursiveSetupFlag, patchedCells);
 			realizeNode(nodeInstList, i, xoff, yoff, lambda, cell, np);
 		}
 
@@ -1684,7 +1684,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to build a NodeInst.
 	 */
-    private Cell scaleCell(int i, double lambda, Cell cell, HashSet<Cell> recursiveSetupFlag) {
+    private Cell scaleCell(int i, double lambda, Cell cell, HashSet<Cell> recursiveSetupFlag, HashSet<Cell> patchedCells) {
         Cell subCell = (Cell)nodeInstList.protoType[i];
         Rectangle2D bounds = subCell.getBounds();
         double width = (nodeInstList.highX[i] - nodeInstList.lowX[i]) / lambda;
@@ -1707,7 +1707,7 @@ public class ELIB extends LibraryFiles
         if (scaledCell == null) {
             // create a scaled version of the cell
             if (reader != null)
-                reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scale);
+                reader.realizeCellsRecursively(subCell, recursiveSetupFlag, patchedCells, scaledCellName, scale);
             scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
             if (scaledCell == null) {
                 System.out.println("Error scaling " + subCell + " by " + scale);

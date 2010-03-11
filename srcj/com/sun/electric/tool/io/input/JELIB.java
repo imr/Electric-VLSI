@@ -50,6 +50,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
@@ -212,12 +213,12 @@ public class JELIB extends LibraryFiles
 	 * Method to recursively create the contents of each cell in the library.
 	 */
     @Override
-	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, String scaledCellName, double scale)
+	protected void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, HashSet<Cell> patchedCells, String scaledCellName, double scale)
 	{
 		if (scaledCellName != null) return;
 		JelibParser.CellContents cc = parser.allCells.get(cell.getId());
 		if (cc == null || cc.filledIn) return;
-		instantiateCellContent(cell, cc, recursiveSetupFlag);
+		instantiateCellContent(cell, cc, recursiveSetupFlag, patchedCells);
 		cellsConstructed++;
         setProgressValue(cellsConstructed * 100 / totalCells);
 		recursiveSetupFlag.add(cell);
@@ -229,7 +230,7 @@ public class JELIB extends LibraryFiles
 	 * @param cell the Cell to instantiate.
 	 * @param cc the contents of that cell (the strings from the file).
 	 */
-	private void instantiateCellContent(Cell cell, JelibParser.CellContents cc, HashSet<Cell> recursiveSetupFlag)
+	private void instantiateCellContent(Cell cell, JelibParser.CellContents cc, HashSet<Cell> recursiveSetupFlag, HashSet<Cell> patchedCells)
 	{
         HashMap<Technology,Technology.SizeCorrector> sizeCorrectors = new HashMap<Technology,Technology.SizeCorrector>();
 
@@ -288,7 +289,7 @@ public class JELIB extends LibraryFiles
 
 					// subcell: make sure that cell is setup
 					if (reader != null)
-						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0);
+						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, patchedCells, null, 0);
 				}
 			}
 
@@ -432,6 +433,17 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
             realizeVariables(ai, a.vars);
+            if (!ai.getName().equals(a.arcName) && (a.arcName != null && a.arcName.indexOf('@') < 0) && ai.getVar(Artwork.ART_MESSAGE) == null) {
+                if (a.nameTextDescriptor != null) {
+                    ai.newVar(Artwork.ART_MESSAGE, a.arcName, a.nameTextDescriptor);
+                } else {
+                    ai.newDisplayVar(Artwork.ART_MESSAGE, a.arcName);
+                }
+                patchedCells.add(cell);
+                List<Geometric> geomList = Collections.<Geometric>singletonList(ai);
+                Input.errorLogger.logMessage(cc.fileName + ", line " + line +
+					" (" + cell + ") illegal arc name <" + a.arcName + "> is saved in ART_MESSAGE variable", geomList, cell, 2, true);
+            }
 		}
 		cc.filledIn = true;
 	}

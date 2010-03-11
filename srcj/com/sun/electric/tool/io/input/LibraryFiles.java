@@ -712,7 +712,7 @@ public abstract class LibraryFiles extends Input
 
     abstract Variable[] findVarsOnExampleIcon(Cell parentCell, Cell iconCell);
 
-	protected void scanNodesForRecursion(Cell cell, HashSet<Cell> markCellForNodes, NodeProto [] nil, int start, int end)
+	protected void scanNodesForRecursion(Cell cell, HashSet<Cell> markCellForNodes, HashSet<Cell> patchedCells, NodeProto [] nil, int start, int end)
 	{
 		// scan the nodes in this cell and recurse
 		for(int j=start; j<end; j++)
@@ -731,7 +731,7 @@ public abstract class LibraryFiles extends Input
 
 			// subcell: make sure that cell is setup
 			if (reader != null)
-				reader.realizeCellsRecursively(otherCell, markCellForNodes, null, 0);
+				reader.realizeCellsRecursively(otherCell, markCellForNodes, patchedCells, null, 0);
 		}
 		markCellForNodes.add(cell);
 	}
@@ -1059,6 +1059,7 @@ public abstract class LibraryFiles extends Input
 			System.out.println("Finished computing scale factors");
 
 		// recursively create the cell contents
+        HashSet<Cell> patchedCells = new HashSet<Cell>();
 		for(LibraryFiles reader : libsBeingRead)
 		{
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
@@ -1066,11 +1067,11 @@ public abstract class LibraryFiles extends Input
 				Cell cell = reader.nodeProtoList[cellIndex];
 				if (cell == null) continue;
 				if (markCellForNodes.contains(cell)) continue;
-				reader.realizeCellsRecursively(cell, markCellForNodes, null, 0);
+				reader.realizeCellsRecursively(cell, markCellForNodes, patchedCells, null, 0);
 			}
 		}
         for (LibraryFiles reader: libsBeingRead)
-            reader.lib.clearChanged();
+            reader.lib.clearChanged(patchedCells);
 
 		// tell which libraries had extra "scaled" cells added
 		boolean first = true;
@@ -1571,5 +1572,5 @@ public abstract class LibraryFiles extends Input
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	abstract void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, String scaledCellName, double scale);
+	abstract void realizeCellsRecursively(Cell cell, HashSet<Cell> recursiveSetupFlag, HashSet<Cell> patchedCells, String scaledCellName, double scale);
 }
