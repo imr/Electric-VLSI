@@ -220,6 +220,22 @@ public class NetCell {
         return drawns[ni_pi[ni.getNodeIndex()] + portProto.getPortIndex()];
     }
 
+    /*
+     * Get offset in networks map for given port instance.
+     */
+    int getNetMapOffset(Nodable no, Name portName) {
+        NodeInst ni = (NodeInst) no;
+        if (ni.isCellInstance()) {
+            Cell subCell = (Cell) ni.getProto();
+            assert !subCell.isIcon() && !subCell.isSchematic();
+        }
+        PortProto portProto = ni.getProto().findPortProto(portName);
+        if (portProto == null) {
+            return -1;
+        }
+        return drawns[ni_pi[ni.getNodeIndex()] + portProto.getPortIndex()];
+    }
+
     /**
      * Method to return the port width of port of the Nodable.
      * @return the either the port width.
@@ -641,7 +657,6 @@ public class NetCell {
 //    int getPortOffset(int portIndex, int busIndex) {
 //        return busIndex == 0 ? portIndex : -1;
 //    }
-
     NetSchem getSchem() {
         return null;
     }

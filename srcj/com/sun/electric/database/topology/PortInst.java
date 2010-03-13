@@ -187,15 +187,6 @@ public class PortInst extends ElectricObject {
     }
 
     /**
-     ** Method to return the equivalent PortProto of this PortInst's PortProto.
-     * This is typically used to find the PortProto in the schematic view.
-     * @return the equivalent PortProto of this PortInst's PortProto, or null if not found.
-     */
-    public PortProto getProtoEquivalent() {
-        return portProto instanceof Export ? ((Export) portProto).getEquivalent() : portProto;
-    }
-
-    /**
      * Method to return the bounds of this PortInst.
      * The bounds are determined by getting the Poly and bounding it.
      * @return the bounds of this PortInst.

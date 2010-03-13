@@ -470,6 +470,27 @@ public abstract class Netlist {
     }
 
     /**
+     * Get net index of signal in a port instance of nodable.
+     * @param no nodable
+     * @param portName scalar port name
+     * @return net index
+     */
+    int getNetIndex(Nodable no, Name portName) {
+        checkForModification();
+        if (no.getParent() != netCell.cell) {
+            return -1;
+        }
+        if (portName.isBus()) {
+            throw new IllegalArgumentException("Scalar export name expected");
+        }
+        int netMapIndex = netCell.getNetMapOffset(no, portName);
+        if (netMapIndex < 0) {
+            return -1;
+        }
+        return nm_net[netMapIndex];
+    }
+
+    /**
      * Get net index of signal in export.
      * @param export given Export.
      * @param busIndex index of signal in a bus or zero.
@@ -489,9 +510,9 @@ public abstract class Netlist {
         if (Job.getDebug()) {
             Name exportName = export.getNameKey().subname(busIndex);
             if (netIndex != getNetIndex(exportName)) {
-                String msg = "Export Name network mismatch in Cell " + netCell.cell.libDescribe()+
-                        ": getNetIndex("+export+","+busIndex+")="+netIndex+
-                        " getNetIndex("+exportName+")"+"="+getNetIndex(exportName);
+                String msg = "Export Name network mismatch in Cell " + netCell.cell.libDescribe()
+                        + ": getNetIndex(" + export + "," + busIndex + ")=" + netIndex
+                        + " getNetIndex(" + exportName + ")" + "=" + getNetIndex(exportName);
                 System.out.println(msg);
                 ActivityLogger.logException(new AssertionError(msg));
             }
@@ -583,6 +604,22 @@ public abstract class Netlist {
             return null;
         }
         return getNetworkRaw(getNetIndex(no, portProto, busIndex));
+    }
+
+    /**
+     * Get network of signal in a port instance of nodable.
+     * @param no nodable
+     * @param portName given port name.
+     * @return network.
+     */
+    public Network getNetwork(Nodable no, Name portName) {
+        if (no == null || portName == null) {
+            return null;
+        }
+        if (no instanceof NodeInst && !((NodeInst) no).isLinked()) {
+            return null;
+        }
+        return getNetworkRaw(getNetIndex(no, portName));
     }
 
     /**

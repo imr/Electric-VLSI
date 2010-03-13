@@ -1100,7 +1100,7 @@ public class Verilog extends Topology
 						} else {
 							String portname = portnames.get(0);
 							PortInst pi = ni.findPortInst(portname);
-							Network net = netList.getNetwork(no, pi.getProtoEquivalent(), 0);
+							Network net = netList.getNetwork(no, pi.getPortProto().getNameKey().subname(0));
 							CellSignal cs = cni.getCellSignal(net);
 							String sigName = getSignalName(cs);
 

@@ -157,9 +157,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param characteristic the characteristic (input, output) of this Export.
      * @return the newly created Export.
      */
-    public static Export newInstance(Cell parent, PortInst portInst, String protoName, 
-                                     PortCharacteristic characteristic, IconParameters iconParameters)
-    {
+    public static Export newInstance(Cell parent, PortInst portInst, String protoName,
+            PortCharacteristic characteristic, IconParameters iconParameters) {
         return newInstance(parent, portInst, protoName, characteristic, true, iconParameters);
     }
 
@@ -174,9 +173,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return the newly created Export.
      */
     public static Export newInstance(Cell parent, PortInst portInst, String protoName,
-                                     PortCharacteristic characteristic, boolean createOnIcon,
-                                     IconParameters iconParameters)
-    {
+            PortCharacteristic characteristic, boolean createOnIcon,
+            IconParameters iconParameters) {
         if (protoName == null) {
             return null;
         }
@@ -387,22 +385,20 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         //       parent.notifyRename(false);
 
         // rename associated export in icons, if any
-        if (parent.getView() == View.SCHEMATIC)
-        {
-	        for(Iterator<Cell> cIt = parent.getCellGroup().getCells(); cIt.hasNext(); )
-	        {
-	        	Cell iconCell = cIt.next();
-	        	if (iconCell.getView() != View.ICON) continue;
-	            for (Iterator<Export> it = iconCell.getExports(); it.hasNext();)
-	            {
-	                Export pp = it.next();
-	                if (pp.getName().equals(oldName.toString()))
-	                {
-	                    pp.rename(newName);
-	                    break;
-	                }
-	            }
-	        }
+        if (parent.getView() == View.SCHEMATIC) {
+            for (Iterator<Cell> cIt = parent.getCellGroup().getCells(); cIt.hasNext();) {
+                Cell iconCell = cIt.next();
+                if (iconCell.getView() != View.ICON) {
+                    continue;
+                }
+                for (Iterator<Export> it = iconCell.getExports(); it.hasNext();) {
+                    Export pp = it.next();
+                    if (pp.getName().equals(oldName.toString())) {
+                        pp.rename(newName);
+                        break;
+                    }
+                }
+            }
         }
 
 //        Cell iconCell = parent.iconView();
@@ -536,25 +532,25 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 //	        poly.transform(ni.rotateOut());
 //        } else
         {
-	        // must untransform the node to apply the offset
-	        NodeInst ni = getOriginalPort().getNodeInst();
-	        if (!ni.getOrient().equals(Orientation.IDENT)) {
-	            pointList[0] = new Point2D.Double(cX, cY);
-	            AffineTransform trans = ni.rotateIn();
-	            trans.transform(pointList[0], pointList[0]);
-	            pointList[0].setLocation(pointList[0].getX() + offX, pointList[0].getY() + offY);
-	            trans = ni.rotateOut();
-	            trans.transform(pointList[0], pointList[0]);
-	        } else {
-	            pointList[0] = new Point2D.Double(cX + offX, cY + offY);
-	        }
+            // must untransform the node to apply the offset
+            NodeInst ni = getOriginalPort().getNodeInst();
+            if (!ni.getOrient().equals(Orientation.IDENT)) {
+                pointList[0] = new Point2D.Double(cX, cY);
+                AffineTransform trans = ni.rotateIn();
+                trans.transform(pointList[0], pointList[0]);
+                pointList[0].setLocation(pointList[0].getX() + offX, pointList[0].getY() + offY);
+                trans = ni.rotateOut();
+                trans.transform(pointList[0], pointList[0]);
+            } else {
+                pointList[0] = new Point2D.Double(cX + offX, cY + offY);
+            }
 
-	        poly = new Poly(pointList);
-	        poly.setStyle(style);
-	        poly.setPort(this);
-	        poly.setString(getName());
-	        poly.setTextDescriptor(td);
-	        poly.setDisplayedText(new DisplayedText(this, EXPORT_NAME));
+            poly = new Poly(pointList);
+            poly.setStyle(style);
+            poly.setPort(this);
+            poly.setString(getName());
+            poly.setTextDescriptor(td);
+            poly.setDisplayedText(new DisplayedText(this, EXPORT_NAME));
         }
         return poly;
     }
@@ -1114,6 +1110,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * If there are multiple versions of the Schematic Cell return the latest.
      * @return the PortProto that is equivalent to this in the corresponding Cell.
      */
+    @Deprecated
     public PortProto getEquivalent() {
         Cell equiv = parent.getEquivalent();
         if (equiv == parent) {
@@ -1131,6 +1128,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return the Export on that other Cell which matches this Export.
      * Returns null if none can be found.
      */
+    @Deprecated
     public Export getEquivalentPort(Cell otherCell) {
         /* don't waste time searching if the two views are the same */
         if (parent == otherCell) {

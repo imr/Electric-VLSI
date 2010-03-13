@@ -172,7 +172,6 @@ class NetSchem extends NetCell {
 //        }
 //        return changed;
 //    }
-
 //    @Override
 //    int getPortOffset(int portIndex, int busIndex) {
 //        portIndex = portImplementation[portIndex];
@@ -185,7 +184,6 @@ class NetSchem extends NetCell {
 //        }
 //        return portOffset;
 //    }
-
     @Override
     NetSchem getSchem() {
         return implementation;
@@ -323,6 +321,55 @@ class NetSchem extends NetCell {
             }
             Name exportName = portProto.getNameKey().subname(busIndex);
             int portOffset = eq.implementation.getExportNameMapOffset(exportName);
+            if (portOffset < 0) {
+                return -1;
+            }
+            return iconInst.getNetMapOffset(no) + portOffset;
+        }
+    }
+
+    /*
+     * Get offset in networks map for given port instance.
+     */
+    @Override
+    int getNetMapOffset(Nodable no, Name portName) {
+        if (no == null) {
+            return -1;
+        }
+        int nodeIndex = no.getNodeInst().getNodeIndex();
+        if (nodeIndex < 0 || nodeIndex >= iconInsts.length) {
+            return -1;
+        }
+        IconInst iconInst = iconInsts[nodeIndex];
+        if (iconInst == null) {
+            // primitive or layout cell
+            PortProto portProto = no.getParent().findPortProto(portName);
+            int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
+            if (drawn < 0) {
+                return -1;
+            }
+            if (drawnWidths[drawn] != 1) {
+                throw new IllegalArgumentException();
+            }
+            assert portProto.getParent() == ((NodeInst) no).getProto();
+            return drawnOffsets[drawn];
+        } else if (iconInst.iconOfParent) {
+            return -1;
+        } else {
+            // icon or schematic cell
+            Cell subCell = (Cell) no.getProto();
+            EquivalentSchematicExports eq = iconInst.eq;
+            if (no instanceof IconNodeInst) {
+                Nodable no1 = ((IconNodeInst) no).getNodable(0);
+//                if (Job.getDebug()) {
+//                    System.out.println("IconNodeInst " + no + " is passed to getNodeIndex. Replaced by IconNodeable " + no1);
+//                }
+                assert eq.cellId == subCell.getId();
+                no = no1;
+            } else {
+                assert eq.implementation.cellId == subCell.getId();
+            }
+            int portOffset = eq.implementation.getExportNameMapOffset(portName);
             if (portOffset < 0) {
                 return -1;
             }
@@ -477,7 +524,7 @@ class NetSchem extends NetCell {
                         if (drawn < 0 || drawn >= numConnectedDrawns) {
                             continue;
                         }
-                        Export e = (Export)pi.getPortProto();
+                        Export e = (Export) pi.getPortProto();
                         Name busName = e.getNameKey();
                         for (int busIndex = 0; busIndex < busName.busWidth(); busIndex++) {
                             Name exportName = busName.subname(busIndex);
