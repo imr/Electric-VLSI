@@ -89,9 +89,9 @@ public final class MSTMetric extends Metric
 	
 	// TODO:
 	// a=(a,b), b=(a,c) Kanten von a nach b,c
-	// Wenn |b| > |a| und winkel < 90° dann ist b Hypothenuse von abc und bc ist kürzer als ac
+	// Wenn |b| > |a| und winkel < 90Â° dann ist b Hypothenuse von abc und bc ist kÅ«rzer als ac
 	// weswegen ac nicht im MST sein kann
-	// Kann eigentlich nur 4 Kanten pro Port geben ... sonst wäre vielleicht auch der Algorithmus von Prim besser...
+	// Kann eigentlich nur 4 Kanten pro Port geben ... sonst wÃ¤re vielleicht auch der Algorithmus von Prim besser...
 	public MSTMetric( PlacementNetwork net, Map<PlacementNode, ProxyNode> hm, ProxyNode[] originals, ProxyNode[] replacements )
 	{
 		PlacementPort[] ports = new PlacementPort[net.getPortsOnNet().size()];

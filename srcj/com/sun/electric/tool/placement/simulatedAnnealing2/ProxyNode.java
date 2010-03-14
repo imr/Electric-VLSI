@@ -301,7 +301,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 			node.setOrientation(o);
 		}	
 		
-		// swap height and width for 90°, 270°, ...
+		// swap height and width for 90Â°, 270Â°, ...
 		if (o == Orientation.R || o == Orientation.RRR || o == Orientation.XR || o == Orientation.XRRR || o == Orientation.XYR || o == Orientation.XYRRR || o == Orientation.YR || o == Orientation.YRRR)
 		{
 			width = node.getHeight();
