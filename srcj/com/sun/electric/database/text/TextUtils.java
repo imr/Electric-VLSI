@@ -1621,6 +1621,9 @@ public class TextUtils {
      * @return the extension of the file ("" if none).
      */
     public static String getExtension(String fileName) {
+        if (fileName.endsWith("/")) { // to handle "XXX.delib/"
+            fileName = fileName.substring(0, fileName.length() - 1);
+        }
         int dotPos = fileName.lastIndexOf('.');
         if (dotPos < 0) {
             return "";
