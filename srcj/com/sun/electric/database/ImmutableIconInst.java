@@ -35,6 +35,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -201,7 +202,7 @@ public class ImmutableIconInst extends ImmutableNodeInst {
      */
     @Override
     public boolean equalsExceptVariables(ImmutableElectricObject o) {
-        return super.equalsExceptVariables(o) && params == ((ImmutableIconInst) o).params;
+        return super.equalsExceptVariables(o) && Arrays.equals(params, ((ImmutableIconInst) o).params);
     }
 
     /**

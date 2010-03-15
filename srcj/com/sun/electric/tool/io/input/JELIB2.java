@@ -31,13 +31,15 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableIconInst;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 
 import java.util.LinkedHashSet;
@@ -54,39 +56,17 @@ public class JELIB2 {
         this.parser = parser;
     }
 
-    public boolean instantiate() throws JelibException {
-        try {
-            return instantiate0();
-        } catch (IllegalArgumentException e) {
-            if (parser == null) {
-                throw e;
-            }
-            for (JelibParser.CellContents cc: parser.allCells.values()) {
-                Collections.sort(cc.nodes, new Comparator<JelibParser.NodeContents> () {
-                    public int compare(JelibParser.NodeContents x, JelibParser.NodeContents y) {
-                        return TextUtils.STRING_NUMBER_ORDER.compare(x.nodeName, y.nodeName);
-                    }
-                });
-                Collections.sort(cc.exports, new Comparator<JelibParser.ExportContents> () {
-                    public int compare(JelibParser.ExportContents x, JelibParser.ExportContents y) {
-                        String xn = x.exportUserName != null ? x.exportUserName : x.exportId.externalId;
-                        String yn = y.exportUserName != null ? y.exportUserName : y.exportId.externalId;
-                        return TextUtils.STRING_NUMBER_ORDER.compare(xn, yn);
-                    }
-                });
-            }
-            return instantiate0();
-        }
+    public CellRevision[] getCellRevisions() {
+        return cellRevisions.toArray(new CellRevision[cellRevisions.size()]);
     }
 
-    public boolean instantiate0() throws JelibException {
+    public boolean instantiate() throws JelibException {
         for (JelibParser.CellContents cc: parser.allCells.values()) {
             CellId cellId = cc.cellId;
             ImmutableCell c = ImmutableCell.newInstance(cellId, cc.creationDate)
                     .withGroupName(cc.groupName)
                     .withRevisionDate(cc.revisionDate)
                     .withTechId(cc.techId);
-            // c.withParam
             
             int flags = 0;
             if (cc.expanded) flags |= Cell.WANTNEXPAND;
@@ -111,9 +91,32 @@ public class JELIB2 {
                         Name.findName(nc.nodeName), nc.nameTextDescriptor,
                         nc.orient, nc.anchor, nc.size, nc.flags, nc.techBits, nc.protoTextDescriptor);
                 for (Variable var: nc.vars) {
-                    if (var.getKey().getName().startsWith("ATTRP")) {
-                        // Hanle PortInst variables
-                        throw new JelibException();
+                    String origVarName = var.getKey().getName();
+                    if (origVarName.startsWith("ATTRP")) {
+                        // the form is "ATTRP_portName_variableName" with "\" escapes
+                        StringBuilder portName = new StringBuilder();
+                        String varName = null;
+                        int len = origVarName.length();
+                        for(int j=6; j<len; j++) {
+                            char ch = origVarName.charAt(j);
+                            if (ch == '\\') {
+                                j++;
+                                portName.append(origVarName.charAt(j));
+                                continue;
+                            }
+                            if (ch == '_') {
+                                varName = origVarName.substring(j+1);
+                                break;
+                            }
+                            portName.append(ch);
+                        }
+                        if (varName != null) {
+                            PortProtoId ppId = nc.protoId.newPortId(portName.toString());
+                            ImmutablePortInst pi = n.getPortInst(ppId);
+                            var = var.withVarKey(Variable.newKey(varName));
+                            n = n.withPortInst(ppId, pi.withVariable(var));
+                            continue;
+                        }
                     }
                     if (n instanceof ImmutableIconInst && var.getTextDescriptor().isParam()) {
                         n = ((ImmutableIconInst)n).withParam(var);
@@ -130,7 +133,7 @@ public class JELIB2 {
                 ImmutableArcInst a = ImmutableArcInst.newInstance(arcId, ac.arcProtoId, Name.findName(ac.arcName), ac.nameTextDescriptor,
                         ac.tailNode.n.nodeId, ac.tailPort, ac.tailPoint,
                         ac.headNode.n.nodeId, ac.headPort, ac.headPoint,
-                        DBMath.lambdaToGrid(ac.diskWidth), ac.angle, ac.flags);
+                        DBMath.lambdaToGrid(0.5*ac.diskWidth), ac.angle, ac.flags);
                 for (Variable var: ac.vars) {
                     a = a.withVariable(var);
                 }
@@ -149,7 +152,28 @@ public class JELIB2 {
                 exports[exportIndex] = e;
             }
 
-            CellRevision cellRevision = new CellRevision(c).with(c,  nodes, arcs, exports);
+            CellRevision cellRevision = new CellRevision(c);
+            try {
+                cellRevision = cellRevision.with(c,  nodes, arcs, exports);
+            } catch (IllegalArgumentException e) {
+                Arrays.sort(nodes, new Comparator<ImmutableNodeInst> () {
+                    public int compare(ImmutableNodeInst n1, ImmutableNodeInst n2) {
+                        return TextUtils.STRING_NUMBER_ORDER.compare(n1.name.toString(), n2.name.toString());
+                    }
+                });
+                Arrays.sort(arcs, new Comparator<ImmutableArcInst> () {
+                    public int compare(ImmutableArcInst a1, ImmutableArcInst a2) {
+                        return TextUtils.STRING_NUMBER_ORDER.compare(a1.name.toString(), a2.name.toString());
+                    }
+                });
+                Arrays.sort(exports, new Comparator<ImmutableExport> () {
+                    public int compare(ImmutableExport e1, ImmutableExport e2) {
+                        return TextUtils.STRING_NUMBER_ORDER.compare(e1.name.toString(), e2.name.toString());
+                    }
+                });
+                cellRevision = cellRevision.with(c,  nodes, arcs, exports);
+                System.out.println(cellRevision + " passed after reordering");
+            }
 
             cellRevisions.add(cellRevision);
         }

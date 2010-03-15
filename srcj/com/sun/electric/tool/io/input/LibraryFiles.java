@@ -201,7 +201,7 @@ public abstract class LibraryFiles extends Input
 
 			Cell.setAllowCircularLibraryDependences(true);
 
-			StringBuffer errmsg = new StringBuffer();
+			StringBuilder errmsg = new StringBuilder();
 			boolean exists = TextUtils.URLExists(fileURL, errmsg);
 			if (!exists)
 			{
@@ -274,7 +274,7 @@ public abstract class LibraryFiles extends Input
         errorLogger = ErrorLogger.newInstance("Library Read Project Preferences");
 
 		Library lib = null;
-        StringBuffer errmsg = new StringBuffer();
+        StringBuilder errmsg = new StringBuilder();
         boolean exists = TextUtils.URLExists(fileURL, errmsg);
         if (!exists)
         {
@@ -797,13 +797,81 @@ public abstract class LibraryFiles extends Input
 		Library elib = Library.findLibrary(legalLibName);
 		if (elib != null) return elib;
 
-//		URL url = TextUtils.makeURLToFile(theFileName);
-//		String fileName = url.getFile();
-//		File libFile = new File(fileName);
+        URL externalURL = searchExternalLibraryFromFilename(mainLibDirectory, theFileName, defaultType);
 
+        boolean exists = (externalURL != null);
+        // last option: let user pick library location
+		if (!exists)
+		{
+			String pt = null;
+			while (true) {
+				// continue to ask the user where the library is until they hit "cancel"
+				String description = "Reference library '" + theFileName + "'";
+				pt = OpenFile.chooseInputFile(FileType.LIBFILE, description);
+				if (pt == null) {
+					// user cancelled, break
+					break;
+				}
+				// see if user chose a file we can read
+				externalURL = TextUtils.makeURLToFile(pt);
+				if (externalURL != null) {
+					exists = TextUtils.URLExists(externalURL, null);
+					if (exists) {
+						// good pt, opened it, get out of here
+						break;
+					}
+				}
+			}
+		}
+
+		if (exists)
+		{
+			System.out.println("Reading referenced library " + externalURL.getFile());
+            elib = Library.newInstance(legalLibName, externalURL);
+		}
+        FileType importType = OpenFile.getOpenFileType(externalURL.getFile(), defaultType);
+
+        if (elib != null)
+        {
+            // read the external library
+            String oldNote = getProgressNote();
+            setProgressValue(0);
+            setProgressNote("Reading referenced library " + legalLibName + "...");
+
+			// get the library name
+			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
+            elib = readALibrary(externalURL, elib, eLibName, importType, null, iconParams);
+            setProgressValue(100);
+            setProgressNote(oldNote);
+        }
+
+        if (elib == null)
+        {
+            System.out.println("Error: cannot find referenced library " + theFileName);
+            System.out.println("...Creating new "+legalLibName+" Library instead");
+            elib = Library.newInstance(legalLibName, null);
+            elib.setLibFile(TextUtils.makeURLToFile(theFileName));
+            elib.clearFromDisk();
+        }
+//		if (failed) elib->userbits |= UNWANTEDLIB; else
+//		{
+//			// queue this library for announcement through change control
+//			io_queuereadlibraryannouncement(elib);
+//		}
+
+		return elib;
+	}
+
+	/**
+	 * Method to search an external library file, given its name as stored on disk.
+	 * Attempts to find the file in many different ways, including asking the user.
+	 * @param theFileName the full path to the file, as written to disk.
+     * @param defaultType default file type
+	 * @return an URL to Library file.
+	 */
+    public static URL searchExternalLibraryFromFilename(String mainLibDirectory, String theFileName, FileType defaultType) {
 		// see if this library is already read in
 		String libFileName = theFileName;
-//		String libFileName = libFile.getName();
 
 		// special case if the library path came from a different computer system and still has separators
 		while (libFileName.endsWith("\\") || libFileName.endsWith(":") || libFileName.endsWith("/"))
@@ -839,102 +907,44 @@ public abstract class LibraryFiles extends Input
 			libFileName += "." + defaultType.getFirstExtension();
 		}
 
-        StringBuffer errmsg = new StringBuffer();
+        StringBuilder errmsg = new StringBuilder();
 
         // first try the library name with the extension it came with
         // However, do not look in electric library area to avoid problems with spice configurations for old chips
-        URL externalURL = getLibrary(libName + "." + preferredType.getFirstExtension(), theFileName, errmsg, true);
+        URL externalURL = getLibrary(mainLibDirectory, libName + "." + preferredType.getFirstExtension(), theFileName, errmsg, true);
         // Now try all file types, starting with jelib
         // try JELIB
         if (externalURL == null && preferredType != FileType.JELIB) {
-            externalURL = getLibrary(libName + "." + FileType.JELIB.getFirstExtension(), theFileName, errmsg, true);
+            externalURL = getLibrary(mainLibDirectory, libName + "." + FileType.JELIB.getFirstExtension(), theFileName, errmsg, true);
         }
         // try ELIB
         if (externalURL == null && preferredType != FileType.ELIB) {
-            externalURL = getLibrary(libName + "." + FileType.ELIB.getFirstExtension(), theFileName, errmsg, true);
+            externalURL = getLibrary(mainLibDirectory, libName + "." + FileType.ELIB.getFirstExtension(), theFileName, errmsg, true);
         }
         // try DELIB
         if (externalURL == null && preferredType != FileType.DELIB) {
-            externalURL = getLibrary(libName + "." + FileType.DELIB.getFirstExtension(), theFileName, errmsg, true);
+            externalURL = getLibrary(mainLibDirectory, libName + "." + FileType.DELIB.getFirstExtension(), theFileName, errmsg, true);
         }
         // try txt
         if (externalURL == null && preferredType != FileType.READABLEDUMP) {
-            externalURL = getLibrary(libName + "." + FileType.READABLEDUMP.getFirstExtension(), theFileName, errmsg, true);
+            externalURL = getLibrary(mainLibDirectory, libName + "." + FileType.READABLEDUMP.getFirstExtension(), theFileName, errmsg, true);
         }
-
-        boolean exists = (externalURL == null) ? false : true;
-        // last option: let user pick library location
-		if (!exists)
-		{
+        
+		if (externalURL == null) {
 			System.out.println("Error: cannot find referenced library " + libName+":");
 			System.out.print(errmsg.toString());
-			String pt = null;
-			while (true) {
-				// continue to ask the user where the library is until they hit "cancel"
-				String description = "Reference library '" + libFileName + "'";
-				pt = OpenFile.chooseInputFile(FileType.LIBFILE, description);
-				if (pt == null) {
-					// user cancelled, break
-					break;
-				}
-				// see if user chose a file we can read
-				externalURL = TextUtils.makeURLToFile(pt);
-				if (externalURL != null) {
-					exists = TextUtils.URLExists(externalURL, null);
-					if (exists) {
-						// good pt, opened it, get out of here
-						break;
-					}
-				}
-			}
-		}
-
-		if (exists)
-		{
-			System.out.println("Reading referenced library " + externalURL.getFile());
-            importType = OpenFile.getOpenFileType(externalURL.getFile(), defaultType);
-            elib = Library.newInstance(legalLibName, externalURL);
-		}
-
-        if (elib != null)
-        {
-            // read the external library
-            String oldNote = getProgressNote();
-            setProgressValue(0);
-            setProgressNote("Reading referenced library " + legalLibName + "...");
-
-			// get the library name
-			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
-            elib = readALibrary(externalURL, elib, eLibName, importType, null, iconParams);
-            setProgressValue(100);
-            setProgressNote(oldNote);
         }
-
-        if (elib == null)
-        {
-            System.out.println("Error: cannot find referenced library " + theFileName);
-            System.out.println("...Creating new "+legalLibName+" Library instead");
-            elib = Library.newInstance(legalLibName, null);
-            elib.setLibFile(TextUtils.makeURLToFile(theFileName));
-            elib.clearFromDisk();
-        }
-//		if (failed) elib->userbits |= UNWANTEDLIB; else
-//		{
-//			// queue this library for announcement through change control
-//			io_queuereadlibraryannouncement(elib);
-//		}
-
-		return elib;
-	}
+        return externalURL;
+    }
 
     /** Get the URL to the library named libFileName
      * @param libFileName the library file name (with extension)
      * @param originalPath the original, exact path of the reference if any
-     * @param errmsg a StringBuffer into which errors may be placed.
+     * @param errmsg a StringBuilder into which errors may be placed.
      * @param checkElectricLib to force search in Electric library area
      * @return null if not found, or valid URL if file found
      */
-    private URL getLibrary(String libFileName, String originalPath, StringBuffer errmsg, boolean checkElectricLib)
+    private static URL getLibrary(String mainLibDirectory, String libFileName, String originalPath, StringBuilder errmsg, boolean checkElectricLib)
     {
         // library does not exist: see if file is in the same directory as the main file
 		URL firstURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);

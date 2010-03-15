@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
-IMP: (2/25/10, DN) Add method "Netlist.getNetwork(Nodable no, Name portName)" (Bug #2533).
+IMP: (3/14/10, DN) Refactor LibraryFiles.readExternalLibraryFromFilename to use from new JELIB reader.
 
-BUG: (3/9/11, DN) "VIA{x,y,z}.W.1" not valid for artwork arc? (Bug #2682).
+IMP: (3/13/10, DN) Add method "Netlist.getNetwork(Nodable no, Name portName)" (Bug #2533).
+
+BUG: (3/13/10, DN) "VIA{x,y,z}.W.1" not valid for artwork arc? (Bug #2682).
 FIX: If Jelib file contains invalid arc name, put it into ART_message Variable.
 
 BUG: (3/10/10, SMR) CIF input fails on some cell instances (Bug #2684).

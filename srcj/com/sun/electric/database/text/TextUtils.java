@@ -1674,11 +1674,11 @@ public class TextUtils {
     /**
      * Method to tell whether a given URL exists.
      * @param url the URL in question.
-     * @param errorMsg a string buffer in which to print any error message.
+     * @param errorMsg a string builder in which to print any error message.
      * If null, errors are not printed.
      * @return true if the file exists.
      */
-    public static boolean URLExists(URL url, StringBuffer errorMsg) {
+    public static boolean URLExists(URL url, StringBuilder errorMsg) {
         if (url == null) {
             return false;
         }

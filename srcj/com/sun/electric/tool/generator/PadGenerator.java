@@ -317,7 +317,7 @@ public class PadGenerator
 			if (cellLib == null)
 			{
 				// library does not exist: see if in same directory is pad frame file
-				StringBuffer errmsg = new StringBuffer();
+				StringBuilder errmsg = new StringBuilder();
 				String fileDir = TextUtils.getFilePath(TextUtils.makeURLToFile(fileName));
 				fileURL = TextUtils.makeURLToFile(fileDir + keyWord);
 				if (!TextUtils.URLExists(fileURL, errmsg))

@@ -891,8 +891,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         ImmutableArcInst that = (ImmutableArcInst) o;
         return this.arcId == that.arcId && this.protoId == that.protoId
                 && this.name == that.name && this.nameDescriptor == that.nameDescriptor
-                && this.tailNodeId == that.tailNodeId && this.tailPortId == that.tailPortId && this.tailLocation == that.tailLocation
-                && this.headNodeId == that.headNodeId && this.headPortId == that.headPortId && this.headLocation == that.headLocation
+                && this.tailNodeId == that.tailNodeId && this.tailPortId == that.tailPortId && this.tailLocation.equals(that.tailLocation)
+                && this.headNodeId == that.headNodeId && this.headPortId == that.headPortId && this.headLocation.equals(that.headLocation)
                 && this.gridExtendOverMin == that.gridExtendOverMin && this.angle == that.angle && this.flags == that.flags;
     }
 

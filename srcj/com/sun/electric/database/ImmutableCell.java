@@ -35,6 +35,7 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.Variable;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -399,9 +400,9 @@ public class ImmutableCell extends ImmutableElectricObject {
             return false;
         }
         ImmutableCell that = (ImmutableCell) o;
-        return this.cellId == that.cellId && this.groupName == that.groupName
+        return this.cellId == that.cellId && this.groupName.equals(that.groupName)
                 && this.creationDate == that.creationDate && this.revisionDate == that.revisionDate
-                && this.techId == that.techId && this.flags == that.flags && this.params == that.params;
+                && this.techId == that.techId && this.flags == that.flags && Arrays.equals(this.params, that.params);
     }
 
     /**

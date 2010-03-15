@@ -30,6 +30,7 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.variable.Variable;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -340,6 +341,16 @@ public abstract class ImmutableElectricObject {
      * @return true if fields of objects are equal.
      */
     public abstract boolean equalsExceptVariables(ImmutableElectricObject o);
+
+    /**
+     * Indicates whether variables of other ImmutableElectricObject are equal to variables of this ImmutableElectricObject.
+     * Variables of objects are not compared.
+     * @param o other ImmutableElectricObject.
+     * @return true if variables of objects are equal.
+     */
+    public boolean equalsVariables(ImmutableElectricObject o) {
+        return Arrays.equals(this.vars, o.vars);
+    }
 
     /**
      * Checks invariant of this ImmutableElectricObject.

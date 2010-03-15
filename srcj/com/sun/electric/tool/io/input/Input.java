@@ -104,7 +104,7 @@ public class Input
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
-		StringBuffer errmsg = new StringBuffer();
+		StringBuilder errmsg = new StringBuilder();
 		if (!TextUtils.URLExists(fileURL, errmsg))
 		{
 			System.out.print(errmsg.toString());

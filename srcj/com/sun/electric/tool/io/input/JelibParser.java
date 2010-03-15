@@ -162,7 +162,7 @@ public class JelibParser
     Version version;
     Variable[] libVars;
 
-    final LinkedHashMap<LibId,String> externalLibIds = new LinkedHashMap<LibId,String>();
+    public final LinkedHashMap<LibId,String> externalLibIds = new LinkedHashMap<LibId,String>();
 	final LinkedHashMap<CellId,Rectangle2D> externalCells = new LinkedHashMap<CellId,Rectangle2D>();
 	final LinkedHashMap<ExportId,EPoint> externalExports = new LinkedHashMap<ExportId,EPoint>();
     final LinkedHashMap<TechId,Variable[]> techIds = new LinkedHashMap<TechId,Variable[]>();

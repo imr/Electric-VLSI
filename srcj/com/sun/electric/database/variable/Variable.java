@@ -725,6 +725,19 @@ public class Variable implements Serializable {
     }
 
     /**
+     * Returns Variable which differs from this Variable by key.
+     * @param key key of new Variable.
+     * @return Variable which differs from this Variable by key.
+     * @throws NullPointerException if key is null.
+     */
+    public Variable withVarKey(Variable.Key key) {
+        if (this.key == key) {
+            return this;
+        }
+        return newInstance(key, this.value, this.descriptor);
+    }
+
+    /**
      * Returns Variable which differs from this Variable by value.
      * @param value value of new Variable.
      * @return Variable which differs from this Variable by value.
@@ -1206,7 +1219,7 @@ public class Variable implements Serializable {
             return false;
         }
         Variable that = (Variable) o;
-        if (this.key != that.key || !this.descriptor.equals(that.descriptor)) {
+        if (this.key != that.key || this.descriptor != that.descriptor) {
             return false;
         }
         if (this.type != that.type) {
