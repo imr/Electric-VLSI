@@ -241,6 +241,11 @@ public class ComponentMenu extends EDialog
             for (Xml.PrimitiveNode n: ng.nodes)
                 modelNodes.addElement(n.name);
 		}
+		for(Xml.Layer l : xTech.layers)
+		{
+			if (l.pureLayerNode != null)
+				modelNodes.addElement(l.pureLayerNode.name);
+		}
 
 		modelArcs.clear();
 		for(Xml.ArcProto ap : xTech.arcs)

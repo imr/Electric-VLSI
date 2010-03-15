@@ -79,7 +79,7 @@ public class ComponentMenuTab extends PreferencePanel
         HashSet<PrimitiveNodeGroup> groupsDone = new HashSet<PrimitiveNodeGroup>();
         for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
             PrimitiveNode pnp = it.next();
-            if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+//            if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
             PrimitiveNodeGroup group = pnp.getPrimitiveNodeGroup();
             if (group != null) {
                 if (groupsDone.contains(group))
@@ -88,6 +88,7 @@ public class ComponentMenuTab extends PreferencePanel
                 for (PrimitiveNode pn: group.getNodes()) {
                     Xml.PrimitiveNode n = new Xml.PrimitiveNode();
                     n.name = pn.getName();
+                    n.function = pnp.getFunction();
                     ng.nodes.add(n);
                 }
                 xTech.nodeGroups.add(ng);
@@ -97,6 +98,7 @@ public class ComponentMenuTab extends PreferencePanel
                 ng.isSingleton = true;
                 Xml.PrimitiveNode n = new Xml.PrimitiveNode();
                 n.name = pnp.getName();
+                n.function = pnp.getFunction();
                 ng.nodes.add(n);
                 xTech.nodeGroups.add(ng);
             }

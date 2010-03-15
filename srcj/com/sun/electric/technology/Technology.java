@@ -4513,16 +4513,24 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
     /**
-     * Oarses Xml string with component menu definition for this technology
+     * Parses Xml string with component menu definition for this technology
      * @param nodeGroupXML Xml string with component menu definition
      */
     public Xml.MenuPalette parseComponentMenuXML(String nodeGroupXML) {
 		// parse the preference and build a component menu
         List<Xml.PrimitiveNodeGroup> xmlNodeGroups = new ArrayList<Xml.PrimitiveNodeGroup>();
+        List<Xml.PrimitiveNode> xmlPureLayerNodes = new ArrayList<Xml.PrimitiveNode>();
         HashSet<PrimitiveNodeGroup> groupsDone = new HashSet<PrimitiveNodeGroup>();
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
             PrimitiveNode pnp = it.next();
-            if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+            if (pnp.getFunction() == PrimitiveNode.Function.NODE)
+            {
+                Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+                n.name = pnp.getName();
+                n.function = PrimitiveNode.Function.NODE;
+            	xmlPureLayerNodes.add(n);
+            	continue;
+            }
             PrimitiveNodeGroup group = pnp.getPrimitiveNodeGroup();
             if (group != null) {
                 if (groupsDone.contains(group))
@@ -4550,7 +4558,7 @@ public class Technology implements Comparable<Technology>, Serializable
             xap.name = ap.getName();
             xmlArcs.add(xap);
         }
-		return Xml.parseComponentMenuXMLTechEdit(nodeGroupXML, xmlNodeGroups, xmlArcs);
+		return Xml.parseComponentMenuXMLTechEdit(nodeGroupXML, xmlNodeGroups, xmlArcs, xmlPureLayerNodes);
     }
 
 	/**

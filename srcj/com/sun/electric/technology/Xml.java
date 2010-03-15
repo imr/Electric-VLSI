@@ -88,6 +88,7 @@ public class Xml {
         public final List<Layer> layers = new ArrayList<Layer>();
         public final List<ArcProto> arcs = new ArrayList<ArcProto>();
         public final List<PrimitiveNodeGroup> nodeGroups = new ArrayList<PrimitiveNodeGroup>();
+        public final List<PrimitiveNode> pureLayerNodes = new ArrayList<PrimitiveNode>();
         public final List<SpiceHeader> spiceHeaders = new ArrayList<SpiceHeader>();
         public MenuPalette menuPalette;
         public final List<Foundry> foundries = new ArrayList<Foundry>();
@@ -132,6 +133,10 @@ public class Xml {
                     if (n.name.equals(name))
                         return n;
                 }
+            }
+            for(PrimitiveNode n : pureLayerNodes) {
+                if (n.name.equals(name))
+                    return n;
             }
             return null;
         }
@@ -578,9 +583,11 @@ public class Xml {
      * @param xml the XML string
      * @param nodeGroups the PrimitiveNodeGroup objects describing nodes in the technology.
      * @param arcs the ArcProto objects describing arcs in the technology.
+     * @param pureLayerNodes the PrimitiveNode objects describing pure-layer nodes in the technology.
      * @return the MenuPalette describing the component menu.
      */
-    public static MenuPalette parseComponentMenuXMLTechEdit(String xml, List<PrimitiveNodeGroup> nodeGroups, List<ArcProto> arcs)
+    public static MenuPalette parseComponentMenuXMLTechEdit(String xml, List<PrimitiveNodeGroup> nodeGroups, List<ArcProto> arcs,
+    	List<PrimitiveNode> pureLayerNodes)
     {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -588,7 +595,7 @@ public class Xml {
         {
             SAXParser parser = factory.newSAXParser();
             InputSource is = new InputSource(new StringReader(xml));
-            XMLReader handler = new XMLReader(nodeGroups, arcs);
+            XMLReader handler = new XMLReader(nodeGroups, arcs, pureLayerNodes);
             parser.parse(is, handler);
             return handler.tech.menuPalette;
         } catch (Exception e)
@@ -640,10 +647,11 @@ public class Xml {
         XMLReader() {
         }
 
-        XMLReader(List<PrimitiveNodeGroup> nodeGroups, List<ArcProto> arcs)
+        XMLReader(List<PrimitiveNodeGroup> nodeGroups, List<ArcProto> arcs, List<PrimitiveNode> pureLayerNodes)
         {
             tech.arcs.addAll(arcs);
             tech.nodeGroups.addAll(nodeGroups);
+            tech.pureLayerNodes.addAll(pureLayerNodes);
         }
 
         private void beginCharacters() {
@@ -1453,8 +1461,9 @@ public class Xml {
                         break;
                     case menuNode:
                     	PrimitiveNode np = tech.findNode(text);
-                    	if (np == null) System.out.println("Warning: cannot find node '" + text + "' for component menu"); else
-                    		curMenuBox.add(np);
+                    	if (np == null)
+                    		System.out.println("Warning: cannot find node '" + text + "' for component menu"); else
+                    			curMenuBox.add(np);
                         break;
                     case menuText:
                         curMenuBox.add(text);

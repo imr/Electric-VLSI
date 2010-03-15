@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+BUG: (3/15/10, SMR) Want to add pure-layer nodes to component menu (Bug #2685).
+FIX: Added a list of pure-layer nodes in the Technology XML data structures.
+
 IMP: (3/15/10, DN) First variant of multi-threaded JELIB/DELEB reader in
      "File|Import|Fast JELIB Reader|Database" (enabled only in -debug mode).
 

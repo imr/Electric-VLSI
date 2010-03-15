@@ -510,6 +510,7 @@ public class Manipulate
 	{
 		// get information about arcs and nodes in the technology being edited
 		Library [] dependentlibs = Info.getDependentLibraries(Library.getCurrent());
+		Cell [] layerCells = Info.findCellSequence(dependentlibs, "layer-", Info.LAYERSEQUENCE_KEY);
 		Cell [] arcCells = Info.findCellSequence(dependentlibs, "arc-", Info.ARCSEQUENCE_KEY);
 		Cell [] nodeCells = Info.findCellSequence(dependentlibs, "node-", Info.NODESEQUENCE_KEY);
 
@@ -538,29 +539,10 @@ public class Manipulate
 				if (nIn.func == PrimitiveNode.Function.NODE) continue;
 				String nodeName = nodeCells[i].getName().substring(5);
 
-//				// see if there are custom overrides
-//				if (nIn.surroundOverrides != null)
-//				{
-//            		List<Object> tmp = new ArrayList<Object>();
-//            		for(int j=0; j<nIn.surroundOverrides.length; j++)
-//	            	{
-//            			int commaPos = nIn.surroundOverrides[j].indexOf(',');
-//            			if (commaPos < 0) continue;
-//            			Xml.MenuNodeInst xni = new MenuNodeInst();
-//            			xni.protoName = nodeName;
-//            			xni.function = nIn.func;
-//            			xni.text = nodeName + "-" + nIn.surroundOverrides[j].substring(0, commaPos);
-//            			xni.fontSize = 5;
-//            			tmp.add(xni);
-//            		}
-//    				things.add(tmp);
-//				} else
-            	{
-    				Xml.PrimitiveNode curNode = new Xml.PrimitiveNode();
-                    curNode.name = nodeName;
-                    curNode.function = nIn.func;
-    				things.add(curNode);
-            	}
+				Xml.PrimitiveNode curNode = new Xml.PrimitiveNode();
+                curNode.name = nodeName;
+                curNode.function = nIn.func;
+				things.add(curNode);
 			}
 
 			// add in special menu entries
@@ -588,6 +570,13 @@ public class Manipulate
 		{
 			compMenuXML = (String)var.getObject();
 		}
+		List<Xml.PrimitiveNode> pureLayerNodes = new ArrayList<Xml.PrimitiveNode>();
+		for(int i=0; i<layerCells.length; i++)
+		{
+            Xml.PrimitiveNode pln = new Xml.PrimitiveNode();
+            pln.name = "node-" + layerCells[i].getName();
+            pureLayerNodes.add(pln);
+		}
 	    List<Xml.PrimitiveNodeGroup> nodeGroups = new ArrayList<Xml.PrimitiveNodeGroup>();
 		for(int i=0; i<nodeCells.length; i++)
 		{
@@ -606,7 +595,7 @@ public class Manipulate
 			xap.name = arcCells[i].getName().substring(4);
 			arcs.add(xap);
 		}
-	    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodeGroups, arcs);
+	    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodeGroups, arcs, pureLayerNodes);
 	    ComponentMenu.showComponentMenuDialog(Library.getCurrent().getName(), xmp, nodeGroups, arcs);
 	}
 
