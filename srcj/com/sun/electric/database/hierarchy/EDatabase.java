@@ -130,7 +130,7 @@ public class EDatabase {
     private Tool changingTool;
 
     public EDatabase(Environment environment) {
-        this(environment.techPool.idManager.getInitialSnapshot().with(null, environment, null, null));
+        this(environment.techPool.idManager.getInitialSnapshot().with(null, environment, (CellTree[]) null, null));
     }
 
     /** Creates a new instance of EDatabase */

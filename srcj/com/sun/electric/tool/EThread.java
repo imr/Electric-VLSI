@@ -68,9 +68,8 @@ class EThread extends Thread {
 
     public void run() {
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", getName());
-        EJob finishedEJob = null;
         for (;;) {
-            ejob = Job.serverJobManager.selectEJob(finishedEJob);
+            ejob = Job.serverJobManager.selectEJob();
             Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", ejob.jobName);
             isServerThread = ejob.jobType != Job.Type.CLIENT_EXAMINE;
             database = isServerThread ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
@@ -165,12 +164,13 @@ class EThread extends Thread {
             }
             putInCache(ejob.oldSnapshot, ejob.newSnapshot);
 
-            finishedEJob = ejob;
+            String finishedEJobName = ejob.jobName;
+            Job.serverJobManager.finishEJob(ejob);
             ejob = null;
             isServerThread = false;
             database = null;
 
-            Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", finishedEJob.jobName);
+            Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", finishedEJobName);
         }
     }
 

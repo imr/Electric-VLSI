@@ -57,18 +57,24 @@ import java.util.logging.Level;
  *
  */
 public class ServerJobManager {
+
     private static final String CLASS_NAME = Job.class.getName();
     private static final int defaultNumThreads = Math.max(2, Runtime.getRuntime().availableProcessors());
-
     private final ReentrantLock lock = new ReentrantLock();
 
-    void lock() { lock.lock(); }
-    void unlock() { lock.unlock(); }
-    /** mutex for database synchronization. */  private final Condition databaseChangesMutex = lock.newCondition();
+    void lock() {
+        lock.lock();
+    }
 
-    /** started jobs */ private final ArrayList<EJob> startedJobs = new ArrayList<EJob>();
-    /** waiting jobs */ private final ArrayList<EJob> waitingJobs = new ArrayList<EJob>();
-
+    void unlock() {
+        lock.unlock();
+    }
+    /** mutex for database synchronization. */
+    private final Condition databaseChangesMutex = lock.newCondition();
+    /** started jobs */
+    private final ArrayList<EJob> startedJobs = new ArrayList<EJob>();
+    /** waiting jobs */
+    private final ArrayList<EJob> waitingJobs = new ArrayList<EJob>();
     private final ServerSocket serverSocket;
 //    private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
     final ArrayList<Client> serverConnections = new ArrayList<Client>();
@@ -79,19 +85,21 @@ public class ServerJobManager {
     private boolean runningChangeJob;
 //    private boolean guiChanged;
     private boolean signalledEThread;
-
     private static int maxNumberOfThreads;
 
     /** Creates a new instance of JobPool */
     ServerJobManager(int recommendedNumThreads, String loggingFilePath, boolean pipe, int socketPort) {
         maxNumThreads = initThreads(recommendedNumThreads);
         maxNumberOfThreads = maxNumThreads;
-        if (Job.currentUI != null)
+        if (Job.currentUI != null) {
             initCurrentUI(Job.currentUI);
-        if (loggingFilePath != null)
+        }
+        if (loggingFilePath != null) {
             initSnapshotLogging(new File(loggingFilePath));
-        if (pipe)
+        }
+        if (pipe) {
             initPipe();
+        }
         ServerSocket serverSocket = null;
         if (socketPort > 0) {
             try {
@@ -106,13 +114,15 @@ public class ServerJobManager {
 
     ServerJobManager() {
         this(0, null, false, 0);
-        serverConnections.add(new Client(0) {});
+        serverConnections.add(new Client(0) {
+        });
     }
 
     private int initThreads(int recommendedNumThreads) {
         int maxNumThreads = defaultNumThreads;
-        if (recommendedNumThreads > 0)
+        if (recommendedNumThreads > 0) {
             maxNumThreads = recommendedNumThreads;
+        }
         Job.logger.logp(Level.FINE, CLASS_NAME, "initThreads", "maxNumThreads=" + maxNumThreads);
         return maxNumThreads;
     }
@@ -128,8 +138,6 @@ public class ServerJobManager {
         }
         currentUI.startDispatcher();
     }
-
-
 
     void initSnapshotLogging(File loggingFile) {
         StreamClient conn;
@@ -186,10 +194,11 @@ public class ServerJobManager {
     void addJob(EJob ejob, boolean onMySnapshot) {
         lock();
         try {
-            if (onMySnapshot)
+            if (onMySnapshot) {
                 waitingJobs.add(0, ejob);
-            else
+            } else {
                 waitingJobs.add(ejob);
+            }
             setEJobState(ejob, EJob.State.WAITING, onMySnapshot ? EJob.WAITING_NOW : "waiting");
             invokeEThread();
         } finally {
@@ -222,8 +231,9 @@ public class ServerJobManager {
     void setProgress(EJob ejob, String progress) {
         lock();
         try {
-            if (ejob.state == EJob.State.RUNNING)
+            if (ejob.state == EJob.State.RUNNING) {
                 setEJobState(ejob, EJob.State.RUNNING, progress);
+            }
         } finally {
             unlock();
         }
@@ -234,15 +244,17 @@ public class ServerJobManager {
         lock();
         try {
             ArrayList<Job> jobsList = new ArrayList<Job>();
-            for (EJob ejob: startedJobs) {
+            for (EJob ejob : startedJobs) {
                 Job job = ejob.getJob();
-                if (job != null)
+                if (job != null) {
                     jobsList.add(job);
+                }
             }
-            for (EJob ejob: waitingJobs) {
+            for (EJob ejob : waitingJobs) {
                 Job job = ejob.getJob();
-                if (job != null)
+                if (job != null) {
                     jobsList.add(job);
+                }
             }
             return jobsList.iterator();
         } finally {
@@ -254,19 +266,21 @@ public class ServerJobManager {
         lock();
         try {
             ArrayList<Job.Inform> jobsList = new ArrayList<Job.Inform>();
-            for (EJob ejob: startedJobs) {
+            for (EJob ejob : startedJobs) {
                 Job job = ejob.getJob();
-                if (job != null)
+                if (job != null) {
                     jobsList.add(job.getInform());
-                else
+                } else {
                     jobsList.add(ejob.getInform());
+                }
             }
-            for (EJob ejob: waitingJobs) {
+            for (EJob ejob : waitingJobs) {
                 Job job = ejob.getJob();
-                if (job != null)
+                if (job != null) {
                     jobsList.add(job.getInform());
-                else
+                } else {
                     jobsList.add(ejob.getInform());
+                }
             }
             return jobsList;
         } finally {
@@ -275,14 +289,17 @@ public class ServerJobManager {
     }
 
     //--------------------------PRIVATE JOB METHODS--------------------------
-
     private void invokeEThread() {
-        if (signalledEThread || startedJobs.size() >= maxNumThreads) return;
-        if (!canDoIt()) return;
-        if (startedJobs.size() < numThreads)
+        if (signalledEThread || startedJobs.size() >= maxNumThreads) {
+            return;
+        }
+        if (!canDoIt()) {
+            return;
+        }
+        if (startedJobs.size() < numThreads) {
             databaseChangesMutex.signal();
-        else{
-        	new EThread(numThreads++);
+        } else {
+            new EThread(numThreads++);
         }
         signalledEThread = true;
     }
@@ -321,15 +338,16 @@ public class ServerJobManager {
 //            unlock();
 //        }
 //    }
-
     private boolean canDoIt() {
-        if (waitingJobs.isEmpty()) return false;
+        if (waitingJobs.isEmpty()) {
+            return false;
+        }
         EJob ejob = waitingJobs.get(0);
         return startedJobs.isEmpty() || !runningChangeJob && ejob.isExamine();
     }
 
     private void setEJobState(EJob ejob, EJob.State newState, String info) {
-        Job.logger.logp(Level.FINE, CLASS_NAME, "setEjobState", newState + " "+ ejob.jobName);
+        Job.logger.logp(Level.FINE, CLASS_NAME, "setEjobState", newState + " " + ejob.jobName);
         EJob.State oldState = ejob.state;
         switch (newState) {
             case WAITING:
@@ -338,10 +356,11 @@ public class ServerJobManager {
                 if (oldState == EJob.State.RUNNING) {
                     assert oldState == EJob.State.RUNNING;
                     ejob.progress = info;
-                    if (info.equals(EJob.ABORTING))
+                    if (info.equals(EJob.ABORTING)) {
                         ejob.serverJob.scheduledToAbort = true;
+                    }
                 }
-               break;
+                break;
             case SERVER_DONE:
                 boolean removed;
                 if (oldState == EJob.State.WAITING) {
@@ -349,8 +368,9 @@ public class ServerJobManager {
                 } else {
                     assert oldState == EJob.State.RUNNING;
                     removed = startedJobs.remove(ejob);
-                    if (startedJobs.isEmpty())
+                    if (startedJobs.isEmpty()) {
                         runningChangeJob = false;
+                    }
                 }
                 assert removed;
 //                if (Job.threadMode != Job.Mode.BATCH && ejob.client == null)
@@ -391,12 +411,13 @@ public class ServerJobManager {
 //            unlock();
 //        }
 //    }
-
     public void runLoop(Job initialJob) {
 
         initialJob.startJob();
 
-        if (serverSocket == null) return;
+        if (serverSocket == null) {
+            return;
+        }
         try {
             // Wait for connections
             for (;;) {
@@ -447,15 +468,9 @@ public class ServerJobManager {
 //        }
 //        Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");
 //    }
-
-    EJob selectEJob(EJob finishedEJob) {
-        EJob selectedEJob = null;
+    EJob selectEJob() {
         lock();
         try {
-            if (finishedEJob != null) {
-//                EJob.State state = finishedEJob.state;
-                setEJobState(finishedEJob, EJob.State.SERVER_DONE, "done");
-            }
             for (;;) {
                 signalledEThread = false;
                 // Search for examine
@@ -471,8 +486,7 @@ public class ServerJobManager {
                         runningChangeJob = true;
                     }
                     setEJobState(ejob, EJob.State.RUNNING, "running");
-                    selectedEJob = ejob;
-                    break;
+                    return ejob;
                 }
                 if (Main.isBatch() && startedJobs.isEmpty()) {
                     ActivityLogger.finished();
@@ -485,11 +499,19 @@ public class ServerJobManager {
         } finally {
             unlock();
         }
-        return selectedEJob;
     }
 
-    /*private*/ static class UserInterfaceRedirect implements UserInterface
-	{
+    void finishEJob(EJob finishedEJob) {
+        lock();
+        try {
+            setEJobState(finishedEJob, EJob.State.SERVER_DONE, "done");
+        } finally {
+            unlock();
+        }
+    }
+
+    /*private*/ static class UserInterfaceRedirect implements UserInterface {
+
         private final Job.Key jobKey;
         private final Client client;
         private final EDatabase database;
@@ -525,19 +547,20 @@ public class ServerJobManager {
             curCellId = job.curCellId;
         }
 
-    	private static void printStackTrace(String methodName) {
-            if (!Job.getDebug()) return;
+        private static void printStackTrace(String methodName) {
+            if (!Job.getDebug()) {
+                return;
+            }
             System.out.println("UserInterface." + methodName + " was called from DatabaseChangesThread");
-    		ActivityLogger.logException(new IllegalStateException());
-    	}
+            ActivityLogger.logException(new IllegalStateException());
+        }
 
         /**
          * Method to start the display of a progress dialog.
          * @param msg the message to show in the progress dialog.
          * @param the file being read (null if not reading a file).
          */
-        public void startProgressDialog(String msg, String filePath)
-        {
+        public void startProgressDialog(String msg, String filePath) {
             progressValue = -1;
             Client.fireServerEvent(new Client.StartProgressDialogEvent(msg, filePath));
         }
@@ -545,8 +568,7 @@ public class ServerJobManager {
         /**
          * Method to stop the progress bar
          */
-        public void stopProgressDialog()
-        {
+        public void stopProgressDialog() {
             progressValue = -1;
             Client.fireServerEvent(new Client.StopProgressDialogEvent());
         }
@@ -555,30 +577,29 @@ public class ServerJobManager {
          * Method to update the progress bar
          * @param pct the percentage done (from 0 to 100).
          */
-        public void setProgressValue(int pct)
-        {
-            if (pct == progressValue) return;
+        public void setProgressValue(int pct) {
+            if (pct == progressValue) {
+                return;
+            }
             progressValue = pct;
             Client.fireServerEvent(new Client.ProgressValueEvent(pct));
         }
 
         /**
-	     * Method to set a text message in the progress dialog.
-	     * @param message the new progress message.
+         * Method to set a text message in the progress dialog.
+         * @param message the new progress message.
          */
-        public void setProgressNote(String message)
-        {
+        public void setProgressNote(String message) {
             progressNote = message;
             progressValue = -1;
             Client.fireServerEvent(new Client.ProgressNoteEvent(message));
         }
 
         /**
-	     * Method to get text message in the progress dialog.
-	     * @return text message in the progress dialog.
+         * Method to get text message in the progress dialog.
+         * @return text message in the progress dialog.
          */
-        public String getProgressNote()
-        {
+        public String getProgressNote() {
             return progressNote;
         }
 
@@ -586,70 +607,87 @@ public class ServerJobManager {
             return jobKey;
         }
 
-    	public EDatabase getDatabase() {
+        public EDatabase getDatabase() {
             return database;
         }
-    	public Technology getCurrentTechnology() {
+
+        public Technology getCurrentTechnology() {
             Technology tech = null;
-            if (curTechId != null)
+            if (curTechId != null) {
                 tech = database.getTech(curTechId);
-            if (tech == null)
+            }
+            if (tech == null) {
                 tech = database.getTechPool().findTechnology(User.getDefaultTechnology());
-            if (tech == null)
+            }
+            if (tech == null) {
                 tech = database.getTechPool().findTechnology("mocmos");
+            }
             return tech;
         }
+
         public Library getCurrentLibrary() {
             return curLibId != null ? database.getLib(curLibId) : null;
         }
 
-		public EditWindow_ getCurrentEditWindow_() {
+        public EditWindow_ getCurrentEditWindow_() {
             printStackTrace("getCurrentEditWindow");
             return null;
         }
-		public EditWindow_ needCurrentEditWindow_()
-		{
+
+        public EditWindow_ needCurrentEditWindow_() {
             printStackTrace("needCurrentEditWindow");
-			return null;
-		}
+            return null;
+        }
+
         /** Get current cell from current library */
-		public Cell getCurrentCell()
-        {
+        public Cell getCurrentCell() {
             return curCellId != null ? database.getCell(curCellId) : null;
         }
 
-		public Cell needCurrentCell()
-		{
+        public Cell needCurrentCell() {
             Cell cell = getCurrentCell();
-            if (cell != null) return cell;
+            if (cell != null) {
+                return cell;
+            }
             throw new IllegalStateException("Can't get current Cell in database thread");
-		}
+        }
 
-		public void repaintAllWindows() {
+        public void repaintAllWindows() {
             printStackTrace("repaintAllWindows");
 //            Job.currentUI.repaintAllWindows();
         }
 
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
 //            Job.currentUI.adjustReferencePoint(cell, cX, cY);
-        };
-		public int getDefaultTextSize() { return 14; }
-		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }
+        }
+
+        ;
+
+        public int getDefaultTextSize() {
+            return 14;
+        }
+
+        public EditWindow_ displayCell(Cell cell) {
+            throw new IllegalStateException();
+        }
 
         public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) {
             Client.fireServerEvent(new Client.TermLoggingEvent(logger, explain, terminate));
         }
 
-        public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) { throw new IllegalStateException(); }
+        public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+            throw new IllegalStateException();
+        }
 
-        public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) { throw new IllegalStateException(); }
+        public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+            throw new IllegalStateException();
+        }
 
         /**
          * Method to return the error message associated with the current error.
          * Highlights associated graphics if "showhigh" is nonzero.
          */
-        public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, boolean separateWindow, int position)
-        {
+        public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, boolean separateWindow, int position) {
             printStackTrace("reportLog");
             // return the error message
             return log.getMessageString();
@@ -660,8 +698,7 @@ public class ServerJobManager {
          * @param message the error message to show.
          * @param title the title of a dialog with the error message.
          */
-        public void showErrorMessage(String message, String title)
-        {
+        public void showErrorMessage(String message, String title) {
             Client.fireServerEvent(new Client.ShowMessageEvent(client, message, title, true));
         }
 
@@ -670,8 +707,7 @@ public class ServerJobManager {
          * @param message the message to show.
          * @param title the title of a dialog with the message.
          */
-        public void showInformationMessage(String message, String title)
-        {
+        public void showInformationMessage(String message, String title) {
             Client.fireServerEvent(new Client.ShowMessageEvent(client, message, title, false));
         }
 
@@ -681,8 +717,9 @@ public class ServerJobManager {
          * @param newLine add new line after the message
          */
         public void printMessage(String message, boolean newLine) {
-            if (newLine)
+            if (newLine) {
                 message += "\n";
+            }
             Client.fireServerEvent(new Client.PrintEvent(client, message));
         }
 
@@ -719,7 +756,7 @@ public class ServerJobManager {
          * @param defaultChoice the default choice.
          * @return the index into the choices array that was selected.
          */
-        public int askForChoice(String message, String title, String [] choices, String defaultChoice) {
+        public int askForChoice(String message, String title, String[] choices, String defaultChoice) {
             throw new IllegalStateException(message);
         }
 
@@ -730,32 +767,38 @@ public class ServerJobManager {
          * @param def the default response.
          * @return the string (null if cancelled).
          */
-        public String askForInput(Object message, String title, String def) { throw new IllegalStateException(); }
+        public String askForInput(Object message, String title, String def) {
+            throw new IllegalStateException();
+        }
 
         /**
          * Save current state of highlights and return its ID.
          */
-        public int saveHighlights() { return -1; }
+        public int saveHighlights() {
+            return -1;
+        }
 
         /**
          * Restore state of highlights by its ID.
          * @param highlightsId id of saved highlights.
          */
-        public void restoreHighlights(int highlightsId) {}
+        public void restoreHighlights(int highlightsId) {
+        }
 
         /**
          * Show status of undo/redo buttons
          * @param newUndoEnabled new status of undo button.
          * @param newRedoEnabled new status of redo button.
          */
-        public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
+        public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {
+        }
     }
 
-    public static int getDefaultNumberOfThreads(){
-    	return defaultNumThreads;
+    public static int getDefaultNumberOfThreads() {
+        return defaultNumThreads;
     }
 
-    public static int getMaxNumberOfThreads(){
-    	return maxNumberOfThreads;
+    public static int getMaxNumberOfThreads() {
+        return maxNumberOfThreads;
     }
 }

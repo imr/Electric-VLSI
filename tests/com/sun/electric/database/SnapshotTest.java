@@ -116,7 +116,7 @@ public class SnapshotTest {
 
         CellTree[] cellTreesArray = {cellTree};
         LibraryBackup[] libBackupsArray = {libBackup};
-        Snapshot instance = initialSnapshot.with(null, env, null, null);
+        Snapshot instance = initialSnapshot.with(null, env, (CellTree[]) null, null);
         assertEquals(1, instance.snapshotId);
 
         List<CellTree> expCellTrees = Collections.singletonList(cellTree);

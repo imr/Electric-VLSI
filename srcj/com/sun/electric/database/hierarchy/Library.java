@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.CellTree;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.IdMapper;
@@ -1002,7 +1003,7 @@ public class Library extends ElectricObject implements Comparable<Library> {
         }
         URL libFile = TextUtils.makeURLToFile(newLibFile);
         libBackups[newLibId.libIndex] = new LibraryBackup(libBackup.d.withLibFile(libFile), true, libBackup.referencedLibs);
-        newSnapshot = newSnapshot.with(null, null, null, libBackups);
+        newSnapshot = newSnapshot.with(null, null, (CellTree[]) null, libBackups);
         checkChanging();
         boolean isCurrent = getCurrent() == this;
         database.lowLevelSetCanUndoing(true);

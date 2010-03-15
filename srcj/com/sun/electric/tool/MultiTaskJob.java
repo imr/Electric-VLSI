@@ -41,9 +41,11 @@ import java.util.Map;
  * 4) Result is consumed on server.
  * This stage is performed by consumer.consume method.
  */
-public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
-    private transient LinkedHashMap<TaskKey,Task> tasks;
+public abstract class MultiTaskJob<TaskKey, TaskResult, Result> extends Job {
+
+    private transient LinkedHashMap<TaskKey, Task> tasks;
     private transient ArrayList<Task> allTasks;
+    private transient int tasksStarted;
     private transient int tasksDone;
     private transient Environment env;
     private transient EThread ownerThread;
@@ -52,11 +54,11 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
     private Consumer<Result> consumer;
 
     /**
-	 * Constructor creates a new instance of MultiTaskJob.
-	 * @param jobName a string that describes this MultiTaskJob.
-	 * @param t the Tool that originated this MultiTaskJob.
+     * Constructor creates a new instance of MultiTaskJob.
+     * @param jobName a string that describes this MultiTaskJob.
+     * @param t the Tool that originated this MultiTaskJob.
      * @param c interface which consumes the result on server
-	 */
+     */
     public MultiTaskJob(String jobName, Tool t, Consumer<Result> c) {
         super(jobName, t, Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
         this.consumer = c;
@@ -84,7 +86,7 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
      * @return final result which is obtained by merging task results.
      * @throws com.sun.electric.tool.JobException
      */
-    public abstract Result mergeTaskResults(Map<TaskKey,TaskResult> taskResults) throws JobException;
+    public abstract Result mergeTaskResults(Map<TaskKey, TaskResult> taskResults) throws JobException;
 
 //    /**
 //     * This method executes in the Client side after normal termination of full computation.
@@ -92,7 +94,6 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
 //     * @param result result of full computation.
 //     */
 //    public void terminateOK(Result result) {}
-
     /**
      * This method is not overriden by subclasses.
      * Override methods prepareTasks, runTask, mergeTaskResults instead.
@@ -100,24 +101,30 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
      */
     @Override
     public final boolean doIt() throws JobException {
-        tasks = new LinkedHashMap<TaskKey,Task>();
+        tasks = new LinkedHashMap<TaskKey, Task>();
         allTasks = new ArrayList<Task>();
         prepareTasks();
         env = Environment.getThreadEnvironment();
-        ownerThread = (EThread)Thread.currentThread();
+        ownerThread = (EThread) Thread.currentThread();
         numberOfRunningThreads = ServerJobManager.getMaxNumberOfThreads();
-        for (int id = 0; id < numberOfRunningThreads; id++)
+        tasksDone = -numberOfRunningThreads;
+        for (int id = 0; id < numberOfRunningThreads; id++) {
             new WorkingThread(id).start();
+        }
         waitTasks();
 
-        LinkedHashMap<TaskKey,TaskResult> taskResults = new LinkedHashMap<TaskKey,TaskResult>();
-        for (Task task: tasks.values()) {
-            if (task.taskResult != null)
+        LinkedHashMap<TaskKey, TaskResult> taskResults = new LinkedHashMap<TaskKey, TaskResult>();
+        for (Task task : tasks.values()) {
+            if (task.taskResult != null) {
                 taskResults.put(task.taskKey, task.taskResult);
+            }
         }
+        tasks.clear();
         Result result = mergeTaskResults(taskResults);
-        if (consumer != null)
+        taskResults.clear();
+        if (consumer != null) {
             consumer.consume(result);
+        }
         return true;
     }
 
@@ -128,23 +135,36 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
      */
     public synchronized void startTask(String taskName, TaskKey taskKey) {
         Task task = new Task(taskName, taskKey);
-        if (tasks.containsKey(taskKey))
+        if (tasks.containsKey(taskKey)) {
             throw new IllegalArgumentException();
+        }
         tasks.put(taskKey, task);
         allTasks.add(task);
+        notifyAll();
     }
 
     private synchronized Task getTask() {
+        tasksDone++;
+        assert tasksDone <= tasksStarted;
+        try {
+            while (tasksDone < allTasks.size() && tasksStarted == allTasks.size()) {
+                wait();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if (tasksDone == allTasks.size()) {
+            assert tasksStarted == tasksDone;
             return null;
         }
-        return allTasks.get(tasksDone++);
+        return allTasks.get(tasksStarted++);
     }
 
     private synchronized void waitTasks() {
         try {
-            while (numberOfFinishedThreads < numberOfRunningThreads)
+            while (numberOfFinishedThreads < numberOfRunningThreads) {
                 wait();
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -152,10 +172,11 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
 
     private synchronized void finishWorkingThread() {
         numberOfFinishedThreads++;
-        notify();
+        notifyAll();
     }
 
     private class Task {
+
         private final String taskName;
         private final TaskKey taskKey;
         private TaskResult taskResult;
@@ -169,7 +190,7 @@ public abstract class MultiTaskJob<TaskKey,TaskResult,Result> extends Job {
     class WorkingThread extends EThread {
 
         private WorkingThread(int id) {
-            super("WorkingThread-"+id);
+            super("WorkingThread-" + id);
             userInterface = new ServerJobManager.UserInterfaceRedirect(ownerThread.ejob.jobKey);
             ejob = ownerThread.ejob;
             isServerThread = ownerThread.isServerThread;
