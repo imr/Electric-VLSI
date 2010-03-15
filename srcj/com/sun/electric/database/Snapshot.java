@@ -114,7 +114,7 @@ public class Snapshot {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    private Snapshot with(Tool tool, Environment environment, CellBackup[] cellBackupsArray, LibraryBackup[] libBackupsArray) {
+    public Snapshot with(Tool tool, Environment environment, CellBackup[] cellBackupsArray, LibraryBackup[] libBackupsArray) {
         if (environment == null) {
             environment = this.environment;
         }
@@ -238,8 +238,10 @@ public class Snapshot {
                 libBackups, environment);
 
         // Try to reuse EquivalenSchematicExports
-        for (CellTree cellTree: snapshot.cellTrees) {
-            if (cellTree == null) continue;
+        for (CellTree cellTree : snapshot.cellTrees) {
+            if (cellTree == null) {
+                continue;
+            }
             reuseSchemEq(snapshot, cellTree.top.cellRevision.d.cellId);
         }
 //        long endTime = System.currentTimeMillis();
@@ -249,28 +251,40 @@ public class Snapshot {
 
     private EquivalentSchematicExports reuseSchemEq(Snapshot snapshot, CellId cellId) {
         EquivalentSchematicExports newSchemEq = snapshot.equivSchemExports[cellId.cellIndex];
-        if (newSchemEq != null) return newSchemEq;
+        if (newSchemEq != null) {
+            return newSchemEq;
+        }
 //        if (cellId.toString().equals("redFour:NMOS;1{sch}") || cellId.toString().equals("orangeST090nm:NMOSf;1{ic}"))
 //            cellId = cellId;
         CellTree oldCellTree = getCellTree(cellId);
         CellTree newCellTree = snapshot.getCellTree(cellId);
-        if (newCellTree != oldCellTree) return null;
+        if (newCellTree != oldCellTree) {
+            return null;
+        }
         newSchemEq = equivSchemExports[cellId.cellIndex];
-        if (newSchemEq == null) return null;
+        if (newSchemEq == null) {
+            return null;
+        }
         assert cellId.isIcon() || cellId.isSchematic();
         CellId mainSchemId = snapshot.groupMainSchematics[snapshot.cellGroups[cellId.cellIndex]];
-        if (mainSchemId != groupMainSchematics[cellGroups[cellId.cellIndex]]) return null;
+        if (mainSchemId != groupMainSchematics[cellGroups[cellId.cellIndex]]) {
+            return null;
+        }
         if (mainSchemId != cellId && mainSchemId != null) {
             EquivalentSchematicExports oldMainSchemEq = equivSchemExports[mainSchemId.cellIndex];
             assert oldMainSchemEq != null;
             EquivalentSchematicExports newMainSchemEq = reuseSchemEq(snapshot, mainSchemId);
-            if (newMainSchemEq == null)
+            if (newMainSchemEq == null) {
                 newMainSchemEq = snapshot.getEquivExports(mainSchemId);
-            if (newMainSchemEq != oldMainSchemEq)
+            }
+            if (newMainSchemEq != oldMainSchemEq) {
                 newSchemEq = null;
+            }
         }
-        for (CellTree subTree: newCellTree.subTrees) {
-            if (subTree == null) continue;
+        for (CellTree subTree : newCellTree.subTrees) {
+            if (subTree == null) {
+                continue;
+            }
             CellId subCellId = subTree.top.cellRevision.d.cellId;
             if (subCellId.isIcon()) {
                 if (cellId.isSchematic() && snapshot.cellGroups[cellId.cellIndex] == snapshot.cellGroups[subCellId.cellIndex]) {
@@ -283,14 +297,16 @@ public class Snapshot {
             EquivalentSchematicExports oldSubSchemEq = equivSchemExports[subCellId.cellIndex];
             assert oldSubSchemEq != null;
             EquivalentSchematicExports newSubSchemEq = reuseSchemEq(snapshot, subCellId);
-            if (newSubSchemEq == null)
+            if (newSubSchemEq == null) {
                 newSubSchemEq = snapshot.getEquivExports(subCellId);
+            }
             if (!newSubSchemEq.equals(oldSubSchemEq)) {
                 newSchemEq = null;
             }
         }
-        if (newSchemEq != null)
+        if (newSchemEq != null) {
             snapshot.equivSchemExports[cellId.cellIndex] = newSchemEq;
+        }
         return newSchemEq;
     }
 
@@ -308,11 +324,14 @@ public class Snapshot {
         if (mainSchemId != cellId && mainSchemId != null) {
             EquivalentSchematicExports thisMainSchemEq = this.getEquivExports(mainSchemId);
             EquivalentSchematicExports thatMainSchemEq = that.getEquivExports(mainSchemId);
-            if (!this.getEquivExports(mainSchemId).equals(that.getEquivExports(mainSchemId)))
+            if (!this.getEquivExports(mainSchemId).equals(that.getEquivExports(mainSchemId))) {
                 return false;
+            }
         }
-        for (CellTree subTree: thatTree.subTrees) {
-            if (subTree == null) continue;
+        for (CellTree subTree : thatTree.subTrees) {
+            if (subTree == null) {
+                continue;
+            }
             CellId subCellId = subTree.top.cellRevision.d.cellId;
             if (subCellId.isIcon()) {
                 if (cellId.isSchematic() && cellGroups[cellId.cellIndex] == cellGroups[subCellId.cellIndex]) {
@@ -327,7 +346,7 @@ public class Snapshot {
             }
         }
         return true;
-     }
+    }
 
     public Snapshot with(Tool tool, Environment environment) {
         TechPool techPool = environment.techPool;
