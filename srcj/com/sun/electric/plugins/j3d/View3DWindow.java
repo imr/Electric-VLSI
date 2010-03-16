@@ -601,7 +601,6 @@ public class View3DWindow extends JPanel
         return wf.loadDefaultExplorerTree();
 	}
 
-    @Override
     public void loadTechnologies() {
         lv = LayerVisibility.getLayerVisibility();
     }

@@ -1182,7 +1182,6 @@ public class EditWindow extends JPanel
 		return wf.loadDefaultExplorerTree();
 	}
 
-    @Override
     public void loadTechnologies() {
         lv = LayerVisibility.getLayerVisibility();
     }

@@ -286,7 +286,6 @@ public class TextWindow implements WindowContent
         return wf.loadDefaultExplorerTree();
 	}
 
-    @Override
     public void loadTechnologies() {
     }
 

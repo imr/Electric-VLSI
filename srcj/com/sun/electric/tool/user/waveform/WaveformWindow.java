@@ -2218,7 +2218,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		return nodes;
 	}
 
-    @Override
     public void loadTechnologies() {
     }
     
