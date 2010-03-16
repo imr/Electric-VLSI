@@ -33,6 +33,8 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -49,8 +51,8 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.IconParameters;
+import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.BusParameters;
 
 import java.awt.geom.AffineTransform;
@@ -59,8 +61,12 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * An Export is a PortProto at the Cell level.  It points to the
@@ -1167,6 +1173,71 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 //		pp->cachedequivport = null;
 //		return null;
     }
+
+	private static class EquivalenceChoice implements Comparable
+	{
+		int difference;
+		Export e;
+
+		public int compareTo(Object other)
+		{
+			EquivalenceChoice o = (EquivalenceChoice)other;
+			return o.difference - difference;
+		}
+	}
+
+	/**
+	 * Method to find the equivalent Export to this in another Cell.
+	 * @param otherCell the other Cell to examine.
+	 * @return the Export that is most equivalent to this in that Cell
+	 * (may return null if nothing can be found).
+	 */
+	public Export findEquivalent(Cell otherCell)
+	{
+		// make a set of all export names used by the current Export (may include busses)
+    	Set<String> exportNames = new HashSet<String>();
+    	Netlist nlOrig = getParent().getNetlist();
+    	int wid = nlOrig.getBusWidth(this);
+    	for(int i=0; i<wid; i++)
+    	{
+    		Network net = nlOrig.getNetwork(this, i);
+    		for(Iterator<String> it = net.getExportedNames(); it.hasNext(); )
+    			exportNames.add(it.next());
+    	}
+
+    	// now make a list of possible choices in the other cell
+    	List<EquivalenceChoice> choices = new ArrayList<EquivalenceChoice>();
+    	Netlist nlNew = otherCell.getNetlist();
+    	for(Iterator<Export> eIt = otherCell.getExports(); eIt.hasNext(); )
+    	{
+    		Export e = eIt.next();
+    		int otherWid = nlNew.getBusWidth(e);
+    		for(int i=0; i<otherWid; i++)
+        	{
+        		Network net = nlNew.getNetwork(e, i);
+        		for(Iterator<String> it = net.getExportedNames(); it.hasNext(); )
+        		{
+        			String eName = it.next();
+        			if (exportNames.contains(eName))
+        			{
+        				if (wid == 1 && otherWid == 1) return e;
+        				EquivalenceChoice ec = new EquivalenceChoice();
+        				ec.difference = Math.abs(wid - otherWid);
+        				ec.e = e;
+        				choices.add(ec);
+        			}
+        		}
+        	}
+    	}
+
+    	// if there are possibilities, choose the one with the least difference in bus width
+    	if (choices.size() > 0)
+    	{
+    		Collections.sort(choices);
+    		return choices.get(0).e;
+    	}
+    	return null;
+	}
 
     /**
      * helper method to ensure that all arcs connected to Export "pp" at

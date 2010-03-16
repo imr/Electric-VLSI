@@ -120,6 +120,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -3240,10 +3241,14 @@ public class EditWindow extends JPanel
 			if (no != null && no.getNodeInst().isLinked())
 			{
                 NodeInst ni = no.getNodeInst();
-                if (selectedExport != null && selectedExport.getParent() != ni.getProto()) {
+                if (selectedExport != null && selectedExport.getParent() != ni.getProto())
+                {
                     if (ni.isCellInstance() && selectedExport.getParent() == ((Cell)ni.getProto()).getEquivalent())
-                        selectedExport = selectedExport.getEquivalentPort((Cell)ni.getProto());
-                    else
+                    {
+                    	Cell otherCell = (Cell)ni.getProto();
+                    	selectedExport = selectedExport.findEquivalent(otherCell);
+//                        selectedExport = selectedExport.getEquivalentPort(otherCell);
+                    } else
                         selectedExport = null;
                 }
 				Cell parent = no.getParent();
