@@ -1182,6 +1182,11 @@ public class EditWindow extends JPanel
 		return wf.loadDefaultExplorerTree();
 	}
 
+    @Override
+    public void loadTechnologies() {
+        lv = LayerVisibility.getLayerVisibility();
+    }
+
 	/**
 	 * Method to get rid of this EditWindow.  Called by WindowFrame when
 	 * that windowFrame gets closed.

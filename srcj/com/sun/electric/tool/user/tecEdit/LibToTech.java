@@ -329,7 +329,6 @@ public class LibToTech
 	   			tcr.showError();
 				System.out.println("Failed to convert the library to a technology");
 	   		}
-			WindowFrame.updateTechnologyLists();
 		}
 	}
 

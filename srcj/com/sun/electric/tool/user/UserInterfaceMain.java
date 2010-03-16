@@ -790,7 +790,6 @@ public class UserInterfaceMain extends AbstractUserInterface
             if (newSnapshot.techPool != oldSnapshot.techPool) {
                 loadPreferences(newSnapshot.techPool);
                 User.technologyChanged();
-                WindowFrame.updateTechnologyLists();
                 WindowFrame.repaintAllWindows();
             }
         }

@@ -2218,6 +2218,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		return nodes;
 	}
 
+    @Override
+    public void loadTechnologies() {
+    }
+    
 	private DefaultMutableTreeNode getSignalsForExplorer(Analysis an, TreePath parentPath, String analysis)
 	{
 		List<Signal> signals = an.getSignals();

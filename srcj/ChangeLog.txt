@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+BUG: (3/16/10, DN) Crash after creating new technology (Bug #2686).
+FIX: Add WindowContents.loadTechnologies() and load it after TechPool change.
+
 BUG: (3/15/10, SMR) Want to add pure-layer nodes to component menu (Bug #2685).
 FIX: Added a list of pure-layer nodes in the Technology XML data structures.
 

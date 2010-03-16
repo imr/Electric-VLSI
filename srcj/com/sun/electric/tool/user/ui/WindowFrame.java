@@ -326,6 +326,7 @@ public class WindowFrame extends Observable
 			WindowFrame wf = it.next();
 			wf.paletteTab.loadTechnologies(false);
 			wf.layersTab.loadTechnologies(false);
+            wf.getContent().loadTechnologies();
 		}
 	}
 

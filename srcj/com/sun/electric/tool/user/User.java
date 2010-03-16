@@ -693,6 +693,7 @@ public class User extends Listener
 	{
 		VectorCache.theCache.clearCache();
 		EditWindow.clearSubCellCache();
+        WindowFrame.updateTechnologyLists();
 	}
 
 	/****************************** MISCELLANEOUS FUNCTIONS ******************************/

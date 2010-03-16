@@ -104,6 +104,7 @@ public interface WindowContent
 	public abstract void bottomScrollChanged(int e);
 	public abstract void rightScrollChanged(int e);
 	public abstract List<MutableTreeNode> loadExplorerTrees();
+    public abstract void loadTechnologies();
 	public abstract void setWindowTitle();
 
 	/**
