@@ -64,6 +64,7 @@ import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -1174,6 +1175,20 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 //		return null;
     }
 
+	/**
+	 * Method to find the equivalent Export to this in another Cell.
+	 * @param otherCell the other Cell to examine.
+	 * @return the Export that is most equivalent to this in that Cell
+	 * (may return null if nothing can be found).
+	 */
+	public Export findEquivalent(Cell otherCell) {
+        if (true) {
+            return findEquivalent1(otherCell);
+        } else {
+            return findEquivalent2(otherCell);
+        }
+    }
+
 	private static class EquivalenceChoice implements Comparable
 	{
 		int difference;
@@ -1192,7 +1207,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 * @return the Export that is most equivalent to this in that Cell
 	 * (may return null if nothing can be found).
 	 */
-	public Export findEquivalent(Cell otherCell)
+	public Export findEquivalent1(Cell otherCell)
 	{
 		// make a set of all export names used by the current Export (may include busses)
     	Set<String> exportNames = new HashSet<String>();
@@ -1237,6 +1252,48 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     		return choices.get(0).e;
     	}
     	return null;
+	}
+
+	/**
+	 * Method to find the equivalent Export to this in another Cell.
+	 * @param otherCell the other Cell to examine.
+	 * @return the Export that is most equivalent to this in that Cell
+	 * (may return null if nothing can be found).
+	 */
+	public Export findEquivalent2(Cell otherCell)
+	{
+        Export sameNamedExport = otherCell.findExport(getName());
+        if (sameNamedExport != null) {
+            return sameNamedExport;
+        }
+		// make a set of all export names used by the current Export (may include busses)
+    	IdentityHashMap<Name,Void> exportNames = new IdentityHashMap<Name,Void>();
+        Name thisBusName = getNameKey();
+    	int wid = thisBusName.busWidth();
+    	for(int i=0; i<wid; i++) {
+            exportNames.put(thisBusName.subname(i), null);
+    	}
+
+     	// if there are possibilities, choose the one with the least difference in bus width
+        Export bestExport = null;
+        int bestDifference = Integer.MAX_VALUE;
+    	for(Iterator<Export> eIt = otherCell.getExports(); eIt.hasNext(); ) {
+    		Export e = eIt.next();
+            Name thatBusName = e.getNameKey();
+    		int otherWid = thatBusName.busWidth();
+    		for(int i=0; i<otherWid; i++) {
+                if (exportNames.containsKey(thatBusName.subname(i))) {
+                    assert wid > 0 || otherWid > 1; // otherwise sameNamedExport != null
+                    int difference = Math.abs(wid - otherWid);
+                    if (difference < bestDifference) {
+                        bestExport = e;
+                        bestDifference = difference;
+                        break;
+        			}
+        		}
+        	}
+    	}
+        return bestExport;
 	}
 
     /**
