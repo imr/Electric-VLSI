@@ -264,7 +264,7 @@ public final class Main
                     System.exit(1);
                 }
             } else {
-                Job.socketClient(serverMachineName, socketPort, ui, job);
+                Job.socketClient(serverMachineName, socketPort, ui, new InitClient(argsList));
             }
         } else if (runMode == Mode.FULL_SCREEN_SAFE) {
             EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "serverDB"));
@@ -595,6 +595,36 @@ public final class Main
 		public boolean doIt() throws JobException
 		{
             getDatabase().implementSettingChanges(changeBatch);
+            return true;
+		}
+
+        @Override
+        public void terminateOK() {
+            Job.getExtendedUserInterface().finishInitialization();
+			String beanShellScript = getCommandLineOption(argsList, "-s");
+            openCommandLineLibs(argsList);
+            if (beanShellScript != null)
+                EvalJavaBsh.runScript(beanShellScript);
+        }
+	}
+
+	/**
+	 * Class to init project preferences.
+	 */
+	private static class InitClient extends Job
+	{
+        private Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+		List<String> argsList;
+
+		private InitClient(List<String> argsList)
+		{
+			super("Init project preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.argsList = argsList;
+		}
+
+        @Override
+		public boolean doIt() throws JobException
+		{
             return true;
 		}
 

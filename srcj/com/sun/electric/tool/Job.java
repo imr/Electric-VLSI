@@ -98,7 +98,7 @@ import javax.swing.SwingUtilities;
 public abstract class Job implements Serializable {
 
     private static boolean GLOBALDEBUG = false;
-    static final int PROTOCOL_VERSION = 19; // Apr 17
+    static final int PROTOCOL_VERSION = 20; // Mar 17
     public static boolean LOCALDEBUGFLAG; // Gilda's case
 //    private static final String CLASS_NAME = Job.class.getName();
     static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
