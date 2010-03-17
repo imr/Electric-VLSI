@@ -452,7 +452,12 @@ public class GenerateVHDL extends Topology
 					{
 						Connection con = cIt.next();
 						PortProto otherPP = con.getPortInst().getPortProto();
-						if (otherPP instanceof Export) otherPP = ((Export)otherPP).getEquivalent();
+						if (otherPP instanceof Export)
+						{
+							Export otherE = (Export)otherPP;
+					        Cell equiv = otherE.getParent().getEquivalent();
+							otherPP = otherE.findEquivalent(equiv);
+						}
 						if (otherPP == e)
 						{
 							ArcInst ai = con.getArc();
@@ -602,7 +607,7 @@ public class GenerateVHDL extends Topology
 				{
 					Connection con = cIt.next();
 					PortProto otherPP = con.getPortInst().getPortProto();
-					if (otherPP instanceof Export) otherPP = ((Export)otherPP).getEquivalent();
+//					if (otherPP instanceof Export) otherPP = ((Export)otherPP).getEquivalent();
 					boolean aka = false;
 					if (otherPP instanceof PrimitivePort && pp instanceof PrimitivePort)
 					{
@@ -647,7 +652,12 @@ public class GenerateVHDL extends Topology
 				{
 					Export e = eIt.next();
 					PortProto otherPP = e.getOriginalPort().getPortProto();
-					if (otherPP instanceof Export) otherPP = ((Export)otherPP).getEquivalent();
+					if (otherPP instanceof Export)
+					{
+						Export otherE = (Export)otherPP;
+				        Cell equiv = otherE.getParent().getEquivalent();
+						otherPP = otherE.findEquivalent(equiv);
+					}
 					if (otherPP == pp)
 					{
 						int wid = nl.getBusWidth(e);

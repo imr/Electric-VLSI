@@ -1487,7 +1487,7 @@ public class ToolMenu
                             NodeInst ni = pi.getNodeInst();
                             PortProto pp = pi.getPortProto();
                             if (ni.isCellInstance() && ((Cell)ni.getProto()).getView() == View.ICON)
-                                pp = ((Export)pp).getEquivalentPort(((Cell)ni.getProto()).contentsView());
+                                pp = ((Export)pp).findEquivalent(((Cell)ni.getProto()).contentsView());
                             if (drivenPorts.contains(pp)) { driven = true; break; }
                             if (ni.getProto() instanceof PrimitiveNode) {
                                 PrimitiveNode np = (PrimitiveNode)ni.getProto();

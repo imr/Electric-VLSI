@@ -1110,70 +1110,41 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         return parent.getDatabase();
     }
 
-    /**
-     * Method to return the PortProto that is equivalent to this in the
-     * corresponding schematic Cell.
-     * It finds the PortProto with the same name on the corresponding Cell.
-     * If there are multiple versions of the Schematic Cell return the latest.
-     * @return the PortProto that is equivalent to this in the corresponding Cell.
-     */
-    @Deprecated
-    public PortProto getEquivalent() {
-        Cell equiv = parent.getEquivalent();
-        if (equiv == parent) {
-            return this;
-        }
-        if (equiv == null) {
-            return null;
-        }
-        return equiv.findPortProto(getNameKey());
-    }
+//    /**
+//     * Method to return the PortProto that is equivalent to this in the
+//     * corresponding schematic Cell.
+//     * It finds the PortProto with the same name on the corresponding Cell.
+//     * If there are multiple versions of the Schematic Cell return the latest.
+//     * @return the PortProto that is equivalent to this in the corresponding Cell.
+//     */
+//    @Deprecated
+//    public PortProto getEquivalent() {
+//        Cell equiv = parent.getEquivalent();
+//        if (equiv == parent) {
+//            return this;
+//        }
+//        if (equiv == null) {
+//            return null;
+//        }
+//        return equiv.findPortProto(getNameKey());
+//    }
 
-    /**
-     * Method to find the Export on another Cell that is equivalent to this Export.
-     * @param otherCell the other cell to equate.
-     * @return the Export on that other Cell which matches this Export.
-     * Returns null if none can be found.
-     */
-    @Deprecated
-    public Export getEquivalentPort(Cell otherCell) {
-        /* don't waste time searching if the two views are the same */
-        if (parent == otherCell) {
-            return this;
-        }
-
-        // this is the non-cached way to do it
-        return otherCell.findExport(getName());
-
-        /* load the cache if not already there */
-//		if (otherCell != thisCell->cachedequivcell)
-//		{
-//			for(Iterator it = thisCell.getPorts(); it.hasNext(); )
-//			{
-//				Export opp = (Export)it.next();
-//				opp->cachedequivport = null;
-//			}
-//			for(Iterator it = thisCell.getPorts(); it.hasNext(); )
-//			{
-//				Export opp = (Export)it.next();
-//				Export epp = otherCell.findExport(opp.getName());
-//				if (epp != null) opp->cachedequivport = epp;
-//			}
-//			thisCell->cachedequivcell = otherCell;
-//		}
-//		epp = pp->cachedequivport;
-//		if (epp != null) return epp;
+//    /**
+//     * Method to find the Export on another Cell that is equivalent to this Export.
+//     * @param otherCell the other cell to equate.
+//     * @return the Export on that other Cell which matches this Export.
+//     * Returns null if none can be found.
+//     */
+//    @Deprecated
+//    public Export getEquivalentPort(Cell otherCell) {
+//        /* don't waste time searching if the two views are the same */
+//        if (parent == otherCell) {
+//            return this;
+//        }
 //
-//		/* don't report errors for global ports not on icons */
-//		if (epp == null)
-//		{
-//			if (!otherCell.isIcon() || !pp.isBodyOnly())
-//				System.out.println("Warning: no port in cell %s corresponding to port %s in cell %s"),
-//					describenodeproto(otherCell), pp->protoname, describenodeproto(thisCell));
-//		}
-//		pp->cachedequivport = null;
-//		return null;
-    }
+//        // this is the non-cached way to do it
+//        return otherCell.findExport(getName());
+//    }
 
 	/**
 	 * Method to find the equivalent Export to this in another Cell.
@@ -1182,77 +1153,76 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 * (may return null if nothing can be found).
 	 */
 	public Export findEquivalent(Cell otherCell) {
-        if (true) {
-            return findEquivalent1(otherCell);
-        } else {
-            return findEquivalent2(otherCell);
-        }
+//		if (true)
+//			return findEquivalent1(otherCell);
+//		else
+			return findEquivalent2(otherCell);
     }
 
-	private static class EquivalenceChoice implements Comparable
-	{
-		int difference;
-		Export e;
-
-		public int compareTo(Object other)
-		{
-			EquivalenceChoice o = (EquivalenceChoice)other;
-			return o.difference - difference;
-		}
-	}
-
-	/**
-	 * Method to find the equivalent Export to this in another Cell.
-	 * @param otherCell the other Cell to examine.
-	 * @return the Export that is most equivalent to this in that Cell
-	 * (may return null if nothing can be found).
-	 */
-	public Export findEquivalent1(Cell otherCell)
-	{
-		// make a set of all export names used by the current Export (may include busses)
-    	Set<String> exportNames = new HashSet<String>();
-    	Netlist nlOrig = getParent().getNetlist();
-    	int wid = nlOrig.getBusWidth(this);
-    	for(int i=0; i<wid; i++)
-    	{
-    		Network net = nlOrig.getNetwork(this, i);
-    		for(Iterator<String> it = net.getExportedNames(); it.hasNext(); )
-    			exportNames.add(it.next());
-    	}
-
-    	// now make a list of possible choices in the other cell
-    	List<EquivalenceChoice> choices = new ArrayList<EquivalenceChoice>();
-    	Netlist nlNew = otherCell.getNetlist();
-    	for(Iterator<Export> eIt = otherCell.getExports(); eIt.hasNext(); )
-    	{
-    		Export e = eIt.next();
-    		int otherWid = nlNew.getBusWidth(e);
-    		for(int i=0; i<otherWid; i++)
-        	{
-        		Network net = nlNew.getNetwork(e, i);
-        		for(Iterator<String> it = net.getExportedNames(); it.hasNext(); )
-        		{
-        			String eName = it.next();
-        			if (exportNames.contains(eName))
-        			{
-        				if (wid == 1 && otherWid == 1) return e;
-        				EquivalenceChoice ec = new EquivalenceChoice();
-        				ec.difference = Math.abs(wid - otherWid);
-        				ec.e = e;
-        				choices.add(ec);
-        			}
-        		}
-        	}
-    	}
-
-    	// if there are possibilities, choose the one with the least difference in bus width
-    	if (choices.size() > 0)
-    	{
-    		Collections.sort(choices);
-    		return choices.get(0).e;
-    	}
-    	return null;
-	}
+//	private static class EquivalenceChoice implements Comparable
+//	{
+//		int difference;
+//		Export e;
+//
+//		public int compareTo(Object other)
+//		{
+//			EquivalenceChoice o = (EquivalenceChoice)other;
+//			return o.difference - difference;
+//		}
+//	}
+//
+//	/**
+//	 * Method to find the equivalent Export to this in another Cell.
+//	 * @param otherCell the other Cell to examine.
+//	 * @return the Export that is most equivalent to this in that Cell
+//	 * (may return null if nothing can be found).
+//	 */
+//	public Export findEquivalent1(Cell otherCell)
+//	{
+//		// make a set of all export names used by the current Export (may include busses)
+//    	Set<String> exportNames = new HashSet<String>();
+//    	Netlist nlOrig = getParent().getNetlist();
+//    	int wid = nlOrig.getBusWidth(this);
+//    	for(int i=0; i<wid; i++)
+//    	{
+//    		Network net = nlOrig.getNetwork(this, i);
+//    		for(Iterator<String> it = net.getExportedNames(); it.hasNext(); )
+//    			exportNames.add(it.next());
+//    	}
+//
+//    	// now make a list of possible choices in the other cell
+//    	List<EquivalenceChoice> choices = new ArrayList<EquivalenceChoice>();
+//    	Netlist nlNew = otherCell.getNetlist();
+//    	for(Iterator<Export> eIt = otherCell.getExports(); eIt.hasNext(); )
+//    	{
+//    		Export e = eIt.next();
+//    		int otherWid = nlNew.getBusWidth(e);
+//    		for(int i=0; i<otherWid; i++)
+//        	{
+//        		Network net = nlNew.getNetwork(e, i);
+//        		for(Iterator<String> it = net.getExportedNames(); it.hasNext(); )
+//        		{
+//        			String eName = it.next();
+//        			if (exportNames.contains(eName))
+//        			{
+//        				if (wid == 1 && otherWid == 1) return e;
+//        				EquivalenceChoice ec = new EquivalenceChoice();
+//        				ec.difference = Math.abs(wid - otherWid);
+//        				ec.e = e;
+//        				choices.add(ec);
+//        			}
+//        		}
+//        	}
+//    	}
+//
+//    	// if there are possibilities, choose the one with the least difference in bus width
+//    	if (choices.size() > 0)
+//    	{
+//    		Collections.sort(choices);
+//    		return choices.get(0).e;
+//    	}
+//    	return null;
+//	}
 
 	/**
 	 * Method to find the equivalent Export to this in another Cell.
@@ -1288,12 +1258,73 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                     if (difference < bestDifference) {
                         bestExport = e;
                         bestDifference = difference;
-                        break;
         			}
+                    break;
         		}
         	}
     	}
         return bestExport;
+	}
+
+	/**
+	 * Method to find all equivalent Exports to this in another Cell.
+	 * When this or another Export is a bus, any match of a single signal is accepted.
+	 * @param otherCell the other Cell to examine.
+	 * @param mustContain true if the other Exports must be wholly contained in this Export
+	 * (works only if this is a bus and the other has all elements of the bus).
+	 * @return a List of Exports that match this in the specified Cell.
+	 */
+	public List<Export> findAllEquivalents(Cell otherCell, boolean mustContain)
+	{
+		List<Export> allEquivalents = new ArrayList<Export>();
+
+		// list has just one entry if Export names match exactly
+		Export sameNamedExport = otherCell.findExport(getName());
+        if (sameNamedExport != null)
+        {
+        	allEquivalents.add(sameNamedExport);
+            return allEquivalents;
+        }
+
+        // make a set of all export names used by the current Export (may include busses)
+    	IdentityHashMap<Name,Void> exportNames = new IdentityHashMap<Name,Void>();
+        Name thisBusName = getNameKey();
+    	int wid = thisBusName.busWidth();
+    	if (wid <= 1 && !mustContain) return allEquivalents;
+    	for(int i=0; i<wid; i++)
+            exportNames.put(thisBusName.subname(i), null);
+
+     	// now find all matches
+    	for(Iterator<Export> eIt = otherCell.getExports(); eIt.hasNext(); )
+    	{
+    		Export e = eIt.next();
+            Name thatBusName = e.getNameKey();
+    		int otherWid = thatBusName.busWidth();
+    		if (mustContain)
+    		{
+    			boolean contains = true;
+	    		for(int i=0; i<otherWid; i++)
+	    		{
+	                if (!exportNames.containsKey(thatBusName.subname(i)))
+	                {
+	                	contains = false;
+	                    break;
+	        		}
+	        	}
+	    		if (contains) allEquivalents.add(e);
+    		} else
+    		{
+	    		for(int i=0; i<otherWid; i++)
+	    		{
+	                if (exportNames.containsKey(thatBusName.subname(i)))
+	                {
+	                	allEquivalents.add(e);
+	                    break;
+	        		}
+	        	}
+    		}
+    	}
+    	return allEquivalents;
 	}
 
     /**
@@ -1350,8 +1381,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             // changed an export on an icon: find contents and change it there
             Cell onp = parent.contentsView();
             if (onp != null) {
-                Export opp = getEquivalentPort(onp);
-                if (opp != null) {
+                List<Export> opps = findAllEquivalents(onp, true);
+                for(Export opp : opps) {
                     opp.setCharacteristic(getCharacteristic());
                     opp.recursivelyChangeAllPorts();
                 }
@@ -1362,8 +1393,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         // see if there is an icon to change
         Cell onp = parent.iconView();
         if (onp != null) {
-            Export opp = getEquivalentPort(onp);
-            if (opp != null) {
+            List<Export> opps = findAllEquivalents(onp, true);
+            for(Export opp : opps) {
                 opp.setCharacteristic(getCharacteristic());
                 opp.recursivelyChangeAllPorts();
             }

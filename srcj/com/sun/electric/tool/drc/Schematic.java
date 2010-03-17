@@ -388,14 +388,16 @@ public class Schematic
                 for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
                 {
                     Export e = it.next();
-                    Export iconExport = e.getEquivalentPort(iconCell);
-                    if (iconExport == null) continue;
-                    if (e.getCharacteristic() != iconExport.getCharacteristic())
+                    List<Export> allExports = e.findAllEquivalents(iconCell, false);
+                    for(Export iconExport : allExports)
                     {
-                        errorLogger.logError("Export '" + e.getName() + "' on " + ni +
-                            " is " + e.getCharacteristic().getFullName() +
-                            " but export in icon cell " + iconCell.describe(false) + " is " +
-                        iconExport.getCharacteristic().getFullName(), geom, cell, null, eg.getSortKey());
+	                    if (e.getCharacteristic() != iconExport.getCharacteristic())
+	                    {
+	                        errorLogger.logError("Export '" + e.getName() + "' on " + ni +
+	                            " is " + e.getCharacteristic().getFullName() +
+	                            " but export in icon cell " + iconCell.describe(false) + " is " +
+	                        iconExport.getCharacteristic().getFullName(), geom, cell, null, eg.getSortKey());
+	                    }
                     }
                 }
             }
@@ -459,7 +461,7 @@ public class Schematic
                 Cell np = subNp.contentsView();
                 if (np != null)
                 {
-                    pp = ((Export)pi.getPortProto()).getEquivalent();
+                	pp = ((Export)pi.getPortProto()).findEquivalent(np);
                     if (pp == null || pp == pi.getPortProto())
                     {
                         List<Geometric> geomList = new ArrayList<Geometric>();

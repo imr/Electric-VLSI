@@ -1269,7 +1269,9 @@ public class ScanChainXML {
 
         PortProto pp = pi.getPortProto();
         if (pp instanceof Export) {
-            PortProto equiv = ((Export)pp).getEquivalent();
+        	Export e = (Export)pp;
+            Cell equivCell = e.getParent().getEquivalent();
+            PortProto equiv = e.findEquivalent(equivCell);
             if (equiv != null)
                 pp = equiv;
         }

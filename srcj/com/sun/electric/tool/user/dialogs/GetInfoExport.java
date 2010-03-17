@@ -310,8 +310,8 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 	        		Cell otherCell = it.next();
 	        		if (otherCell == thisCell) continue;
 
-	        		Export otherPP = pp.getEquivalentPort(otherCell);
-	        		if (otherPP != null)
+	        		List<Export> otherPPs = pp.findAllEquivalents(otherCell, true);
+	        		for(Export otherPP : otherPPs)
 	        		{
 	        			if (otherPP.getCharacteristic() != newChar)
 	        			{

@@ -1730,7 +1730,7 @@ public class EDIF extends Input
 			Cell iconCell = curCell.iconView();
 			if (iconCell != null)
 			{
-				Export e = plp.createdPort.getEquivalentPort(iconCell);
+				Export e = plp.createdPort.findEquivalent(iconCell);
 				if (e != null)
 				{
 					if (plp.direction == PortCharacteristic.UNKNOWN && e.getCharacteristic() != PortCharacteristic.UNKNOWN)

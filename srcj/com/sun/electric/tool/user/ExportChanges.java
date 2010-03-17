@@ -335,7 +335,7 @@ public final class ExportChanges
 						// check for the export in the associated cell
 						if (wnp != null)
 						{
-							if (pp.getEquivalentPort(wnp) == null)
+							if (pp.findEquivalent(wnp) == null)
 								infstr += " *** no equivalent in " + wnp;
 						}
 					}
@@ -348,7 +348,7 @@ public final class ExportChanges
 				for(Iterator<PortProto> it = wnp.getPorts(); it.hasNext(); )
 				{
 					Export pp = (Export)it.next();
-					if (pp.getEquivalentPort(cell) == null)
+					if (pp.findEquivalent(cell) == null)
 						System.out.println("*** Export " + pp.getName() + ", found in " + wnp + ", is missing here");
 				}
 			}
