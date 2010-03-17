@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+BUG: (3/17/10, DN) "-client" option doesn't work.
+FIX: Add Main.InitClient Job.
+
 BUG: (3/16/10, DN) Crash after creating new technology (Bug #2686).
 FIX: Add WindowContents.loadTechnologies() and load it after TechPool change.
 
