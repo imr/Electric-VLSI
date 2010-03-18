@@ -148,6 +148,13 @@ public class ErrorLogger implements Serializable
 
         public Cell getCell() { return (logCellId!=null)?EDatabase.clientDatabase().getCell(logCellId):null;}
 
+        // cellName is required so an empty string will be used if not cell is found
+        private String getCellName()
+        {
+            Cell c = getCell();
+            return (c != null ? c.describe(false) : "NotFound{lay}");
+        }
+
         public String getMessageString() { return message; }
 
         public int getNumHighlights() {return highlights.length;}
@@ -199,14 +206,8 @@ public class ErrorLogger implements Serializable
         protected void writeXmlDescription(PrintStream msg)
         {
             String className = this.getClass().getSimpleName();
-            String cellInfo = "";
-
-            if (logCellId != null)
-            {
-                Cell logCell = getCell();
-                if (logCell != null)
-                    cellInfo = "cellName=\"" + logCell.describe(false) + "\"";
-            }
+            String cellInfo = "cellName=\"" + getCellName() + "\"";
+            
             // replace those characters that XML defines as special such as ">" and "&"
             String m = correctXmlString(message);
             msg.append("\t<" + className + " message=\"" + m + "\" " + cellInfo + ">\n");

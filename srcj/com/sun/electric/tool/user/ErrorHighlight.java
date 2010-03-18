@@ -71,7 +71,7 @@ public abstract class ErrorHighlight implements Serializable {
     protected String getCellName(EDatabase database)
     {
         Cell c = getCell(database);
-        return (c != null ? c.describe(false) : "");
+        return (c != null ? c.describe(false) : "NotFound{lay}");
     }
 
     VarContext getVarContext() { return context; }
