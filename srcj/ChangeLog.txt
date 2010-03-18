@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+BUG: (3/18/10, GVG) NPE after re-exporting an ErrorLogger that contains invalid cells (Bug #2691)
+FIX: Detecting case when cellId is null. Adding stack trace in debug mode.
+
 IMP/MAN: (3/18/10, SMR) When pasting cell instances, should convert the view
      so that layout instances become icons when pasting into a schematic cell
      and icon instances become layout instances when pasting into a layout

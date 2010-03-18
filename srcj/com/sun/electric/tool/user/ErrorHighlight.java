@@ -67,6 +67,13 @@ public abstract class ErrorHighlight implements Serializable {
 
     public Cell getCell(EDatabase database) { return cellId != null ? database.getCell(cellId) : null; }
 
+    // cellName is required so an empty string will be used if not cell is found
+    protected String getCellName(EDatabase database)
+    {
+        Cell c = getCell(database);
+        return (c != null ? c.describe(false) : "");
+    }
+
     VarContext getVarContext() { return context; }
 
     boolean containsObject(Cell cell, Object obj) { return false; }
@@ -274,7 +281,7 @@ class ErrorHighPoly extends ErrorHighlight
     void writeXmlDescription(String tabs, PrintStream msg, EDatabase database)
     {
         msg.append(tabs +"<ERRORTYPEPOLY ");
-        msg.append("cellName=\"" + getCell(database).describe(false) + "\" ");
+        msg.append("cellName=\"" + getCellName(database) + "\" ");
         if (origId != -1)
         {
             Cell cell = getOrigCell(database);
@@ -350,7 +357,7 @@ class ErrorHighLine extends ErrorHighlight {
         msg.append(tabs +"<"+((thickLine)?"ERRORTYPETHICKLINE ":"ERRORTYPELINE "));
         msg.append("p1=\"(" + p1.getX() + "," + p1.getY() + ")\" ");
         msg.append("p2=\"(" + p2.getX() + "," + p2.getY() + ")\" ");
-        msg.append("cellName=\"" + getCell(database).describe(false) + "\"");
+        msg.append("cellName=\"" + getCellName(database) + "\"");
         msg.append(" />\n");
     }
 
@@ -408,7 +415,7 @@ class ErrorHighPoint extends ErrorHighlight {
     {
         msg.append(tabs +"<ERRORTYPEPOINT  ");
         msg.append("pt=\"(" + point.getX() + "," + point.getY() + ")\" ");
-        msg.append("cellName=\"" + getCell(database).describe(false) + "\"");
+        msg.append("cellName=\"" + getCellName(database) + "\"");
         msg.append(" />\n");
     }
     

@@ -683,6 +683,8 @@ public class ErrorLoggerTree {
             logger.exportErrorLogger(filePath);
         } catch (Exception se)
         {
+            if (Job.getDebug())
+                se.printStackTrace();
             System.out.println("Error creating " + filePath);
         }
     }
