@@ -251,6 +251,7 @@ public abstract class Analysis<S extends Signal>
 				}
 			}
 		}
+        if (bounds==null) bounds = new Rectangle2D.Double(0, 0, 0, 0);
 		return bounds;
 	}
 
