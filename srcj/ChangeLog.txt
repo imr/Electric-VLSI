@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+IMP: (3/17/10, AM) Finish range query support.  Still a few bugs.
+
 BUG: (3/17/10, DN) "-client" option doesn't work.
 FIX: Add Main.InitClient Job.
 

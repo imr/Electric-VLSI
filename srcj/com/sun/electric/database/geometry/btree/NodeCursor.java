@@ -165,6 +165,12 @@ abstract class NodeCursor
     }
 
     protected abstract int endOfBuf();
+
+    /**
+     *  Returns the least key appearing anywhere as a child of the
+     *  keynum^th bucket.  Must not call getKey(0,,) on an interior
+     *  node.
+     */
     public abstract void getKey(int keynum, byte[] key, int key_ofs);
 
     /** kludge */
@@ -174,6 +180,7 @@ abstract class NodeCursor
     public abstract int  getNumValsBelowBucket(int bucket);
 
     public abstract void getSummary(int bucket, byte[] buf, int ofs);
+    public abstract void getSummaryAndMultiply(int idx, byte[] buf, int ofs);
 
     public boolean isRightMost() { return bt.ui.deserializeInt(getBuf(), 0*SIZEOF_INT)!=0; }
     protected void setRightMost(boolean r) { bt.ui.serializeInt(r?1:0, getBuf(), 0*SIZEOF_INT); }

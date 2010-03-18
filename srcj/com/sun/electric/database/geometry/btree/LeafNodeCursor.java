@@ -121,11 +121,11 @@ class LeafNodeCursor
 
     public boolean isLeafNode() { return true; }
     protected int endOfBuf() { return LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * getNumBuckets(); }
+
     public void getKey(int bucket, byte[] key, int key_ofs) {
         System.arraycopy(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket, key, key_ofs, bt.uk.getSize());
     }
 
-    public K getKey(int bucket) { return bt.uk.deserialize(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket); }
     public int getNumValsBelowBucket(int bucket) { return bucket < getNumBuckets() ? 1 : 0; }
 
     public void getSummary(int bucket, byte[] buf, int ofs) {
@@ -133,5 +133,17 @@ class LeafNodeCursor
         // does the internal layout of a leaf node page.  Probably not such a great idea, but it
         // works for now.
         bt.summarize.call(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket, buf, ofs);
+    }
+
+    public K getKey(int bucket) { return bt.uk.deserialize(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket); }
+
+
+    private static byte[] hack = new byte[1000];
+    public void getSummaryAndMultiply(int idx, byte[] buf, int ofs) {
+        bt.summarize.call(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*idx,
+                          hack, 0);
+        bt.mergeSummaries.multiply(buf, ofs,
+                                   hack, 0,
+                                   buf, ofs);
     }
 }

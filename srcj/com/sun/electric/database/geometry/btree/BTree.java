@@ -296,7 +296,6 @@ public class BTree
         uk.serialize(min, keybuf, 0);
         uk.serialize(max, keybuf2, 0);
         walk(keybuf, 0, null, null, Op.SUMMARIZE_LEFT,  0, keybuf2, 0, sbuf, 0);
-        walk(keybuf, 0, null, null, Op.SUMMARIZE_MID,   0, keybuf2, 0, sbuf, 0);
         walk(keybuf, 0, null, null, Op.SUMMARIZE_RIGHT, 0, keybuf2, 0, sbuf, 0);
         return (S)mergeSummaries.deserialize(sbuf, 0);
     }
@@ -316,7 +315,6 @@ public class BTree
         INSERT,
         REPLACE,
         SUMMARIZE_LEFT,
-        SUMMARIZE_MID,
         SUMMARIZE_RIGHT,
             ;
         public boolean isGetFromOrd() {
@@ -400,6 +398,7 @@ public class BTree
         InteriorNodeCursor<K,V,S>   parentNodeCursor = this.interiorNodeCursor2;
         NodeCursor cur = null;
 
+        boolean summaryInitialized = op==Op.SUMMARIZE_RIGHT;
         boolean rightEdge = true;
         boolean cheat = false;
         int comp = 0;
@@ -481,6 +480,37 @@ public class BTree
                 continue;
             }
 
+            if (op==Op.SUMMARIZE_LEFT || op==Op.SUMMARIZE_RIGHT) {
+                int start = cur.search(key, key_ofs);
+                start--;
+                start = Math.max(0,start);
+                int next = op==Op.SUMMARIZE_RIGHT ? -1 : start;
+                if (!cur.isLeafNode()) start = Math.max(1,start);
+                for(int i=start; i<cur.getNumBuckets(); i++) {
+                    int cmpLeft = cur.compare(key, key_ofs, i);
+                    int cmpRight = i==cur.getNumBuckets()-1 ? -1 : cur.compare(key2, key2_ofs, i+1);
+                    if (cmpLeft <= 0 && (cur.isLeafNode() || cmpRight > 0)) {
+                        if (summaryInitialized) {
+                            cur.getSummaryAndMultiply(i, ret, ret_ofs);
+                        } else {
+                            cur.getSummary(i, ret, ret_ofs);
+                            summaryInitialized = true;
+                        }
+                    }
+                    if (cmpLeft > 0 && op==Op.SUMMARIZE_LEFT) next = i;
+                    if (cmpRight < 0) {
+                        if (op==Op.SUMMARIZE_RIGHT) next = i;
+                        break;
+                    }
+                }
+                if (next==-1) next = cur.getNumBuckets()-1;
+                if (cur.isLeafNode()) return null;
+                pageid = ((InteriorNodeCursor)cur).getBucketPageId(next);
+                InteriorNodeCursor<K,V,S> ic = (InteriorNodeCursor)cur;
+                interiorNodeCursor = parentNodeCursor;
+                parentNodeCursor = ic;
+                continue;
+            }
 
             if (cheat) {
                 idx = leafNodeCursor.getNumBuckets()-1;

@@ -136,6 +136,7 @@ class InteriorNodeCursor
     }
 
     public void getKey(int keynum, byte[] key, int key_ofs) {
+        assert keynum!=0;
         System.arraycopy(getBuf(), INTERIOR_HEADER_SIZE + keynum*INTERIOR_ENTRY_SIZE - bt.uk.getSize(),
                          key, key_ofs, bt.uk.getSize());
     }
@@ -160,6 +161,15 @@ class InteriorNodeCursor
         bt.mergeSummaries.multiply(buf, ofs,
                                    getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
                                    getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx);
+    }
+
+    public void getSummaryAndMultiply(int idx, byte[] buf, int ofs) {
+        if (idx==getNumBuckets()-1 && isRightMost())
+            throw new RuntimeException("RightMost InteriorNodeCursors don't store a summary value for their last bucket");
+        assert idx>=0 && idx<getNumBuckets();
+        bt.mergeSummaries.multiply(buf, ofs,
+                                   getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
+                                   buf, ofs);
     }
 
     public void getSummary(int idx, byte[] buf, int ofs) {
