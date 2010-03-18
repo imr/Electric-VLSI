@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00b: ******************************
 
+IMP/MAN: (3/18/10, SMR) When pasting cell instances, should convert the view
+     so that layout instances become icons when pasting into a schematic cell
+     and icon instances become layout instances when pasting into a layout
+     cell (Bug #2381).
+FIX: Added new Node Preference to do this.  "Convert between schematic and
+     layout when pasting" is on by default.
+
 BUG: (3/18/10, DN) CIF/GDS output doesn't merge boxes (Bug #2689).
 FIX: In io.output.Geometry.Visitor.exitCell add "gMerge.postProcess(true);".
 

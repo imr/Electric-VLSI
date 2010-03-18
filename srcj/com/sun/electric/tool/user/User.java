@@ -2991,6 +2991,30 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryReconstructArcsAndExportsToDeletedCells() { return cacheReconstructArcsAndExportsToDeletedCells.getBooleanFactoryValue(); }
 
+	private static Pref cacheConvertSchematicLayoutWhenPasting = Pref.makeBooleanPref("ConvertSchematicLayoutWhenPasting", tool.prefs, true);
+	/**
+	 * Method to tell whether to convert between schematic and layout views when pasting.
+	 * If, for example, a schematic cell instance is copied in a schematic cell and then pasted
+	 * into a layout cell, this Preference requests that the layout view be pasted instead.
+	 * The default is "true".
+	 * @return true if the system should convert between schematic and layout views when pasting.
+	 */
+	public static boolean isConvertSchematicLayoutWhenPasting() { return cacheConvertSchematicLayoutWhenPasting.getBoolean(); }
+	/**
+	 * Method to set whether to convert between schematic and layout views when pasting.
+	 * If, for example, a schematic cell instance is copied in a schematic cell and then pasted
+	 * into a layout cell, this Preference requests that the layout view be pasted instead.
+	 * @param on true if the system should convert between schematic and layout views when pasting.
+	 */
+	public static void setConvertSchematicLayoutWhenPasting(boolean on) { cacheConvertSchematicLayoutWhenPasting.setBoolean(on); }
+	/**
+	 * Method to tell whether to convert between schematic and layout views when pasting, by default
+	 * If, for example, a schematic cell instance is copied in a schematic cell and then pasted
+	 * into a layout cell, this Preference requests that the layout view be pasted instead.
+	 * @return true if the system should convert between schematic and layout views when pasting, by default.
+	 */
+	public static boolean isFactoryConvertSchematicLayoutWhenPasting() { return cacheConvertSchematicLayoutWhenPasting.getBooleanFactoryValue(); }
+
 	private static Pref cacheCheckCellDates = Pref.makeBooleanPref("CheckCellDates", tool.prefs, false);
 	/**
 	 * Method to tell whether to check Cell dates when placing instances.

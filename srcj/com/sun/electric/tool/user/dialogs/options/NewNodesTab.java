@@ -93,6 +93,7 @@ public class NewNodesTab extends PreferencePanel
 		nodeSwitchTechnology.setSelected(User.isAutoTechnologySwitch());
 		nodePlaceCellCenter.setSelected(ep.isPlaceCellCenter());
 		nodeReconstructArcsExports.setSelected(User.isReconstructArcsAndExportsToDeletedCells());
+		nodeConvertSchAndLay.setSelected(User.isConvertSchematicLayoutWhenPasting());
 		nodePromptForIndex.setSelected(User.isPromptForIndexWhenDescending());
 
 		// set checkboxes for "all nodes" area
@@ -200,6 +201,10 @@ public class NewNodesTab extends PreferencePanel
 		if (currBoolean != User.isReconstructArcsAndExportsToDeletedCells())
 			User.setReconstructArcsAndExportsToDeletedCells(currBoolean);
 
+		currBoolean = nodeConvertSchAndLay.isSelected();
+		if (currBoolean != User.isConvertSchematicLayoutWhenPasting())
+			User.setConvertSchematicLayoutWhenPasting(currBoolean);
+
 		currBoolean = nodePromptForIndex.isSelected();
 		if (currBoolean != User.isPromptForIndexWhenDescending())
 			User.setPromptForIndexWhenDescending(currBoolean);
@@ -251,6 +256,8 @@ public class NewNodesTab extends PreferencePanel
 			User.setAutoTechnologySwitch(User.isFactoryAutoTechnologySwitch());
 		if (User.isFactoryReconstructArcsAndExportsToDeletedCells() != User.isReconstructArcsAndExportsToDeletedCells())
 			User.setReconstructArcsAndExportsToDeletedCells(User.isFactoryReconstructArcsAndExportsToDeletedCells());
+		if (User.isFactoryConvertSchematicLayoutWhenPasting() != User.isConvertSchematicLayoutWhenPasting())
+			User.setConvertSchematicLayoutWhenPasting(User.isFactoryConvertSchematicLayoutWhenPasting());
 		if (User.isFactoryPromptForIndexWhenDescending() != User.isPromptForIndexWhenDescending())
 			User.setPromptForIndexWhenDescending(User.isFactoryPromptForIndexWhenDescending());
 
@@ -295,6 +302,7 @@ public class NewNodesTab extends PreferencePanel
         nodePlaceCellCenter = new javax.swing.JCheckBox();
         nodeReconstructArcsExports = new javax.swing.JCheckBox();
         nodePromptForIndex = new javax.swing.JCheckBox();
+        nodeConvertSchAndLay = new javax.swing.JCheckBox();
         jPanel4 = new javax.swing.JPanel();
         nodeDisallowModificationLockedPrims = new javax.swing.JCheckBox();
         nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
@@ -390,7 +398,7 @@ public class NewNodesTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         newNode.add(jPanel2, gridBagConstraints);
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("For Cells"));
+        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("For Cells and Cell Instances"));
         jPanel3.setLayout(new java.awt.GridBagLayout());
 
         nodeCheckCellDates.setText("Check cell dates during editing");
@@ -431,10 +439,18 @@ public class NewNodesTab extends PreferencePanel
         nodePromptForIndex.setText("Always prompt for index when descending into array nodes");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel3.add(nodePromptForIndex, gridBagConstraints);
+
+        nodeConvertSchAndLay.setText("Convert between schematic and layout when pasting");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        jPanel3.add(nodeConvertSchAndLay, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -481,7 +497,9 @@ public class NewNodesTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel4.add(nodeDisallowModificationComplexNodes, gridBagConstraints);
 
@@ -529,6 +547,7 @@ public class NewNodesTab extends PreferencePanel
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel newNode;
     private javax.swing.JCheckBox nodeCheckCellDates;
+    private javax.swing.JCheckBox nodeConvertSchAndLay;
     private javax.swing.JCheckBox nodeDisallowModificationComplexNodes;
     private javax.swing.JCheckBox nodeDisallowModificationLockedPrims;
     private javax.swing.JCheckBox nodeDupArrayCopyExports;

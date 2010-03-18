@@ -31,8 +31,10 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -91,16 +93,12 @@ public class Clipboard //implements ClipboardOwner
     public static final String CLIPBOARD_CELL_NAME =  "Clipboard!!;1{}";
     public static final int CLIPBOARD_CELL_INDEX = 0;
 
-//	/** the last node that was duplicated */			private static NodeInst  lastDup = null;
 	/** the amount that the last node moved */			private static double    lastDupX = 10, lastDupY = 10;
-//    private static final Clipboard clip = new Clipboard();
 
     /**
 	 * There is only one instance of this object (just one clipboard).
 	 */
 	private Clipboard() {}
-
-//    public void lostOwnership (java.awt.datatransfer.Clipboard parClipboard, Transferable parTransferable) {}
 
     /**
 	 * Returns a printable version of this Clipboard.
@@ -382,20 +380,22 @@ public class Clipboard //implements ClipboardOwner
 			inPlace.preConcatenate(retranslate);
 		}
 
+		boolean convertSchLay = false;
+		if (aTotal == 0 && User.isConvertSchematicLayoutWhenPasting()) convertSchLay = true;
 		if (User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
 			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener,
-				inPlace, inPlaceOrient, false));
+				inPlace, inPlaceOrient, false, convertSchLay));
 		} else if (User.isDuplicateInPlace()) {
 			new PasteObjects(parent, geomList, textList, 0, 0,
 				User.getAlignmentToGrid(), User.isDupCopiesExports(), User.isIncrementRightmostIndex(),
-				User.isArcsAutoIncremented(), inPlace, inPlaceOrient);
+				User.isArcsAutoIncremented(), convertSchLay, inPlace, inPlaceOrient);
         } else
 		{
 			new PasteObjects(parent, geomList, textList, lastDupX, lastDupY,
 				User.getAlignmentToGrid(), User.isDupCopiesExports(), User.isIncrementRightmostIndex(),
-				User.isArcsAutoIncremented(), inPlace, inPlaceOrient);
+				User.isArcsAutoIncremented(), convertSchLay, inPlace, inPlaceOrient);
 		}
 	}
 
@@ -427,7 +427,7 @@ public class Clipboard //implements ClipboardOwner
 		if (User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
-			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener, null, null, true));
+			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener, null, null, true, false));
 		} else if (User.isDuplicateInPlace()) {
             lastDupX = 0;
             lastDupY = 0;
@@ -437,20 +437,6 @@ public class Clipboard //implements ClipboardOwner
 			new DuplicateObjects(wnd.getCell(), geomList, textList, User.getAlignmentToGrid());
 		}
 	}
-
-//	/**
-//	 * Method to track movement of the object that was just duplicated.
-//	 * By following subsequent changes to that node, future duplications know where to place their copies.
-//	 * @param ni the NodeInst that has just moved.
-//	 * @param lastX the previous center X of the NodeInst.
-//	 * @param lastY the previous center Y of the NodeInst.
-//	 */
-//	public static void nodeMoved(NodeInst ni, double lastX, double lastY)
-//	{
-//		if (ni != lastDup) return;
-//		lastDupX += ni.getAnchorCenterX() - lastX;
-//		lastDupY += ni.getAnchorCenterY() - lastY;
-//	}
 
 	/**
 	 * Helper method to copy any selected text to the system-wide clipboard.
@@ -671,7 +657,7 @@ public class Clipboard //implements ClipboardOwner
 			newGeomList = new ArrayList<Geometric>();
 			newTextList = new ArrayList<DisplayedText>();
 			copyListToCell(cell, geomList, textList, newGeomList, newTextList, new Point2D.Double(lastDupX, lastDupY),
-				dupCopiesExports, fromRight, autoIncrementArcs, alignment, null, null, iconParameters);
+				dupCopiesExports, fromRight, autoIncrementArcs, false, alignment, null, null, iconParameters);
 			fieldVariableChanged("newGeomList");
 			fieldVariableChanged("newTextList");
 			return true;
@@ -775,14 +761,14 @@ public class Clipboard //implements ClipboardOwner
 		private List<DisplayedText> textList, newTextList;
 		private double dX, dY;
 		private Dimension2D alignment;
-		private boolean copyExports, fromRight, uniqueArcs;
+		private boolean copyExports, fromRight, uniqueArcs, convertSchLay;
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
         private IconParameters iconParameters = IconParameters.makeInstance(true);
 
 		protected PasteObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double dX, double dY,
                                Dimension2D alignment, boolean copyExports, boolean fromRight, boolean uniqueArcs,
-                               AffineTransform inPlace, Orientation inPlaceOrient)
+                               boolean convertSchLay, AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			super("Paste", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -794,6 +780,7 @@ public class Clipboard //implements ClipboardOwner
 			this.copyExports = copyExports;
 			this.fromRight = fromRight;
 			this.uniqueArcs = uniqueArcs;
+			this.convertSchLay = convertSchLay;
 			this.inPlace = inPlace;
 			this.inPlaceOrient = inPlaceOrient;
             startJob();
@@ -808,7 +795,7 @@ public class Clipboard //implements ClipboardOwner
 			newGeomList = new ArrayList<Geometric>();
 			newTextList = new ArrayList<DisplayedText>();
 			copyListToCell(cell, geomList, textList, newGeomList, newTextList, new Point2D.Double(dX, dY),
-                copyExports, fromRight, uniqueArcs, alignment, inPlace, inPlaceOrient, iconParameters);
+                copyExports, fromRight, uniqueArcs, convertSchLay, alignment, inPlace, inPlaceOrient, iconParameters);
 			fieldVariableChanged("newGeomList");
 			fieldVariableChanged("newTextList");
 			return true;
@@ -930,7 +917,7 @@ public class Clipboard //implements ClipboardOwner
     {
         IconParameters iconParameters = IconParameters.makeInstance(true);
         copyListToCell(getClipCell(), geomList, textList, null, null, new Point2D.Double(),
-				User.isDupCopiesExports(), User.isIncrementRightmostIndex(), User.isArcsAutoIncremented(),
+				User.isDupCopiesExports(), User.isIncrementRightmostIndex(), User.isArcsAutoIncremented(), false,
 				alignment, inPlace, inPlaceOrient, iconParameters);
 	}
 
@@ -945,6 +932,7 @@ public class Clipboard //implements ClipboardOwner
 	 * @param copyExports true to copy exports.
 	 * @param fromRight true to increment the rightmost index of multidimensional arrays.
 	 * @param uniqueArcs true to generate unique arc names.
+	 * @param convertSchLay true to convert between schematic and layout cells as needed by the current cell.
 	 * @param alignment the grid alignment to use (0 for none).
 	 * @param inPlace the transformation to use which accounts for "down in place" editing.
 	 * @param inPlaceOrient the orientation to use which accounts for "down in place" editing.
@@ -952,7 +940,7 @@ public class Clipboard //implements ClipboardOwner
 	 */
 	public static NodeInst copyListToCell(Cell toCell, List<Geometric> geomList, List<DisplayedText> textList,
                                           List<Geometric> newGeomList, List<DisplayedText> newTextList, Point2D delta,
-                                          boolean copyExports,boolean fromRight, boolean uniqueArcs,
+                                          boolean copyExports,boolean fromRight, boolean uniqueArcs, boolean convertSchLay,
                                           Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient,
                                           IconParameters iconParameters)
 	{
@@ -1007,7 +995,7 @@ public class Clipboard //implements ClipboardOwner
 			if (Cell.isInstantiationRecursive(niCell, toCell))
 			{
 				System.out.println("Cannot: that would be recursive (" +
-					toCell + " is beneath " + ni.getProto() + ")");
+					toCell.describe(false) + " is beneath " + niCell.describe(false) + ")");
 				return null;
 			}
 		}
@@ -1025,9 +1013,23 @@ public class Clipboard //implements ClipboardOwner
 		List<Export> reExports = new ArrayList<Export>();
 		for(NodeInst ni : theNodes)
 		{
-			if (ni.getProto() == Generic.tech().cellCenterNode && toCell.alreadyCellCenter()) continue;
 			double width = ni.getXSize();
 			double height = ni.getYSize();
+			NodeProto makeProto = ni.getProto();
+			if (makeProto == Generic.tech().cellCenterNode && toCell.alreadyCellCenter()) continue;
+
+			// convert cell instances to the proper view if requested
+			if (ni.isCellInstance() && convertSchLay)
+			{
+				Cell otherCell = findAlternate((Cell)makeProto, toCell);
+				if (otherCell != makeProto)
+				{
+					makeProto = otherCell;
+					width = otherCell.getDefWidth();
+					height = otherCell.getDefHeight();
+				}
+			}
+
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class, false, fromRight);
@@ -1040,7 +1042,7 @@ public class Clipboard //implements ClipboardOwner
 				point = new EPoint(dst.getX()+dX, dst.getY()+dY);
 				orient = orient.concatenate(inPlaceOrient);
 			}
-			NodeInst newNi = NodeInst.newInstance(ni.getProto(), point, width, height,
+			NodeInst newNi = NodeInst.newInstance(makeProto, point, width, height,
 				toCell, orient, name, ni.getTechSpecific());
 			if (newNi == null)
 			{
@@ -1059,7 +1061,12 @@ public class Clipboard //implements ClipboardOwner
 			if (copyExports)
 			{
 				for(Iterator<Export> eit = ni.getExports(); eit.hasNext(); )
-					reExports.add(eit.next());
+				{
+					Export e = eit.next();
+					if (makeProto != ni.getProto())
+						e = e.findEquivalent((Cell)makeProto);
+					if (e != null) reExports.add(e);
+				}
 			}
 		}
 		if (copyExports)
@@ -1168,6 +1175,21 @@ public class Clipboard //implements ClipboardOwner
 			if (newTextList != null) newTextList.add(new DisplayedText(toCell, varKey));
 		}
 		return lastCreatedNode;
+	}
+
+	private static Cell findAlternate(Cell cell, Cell destination)
+	{
+		View desiredView = destination.getView();
+		if (desiredView == View.SCHEMATIC) desiredView = View.ICON;
+		if (cell.getView() != desiredView)
+		{
+			for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
+			{
+				Cell otherCell = it.next();
+				if (otherCell.getView() == desiredView) return otherCell;
+			}
+		}
+		return cell;
 	}
 
 	private static void showCopiedObjects(List<Geometric> newGeomList, List<DisplayedText> newTextList)
@@ -1336,7 +1358,6 @@ public class Clipboard //implements ClipboardOwner
 		// figure out lower-left corner and upper-rigth corner of this collection of objects
 		for(DisplayedText dt : textList)
 		{
-//			Poly poly = clipCell.computeTextPoly(wnd, dt.getVariableKey());
 			Poly poly = dt.getElectricObject().computeTextPoly(wnd, dt.getVariableKey());
 			Rectangle2D bounds = poly.getBounds2D();
 
@@ -1410,8 +1431,7 @@ public class Clipboard //implements ClipboardOwner
 		private JPopupMenu popup;
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
-
-		/** paste anchor types */
+		private boolean convertSchLay;
 
 		/**
 		 * Create a new paste listener
@@ -1420,7 +1440,7 @@ public class Clipboard //implements ClipboardOwner
 		 * @param currentListener listener to restore when done
 		 */
 		private PasteListener(EditWindow wnd, List<Geometric> geomList, List<DisplayedText> textList,
-			EventListener currentListener, AffineTransform inPlace, Orientation inPlaceOrient, boolean dup)
+			EventListener currentListener, AffineTransform inPlace, Orientation inPlaceOrient, boolean dup, boolean convertSchLay)
 		{
 			this.wnd = wnd;
 			this.geomList = geomList;
@@ -1429,6 +1449,7 @@ public class Clipboard //implements ClipboardOwner
 			this.inPlace = inPlace;
 			this.inPlaceOrient = inPlaceOrient;
 			this.pasteBounds = getPasteBounds(geomList, textList, wnd);
+			this.convertSchLay = convertSchLay;
 			translateX = translateY = 0;
 
 			initPopup();
@@ -1490,9 +1511,8 @@ public class Clipboard //implements ClipboardOwner
 				} else if (mouseDB.getY() > pasteBounds.getMinY() && mouseDB.getY() < pasteBounds.getMaxY()) {
 					deltaY = 0;
 				} else {
-//              	// only use delta in direction that has larger delta
+					// only use delta in direction that has larger delta
 					if (Math.abs(deltaX) > Math.abs(deltaY))
-//                	if (Math.abs(distanceX) > Math.abs(distanceY))
 						deltaY = 0;
 					else
 						deltaX = 0;
@@ -1554,18 +1574,19 @@ public class Clipboard //implements ClipboardOwner
 					if (found) continue;
 				}
 
+				// convert cell instances to the proper view if requested
+				if (ni.isCellInstance() && convertSchLay)
+				{
+					Cell otherCell = findAlternate((Cell)ni.getProto(), cell);
+					if (otherCell != ni.getProto())
+					{
+						ni = NodeInst.makeDummyInstance(otherCell, ni.getAnchorCenter(),
+							otherCell.getDefWidth(), otherCell.getDefHeight(), ni.getOrient());
+					}
+				}
+
 				Poly poly = ni.getBaseShape();
-//				SizeOffset so = ni.getSizeOffset();
-//				AffineTransform trans = ni.rotateOutAboutTrueCenter();
-//				double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-//				double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-//				double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-//				double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-//				double nodeX = (nodeLowX + nodeHighX) / 2;
-//				double nodeY = (nodeLowY + nodeHighY) / 2;
-//				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
 				if (inPlace != null) poly.transform(inPlace);
-//				poly.transform(trans);
 				showPoints(poly.getPoints(), oX, oY, cell, highlighter);
 			}
 
@@ -1644,7 +1665,7 @@ public class Clipboard //implements ClipboardOwner
 			if (cell != null)
 				new PasteObjects(cell, geomList, textList, delta.getX(), delta.getY(),
 					User.getAlignmentToGrid(), User.isDupCopiesExports(), User.isIncrementRightmostIndex(),
-					User.isArcsAutoIncremented(), inPlace, inPlaceOrient);
+					User.isArcsAutoIncremented(), convertSchLay, inPlace, inPlaceOrient);
 		}
 
 		public void mouseMoved(MouseEvent evt)
