@@ -1,0 +1,32 @@
+Electric Version 8.10l (built on 29.10.2009)
+--------------- 0 --------------
+  Thu Oct 29 19:49:30 MSK 2009
+Menu Activated: Help | Load Sample Cells Library
+--------------- 1 --------------
+  Thu Oct 29 19:49:48 MSK 2009
+Menu Activated: Cell | Expand Cell Instances | One Level Down
+Currently highlighted: 
+    com.sun.electric.tool.user.HighlightEOBJ in cell 'tech-nMOS{lay}': , 'tech-nMOSPullup{lay}[tech-nMO@0].poly'
+--------------- 2 --------------
+  Thu Oct 29 19:49:51 MSK 2009
+Menu Activated: Cell | Unexpand Cell Instances | One Level Up
+Currently highlighted: 
+    com.sun.electric.tool.user.HighlightEOBJ in cell 'tech-nMOS{lay}': , 'tech-nMOSPullup{lay}[tech-nMO@1].poly'
+--------------- 3 --------------
+  Thu Oct 29 19:49:51 MSK 2009
+Menu Activated: Cell | Unexpand Cell Instances | One Level Up
+Currently highlighted: 
+    com.sun.electric.tool.user.HighlightEOBJ in cell 'tech-nMOS{lay}': , 'tech-nMOSPullup{lay}[tech-nMO@1].poly'
+--------------- 4 --------------
+  Thu Oct 29 19:49:59 MSK 2009
+Menu Activated: Cell | Expand Cell Instances | One Level Down
+Currently highlighted: 
+    com.sun.electric.tool.user.HighlightEOBJ in cell 'tech-nMOS{lay}': , 'tech-nMOSPullup{lay}[tech-nMO@9].poly'
+--------------- 5 --------------
+  Thu Oct 29 19:50:00 MSK 2009
+Menu Activated: Cell | Expand Cell Instances | One Level Down
+Currently highlighted: 
+    com.sun.electric.tool.user.HighlightEOBJ in cell 'tech-nMOS{lay}': , 'tech-nMOSPullup{lay}[tech-nMO@9].poly'
+--------------- 6 --------------
+  Thu Oct 29 19:50:05 MSK 2009
+Menu Activated: File | Quit

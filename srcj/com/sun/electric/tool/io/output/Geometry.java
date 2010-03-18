@@ -275,6 +275,7 @@ public abstract class Geometry extends Output
 						gMerge.add(layer, poly);
 					}
 				}
+                gMerge.postProcess(true);
 				for (Layer layer : layers)
 				{
 //					List polys = pMerge.getMergedPoints(layer, true);
