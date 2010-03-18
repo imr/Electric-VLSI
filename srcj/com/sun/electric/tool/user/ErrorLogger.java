@@ -938,6 +938,7 @@ public class ErrorLogger implements Serializable
         }
         buffWriter.println("</" + className + ">");
         buffWriter.close();
+        System.out.println(filePath + " written");
     }
 
     /**
