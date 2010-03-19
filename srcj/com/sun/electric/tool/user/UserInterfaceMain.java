@@ -453,8 +453,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                     updatedWindows.add(wnd);
                 } else
                 {
-                    if (Job.getDebug())
-                        System.out.println("Check this case in UserInterfaceMain::reportLog");
+                    System.out.println("No cell associated with this error");
                 }
 
                 if (highlighter == null) continue;
