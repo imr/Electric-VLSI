@@ -125,6 +125,30 @@ public class DigitalSample implements Sample, Comparable {
 
     // Backward-Compatibility //////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * The only thing that really matters to ALS is that the four
+     * strengths:
+     *
+     *           OFF_STRENGTH
+     *           NODE_STRENGTH
+     *           GATE_STRENGTH
+     *           VDD_STRENGTH
+     *
+     * be in ascending strength.
+     *
+     * Clearly, VDD_STRENGTH is a supply-level, so your choice of
+     * SUPPLY_DRIVE seems right. Node strength is (I believe) what
+     * used to be appropriate for nMOS depletion transistors
+     * (i.e. stronger than a normal gate signal).  Probably your
+     * choice of STRONG_PULL is also right.  Gate strength is a
+     * regular signal, so your choice of LARGE_CAPACITANCE may be
+     * right, or it may be PULL_DIRVE.  I don't know.  As far as
+     * OFF_STRENGTH goes, why not use HIGH_IMPEDENCE?  I really don't
+     * know the difference between that and SMALL_CAPACITANCE, so it's
+     * your choice here.
+     *
+     *    -Steve
+     */
     public int toOldStyle() {
         int ret = 0;
         switch(value) {
