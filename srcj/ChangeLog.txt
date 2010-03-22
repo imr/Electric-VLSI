@@ -9,6 +9,9 @@ FIX: Move initialization of SoftTechnologies to Environment.implementSettingsCha
 
 ************************* Version 9.00b: ******************************
 
+IMP: (3/21/10, AM) Use monoid min/max code for waveform rendering.
+     See demo at http://www.youtube.com/watch?v=0-5h60nOOzQa
+
 IMP: (3/21/10, AM) Fixed many bugs in monoid summary code.  Appears to
      work now.
 

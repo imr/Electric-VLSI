@@ -1533,12 +1533,15 @@ public class Panel extends JPanel
 		Collection<WaveSignal> sigs = waveSignals.values();
 
 		int sigIndex = 0;
+        Color light = null;
 		for(WaveSignal ws : sigs)
 		{
 			if (g != null)
 			{
 				if (waveWindow.getPrintingMode() == 2) g.setColor(Color.BLACK); else
 					g.setColor(ws.getColor());
+                Color c = ws.getColor();
+                light = new Color(c.getRed(), c.getGreen(), c.getBlue(), 0x55);
 			}
 
 			if (forPs != null)
@@ -1581,8 +1584,11 @@ public class Panel extends JPanel
 					for(int i=0; i<numEvents; i++)
 					{
                         int x = convertXDataToScreen(waveform.getTime(i));
-                        int lowY = convertYDataToScreen(waveform.getSample(i).getMin().getValue());
-                        int highY = convertYDataToScreen(waveform.getSample(i).getMax().getValue());
+                        RangeSample<ScalarSample> samp =
+                            (RangeSample<ScalarSample>)waveform.getSample(i);
+                        if (samp==null) continue;
+                        int lowY = convertYDataToScreen(samp.getMin().getValue());
+                        int highY = convertYDataToScreen(samp.getMax().getValue());
 						if (xWaveform != null)
 						{
 							x = convertXDataToScreen(((ScalarSample)xWaveform.getExactView().getSample(i)).getValue());
@@ -1594,13 +1600,17 @@ public class Panel extends JPanel
 	                        if (i != 0)
 	                        {
                         		// drawing has lines
-	                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
 	                            if (lastLY != lastHY || lowY != highY)
 	                            {
+                                    g.setColor(light);
+	        						if (processALine(g, lastX, lastHY, lastX, lastLY, bounds, forPs, selectedObjects, ws, s)) break;
+	        						if (processALine(g, x, highY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
+                                    g.setColor(ws.getColor());
 	        						if (processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
-	        						if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
-	        						if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
+	        						//if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
+	        						//if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
 	                            }
+	                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
 							}
 	                        if (an.extrapolateValues() && i == numEvents-1)
 	                    	{

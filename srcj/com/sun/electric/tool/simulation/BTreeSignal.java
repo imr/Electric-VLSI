@@ -34,39 +34,16 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
     private S minValue = null;
     private S maxValue = null;
     private Signal.View<S> preferredApproximation = null;
-    private final BTree<Double,S,?> tree;
+    private final BTree<Double,S,Pair<Pair<Double,S>,Pair<Double,S>>> tree;
 
     public BTreeSignal(Analysis analysis, String signalName, String signalContext,
-                       BTree<Double,S,?> tree
+                       BTree<Double,S,Pair<Pair<Double,S>,Pair<Double,S>>> tree
                        ) {
         super(analysis, signalName, signalContext);
         if (tree==null) throw new RuntimeException();
         this.tree = tree;
         this.preferredApproximation = new BTreeSignalApproximation();
     }
-
-    /** produces a BTreeSignal from a preexisting pair of double[]s */
-    /*
-          public static BTreeSignal buildSignalForArray(Analysis analysis, String signalName, String signalContext,
-                                                  double[] time, double[] val) {
-            double minValue = Double.MAX_VALUE;
-            double maxValue = Double.MIN_VALUE;
-            int    evmin = 0;
-            int    evmax = 0;
-            double[] result = new double[10];
-            for(int i=0; i<count; i++) {
-                waveform.getEvent(i, result);
-                times[i]  = (float)result[0];
-                values[i] = (float)result[1];
-                if (values[i] < minValue) minValue = values[evmin = i];
-                if (values[i] > maxValue) maxValue = values[evmax = i];
-                if (i>0 && times[i] < times[i-1])
-                    throw new RuntimeException("got non-monotonic sample data, and I haven't implement sorting yet");
-            }
-            this.eventWithMinValue = evmin;
-            this.eventWithMaxValue = evmax;
-    }
-        */
 
     private Signal.View<S> pa = null;
     private double tmin;
@@ -163,47 +140,27 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
     }
 
     private class BTreeRasterView implements Signal.View<RangeSample<S>> {
-        int[] events;
+        private final double t0, t1;
+        private final int numRegions;
         public BTreeRasterView(double t0, double t1, int numRegions) {
-            int[] events = new int[numRegions];
-            int j = 0;
-            double stride = (t1-t0)/(numRegions*2);
-            for(int i=0; i<numRegions; i++) {
-                double t = t0 + (2*i+1)*stride;
-                int idx = i==numRegions-1
-                    ? tree.getOrdFromKeyCeiling(t)
-                    : tree.getOrdFromKeyFloor(t);
-                if (j>0 && events[j-1]==idx) idx = tree.getOrdFromKeyCeiling(t);
-                if (j>0 && events[j-1]==idx) continue;
-                if (idx==tree.size()) continue;
-                if (idx==-1) continue;
-                if (j < numRegions-1 && tree.getKeyFromOrd(idx) > t+2*stride) continue;
-                events[j++] = idx;
-            }
-            this.events = new int[j];
-            System.arraycopy(events, 0, this.events, 0, j);
+            this.t0 = Math.min(t0, t1);
+            this.t1 = Math.max(t0, t1);
+            this.numRegions = numRegions;
         }
-        public int getNumEvents() { return events.length; }
-        public double getTime(int index) {
-            Double d = tree.getKeyFromOrd(events[index]);
-            if (d==null) throw new RuntimeException("index "+index+"/"+events[index]+" out of bounds, size="+tree.size());
-            return d.doubleValue();
-        }
+        public int getNumEvents() { return numRegions; }
+        public double getTime(int index) { return t0+(((t1-t0)*index)/numRegions); }
         public RangeSample<S> getSample(int index) {
-            S ret = tree.getValFromOrd(events[index]);
-            if (ret==null) throw new RuntimeException("index out of bounds");
-            return new RangeSample<S>(ret, ret);
+            Pair<Pair<Double,S>,Pair<Double,S>> highlow =
+                tree.getSummaryFromKeys(getTime(index), getTime(index+1));
+            return highlow==null
+                ? null
+                : new RangeSample<S>(highlow.getKey().getValue(),
+                                     highlow.getValue().getValue());
         }
         public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
         public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
-        public int getEventWithMaxValue() {
-            //return eventWithMaxValue;
-            throw new RuntimeException("not implemented");
-        }
-        public int getEventWithMinValue() { 
-            //return eventWithMinValue;
-            throw new RuntimeException("not implemented");
-        }
+        public int getEventWithMaxValue() { throw new RuntimeException("not implemented"); }
+        public int getEventWithMinValue() { throw new RuntimeException("not implemented"); }
     }
 
     private static CachingPageStorage ps = null;
