@@ -889,7 +889,7 @@ public class User extends Listener
             if (ap.getTechnology() == Generic.tech()) continue;
             list.add(ap.getName());
         }
-        assert(list.size() > 0); // basic assumption for now
+//        assert(list.size() > 0); // basic assumption for now
         // Sort list so it could be used for equivalent ports
         Collections.sort(list);
         return list;

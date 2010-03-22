@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3/22/10, SMR) Assertion error when primitive port does not connect (Bug #2692).
+FIX: Removed assertion in User.getArcNamesSorted().
+
 BUG: (3/21/10, DN) Project settings / external technology (Bug #2124, #2687).
 FIX: Move initialization of SoftTechnologies to Environment.implementSettingsChanges.
 
