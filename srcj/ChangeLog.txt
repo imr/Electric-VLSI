@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+IMP: (3/22/10, AM) Remove special-case handling of AnalogSignal in Panel.java
+
 BUG: (3/22/10, SMR) Crash when referenced library is missing (Bug #2693).
 FIX: In LibraryFiles.readExternalLibraryFromFilename() do not call
      getOpenFileType() if the file is not valid.

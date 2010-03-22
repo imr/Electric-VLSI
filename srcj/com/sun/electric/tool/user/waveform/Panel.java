@@ -1561,17 +1561,20 @@ public class Panel extends JPanel
 				forPs.add(poly);
 			}
 			sigIndex++;
-			if (ws.getSignal() instanceof AnalogSignal)
-			{
+			if (!(ws.getSignal() instanceof DigitalSignal)) {
 				// draw analog trace
-				AnalogSignal as = (AnalogSignal)ws.getSignal();
-				AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
+				Signal as = ws.getSignal();
+				Analysis an = as.getAnalysis();
+                int s = 0;
+                /*
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++)
 				{
 					boolean included = waveWindow.isSweepSignalIncluded(an, s);
 					if (!included)
 						continue;
 					Signal wave = as.getWaveform(s);
+                */
+                Signal wave = (as instanceof AnalogSignal) ? ((AnalogSignal)as).getWaveform(0) : as;
                     Signal.View<RangeSample<ScalarSample>> waveform =
                         ((Signal<ScalarSample>)wave).getRasterView(convertXScreenToData(0),
                                                                    convertXScreenToData(sz.width),
@@ -1602,10 +1605,10 @@ public class Panel extends JPanel
                         		// drawing has lines
 	                            if (lastLY != lastHY || lowY != highY)
 	                            {
-                                    g.setColor(light);
+                                    if (g!=null) g.setColor(light);
 	        						if (processALine(g, lastX, lastHY, lastX, lastLY, bounds, forPs, selectedObjects, ws, s)) break;
 	        						if (processALine(g, x, highY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
-                                    g.setColor(ws.getColor());
+                                    if (g!=null) g.setColor(ws.getColor());
 	        						if (processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
 	        						//if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
 	        						//if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
@@ -1642,11 +1645,9 @@ public class Panel extends JPanel
                     com.sun.electric.tool.simulation.BTreeSignal.steps=0;
                     com.sun.electric.tool.simulation.BTreeSignal.numLookups=0;
                     */
-				}
+                    //}
 				continue;
-            }
-			if (ws.getSignal() instanceof DigitalSignal)
-			{
+            } else {
 				// draw digital traces
 				DigitalSignal ds = (DigitalSignal)ws.getSignal();
 				DigitalAnalysis an = (DigitalAnalysis)ds.getAnalysis();
