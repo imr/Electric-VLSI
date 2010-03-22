@@ -47,11 +47,13 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -283,6 +285,30 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         }
         newStates.add(tech.getCurrentState());
         return new TechPool(newStates);
+    }
+
+    public TechPool withSoftTechnologies(String softTechnologies) {
+        Generic generic = getGeneric();
+        assert generic != null;
+        Map<TechFactory.Param,Object> emptyParams = Collections.emptyMap();
+        TechPool newTechPool = this;
+        for(String softTechFile: softTechnologies.split(";")) {
+			if (softTechFile.length() == 0) continue;
+        	URL url = TextUtils.makeURLToFile(softTechFile);
+        	if (TextUtils.URLExists(url))
+        	{
+	        	String softTechName = TextUtils.getFileNameWithoutExtension(url);
+                TechFactory techFactory = TechFactory.fromXml(url, null);
+                Technology tech = techFactory.newInstance(generic, emptyParams);
+                if (tech != null)
+                    newTechPool = newTechPool.withTech(tech);
+        	} else
+        	{
+        		System.out.println("WARNING: could not find added technology: " + softTechFile);
+        		System.out.println("  (fix this error in the 'Added Technologies' Project Preferences)");
+        	}
+        }
+        return newTechPool;
     }
 
     /**

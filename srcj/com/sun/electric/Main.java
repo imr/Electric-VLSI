@@ -518,7 +518,6 @@ public final class Main
 	private static class InitDatabase extends Job
 	{
         private Map<String,Object> paramValuesByXmlPath = Technology.getParamValuesByXmlPath();
-        private String softTechnologies = StartupPrefs.getSoftTechnologies();
 		private List<String> argsList;
         private Library mainLib;
 
@@ -533,7 +532,7 @@ public final class Main
 		{
             //System.out.println("InitDatabase");
             // initialize all of the technologies
-            Technology.initAllTechnologies(getDatabase(), paramValuesByXmlPath, softTechnologies);
+            Technology.initPreinstalledTechnologies(getDatabase(), paramValuesByXmlPath);
 
             // open no name library first
             Library clipLib = Library.newInstance(Clipboard.CLIPBOARD_LIBRAY_NAME, null);

@@ -214,7 +214,7 @@ public class Regression {
             assert database.getGeneric() == null;
             Generic generic = Generic.newInstance(database.getIdManager());
             database.addTech(generic);
-            for (TechFactory techFactory: TechFactory.getKnownTechs("").values()) {
+            for (TechFactory techFactory: TechFactory.getKnownTechs().values()) {
                 Map<TechFactory.Param,Object> paramValues = Collections.emptyMap();
                 Technology tech = techFactory.newInstance(generic, paramValues);
                 if (tech != null)

@@ -133,7 +133,7 @@ public abstract class TechFactory {
         return new FromClass("generic", "com.sun.electric.technology.technologies.Generic");
     }
 
-    public static Map<String,TechFactory> getKnownTechs(String softTechnologies) {
+    public static Map<String,TechFactory> getKnownTechs() {
         LinkedHashMap<String,TechFactory> m = new LinkedHashMap<String,TechFactory>();
         c(m, "artwork", "com.sun.electric.technology.technologies.Artwork");
         c(m, "fpga", "com.sun.electric.technology.technologies.FPGA");
@@ -154,24 +154,10 @@ public abstract class TechFactory {
         p(m, "cmos90","com.sun.electric.plugins.tsmc.CMOS90");
         r(m, "tsmcSun40GP",      "plugins/tsmc/tsmcSun40GP.xml");
 //        c(m, "tsmc45",     "com.sun.electric.plugins.tsmc.TSMC45");
-        for(String softTechFile: softTechnologies.split(";")) {
-//		for(String softTechFile: ToolSettings.getSoftTechnologiesSetting().getString().split(";")) {
-			if (softTechFile.length() == 0) continue;
-        	URL url = TextUtils.makeURLToFile(softTechFile);
-        	if (TextUtils.URLExists(url))
-        	{
-	        	String softTechName = TextUtils.getFileNameWithoutExtension(url);
-	        	m.put(softTechName, fromXml(url, null));
-        	} else
-        	{
-        		System.out.println("WARNING: could not find added technology: " + softTechFile);
-        		System.out.println("  (fix this error in the 'Added Technologies' Project Preferences)");
-        	}
-        }
         return Collections.unmodifiableMap(m);
     }
 
-    public static TechFactory getTechFactory(String techName) { return getKnownTechs("").get(techName); }
+    public static TechFactory getTechFactory(String techName) { return getKnownTechs().get(techName); }
 
     TechFactory(String techName) {
         this(techName, Collections.<Param>emptyList());
@@ -217,7 +203,7 @@ public abstract class TechFactory {
         String techName = reader.readString();
         boolean userDefined = reader.readBoolean();
         if (!userDefined)
-            return getKnownTechs("").get(techName);
+            return getKnownTechs().get(techName);
         boolean hasUrl = reader.readBoolean();
         URL xmlUrl = hasUrl ? new URL(reader.readString()) : null;
         byte[] serializedXml = reader.readBytes();

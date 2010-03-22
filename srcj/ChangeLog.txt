@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3/21/10, DN) Project settings / external technology (Bug #2124, #2687).
+FIX: Move initialization of SoftTechnologies to Environment.implementSettingsChanges.
+
 ************************* Version 9.00b: ******************************
 
 BUG: (3/18/10, GVG) NPE after re-exporting an ErrorLogger that contains invalid cells (Bug #2691)

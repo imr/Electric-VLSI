@@ -1225,8 +1225,7 @@ public class Technology implements Comparable<Technology>, Serializable
         env = env.withToolSettings((Setting.RootGroup)ToolSettings.getToolSettings(""));
         Generic generic = Generic.newInstance(IdManager.stdIdManager);
         env = env.addTech(generic);
-        String softTechnologies = StartupPrefs.getSoftTechnologies();
-        for (TechFactory techFactory: TechFactory.getKnownTechs(softTechnologies).values()) {
+        for (TechFactory techFactory: TechFactory.getKnownTechs().values()) {
             Map<TechFactory.Param,Object> paramValues = paramValuesFromPreferences(techFactory);
             Technology tech = techFactory.newInstance(generic, paramValues);
             if (tech != null)
@@ -1254,7 +1253,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
     public static Map<String,Object> getParamValuesByXmlPath() {
         Map<String,Object> paramValuesByXmlPath = new HashMap<String,Object>();
-        for (TechFactory techFactory: TechFactory.getKnownTechs("").values()) {
+        for (TechFactory techFactory: TechFactory.getKnownTechs().values()) {
             Map<TechFactory.Param,Object> paramValues = Technology.paramValuesFromPreferences(techFactory);
             for (Map.Entry<TechFactory.Param,Object> e: paramValues.entrySet())
                 paramValuesByXmlPath.put(e.getKey().xmlPath, e.getValue());
@@ -1268,13 +1267,13 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * and build a proper list of technologies, is to call each class.
 	 * So, each technology is listed here.  If a new technology is created, this must be added to this list.
 	 */
-	public static void initAllTechnologies(EDatabase database, Map<String,Object> paramValuesByXmlPath, String softTechnologies)
+	public static void initPreinstalledTechnologies(EDatabase database, Map<String,Object> paramValuesByXmlPath)
 	{
         database.setToolSettings((Setting.RootGroup)ToolSettings.getToolSettings(""));
         assert database.getGeneric() == null;
         Generic generic = Generic.newInstance(database.getIdManager());
         database.addTech(generic);
-        for (TechFactory techFactory: TechFactory.getKnownTechs(softTechnologies).values()) {
+        for (TechFactory techFactory: TechFactory.getKnownTechs().values()) {
             Map<TechFactory.Param,Object> paramValues = new HashMap<TechFactory.Param,Object>();
             for (TechFactory.Param techParam: techFactory.getTechParams()) {
                 Object paramValue = paramValuesByXmlPath.get(techParam.xmlPath);
@@ -1285,49 +1284,7 @@ public class Technology implements Comparable<Technology>, Serializable
             if (tech != null)
                 database.addTech(tech);
         }
-
-		// set the current technology, given priority to user defined
- //       curLayoutTech = getMocmosTechnology();
-//        Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
-//        if (tech == null) tech = getMocmosTechnology();
-//        tech.setCurrent();
 	}
-
-    /*
-
-            private void loadValues() {
-            ProjSettings projSettings = ProjSettings.getSettings();
-            if (projSettings != null) {
-                HashSet<Preferences> flushSet = new HashSet<Preferences>();
-                for (Setting setting: getSettings()) {
-                    Object psVal = projSettings.getValue(setting.getXmlPath());
-                    if (psVal == null)
-                        psVal = setting.getFactoryValue();
-                    if (psVal.equals(setting.getValue()))
-                        continue;
-                    if (psVal.getClass() != setting.getValue().getClass()) {
-                        System.out.println("Warning: Value type mismatch for key " + setting.getXmlPath() + ": " +
-                                psVal.getClass().getName() + " vs " + setting.getValue().getClass().getName());
-                        continue;
-                    }
-                    System.out.println("Warning: For key "+setting.getXmlPath()+": project preferences value of "+psVal+" overrides default of "+setting.getValue());
-                    setting.currentObj = psVal.equals(setting.factoryObj) ? setting.factoryObj : psVal;
-                    setting.saveToPreferences(psVal);
-                    flushSet.add(setting.prefs);
-                }
-                for (Preferences preferences: flushSet) {
-                    try {
-                        preferences.flush();
-                    } catch (BackingStoreException e) {
-                    }
-                }
-            } else {
-               for (Setting setting: getSettings())
-                    setting.setCachedObjFromPreferences();
-            }
-        }
-
-*/
 
     private static Map<TechFactory.Param,Object> paramValuesFromPreferences(TechFactory techFactory) {
         HashMap<TechFactory.Param,Object> paramValues = new HashMap<TechFactory.Param,Object>();
