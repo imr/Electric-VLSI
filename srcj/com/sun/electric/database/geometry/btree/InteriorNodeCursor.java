@@ -69,7 +69,7 @@ class InteriorNodeCursor
 
     public InteriorNodeCursor(BTree<K,V,S> bt) {
         super(bt);
-        this.SIZEOF_SUMMARY       = bt.mergeSummaries==null ? 0 : bt.mergeSummaries.getSize();
+        this.SIZEOF_SUMMARY       = bt.summary==null ? 0 : bt.summary.getSize();
         this.INTERIOR_HEADER_SIZE = 2*SIZEOF_INT;
         this.INTERIOR_ENTRY_SIZE  = bt.uk.getSize() + SIZEOF_SUMMARY + SIZEOF_INT + SIZEOF_INT;
         this.INTERIOR_MAX_BUCKETS = ((ps.getPageSize()-INTERIOR_HEADER_SIZE-SIZEOF_INT-this.SIZEOF_SUMMARY) / INTERIOR_ENTRY_SIZE);
@@ -158,7 +158,7 @@ class InteriorNodeCursor
         if (idx==getNumBuckets()-1 && isRightMost())
             throw new RuntimeException("RightMost InteriorNodeCursors don't store a summary value for their last bucket");
         assert idx>=0 && idx<getNumBuckets();
-        bt.mergeSummaries.multiply(buf, ofs,
+        bt.summary.multiply(buf, ofs,
                                    getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
                                    getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx);
     }
@@ -169,7 +169,7 @@ class InteriorNodeCursor
         assert idx>=0 && idx<getNumBuckets();
         System.arraycopy(buf, ofs,
                          getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
-                         bt.mergeSummaries.getSize());
+                         bt.summary.getSize());
     }
 
     public void getSummary(int idx, byte[] buf, int ofs) {
@@ -178,6 +178,6 @@ class InteriorNodeCursor
         assert idx>=0 && idx<getNumBuckets();
         System.arraycopy(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
                          buf, ofs,
-                         bt.mergeSummaries.getSize());
+                         bt.summary.getSize());
     }
 }

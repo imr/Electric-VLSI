@@ -135,10 +135,16 @@ public class BTree
      V extends Serializable,
      S extends Serializable> {
 
+    public static interface Summary
+        <K extends Serializable & Comparable,
+        V extends Serializable,
+        S extends Serializable> extends
+        AssociativeOperation<S>,
+        UnboxedFunction<Pair<K,V>,S> { };
+
     final CachingPageStorage   ps;
     final UnboxedComparable<K> uk;
-    final AssociativeOperation<S>      mergeSummaries;
-    final UnboxedFunction<Pair<K,V>,S> summarize;
+    final Summary<K,V,S>       summary;
     final Unboxed<V>           uv;
     final UnboxedInt           ui = UnboxedInt.instance;
 
@@ -168,14 +174,12 @@ public class BTree
     public BTree(CachingPageStorage ps,
                  UnboxedComparable<K> uk,
                  Unboxed<V> uv,
-                 UnboxedFunction<Pair<K,V>,S> summarize,
-                 AssociativeOperation<S> mergeSummaries) {
-        this.summarize = summarize;
-        if (mergeSummaries!=null && !(mergeSummaries instanceof AssociativeCommutativeOperation))
+                 Summary<K,V,S> summary) {
+        if (summary!=null && !(summary instanceof AssociativeCommutativeOperation))
                 throw new RuntimeException("Only commutative summary operations are supported (allows one-pass insertion)");
+        this.summary = summary;
         this.ps = ps;
         this.uk = uk;
-        this.mergeSummaries = mergeSummaries;
         this.uv = uv;
         this.leafNodeCursor = new LeafNodeCursor<K,V,S>(this);
         this.interiorNodeCursor1 = new InteriorNodeCursor<K,V,S>(this);
@@ -183,11 +187,11 @@ public class BTree
         this.rootpage = ps.createPage();
         this.keybuf = new byte[uk.getSize()];
         this.keybuf2 = new byte[uk.getSize()];
-        this.sbuf = mergeSummaries==null ? null : new byte[mergeSummaries.getSize()];
+        this.sbuf = summary==null ? null : new byte[summary.getSize()];
         this.largestKey = new byte[uk.getSize()];
         leafNodeCursor.initBuf(ps.getPage(rootpage, false), true);
         leafNodeCursor.writeBack();
-        this.monbuf = this.mergeSummaries == null ? null : new byte[this.mergeSummaries.getSize()];
+        this.monbuf = this.summary == null ? null : new byte[this.summary.getSize()];
     }
 
     /**
@@ -277,7 +281,7 @@ public class BTree
      */
     public V replace(K key, V oldval, V newval) {
         uk.serialize(key, keybuf, 0);
-        if (oldval==null && mergeSummaries!=null)
+        if (oldval==null && summary!=null)
             throw new RuntimeException("in order to replace an item in a BTree with a summary, you must specify the old value");
         return (V)walk(keybuf, 0, oldval, newval, Op.REPLACE, 0);
     }
@@ -300,7 +304,7 @@ public class BTree
         int ret = 0;
         ret = (Integer)walk(keybuf, 0, null, null, Op.SUMMARIZE_LEFT,  ret, keybuf2, 0, sbuf, 0);
         ret = (Integer)walk(keybuf, 0, null, null, Op.SUMMARIZE_RIGHT, ret, keybuf2, 0, sbuf, 0);
-        return ret==0 ? null : (S)mergeSummaries.deserialize(sbuf, 0);
+        return ret==0 ? null : (S)summary.deserialize(sbuf, 0);
     }
     
     private static enum Op {
@@ -452,7 +456,7 @@ public class BTree
                 int splitPoint = rightEdge ? cur.getNumBuckets()-1 : cur.getMaxBuckets()/2;
                 if (rightEdge) splitUnEven++; else splitEven++;
 
-                if (mergeSummaries!=null) {
+                if (summary!=null) {
                     cur.getSummary(0, monbuf, 0);
                     parentNodeCursor.setSummary(idx, monbuf, 0);
                     for(int i=1; i<splitPoint; i++) {
@@ -467,7 +471,7 @@ public class BTree
                 parentNodeCursor.setBucketPageId(idx+1, newpage);
                 if (!splitting_last_or_root)
                     parentNodeCursor.setNumValsBelowBucket(idx+1, old-num);
-                if (mergeSummaries!=null && (!parentNodeCursor.isRightMost() || idx+1<parentNodeCursor.getNumBuckets()-1)) {
+                if (summary!=null && (!parentNodeCursor.isRightMost() || idx+1<parentNodeCursor.getNumBuckets()-1)) {
                     cur.getSummary(0, monbuf, 0);
                     parentNodeCursor.setSummary(idx+1, monbuf, 0);
                     for(int i=1; i<cur.getNumBuckets() - (cur.isRightMost() ? 1 : 0); i++) {
@@ -495,7 +499,7 @@ public class BTree
                     if (cmpLeft <= 0 && (cur.isLeafNode() || cmpRight > 0)) {
                         if (summaryInitialized) {
                             cur.getSummary(i, monbuf, 0);
-                            mergeSummaries.multiply(ret, ret_ofs, monbuf, 0, ret, ret_ofs);
+                            summary.multiply(ret, ret_ofs, monbuf, 0, ret, ret_ofs);
                         } else {
                             cur.getSummary(i, ret, ret_ofs);
                             summaryInitialized = true;
@@ -556,7 +560,7 @@ public class BTree
                 return null;
             } else {
                 if (op==Op.REMOVE) {
-                    if (mergeSummaries!=null && !(mergeSummaries instanceof InvertibleOperation))
+                    if (summary!=null && !(summary instanceof InvertibleOperation))
                         throw new RuntimeException("cannot remove values from a BTree with a non-InvertibleOperation summary");
                     throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
                 }
@@ -566,11 +570,11 @@ public class BTree
                         interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
                         wb = true;
                     }
-                    if (mergeSummaries != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
+                    if (summary != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
                         byte[] vbuf = new byte[uk.getSize()+uv.getSize()];
                         System.arraycopy(key, 0, vbuf, 0, uk.getSize());
                         uv.serialize(newval, vbuf, uk.getSize());
-                        summarize.call(vbuf, 0, monbuf, 0);
+                        summary.call(vbuf, 0, monbuf, 0);
                         interiorNodeCursor.mergeSummaryCommutative(idx, monbuf, 0);
                     }
                     if (wb) interiorNodeCursor.writeBack();

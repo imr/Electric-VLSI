@@ -58,7 +58,6 @@ public class BTreeTest {
         BTree<Integer,Integer,Pair<Integer,Integer>> btree =
             new BTree<Integer,Integer,Pair<Integer,Integer>>(ps, UnboxedInt.instance,
                                                              UnboxedInt.instance,
-                                                             null,
                                                              null);
         TreeMap<Integer,Integer> tm = 
             new TreeMap<Integer,Integer>();

@@ -176,10 +176,15 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        MinMaxOperation<Double,SS> summary = new MinMaxOperation<Double,SS>(UnboxedHalfDouble.instance, unboxer);
         return new BTree<Double,SS,Pair<Pair<Double,SS>,Pair<Double,SS>>>
-            (ps, UnboxedHalfDouble.instance, unboxer, summary, summary);
+            (ps, UnboxedHalfDouble.instance, unboxer, new Summary<SS>(UnboxedHalfDouble.instance, unboxer));
     }
+
+    private static class Summary<SS extends Sample & Comparable>
+        extends MinMaxOperation<Double,SS>
+        implements BTree.Summary<Double,SS,Pair<Pair<Double,SS>,Pair<Double,SS>>> {
+        public Summary(Unboxed<Double> uk, UnboxedComparable<SS> uv) { super(uk, uv); }
+    };
 
 }
 
