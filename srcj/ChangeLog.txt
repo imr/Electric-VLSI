@@ -9,6 +9,9 @@ FIX: Move initialization of SoftTechnologies to Environment.implementSettingsCha
 
 ************************* Version 9.00b: ******************************
 
+IMP: (3/21/10, AM) Fixed many bugs in monoid summary code.  Appears to
+     work now.
+
 BUG: (3/18/10, GVG) NPE after re-exporting an ErrorLogger that contains invalid cells (Bug #2691)
 FIX: Detecting case when cellId is null. Adding stack trace in debug mode.
 

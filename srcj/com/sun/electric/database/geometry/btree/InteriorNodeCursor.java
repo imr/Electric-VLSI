@@ -154,7 +154,7 @@ class InteriorNodeCursor
         return bt.ui.deserializeInt(getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+SIZEOF_SUMMARY+INTERIOR_ENTRY_SIZE*bucket);
     }
 
-    public void multiplySummaryCommutative(int idx, byte[] buf, int ofs) {
+    public void mergeSummaryCommutative(int idx, byte[] buf, int ofs) {
         if (idx==getNumBuckets()-1 && isRightMost())
             throw new RuntimeException("RightMost InteriorNodeCursors don't store a summary value for their last bucket");
         assert idx>=0 && idx<getNumBuckets();
@@ -163,13 +163,13 @@ class InteriorNodeCursor
                                    getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx);
     }
 
-    public void getSummaryAndMultiply(int idx, byte[] buf, int ofs) {
+    public void setSummary(int idx, byte[] buf, int ofs) {
         if (idx==getNumBuckets()-1 && isRightMost())
             throw new RuntimeException("RightMost InteriorNodeCursors don't store a summary value for their last bucket");
         assert idx>=0 && idx<getNumBuckets();
-        bt.mergeSummaries.multiply(buf, ofs,
-                                   getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
-                                   buf, ofs);
+        System.arraycopy(buf, ofs,
+                         getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*idx,
+                         bt.mergeSummaries.getSize());
     }
 
     public void getSummary(int idx, byte[] buf, int ofs) {
