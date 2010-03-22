@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3/22/10, SMR) Crash when referenced library is missing (Bug #2693).
+FIX: In LibraryFiles.readExternalLibraryFromFilename() do not call
+     getOpenFileType() if the file is not valid.
+
 BUG: (3/22/10, SMR) Showing errors while editing down-in-place may shift
      the window (Bug #2690).
 FIX: In UserInterfaceMain.reportLog() handle down-in-place transformation when

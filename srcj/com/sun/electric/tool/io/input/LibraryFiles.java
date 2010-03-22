@@ -829,7 +829,6 @@ public abstract class LibraryFiles extends Input
 			System.out.println("Reading referenced library " + externalURL.getFile());
             elib = Library.newInstance(legalLibName, externalURL);
 		}
-        FileType importType = OpenFile.getOpenFileType(externalURL.getFile(), defaultType);
 
         if (elib != null)
         {
@@ -839,6 +838,7 @@ public abstract class LibraryFiles extends Input
             setProgressNote("Reading referenced library " + legalLibName + "...");
 
 			// get the library name
+            FileType importType = OpenFile.getOpenFileType(externalURL.getFile(), defaultType);
 			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
             elib = readALibrary(externalURL, elib, eLibName, importType, null, iconParams);
             setProgressValue(100);
