@@ -33,6 +33,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.ToolSettings;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -160,6 +161,10 @@ public class Environment {
             techParams.put(param, newValue);
         }
         TechPool newTechPool = techPool.withTechParams(techParams);
+        String softTechnologies = (String) changeBatch.changesForSettings.get(ToolSettings.getSoftTechnologiesSetting().getXmlPath());
+        if (softTechnologies != null) {
+            newTechPool = newTechPool.withSoftTechnologies(softTechnologies);
+        }
 
         // Gather by xmlPath
         HashMap<String, Object> valuesByXmlPath = new HashMap<String, Object>();
@@ -187,7 +192,7 @@ public class Environment {
             }
             newSettingValues.put(setting, value);
         }
-        for (Technology tech : techPool.values()) {
+        for (Technology tech : newTechPool.values()) {
             for (Setting setting : tech.getProjectSettings().getSettings()) {
                 Object value = valuesByXmlPath.get(setting.getXmlPath());
                 Object factoryValue = setting.getFactoryValue();

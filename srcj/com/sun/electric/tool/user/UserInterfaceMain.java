@@ -508,9 +508,13 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public void showErrorMessage(final String message, final String title)
     {
-        if (Job.isClientThread())
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(false), message, title, JOptionPane.ERROR_MESSAGE);
-        else {
+        JFrame wf = null;
+        if (Job.isClientThread()) {
+            wf = TopLevel.getCurrentJFrame(false);
+        }
+        if (wf != null) {
+            JOptionPane.showMessageDialog(wf, message, title, JOptionPane.ERROR_MESSAGE);
+        } else {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     showErrorMessage(message, title);
