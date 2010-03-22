@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3/22/10, SMR) Showing errors while editing down-in-place may shift
+     the window (Bug #2690).
+FIX: In UserInterfaceMain.reportLog() handle down-in-place transformation when
+     checking for error visibility.
+
 BUG: (3/22/10, SMR) Assertion error when primitive port does not connect (Bug #2692).
 FIX: Removed assertion in User.getArcNamesSorted().
 

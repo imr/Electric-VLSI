@@ -66,6 +66,7 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
@@ -476,6 +477,19 @@ public class UserInterfaceMain extends AbstractUserInterface
                     // make sure the selection is visible
                     Rectangle2D hBounds = highlighter.getHighlightedArea(wnd);
                     Rectangle2D shown = wnd.getDisplayedBounds();
+            		if (wnd.isInPlaceEdit())
+            		{
+            			Point2D llPt = new Point2D.Double(shown.getMinX(), shown.getMinY());
+            			Point2D urPt = new Point2D.Double(shown.getMaxX(), shown.getMaxY());
+            			AffineTransform intoCell = wnd.getInPlaceTransformIn();
+            			intoCell.transform(llPt, llPt);
+            			intoCell.transform(urPt, urPt);
+            			double lX = Math.min(llPt.getX(), urPt.getX());
+            			double hX = Math.max(llPt.getX(), urPt.getX());
+            			double lY = Math.min(llPt.getY(), urPt.getY());
+            			double hY = Math.max(llPt.getY(), urPt.getY());
+            			shown = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+            		}
                     if (!shown.intersects(hBounds))
                     {
                         wnd.focusOnHighlighted();
