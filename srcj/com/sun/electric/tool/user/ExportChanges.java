@@ -698,7 +698,6 @@ public final class ExportChanges
 		private boolean onlyPowerGround;
 		private boolean ignorePrimitives;
 		private boolean fromRight;
-        public IconParameters iconParameters = IconParameters.makeInstance(true);
 
         /**
 		 * @see ExportChanges#reExportNodes(java.util.List, boolean, boolean, boolean)
@@ -722,8 +721,7 @@ public final class ExportChanges
 			// disallow port action if lock is on
 			if (CircuitChangeJobs.cantEdit(cell, null, true, true, true) != 0) return false;
 
-			int num = reExportNodes(cell, nodeInsts, wiredPorts, unwiredPorts, onlyPowerGround, ignorePrimitives,
-                fromRight, iconParameters);
+			int num = reExportNodes(cell, nodeInsts, wiredPorts, unwiredPorts, onlyPowerGround, ignorePrimitives, fromRight);
 			System.out.println(num+" ports exported.");
 			return true;
 		}
@@ -743,8 +741,7 @@ public final class ExportChanges
 	 * @return the number of exports created
 	 */
 	public static int reExportNodes(Cell cell, List<Geometric> nodeInsts, boolean wiredPorts, boolean unwiredPorts,
-                                    boolean onlyPowerGround, boolean ignorePrimitives, boolean fromRight,
-                                    IconParameters iconParameters)
+                                    boolean onlyPowerGround, boolean ignorePrimitives, boolean fromRight)
     {
 		int total = 0;
 
@@ -776,7 +773,7 @@ public final class ExportChanges
 				portInstsToExport.add(pi);
 			}
 			total += reExportPorts(cell, portInstsToExport, true, wiredPorts, unwiredPorts, onlyPowerGround,
-                fromRight, null, iconParameters);
+                fromRight, null);
 		}
 		return total;
 	}
@@ -794,7 +791,6 @@ public final class ExportChanges
 		private boolean onlyPowerGround;
 		private boolean fromRight;
 		private Map<PortInst,Export> originalExports;
-        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
         /**
 		 * Constructor.
@@ -819,8 +815,7 @@ public final class ExportChanges
 			// disallow port action if lock is on
 			if (CircuitChangeJobs.cantEdit(cell, null, true, true, true) != 0) return false;
 
-			int num = reExportPorts(cell, portInsts, sort, wiredPorts, unwiredPorts, onlyPowerGround, fromRight,
-                originalExports, iconParameters);
+			int num = reExportPorts(cell, portInsts, sort, wiredPorts, unwiredPorts, onlyPowerGround, fromRight, originalExports);
 			System.out.println(num+" ports exported.");
 			return true;
 		}
@@ -867,7 +862,6 @@ public final class ExportChanges
 		private boolean wiredPorts;
 		private boolean unwiredPorts;
 		private boolean fromRight;
-        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
         public ReExportHighlighted(Cell cell, ERectangle bounds, boolean deep, boolean wiredPorts,
 			boolean unwiredPorts, boolean fromRight)
@@ -887,7 +881,7 @@ public final class ExportChanges
 			// disallow port action if lock is on
 			if (CircuitChangeJobs.cantEdit(cell, null, true, true, true) != 0) return false;
 
-			reExportInBounds(cell, bounds, deep, wiredPorts, unwiredPorts, true, fromRight, iconParameters);
+			reExportInBounds(cell, bounds, deep, wiredPorts, unwiredPorts, true, fromRight);
 			return true;
 		}
 	}
@@ -902,8 +896,7 @@ public final class ExportChanges
 	 * @param topLevel true if this is the top-level call.
 	 */
 	private static void reExportInBounds(Cell cell, Rectangle2D bounds, boolean deep, boolean wiredPorts,
-                                         boolean unwiredPorts, boolean topLevel, boolean fromRight,
-                                         IconParameters iconParameters)
+                                         boolean unwiredPorts, boolean topLevel, boolean fromRight)
 	{
 		// find all ports in highlighted area
 		List<PortInst> queuedExports = new ArrayList<PortInst>();
@@ -924,7 +917,7 @@ public final class ExportChanges
 					bounds.getWidth(), bounds.getHeight());
 				DBMath.transformRect(boundsInside, goIn);
 				reExportInBounds((Cell)ni.getProto(), boundsInside, deep, wiredPorts, unwiredPorts, false,
-                    fromRight, iconParameters);
+                    fromRight);
 			}
 
 			for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
@@ -954,8 +947,7 @@ public final class ExportChanges
 		}
 
 		// create job
-		int num = reExportPorts(cell, queuedExports, true, wiredPorts, unwiredPorts, false, fromRight, null,
-            iconParameters);
+		int num = reExportPorts(cell, queuedExports, true, wiredPorts, unwiredPorts, false, fromRight, null);
 		System.out.println(num+" ports exported.");
 	}
 
@@ -977,7 +969,7 @@ public final class ExportChanges
 	 */
 	public static int reExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean wiredPorts, 
                                     boolean unwiredPorts, boolean onlyPowerGround, boolean fromRight,
-                                    Map<PortInst,Export> originalExports, IconParameters iconParameters)
+                                    Map<PortInst,Export> originalExports)
 	{
 		EDatabase.serverDatabase().checkChanging();
 
@@ -1070,7 +1062,7 @@ public final class ExportChanges
 				nextPlainIndex, false, fromRight);
 
 			// create export
-			Export newPp = Export.newInstance(cell, pi, protoNameString, pc, iconParameters);
+			Export newPp = Export.newInstance(cell, pi, protoNameString, pc);
 			if (newPp != null)
 			{
 				// copy text descriptor, var, and characteristic
@@ -1759,7 +1751,6 @@ public final class ExportChanges
 	private static class SynchronizeExports extends Job
 	{
 		private Library oLib;
-        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
         private SynchronizeExports(Library oLib)
 		{
@@ -1809,7 +1800,7 @@ public final class ExportChanges
 							np, oNi.getOrient(), oNi.getName(), oNi.getTechSpecific());
 						if (ni == null) continue;
 						PortInst pi = ni.findPortInstFromProto(oPp.getOriginalPort().getPortProto());
-						pp = Export.newInstance(np, pi, oPp.getName(), oPp.getCharacteristic(), iconParameters);
+						pp = Export.newInstance(np, pi, oPp.getName(), oPp.getCharacteristic());
 						if (pp == null) continue;
 						pp.copyTextDescriptorFrom(oPp, Export.EXPORT_NAME);
 						pp.copyVarsFrom(oPp);

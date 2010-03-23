@@ -152,7 +152,21 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return the newly created Export.
      */
     public static Export newInstance(Cell parent, PortInst portInst, String protoName) {
-        return newInstance(parent, portInst, protoName, null, true, null);
+        return newInstance(parent, portInst, protoName, null, true);
+    }
+
+    /**
+     * Method to create an Export with the specified values.
+     * @param parent the Cell in which this Export resides.
+     * @param portInst the PortInst to export
+     * @param protoName the name of this Export.
+     * It may not have unprintable characters, spaces, or tabs in it.
+     * @param characteristic the characteristic (input, output) of this Export.
+     * @return the newly created Export.
+     */
+    public static Export newInstance(Cell parent, PortInst portInst, String protoName,
+            PortCharacteristic characteristic) {
+        return newInstance(parent, portInst, protoName, characteristic, true);
     }
 
     /**
@@ -166,7 +180,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      */
     public static Export newInstance(Cell parent, PortInst portInst, String protoName,
             PortCharacteristic characteristic, IconParameters iconParameters) {
-        return newInstance(parent, portInst, protoName, characteristic, true, iconParameters);
+        return newInstance(parent, portInst, protoName, characteristic, true);
     }
 
     /**
@@ -180,8 +194,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return the newly created Export.
      */
     public static Export newInstance(Cell parent, PortInst portInst, String protoName,
-            PortCharacteristic characteristic, boolean createOnIcon,
-            IconParameters iconParameters) {
+            PortCharacteristic characteristic, boolean createOnIcon) {
         if (protoName == null) {
             return null;
         }
