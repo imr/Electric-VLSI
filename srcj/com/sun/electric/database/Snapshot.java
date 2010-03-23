@@ -272,7 +272,10 @@ public class Snapshot {
         }
         if (mainSchemId != cellId && mainSchemId != null) {
             EquivalentSchematicExports oldMainSchemEq = equivSchemExports[mainSchemId.cellIndex];
-            assert oldMainSchemEq != null;
+            if (oldMainSchemEq == null) {
+                assert cellId.isSchematic();
+                return null;
+            }
             EquivalentSchematicExports newMainSchemEq = reuseSchemEq(snapshot, mainSchemId);
             if (newMainSchemEq == null) {
                 newMainSchemEq = snapshot.getEquivExports(mainSchemId);

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3/22/10, DN) Copy crashes when from old schematic view (Bug #2694).
+FIX: In Snapshot.reuseSchemId allow null oldSchemEq in groups with many schematic cells.
+
 BUG: (3/22/10, AM) Implement SignalDifference(Signal,Signal) (Bug #2476)
 FIX: Add DerivedSignal.  See DebugMenuAdam for example code.
 
