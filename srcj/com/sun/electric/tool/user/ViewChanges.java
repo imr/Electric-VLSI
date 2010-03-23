@@ -175,7 +175,6 @@ public class ViewChanges
 		private List<Cell> multiPageCells;
 		private Dimension2D alignment;
 		private boolean fromRight;
-        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
         protected FixOldMultiPageSchematics(List<Cell> multiPageCells, Dimension2D alignment)
 		{
@@ -214,7 +213,7 @@ public class ViewChanges
 				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 					geomList.add(aIt.next());
 				Clipboard.copyListToCell(destCell, geomList, textList, null, null, new Point2D.Double(0, dY),
-					true, fromRight, true, false, alignment, null, null, iconParameters);
+					true, fromRight, true, false, alignment, null, null);
 
 				// also copy any variables on the cell
 				for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )

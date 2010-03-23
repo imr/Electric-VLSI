@@ -875,7 +875,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         public boolean doIt() throws JobException
         {
-            lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false, null);
+            lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false);
 //            Undo.noUndoAllowed();
             if (lib == null) return false;
 			fieldVariableChanged("lib");

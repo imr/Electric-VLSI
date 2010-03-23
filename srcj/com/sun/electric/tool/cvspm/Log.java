@@ -29,7 +29,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.CVSLog;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.DELIB;
@@ -187,7 +186,6 @@ public class Log {
         private LogEntry entry;
         private String cvsProgram = CVS.getCVSProgram();
         private String repository = CVS.getRepository();
-        private IconParameters iconParameters = IconParameters.makeInstance(true);
         public RevertToVersion(LogEntry entry) {
             super("Revert to CVS Version", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.entry = entry;
@@ -249,9 +247,9 @@ public class Log {
             // reload cell
             //LibraryFiles.reloadLibraryCells(cells);
             if (entry.obj instanceof Cell)
-                LibraryFiles.reloadLibrary(((Cell)entry.obj).getLibrary(), iconParameters);
+                LibraryFiles.reloadLibrary(((Cell)entry.obj).getLibrary());
             else if (entry.obj instanceof Library)
-                LibraryFiles.reloadLibrary((Library)entry.obj, iconParameters);
+                LibraryFiles.reloadLibrary((Library)entry.obj);
 
             System.out.println("Get Version complete.");
             return true;

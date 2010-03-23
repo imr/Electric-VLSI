@@ -161,11 +161,10 @@ public abstract class LibraryFiles extends Input
 	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @param quick true to read the library without verbosity (used when reading a library internally).
-     * @param iconParams icon parameters used in the creation of exports.
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick, IconParameters iconParams) {
-        return readLibrary(fileURL, libName, type, quick, null, iconParams);
+	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick) {
+        return readLibrary(fileURL, libName, type, quick, null);
     }
 
 	/**
@@ -180,7 +179,7 @@ public abstract class LibraryFiles extends Input
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static Library readLibrary(URL fileURL, String libName, FileType type, boolean quick,
-                                      Map<Setting,Object> projectSettings, IconParameters iconParams) {
+                                      Map<Setting,Object> projectSettings) {
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
         errorLogger = ErrorLogger.newInstance("Library Read");
@@ -231,7 +230,7 @@ public abstract class LibraryFiles extends Input
 			{
 				// get the library name
 				if (libName == null) libName = TextUtils.getFileNameWithoutExtension(fileURL);
-				lib = readALibrary(fileURL, null, libName, type, projectSettings, iconParams);
+				lib = readALibrary(fileURL, null, libName, type, projectSettings);
 			}
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done reading data for all libraries");
@@ -305,7 +304,7 @@ public abstract class LibraryFiles extends Input
         LibraryFiles in;
         if (type == FileType.ELIB)
         {
-            in = new ELIB(null);
+            in = new ELIB();
             if (in.openBinaryInput(fileURL)) return null;
         } else if (type == FileType.READABLEDUMP)
         {
@@ -359,19 +358,19 @@ public abstract class LibraryFiles extends Input
 	 * @return the read Library, or null if an error occurred.
 	 */
 	protected static Library readALibrary(URL fileURL, Library lib, String libName, FileType type,
-                                          Map<Setting,Object> projectSettings, IconParameters iconParams)
+                                          Map<Setting,Object> projectSettings)
 	{
 		// handle different file types
 		LibraryFiles in;
 		if (type == FileType.ELIB)
 		{
-			in = new ELIB(iconParams);
+			in = new ELIB();
 			if (in.openBinaryInput(fileURL)) return null;
 		} else if (type == FileType.JELIB || type == FileType.DELIB)
 		{
             try {
                 LibId libId = lib != null ? lib.getId() : EDatabase.serverDatabase().getIdManager().newLibId(libName);
-                in = new JELIB(libId, fileURL, type, iconParams);
+                in = new JELIB(libId, fileURL, type);
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
@@ -429,7 +428,7 @@ public abstract class LibraryFiles extends Input
      * @param lib the Library to reload.
 	 * @return mapping of Library/Cell/Export ids, null if the library was renamed.
      */
-    public static IdMapper reloadLibrary(Library lib, IconParameters iconParameters) {
+    public static IdMapper reloadLibrary(Library lib) {
         if (!lib.isFromDisk()) {
             System.out.println("No disk file associated with this library, cannot reload from disk");
             return null;
@@ -447,7 +446,7 @@ public abstract class LibraryFiles extends Input
         lib = idMapper.get(lib.getId()).inDatabase(EDatabase.serverDatabase());
         lib.setHidden();                // hide the old library
         startProgressDialog("library", name);
-        Library newLib = readLibrary(libFile, name, type, true, iconParameters);
+        Library newLib = readLibrary(libFile, name, type, true);
         stopProgressDialog();
         if (isCurrent)
             Job.setCurrentLibraryInJob(newLib);
@@ -788,8 +787,7 @@ public abstract class LibraryFiles extends Input
 	 * @return a Library that was read. If library cannot be read or found, creates
 	 * a Library called DUMMYname, and returns that.
 	 */
-	protected Library readExternalLibraryFromFilename(String theFileName, FileType defaultType,
-                                                      IconParameters iconParams)
+	protected Library readExternalLibraryFromFilename(String theFileName, FileType defaultType)
 	{
 		// get the path to the library file
 		String legalLibName = TextUtils.getFileNameWithoutExtension(theFileName, true);
@@ -840,7 +838,7 @@ public abstract class LibraryFiles extends Input
 			// get the library name
             FileType importType = OpenFile.getOpenFileType(externalURL.getFile(), defaultType);
 			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
-            elib = readALibrary(externalURL, elib, eLibName, importType, null, iconParams);
+            elib = readALibrary(externalURL, elib, eLibName, importType, null);
             setProgressValue(100);
             setProgressNote(oldNote);
         }

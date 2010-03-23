@@ -77,7 +77,6 @@ public class Spice extends Input
 	public static class SpicePreferences extends InputPreferences
     {
 		public String placementAlgorithm;
-        public IconParameters iconParameters = IconParameters.makeInstance(false);
 
         public SpicePreferences(boolean factory)
         {
@@ -87,7 +86,6 @@ public class Spice extends Input
 		public void initFromUserDefaults()
 		{
 			placementAlgorithm = Placement.getAlgorithmName();
-            iconParameters.initFromUserDefaults();
 		}
 
         @Override
@@ -276,7 +274,7 @@ public class Spice extends Input
 				PortInst pi2 = ni2.getOnlyPortInst();
 				ArcProto ap = Schematics.tech().wire_arc;
 				ArcInst.makeInstance(ap, pi1, pi2);
-				Export e = Export.newInstance(cell, pi1, export, PortCharacteristic.UNKNOWN, localPrefs.iconParameters);
+				Export e = Export.newInstance(cell, pi1, export, PortCharacteristic.UNKNOWN);
 				TextDescriptor newTD = e.getTextDescriptor(Export.EXPORT_NAME).withPos(TextDescriptor.Position.LEFT);
 				e.setTextDescriptor(Export.EXPORT_NAME, newTD);
 				yPos += 2;
@@ -430,7 +428,7 @@ public class Spice extends Input
 			}
 
 			// run placement
-			pla.doPlacement(lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell, localPrefs.iconParameters);
+			pla.doPlacement(lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell);
 
 			// the old way...
 //			Cell cell = Cell.makeInstance(lib, name + "{sch}");

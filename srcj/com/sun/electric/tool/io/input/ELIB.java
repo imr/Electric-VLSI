@@ -67,9 +67,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
-
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -290,7 +288,6 @@ public class ELIB extends LibraryFiles
     /** variable keys possibly in the library */                            private Variable.Key[] varKeys;
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
-    /** icon parameters for exports */                                      private IconParameters iconParameters;
 
      /**
 	 * This class is used to convert old "facet" style Libraries to pure Cell Libraries.
@@ -301,9 +298,8 @@ public class ELIB extends LibraryFiles
 		NodeProto firstInCell;
 	}
 
-	ELIB(IconParameters iconParams)
+	ELIB()
     {
-        iconParameters = iconParams;
     }
 
 	// ----------------------- public methods -------------------------------
@@ -340,7 +336,7 @@ public class ELIB extends LibraryFiles
                                                       LibraryStatistics.FileContents fc)
 	{
 		try {
-			ELIB in = new ELIB(null);
+			ELIB in = new ELIB();
 			if (in.openBinaryInput(fileURL)) return true;
 			boolean error = in.readTheLibrary(true, fc);
 			// read the library
@@ -1780,7 +1776,7 @@ public class ELIB extends LibraryFiles
                 Point2D center = new Point2D.Double(expected.getX() - anchorX, expected.getY() - anchorY);
                 PrimitiveNode pn = Generic.tech().universalPinNode;
                 NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, c, Orientation.IDENT, "");
-                Export ex = Export.newInstance(c, ni.getOnlyPortInst(), portname, null, false, iconParameters);
+                Export ex = Export.newInstance(c, ni.getOnlyPortInst(), portname, null, false);
                 if (ex != null) {
                     return node.findPortInst(portname);
                 }
@@ -2119,7 +2115,7 @@ public class ELIB extends LibraryFiles
 		int highY = cellHighY[cellIndex];
 
 		// get the external library
-		Library elib = readExternalLibraryFromFilename(cellLibraryPath[cellIndex], FileType.ELIB, iconParameters);
+		Library elib = readExternalLibraryFromFilename(cellLibraryPath[cellIndex], FileType.ELIB);
 
 		// find this cell in the external library
 		Cell c = elib.findNodeProto(fullCellName);

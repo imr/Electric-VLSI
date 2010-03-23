@@ -45,7 +45,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -156,7 +155,6 @@ public class PLA
 		private boolean outputsOnBottom;
 		private Cell newCell;
         private boolean doItNow; // for regression
-         private IconParameters iconParameters = IconParameters.makeInstance(true);
 
         protected GeneratePLAJob(Library destLib, String cellName, String andFileName, String orFileName,
                                  boolean inputsOnTop, boolean outputsOnBottom, boolean doItNow)
@@ -185,7 +183,7 @@ public class PLA
 			{
 	            // start a job to read the PLA support library
 				URL fileURL = LibFile.getLibFile(libName + ".jelib");
-	    		LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true, iconParameters);
+	    		LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
 			}
 
 			PLA pla = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);

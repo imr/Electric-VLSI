@@ -520,7 +520,6 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		private boolean arcsAutoIncrement, fromRight;
         private Cell cell;
         private DRC.DRCPreferences dp;
-        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
         protected ArrayStuff(Cell c, List<NodeInst> nodeList, List<ArcInst> arcList, List<Export> exportList,
 			int xRepeat, int yRepeat, double xOverlap, double yOverlap, double cX, double cY, boolean arcsAutoIncrement)
@@ -707,8 +706,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					portInstsToExport.add(pi);
 					originalExports.put(pi, pp);
 				}
-				ExportChanges.reExportPorts(cell, portInstsToExport, false, true, true, false, fromRight, 
-                    originalExports, iconParameters);
+				ExportChanges.reExportPorts(cell, portInstsToExport, false, true, true, false, fromRight, originalExports);
 			}
 
 			// rename the replicated objects

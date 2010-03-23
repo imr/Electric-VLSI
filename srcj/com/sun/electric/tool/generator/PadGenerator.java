@@ -150,7 +150,6 @@ public class PadGenerator
 	private HashMap<String,PadExports> exports;		// which ports to export
 	private List<Object> orderedCommands;			// list of orderedCommands to do
 	private boolean coreAllOnOneSide = false;
-    private IconParameters iconParameters = IconParameters.makeInstance(true);
 
     private static class ArrayAlign
 	{
@@ -338,7 +337,7 @@ public class PadGenerator
 				FileType style = FileType.DEFAULTLIB;
 				if (TextUtils.getExtension(fileURL).equals("txt")) style = FileType.READABLEDUMP;
 				if (TextUtils.getExtension(fileURL).equals("elib")) style = FileType.ELIB;
-				cellLib = LibraryFiles.readLibrary(fileURL, null, style, false, iconParameters);
+				cellLib = LibraryFiles.readLibrary(fileURL, null, style, false);
 				if (cellLib == null)
 				{
 					err("cannot read library " + keyWord);

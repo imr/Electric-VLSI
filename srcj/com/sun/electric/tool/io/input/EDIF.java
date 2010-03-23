@@ -1717,7 +1717,7 @@ public class EDIF extends Input
 		String name = plp.name;
 		String exportName = renamedObjects.get(name);
 		if (exportName != null) name = exportName;
-		plp.createdPort = Export.newInstance(curCell, pi, convertParens(name), plp.direction, false, localPrefs.iconParameters);
+		plp.createdPort = Export.newInstance(curCell, pi, convertParens(name), plp.direction, false);
 		if (plp.createdPort == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + name + ">");

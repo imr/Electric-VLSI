@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.sun.electric.tool.generator.flag.scan.ScanChain;
 import com.sun.electric.tool.generator.layout.TechType;
-import com.sun.electric.tool.user.IconParameters;
 
 public class FlagConfig {
 	public TechType.TechTypeEnum techTypeEnum;
@@ -20,6 +19,5 @@ public class FlagConfig {
     public double minM2Len;
     
     public List<ScanChain> chains = new ArrayList<ScanChain>();
-    public IconParameters iconParameters = IconParameters.makeInstance(true);
 
 }

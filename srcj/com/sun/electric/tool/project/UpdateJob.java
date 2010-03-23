@@ -37,7 +37,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.CellChangeJobs;
-import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.io.File;
@@ -57,7 +56,6 @@ public class UpdateJob extends Job
 	private ProjectDB pdb;
 	private DisplayedCells displayedCells;
     private Map<CellId,Cell> newCells = new HashMap<CellId,Cell>();
-    private IconParameters iconParameters = IconParameters.makeInstance(true);
 
     /**
 	 * Method to update the project libraries from the repository.
@@ -220,7 +218,7 @@ public class UpdateJob extends Job
 			pc.getView().getFullName() + "." + pc.getLibExtension();
 		String tempLibName = Project.getTempLibraryName();
 		NetworkTool.setInformationOutput(false);
-		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true, iconParameters);
+		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true);
 		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{

@@ -54,7 +54,6 @@ import com.sun.electric.tool.placement.genetic1.g1.GeneticPlacement;
 import com.sun.electric.tool.placement.genetic2.PlacementGenetic;
 import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing;
 import com.sun.electric.tool.placement.simulatedAnnealing2.PlacementSimulatedAnnealing;
-import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -649,7 +648,7 @@ public class PlacementFrame
 
 		// do the placement from the shadow objects
 		Cell newCell = doPlacement(cell.getLibrary(), cell.noLibDescribe(), nodesToPlace, allNetworks, exportsToPlace,
-            iconToPlace, prefs.iconParameters);
+            iconToPlace);
 		return newCell;
 	}
 
@@ -665,7 +664,7 @@ public class PlacementFrame
 	 * @return the newly created Cell.
 	 */
 	public Cell doPlacement(Library lib, String cellName, List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
-                            List<PlacementExport> exportsToPlace, NodeProto iconToPlace, IconParameters iconParameters)
+                            List<PlacementExport> exportsToPlace, NodeProto iconToPlace)
 	{
         long startTime = System.currentTimeMillis();
         System.out.println("Running placement on cell '" + cellName + "' using the '" + getAlgorithmName() + "' algorithm");
@@ -740,7 +739,7 @@ public class PlacementFrame
 			NodeInst newNI = placedNodes.get(plNode);
 			if (newNI == null) continue;
 			PortInst portToExport = newNI.findPortInstFromProto(plPort.getPortProto());
-			Export.newInstance(newCell, portToExport, exportName, plExport.getCharacteristic(), iconParameters);
+			Export.newInstance(newCell, portToExport, exportName, plExport.getCharacteristic());
 		}
 
 		ImmutableArcInst a = Generic.tech().unrouted_arc.getDefaultInst(newCell.getEditingPreferences());

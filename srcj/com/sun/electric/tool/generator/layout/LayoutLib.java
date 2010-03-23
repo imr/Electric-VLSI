@@ -57,7 +57,6 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.IconParameters;
 
 /*
  * The LayoutLib class provides an assortment of methods that I
@@ -89,9 +88,8 @@ public class LayoutLib {
 		String libName = TextUtils.getFileNameWithoutExtension(libFileURL);
 		Library lib = Library.findLibrary(libName);
 		FileType type = OpenFile.getOpenFileType(libFileName, FileType.DEFAULTLIB);
-        IconParameters iconParameters = IconParameters.makeInstance(true);
         if (lib==null) {
-			lib = LibraryFiles.readLibrary(libFileURL, null, type, false, iconParameters);
+			lib = LibraryFiles.readLibrary(libFileURL, null, type, false);
 		}
 		Job.error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;

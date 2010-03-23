@@ -55,7 +55,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -70,13 +69,11 @@ public class JELIB extends LibraryFiles
 {
     private final FileType fileType;
     private final JelibParser parser;
-    private final IconParameters iconParameters;
 
-    JELIB(LibId libId, URL fileURL, FileType type, IconParameters iconParams) throws IOException
+    JELIB(LibId libId, URL fileURL, FileType type) throws IOException
 	{
         fileType = type;
         parser = JelibParser.parse(libId, fileURL, fileType, false, Input.errorLogger);
-        iconParameters = iconParams;
     }
 
     public static Map<Setting,Object> readProjectSettings(URL fileURL, FileType fileType, TechPool techPool, ErrorLogger errorLogger) {
@@ -162,7 +159,7 @@ public class JELIB extends LibraryFiles
             LibId libId = e.getKey();
             String libFileName = e.getValue();
             if (Library.findLibrary(libId.libName) == null)
-                readExternalLibraryFromFilename(libFileName, fileType, iconParameters);
+                readExternalLibraryFromFilename(libFileName, fileType);
         }
 
         nodeProtoCount = parser.allCells.size();
@@ -531,7 +528,7 @@ public class JELIB extends LibraryFiles
 			return null;
 		}
 		PortInst portPI = portNI.getOnlyPortInst();
-		Export export = Export.newInstance(subCell, portPI, name, null, false, iconParameters);
+		Export export = Export.newInstance(subCell, portPI, name, null, false);
 		if (export == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +

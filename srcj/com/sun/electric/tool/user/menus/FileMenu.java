@@ -519,7 +519,6 @@ public class FileMenu {
         private String cellName; // cell to view once the library is open
         private Library lib;
         private HashSet<Library> newLibs;
-        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
 		public ReadLibrary(URL fileURL, FileType type, String cellName) {
             this(fileURL, type, null, null, null, cellName);
@@ -568,7 +567,7 @@ public class FileMenu {
             for (Iterator<Library> it = getDatabase().getLibraries(); it.hasNext(); )
                 oldLibs.add(it.next());
             Map<Setting,Object> projectSettings = new HashMap<Setting,Object>();
-            lib = LibraryFiles.readLibrary(fileURL, null, type, false, projectSettings, iconParameters);
+            lib = LibraryFiles.readLibrary(fileURL, null, type, false, projectSettings);
             for (Map.Entry<Setting,Object> e: getDatabase().getSettings().entrySet()) {
                 Setting setting = e.getKey();
                 Object oldVal = e.getValue();

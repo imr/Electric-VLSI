@@ -2039,7 +2039,7 @@ public class ToolMenu
 			// read standard cell library
 			System.out.println("Reading Standard Cell Library '" + SilComp.SCLIBNAME + "'");
 			URL fileURL = LibFile.getLibFile(SilComp.SCLIBNAME + ".jelib");
-			LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true, null);
+			LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true);
             return true;
         }
 

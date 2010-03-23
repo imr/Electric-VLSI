@@ -671,7 +671,7 @@ public class FlagDesign {
 		for (Iterator<NodeInst> it = c.getNodes(); it.hasNext(); ) {
 			allNodes.add(it.next());
 		}
-		int num = ExportChanges.reExportNodes(c, allNodes, false, true, true, true, true, config.iconParameters);
+		int num = ExportChanges.reExportNodes(c, allNodes, false, true, true, true, true);
 	}
 	protected void reexportSignals(LayoutNetlist layNets) {
 		Cell layCell = layNets.getLayoutCell();

@@ -28,7 +28,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.ExportChanges;
-import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.routing.*;
 import com.sun.electric.tool.routing.AutoStitch.AutoOptions;
@@ -65,7 +64,6 @@ public class StitchFillJob extends Job
     private List<Cell> generatedCells = new ArrayList<Cell>();
     private boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption
     private List<String> globalLayersWithExports = new ArrayList<String>();   // global definition of layers with exports
-    private IconParameters iconParameters = IconParameters.makeInstance(true);
 
 //    private static final boolean doFill = false;
 
@@ -372,14 +370,14 @@ public class StitchFillJob extends Job
                                  boolean wideOption, List<String> layersWithExports, StitchFillJob job)
     {
         // Re-exporting
-        ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true, true, job.iconParameters);
+        ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true, true);
 //        if (!doFill) return;
 
         // Flatting subcells
         new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true, true);
         
         // generation of master fill
-        generateFill(newCell, wideOption, job.evenHorizontal, layersWithExports, job.iconParameters);
+        generateFill(newCell, wideOption, job.evenHorizontal, layersWithExports);
 
         // tiles generation. Flat generation for now
         generateTiles(newCell, fillCellName, tileList, job);
@@ -448,8 +446,7 @@ public class StitchFillJob extends Job
      * @param evenHor
      * @return True if auto-stitch ran without errors
      */
-    private static boolean generateFill(Cell theCell, boolean wideOption, boolean evenHor, List<String> exportNames,
-                                        IconParameters iconParameters)
+    private static boolean generateFill(Cell theCell, boolean wideOption, boolean evenHor, List<String> exportNames)
     {
         EditingPreferences ep = theCell.getEditingPreferences();
         InteractiveRouter router  = new SimpleWirer(ep.isFatWires());
@@ -901,8 +898,7 @@ public class StitchFillJob extends Job
                 for (PinsArcPair pair : pairs)
                 {
                     SplitContainter split = splitArcAtPoint(pair.topArc, pair.insert);
-                    Export.newInstance(theCell, split.splitPin.getPortInst(0), e.getKey(),
-                        PortCharacteristic.UNKNOWN, iconParameters);
+                    Export.newInstance(theCell, split.splitPin.getPortInst(0), e.getKey(), PortCharacteristic.UNKNOWN);
                 }
             }
         }

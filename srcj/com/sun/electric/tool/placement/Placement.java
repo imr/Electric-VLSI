@@ -30,7 +30,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.io.Serializable;
@@ -124,7 +123,6 @@ public class Placement extends Tool
 	public static class PlacementPreferences implements Serializable
     {
 		public String placementAlgorithm;
-        public IconParameters iconParameters = IconParameters.makeInstance(false);
 
         public PlacementPreferences(boolean factory)
 		{
@@ -132,8 +130,8 @@ public class Placement extends Tool
 			{
 				placementAlgorithm = getFactoryAlgorithmName();
 			}
-            else
-                iconParameters.initFromUserDefaults();
+//            else
+//                iconParameters.initFromUserDefaults();
         }
 
 		public void getOptionsFromPreferences()

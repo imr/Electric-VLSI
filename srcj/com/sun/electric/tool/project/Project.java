@@ -547,8 +547,7 @@ public class Project extends Listener
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
 		NetworkTool.setInformationOutput(false);
-        IconParameters iconParameters = IconParameters.makeInstance(false);
-		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true, iconParameters);
+		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true);
 		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
