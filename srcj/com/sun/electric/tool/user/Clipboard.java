@@ -485,6 +485,9 @@ public class Clipboard //implements ClipboardOwner
 		private Dimension2D alignment;
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
+        private boolean isDupCopiesExports = User.isDupCopiesExports();
+        private boolean isIncrementRightmostIndex = User.isIncrementRightmostIndex();
+        private boolean isArcsAutoIncremented = User.isArcsAutoIncremented();
 
 		protected CopyObjects(List<Geometric> highlightedGeoms, List<DisplayedText> highlightedText,
 			Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient)
@@ -504,7 +507,8 @@ public class Clipboard //implements ClipboardOwner
 			clear();
 
 			// copy objects to clipboard
-			copyListToClipboard(highlightedGeoms, highlightedText, alignment, inPlace, inPlaceOrient);
+			copyListToClipboard(highlightedGeoms, highlightedText, alignment, inPlace, inPlaceOrient,
+                    isDupCopiesExports, isIncrementRightmostIndex, isArcsAutoIncremented);
 			return true;
 		}
 	}
@@ -519,6 +523,9 @@ public class Clipboard //implements ClipboardOwner
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
 		private List<Geometric> thingsToHighlight;
+        private boolean isDupCopiesExports = User.isDupCopiesExports();
+        private boolean isIncrementRightmostIndex = User.isIncrementRightmostIndex();
+        private boolean isArcsAutoIncremented = User.isArcsAutoIncremented();
 
 		protected CutObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, Dimension2D alignment,
 			boolean reconstructArcsAndExports, AffineTransform inPlace, Orientation inPlaceOrient)
@@ -552,7 +559,8 @@ public class Clipboard //implements ClipboardOwner
 			}
 
 			// copy objects to clipboard
-			copyListToClipboard(geomList, textList,	alignment, inPlace, inPlaceOrient);
+			copyListToClipboard(geomList, textList,	alignment, inPlace, inPlaceOrient,
+                    isDupCopiesExports, isIncrementRightmostIndex, isArcsAutoIncremented);
 
 			// and delete the original objects
 			Set<ElectricObject> stuffToHighlight = new HashSet<ElectricObject>();
@@ -911,10 +919,11 @@ public class Clipboard //implements ClipboardOwner
 	 * @param inPlaceOrient
 	 */
 	public static void copyListToClipboard(List<Geometric> geomList, List<DisplayedText> textList,
-                                           Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient)
+                                           Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient,
+                                           boolean isDupCopiesExports, boolean isIncrementRightmostIndex, boolean isArcsAutoIncremented)
     {
         copyListToCell(getClipCell(), geomList, textList, null, null, new Point2D.Double(),
-				User.isDupCopiesExports(), User.isIncrementRightmostIndex(), User.isArcsAutoIncremented(), false,
+				isDupCopiesExports, isIncrementRightmostIndex, isArcsAutoIncremented, false,
 				alignment, inPlace, inPlaceOrient);
 	}
 
