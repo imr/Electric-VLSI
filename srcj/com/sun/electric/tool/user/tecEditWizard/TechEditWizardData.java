@@ -434,6 +434,13 @@ public class TechEditWizardData
 	{
 		stepsize = 100;
         num_metal_layers = 2;
+        allocateVariables();
+    }
+    
+    private void allocateVariables()
+    {
+    	// Garbage collector will deal with previouly allocated variables.
+    	// Not worth it to clear them
 		metal_width = new WizardField[num_metal_layers];
 		metal_spacing = new WizardField[num_metal_layers];
 		via_size = new WizardField[num_metal_layers-1];
@@ -750,6 +757,9 @@ public class TechEditWizardData
     {
         URL url = TextUtils.makeURLToFile(fileName);
 
+        // clean containers before reading the next txt file
+        allocateVariables();
+        
         try
 		{
 			URLConnection urlCon = url.openConnection();

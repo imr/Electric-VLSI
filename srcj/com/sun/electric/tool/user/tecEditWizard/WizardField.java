@@ -39,14 +39,9 @@ public class WizardField extends WizardFieldBasic
 {
     public String name; // mostly layer name
 
-    public WizardField(String n)
-    {
-//        super();
-        name = n;
-    }
+    public WizardField(String n) { name = n; }
     public WizardField() { rule = ""; }
-
-    public WizardField(double v, String r) { this.value = v;   rule = r; }
+    public WizardField(double v, String r) { value = v; rule = r; }
 }
 
 /**
