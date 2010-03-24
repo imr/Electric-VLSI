@@ -11,7 +11,6 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.plugins.tsmc.TechTypeCMOS90;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;

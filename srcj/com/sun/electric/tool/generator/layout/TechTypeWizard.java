@@ -24,7 +24,10 @@
 package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
+
+import java.util.Iterator;
 
 /**
  * The TechType class holds technology dependent information for the layout
@@ -33,15 +36,36 @@ import com.sun.electric.technology.Technology;
  */
 public class TechTypeWizard extends TechType {
 
+    private final ArcProto pdiff, ndiff, ndiff18, pdiff18, ndiff25, pdiff25, ndiff33, pdiff33;
+
+
     public TechTypeWizard(Technology tech) {
-        super(tech, null);
+        super(tech, findLayers(tech));
+
+        pdiff = tech.findArcProto("P-Active");
+        ndiff = tech.findArcProto("N-Active");
+        ndiff18 = tech.findArcProto("thick-OD18-N-Active");
+        pdiff18 = tech.findArcProto("thick-OD18-P-Active");
+        ndiff25 = tech.findArcProto("thick-OD25-N-Active");
+        pdiff25 = tech.findArcProto("thick-OD25-P-Active");
+        ndiff33 = tech.findArcProto("thick-OD33-N-Active");
+        pdiff33 = tech.findArcProto("thick-OD33-P-Active");
     }
 
     public int getNumMetals() {
-        throw new UnsupportedOperationException();
+        return getTechnology().getNumMetals();
     }
 
-    /** round to avoid MOCMOS CIF resolution errors */
+    public ArcProto pdiff() {return pdiff;}
+    public ArcProto ndiff() {return ndiff;}
+    public ArcProto ndiff18() {return ndiff18;}
+    public ArcProto pdiff18() {return pdiff18;}
+    public ArcProto ndiff25() {return ndiff25;}
+    public ArcProto pdiff25() {return pdiff25;}
+    public ArcProto ndiff33() {return ndiff33;}
+    public ArcProto pdiff33() {return pdiff33;}
+
+     /** round to avoid MOCMOS CIF resolution errors */
     public double roundToGrid(double x) {
         throw new UnsupportedOperationException();
     }
@@ -55,10 +79,51 @@ public class TechTypeWizard extends TechType {
     }
 
     public String name() {
-        throw new UnsupportedOperationException();
+        return getTechnology().getTechName();
     }
 
     public double reservedToLambda(int layer, double nbTracks) {
         throw new UnsupportedOperationException();
+    }
+
+    private static String[] findLayers(Technology tech) {
+        String[] arcNames = new String[tech.getNumMetals() + 1];
+        for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+            ArcProto ap = it.next();
+            ArcProto.Function fun = ap.getFunction();
+            if (fun == ArcProto.Function.POLY1) {
+                if (arcNames[0] != null) {
+                    throw new IllegalArgumentException("Duplicate Poly arc");
+                }
+                arcNames[0] = ap.getName();
+            } else if (fun.isMetal()) {
+                int level = fun.getLevel();
+                if (level <= 0 || level > tech.getNumMetals())
+                    continue;
+                if (level == 0 || arcNames[level] != null) {
+                    throw new IllegalArgumentException("Duplicate Metal-"+(level+1)+" arc");
+                }
+                arcNames[level] = ap.getName();
+            }
+        }
+
+        for (String n: arcNames) {
+            System.out.println(n);
+        }
+        return arcNames;
+    }
+
+    private static ArcProto findArc(Technology tech, ArcProto.Function fun) {
+        ArcProto found = null;
+        for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+            ArcProto ap = it.next();
+            if (ap.getFunction() != fun) continue;
+            if (found != null) {
+                throw new IllegalArgumentException("Duplicate arc "+fun);
+            } else {
+                found = ap;
+            }
+        }
+        return found;
     }
 }
