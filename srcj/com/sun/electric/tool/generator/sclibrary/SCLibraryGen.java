@@ -99,9 +99,10 @@ public class SCLibraryGen {
     /**
      * Generates the standard cell library
      * @param sc standard cell parameters
+     * @param libraryName destination library name
      * @return false on error, true otherwise
      */
-    public boolean generate(StdCellParams sc) {
+    public boolean generate(StdCellParams sc, String libraryName) {
         // check for red and purple libraries
         purpleLibrary = Library.findLibrary(purpleLibraryName);
         if (purpleLibrary == null) {
@@ -115,10 +116,7 @@ public class SCLibraryGen {
         }
         prMsg("Using purple library \""+purpleLibraryName+"\" and red library \""+redLibraryName+"\"");
 
-        if (sc.getTechType() == TechType.TechTypeEnum.TSMC180.getTechType())
-            scLibraryName = "sclibTSMC180";
-        else if (sc.getTechType() == TechType.TechTypeEnum.CMOS90.getTechType())
-            scLibraryName = "sclibCMOS90";
+        scLibraryName = libraryName;
         scLibrary = Library.findLibrary(scLibraryName);
         if (scLibrary == null) {
             scLibrary = Library.newInstance(scLibraryName, null);

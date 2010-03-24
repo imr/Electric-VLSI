@@ -6,8 +6,7 @@ import java.util.List;
 import com.sun.electric.tool.generator.flag.scan.ScanChain;
 import com.sun.electric.tool.generator.layout.TechType;
 
-public class FlagConfig {
-	public TechType.TechTypeEnum techTypeEnum;
+public abstract class FlagConfig {
     public double m2PwrGndWid;
     public double m3PwrGndWid;
     public double m3PwrGndPitch;
@@ -20,7 +19,5 @@ public class FlagConfig {
     
     public List<ScanChain> chains = new ArrayList<ScanChain>();
 
-    public TechType tech() {
-        return techTypeEnum.getTechType();
-    }
+    public abstract TechType tech();
 }

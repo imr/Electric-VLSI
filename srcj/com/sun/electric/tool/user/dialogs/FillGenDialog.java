@@ -699,27 +699,11 @@ public class FillGenDialog extends EDialog {
             for (int i = 0; i < items.size(); i++)
                 cells[i] = items.get(i).intValue();
         }
-        TechType.TechTypeEnum techNm = TechType.TechTypeEnum.CMOS90; // putting one possible value
-
-        if (tech == Technology.getMocmosTechnology())
-        {
-            techNm = TechType.TechTypeEnum.MOCMOS;
-        }
-        else if (tech == Technology.getTSMC180Technology())
-        {
-            techNm = TechType.TechTypeEnum.TSMC180;
-        }
-        else if (tech == Technology.getCMOS90Technology())
-        {
-            techNm = TechType.TechTypeEnum.CMOS90;
-        }
-        else
-            assert(false); // it should not reach this point
 
         // testing new code
         boolean withWidth = false;
         // Width and Height are either the w/h of the template to create or the size of the cell to fill
-        FillGenConfig config = new FillGenConfig(techNm, type, "autoFillLib",
+        FillGenConfig config = new FillGenConfig(tech, type, "autoFillLib",
                 FillGeneratorTool.PERIMETER, firstMetal, lastMetal, width, height,
                 even, cells, hierarchy, 0.1, drcSpacingRule, binary,
                 useMaster, around, gap, genType, level);

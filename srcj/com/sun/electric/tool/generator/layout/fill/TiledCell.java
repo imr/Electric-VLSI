@@ -88,8 +88,7 @@ public class TiledCell {
     {
         String tiledName = "t"+cell.getName()+"_"+numX+"x"+numY+"{lay}";
         tileCell = Cell.newInstance(lib, tiledName);
-        TechType.TechTypeEnum tech = TechType.TechTypeEnum.getTechTypeEnumFromTechnology(cell.getTechnology());
-        config = new FillGenConfig(tech);
+        config = new FillGenConfig(cell.getTechnology());
 
         Rectangle2D bounds = cell.findEssentialBounds();
         ERectangle r = cell.getBounds();

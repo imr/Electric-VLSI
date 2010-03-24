@@ -21,7 +21,7 @@ public class Scan {
 	private static void prln(String s) {Utils.prln(s);}
 	private static void error(boolean cond, String msg) {Utils.error(cond, msg);}
 	
-	private TechType tech() {return config.techTypeEnum.getTechType();}
+	private TechType tech() {return config.tech();}
 
 	private boolean vertOrHorizAligned(PortInst p1, PortInst p2) {
 		double x1 = p1.getCenter().getX();

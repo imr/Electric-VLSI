@@ -43,7 +43,7 @@ public class Gallery {
 	static final double VERTICAL_SPACE = 30;
 	static final double TEXT_OFFSET_BELOW_CELL = 10;
 	private PrimitiveNode textPin;
-	private StdCellParams stdCell;
+//	private StdCellParams stdCell;
 	private Library lib;
 
 	private static void error(boolean pred, String msg) {
@@ -163,8 +163,8 @@ public class Gallery {
 		error(generic == null, "No generic technology?");
 		textPin = generic.findNodeProto("Invisible-Pin");
 
-		stdCell = new StdCellParams(TechType.TechTypeEnum.MOCMOS);
-        stdCell.setOutputLibrary(lib);
+//		stdCell = new StdCellParams(TechType.TechTypeEnum.MOCMOS);
+//        stdCell.setOutputLibrary(lib);
     }
 
 	Cell makeGallery1() {

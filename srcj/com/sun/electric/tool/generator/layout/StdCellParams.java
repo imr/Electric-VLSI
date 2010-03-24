@@ -164,6 +164,7 @@ public class StdCellParams {
 	private PortCharacteristic vddExportRole = PortCharacteristic.PWR;
 	private PortCharacteristic gndExportRole = PortCharacteristic.GND;
 	private TechType tech;
+    private boolean is90nm;
 
     // ------------------------ private methods -----------------------------
 
@@ -237,6 +238,7 @@ public class StdCellParams {
         drcRingSpace = 0;
         wellConSelectHeight = 8.4;
         wellConSelectOffset = 0;
+        is90nm = true;
     }
 
     /** Initialize Tracks after setting up parameters */
@@ -267,7 +269,7 @@ public class StdCellParams {
 		}
 	}
 	private boolean is90nm() {
-		return tech.getEnum()==TechType.TechTypeEnum.CMOS90;
+		return is90nm;
 	}
 
 	// create a list of tracks that don't overlap vdd or gnd
@@ -614,13 +616,20 @@ public class StdCellParams {
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
-	public StdCellParams(TechType.TechTypeEnum techEnum) {
-        if      (techEnum == TechType.TechTypeEnum.CMOS90) initCMOS90();
-        else if (techEnum == TechType.TechTypeEnum.MOCMOS || techEnum == TechType.TechTypeEnum.TSMC180) initMoCMOS();
-        else {
-            error(true, "Standard Cell Params does not understand technology "+techEnum);
+    public StdCellParams(Technology tech) {
+        String techName = tech.getTechName();
+        if (techName.equals("mocmos") && tech == Technology.getMocmosTechnology()) {
+            initMoCMOS();
+            this.tech = TechType.getMOCMOS();
+        } else if (techName.equals("tsmc180") && tech == Technology.getTSMC180Technology()) {
+            initMoCMOS();
+            this.tech = TechType.getTSMC180();
+        } else if (techName.equals("cmos90") && tech == Technology.getCMOS90Technology()) {
+            initCMOS90();
+            this.tech = TechType.getCMOS90();
+        } else {
+            error(true, "Standard Cell Params does not understand technology "+tech);
         }
-        this.tech = techEnum.getTechType();
     }
 
     void setOutputLibrary(Library lib) {

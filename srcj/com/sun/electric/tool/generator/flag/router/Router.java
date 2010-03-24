@@ -61,7 +61,7 @@ public class Router {
 	private final FlagConfig config;
 	private final Scan scan;
 
-	private TechType tech() {return config.techTypeEnum.getTechType();}
+	private TechType tech() {return config.tech();}
 	
 	private void prln(String s) {Utils.prln(s);}
 	private void pr(String s) {Utils.pr(s);}

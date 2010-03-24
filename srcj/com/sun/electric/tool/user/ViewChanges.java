@@ -1210,25 +1210,16 @@ public class ViewChanges
 				this.createdCells = createdCells;
 				this.newLib = newLib;
 				convertedCells = new HashMap<Cell,Cell>();
-                TechType.TechTypeEnum type = null;
 
 				// TODO This code "steals" the intended functionality and diverts it into the gate generator
 				if (oldTech == Schematics.tech())
 				{
 					stdCell = null;
-					if      (newTech == Technology.getMocmosTechnology()) type = TechType.TechTypeEnum.MOCMOS;
-					else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TechTypeEnum.TSMC180;
-					else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.TechTypeEnum.CMOS90;
-					if (type != null)
-					{
-						if (type == TechType.TechTypeEnum.CMOS90)
-						{
-							stdCell = GateLayoutGenerator.sportParams(false);
-						} else
-						{
-							stdCell = GateLayoutGenerator.dividerParams(type, false);
-						}
-					}
+                    if (newTech == Technology.getCMOS90Technology()) {
+                        stdCell = GateLayoutGenerator.sportParams(false);
+                    } else {
+                        stdCell = GateLayoutGenerator.dividerParams(newTech, false);
+                    }
 				}
 			}
 

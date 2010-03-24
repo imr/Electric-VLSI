@@ -41,7 +41,7 @@ public class FlagDesign {
 	private final Router router;
 	private final SogRouterAdapter sogRouterAdapter;
 
-	public TechType tech() {return config.techTypeEnum.getTechType();}
+	public TechType tech() {return config.tech();}
     
 	
 //	public static Rectangle2D findColBounds(Collection<NodeInst> stages) {

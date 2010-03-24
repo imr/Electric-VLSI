@@ -35,7 +35,7 @@ import com.sun.electric.tool.generator.layout.TechType;
 
 public class FillGenConfig implements Serializable
 {
-    private TechType.TechTypeEnum techType = null;
+    private TechType techType = null;
     public FillGeneratorTool.FillTypeEnum fillType = FillGeneratorTool.FillTypeEnum.INVALID;
     public String fillLibName;
     List<ReserveConfig> reserves = new ArrayList<ReserveConfig>();
@@ -72,9 +72,9 @@ public class FillGenConfig implements Serializable
         }
     }
 
-    public FillGenConfig(TechType.TechTypeEnum tech) { techType = tech; }
+    public FillGenConfig(Technology tech) { techType = TechType.getTechType(tech); }
 
-    public FillGenConfig(TechType.TechTypeEnum tech, FillGeneratorTool.FillTypeEnum type, String lib,
+    public FillGenConfig(Technology tech, FillGeneratorTool.FillTypeEnum type, String lib,
                          ExportConfig perim, int first, int last, double w, double h, boolean even,
                          int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
                          boolean binary, boolean useMaster, boolean onlyAround, double gap, FillGenType genType,
@@ -91,7 +91,7 @@ public class FillGenConfig implements Serializable
         this.evenLayersHorizontal = even;
         this.useMaster = useMaster;
 
-        techType = tech;
+        techType = TechType.getTechType(tech);
 
         this.fillLibName = lib;
         this.perim = perim;
@@ -103,9 +103,10 @@ public class FillGenConfig implements Serializable
         this.level = level;
     }
 
-    public TechType getTechType() { return techType.getTechType(); }
-    public boolean is180Tech() { return techType == TechType.TechTypeEnum.MOCMOS || 
-        techType == TechType.TechTypeEnum.TSMC180; }
+    public TechType getTechType() { return techType; }
+//    public boolean is180Tech() {
+//        return techType == TechType.TechTypeEnum.MOCMOS ||
+//        techType == TechType.TechTypeEnum.TSMC180; }
 
     public void setTargetValues(double targetW, double targetH, double sx, double sy)
     {

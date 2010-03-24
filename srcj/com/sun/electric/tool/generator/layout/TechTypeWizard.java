@@ -34,7 +34,7 @@ import com.sun.electric.technology.Technology;
 public class TechTypeWizard extends TechType {
 
     public TechTypeWizard(Technology tech) {
-        super(tech, null, null);
+        super(tech, null);
     }
 
     public int getNumMetals() {

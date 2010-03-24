@@ -11,6 +11,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.plugins.tsmc.TechTypeCMOS90;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -52,7 +53,6 @@ public abstract class TechType implements Serializable {
 
     private final Technology generic = Technology.findTechnology("generic");
     private final Technology technology;
-    private final TechTypeEnum techEnum;
     private final PrimitiveNode essentialBounds =
         generic.findNodeProto("Essential-Bounds");
     private final PrimitiveNode facetCenter =
@@ -192,7 +192,7 @@ public abstract class TechType implements Serializable {
         putViaMap(p1, m1, p1m1);
     }
 
-    protected TechType(Technology techy, TechTypeEnum techEnum, String[] layerNms) {
+    protected TechType(Technology techy, String[] layerNms) {
         // This error could happen when there are XML errors while uploading the technologies.
         error((techy==null), "Null technology in TechType constructor");
         
@@ -200,7 +200,6 @@ public abstract class TechType implements Serializable {
         // final.
         nbLay = layerNms.length;
         technology = techy;
-        this.techEnum = techEnum;
 
         //--------------------------- initialize layers -----------------------
         layers = new ArcProto[nbLay];
@@ -378,83 +377,64 @@ public abstract class TechType implements Serializable {
 
     //------------------------------ public data ------------------------------
 
-    /** These are the Electric technologies understood by the gate layout
-     * generators */
-    public static enum TechTypeEnum {MOCMOS, TSMC180, CMOS90;
-        private TechType type;
-        public TechType getTechType()
-        {
-            loadTechType();
-            return type;
-        }
-        private void loadTechType()
-        {
-            if (type != null) return; // loaded
-            if (this == TechTypeEnum.MOCMOS)
-                type = new TechTypeMoCMOS(this);
-            else if (this == TechTypeEnum.TSMC180)
-                type = getTechTypeTSMC180(this);
-            else if (this == TechTypeEnum.CMOS90)
-                type = getTechTypeCMOS90(this);
-            else {
-                System.out.println("Invalid TechTypeEnum");
-                assert(false);
-            }
-        }
-
-        public static TechTypeEnum getTechTypeEnumFromTechnology(Technology tech)
-        {
-            for (TechTypeEnum t : TechTypeEnum.values())
-            {
-                // not loaded yet
-                if (t.type == null)
-                    t.loadTechType();
-                if (t.type.getTechnology() == tech)
-                    return t;
-            }
-            return null;
+    public static TechType getTechType(Technology technology) {
+        if (technology == Technology.getMocmosTechnology()) {
+            return getMOCMOS();
+        } else if (technology == Technology.getTSMC180Technology()) {
+            return getTSMC180();
+        } else if (technology == Technology.getCMOS90Technology()) {
+            return getCMOS90();
+        } else {
+            System.out.println("Invalid TechTypeEnum");
+            throw new AssertionError();
         }
     }
 
-    private static TechType getTechTypeTSMC180(TechTypeEnum techEnum)
-    {
-        TechType tsmc180 = null;
-        try
-        {
-            Class tsmc180Class = Class.forName("com.sun.electric.plugins.tsmc.TechTypeTSMC180");
-            Constructor<TechType> techConstr = tsmc180Class.getConstructor(TechTypeEnum.class);
-            tsmc180 = techConstr.newInstance(techEnum);
-//            java.lang.reflect.Field techField = tsmc180Class.getDeclaredField("TSMC180");
-//            tsmc180 = (TechType) techField.get(null);
-         } catch (Exception e)
-        {
-            assert(false); // runtime error
+    private static TechType techTypeMoCMOS;
+
+    public static TechType getMOCMOS() {
+        if (techTypeMoCMOS == null) {
+            techTypeMoCMOS = new TechTypeMoCMOS();
         }
-         return tsmc180;
+        return techTypeMoCMOS;
     }
 
-    private static TechType getTechTypeCMOS90(TechTypeEnum techEnum)
-    {
-        TechType cmos90 = null;
-        try
-		{
-			Class cmos90Class = Class.forName("com.sun.electric.plugins.tsmc.TechTypeCMOS90");
-            Constructor<TechType> techConstr = cmos90Class.getConstructor(TechTypeEnum.class);
-            cmos90 = techConstr.newInstance(techEnum);
-//			java.lang.reflect.Field techField = cmos90Class.getDeclaredField("CMOS90");
-//			cmos90 = (TechType) techField.get(null);
-         } catch (Exception e)
-        {
-            assert(false); // runtime error
+    private static TechType techTypeTSMC180;
+
+    public static TechType getTSMC180() {
+        if (techTypeTSMC180 == null) {
+            try {
+                Class tsmc180Class = Class.forName("com.sun.electric.plugins.tsmc.TechTypeTSMC180");
+                Constructor<TechType> techConstr = tsmc180Class.getConstructor();
+                techTypeTSMC180 = techConstr.newInstance();
+            } catch (Exception e) {
+                assert (false); // runtime error
+            }
         }
- 		return cmos90;
+        return techTypeTSMC180;
+    }
+
+    private static TechType techTypeCMOS90;
+
+    public static TechType getCMOS90() {
+        if (techTypeCMOS90 == null) {
+            try {
+                Class cmos90Class = Class.forName("com.sun.electric.plugins.tsmc.TechTypeCMOS90");
+                Constructor<TechType> techConstr = cmos90Class.getConstructor();
+                techTypeCMOS90 = techConstr.newInstance();
+    //			java.lang.reflect.Field techField = cmos90Class.getDeclaredField("CMOS90");
+    //			cmos90 = (TechType) techField.get(null);
+            } catch (Exception e) {
+                assert (false); // runtime error
+            }
+        }
+        return techTypeCMOS90;
     }
 
     //----------------------------- public methods ----------------------------
 
     public abstract int getNumMetals();
     public Technology getTechnology() {return technology;}
-    public TechTypeEnum getEnum() {return techEnum; }
 
     /** layers */
     public ArcProto pdiff() {return pdiff;}

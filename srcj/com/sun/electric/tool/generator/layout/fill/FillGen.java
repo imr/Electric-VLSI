@@ -1,6 +1,6 @@
 package com.sun.electric.tool.generator.layout.fill;
 
-import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.generator.layout.fill.FillGenConfig.FillGenType;
 import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool.Units;
 import com.sun.electric.tool.JobException;
@@ -33,7 +33,7 @@ public class FillGen {
 				                   layer, vddReserved, vddUnits, 
 				                   gndReserved, gndUnits);
 	}
-	public FillGen(TechType.TechTypeEnum tech) {
+	public FillGen(Technology tech) {
 		config = new FillGenConfig(tech, FillGeneratorTool.FillTypeEnum.INVALID,
             null, null, -1, -1,
 				                   Double.NaN, Double.NaN, 

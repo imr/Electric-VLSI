@@ -15,8 +15,8 @@ public class TechTypeMoCMOS extends TechType {
 		Job.error(pred, msg);
 	}
 	
-	public TechTypeMoCMOS(TechTypeEnum techEnum) {
-		super(Technology.getMocmosTechnology(), techEnum, LAYER_NAMES);
+	public TechTypeMoCMOS() {
+		super(Technology.getMocmosTechnology(), LAYER_NAMES);
 		
         // Make sure that not more than one instance of this class gets created
         if (singletonCreated) 

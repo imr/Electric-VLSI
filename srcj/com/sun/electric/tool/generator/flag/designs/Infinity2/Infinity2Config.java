@@ -6,7 +6,6 @@ import com.sun.electric.tool.generator.layout.TechType;
 
 public class Infinity2Config extends FlagConfig {
 	private Infinity2Config() {
-		techTypeEnum = TechType.TechTypeEnum.CMOS90;
 	    m2PwrGndWid = 9;
 	    m3PwrGndWid = 21;
 	    m3PwrGndPitch = 132;
@@ -20,6 +19,11 @@ public class Infinity2Config extends FlagConfig {
 		chains.add(new ScanChain("sid[1:9]", "sod[1:9]", ""));
 		chains.add(new ScanChain("sic[1:9]", "soc[1:9]", ""));
 		chains.add(new ScanChain("sir[1:9]", "sor[1:9]", ""));
+
 	}
+    public TechType tech() {
+        return TechType.getCMOS90();
+    }
+    
 	public static Infinity2Config CONFIG = new Infinity2Config();
 }

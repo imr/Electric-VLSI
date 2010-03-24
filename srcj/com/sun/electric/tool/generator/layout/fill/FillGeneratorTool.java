@@ -31,6 +31,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -737,13 +738,13 @@ public class FillGeneratorTool extends Tool {
         lib = LayoutLib.openLibForWrite(config.fillLibName);
         if (!metalFlex) // don't do transistors
         {
-            if (config.is180Tech())
+            if (config.getTechType().getTechnology() == Technology.getCMOS90Technology())
             {
-                capCell = new CapCellMosis(lib, (CapFloorplan) plans[1], config.getTechType());
+                capCell = getCMOS90CapCell(lib, (CapFloorplan) plans[1]);
             }
             else
             {
-                capCell = getCMOS90CapCell(lib, (CapFloorplan) plans[1]);
+                capCell = new CapCellMosis(lib, (CapFloorplan) plans[1], config.getTechType());
             }
         }
         libInitialized = true;

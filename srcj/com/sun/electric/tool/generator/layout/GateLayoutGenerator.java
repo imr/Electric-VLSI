@@ -79,7 +79,7 @@ public class GateLayoutGenerator {
         if (pwr!=-1) type = type.substring(0, pwr);
 
         Cell c = null;
-        if (tech.getEnum()==TechType.TechTypeEnum.CMOS90)
+        if (tech.getTechnology()==Technology.getCMOS90Technology())
         {
             try
             {
@@ -130,13 +130,13 @@ public class GateLayoutGenerator {
         return result;
 	}
 
-    public static void generateFromSchematicsJob(TechType.TechTypeEnum type) {
-        GenerateFromSchematicsJob job = new GenerateFromSchematicsJob(type);
+    public static void generateFromSchematicsJob(Technology technology) {
+        GenerateFromSchematicsJob job = new GenerateFromSchematicsJob(technology);
         job.startJob();
     }
 
     public static StdCellParams locoParams() {
-		StdCellParams stdCell = new StdCellParams(TechType.TechTypeEnum.MOCMOS);
+		StdCellParams stdCell = new StdCellParams(Technology.getMocmosTechnology());
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
@@ -153,7 +153,7 @@ public class GateLayoutGenerator {
     }
 
     public static StdCellParams sportParams(boolean enableNCC) {
-        StdCellParams stdCell = new StdCellParams(TechType.TechTypeEnum.CMOS90);
+        StdCellParams stdCell = new StdCellParams(Technology.getCMOS90Technology());
         if (enableNCC) stdCell.enableNCC("purpleFour");
         stdCell.setSizeQuantizationError(0);
         stdCell.setMaxMosWidth(1000);
@@ -165,11 +165,11 @@ public class GateLayoutGenerator {
         return stdCell;
     }
 
-    public static StdCellParams dividerParams(TechType.TechTypeEnum technology) {
+    public static StdCellParams dividerParams(Technology technology) {
         return dividerParams(technology, true);
     }
 
-	public static StdCellParams dividerParams(TechType.TechTypeEnum technology, boolean enableNCC) {
+	public static StdCellParams dividerParams(Technology technology, boolean enableNCC) {
 		StdCellParams stdCell = new StdCellParams(technology);
         if (enableNCC) stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
@@ -182,7 +182,7 @@ public class GateLayoutGenerator {
 		return stdCell;
 	}
 
-    public static StdCellParams fastProxParams(TechType.TechTypeEnum technology) {
+    public static StdCellParams fastProxParams(Technology technology) {
         StdCellParams stdCell = new StdCellParams(technology);
         stdCell.enableNCC("purpleFour");
         stdCell.setSizeQuantizationError(0);
@@ -197,7 +197,7 @@ public class GateLayoutGenerator {
         return stdCell;
     }
 
-	public static StdCellParams justinParams(TechType.TechTypeEnum technology) {
+	public static StdCellParams justinParams(Technology technology) {
 		StdCellParams stdCell = new StdCellParams(technology);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
@@ -215,14 +215,14 @@ public class GateLayoutGenerator {
     public static class GenerateFromSchematicsJob extends Job {
     	static final long serialVersionUID = 0; 
 
-        private TechType.TechTypeEnum technology;
+        private Technology technology;
         private Cell cell;
         private VarContext context;
 
-        public GenerateFromSchematicsJob(TechType.TechTypeEnum techNm) {
+        public GenerateFromSchematicsJob(Technology technology) {
             super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE,
                   null, null, Job.Priority.ANALYSIS);
-            this.technology = techNm;
+            this.technology = technology;
 
             UserInterface ui = Job.getUserInterface();
             EditWindow_ wnd = ui.needCurrentEditWindow_();
@@ -239,7 +239,7 @@ public class GateLayoutGenerator {
 
             StdCellParams stdCell;
             Technology cmos90 = Technology.getCMOS90Technology();
-            if (cmos90 != null && technology == TechType.TechTypeEnum.CMOS90) {
+            if (cmos90 != null && technology == cmos90) {
                 stdCell = sportParams();
             } else {
                 //stdCell = locoParams(outLib);
