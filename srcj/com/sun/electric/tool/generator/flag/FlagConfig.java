@@ -20,4 +20,7 @@ public class FlagConfig {
     
     public List<ScanChain> chains = new ArrayList<ScanChain>();
 
+    public TechType tech() {
+        return techTypeEnum.getTechType();
+    }
 }

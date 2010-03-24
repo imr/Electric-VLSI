@@ -324,8 +324,8 @@ public class WindowFrame extends Observable
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = it.next();
-			wf.paletteTab.loadTechnologies(false);
 			wf.layersTab.loadTechnologies(false);
+			wf.paletteTab.loadTechnologies(false);
             wf.getContent().loadTechnologies();
 		}
 	}
