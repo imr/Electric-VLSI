@@ -83,7 +83,6 @@ import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
-import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.fill.StitchFillJob;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
@@ -574,7 +573,7 @@ public class ToolMenu
 
 		//------------------- Generation
 
-			// mnemonic keys available: AB DE GH JK  N  Q   UVWXYZ
+			// mnemonic keys available: AB DE GH JK  N  Q    VWXYZ
             new EMenu("_Generation",
 		        new EMenuItem("_Coverage Implants Generator") { public void run() {
                     layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP); }},
@@ -602,7 +601,9 @@ public class ToolMenu
                 Technology.getTSMC180Technology() != null ? new EMenuItem("Generate gate layouts (T_SMC180)") { public void run() {
                     GateLayoutGenerator.generateFromSchematicsJob(Technology.getTSMC180Technology()); }} : null,
                 Technology.getCMOS90Technology() != null ? new EMenuItem("Generate gate layouts (CM_OS90)") { public void run() {
-	                GateLayoutGenerator.generateFromSchematicsJob(Technology.getCMOS90Technology()); }} : null),
+	                GateLayoutGenerator.generateFromSchematicsJob(Technology.getCMOS90Technology()); }} : null,
+                Job.getDebug() ? new EMenuItem("Generate gate layouts (C_urrent tech)") { public void run() {
+	                GateLayoutGenerator.generateFromSchematicsJob(Schematics.getDefaultSchematicTechnology()); }} : null),
 
 		//------------------- Silicon Compiler
 

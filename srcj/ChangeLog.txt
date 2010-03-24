@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+IMP/MAN: (3/25/10, DN) Add command "Tool|Generation|Generate gate layouts (C_urrent tech)" (Bug #2696).
+
 IMP: (3/25/10, DN) Remove TechTy.eTechTypeNum (Bug #2696).
 
 IMP: (3/24/10, DN) gateLayRegression compares output and original JELIBs (Bug #2696).
