@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3.25.10, GVG) NPE if layer is not found by name (Bug #2698)
+FIX: Just detect the case and allow to catch any exception in writeXML()
+
 BUG: (3/25/10, DN) Technology Wizard crashes in GDS panel after adding metal layer (Bug #2697).
 FIX: In TechEditWizardData.setNumMetalLayers initialize "metal_layers" correctly.
 

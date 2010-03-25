@@ -1330,7 +1330,7 @@ public class TechEditWizardData
 			printWriter.close();
 		} catch (IOException e)
 		{
-			System.out.println("Error writing XML file");
+			System.out.println("Error writing XML file '" + fileName + "'");
 			return;
 		}
 	}
@@ -1602,9 +1602,9 @@ public class TechEditWizardData
 		try
 		{
             dumpXMLFile(fileName);
-		} catch (IOException e)
+        } catch (Exception e)
 		{
-			System.out.println("Error writing XML file");
+			System.out.println("Error writing XML file in '" + fileName + "'");
 			return;
 		}
 	}
@@ -2000,6 +2000,10 @@ public class TechEditWizardData
                                            boolean inLayers, boolean electricalLayers, int port)
     {
         Xml.NodeLayer nl = new Xml.NodeLayer();
+        // can't continue with rest of functions if this is null
+        // catching the exception in  writeXML();
+        if(lb == null)
+           System.out.println("Error: null layer in makeXmlNodeLayer");
         nl.layer = lb.name;
         nl.style = style;
         nl.portNum = port;
