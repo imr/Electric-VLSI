@@ -536,7 +536,7 @@ public class TechEditWizardData
         {
             new_gds_metal_layer[i] = metal_layers[i];
         }
-        for(int i=smallest-1; i<n-1; i++)
+        for(int i=smallest-1; i<n; i++)
         {
             new_gds_metal_layer[i] = new LayerInfo("Metal-"+(i+1));
         }

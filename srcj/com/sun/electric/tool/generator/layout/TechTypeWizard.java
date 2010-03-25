@@ -40,22 +40,22 @@ public class TechTypeWizard extends TechType {
 
     private final ArcProto ndiff, pdiff, ndiff18, pdiff18, ndiff25, pdiff25, ndiff33, pdiff33;
 
-//    /** layer pins */
-//    private final PrimitiveNode ndpin, pdpin, p1pin, m1pin, m2pin, m3pin,
-//        m4pin, m5pin, m6pin, m7pin, m8pin, m9pin;
-//
-//    /** vias */
-//    private final PrimitiveNode nwm1, pwm1, nwm1Y, pwm1Y, ndm1, pdm1, p1m1,
-//        m1m2, m2m3, m3m4, m4m5, m5m6, m6m7, m7m8, m8m9;
-//
-//    /** Transistors */
-//    private final PrimitiveNode nmos, pmos, nmos18, pmos18, nmos25, pmos25,
-//        nmos33, pmos33;
-//    // nvth, pvth, nvtl, pvtl, nnat, pnat;
-//
-//    /** special threshold transistor contacts */
-//    private final PrimitiveNode nmos18contact, pmos18contact, nmos25contact,
-//        pmos25contact, nmos33contact, pmos33contact;
+    /** layer pins */
+    private final PrimitiveNode ndpin, pdpin, p1pin, m1pin, m2pin, m3pin,
+        m4pin, m5pin, m6pin, m7pin, m8pin, m9pin;
+
+    /** vias */
+    private PrimitiveNode nwm1, pwm1, nwm1Y, pwm1Y, ndm1, pdm1, p1m1,
+        m1m2, m2m3, m3m4, m4m5, m5m6, m6m7, m7m8, m8m9;
+
+    /** Transistors */
+    private final PrimitiveNode nmos, pmos, nmos18, pmos18, nmos25, pmos25,
+        nmos33, pmos33;
+    // nvth, pvth, nvtl, pvtl, nnat, pnat;
+
+    /** special threshold transistor contacts */
+    private final PrimitiveNode nmos18contact, pmos18contact, nmos25contact,
+        pmos25contact, nmos33contact, pmos33contact;
 
     /** Pure layer nodes for Well and Select */
     private final PrimitiveNode nwell, pwell;
@@ -94,27 +94,88 @@ public class TechTypeWizard extends TechType {
         ndiff33 = findArc(tech, lnd, lod33);
         pdiff33 = findArc(tech, lpd, lod33);
 
-        nwell = getPureNode(lnwell);
-        pwell = getPureNode(lpwell);
-        m1Node = lmetals.length >= 1 ? getPureNode(lmetals[0]) : null;
-        m2Node = lmetals.length >= 2 ? getPureNode(lmetals[1]) : null;
-        m3Node = lmetals.length >= 3 ? getPureNode(lmetals[2]) : null;
-        m4Node = lmetals.length >= 4 ? getPureNode(lmetals[3]) : null;
-        m5Node = lmetals.length >= 5 ? getPureNode(lmetals[4]) : null;
-        m6Node = lmetals.length >= 6 ? getPureNode(lmetals[5]) : null;
-        m7Node = lmetals.length >= 7 ? getPureNode(lmetals[6]) : null;
-        m8Node = lmetals.length >= 8 ? getPureNode(lmetals[7]) : null;
-        m9Node = lmetals.length >= 9 ? getPureNode(lmetals[8]) : null;
-        p1Node = getPureNode(lp1);
-        pdNode = getPureNode(lpd);
-        ndNode = getPureNode(lnd);
-        nselNode = getPureNode(lnsel);
-        pselNode = getPureNode(lpsel);
-        od18 = getPureNode(lod18);
-        od25 = getPureNode(lod25);
-        od33 = getPureNode(lod33);
+        nwell = findPureNode(lnwell);
+        pwell = findPureNode(lpwell);
+        m1Node = lmetals.length >= 1 ? findPureNode(lmetals[0]) : null;
+        m2Node = lmetals.length >= 2 ? findPureNode(lmetals[1]) : null;
+        m3Node = lmetals.length >= 3 ? findPureNode(lmetals[2]) : null;
+        m4Node = lmetals.length >= 4 ? findPureNode(lmetals[3]) : null;
+        m5Node = lmetals.length >= 5 ? findPureNode(lmetals[4]) : null;
+        m6Node = lmetals.length >= 6 ? findPureNode(lmetals[5]) : null;
+        m7Node = lmetals.length >= 7 ? findPureNode(lmetals[6]) : null;
+        m8Node = lmetals.length >= 8 ? findPureNode(lmetals[7]) : null;
+        m9Node = lmetals.length >= 9 ? findPureNode(lmetals[8]) : null;
+        p1Node = findPureNode(lp1);
+        pdNode = findPureNode(lpd);
+        ndNode = findPureNode(lnd);
+        nselNode = findPureNode(lnsel);
+        pselNode = findPureNode(lpsel);
+        od18 = findPureNode(lod18);
+        od25 = findPureNode(lod25);
+        od33 = findPureNode(lod33);
         vth = null;
         vtl = null;
+
+        //--------------------------- initialize pins -------------------------
+        pdpin = findPin(pdiff);
+        ndpin = findPin(ndiff);
+        p1pin = findPin(p1());
+        m1pin = findPin(m1());
+        m2pin = findPin(m2());
+        m3pin = findPin(m3());
+        m4pin = findPin(m4());
+        m5pin = findPin(m5());
+        m6pin = findPin(m6());
+        m7pin = findPin(m7());
+        m8pin = findPin(m8());
+        m9pin = findPin(m9());
+
+        p1m1 = findCon(lp1, lmetals[0]);
+        switch (lmetals.length) {
+            default:
+            case 9:
+                m8m9 = findCon(lmetals[7], lmetals[8]);
+            case 8:
+                m7m8 = findCon(lmetals[6], lmetals[7]);
+            case 7:
+                m6m7 = findCon(lmetals[5], lmetals[6]);
+            case 6:
+                m5m6 = findCon(lmetals[4], lmetals[5]);
+            case 5:
+                m4m5 = findCon(lmetals[3], lmetals[4]);
+            case 4:
+                m3m4 = findCon(lmetals[2], lmetals[3]);
+            case 3:
+                m2m3 = findCon(lmetals[1], lmetals[2]);
+            case 2:
+                m1m2 = findCon(lmetals[0], lmetals[1]);
+        }
+
+        ndm1 = findCon(lnd, lpwell, lmetals[0]);
+        pdm1 = findCon(lpd, lnwell, lmetals[0]);
+        nwm1 = findCon(lnwell, lnsel, lmetals[0]);
+        pwm1 = findCon(lpwell, lpsel, lmetals[0]);
+        nwm1Y = findConY(lnwell, lnsel, lmetals[0]);
+        pwm1Y = findConY(lpwell, lpsel, lmetals[0]);
+
+        // initialize special threshold transistor contacts
+        nmos18contact = findCon(lnd, lpwell, lmetals[0], lod18);
+        pmos18contact = findCon(lpd, lnwell, lmetals[0], lod18);
+        nmos25contact = findCon(lnd, lpwell, lmetals[0], lod25);
+        pmos25contact = findCon(lpd, lnwell, lmetals[0], lod25);
+        nmos33contact = findCon(lnd, lpwell, lmetals[0], lod33);
+        pmos33contact = findCon(lpd, lnwell, lmetals[0], lod33);
+
+        //------------------------ initialize transistors ---------------------
+        nmos = findTran(PrimitiveNode.Function.TRANMOS, -1);//techy.findNodeProto("N-Transistor");
+        pmos = findTran(PrimitiveNode.Function.TRAPMOS, -1);//techy.findNodeProto("P-Transistor");
+        nmos18 = findTran(PrimitiveNode.Function.TRANMOSHV1, PrimitiveNode.OD18BIT);//techy.findNodeProto("OD18-N-Transistor");
+        pmos18 = findTran(PrimitiveNode.Function.TRAPMOSHV1, PrimitiveNode.OD18BIT);//techy.findNodeProto("OD18-P-Transistor");
+        nmos25 = findTran(PrimitiveNode.Function.TRANMOSHV2, PrimitiveNode.OD25BIT);//techy.findNodeProto("OD25-N-Transistor");
+        pmos25 = findTran(PrimitiveNode.Function.TRAPMOSHV2, PrimitiveNode.OD25BIT);//techy.findNodeProto("OD25-P-Transistor");
+        nmos33 = findTran(PrimitiveNode.Function.TRANMOSHV3, PrimitiveNode.OD33BIT);//techy.findNodeProto("OD33-N-Transistor");
+        pmos33 = findTran(PrimitiveNode.Function.TRAPMOSHV3, PrimitiveNode.OD33BIT);//techy.findNodeProto("OD33-P-Transistor");
+
     }
 
     public int getNumMetals() {
@@ -141,53 +202,53 @@ public class TechTypeWizard extends TechType {
     public ArcProto pdiff33() {return pdiff33;}
 
     /** pins */
-//    public PrimitiveNode ndpin() {return ndpin;}
-//    public PrimitiveNode pdpin() {return pdpin;}
-//    public PrimitiveNode p1pin() {return p1pin;}
-//    public PrimitiveNode m1pin() {return m1pin;}
-//    public PrimitiveNode m2pin() {return m2pin;}
-//    public PrimitiveNode m3pin() {return m3pin;}
-//    public PrimitiveNode m4pin() {return m4pin;}
-//    public PrimitiveNode m5pin() {return m5pin;}
-//    public PrimitiveNode m6pin() {return m6pin;}
-//    public PrimitiveNode m7pin() {return m7pin;}
-//    public PrimitiveNode m8pin() {return m8pin;}
-//    public PrimitiveNode m9pin() {return m9pin;}
+    public PrimitiveNode ndpin() {return ndpin;}
+    public PrimitiveNode pdpin() {return pdpin;}
+    public PrimitiveNode p1pin() {return p1pin;}
+    public PrimitiveNode m1pin() {return m1pin;}
+    public PrimitiveNode m2pin() {return m2pin;}
+    public PrimitiveNode m3pin() {return m3pin;}
+    public PrimitiveNode m4pin() {return m4pin;}
+    public PrimitiveNode m5pin() {return m5pin;}
+    public PrimitiveNode m6pin() {return m6pin;}
+    public PrimitiveNode m7pin() {return m7pin;}
+    public PrimitiveNode m8pin() {return m8pin;}
+    public PrimitiveNode m9pin() {return m9pin;}
 
     /** vias */
-//    public PrimitiveNode nwm1() {return nwm1;}
-//    public PrimitiveNode pwm1() {return pwm1;}
-//    public PrimitiveNode nwm1Y() {return nwm1Y;}
-//    public PrimitiveNode pwm1Y() {return pwm1Y;}
-//    public PrimitiveNode ndm1() {return ndm1;}
-//    public PrimitiveNode pdm1() {return pdm1;}
-//    public PrimitiveNode p1m1() {return p1m1;}
-//    public PrimitiveNode m1m2() {return m1m2;}
-//    public PrimitiveNode m2m3() {return m2m3;}
-//    public PrimitiveNode m3m4() {return m3m4;}
-//    public PrimitiveNode m4m5() {return m4m5;}
-//    public PrimitiveNode m5m6() {return m5m6;}
-//    public PrimitiveNode m6m7() {return m6m7;}
-//    public PrimitiveNode m7m8() {return m7m8;}
-//    public PrimitiveNode m8m9() {return m8m9;}
+    public PrimitiveNode nwm1() {return nwm1;}
+    public PrimitiveNode pwm1() {return pwm1;}
+    public PrimitiveNode nwm1Y() {return nwm1Y;}
+    public PrimitiveNode pwm1Y() {return pwm1Y;}
+    public PrimitiveNode ndm1() {return ndm1;}
+    public PrimitiveNode pdm1() {return pdm1;}
+    public PrimitiveNode p1m1() {return p1m1;}
+    public PrimitiveNode m1m2() {return m1m2;}
+    public PrimitiveNode m2m3() {return m2m3;}
+    public PrimitiveNode m3m4() {return m3m4;}
+    public PrimitiveNode m4m5() {return m4m5;}
+    public PrimitiveNode m5m6() {return m5m6;}
+    public PrimitiveNode m6m7() {return m6m7;}
+    public PrimitiveNode m7m8() {return m7m8;}
+    public PrimitiveNode m8m9() {return m8m9;}
 
     /** Transistors */
-//    public PrimitiveNode nmos() {return nmos;}
-//    public PrimitiveNode pmos() {return pmos;}
-//    public PrimitiveNode nmos18() {return nmos18;}
-//    public PrimitiveNode pmos18() {return pmos18;}
-//    public PrimitiveNode nmos25() {return nmos25;}
-//    public PrimitiveNode pmos25() {return pmos25;}
-//    public PrimitiveNode nmos33() {return nmos33;}
-//    public PrimitiveNode pmos33() {return pmos33;}
+    public PrimitiveNode nmos() {return nmos;}
+    public PrimitiveNode pmos() {return pmos;}
+    public PrimitiveNode nmos18() {return nmos18;}
+    public PrimitiveNode pmos18() {return pmos18;}
+    public PrimitiveNode nmos25() {return nmos25;}
+    public PrimitiveNode pmos25() {return pmos25;}
+    public PrimitiveNode nmos33() {return nmos33;}
+    public PrimitiveNode pmos33() {return pmos33;}
 
     /** special threshold transistor contacts */
-//    public PrimitiveNode nmos18contact() {return nmos18contact;}
-//    public PrimitiveNode pmos18contact() {return pmos18contact;}
-//    public PrimitiveNode nmos25contact() {return nmos25contact;}
-//    public PrimitiveNode pmos25contact() {return pmos25contact;}
-//    public PrimitiveNode nmos33contact() {return nmos33contact;}
-//    public PrimitiveNode pmos33contact() {return pmos33contact;}
+    public PrimitiveNode nmos18contact() {return nmos18contact;}
+    public PrimitiveNode pmos18contact() {return pmos18contact;}
+    public PrimitiveNode nmos25contact() {return nmos25contact;}
+    public PrimitiveNode pmos25contact() {return pmos25contact;}
+    public PrimitiveNode nmos33contact() {return nmos33contact;}
+    public PrimitiveNode pmos33contact() {return pmos33contact;}
 
     /** Well */
     public PrimitiveNode nwell() {return nwell;}
@@ -252,8 +313,71 @@ public class TechTypeWizard extends TechType {
         return arcNames;
     }
 
-    private static PrimitiveNode getPureNode(Layer layer) {
+    private static PrimitiveNode findPureNode(Layer layer) {
         return layer != null ? layer.getPureLayerNode() : null;
+    }
+
+    private PrimitiveNode findPin(ArcProto arc) {
+        return arc==null ? null : arc.findPinProto();
+    }
+
+    private PrimitiveNode findTran(PrimitiveNode.Function fun, int funFlag) {
+        for (Iterator<PrimitiveNode> it = getTechnology().getNodes(); it.hasNext(); ) {
+            PrimitiveNode pn = it.next();
+            if (pn.getFunction() == fun && (funFlag == -1 || pn.isNodeBitOn(funFlag))) {
+                return pn;
+            }
+        }
+        return null;
+
+    }
+
+    private PrimitiveNode findCon(Layer... layers) {
+        return findCon(false, layers);
+    }
+
+    private PrimitiveNode findConY(Layer... layers) {
+        return findCon(true, layers);
+    }
+
+    private PrimitiveNode findCon(boolean needY, Layer... layers) {
+        Technology tech = getTechnology();
+        for (Layer l: layers) {
+            if (l == null) {
+                return null;
+            }
+            assert l.getTechnology() == tech;
+        }
+        for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
+            PrimitiveNode pn = it.next();
+            switch (pn.getFunction()) {
+                case CONTACT:
+                case WELL:
+                case SUBSTRATE:
+                    boolean hasAllLayers = true;
+                    boolean hasSquare = false;
+                    for (Layer l: layers) {
+                        boolean hasL = false;
+                        for (Technology.NodeLayer nl: pn.getNodeLayers()) {
+                            if (nl.getLayer() == l) {
+                                hasL = true;
+                                boolean thisSquare =
+                                        nl.getLeftEdge().getMultiplier() == -nl.getRightEdge().getMultiplier() &&
+                                        nl.getBottomEdge().getMultiplier() == -nl.getTopEdge().getMultiplier() &&
+                                        nl.getRightEdge().getGridAdder() - nl.getLeftEdge().getGridAdder() ==
+                                        nl.getTopEdge().getGridAdder() - nl.getBottomEdge().getGridAdder();
+                                hasSquare = hasSquare || thisSquare;
+                            }
+                        }
+                        hasAllLayers = hasAllLayers && hasL;
+                    }
+                    if (hasAllLayers && (!needY || !hasSquare)) {
+                        return pn;
+                    }
+                default:
+            }
+        }
+        return null;
     }
 
     private static ArcProto findArc(Technology tech, Layer... layers) {

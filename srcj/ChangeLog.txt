@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3/25/10, DN) Technology Wizard crashes in GDS panel after adding metal layer (Bug #2697).
+FIX: In TechEditWizardData.setNumMetalLayers initialize "metal_layers" correctly.
+
 IMP/MAN: (3/25/10, DN) Add command "Tool|Generation|Generate gate layouts (C_urrent tech)" (Bug #2696).
 
 IMP: (3/25/10, DN) Remove TechTy.eTechTypeNum (Bug #2696).
