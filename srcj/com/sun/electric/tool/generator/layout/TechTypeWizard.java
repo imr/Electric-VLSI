@@ -25,6 +25,8 @@ package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 
 import java.util.Iterator;
@@ -36,20 +38,83 @@ import java.util.Iterator;
  */
 public class TechTypeWizard extends TechType {
 
-    private final ArcProto pdiff, ndiff, ndiff18, pdiff18, ndiff25, pdiff25, ndiff33, pdiff33;
+    private final ArcProto ndiff, pdiff, ndiff18, pdiff18, ndiff25, pdiff25, ndiff33, pdiff33;
 
+//    /** layer pins */
+//    private final PrimitiveNode ndpin, pdpin, p1pin, m1pin, m2pin, m3pin,
+//        m4pin, m5pin, m6pin, m7pin, m8pin, m9pin;
+//
+//    /** vias */
+//    private final PrimitiveNode nwm1, pwm1, nwm1Y, pwm1Y, ndm1, pdm1, p1m1,
+//        m1m2, m2m3, m3m4, m4m5, m5m6, m6m7, m7m8, m8m9;
+//
+//    /** Transistors */
+//    private final PrimitiveNode nmos, pmos, nmos18, pmos18, nmos25, pmos25,
+//        nmos33, pmos33;
+//    // nvth, pvth, nvtl, pvtl, nnat, pnat;
+//
+//    /** special threshold transistor contacts */
+//    private final PrimitiveNode nmos18contact, pmos18contact, nmos25contact,
+//        pmos25contact, nmos33contact, pmos33contact;
+
+    /** Pure layer nodes for Well and Select */
+    private final PrimitiveNode nwell, pwell;
+
+    /** Layer nodes are sometimes used to patch notches */
+    private final PrimitiveNode m1Node, m2Node, m3Node, m4Node, m5Node, m6Node,
+        m7Node, m8Node, m9Node, p1Node, pdNode, ndNode, pselNode, nselNode;
+
+    /** Transistor layer nodes */
+    private final PrimitiveNode od18, od25, od33, vth, vtl;
 
     public TechTypeWizard(Technology tech) {
         super(tech, findLayers(tech));
 
-        pdiff = tech.findArcProto("P-Active");
-        ndiff = tech.findArcProto("N-Active");
-        ndiff18 = tech.findArcProto("thick-OD18-N-Active");
-        pdiff18 = tech.findArcProto("thick-OD18-P-Active");
-        ndiff25 = tech.findArcProto("thick-OD25-N-Active");
-        pdiff25 = tech.findArcProto("thick-OD25-P-Active");
-        ndiff33 = tech.findArcProto("thick-OD33-N-Active");
-        pdiff33 = tech.findArcProto("thick-OD33-P-Active");
+        Layer lp1 = tech.findLayerFromFunction(Layer.Function.POLY1, 0);
+        Layer[] lmetals = new Layer[tech.getNumMetals()];
+        for (int level = 0; level < lmetals.length; level++) {
+            lmetals[level] = tech.findLayerFromFunction(Layer.Function.getMetal(level + 1), 0);
+        }
+        Layer lnwell = tech.findLayerFromFunction(Layer.Function.WELLN, 0);
+        Layer lpwell = tech.findLayerFromFunction(Layer.Function.WELLP, 0);
+        Layer lnd = tech.findLayerFromFunction(Layer.Function.DIFFN, 0);
+        Layer lpd = tech.findLayerFromFunction(Layer.Function.DIFFP, 0);
+        Layer lnsel = tech.findLayerFromFunction(Layer.Function.IMPLANTN, 0);
+        Layer lpsel = tech.findLayerFromFunction(Layer.Function.IMPLANTP, 0);
+        Layer lod18 = tech.findLayer("OD18");
+        Layer lod25 = tech.findLayer("OD25");
+        Layer lod33 = tech.findLayer("OD33");
+
+        ndiff = findArc(tech, lnd);
+        pdiff = findArc(tech, lpd);
+        ndiff18 = findArc(tech, lnd, lod18);
+        pdiff18 = findArc(tech, lpd, lod18);
+        ndiff25 = findArc(tech, lnd, lod25);
+        pdiff25 = findArc(tech, lpd, lod25);
+        ndiff33 = findArc(tech, lnd, lod33);
+        pdiff33 = findArc(tech, lpd, lod33);
+
+        nwell = getPureNode(lnwell);
+        pwell = getPureNode(lpwell);
+        m1Node = lmetals.length >= 1 ? getPureNode(lmetals[0]) : null;
+        m2Node = lmetals.length >= 2 ? getPureNode(lmetals[1]) : null;
+        m3Node = lmetals.length >= 3 ? getPureNode(lmetals[2]) : null;
+        m4Node = lmetals.length >= 4 ? getPureNode(lmetals[3]) : null;
+        m5Node = lmetals.length >= 5 ? getPureNode(lmetals[4]) : null;
+        m6Node = lmetals.length >= 6 ? getPureNode(lmetals[5]) : null;
+        m7Node = lmetals.length >= 7 ? getPureNode(lmetals[6]) : null;
+        m8Node = lmetals.length >= 8 ? getPureNode(lmetals[7]) : null;
+        m9Node = lmetals.length >= 9 ? getPureNode(lmetals[8]) : null;
+        p1Node = getPureNode(lp1);
+        pdNode = getPureNode(lpd);
+        ndNode = getPureNode(lnd);
+        nselNode = getPureNode(lnsel);
+        pselNode = getPureNode(lpsel);
+        od18 = getPureNode(lod18);
+        od25 = getPureNode(lod25);
+        od33 = getPureNode(lod33);
+        vth = null;
+        vtl = null;
     }
 
     public int getNumMetals() {
@@ -58,12 +123,99 @@ public class TechTypeWizard extends TechType {
 
     public ArcProto pdiff() {return pdiff;}
     public ArcProto ndiff() {return ndiff;}
+//    public ArcProto p1() {return p1;}
+//    public ArcProto m1() {return m1;}
+//    public ArcProto m2() {return m2;}
+//    public ArcProto m3() {return m3;}
+//    public ArcProto m4() {return m4;}
+//    public ArcProto m5() {return m5;}
+//    public ArcProto m6() {return m6;}
+//    public ArcProto m7() {return m7;}
+//    public ArcProto m8() {return m8;}
+//    public ArcProto m9() {return m9;}
     public ArcProto ndiff18() {return ndiff18;}
     public ArcProto pdiff18() {return pdiff18;}
     public ArcProto ndiff25() {return ndiff25;}
     public ArcProto pdiff25() {return pdiff25;}
     public ArcProto ndiff33() {return ndiff33;}
     public ArcProto pdiff33() {return pdiff33;}
+
+    /** pins */
+//    public PrimitiveNode ndpin() {return ndpin;}
+//    public PrimitiveNode pdpin() {return pdpin;}
+//    public PrimitiveNode p1pin() {return p1pin;}
+//    public PrimitiveNode m1pin() {return m1pin;}
+//    public PrimitiveNode m2pin() {return m2pin;}
+//    public PrimitiveNode m3pin() {return m3pin;}
+//    public PrimitiveNode m4pin() {return m4pin;}
+//    public PrimitiveNode m5pin() {return m5pin;}
+//    public PrimitiveNode m6pin() {return m6pin;}
+//    public PrimitiveNode m7pin() {return m7pin;}
+//    public PrimitiveNode m8pin() {return m8pin;}
+//    public PrimitiveNode m9pin() {return m9pin;}
+
+    /** vias */
+//    public PrimitiveNode nwm1() {return nwm1;}
+//    public PrimitiveNode pwm1() {return pwm1;}
+//    public PrimitiveNode nwm1Y() {return nwm1Y;}
+//    public PrimitiveNode pwm1Y() {return pwm1Y;}
+//    public PrimitiveNode ndm1() {return ndm1;}
+//    public PrimitiveNode pdm1() {return pdm1;}
+//    public PrimitiveNode p1m1() {return p1m1;}
+//    public PrimitiveNode m1m2() {return m1m2;}
+//    public PrimitiveNode m2m3() {return m2m3;}
+//    public PrimitiveNode m3m4() {return m3m4;}
+//    public PrimitiveNode m4m5() {return m4m5;}
+//    public PrimitiveNode m5m6() {return m5m6;}
+//    public PrimitiveNode m6m7() {return m6m7;}
+//    public PrimitiveNode m7m8() {return m7m8;}
+//    public PrimitiveNode m8m9() {return m8m9;}
+
+    /** Transistors */
+//    public PrimitiveNode nmos() {return nmos;}
+//    public PrimitiveNode pmos() {return pmos;}
+//    public PrimitiveNode nmos18() {return nmos18;}
+//    public PrimitiveNode pmos18() {return pmos18;}
+//    public PrimitiveNode nmos25() {return nmos25;}
+//    public PrimitiveNode pmos25() {return pmos25;}
+//    public PrimitiveNode nmos33() {return nmos33;}
+//    public PrimitiveNode pmos33() {return pmos33;}
+
+    /** special threshold transistor contacts */
+//    public PrimitiveNode nmos18contact() {return nmos18contact;}
+//    public PrimitiveNode pmos18contact() {return pmos18contact;}
+//    public PrimitiveNode nmos25contact() {return nmos25contact;}
+//    public PrimitiveNode pmos25contact() {return pmos25contact;}
+//    public PrimitiveNode nmos33contact() {return nmos33contact;}
+//    public PrimitiveNode pmos33contact() {return pmos33contact;}
+
+    /** Well */
+    public PrimitiveNode nwell() {return nwell;}
+    public PrimitiveNode pwell() {return pwell;}
+
+    /** Layer nodes are sometimes used to patch notches */
+    public PrimitiveNode m1Node() {return m1Node;}
+    public PrimitiveNode m2Node() {return m2Node;}
+    public PrimitiveNode m3Node() {return m3Node;}
+    public PrimitiveNode m4Node() {return m4Node;}
+    public PrimitiveNode m5Node() {return m5Node;}
+    public PrimitiveNode m6Node() {return m6Node;}
+    public PrimitiveNode m7Node() {return m7Node;}
+    public PrimitiveNode m8Node() {return m8Node;}
+    public PrimitiveNode m9Node() {return m9Node;}
+    public PrimitiveNode p1Node() {return p1Node;}
+    public PrimitiveNode pdNode() {return pdNode;}
+    public PrimitiveNode ndNode() {return ndNode;}
+    public PrimitiveNode pselNode() {return pselNode;}
+    public PrimitiveNode nselNode() {return nselNode;}
+
+    /** Transistor layer nodes */
+    public PrimitiveNode od18() {return od18;}
+    public PrimitiveNode od25() {return od25;}
+    public PrimitiveNode od33() {return od33;}
+    public PrimitiveNode vth() {return vth;}
+    public PrimitiveNode vtl() {return vtl;}
+
 
      /** round to avoid MOCMOS CIF resolution errors */
     public double roundToGrid(double x) {
@@ -87,39 +239,37 @@ public class TechTypeWizard extends TechType {
     }
 
     private static String[] findLayers(Technology tech) {
-        String[] arcNames = new String[tech.getNumMetals() + 1];
-        for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
-            ArcProto ap = it.next();
-            ArcProto.Function fun = ap.getFunction();
-            if (fun == ArcProto.Function.POLY1) {
-                if (arcNames[0] != null) {
-                    throw new IllegalArgumentException("Duplicate Poly arc");
-                }
-                arcNames[0] = ap.getName();
-            } else if (fun.isMetal()) {
-                int level = fun.getLevel();
-                if (level <= 0 || level > tech.getNumMetals())
-                    continue;
-                if (level == 0 || arcNames[level] != null) {
-                    throw new IllegalArgumentException("Duplicate Metal-"+(level+1)+" arc");
-                }
-                arcNames[level] = ap.getName();
-            }
+        Layer[] layers = new Layer[tech.getNumMetals() + 1];
+        layers[0] = tech.findLayerFromFunction(Layer.Function.POLY1, -1);
+        for (int level = 1; level <= tech.getNumMetals(); level++) {
+            layers[level] = tech.findLayerFromFunction(Layer.Function.getMetal(level), -1);
         }
 
-        for (String n: arcNames) {
-            System.out.println(n);
+        String[] arcNames = new String[layers.length];
+        for (int i = 0; i < arcNames.length; i++) {
+            arcNames[i] = findArc(tech, layers[i]).getName();
         }
         return arcNames;
     }
 
-    private static ArcProto findArc(Technology tech, ArcProto.Function fun) {
+    private static PrimitiveNode getPureNode(Layer layer) {
+        return layer != null ? layer.getPureLayerNode() : null;
+    }
+
+    private static ArcProto findArc(Technology tech, Layer... layers) {
         ArcProto found = null;
         for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
             ArcProto ap = it.next();
-            if (ap.getFunction() != fun) continue;
+            boolean t = true;
+            for (Layer layer: layers) {
+                if (ap.indexOf(layer) < 0) {
+                    t = false;
+                }
+            }
+            if (!t) continue;
             if (found != null) {
-                throw new IllegalArgumentException("Duplicate arc "+fun);
+                found = found;
+//                throw new IllegalArgumentException("Duplicate arc "+fun);
             } else {
                 found = ap;
             }
