@@ -609,7 +609,7 @@ public class EDatabase {
             return;
         }
         setSnapshot(snapshot, false);
-        boolean cellGroupsChanged = oldSnapshot.cellGroups != snapshot.cellGroups;
+        boolean cellGroupsChanged = snapshot.cellGroupsProbablyChanged(oldSnapshot);
         if (oldSnapshot.libBackups != snapshot.libBackups) {
             recoverLibraries();
             cellGroupsChanged = true;
@@ -816,15 +816,16 @@ public class EDatabase {
         ArrayList<TreeSet<Cell>> groups = new ArrayList<TreeSet<Cell>>();
         for (int cellIndex = 0; cellIndex < snapshot.cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = snapshot.cellBackups.get(cellIndex);
-            int cellGroupIndex = snapshot.cellGroups[cellIndex];
             if (cellBackup == null) {
                 continue;
             }
+            Cell cell = getCell(cellIndex);
+            assert cell != null;
+            CellId cellId = cell.getId();
+            int cellGroupIndex = snapshot.getCellGroupIndex(cellId);
             if (cellGroupIndex == groups.size()) {
                 groups.add(new TreeSet<Cell>());
             }
-            Cell cell = getCell(cellIndex);
-            assert cell != null;
             groups.get(cellGroupIndex).add(cell);
         }
         for (int i = 0; i < groups.size(); i++) {
@@ -964,10 +965,10 @@ public class EDatabase {
             for (int i = 0; i < snapshot.cellBackups.size(); i++) {
                 CellBackup cellBackup = snapshot.getCell(i);
                 if (cellBackup == null) {
-                    assert snapshot.cellGroups[i] == -1;
                     continue;
                 }
-                Cell cell = getCell(cellBackup.cellRevision.d.cellId);
+                CellId cellId = cellBackup.cellRevision.d.cellId;
+                Cell cell = getCell(cellId);
                 Cell.CellGroup cellGroup = cell.getCellGroup();
                 Integer gn = groupNums.get(cellGroup);
                 if (gn == null) {
@@ -975,9 +976,9 @@ public class EDatabase {
                     groupNums.put(cellGroup, gn);
                 }
                 int groupIndex = gn.intValue();
-                assert snapshot.cellGroups[i] == groupIndex;
+                assert snapshot.getCellGroupIndex(cellId) == groupIndex;
                 Cell mainSchematics = cellGroup.getMainSchematics();
-                assert snapshot.groupMainSchematics[groupIndex] == (mainSchematics != null ? mainSchematics.getId() : null);
+                assert snapshot.getMainSchematics(cellId) == (mainSchematics != null ? mainSchematics.getId() : null);
             }
         }
     }

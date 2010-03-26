@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: ConcurrentModificationException in gate generator (Bug #2700).
+FIX: In NetSchem.updateSchematic fix a test that old Netlist is still valid.
+
 BUG: Layer order not restored with preferences (Bug #2699).
 FIX: In UserInterfaceAll.loadPreferences call LayerVisibility.loadPreferences.
 

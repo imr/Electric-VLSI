@@ -24,6 +24,7 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.CellTree;
 import com.sun.electric.database.EquivPorts;
 import com.sun.electric.database.EquivalentSchematicExports;
 import com.sun.electric.database.Snapshot;
@@ -31,6 +32,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -107,6 +109,9 @@ class NetSchem extends NetCell {
     /** */
     int[] drawnWidths;
     private IdentityHashMap<Name, Integer> exportNameMapOffsets;
+    private CellTree cellTree;
+    private CellId mainSchemId;
+    private IdentityHashMap<CellId, EquivalentSchematicExports> eqExports;
 
     NetSchem(Cell cell) {
         super(cell);
@@ -1336,7 +1341,14 @@ class NetSchem extends NetCell {
             if (oldSnapshot == newSnapshot) {
                 return;
             }
-            if (oldSnapshot == null || !newSnapshot.sameNetlist(oldSnapshot, cell.getId())) {
+            CellId cellId = cell.getId();
+            assert cellId.isIcon() || cellId.isSchematic();
+            // Check that old Netlists are still valid
+            if (cellTree != newSnapshot.getCellTree(cellId)
+                    || mainSchemId != newSnapshot.getMainSchematics(cellId)
+                    || mainSchemId != cellId && mainSchemId != null && !eqExports.get(mainSchemId).equals(newSnapshot.getEquivExports(mainSchemId))
+                    || !sameEqivPortsOfSubcells(newSnapshot, cell.getId())) {
+
                 // clear errors for cell
                 networkManager.startErrorLogging(cell);
                 try {
@@ -1349,9 +1361,47 @@ class NetSchem extends NetCell {
                 } finally {
                     networkManager.finishErrorLogging();
                 }
+
+                // Save info taht will help this this Netlists is still valid
+                cellTree = newSnapshot.getCellTree(cellId);
+                mainSchemId = newSnapshot.getMainSchematics(cellId);
+                eqExports = new IdentityHashMap<CellId, EquivalentSchematicExports>();
+                if (mainSchemId != null) {
+                    eqExports.put(mainSchemId, newSnapshot.getEquivExports(mainSchemId));
+                }
+                for (CellTree subTree : cellTree.getSubTrees()) {
+                    if (subTree == null) {
+                        continue;
+                    }
+                    CellId subCellId = subTree.top.cellRevision.d.cellId;
+                    if (subCellId.isIcon() || subCellId.isSchematic()) {
+                        eqExports.put(subCellId, newSnapshot.getEquivExports(subCellId));
+                    }
+                }
             }
             expectedSnapshot = new WeakReference<Snapshot>(newSnapshot);
         }
+    }
+
+    private boolean sameEqivPortsOfSubcells(Snapshot newSnapshot, CellId cellId) {
+        for (CellTree subTree : newSnapshot.getCellTree(cellId).getSubTrees()) {
+            if (subTree == null) {
+                continue;
+            }
+            CellId subCellId = subTree.top.cellRevision.d.cellId;
+            if (subCellId.isIcon()) {
+                if (cellId.isSchematic() && newSnapshot.getCellGroupIndex(cellId) == newSnapshot.getCellGroupIndex(subCellId)) {
+                    // Icon of parent
+                    continue;
+                }
+            } else if (!subCellId.isSchematic()) {
+                continue;
+            }
+            if (!newSnapshot.getEquivExports(subCellId).equals(eqExports.get(subCellId))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -53,10 +53,11 @@ import java.util.Map;
  * Class to write a library to disk in Readable Dump format.
  */
 public class ReadableDump extends ELIB {
+
     private int portProtoError;
-    private LinkedHashMap<CellId,Integer> cellOrdering = new LinkedHashMap<CellId,Integer>();
+    private LinkedHashMap<CellId, Integer> cellOrdering = new LinkedHashMap<CellId, Integer>();
 //    private HashMap<CellId,Integer> cellGrouping = new HashMap<CellId,Integer>();
-    private HashMap<ExportId,Integer> portMap;
+    private HashMap<ExportId, Integer> portMap;
 
     ReadableDump() {
         write6Compatible();
@@ -72,14 +73,17 @@ public class ReadableDump extends ELIB {
         portProtoError = 0;
 
         // determine proper library order
-        for (CellRevision cellRevision: externalCells)
+        for (CellRevision cellRevision : externalCells) {
             cellOrdering.put(cellRevision.d.cellId, null);
-        for (CellRevision cellRevision: localCells) {
+        }
+        for (CellRevision cellRevision : localCells) {
             CellId cellId = cellRevision.d.cellId;
-            if (!cellOrdering.containsKey(cellId)) textRecurse(theLibId, cellId);
+            if (!cellOrdering.containsKey(cellId)) {
+                textRecurse(theLibId, cellId);
+            }
         }
         int cellNumber = 0;
-        for (Map.Entry<CellId,Integer> e : cellOrdering.entrySet()) {
+        for (Map.Entry<CellId, Integer> e : cellOrdering.entrySet()) {
             e.setValue(new Integer(cellNumber++));
             objInfo.put(e.getKey(), e.getValue());
         }
@@ -88,22 +92,26 @@ public class ReadableDump extends ELIB {
         printWriter.println("****library: \"" + theLibId.libName + "\"");
         printWriter.println("version: " + Version.getVersion());
         printWriter.println("aids: " + toolCount);
-        for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); ) {
+        for (Iterator<Tool> it = Tool.getTools(); it.hasNext();) {
             Tool tool = it.next();
-            if (!objInfo.containsKey(tool)) continue;
+            if (!objInfo.containsKey(tool)) {
+                continue;
+            }
             printWriter.println("aidname: " + tool.getName());
             writeMeaningPrefs(tool);
         }
 //		printWriter.println("userbits: " + lib.lowLevelGetUserBits());
         printWriter.println("techcount: " + technologies.size());
-        for(Technology tech: technologies) {
+        for (Technology tech : technologies) {
             printWriter.println("techname: " + tech.getTechName() + " lambda: " + gridCoordToElib(tech, DBMath.GRID));
 //            printWriter.println("techname: " + tech.getTechName() + " lambda: " + (int)(tech.getScale()*2));
             writeMeaningPrefs(tech);
         }
-        for(Iterator<View> it = View.getViews(); it.hasNext(); ) {
+        for (Iterator<View> it = View.getViews(); it.hasNext();) {
             View v = it.next();
-            if (!objInfo.containsKey(v)) continue;
+            if (!objInfo.containsKey(v)) {
+                continue;
+            }
             printWriter.println("view: " + v.getFullName() + v.getAbbreviationExtension());
         }
         printWriter.println("cellcount: " + cellNumber);
@@ -113,13 +121,15 @@ public class ReadableDump extends ELIB {
 
         // write the rest of the database
         writeExternalCells();
-        for (Map.Entry<CellId,Integer> entry : cellOrdering.entrySet()) {
+        for (Map.Entry<CellId, Integer> entry : cellOrdering.entrySet()) {
             CellId cellId = entry.getKey();
-            if (cellId.libId != theLibId) continue;
+            if (cellId.libId != theLibId) {
+                continue;
+            }
             CellBackup cellBackup = snapshot.getCell(cellId);
             CellRevision cellRevision = cellBackup.cellRevision;
             startCell(cellRevision, 0);
-            int groupIndex = groupRenumber[snapshot.cellGroups[cellId.cellIndex]];
+            int groupIndex = groupRenumber[snapshot.getCellGroupIndex(cellId)];
             printWriter.println("***cell: " + entry.getValue().intValue() + "/" + groupIndex);
             writeCellInfo(cellRevision);
 
@@ -127,14 +137,14 @@ public class ReadableDump extends ELIB {
             printWriter.println("userbits: " + (cellRevision.d.flags & ELIBConstants.CELL_BITS));
 
             // count and number the ports
-            portMap = new HashMap<ExportId,Integer>();
+            portMap = new HashMap<ExportId, Integer>();
             int portCount = 0;
-            for(int exportIndex = 0; exportIndex < cellRevision.exports.size(); exportIndex++) {
+            for (int exportIndex = 0; exportIndex < cellRevision.exports.size(); exportIndex++) {
                 ImmutableExport e = cellRevision.exports.get(exportIndex);
                 portMap.put(e.exportId, new Integer(portCount++));
             }
-            printWriter.println("nodes: " + cellRevision.nodes.size() + " arcs: " + cellRevision.arcs.size() +
-                    " porttypes: " + cellRevision.exports.size());
+            printWriter.println("nodes: " + cellRevision.nodes.size() + " arcs: " + cellRevision.arcs.size()
+                    + " porttypes: " + cellRevision.exports.size());
 
             // write variables on the cell
             writeVariables(cellRevision.d);
@@ -151,8 +161,9 @@ public class ReadableDump extends ELIB {
         }
 
         // print any variable-related error messages
-        if (portProtoError != 0)
+        if (portProtoError != 0) {
             System.out.println("Warning: " + portProtoError + " export pointers point outside cell: not saved");
+        }
 
         return false;
     }
@@ -170,7 +181,9 @@ public class ReadableDump extends ELIB {
     @Override
     void writeReExport(ImmutableExport e) throws IOException {
         Integer pIndex = portMap.get(e.exportId);
-        if (pIndex == null) pIndex = new Integer(-1);
+        if (pIndex == null) {
+            pIndex = new Integer(-1);
+        }
         printWriter.println("*port: " + e.originalPortId.getName(snapshot) + " exported: " + pIndex.intValue());
     }
 
@@ -179,11 +192,17 @@ public class ReadableDump extends ELIB {
      * in the outout
      */
     private void textRecurse(LibId libId, CellId cellId) {
-        for (ImmutableNodeInst n: snapshot.getCellRevision(cellId).nodes) {
-            if (!(n.protoId instanceof CellId)) continue;
-            CellId subCellId = (CellId)n.protoId;
-            if (subCellId.libId != libId) continue;
-            if (!cellOrdering.containsKey(subCellId)) textRecurse(libId, subCellId);
+        for (ImmutableNodeInst n : snapshot.getCellRevision(cellId).nodes) {
+            if (!(n.protoId instanceof CellId)) {
+                continue;
+            }
+            CellId subCellId = (CellId) n.protoId;
+            if (subCellId.libId != libId) {
+                continue;
+            }
+            if (!cellOrdering.containsKey(subCellId)) {
+                textRecurse(libId, subCellId);
+            }
         }
 
         // add this cell to the list
@@ -198,17 +217,23 @@ public class ReadableDump extends ELIB {
     void writeVarValue(Object varObj) {
         StringBuffer infstr = new StringBuffer();
         if (varObj instanceof Object[]) {
-            Object [] objArray = (Object [])varObj;
+            Object[] objArray = (Object[]) varObj;
             int len = objArray.length;
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 Object oneObj = objArray[i];
-                if (i == 0) infstr.append("["); else
+                if (i == 0) {
+                    infstr.append("[");
+                } else {
                     infstr.append(",");
-                if (oneObj != null)
+                }
+                if (oneObj != null) {
                     makeStringVar(infstr, oneObj);
+                }
             }
             infstr.append("]");
-        } else makeStringVar(infstr, varObj);
+        } else {
+            makeStringVar(infstr, varObj);
+        }
         printWriter.println(infstr);
     }
 
@@ -219,83 +244,88 @@ public class ReadableDump extends ELIB {
     private void makeStringVar(StringBuffer infstr, Object obj) {
         if (obj instanceof String) {
             infstr.append("\"");
-            infstr.append(convertString((String)obj));
+            infstr.append(convertString((String) obj));
             infstr.append("\"");
             return;
         }
         if (obj instanceof CodeExpression) {
             infstr.append("\"");
-            infstr.append(convertString(((CodeExpression)obj).getExpr()));
+            infstr.append(convertString(((CodeExpression) obj).getExpr()));
             infstr.append("\"");
             return;
         }
         if (obj instanceof Double) {
-            infstr.append(((Double)obj).floatValue());
+            infstr.append(((Double) obj).floatValue());
             return;
         }
         if (obj instanceof Float) {
-            infstr.append(((Float)obj).floatValue());
+            infstr.append(((Float) obj).floatValue());
             return;
         }
         if (obj instanceof Long) {
-            infstr.append(((Long)obj).intValue());
+            infstr.append(((Long) obj).intValue());
             return;
         }
         if (obj instanceof Integer) {
-            infstr.append(((Integer)obj).intValue());
+            infstr.append(((Integer) obj).intValue());
             return;
         }
         if (obj instanceof Short) {
-            infstr.append(((Short)obj).shortValue());
+            infstr.append(((Short) obj).shortValue());
             return;
         }
         if (obj instanceof Byte) {
-            infstr.append(((Byte)obj).byteValue());
+            infstr.append(((Byte) obj).byteValue());
             return;
         }
         if (obj instanceof Boolean) {
-            infstr.append(((Boolean)obj).booleanValue() ? 1 : 0);
+            infstr.append(((Boolean) obj).booleanValue() ? 1 : 0);
             return;
         }
         if (obj instanceof Tool) {
-            Tool tool = (Tool)obj;
+            Tool tool = (Tool) obj;
             infstr.append(tool.getName());
             return;
         }
         if (obj instanceof TechId) {
-            TechId techId = (TechId)obj;
+            TechId techId = (TechId) obj;
             infstr.append(techId.techName);
             return;
         }
         if (obj instanceof PrimitiveNodeId) {
-            PrimitiveNodeId np = (PrimitiveNodeId)obj;
+            PrimitiveNodeId np = (PrimitiveNodeId) obj;
             infstr.append(np.fullName);
             return;
         }
         if (obj instanceof ArcProtoId) {
-            ArcProtoId arcProtoId = (ArcProtoId)obj;
+            ArcProtoId arcProtoId = (ArcProtoId) obj;
             infstr.append(arcProtoId.fullName);
             return;
         }
         if (obj instanceof LibId) {
-            LibId libId = (LibId)obj;
+            LibId libId = (LibId) obj;
             infstr.append("\"" + libId.libName + "\"");
             return;
         }
         if (obj instanceof CellId) {
-            CellId cellId = (CellId)obj;
+            CellId cellId = (CellId) obj;
             Integer mi = cellOrdering.get(cellId);
             int cIndex = -1;
-            if (mi != null) cIndex = mi.intValue();
+            if (mi != null) {
+                cIndex = mi.intValue();
+            }
             infstr.append(Integer.toString(cIndex));
             return;
         }
         if (obj instanceof ExportId) {
-            ExportId exportId = (ExportId)obj;
+            ExportId exportId = (ExportId) obj;
             Integer portIndex = portMap.get(exportId);
             int cIndex = -1;
-            if (portIndex == null) portProtoError++; else
+            if (portIndex == null) {
+                portProtoError++;
+            } else {
                 cIndex = portIndex.intValue();
+            }
             infstr.append(Integer.toString(cIndex));
             return;
         }
@@ -315,8 +345,9 @@ public class ReadableDump extends ELIB {
             printWriter.println("descript: " + td0 + "/" + td1);
             return;
         }
-        if ((varBits & ELIBConstants.VISARRAY) != 0)
+        if ((varBits & ELIBConstants.VISARRAY) != 0) {
             printWriter.print("(" + ((varBits & ELIBConstants.VLENGTH) >> ELIBConstants.VLENGTHSH) + ")");
+        }
         printWriter.print("[0" + Integer.toOctalString(varBits) + ",");
         printWriter.print(td0 != 0 ? "0" + Integer.toOctalString(td0) : "0");
         printWriter.print("/");
@@ -330,7 +361,8 @@ public class ReadableDump extends ELIB {
      * @param obj Object to write
      */
     @Override
-    void writeObj(Object obj) throws IOException {}
+    void writeObj(Object obj) throws IOException {
+    }
 
     /**
      * Method to write an integer (4 bytes) to the ouput stream.
@@ -339,7 +371,9 @@ public class ReadableDump extends ELIB {
      */
     @Override
     void writeInt(String keyword, int i) throws IOException {
-        if (keyword == null) return;
+        if (keyword == null) {
+            return;
+        }
         printWriter.println(keyword + i);
     }
 
@@ -353,7 +387,8 @@ public class ReadableDump extends ELIB {
     }
 
     @Override
-	void writeBigInteger(int i) throws IOException {}
+    void writeBigInteger(int i) throws IOException {
+    }
 
     /**
      * Method to write a disk index of variable name.
@@ -372,10 +407,11 @@ public class ReadableDump extends ELIB {
     private String convertString(String str) {
         StringBuffer infstr = new StringBuffer();
         int len = str.length();
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             char ch = str.charAt(i);
-            if (ch == '[' || ch == ']' || ch == '"' || ch == '^')
+            if (ch == '[' || ch == ']' || ch == '"' || ch == '^') {
                 infstr.append('^');
+            }
             infstr.append(ch);
         }
         return infstr.toString();
@@ -388,9 +424,11 @@ public class ReadableDump extends ELIB {
      */
     private void printName(String name) {
         int len = name.length();
-        for(int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
             char pt = name.charAt(i);
-            if (pt == '^' || pt == '[' || pt == '(' || pt == ':') printWriter.print("^");
+            if (pt == '^' || pt == '[' || pt == '(' || pt == ':') {
+                printWriter.print("^");
+            }
             printWriter.print(pt);
         }
     }

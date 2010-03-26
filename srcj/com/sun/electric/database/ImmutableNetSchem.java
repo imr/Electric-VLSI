@@ -58,6 +58,7 @@ import java.util.Set;
  * @author dn146861
  */
 class ImmutableNetSchem {
+
     private static final boolean DEBUG = false;
 
     private class IconInst {
@@ -76,17 +77,15 @@ class ImmutableNetSchem {
             iconOfParent = isIconOfParent(n);
 //            iconNodables = iconOfParent ? null : new Nodable[nodeInst.getNameKey().busWidth()];
             this.netMapOffset = nodeOffset;
-            eq = iconOfParent ? null : getEquivExports((CellId)n.protoId);
+            eq = iconOfParent ? null : getEquivExports((CellId) n.protoId);
             this.numExtendedExports = iconOfParent ? -1000000 : eq.implementation.numExpandedExports;
         }
-
 //        private int getNetMapOffset(Nodable proxy) {
 //            int arrayIndex = proxy.getNodableArrayIndex();
 //            assert iconNodables[arrayIndex] == proxy;
 //            return netMapOffset + arrayIndex * numExtendedExports;
 //        }
     }
-
     final Snapshot snapshot;
     private final TechPool techPool;
     private final Schematics schem;
@@ -103,25 +102,21 @@ class ImmutableNetSchem {
     private final int numExports;
     private final int numNodes;
     private final int numArcs;
-
     private final int[] ni_pi;
     private final int arcsOffset;
     private final int[] tailConn;
     private final int[] headConn;
     private final int[] drawns;
-
     private final ArrayList<PortInst> stack = new ArrayList<PortInst>();
     private int numDrawns;
     private int numExportedDrawns;
     private int numConnectedDrawns;
-
     /** A map from canonic String to NetName. */
     private final HashMap<Name, GenMath.MutableInteger> netNames = new HashMap<Name, GenMath.MutableInteger>();
     /** Counter for enumerating NetNames. */
     private int netNameCount;
     /** Counter for enumerating NetNames. */
     private int exportedNetNameCount;
-
     /** */
     final int[] portOffsets;
     /** Node offsets. */
@@ -132,16 +127,14 @@ class ImmutableNetSchem {
     private final Name[] drawnNames;
     /** */
     private final int[] drawnWidths;
-
     /** */
     Global.Set globals;
     int[] equivPortsN;
     int[] equivPortsP;
     int[] equivPortsA;
-    IdentityHashMap<Name,Global.Set> globalPartitions;
+    IdentityHashMap<Name, Global.Set> globalPartitions;
 
     /* Implementation of this NetSchem. */ CellId implementationCellId;
-
     /** IconInsts with global rebindes. */
     private IdentityHashMap<IconInst, Set<Global>> iconInstExcludeGlobals;
     /** */
@@ -169,7 +162,7 @@ class ImmutableNetSchem {
 
         CellId implementationCellId = cellId;
         if (cellId.isIcon()) {
-            CellId mainSchemId = snapshot.groupMainSchematics[snapshot.cellGroups[cellId.cellIndex]];
+            CellId mainSchemId = snapshot.getMainSchematics(cellId);
             if (mainSchemId != null) {
                 getEquivExports(mainSchemId);
                 implementationCellId = mainSchemId;
@@ -227,11 +220,11 @@ class ImmutableNetSchem {
         calcDrawnWidths();
 
         initNodables();
-        
+
         int mapSize = netNamesOffset + netNames.size();
         int[] netMapN = ImmutableNetLayout.initMap(mapSize);
         localConnections(netMapN);
-        
+
         int[] netMapP = netMapN.clone();
         int[] netMapA = netMapN.clone();
         internalConnections(netMapN, netMapP, netMapA);
@@ -251,7 +244,7 @@ class ImmutableNetSchem {
         if (drawns[piOffset] >= 0) {
             return;
         }
-        if (pi.portId instanceof PrimitivePortId && techPool.getPrimitivePort((PrimitivePortId)pi.portId).isIsolated()) {
+        if (pi.portId instanceof PrimitivePortId && techPool.getPrimitivePort((PrimitivePortId) pi.portId).isIsolated()) {
             return;
         }
         drawns[piOffset] = numDrawns;
@@ -379,8 +372,9 @@ class ImmutableNetSchem {
         for (int i = 0; i < numNodes; i++) {
             ImmutableNodeInst n = nodes.get(i);
             if (n.protoId instanceof CellId) {
-                if (isIconOfParent(n))
+                if (isIconOfParent(n)) {
                     continue;
+                }
             } else {
                 PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId) n.protoId);
                 if (pn.getFunction() == PrimitiveNode.Function.ART && pn != Generic.tech().simProbeNode
@@ -397,7 +391,7 @@ class ImmutableNetSchem {
                 if (drawns[piOffset] >= 0) {
                     continue;
                 }
-                if (n.protoId instanceof PrimitiveNodeId && techPool.getPrimitivePort((PrimitivePortId)pi.portId).isIsolated()) {
+                if (n.protoId instanceof PrimitiveNodeId && techPool.getPrimitivePort((PrimitivePortId) pi.portId).isIsolated()) {
                     continue;
                 }
                 addToDrawn(pi);
@@ -408,11 +402,11 @@ class ImmutableNetSchem {
 
     private void initNetnames() {
         netNameCount = 0;
-        for (ImmutableExport e: exports) {
+        for (ImmutableExport e : exports) {
             addNetNames(e.name);
         }
         exportedNetNameCount = netNameCount;
-        for (ImmutableArcInst a: arcs) {
+        for (ImmutableArcInst a : arcs) {
             ArcProto ap = techPool.getArcProto(a.protoId);
             if (ap.getFunction() == ArcProto.Function.NONELEC) {
                 continue;
@@ -465,7 +459,7 @@ class ImmutableNetSchem {
                 continue;
             }
             if (oldWidth != newWidth) {
-                reportDrawnWidthError(/*cell.getPort(i), null,*/ drawnNames[drawn].toString(), name.toString());
+                reportDrawnWidthError(/*cell.getPort(i), null,*/drawnNames[drawn].toString(), name.toString());
                 if (oldWidth < newWidth) {
                     drawnNames[drawn] = name;
                     drawnWidths[drawn] = newWidth;
@@ -490,7 +484,7 @@ class ImmutableNetSchem {
                 continue;
             }
             if (oldWidth != newWidth) {
-                reportDrawnWidthError(/*null, ai,*/ drawnNames[drawn].toString(), name.toString());
+                reportDrawnWidthError(/*null, ai,*/drawnNames[drawn].toString(), name.toString());
                 if (oldWidth < newWidth) {
                     drawnNames[drawn] = name;
                     drawnWidths[drawn] = newWidth;
@@ -519,7 +513,7 @@ class ImmutableNetSchem {
             ImmutableNodeInst n = nodes.get(i);
 //            NodeProto np = ni.getProto();
             if (n.protoId instanceof PrimitiveNodeId) {
-                PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+                PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId) n.protoId);
                 if (pn.getFunction().isPin()) {
                     continue;
                 }
@@ -537,7 +531,7 @@ class ImmutableNetSchem {
                 int oldWidth = drawnWidths[drawn];
                 int newWidth = 1;
                 if (n.protoId instanceof CellId) {
-                    CellBackup subCell = snapshot.getCell((CellId)n.protoId);
+                    CellBackup subCell = snapshot.getCell((CellId) n.protoId);
                     CellId subCellId = subCell.cellRevision.d.cellId;
                     if (subCellId.isIcon() || subCellId.isSchematic()) {
                         int arraySize = subCellId.isIcon() ? n.name.busWidth() : 1;
@@ -573,7 +567,7 @@ class ImmutableNetSchem {
 
     // this method will not be called often because user will fix error, so it's not
     // very efficient.
-    private void reportDrawnWidthError(/*Export pp, ArcInst ai,*/ String firstname, String badname) {
+    private void reportDrawnWidthError(/*Export pp, ArcInst ai,*/String firstname, String badname) {
         String msg = "Network: Schematic " + cellId + " has net with conflict width of names <"
                 + firstname + "> and <" + badname + ">";
         System.out.println(msg);
@@ -616,7 +610,7 @@ class ImmutableNetSchem {
 //            if (ni.isCellInstance()) {
 //                netCell = networkManager.getNetCell((Cell) np);
 //            }
-            if (n.protoId instanceof CellId && (((CellId)n.protoId).isIcon() || ((CellId)n.protoId).isSchematic())) {
+            if (n.protoId instanceof CellId && (((CellId) n.protoId).isIcon() || ((CellId) n.protoId).isSchematic())) {
                 if (n.name.hasDuplicates()) {
                     String msg = cellId + ": Node name <" + n.name + "> has duplicate subnames";
                     System.out.println(msg);
@@ -632,12 +626,14 @@ class ImmutableNetSchem {
                 }
             }
             if (n.protoId instanceof CellId) {
-                CellId subCellId = (CellId)n.protoId;
-                if (!(subCellId.isIcon() || subCellId.isSchematic()))
+                CellId subCellId = (CellId) n.protoId;
+                if (!(subCellId.isIcon() || subCellId.isSchematic())) {
                     continue;
-                if (isIconOfParent(n))
+                }
+                if (isIconOfParent(n)) {
                     continue;
-                EquivalentSchematicExports netEq = getEquivExports((CellId)n.protoId);
+                }
+                EquivalentSchematicExports netEq = getEquivExports((CellId) n.protoId);
                 EquivalentSchematicExports schemEq = netEq.implementation;
                 assert schemEq != null && schemEq.getCellId() != cellId;
                 Global.Set gs = schemEq.getGlobals();
@@ -737,7 +733,7 @@ class ImmutableNetSchem {
             mapOffset += export.name.busWidth();
 //            if (portOffsets[i] != mapOffset) {
 //                changed = true;
-                portOffsets[i] = mapOffset;
+            portOffsets[i] = mapOffset;
 //            }
         }
         equivPortsN = new int[mapOffset];
@@ -758,7 +754,7 @@ class ImmutableNetSchem {
             if (!(n.protoId instanceof CellId)) {
                 continue;
             }
-            CellId subCellId = (CellId)n.protoId;
+            CellId subCellId = (CellId) n.protoId;
             if (!subCellId.isIcon() && !subCellId.isSchematic()) {
                 continue;
             }
@@ -779,7 +775,7 @@ class ImmutableNetSchem {
             }
 
             assert iconInst.numExtendedExports == schemEq.equivPortsN.length;
-            mapOffset += iconInst.numExtendedExports*n.name.busWidth();
+            mapOffset += iconInst.numExtendedExports * n.name.busWidth();
         }
         netNamesOffset = mapOffset;
         if (DEBUG) {
@@ -788,8 +784,10 @@ class ImmutableNetSchem {
     }
 
     private Global globalInst(ImmutableNodeInst n) {
-        if (!(n.protoId instanceof PrimitiveNodeId)) return null;
-        PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+        if (!(n.protoId instanceof PrimitiveNodeId)) {
+            return null;
+        }
+        PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId) n.protoId);
         if (pn == Schematics.tech().groundNode) {
             return Global.ground;
         }
@@ -847,7 +845,7 @@ class ImmutableNetSchem {
             }
 
             assert iconInst.nodeInst == n;
-            CellId subCellId = (CellId)n.protoId;
+            CellId subCellId = (CellId) n.protoId;
             assert subCellId.isIcon() || subCellId.isSchematic();
             EquivalentSchematicExports iconEq = iconInst.eq;
             EquivalentSchematicExports schemEq = iconEq.implementation;
@@ -941,7 +939,7 @@ class ImmutableNetSchem {
     private void connectWireCon(int[] netMap, ImmutableNodeInst n) {
         ImmutableArcInst a1 = null;
         ImmutableArcInst a2 = null;
-        for (ImmutableArcInst a: m.getConnections(null, n, null)) {
+        for (ImmutableArcInst a : m.getConnections(null, n, null)) {
             if (a1 == null) {
                 a1 = a;
             } else if (a2 == null) {
@@ -991,7 +989,7 @@ class ImmutableNetSchem {
             if (iconInst != null) {
                 continue;
             }
-            CellId subCellId = (CellId)n.protoId;
+            CellId subCellId = (CellId) n.protoId;
             assert !subCellId.isIcon() && !subCellId.isSchematic();
             EquivPorts eq = snapshot.getCellTree(subCellId).getEquivPorts();
             int[] eqN = eq.getEquivPortsN();
@@ -1093,7 +1091,6 @@ class ImmutableNetSchem {
 //        }
 ////        return changed;
 //    }
-
     /**
      * Update map of equivalent ports newEquivPort.
      */
@@ -1109,7 +1106,7 @@ class ImmutableNetSchem {
                 continue;
             }
             if (globalPartitions == null) {
-                globalPartitions = new IdentityHashMap<Name,Global.Set>();
+                globalPartitions = new IdentityHashMap<Name, Global.Set>();
             }
             for (int k = 0, busWidth = e.name.busWidth(); k < busWidth; k++) {
                 Global.Buf globalBuf = null;
@@ -1123,7 +1120,9 @@ class ImmutableNetSchem {
                         globalBuf.addToBuf(g, globals.getCharacteristic(g));
                     }
                 }
-                if (globalBuf == null) continue;
+                if (globalBuf == null) {
+                    continue;
+                }
                 Name n = e.name.subname(k);
                 Global.Set globs = globalPartitions.get(n);
                 if (globs != null) {
@@ -1154,7 +1153,7 @@ class ImmutableNetSchem {
         if (!(n.protoId instanceof CellId)) {
             return false;
         }
-        CellBackup subCell = snapshot.getCell((CellId)n.protoId);
+        CellBackup subCell = snapshot.getCell((CellId) n.protoId);
         CellId subCellId = subCell.cellRevision.d.cellId;
         return subCellId.isIcon() && cellId.isSchematic() && subCellId.libId == cellId.libId
                 && subCell.cellRevision.d.groupName.equals(cellRevision.d.groupName);
@@ -1232,13 +1231,14 @@ class ImmutableNetSchem {
             return PrimitiveNode.Function.UNKNOWN;
         }
 
-        PrimitiveNode np = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+        PrimitiveNode np = techPool.getPrimitiveNode((PrimitiveNodeId) n.protoId);
         return np.getTechnology().getPrimitiveFunction(np, n.techBits);
     }
 
     private EquivalentSchematicExports getEquivExports(CellId cellId) {
-        if (!(cellId.isIcon() || cellId.isSchematic()))
+        if (!(cellId.isIcon() || cellId.isSchematic())) {
             throw new IllegalArgumentException();
+        }
         EquivalentSchematicExports eq = snapshot.equivSchemExports[cellId.cellIndex];
         if (eq == null) {
             ImmutableNetSchem netSchem = new ImmutableNetSchem(snapshot, cellId);
@@ -1256,28 +1256,29 @@ class ImmutableNetSchem {
     private int getPortInstOffset(int nodeId, PortProtoId portId) {
         return ni_pi[m.getNodeIndexByNodeId(nodeId)] + getPortIndex(portId);
     }
-    
+
     private class PortInst {
+
         private final ImmutableNodeInst n;
         private final int nodeIndex;
         private final PortProtoId portId;
         private final int portIndex;
-        
+
         private PortInst(int nodeId, PortProtoId portId) {
             nodeIndex = m.getNodeIndexByNodeId(nodeId);
             n = nodes.get(nodeIndex);
             this.portId = portId;
             portIndex = getPortIndex(portId);
         }
-        
+
         private PortInst(ImmutableExport e) {
             this(e.originalNodeId, e.originalPortId);
         }
-        
+
         private PortInst(ImmutableArcInst a, int end) {
             this(end != 0 ? a.headNodeId : a.tailNodeId, end != 0 ? a.headPortId : a.tailPortId);
         }
-        
+
         private int getPortInstOffset() {
             return ni_pi[nodeIndex] + portIndex;
         }
@@ -1285,26 +1286,26 @@ class ImmutableNetSchem {
 
     private int getNumPorts(NodeProtoId nodeProtoId) {
         if (nodeProtoId instanceof CellId) {
-            return snapshot.getCell((CellId)nodeProtoId).cellRevision.exports.size();
+            return snapshot.getCell((CellId) nodeProtoId).cellRevision.exports.size();
         } else {
-            return techPool.getPrimitiveNode((PrimitiveNodeId)nodeProtoId).getNumPorts();
+            return techPool.getPrimitiveNode((PrimitiveNodeId) nodeProtoId).getNumPorts();
         }
     }
 
     private PortProtoId getPortIdByIndex(NodeProtoId nodeProtoId, int portIndex) {
         if (nodeProtoId instanceof CellId) {
-            return snapshot.getCell((CellId)nodeProtoId).cellRevision.exports.get(portIndex).exportId;
+            return snapshot.getCell((CellId) nodeProtoId).cellRevision.exports.get(portIndex).exportId;
         } else {
-            return techPool.getPrimitiveNode((PrimitiveNodeId)nodeProtoId).getPort(portIndex).getId();
+            return techPool.getPrimitiveNode((PrimitiveNodeId) nodeProtoId).getPort(portIndex).getId();
         }
     }
 
     private int getPortIndex(PortProtoId portId) {
         if (portId instanceof ExportId) {
-            ExportId exportId = (ExportId)portId;
+            ExportId exportId = (ExportId) portId;
             return snapshot.getCell(exportId.getParentId()).cellRevision.getExportIndexByExportId(exportId);
         } else {
-            return techPool.getPrimitivePort((PrimitivePortId)portId).getPortIndex();
+            return techPool.getPrimitivePort((PrimitivePortId) portId).getPortIndex();
         }
     }
 }

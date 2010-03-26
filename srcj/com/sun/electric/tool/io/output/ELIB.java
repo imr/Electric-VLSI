@@ -88,79 +88,97 @@ import java.util.TreeSet;
 /**
  * This class writes files in binary (.elib) format.
  */
-public class ELIB extends Output
-{
-    /** Snapshot being saved. */                                Snapshot snapshot;
-    /** IdManager of Snapshot being saved. */                   IdManager idManager;
-    /** TechPool of Snapshot being saved. */                    TechPool techPool;
-    /** Library being saved. */                                 LibId theLibId;
-	/** Map of referenced objects for library files */          HashMap<Object,Integer> objInfo;
-    /** List of referenced Technologies */                      final ArrayList<Technology> technologies = new ArrayList<Technology>();
-	/** Maps memory face index to disk face index */            private int[] faceMap = new int[TextDescriptor.ActiveFont.getMaxIndex() + 1];
-	/** Name space of variable names */                         private TreeMap<String,Short> nameSpace;
-    /** Scale for irrelevant technologies. */                   private double irrelevantScale;
+public class ELIB extends Output {
 
-	/** map with "next in cell group" pointers */				private HashMap<CellId,CellId> cellInSameGroup = new HashMap<CellId,CellId>();
-	/** true to write a 6.XX compatible library (MAGIC11) */	private boolean compatibleWith6;
-	/** map to assign indices to cell names (for 6.XX) */		private TreeMap<String,Integer> cellIndexMap = new TreeMap<String,Integer>(TextUtils.STRING_NUMBER_ORDER);
-    /** Project preferences. */                                 private HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
-    /** size correctors for technologies */                     private HashMap<TechId,Technology.SizeCorrector> sizeCorrectors = new HashMap<TechId,Technology.SizeCorrector>();
-    /** Topological sort of cells in library to be written */   private LinkedHashMap<CellId,Integer> cellOrdering = new LinkedHashMap<CellId,Integer>();
-    /** Map from nodeId to nodeIndex for current Cell. */       int[] nodeIndexByNodeId;
+    /** Snapshot being saved. */
+    Snapshot snapshot;
+    /** IdManager of Snapshot being saved. */
+    IdManager idManager;
+    /** TechPool of Snapshot being saved. */
+    TechPool techPool;
+    /** Library being saved. */
+    LibId theLibId;
+    /** Map of referenced objects for library files */
+    HashMap<Object, Integer> objInfo;
+    /** List of referenced Technologies */
+    final ArrayList<Technology> technologies = new ArrayList<Technology>();
+    /** Maps memory face index to disk face index */
+    private int[] faceMap = new int[TextDescriptor.ActiveFont.getMaxIndex() + 1];
+    /** Name space of variable names */
+    private TreeMap<String, Short> nameSpace;
+    /** Scale for irrelevant technologies. */
+    private double irrelevantScale;
+    /** map with "next in cell group" pointers */
+    private HashMap<CellId, CellId> cellInSameGroup = new HashMap<CellId, CellId>();
+    /** true to write a 6.XX compatible library (MAGIC11) */
+    private boolean compatibleWith6;
+    /** map to assign indices to cell names (for 6.XX) */
+    private TreeMap<String, Integer> cellIndexMap = new TreeMap<String, Integer>(TextUtils.STRING_NUMBER_ORDER);
+    /** Project preferences. */
+    private HashMap<Setting, Object> projectSettings = new HashMap<Setting, Object>();
+    /** size correctors for technologies */
+    private HashMap<TechId, Technology.SizeCorrector> sizeCorrectors = new HashMap<TechId, Technology.SizeCorrector>();
+    /** Topological sort of cells in library to be written */
+    private LinkedHashMap<CellId, Integer> cellOrdering = new LinkedHashMap<CellId, Integer>();
+    /** Map from nodeId to nodeIndex for current Cell. */
+    int[] nodeIndexByNodeId;
     ArrayList<CellRevision> localCells = new ArrayList<CellRevision>();
     ArrayList<CellRevision> externalCells = new ArrayList<CellRevision>();
-		int nodeIndex = 0;
-		int portProtoIndex = 0;
-		int nodeProtoIndex = 0;
-		int arcIndex = 0;
-		int primNodeProtoIndex = 0;
-		int primPortProtoIndex = 0;
-		int arcProtoIndex = 0;
-		int toolCount = 0;
-		int[] primNodeCounts;
-		int[] primArcCounts;
-        int[] groupRenumber;
+    int nodeIndex = 0;
+    int portProtoIndex = 0;
+    int nodeProtoIndex = 0;
+    int arcIndex = 0;
+    int primNodeProtoIndex = 0;
+    int primPortProtoIndex = 0;
+    int arcProtoIndex = 0;
+    int toolCount = 0;
+    int[] primNodeCounts;
+    int[] primArcCounts;
+    int[] groupRenumber;
 
-	ELIB()
-	{
-	}
+    ELIB() {
+    }
 
-	public void write6Compatible() { compatibleWith6 = true; }
+    public void write6Compatible() {
+        compatibleWith6 = true;
+    }
 
-	// ----------------------- public methods -------------------------------
-
-	/**
-	 * Method to write a Library in binary (.elib) format.
+    // ----------------------- public methods -------------------------------
+    /**
+     * Method to write a Library in binary (.elib) format.
      * @param snapshot Snapshot to be written
-	 * @param theLibId the Library to be written.
-	 */
-	protected boolean writeLib(Snapshot snapshot, LibId theLibId)
-	{
+     * @param theLibId the Library to be written.
+     */
+    protected boolean writeLib(Snapshot snapshot, LibId theLibId) {
         this.snapshot = snapshot;
         idManager = snapshot.idManager;
         techPool = snapshot.techPool;
         this.theLibId = theLibId;
 
         // Gather objects referenced from Cells
-        objInfo = new HashMap<Object,Integer>();
-        nameSpace = new TreeMap<String,Short>(TextUtils.STRING_NUMBER_ORDER);
-        for (CellBackup cellBackup: snapshot.cellBackups) {
-            if (cellBackup == null) continue;
+        objInfo = new HashMap<Object, Integer>();
+        nameSpace = new TreeMap<String, Short>(TextUtils.STRING_NUMBER_ORDER);
+        for (CellBackup cellBackup : snapshot.cellBackups) {
+            if (cellBackup == null) {
+                continue;
+            }
             CellRevision cellRevision = cellBackup.cellRevision;
             CellId cellId = cellRevision.d.cellId;
-            if (cellId.libId != theLibId) continue;
+            if (cellId.libId != theLibId) {
+                continue;
+            }
             gatherCell(cellRevision.d.cellId);
 
-            for (ImmutableNodeInst n: cellRevision.nodes) {
+            for (ImmutableNodeInst n : cellRevision.nodes) {
                 NodeProtoId np = n.protoId;
                 if (np instanceof CellId) {
-                    gatherCell((CellId)np);
+                    gatherCell((CellId) np);
                 } else {
                     gatherObj(np);
-                    gatherTech(((PrimitiveNodeId)np).techId);
+                    gatherTech(((PrimitiveNodeId) np).techId);
                 }
                 if (n.hasPortInstVariables()) {
-                    for (Iterator<PortProtoId> it = n.getPortsWithVariables(); it.hasNext(); ) {
+                    for (Iterator<PortProtoId> it = n.getPortsWithVariables(); it.hasNext();) {
                         PortProtoId portId = it.next();
                         gatherVariables(portId.getName(snapshot), n.getPortInst(portId));
                     }
@@ -170,7 +188,7 @@ public class ELIB extends Output
                 gatherFont(n.protoDescriptor);
             }
 
-            for (ImmutableArcInst a: cellRevision.arcs) {
+            for (ImmutableArcInst a : cellRevision.arcs) {
                 ArcProtoId apId = a.protoId;
                 gatherObj(apId);
                 gatherTech(apId.techId);
@@ -180,7 +198,7 @@ public class ELIB extends Output
                 gatherFont(a.nameDescriptor);
             }
 
-            for (ImmutableExport e: cellRevision.exports) {
+            for (ImmutableExport e : cellRevision.exports) {
                 //gatherObj(e.getOriginalPort().getPortProto());
                 gatherVariables(null, e);
                 gatherFont(e.nameDescriptor);
@@ -191,14 +209,16 @@ public class ELIB extends Output
         gatherVariables(null, snapshot.getLib(theLibId).d);
 
         // Gather objects refetenced from preferences
-        for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
+        for (Iterator<Tool> it = Tool.getTools(); it.hasNext();) {
             gatherSettings(it.next());
+        }
 
-        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
+        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext();) {
             Technology tech = it.next();
             TechId techId = tech.getId();
-            if (!objInfo.containsKey(techId))
+            if (!objInfo.containsKey(techId)) {
                 continue;
+            }
             technologies.add(tech);
             gatherSettings(tech);
         }
@@ -207,57 +227,67 @@ public class ELIB extends Output
         putNameSpace(NodeInst.NODE_NAME.getName());
         putNameSpace(ArcInst.ARC_NAME.getName());
         short varIndex = 0;
-        for (Map.Entry<String,Short> e : nameSpace.entrySet()) {
+        for (Map.Entry<String, Short> e : nameSpace.entrySet()) {
             e.setValue(new Short(varIndex++));
         }
 
-		// make sure all technologies with irrelevant scale information have the same scale value
-		for(Technology tech: technologies)
-		{
-			if (tech.isScaleRelevant()) continue;
-			if (tech == Generic.tech()) continue;
-			irrelevantScale = Math.max(irrelevantScale, tech.getScale());
-		}
+        // make sure all technologies with irrelevant scale information have the same scale value
+        for (Technology tech : technologies) {
+            if (tech.isScaleRelevant()) {
+                continue;
+            }
+            if (tech == Generic.tech()) {
+                continue;
+            }
+            irrelevantScale = Math.max(irrelevantScale, tech.getScale());
+        }
 
         // Sort CellIds
-        TreeMap<String,LibId> sortedLibIds = new TreeMap<String,LibId>(TextUtils.STRING_NUMBER_ORDER);
-        HashMap<LibId,TreeMap<CellName,CellId>> sortedCellIds = new HashMap<LibId,TreeMap<CellName,CellId>>();
-        for (CellBackup cellBackup: snapshot.cellBackups) {
-            if (cellBackup == null) continue;
+        TreeMap<String, LibId> sortedLibIds = new TreeMap<String, LibId>(TextUtils.STRING_NUMBER_ORDER);
+        HashMap<LibId, TreeMap<CellName, CellId>> sortedCellIds = new HashMap<LibId, TreeMap<CellName, CellId>>();
+        for (CellBackup cellBackup : snapshot.cellBackups) {
+            if (cellBackup == null) {
+                continue;
+            }
             CellId cellId = cellBackup.cellRevision.d.cellId;
-            if (!objInfo.containsKey(cellId)) continue;
+            if (!objInfo.containsKey(cellId)) {
+                continue;
+            }
             LibId libId = cellId.libId;
             sortedLibIds.put(libId.libName, libId);
-            TreeMap<CellName,CellId> sortedCellIdsInLibrary = sortedCellIds.get(libId);
+            TreeMap<CellName, CellId> sortedCellIdsInLibrary = sortedCellIds.get(libId);
             if (sortedCellIdsInLibrary == null) {
-                sortedCellIdsInLibrary = new TreeMap<CellName,CellId>();
+                sortedCellIdsInLibrary = new TreeMap<CellName, CellId>();
                 sortedCellIds.put(libId, sortedCellIdsInLibrary);
             }
             sortedCellIdsInLibrary.put(cellId.cellName, cellId);
         }
-        for (CellId cellId: sortedCellIds.get(theLibId).values())
+        for (CellId cellId : sortedCellIds.get(theLibId).values()) {
             localCells.add(snapshot.getCellRevision(cellId));
+        }
 
         // count and number the cells, nodes, arcs, and ports in this library
         int maxGroup = -1;
-        ArrayList<TreeMap<CellName,CellId>> cellGroups_ = new ArrayList<TreeMap<CellName,CellId>>();
-        for (CellRevision cellRevision: localCells)
-            maxGroup = Math.max(maxGroup, snapshot.cellGroups[cellRevision.d.cellId.cellIndex]);
+        ArrayList<TreeMap<CellName, CellId>> cellGroups_ = new ArrayList<TreeMap<CellName, CellId>>();
+        for (CellRevision cellRevision : localCells) {
+            maxGroup = Math.max(maxGroup, snapshot.getCellGroupIndex(cellRevision.d.cellId));
+        }
         groupRenumber = new int[maxGroup + 1];
 
-        for(CellRevision cellRevision: localCells) {
+        for (CellRevision cellRevision : localCells) {
             CellId cellId = cellRevision.d.cellId;
             cellOrdering.put(cellId, new Integer(nodeProtoIndex));
             putObjIndex(cellId, nodeProtoIndex++);
-            for (ImmutableExport e: cellRevision.exports)
+            for (ImmutableExport e : cellRevision.exports) {
                 putObjIndex(e.exportId, portProtoIndex++);
+            }
             nodeIndex += cellRevision.nodes.size();
             arcIndex += cellRevision.arcs.size();
 
-            int snapshotGroup = snapshot.cellGroups[cellId.cellIndex];
+            int snapshotGroup = snapshot.getCellGroupIndex(cellId);
             int elibGroup = groupRenumber[snapshotGroup];
             if (elibGroup == 0) {
-                cellGroups_.add(new TreeMap<CellName,CellId>());
+                cellGroups_.add(new TreeMap<CellName, CellId>());
                 elibGroup = cellGroups_.size();
                 groupRenumber[snapshotGroup] = elibGroup;
             }
@@ -266,12 +296,13 @@ public class ELIB extends Output
             // gather proto name if creating version-6-compatible output
             if (compatibleWith6) {
                 String protoName = cellId.cellName.getName();
-                if (!cellIndexMap.containsKey(protoName))
+                if (!cellIndexMap.containsKey(protoName)) {
                     cellIndexMap.put(protoName, null);
+                }
             }
         }
         for (int i = 0; i < cellGroups_.size(); i++) {
-            TreeMap<CellName,CellId> cellGroup_ = cellGroups_.get(i);
+            TreeMap<CellName, CellId> cellGroup_ = cellGroups_.get(i);
             Iterator<CellId> git = cellGroup_.values().iterator();
             CellId firstCellInGroup = git.next();
             CellId lastCellInGroup = firstCellInGroup;
@@ -286,21 +317,25 @@ public class ELIB extends Output
         }
 
         // count and number the cells in other libraries
-        for (LibId libId: sortedLibIds.values()) {
-            if (libId == theLibId) continue;
-            for (CellId cellId: sortedCellIds.get(libId).values()) {
+        for (LibId libId : sortedLibIds.values()) {
+            if (libId == theLibId) {
+                continue;
+            }
+            for (CellId cellId : sortedCellIds.get(libId).values()) {
                 assert objInfo.containsKey(cellId);
                 CellRevision cellRevision = snapshot.getCellRevision(cellId);
                 externalCells.add(cellRevision);
                 putObjIndex(cellId, nodeProtoIndex++);
-                for (ImmutableExport e: cellRevision.exports)
+                for (ImmutableExport e : cellRevision.exports) {
                     putObjIndex(e.exportId, portProtoIndex++);
+                }
 
                 // gather proto name if creating version-6-compatible output
                 if (compatibleWith6) {
                     String protoName = cellId.cellName.getName();
-                    if (!cellIndexMap.containsKey(protoName))
+                    if (!cellIndexMap.containsKey(protoName)) {
                         cellIndexMap.put(protoName, null);
+                    }
                 }
             }
         }
@@ -313,29 +348,35 @@ public class ELIB extends Output
             TechId techId = tech.getId();
             putObjIndex(techId, techCount);
             int primNodeStart = primNodeProtoIndex;
-            for (Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext(); ) {
+            for (Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext();) {
                 PrimitiveNode np = nit.next();
-                if (!objInfo.containsKey(np.getId())) continue;
+                if (!objInfo.containsKey(np.getId())) {
+                    continue;
+                }
                 putObjIndex(np.getId(), -2 - primNodeProtoIndex++);
-                for (Iterator<PortProto> pit = np.getPorts(); pit.hasNext(); ) {
-                    PrimitivePort pp = (PrimitivePort)pit.next();
+                for (Iterator<PortProto> pit = np.getPorts(); pit.hasNext();) {
+                    PrimitivePort pp = (PrimitivePort) pit.next();
                     putObjIndex(pp.getId(), -2 - primPortProtoIndex++);
                 }
             }
             primNodeCounts[techCount] = primNodeProtoIndex - primNodeStart;
             int primArcStart = arcProtoIndex;
-            for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); ) {
+            for (Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext();) {
                 ArcProtoId apId = ait.next().getId();
-                if (!objInfo.containsKey(apId)) continue;
+                if (!objInfo.containsKey(apId)) {
+                    continue;
+                }
                 putObjIndex(apId, -2 - arcProtoIndex++);
             }
             primArcCounts[techCount] = arcProtoIndex - primArcStart;
         }
 
         // count the number of tools
-        for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); ) {
+        for (Iterator<Tool> it = Tool.getTools(); it.hasNext();) {
             Tool tool = it.next();
-            if (!objInfo.containsKey(tool)) continue;
+            if (!objInfo.containsKey(tool)) {
+                continue;
+            }
             toolCount++;
         }
 
@@ -345,209 +386,210 @@ public class ELIB extends Output
             System.out.println("End of file reached while writing " + filePath);
             return true;
         }
-	}
+    }
 
-	/**
-	 * Method to write the .elib file.
-	 * Returns true on error.
-	 */
-	boolean writeTheLibrary() throws IOException
-	{
+    /**
+     * Method to write the .elib file.
+     * Returns true on error.
+     */
+    boolean writeTheLibrary() throws IOException {
         // write the header
-		int magic = ELIBConstants.MAGIC13;
-		if (compatibleWith6) magic = ELIBConstants.MAGIC11;
-		writeBigInteger(magic);
-		writeByte((byte)2);		// size of Short
-		writeByte((byte)4);		// size of Int
-		writeByte((byte)1);		// size of Char
+        int magic = ELIBConstants.MAGIC13;
+        if (compatibleWith6) {
+            magic = ELIBConstants.MAGIC11;
+        }
+        writeBigInteger(magic);
+        writeByte((byte) 2);		// size of Short
+        writeByte((byte) 4);		// size of Int
+        writeByte((byte) 1);		// size of Char
 
-		// write number of objects
-		writeBigInteger(toolCount);
-		writeBigInteger(technologies.size());
-		writeBigInteger(primNodeProtoIndex);
-		writeBigInteger(primPortProtoIndex);
-		writeBigInteger(arcProtoIndex);
-		writeBigInteger(nodeProtoIndex);
-		writeBigInteger(nodeIndex);
-		writeBigInteger(portProtoIndex);
-		writeBigInteger(arcIndex);
-		writeBigInteger(0);
+        // write number of objects
+        writeBigInteger(toolCount);
+        writeBigInteger(technologies.size());
+        writeBigInteger(primNodeProtoIndex);
+        writeBigInteger(primPortProtoIndex);
+        writeBigInteger(arcProtoIndex);
+        writeBigInteger(nodeProtoIndex);
+        writeBigInteger(nodeIndex);
+        writeBigInteger(portProtoIndex);
+        writeBigInteger(arcIndex);
+        writeBigInteger(0);
 
-		// write count of cells if creating version-6-compatible output
-		int cellCount = 0;
-		if (compatibleWith6)
-		{
-			for(Map.Entry<String,Integer> e : cellIndexMap.entrySet())
-			{
-				e.setValue(new Integer(cellCount++));
-			}
-			writeBigInteger(cellCount);
-		}
+        // write count of cells if creating version-6-compatible output
+        int cellCount = 0;
+        if (compatibleWith6) {
+            for (Map.Entry<String, Integer> e : cellIndexMap.entrySet()) {
+                e.setValue(new Integer(cellCount++));
+            }
+            writeBigInteger(cellCount);
+        }
 
-		// write the current cell
-		writeObj(null);
+        // write the current cell
+        writeObj(null);
 
-		// write the version number
-		writeString(Version.getVersion().toString());
+        // write the version number
+        writeString(Version.getVersion().toString());
 
-		// number the views and write nonstandard ones
-		putObjIndex(View.UNKNOWN, -1);
-		putObjIndex(View.LAYOUT, -2);
-		putObjIndex(View.SCHEMATIC, -3);
-		putObjIndex(View.ICON, -4);
-		putObjIndex(View.DOCWAVE, -5);				// unknown in C
-		putObjIndex(View.LAYOUTSKEL, -6);			// unknown in C
-		putObjIndex(View.VHDL, -7);
-		putObjIndex(View.NETLIST, -8);
-		putObjIndex(View.DOC, -9);
-		putObjIndex(View.NETLISTNETLISP, -10);		// unknown in C
-		putObjIndex(View.NETLISTALS, -11);			// unknown in C
-		putObjIndex(View.NETLISTQUISC, -12);		// unknown in C
-		putObjIndex(View.NETLISTRSIM, -13);			// unknown in C
-		putObjIndex(View.NETLISTSILOS, -14);		// unknown in C
-		putObjIndex(View.VERILOG, -15);
-		List<View> viewsToSave = new ArrayList<View>();
-		for(Iterator<View> it = View.getViews(); it.hasNext(); )
-		{
-			View view = it.next();
-			if (objInfo.get(view) != null) continue;
-			if (!objInfo.containsKey(view)) continue;
-			viewsToSave.add(view);
-			putObjIndex(view, viewsToSave.size());
-		}
-		writeBigInteger(viewsToSave.size());
-		for(View view : viewsToSave)
-		{
-			writeString(view.getFullName());
-			writeString(view.getAbbreviation());
-		}
+        // number the views and write nonstandard ones
+        putObjIndex(View.UNKNOWN, -1);
+        putObjIndex(View.LAYOUT, -2);
+        putObjIndex(View.SCHEMATIC, -3);
+        putObjIndex(View.ICON, -4);
+        putObjIndex(View.DOCWAVE, -5);				// unknown in C
+        putObjIndex(View.LAYOUTSKEL, -6);			// unknown in C
+        putObjIndex(View.VHDL, -7);
+        putObjIndex(View.NETLIST, -8);
+        putObjIndex(View.DOC, -9);
+        putObjIndex(View.NETLISTNETLISP, -10);		// unknown in C
+        putObjIndex(View.NETLISTALS, -11);			// unknown in C
+        putObjIndex(View.NETLISTQUISC, -12);		// unknown in C
+        putObjIndex(View.NETLISTRSIM, -13);			// unknown in C
+        putObjIndex(View.NETLISTSILOS, -14);		// unknown in C
+        putObjIndex(View.VERILOG, -15);
+        List<View> viewsToSave = new ArrayList<View>();
+        for (Iterator<View> it = View.getViews(); it.hasNext();) {
+            View view = it.next();
+            if (objInfo.get(view) != null) {
+                continue;
+            }
+            if (!objInfo.containsKey(view)) {
+                continue;
+            }
+            viewsToSave.add(view);
+            putObjIndex(view, viewsToSave.size());
+        }
+        writeBigInteger(viewsToSave.size());
+        for (View view : viewsToSave) {
+            writeString(view.getFullName());
+            writeString(view.getAbbreviation());
+        }
 
-		// write total number of arcinsts, nodeinsts, and ports in each cell
-		for (CellId cellId: cellOrdering.keySet())
-		{
+        // write total number of arcinsts, nodeinsts, and ports in each cell
+        for (CellId cellId : cellOrdering.keySet()) {
             CellRevision cellRevision = snapshot.getCellRevision(cellId);
-			writeBigInteger(cellRevision.arcs.size());
-			writeBigInteger(cellRevision.nodes.size());
-			writeBigInteger(cellRevision.exports.size());
-		}
+            writeBigInteger(cellRevision.arcs.size());
+            writeBigInteger(cellRevision.nodes.size());
+            writeBigInteger(cellRevision.exports.size());
+        }
 
-		// write dummy numbers of arcinsts and nodeinst; count ports for external cells
-        for (CellRevision cellRevision: externalCells) {
+        // write dummy numbers of arcinsts and nodeinst; count ports for external cells
+        for (CellRevision cellRevision : externalCells) {
             CellId cellId = cellRevision.d.cellId;
-            if (!objInfo.containsKey(cellId)) continue;
+            if (!objInfo.containsKey(cellId)) {
+                continue;
+            }
             writeBigInteger(-1);
             writeBigInteger(-1);
             writeBigInteger(cellRevision.exports.size());
         }
 
-		// write the names of technologies and primitive prototypes
-		for(int techCount = 0; techCount < technologies.size(); techCount++ )
-		{
-			Technology tech = technologies.get(techCount);
+        // write the names of technologies and primitive prototypes
+        for (int techCount = 0; techCount < technologies.size(); techCount++) {
+            Technology tech = technologies.get(techCount);
 
-			// write the technology name
-			writeString(tech.getTechName());
+            // write the technology name
+            writeString(tech.getTechName());
 
-			// write the primitive node prototypes
-			writeBigInteger(primNodeCounts[techCount]);
-			for(Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext(); )
-			{
-				PrimitiveNode np = nit.next();
-				if (!objInfo.containsKey(np.getId())) continue;
+            // write the primitive node prototypes
+            writeBigInteger(primNodeCounts[techCount]);
+            for (Iterator<PrimitiveNode> nit = tech.getNodes(); nit.hasNext();) {
+                PrimitiveNode np = nit.next();
+                if (!objInfo.containsKey(np.getId())) {
+                    continue;
+                }
 
-				// write the primitive node prototype name
-				writeString(np.getName());
-				writeBigInteger(np.getNumPorts());
-				for(Iterator<PortProto> pit = np.getPorts(); pit.hasNext(); )
-				{
-					PrimitivePort pp = (PrimitivePort)pit.next();
-					writeString(pp.getName());
-				}
-			}
+                // write the primitive node prototype name
+                writeString(np.getName());
+                writeBigInteger(np.getNumPorts());
+                for (Iterator<PortProto> pit = np.getPorts(); pit.hasNext();) {
+                    PrimitivePort pp = (PrimitivePort) pit.next();
+                    writeString(pp.getName());
+                }
+            }
 
-			// write the primitive arc prototype names
-			writeBigInteger(primArcCounts[techCount]);
-			for(Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext(); )
-			{
-				ArcProtoId apId = ait.next().getId();
-				if (!objInfo.containsKey(apId)) continue;
-				writeString(apId.name);
-			}
-		}
+            // write the primitive arc prototype names
+            writeBigInteger(primArcCounts[techCount]);
+            for (Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext();) {
+                ArcProtoId apId = ait.next().getId();
+                if (!objInfo.containsKey(apId)) {
+                    continue;
+                }
+                writeString(apId.name);
+            }
+        }
 
-		// write the names of the tools
-		for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
-		{
-			Tool tool = it.next();
-			if (!objInfo.containsKey(tool)) continue;
-			writeString(tool.getName());
-		}
+        // write the names of the tools
+        for (Iterator<Tool> it = Tool.getTools(); it.hasNext();) {
+            Tool tool = it.next();
+            if (!objInfo.containsKey(tool)) {
+                continue;
+            }
+            writeString(tool.getName());
+        }
 
-		// write the userbits for the library
-		writeBigInteger(0);
-		//writeBigInteger(lib.lowLevelGetUserBits());
+        // write the userbits for the library
+        writeBigInteger(0);
+        //writeBigInteger(lib.lowLevelGetUserBits());
 
-		// write the tool scale values
-		for(Technology tech: technologies)
-		{
-			writeBigInteger(gridCoordToElib(tech, DBMath.GRID));
+        // write the tool scale values
+        for (Technology tech : technologies) {
+            writeBigInteger(gridCoordToElib(tech, DBMath.GRID));
 //			writeBigInteger((int)Math.round(tech.getScale()*2));
-		}
+        }
 
-		// write the global namespace
-		writeNameSpace();
+        // write the global namespace
+        writeNameSpace();
 
-		// write the library variables and font association that preserves the font names
-		writeVariables(snapshot.getLib(theLibId).d);
+        // write the library variables and font association that preserves the font names
+        writeVariables(snapshot.getLib(theLibId).d);
 
-		// write the tool variables
-		for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
-		{
-			Tool tool = it.next();
-			if (!objInfo.containsKey(tool)) continue;
-			writeMeaningPrefs(tool);
-		}
+        // write the tool variables
+        for (Iterator<Tool> it = Tool.getTools(); it.hasNext();) {
+            Tool tool = it.next();
+            if (!objInfo.containsKey(tool)) {
+                continue;
+            }
+            writeMeaningPrefs(tool);
+        }
 
-		// write the variables on technologies
-		for(Technology tech: technologies)
-		{
-			writeMeaningPrefs(tech);
-		}
+        // write the variables on technologies
+        for (Technology tech : technologies) {
+            writeMeaningPrefs(tech);
+        }
 
-		// write the dummy primitive variables
-		int numDummyVariables = arcProtoIndex + primNodeProtoIndex + primPortProtoIndex;
-		for (int i = 0; i < numDummyVariables; i++) writeNoVariables();
+        // write the dummy primitive variables
+        int numDummyVariables = arcProtoIndex + primNodeProtoIndex + primPortProtoIndex;
+        for (int i = 0; i < numDummyVariables; i++) {
+            writeNoVariables();
+        }
 
-		// write the dummy view variables
-		writeBigInteger(0);
+        // write the dummy view variables
+        writeBigInteger(0);
 
-		// write cells if creating version-6-compatible output
-		if (compatibleWith6)
-		{
-			for(String cellName : cellIndexMap.keySet())
-			{
-				writeString(cellName);
-				writeNoVariables();
-			}
-		}
+        // write cells if creating version-6-compatible output
+        if (compatibleWith6) {
+            for (String cellName : cellIndexMap.keySet()) {
+                writeString(cellName);
+                writeNoVariables();
+            }
+        }
 
-		// write all of the cells in this library
+        // write all of the cells in this library
         nodeIndex = 0;
-		for (CellId cellId: cellOrdering.keySet()) {
+        for (CellId cellId : cellOrdering.keySet()) {
             CellRevision cellRevision = snapshot.getCellRevision(cellId);
             startCell(cellRevision, nodeIndex);
-			writeNodeProto(cellRevision);
+            writeNodeProto(cellRevision);
             nodeIndex += cellRevision.nodes.size();
-		}
+        }
 
-		// write all of the cells in external libraries
+        // write all of the cells in external libraries
         writeExternalCells();
 
-		// write all of the arcs and nodes in this library
+        // write all of the arcs and nodes in this library
         nodeIndex = 0;
         arcIndex = 0;
-		for (CellId cellId: cellOrdering.keySet())
-		{
+        for (CellId cellId : cellOrdering.keySet()) {
             CellRevision cellRevision = snapshot.getCellRevision(cellId);
             startCell(cellRevision, nodeIndex);
             writeArcs(cellRevision);
@@ -555,73 +597,67 @@ public class ELIB extends Output
             nodeIndex += cellRevision.nodes.size();
             arcIndex += cellRevision.arcs.size();
         }
-		// library written successfully
-		return false;
-	}
+        // library written successfully
+        return false;
+    }
 
-	/**
-	 * Gather variables of ElectricObject into objInfo map.
-	 * @param eObj ElectricObject with variables.
-	 */
-	private void gatherVariables(String portName, ImmutableElectricObject d)
-	{
+    /**
+     * Gather variables of ElectricObject into objInfo map.
+     * @param eObj ElectricObject with variables.
+     */
+    private void gatherVariables(String portName, ImmutableElectricObject d) {
         if (d instanceof ImmutableCell) {
-            for (Iterator<Variable> it = ((ImmutableCell)d).getParameters(); it.hasNext();) {
+            for (Iterator<Variable> it = ((ImmutableCell) d).getParameters(); it.hasNext();) {
                 Variable param = it.next();
                 gatherVariable(portName, param);
             }
         } else if (d instanceof ImmutableIconInst) {
-            for (Iterator<Variable> it = ((ImmutableIconInst)d).getDefinedParameters(); it.hasNext();) {
+            for (Iterator<Variable> it = ((ImmutableIconInst) d).getDefinedParameters(); it.hasNext();) {
                 Variable param = it.next();
                 gatherVariable(portName, param);
             }
         }
-		for (Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
-			Variable var = it.next();
+        for (Iterator<Variable> it = d.getVariables(); it.hasNext();) {
+            Variable var = it.next();
             gatherVariable(portName, var);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Gather variable into objInfo map.
-	 * @param var variable.
-	 */
-	private void gatherVariable(String portName, Variable var)
-	{
+    /**
+     * Gather variable into objInfo map.
+     * @param var variable.
+     */
+    private void gatherVariable(String portName, Variable var) {
         Object value = var.getObject();
         if (nameSpace != null) {
             putNameSpace(diskName(portName, var));
         }
         gatherFont(var.getTextDescriptor());
-        int length = value instanceof Object[] ? ((Object[])value).length : 1;
-        for (int i = 0; i < length; i++)
-        {
-            Object v = value instanceof Object[] ? ((Object[])value)[i] : value;
-            if (v == null) continue;
-            if (v instanceof TechId || v instanceof Tool)
-            {
+        int length = value instanceof Object[] ? ((Object[]) value).length : 1;
+        for (int i = 0; i < length; i++) {
+            Object v = value instanceof Object[] ? ((Object[]) value)[i] : value;
+            if (v == null) {
+                continue;
+            }
+            if (v instanceof TechId || v instanceof Tool) {
                 gatherObj(v);
-            } else if (v instanceof PrimitiveNodeId)
-            {
+            } else if (v instanceof PrimitiveNodeId) {
                 gatherObj(v);
-                gatherTech(((PrimitiveNodeId)v).techId);
-            } else if (v instanceof PrimitivePort)
-            {
-                PrimitiveNode pn = ((PrimitivePort)v).getParent();
+                gatherTech(((PrimitiveNodeId) v).techId);
+            } else if (v instanceof PrimitivePort) {
+                PrimitiveNode pn = ((PrimitivePort) v).getParent();
                 gatherObj(pn.getId());
                 gatherTech(pn.getTechnology().getId());
-            } else if (v instanceof ArcProto)
-            {
+            } else if (v instanceof ArcProto) {
                 gatherObj(v);
-                gatherTech(((ArcProto)v).getId().techId);
-            } else if (v instanceof CellId)
-            {
-                CellId cellId = (CellId)v;
-                if (snapshot.getCell(cellId) != null)
+                gatherTech(((ArcProto) v).getId().techId);
+            } else if (v instanceof CellId) {
+                CellId cellId = (CellId) v;
+                if (snapshot.getCell(cellId) != null) {
                     gatherCell(cellId);
-            } else if (v instanceof ExportId)
-            {
-                ExportId exportId = (ExportId)v;
+                }
+            } else if (v instanceof ExportId) {
+                ExportId exportId = (ExportId) v;
                 CellRevision cellRevision = snapshot.getCellRevision(exportId.getParentId());
                 if (cellRevision != null && cellRevision.getExport(exportId) != null) {
                     gatherObj(exportId);
@@ -629,113 +665,115 @@ public class ELIB extends Output
                 }
             }
         }
-	}
+    }
 
-	/**
-	 * Gather project preferences attached to object into objInfo map.
-	 * @param obj Object with attached project preferences.
-	 */
+    /**
+     * Gather project preferences attached to object into objInfo map.
+     * @param obj Object with attached project preferences.
+     */
     private void gatherSettings(Object obj) {
         Setting.Group group = null;
-        if (obj instanceof Tool)
-            group = ((Tool)obj).getProjectSettings();
-        else if (obj instanceof Technology)
-            group = ((Technology)obj).getProjectSettings();
-        for (Setting setting: group.getDiskSettings(snapshot.getSettings()).keySet()) {
+        if (obj instanceof Tool) {
+            group = ((Tool) obj).getProjectSettings();
+        } else if (obj instanceof Technology) {
+            group = ((Technology) obj).getProjectSettings();
+        }
+        for (Setting setting : group.getDiskSettings(snapshot.getSettings()).keySet()) {
             gatherObj(obj);
             String name = setting.getPrefName();
-            if (nameSpace != null) putNameSpace(name);
+            if (nameSpace != null) {
+                putNameSpace(name);
+            }
         }
     }
 
-	/**
-	 * Gather TechId of Technology into objInfo map.
-	 * @param tech Technology to examine.
-	 */
-	private void gatherTech(TechId techId)
-	{
+    /**
+     * Gather TechId of Technology into objInfo map.
+     * @param tech Technology to examine.
+     */
+    private void gatherTech(TechId techId) {
         gatherObj(techId);
-	}
+    }
 
-	/**
-	 * Gather Cell, its Library and its font into objInfo map.
-	 * @param cell Cell to examine.
-	 */
-	private void gatherCell(CellId cellId)
-	{
-		gatherObj(cellId);
-		gatherObj(cellId.libId);
-		gatherObj(cellId.cellName.getView());
-	}
+    /**
+     * Gather Cell, its Library and its font into objInfo map.
+     * @param cell Cell to examine.
+     */
+    private void gatherCell(CellId cellId) {
+        gatherObj(cellId);
+        gatherObj(cellId.libId);
+        gatherObj(cellId.cellName.getView());
+    }
 
-	/**
-	 * Gather object into objInfo map.
-	 * @param obj Object to put.
-	 */
-	private void gatherObj(Object obj)
-	{
-		objInfo.put(obj, null);
-	}
+    /**
+     * Gather object into objInfo map.
+     * @param obj Object to put.
+     */
+    private void gatherObj(Object obj) {
+        objInfo.put(obj, null);
+    }
 
-	/**
-	 * Put index of object into objInfo map.
-	 * @param obj Object to put.
-	 * @param index index of object.
-	 */
-	private void putObjIndex(Object obj, int index)
-	{
-		objInfo.put(obj, new Integer(index));
-	}
+    /**
+     * Put index of object into objInfo map.
+     * @param obj Object to put.
+     * @param index index of object.
+     */
+    private void putObjIndex(Object obj, int index) {
+        objInfo.put(obj, new Integer(index));
+    }
 
-	/**
-	 * Put string into variable name space.
-	 * @param name name to put.
-	 */
-	private void putNameSpace(String name)
-	{
-		nameSpace.put(name, null);
-	}
+    /**
+     * Put string into variable name space.
+     * @param name name to put.
+     */
+    private void putNameSpace(String name) {
+        nameSpace.put(name, null);
+    }
 
-	/**
-	 * Gather ActiveFont object of the TextDescriptor into objInfo map.
-	 * @param td TextDescriptor to examine.
-	 */
-	private void gatherFont(TextDescriptor td)
-	{
-		int face = td.getFace();
+    /**
+     * Gather ActiveFont object of the TextDescriptor into objInfo map.
+     * @param td TextDescriptor to examine.
+     */
+    private void gatherFont(TextDescriptor td) {
+        int face = td.getFace();
         faceMap[face] = -1;
-	}
+    }
 
-	/**
-	 * Method to gather all font settings in a Library.
-	 * The method examines all TextDescriptors that might be saved with the Library
-	 * and returns an array of Strings that describes the font associations.
-	 * Each String is of the format NUMBER/FONTNAME where NUMBER is the font number
-	 * in the TextDescriptor and FONTNAME is the font name.
-	 * @return font association array or null.
-	 */
+    /**
+     * Method to gather all font settings in a Library.
+     * The method examines all TextDescriptors that might be saved with the Library
+     * and returns an array of Strings that describes the font associations.
+     * Each String is of the format NUMBER/FONTNAME where NUMBER is the font number
+     * in the TextDescriptor and FONTNAME is the font name.
+     * @return font association array or null.
+     */
     String[] createFontAssociation() {
-        TreeMap<String,TextDescriptor.ActiveFont> sortedFonts = new TreeMap<String,TextDescriptor.ActiveFont>();
+        TreeMap<String, TextDescriptor.ActiveFont> sortedFonts = new TreeMap<String, TextDescriptor.ActiveFont>();
         for (int face = 1; face < faceMap.length; face++) {
-            if (faceMap[face] == 0) continue;
+            if (faceMap[face] == 0) {
+                continue;
+            }
             TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(face);
             sortedFonts.put(af.getName(), af);
         }
-        if (sortedFonts.size() == 0) return null;
+        if (sortedFonts.size() == 0) {
+            return null;
+        }
         String[] fontAssociation = new String[sortedFonts.size()];
         int elibFace = 0;
         for (TextDescriptor.ActiveFont af : sortedFonts.values()) {
             elibFace++;
             faceMap[af.getIndex()] = elibFace;
-            fontAssociation[elibFace-1] = elibFace + "/" + af.getName();
+            fontAssociation[elibFace - 1] = elibFace + "/" + af.getName();
         }
         return fontAssociation;
     }
 
     void startCell(CellRevision cellRevision, int baseNodeIndex) {
         int maxNodeId = -1;
-        for (ImmutableNodeInst n: cellRevision.nodes)
+        for (ImmutableNodeInst n : cellRevision.nodes) {
             maxNodeId = Math.max(maxNodeId, n.nodeId);
+        }
         nodeIndexByNodeId = new int[maxNodeId + 1];
         for (int nodeIndex = 0; nodeIndex < cellRevision.nodes.size(); nodeIndex++) {
             ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
@@ -743,8 +781,7 @@ public class ELIB extends Output
         }
     }
 
-	// --------------------------------- OBJECT CONVERSION ---------------------------------
-
+    // --------------------------------- OBJECT CONVERSION ---------------------------------
     void writeExternalCells() throws IOException {
         for (int i = 0; i < externalCells.size(); i++) {
             CellRevision cellRevision = externalCells.get(i);
@@ -756,12 +793,14 @@ public class ELIB extends Output
             URL fileUrl = libBackup.d.libFile;
             String filePath = fileUrl != null ? fileUrl.getPath() : libBackup.d.libId.libName;
             writeTxt("externallibrary: \"" + filePath + "\""); // TXT only
-            if (this instanceof ReadableDump) continue;
+            if (this instanceof ReadableDump) {
+                continue;
+            }
             writeString(filePath);
 
             // write the number of portprotos on this nodeproto
             writeBigInteger(cellRevision.exports.size());
-            for (ImmutableExport e: cellRevision.exports) {
+            for (ImmutableExport e : cellRevision.exports) {
                 // write the portproto name
                 writeString(e.name.toString());
             }
@@ -794,8 +833,8 @@ public class ELIB extends Output
         }
         writeInt("version: ", cellId.cellName.getVersion());
 
-        writeInt("creationdate: ", (int)(cellRevision.d.creationDate/1000));
-        writeInt("revisiondate: ", (int)(cellRevision.d.revisionDate/1000));
+        writeInt("creationdate: ", (int) (cellRevision.d.creationDate / 1000));
+        writeInt("revisiondate: ", (int) (cellRevision.d.revisionDate / 1000));
 
         // write the nodeproto bounding box
         ERectangle bounds = snapshot.getCellBounds(cellId);
@@ -842,7 +881,7 @@ public class ELIB extends Output
             writeObj(protoId);
             if (protoId instanceof CellId) {
                 writeTxt("type: [" + objInfo.get(protoId).intValue() + "]");
-                ERectangle bounds = snapshot.getCellBounds((CellId)protoId);
+                ERectangle bounds = snapshot.getCellBounds((CellId) protoId);
                 Rectangle2D dstBounds = new Rectangle2D.Double();
                 n.orient.rectangleBounds(bounds.getGridMinX(), bounds.getGridMinY(), bounds.getGridMaxX(), bounds.getGridMaxY(), n.anchor.getGridX(), n.anchor.getGridY(), dstBounds);
                 trueCenterX = dstBounds.getCenterX();
@@ -855,7 +894,7 @@ public class ELIB extends Output
 //                lowY = (int)Math.round((trueCenterY - ySize/2) * tech.getScale()*2);
 //                highY = (int)Math.round((trueCenterY + ySize/2) * tech.getScale()*2);
             } else {
-                PrimitiveNodeId pn = (PrimitiveNodeId)protoId;
+                PrimitiveNodeId pn = (PrimitiveNodeId) protoId;
                 trueCenterX = n.anchor.getGridX();
                 trueCenterY = n.anchor.getGridY();
                 EPoint size = getSizeCorrector(pn.techId).getSizeToDisk(n);
@@ -867,10 +906,10 @@ public class ELIB extends Output
 //                lowY = (int)Math.round((n.anchor.getLambdaY() - n.size.getLambdaY()/2) * tech.getScale()*2);
 //                highY = (int)Math.round((n.anchor.getLambdaY() + n.size.getLambdaY()/2) * tech.getScale()*2);
             }
-            writeGridCoord(cellRevision, "lowx: ", trueCenterX - xSize*0.5);
-            writeGridCoord(cellRevision, "lowy: ", trueCenterY - ySize*0.5);
-            writeGridCoord(cellRevision, "highx: ", trueCenterX + xSize*0.5);
-            writeGridCoord(cellRevision, "highy: ", trueCenterY + ySize*0.5);
+            writeGridCoord(cellRevision, "lowx: ", trueCenterX - xSize * 0.5);
+            writeGridCoord(cellRevision, "lowy: ", trueCenterY - ySize * 0.5);
+            writeGridCoord(cellRevision, "highx: ", trueCenterX + xSize * 0.5);
+            writeGridCoord(cellRevision, "highy: ", trueCenterY + ySize * 0.5);
 //            writeInt("lowx: ", lowX);
 //            writeInt("lowy: ", lowY);
 //            writeInt("highx: ", highX);
@@ -894,8 +933,12 @@ public class ELIB extends Output
                 transpose = or.isCTranspose() ? 1 : 0;
             } else {
                 rotation = or.getAngle();
-                if (or.isXMirrored()) transpose |= 2;
-                if (or.isYMirrored()) transpose |= 4;
+                if (or.isXMirrored()) {
+                    transpose |= 2;
+                }
+                if (or.isYMirrored()) {
+                    transpose |= 4;
+                }
             }
             writeOrientation(rotation, transpose);
 
@@ -935,9 +978,9 @@ public class ELIB extends Output
         }
         assert sortedConnections.size() == arcs.size();
 
-		writeBigInteger(sortedConnections.size());
-        for (ElibConnection c: sortedConnections) {
-             writeConnection(c.portId, arcBase + c.arcIndex, c.isHead ? 1 : 0);
+        writeBigInteger(sortedConnections.size());
+        for (ElibConnection c : sortedConnections) {
+            writeConnection(c.portId, arcBase + c.arcIndex, c.isHead ? 1 : 0);
         }
 
         // write the exports
@@ -945,17 +988,19 @@ public class ELIB extends Output
         writeBigInteger(numExports); // only ELIB
         if (numExports > 0) {
             // must write exports in proper order
-            TreeMap<String,ImmutableExport> sortedExports = new TreeMap<String,ImmutableExport>();
-            for(Iterator<ImmutableExport> it = m.getExports(n.nodeId); it.hasNext(); ) {
+            TreeMap<String, ImmutableExport> sortedExports = new TreeMap<String, ImmutableExport>();
+            for (Iterator<ImmutableExport> it = m.getExports(n.nodeId); it.hasNext();) {
                 ImmutableExport e = it.next();
                 sortedExports.put(e.exportId.externalId, e);
             }
-            for(ImmutableExport e: sortedExports.values())
+            for (ImmutableExport e : sortedExports.values()) {
                 writeReExport(e);
+            }
         }
     }
 
     private static class ElibConnection implements Comparable<ElibConnection> {
+
         private final PortProtoId portId;
         private final int arcId;
         private final boolean isHead;
@@ -970,16 +1015,24 @@ public class ELIB extends Output
 
         public int compareTo(ElibConnection that) {
             int cmp = TextUtils.STRING_NUMBER_ORDER.compare(this.portId.externalId, that.portId.externalId);
-            if (cmp != 0) return cmp;
+            if (cmp != 0) {
+                return cmp;
+            }
             cmp = this.arcId - that.arcId;
-            if (cmp != 0) return cmp;
-            if (this.isHead && !that.isHead) return 1;
-            if (!this.isHead && that.isHead) return -1;
+            if (cmp != 0) {
+                return cmp;
+            }
+            if (this.isHead && !that.isHead) {
+                return 1;
+            }
+            if (!this.isHead && that.isHead) {
+                return -1;
+            }
             return 0;
         }
     }
 
-	void writeArcs(CellRevision cellRevision) throws IOException {
+    void writeArcs(CellRevision cellRevision) throws IOException {
 //        double gridScale = cellRevision.d.tech.getScale()*2/DBMath.GRID;
 
         for (int arcIndex = 0; arcIndex < cellRevision.arcs.size(); arcIndex++) {
@@ -994,7 +1047,7 @@ public class ELIB extends Output
             int userBits = a.getElibBits();
             long arcWidth = getSizeCorrector(a.protoId.techId).getWidthToDisk(a);
             writeGridCoord(cellRevision, "width: ", arcWidth);
-            writeTxt("length: " + (int)Math.round(a.getGridLength()*getScale(cellRevision.d.techId)*2/DBMath.GRID));
+            writeTxt("length: " + (int) Math.round(a.getGridLength() * getScale(cellRevision.d.techId) * 2 / DBMath.GRID));
 //            writeInt("width: ", (int)Math.round(a.getGridFullWidth() * gridScale));
 //            writeTxt("length: " + (int)Math.round(a.getGridLength() * gridScale));
             writeTxt("userbits: " + userBits); // only TXT
@@ -1023,7 +1076,7 @@ public class ELIB extends Output
             // write variable information and arc name
             writeVariables(a);
         }
-	}
+    }
 
     void writeExports(CellRevision cellRevision) throws IOException {
         writeBigInteger(cellRevision.exports.size());
@@ -1039,8 +1092,9 @@ public class ELIB extends Output
             writeTxt("subport: " + e.originalPortId.getName(snapshot)); // TXT only
 
             // write the portproto name
-            if (!(this instanceof ReadableDump))
+            if (!(this instanceof ReadableDump)) {
                 writeString(e.name.toString()); // ELIB only
+            }
             writeTxt("name: " + e.name.toString()); // TXT only
 
             // write the text descriptor
@@ -1052,11 +1106,11 @@ public class ELIB extends Output
             // write variable information
             writeVariables(e);
         }
-   }
+    }
 
     void writeOrientation(int angle, int transpose) throws IOException {
-		writeBigInteger(transpose);
-		writeBigInteger(angle);
+        writeBigInteger(transpose);
+        writeBigInteger(angle);
     }
 
     void writeConnection(PortProtoId portId, int arcIndex, int connIndex) throws IOException {
@@ -1078,23 +1132,23 @@ public class ELIB extends Output
         writeNoVariables();
     }
 
-	// --------------------------------- VARIABLES ---------------------------------
-
+    // --------------------------------- VARIABLES ---------------------------------
     /**
      * Method to write the global namespace.  returns true upon error
      */
     private void writeNameSpace() throws IOException {
         if (nameSpace.size() > Short.MAX_VALUE) {
             Job.getUserInterface().showErrorMessage(
-                    "ERROR! Too many unique variable names\n" +
-                    "The ELIB format cannot handle this many unique variables names\n" +
-                    "Either delete the excess variables, or save to a readable dump",
+                    "ERROR! Too many unique variable names\n"
+                    + "The ELIB format cannot handle this many unique variables names\n"
+                    + "Either delete the excess variables, or save to a readable dump",
                     "Error saving ELIB file");
             throw new IOException("Variable.Key index too large");
         }
         writeBigInteger(nameSpace.size());
-        for(String str : nameSpace.keySet())
+        for (String str : nameSpace.keySet()) {
             writeString(str);
+        }
     }
 
     /**
@@ -1111,17 +1165,18 @@ public class ELIB extends Output
     void writeVariables(ImmutableElectricObject d) throws IOException {
         // write the number of Variables
         int count = d.getNumVariables();
-        if (d instanceof ImmutableCell)
-            count += ((ImmutableCell)d).getNumParameters();
-        else if (d instanceof ImmutableIconInst)
-            count += ((ImmutableIconInst)d).getNumDefinedParameters();
+        if (d instanceof ImmutableCell) {
+            count += ((ImmutableCell) d).getNumParameters();
+        } else if (d instanceof ImmutableIconInst) {
+            count += ((ImmutableIconInst) d).getNumDefinedParameters();
+        }
         Variable.Key additionalVarKey = null;
         int additionalVarType = ELIBConstants.VSTRING;
         TextDescriptor additionalTextDescriptor = null;
         Object additionalVarValue = null;
         if (d instanceof ImmutableNodeInst) {
-            ImmutableNodeInst n = (ImmutableNodeInst)d;
-            for (Iterator<PortProtoId> pit = n.getPortsWithVariables(); pit.hasNext(); ) {
+            ImmutableNodeInst n = (ImmutableNodeInst) d;
+            for (Iterator<PortProtoId> pit = n.getPortsWithVariables(); pit.hasNext();) {
                 PortProtoId portId = pit.next();
                 count += n.getPortInst(portId).getNumVariables();
             }
@@ -1132,7 +1187,7 @@ public class ELIB extends Output
             }
             additionalVarValue = n.name.toString();
         } else if (d instanceof ImmutableArcInst) {
-            ImmutableArcInst a = (ImmutableArcInst)d;
+            ImmutableArcInst a = (ImmutableArcInst) d;
             additionalVarKey = ArcInst.ARC_NAME;
             if (a.isUsernamed()) {
                 additionalVarType |= ELIBConstants.VDISPLAY;
@@ -1147,42 +1202,44 @@ public class ELIB extends Output
                 additionalVarValue = fontAssociation;
             }
         }
-        if (additionalVarKey != null) count++;
+        if (additionalVarKey != null) {
+            count++;
+        }
 
         writeInt("variables: ", count);
 
         if (d instanceof ImmutableCell) {
             // write the parameters
-            for(Iterator<Variable> it = ((ImmutableCell)d).getParameters(); it.hasNext(); ) {
+            for (Iterator<Variable> it = ((ImmutableCell) d).getParameters(); it.hasNext();) {
                 Variable var = it.next();
                 writeVariable(null, var);
             }
         } else if (d instanceof ImmutableIconInst) {
-            for(Iterator<Variable> it = ((ImmutableIconInst)d).getDefinedParameters(); it.hasNext(); ) {
+            for (Iterator<Variable> it = ((ImmutableIconInst) d).getDefinedParameters(); it.hasNext();) {
                 Variable var = it.next();
                 writeVariable(null, var);
             }
         }
 
         // write the variables
-        for(Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
+        for (Iterator<Variable> it = d.getVariables(); it.hasNext();) {
             Variable var = it.next();
             writeVariable(null, var);
         }
 
         // write variables on PortInsts
         if (d instanceof ImmutableNodeInst) {
-            ImmutableNodeInst n = (ImmutableNodeInst)d;
+            ImmutableNodeInst n = (ImmutableNodeInst) d;
             if (n.hasPortInstVariables()) {
                 TreeMap<String, ImmutablePortInst> portVars = new TreeMap<String, ImmutablePortInst>(TextUtils.STRING_NUMBER_ORDER);
-                for (Iterator<PortProtoId> pit = n.getPortsWithVariables(); pit.hasNext(); ) {
+                for (Iterator<PortProtoId> pit = n.getPortsWithVariables(); pit.hasNext();) {
                     PortProtoId portId = pit.next();
                     portVars.put(portId.getName(snapshot), n.getPortInst(portId));
                 }
-                for (Map.Entry<String, ImmutablePortInst> e: portVars.entrySet()) {
+                for (Map.Entry<String, ImmutablePortInst> e : portVars.entrySet()) {
                     String portName = e.getKey();
                     ImmutablePortInst p = e.getValue();
-                    for (Iterator<Variable> it = p.getVariables(); it.hasNext(); ) {
+                    for (Iterator<Variable> it = p.getVariables(); it.hasNext();) {
                         Variable var = it.next();
                         writeVariable(portName, var);
                     }
@@ -1209,36 +1266,39 @@ public class ELIB extends Output
 
         // special case for "trace" information on NodeInsts
         if (varObj instanceof EPoint[]) {
-            EPoint [] points = (EPoint [])varObj;
+            EPoint[] points = (EPoint[]) varObj;
             int len = points.length * 2;
-            Float [] newPoints = new Float[len];
-            for(int j=0; j<points.length; j++) {
+            Float[] newPoints = new Float[len];
+            for (int j = 0; j < points.length; j++) {
                 if (points[j] != null) {
-                    newPoints[j*2] = new Float(points[j].getLambdaX());
-                    newPoints[j*2+1] = new Float(points[j].getLambdaY());
+                    newPoints[j * 2] = new Float(points[j].getLambdaX());
+                    newPoints[j * 2 + 1] = new Float(points[j].getLambdaY());
                 } else {
-                    newPoints[j*2] = newPoints[j*2+1] = Float.valueOf(Float.NaN);
+                    newPoints[j * 2] = newPoints[j * 2 + 1] = Float.valueOf(Float.NaN);
                 }
             }
             varObj = newPoints;
         } else if (varObj instanceof EPoint) {
-            EPoint p = (EPoint)varObj;
-            varObj = new Float[] { new Float(p.getLambdaX()), new Float(p.getLambdaY()) };
+            EPoint p = (EPoint) varObj;
+            varObj = new Float[]{new Float(p.getLambdaX()), new Float(p.getLambdaY())};
         }
 
         int type = ELIBConstants.getVarType(varObj);
-        if (compatibleWith6 && type == ELIBConstants.VDOUBLE) type = ELIBConstants.VFLOAT;
+        if (compatibleWith6 && type == ELIBConstants.VDOUBLE) {
+            type = ELIBConstants.VFLOAT;
+        }
         assert type != 0;
-        if (var.isDisplay())
+        if (var.isDisplay()) {
             type |= ELIBConstants.VDISPLAY;
+        }
         if (varObj instanceof Object[]) {
-            Object [] objList = (Object [])varObj;
+            Object[] objList = (Object[]) varObj;
             // This doesn't seem to work properly for trace
 //			if (objList.length > 0)
             type |= ELIBConstants.VISARRAY | (objList.length << ELIBConstants.VLENGTHSH);
         }
         // Only string variables may have language code bits.
-        assert (type&ELIBConstants.VTYPE) == ELIBConstants.VSTRING || (type&(ELIBConstants.VCODE1|ELIBConstants.VCODE2)) == 0;
+        assert (type & ELIBConstants.VTYPE) == ELIBConstants.VSTRING || (type & (ELIBConstants.VCODE1 | ELIBConstants.VCODE2)) == 0;
 
         // write the text descriptor
         writeVariableName(diskName(portName, var));
@@ -1251,20 +1311,25 @@ public class ELIB extends Output
      */
     void writeMeaningPrefs(Object obj) throws IOException {
         Setting.Group group = null;
-        if (obj instanceof Tool)
-            group = ((Tool)obj).getProjectSettings();
-        else if (obj instanceof Technology)
-            group = ((Technology)obj).getProjectSettings();
-        Map<Setting,Object> settings = group.getDiskSettings(snapshot.getSettings());
+        if (obj instanceof Tool) {
+            group = ((Tool) obj).getProjectSettings();
+        } else if (obj instanceof Technology) {
+            group = ((Technology) obj).getProjectSettings();
+        }
+        Map<Setting, Object> settings = group.getDiskSettings(snapshot.getSettings());
         writeInt("variables: ", settings.size());
-        for (Map.Entry<Setting,Object> e: settings.entrySet()) {
+        for (Map.Entry<Setting, Object> e : settings.entrySet()) {
             Setting setting = e.getKey();
             Object varObj = e.getValue();
             projectSettings.put(setting, varObj);
             // create the "type" field
-            if (varObj instanceof Boolean) varObj = Integer.valueOf(((Boolean)varObj).booleanValue() ? 1 : 0);
+            if (varObj instanceof Boolean) {
+                varObj = Integer.valueOf(((Boolean) varObj).booleanValue() ? 1 : 0);
+            }
             int type = ELIBConstants.getVarType(varObj);
-            if (compatibleWith6 && type == ELIBConstants.VDOUBLE) type = ELIBConstants.VFLOAT;
+            if (compatibleWith6 && type == ELIBConstants.VDOUBLE) {
+                type = ELIBConstants.VFLOAT;
+            }
             writeVariableName(setting.getPrefName());
             writeTextDescriptor(type, null);
             writeVarValue(varObj);
@@ -1277,10 +1342,10 @@ public class ELIB extends Output
      */
     void writeVarValue(Object varObj) throws IOException {
         if (varObj instanceof Object[]) {
-            Object [] objList = (Object [])varObj;
+            Object[] objList = (Object[]) varObj;
             int len = objList.length;
             writeBigInteger(len);
-            for(int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 Object oneObj = objList[i];
                 putOutVar(oneObj);
             }
@@ -1296,51 +1361,52 @@ public class ELIB extends Output
      */
     private void putOutVar(Object obj) throws IOException {
         if (obj instanceof String) {
-            writeString((String)obj);
+            writeString((String) obj);
             return;
         }
         if (obj instanceof CodeExpression) {
-            writeString(((CodeExpression)obj).getExpr());
+            writeString(((CodeExpression) obj).getExpr());
             return;
         }
         if (obj instanceof Double) {
-            if (compatibleWith6)
-                writeFloat(((Double)obj).floatValue());
-            else
-                writeDouble(((Double)obj).doubleValue());
+            if (compatibleWith6) {
+                writeFloat(((Double) obj).floatValue());
+            } else {
+                writeDouble(((Double) obj).doubleValue());
+            }
             return;
         }
         if (obj instanceof Float) {
-            writeFloat(((Float)obj).floatValue());
+            writeFloat(((Float) obj).floatValue());
             return;
         }
         if (obj instanceof Long) {
-            writeBigInteger(((Long)obj).intValue());
+            writeBigInteger(((Long) obj).intValue());
             return;
         }
         if (obj instanceof Integer) {
-            writeBigInteger(((Integer)obj).intValue());
+            writeBigInteger(((Integer) obj).intValue());
             return;
         }
         if (obj instanceof Short) {
-            writeSmallInteger(((Short)obj).shortValue());
+            writeSmallInteger(((Short) obj).shortValue());
             return;
         }
         if (obj instanceof Byte) {
-            writeByte(((Byte)obj).byteValue());
+            writeByte(((Byte) obj).byteValue());
             return;
         }
         if (obj instanceof Boolean) {
-            writeByte(((Boolean)obj).booleanValue() ? (byte)1 : (byte)0);
+            writeByte(((Boolean) obj).booleanValue() ? (byte) 1 : (byte) 0);
             return;
         }
         if (obj instanceof Tool) {
-            Tool tool = (Tool)obj;
+            Tool tool = (Tool) obj;
             writeBigInteger(tool.getIndex());
             return;
         }
         if (obj instanceof LibId) {
-            LibId libId = (LibId)obj;
+            LibId libId = (LibId) obj;
             writeString(libId.libName);
             return;
         }
@@ -1379,8 +1445,9 @@ public class ELIB extends Output
      * @param td1 first word of TextDescriptor to write.
      */
     void writeTextDescriptor(int varBits, int td0, int td1) throws IOException {
-        if (varBits != -1)
+        if (varBits != -1) {
             writeBigInteger(varBits);
+        }
         writeBigInteger(td0);
         writeBigInteger(td1);
     }
@@ -1394,8 +1461,9 @@ public class ELIB extends Output
         int objIndex = -1;
         if (obj != null) {
             Integer i = objInfo.get(obj);
-            if (i != null)
+            if (i != null) {
                 objIndex = i.intValue();
+            }
         }
         writeBigInteger(objIndex);
     }
@@ -1423,7 +1491,7 @@ public class ELIB extends Output
     }
 
     int gridCoordToElib(Technology tech, double gridCoord) {
-        return (int)Math.round(gridCoord * getScale(tech)*2/DBMath.GRID);
+        return (int) Math.round(gridCoord * getScale(tech) * 2 / DBMath.GRID);
     }
 
     double getScale(TechId techId) {
@@ -1456,7 +1524,8 @@ public class ELIB extends Output
      * Method to write a text into ReadableDump stream.
      * @param txt a text to write into ReadableDump stream.
      */
-    void writeTxt(String txt) throws IOException {}
+    void writeTxt(String txt) throws IOException {
+    }
 
     /**
      * Method to write a disk index of variable name.
@@ -1468,62 +1537,55 @@ public class ELIB extends Output
         writeSmallInteger(varNameIndex);
     }
 
-	// --------------------------------- LOW-LEVEL OUTPUT ---------------------------------
+    // --------------------------------- LOW-LEVEL OUTPUT ---------------------------------
+    /**
+     * Method to write a single byte from the input stream and return it.
+     */
+    private void writeByte(byte b)
+            throws IOException {
+        dataOutputStream.write(b);
+    }
 
-	/**
-	 * Method to write a single byte from the input stream and return it.
-	 */
-	private void writeByte(byte b)
-		throws IOException
-	{
-		dataOutputStream.write(b);
-	}
+    /**
+     * Method to write an integer (4 bytes) from the input stream and return it.
+     */
+    void writeBigInteger(int i)
+            throws IOException {
+        dataOutputStream.writeInt(i);
+    }
 
-	/**
-	 * Method to write an integer (4 bytes) from the input stream and return it.
-	 */
-	void writeBigInteger(int i)
-		throws IOException
-	{
-		dataOutputStream.writeInt(i);
-	}
+    /**
+     * Method to write a float (4 bytes) from the input stream and return it.
+     */
+    private void writeFloat(float f)
+            throws IOException {
+        dataOutputStream.writeFloat(f);
+    }
 
-	/**
-	 * Method to write a float (4 bytes) from the input stream and return it.
-	 */
-	private void writeFloat(float f)
-		throws IOException
-	{
-		dataOutputStream.writeFloat(f);
-	}
+    /**
+     * Method to write a double (8 bytes) from the input stream and return it.
+     */
+    private void writeDouble(double d)
+            throws IOException {
+        dataOutputStream.writeDouble(d);
+    }
 
-	/**
-	 * Method to write a double (8 bytes) from the input stream and return it.
-	 */
-	private void writeDouble(double d)
-		throws IOException
-	{
-		dataOutputStream.writeDouble(d);
-	}
+    /**
+     * Method to write an short (2 bytes) from the input stream and return it.
+     */
+    private void writeSmallInteger(short s)
+            throws IOException {
+        dataOutputStream.writeShort(s);
+    }
 
-	/**
-	 * Method to write an short (2 bytes) from the input stream and return it.
-	 */
-	private void writeSmallInteger(short s)
-		throws IOException
-	{
-		dataOutputStream.writeShort(s);
-	}
-
-	/**
-	 * Method to write a string from the input stream and return it.
-	 */
-	private void writeString(String s)
-		throws IOException
-	{
-		// disk and memory match: write the data
-		int len = s.length();
-		writeBigInteger(len);
-		dataOutputStream.write(s.getBytes(), 0, len);
-	}
+    /**
+     * Method to write a string from the input stream and return it.
+     */
+    private void writeString(String s)
+            throws IOException {
+        // disk and memory match: write the data
+        int len = s.length();
+        writeBigInteger(len);
+        dataOutputStream.write(s.getBytes(), 0, len);
+    }
 }

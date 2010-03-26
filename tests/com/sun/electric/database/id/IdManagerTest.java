@@ -156,8 +156,6 @@ public class IdManagerTest {
         assertSame(idManager, initialSnapshot.idManager);
         assertEquals(0, initialSnapshot.snapshotId);
         assertSame(CellBackup.EMPTY_LIST, initialSnapshot.cellBackups);
-        assertEquals(0, initialSnapshot.cellGroups.length);
-//        assertSame(ERectangle.EMPTY_LIST, initialSnapshot.cellBounds);
         assertSame(LibraryBackup.EMPTY_LIST, initialSnapshot.libBackups);
 
         assertSame(initialSnapshot, idManager.getInitialSnapshot());

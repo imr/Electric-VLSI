@@ -241,9 +241,6 @@ public abstract class Netlist {
                 throw new ConcurrentModificationException();
             }
         }
-//        if (expectedModCount != netCell.modCount) {
-//            throw new ConcurrentModificationException();
-//        }
         netCell.database.checkExamine();
     }
 
