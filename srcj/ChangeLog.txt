@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+IMP: (3/25/10, DN) Select layers in generator.layout.TechType by function (Bug #2696).
+
 BUG: ConcurrentModificationException in gate generator (Bug #2700).
 FIX: In NetSchem.updateSchematic fix a test that old Netlist is still valid.
 

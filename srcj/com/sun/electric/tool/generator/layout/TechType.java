@@ -12,6 +12,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -58,7 +59,9 @@ public abstract class TechType implements Serializable {
         generic.findNodeProto("Facet-Center");
 
     private final int nbLay;
-    private final ArcProto[] layers;
+    private final Layer lp1;
+    private final Layer[] lmets;
+    private final ArcProto[] arcs;
     private final PrimitiveNode[] vias;
     private final HashMap<ArcPair,PrimitiveNode> viaMap = new HashMap<ArcPair,PrimitiveNode>();
 
@@ -92,14 +95,14 @@ public abstract class TechType implements Serializable {
         pmos25contact, nmos33contact, pmos33contact;
 
     /** Pure layer nodes for Well and Select */
-    private final PrimitiveNode nwell, pwell;
+    private final PrimitiveNode nwellNode, pwellNode;
 
     /** Layer nodes are sometimes used to patch notches */
     private final PrimitiveNode m1Node, m2Node, m3Node, m4Node, m5Node, m6Node,
         m7Node, m8Node, m9Node, p1Node, pdNode, ndNode, pselNode, nselNode;
 
     /** Transistor layer nodes */
-    private final PrimitiveNode od18, od25, od33, vth, vtl;
+    private final PrimitiveNode od18Node, od25Node, od33Node, vthNode, vtlNode;
 
     //-------------------- Technology dependent dimensions  -------------------
     protected double
@@ -137,9 +140,31 @@ public abstract class TechType implements Serializable {
     private static void error(boolean pred, String msg) {
         Job.error(pred, msg);
     }
-    private ArcProto getLayer(int n) {
-        return n>(layers.length-1) ? null : layers[n];
+    private Layer getMetalLayer(int l) {
+        return l <= lmets.length ? lmets[l-1] : null;
     }
+    private ArcProto getArc(int n) {
+        return n>(arcs.length-1) ? null : arcs[n];
+    }
+    private ArcProto findArc(Layer... layers) {
+        for (Iterator<ArcProto> it = technology.getArcs(); it.hasNext(); ) {
+            ArcProto ap = it.next();
+            boolean allLayersFound = true;
+            for (Layer layer: layers) {
+                if (ap.indexOf(layer) < 0) {
+                    allLayersFound = false;
+                }
+            }
+            if (allLayersFound) {
+                return ap;
+            }
+        }
+        return null;
+    }
+    private PrimitiveNode findPureNode(Layer layer) {
+        return layer != null ? layer.getPureLayerNode() : null;
+    }
+
     private PrimitiveNode getVia(int n) {
         return n>(vias.length-1) ? null : vias[n];
     }
@@ -147,9 +172,8 @@ public abstract class TechType implements Serializable {
      * get the PrimitiveNode of a particular type that connects to the
      * complete set of wires given
      */
-    private PrimitiveNode findNode(PrimitiveNode.Function type,
-                                   ArcProto[] arcs, Technology tech) {
-        for (Iterator<PrimitiveNode> it=tech.getNodes(); it.hasNext();) {
+    private PrimitiveNode findNode(PrimitiveNode.Function type, ArcProto... arcs) {
+        for (Iterator<PrimitiveNode> it=technology.getNodes(); it.hasNext();) {
             PrimitiveNode pn = it.next();
             boolean found = true;
             if (pn.getFunction() == type) {
@@ -191,56 +215,79 @@ public abstract class TechType implements Serializable {
         putViaMap(p1, m1, p1m1);
     }
 
-    protected TechType(Technology techy, String[] layerNms) {
+    protected TechType(Technology techy) {
         // This error could happen when there are XML errors while uploading the technologies.
         error((techy==null), "Null technology in TechType constructor");
         
         // I can't break this into subroutines because most data members are
         // final.
-        nbLay = layerNms.length;
+        lmets = new Layer[techy.getNumMetals()];
+        nbLay = 1 + lmets.length;
         technology = techy;
 
         //--------------------------- initialize layers -----------------------
-        layers = new ArcProto[nbLay];
-        for (int i=0; i<nbLay; i++) {
-            layers[i] = techy.findArcProto(layerNms[i]);
-            error(layers[i]==null, "No such layer: " + layerNms[i] + " in technology " + techy.getTechName());
+        arcs = new ArcProto[nbLay];
+        lp1 = techy.findLayerFromFunction(Layer.Function.POLY1, -1);
+        arcs[0] = findArc(lp1);
+        for (int i=1; i<nbLay; i++) {
+            Layer lm = techy.findLayerFromFunction(Layer.Function.getMetal(i), -1);
+            lmets[i - 1] = lm;
+            arcs[i] = findArc(lm);
+            error(arcs[i]==null, "No such arc: " + Layer.Function.getMetal(i) + " in technology " + techy.getTechName());
         }
-        p1 = getLayer(0);
-        m1 = getLayer(1);
-        m2 = getLayer(2);
-        m3 = getLayer(3);
-        m4 = getLayer(4);
-        m5 = getLayer(5);
-        m6 = getLayer(6);
-        m7 = getLayer(7);
-        m8 = getLayer(8);
-        m9 = getLayer(9);
+        Layer lnwell = techy.findLayerFromFunction(Layer.Function.WELLN, 0);
+        Layer lpwell = techy.findLayerFromFunction(Layer.Function.WELLP, 0);
+        Layer lnd = techy.findLayerFromFunction(Layer.Function.DIFFN, 0);
+        Layer lpd = techy.findLayerFromFunction(Layer.Function.DIFFP, 0);
+        Layer lnsel = techy.findLayerFromFunction(Layer.Function.IMPLANTN, 0);
+        Layer lpsel = techy.findLayerFromFunction(Layer.Function.IMPLANTP, 0);
+        Layer lod18 = techy.findLayer("OD18");
+        Layer lod25 = techy.findLayer("OD25");
+        Layer lod33 = techy.findLayer("OD33");
 
-        pdiff = techy.findArcProto("P-Active");
-        ndiff = techy.findArcProto("N-Active");
-        ndiff18 = techy.findArcProto("thick-OD18-N-Active");
-        pdiff18 = techy.findArcProto("thick-OD18-P-Active");
-        ndiff25 = techy.findArcProto("thick-OD25-N-Active");
-        pdiff25 = techy.findArcProto("thick-OD25-P-Active");
-        ndiff33 = techy.findArcProto("thick-OD33-N-Active");
-        pdiff33 = techy.findArcProto("thick-OD33-P-Active");
+        p1 = getArc(0);
+        m1 = getArc(1);
+        m2 = getArc(2);
+        m3 = getArc(3);
+        m4 = getArc(4);
+        m5 = getArc(5);
+        m6 = getArc(6);
+        m7 = getArc(7);
+        m8 = getArc(8);
+        m9 = getArc(9);
+
+        ndiff = findArc(lnd);
+        pdiff = findArc(lpd);
+        ndiff18 = findArc(lnd, lod18);
+        pdiff18 = findArc(lpd, lod18);
+        ndiff25 = findArc(lnd, lod25);
+        pdiff25 = findArc(lpd, lod25);
+        ndiff33 = findArc(lnd, lod33);
+        pdiff33 = findArc(lpd, lod33);
 
         // Layer Nodes
-        m1Node = techy.findNodeProto("Metal-1-Node");
-        m2Node = techy.findNodeProto("Metal-2-Node");
-        m3Node = techy.findNodeProto("Metal-3-Node");
-        m4Node = techy.findNodeProto("Metal-4-Node");
-        m5Node = techy.findNodeProto("Metal-5-Node");
-        m6Node = techy.findNodeProto("Metal-6-Node");
-        m7Node = techy.findNodeProto("Metal-7-Node");
-        m8Node = techy.findNodeProto("Metal-8-Node");
-        m9Node = techy.findNodeProto("Metal-9-Node");
-        p1Node = techy.findNodeProto("Polysilicon-1-Node");
-        pdNode = techy.findNodeProto("P-Active-Node");
-        ndNode = techy.findNodeProto("N-Active-Node");
-        nselNode = techy.findNodeProto("N-Select-Node");
-        pselNode = techy.findNodeProto("P-Select-Node");
+        nwellNode = findPureNode(lnwell);
+        pwellNode = findPureNode(lpwell);
+        m1Node = findPureNode(getMetalLayer(1));
+        m2Node = findPureNode(getMetalLayer(2));
+        m3Node = findPureNode(getMetalLayer(3));
+        m4Node = findPureNode(getMetalLayer(4));
+        m5Node = findPureNode(getMetalLayer(5));
+        m6Node = findPureNode(getMetalLayer(6));
+        m7Node = findPureNode(getMetalLayer(7));
+        m8Node = findPureNode(getMetalLayer(8));
+        m9Node = findPureNode(getMetalLayer(9));
+        p1Node = findPureNode(lp1);
+        pdNode = findPureNode(lpd);
+        ndNode = findPureNode(lnd);
+        nselNode = findPureNode(lnsel);
+        pselNode = findPureNode(lpsel);
+        // transistor layers
+        od18Node = findPureNode(lod18);
+        od25Node = findPureNode(lod25);
+        od33Node = findPureNode(lod33);
+        vthNode = null;
+        vtlNode = null;
 
         //--------------------------- initialize pins -------------------------
         pdpin = findPin(pdiff);
@@ -259,10 +306,8 @@ public abstract class TechType implements Serializable {
         //--------------------------- initialize vias -------------------------
         vias = new PrimitiveNode[nbLay - 1];
         for (int i = 0; i < nbLay - 1; i++) {
-            vias[i] = findNode(PrimitiveNode.Function.CONTACT,
-                               new ArcProto[] {layers[i], layers[i+1]},
-                               techy);
-            error(vias[i] == null, "No via for layer: " + layerNms[i]);
+            vias[i] = findNode(PrimitiveNode.Function.CONTACT, arcs[i], arcs[i+1]);
+            error(vias[i] == null, "No via for layer: " + arcs[i]);
         }
 
         p1m1 = getVia(0);
@@ -275,43 +320,32 @@ public abstract class TechType implements Serializable {
         m7m8 = getVia(7);
         m8m9 = getVia(8);
 
-        ndm1 = techy.findNodeProto("Metal-1-N-Active-Con");
-        pdm1 = techy.findNodeProto("Metal-1-P-Active-Con");
-        nwm1 = techy.findNodeProto("Metal-1-N-Well-Con");
-        pwm1 = techy.findNodeProto("Metal-1-P-Well-Con");
+        ndm1 = findNode(PrimitiveNode.Function.CONTACT, ndiff, arcs[1]);
+        pdm1 = findNode(PrimitiveNode.Function.CONTACT, pdiff, arcs[1]);
+        nwm1 = findNode(PrimitiveNode.Function.WELL, arcs[1]);//techy.findNodeProto("Metal-1-N-Well-Con");
+        pwm1 = findNode(PrimitiveNode.Function.SUBSTRATE, arcs[1]);//techy.findNodeProto("Metal-1-P-Well-Con");
         nwm1Y = techy.findNodeProto("Y-Metal-1-N-Well-Con");
         pwm1Y = techy.findNodeProto("Y-Metal-1-P-Well-Con");
 
         // initialize special threshold transistor contacts
-        nmos18contact = techy.findNodeProto("thick-OD18-Metal-1-N-Active-Con");
-        pmos18contact = techy.findNodeProto("thick-OD18-Metal-1-P-Active-Con");
-        nmos25contact = techy.findNodeProto("thick-OD25-Metal-1-N-Active-Con");
-        pmos25contact = techy.findNodeProto("thick-OD25-Metal-1-P-Active-Con");
-        nmos33contact = techy.findNodeProto("thick-OD33-Metal-1-N-Active-Con");
-        pmos33contact = techy.findNodeProto("thick-OD33-Metal-1-P-Active-Con");
+        nmos18contact = findNode(PrimitiveNode.Function.CONTACT, ndiff18, arcs[1]);
+        pmos18contact = findNode(PrimitiveNode.Function.CONTACT, pdiff18, arcs[1]);
+        nmos25contact = findNode(PrimitiveNode.Function.CONTACT, ndiff25, arcs[1]);
+        pmos25contact = findNode(PrimitiveNode.Function.CONTACT, pdiff25, arcs[1]);
+        nmos33contact = findNode(PrimitiveNode.Function.CONTACT, ndiff33, arcs[1]);
+        pmos33contact = findNode(PrimitiveNode.Function.CONTACT, pdiff33, arcs[1]);
 
         initViaMap();
 
         //------------------------ initialize transistors ---------------------
-        nmos = techy.findNodeProto("N-Transistor");
-        pmos = techy.findNodeProto("P-Transistor");
-        nmos18 = techy.findNodeProto("OD18-N-Transistor");
-        pmos18 = techy.findNodeProto("OD18-P-Transistor");
-        nmos25 = techy.findNodeProto("OD25-N-Transistor");
-        pmos25 = techy.findNodeProto("OD25-P-Transistor");
-        nmos33 = techy.findNodeProto("OD33-N-Transistor");
-        pmos33 = techy.findNodeProto("OD33-P-Transistor");
-
-        // transistor layers
-        od18 = techy.findNodeProto("OD18-Node");
-        od25 = techy.findNodeProto("OD25-Node");
-        od33 = techy.findNodeProto("OD33-Node");
-        vth = techy.findNodeProto("VTH-Node");
-        vtl = techy.findNodeProto("VTL-Node");
-
-        //--------------------------- initialize well -------------------------
-        nwell = techy.findNodeProto("N-Well-Node");
-        pwell = techy.findNodeProto("P-Well-Node");
+        nmos = findNode(PrimitiveNode.Function.TRANMOS);//techy.findNodeProto("N-Transistor");
+        pmos = findNode(PrimitiveNode.Function.TRAPMOS);//techy.findNodeProto("P-Transistor");
+        nmos18 = findNode(PrimitiveNode.Function.TRANMOSHV1);//techy.findNodeProto("OD18-N-Transistor");
+        pmos18 = findNode(PrimitiveNode.Function.TRAPMOSHV1);//techy.findNodeProto("OD18-P-Transistor");
+        nmos25 = findNode(PrimitiveNode.Function.TRANMOSHV2);//techy.findNodeProto("OD25-N-Transistor");
+        pmos25 = findNode(PrimitiveNode.Function.TRAPMOSHV2);//techy.findNodeProto("OD25-P-Transistor");
+        nmos33 = findNode(PrimitiveNode.Function.TRANMOSHV3);//techy.findNodeProto("OD33-N-Transistor");
+        pmos33 = findNode(PrimitiveNode.Function.TRAPMOSHV3);//techy.findNodeProto("OD33-P-Transistor");
     }
 
     //---------------------------- public classes -----------------------------
@@ -505,8 +539,8 @@ public abstract class TechType implements Serializable {
     public PrimitiveNode pmos33contact() {return pmos33contact;}
 
     /** Well */
-    public PrimitiveNode nwell() {return nwell;}
-    public PrimitiveNode pwell() {return pwell;}
+    public PrimitiveNode nwell() {return nwellNode;}
+    public PrimitiveNode pwell() {return pwellNode;}
 
     /** Layer nodes are sometimes used to patch notches */
     public PrimitiveNode m1Node() {return m1Node;}
@@ -525,11 +559,11 @@ public abstract class TechType implements Serializable {
     public PrimitiveNode nselNode() {return nselNode;}
 
     /** Transistor layer nodes */
-    public PrimitiveNode od18() {return od18;}
-    public PrimitiveNode od25() {return od25;}
-    public PrimitiveNode od33() {return od33;}
-    public PrimitiveNode vth() {return vth;}
-    public PrimitiveNode vtl() {return vtl;}
+    public PrimitiveNode od18() {return od18Node;}
+    public PrimitiveNode od25() {return od25Node;}
+    public PrimitiveNode od33() {return od33Node;}
+    public PrimitiveNode vth() {return vthNode;}
+    public PrimitiveNode vtl() {return vtlNode;}
 
     /** Essential-Bounds */
     public PrimitiveNode essentialBounds() {return essentialBounds;}
@@ -543,7 +577,7 @@ public abstract class TechType implements Serializable {
 
     public int layerHeight(ArcProto p) {
         for (int i = 0; i < nbLay; i++) {
-            if (layers[i] == p)
+            if (arcs[i] == p)
                 return i;
         }
         error(true, "Can't find layer: " + p);
@@ -571,14 +605,14 @@ public abstract class TechType implements Serializable {
     }
     
     public ArcProto highestLayer(PortProto port) {
-    	for (int h=layers.length-1; h>=0; h--) {
-    		if (port.connectsTo(layers[h])) return layers[h];
+    	for (int h=arcs.length-1; h>=0; h--) {
+    		if (port.connectsTo(arcs[h])) return arcs[h];
     	}
     	error(true, "port can't connect to any layer?!!");
     	return null;
     }
     
-    public ArcProto layerAtHeight(int layHeight) {return layers[layHeight];	}
+    public ArcProto layerAtHeight(int layHeight) {return arcs[layHeight];	}
 
     public PrimitiveNode viaAbove(int layHeight) {return vias[layHeight];}
 
