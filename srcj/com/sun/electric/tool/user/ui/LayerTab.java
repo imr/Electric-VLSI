@@ -218,6 +218,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 
 		setSelectedTechnology(cur);
 		loading = false;
+        updateLayersTab();
 	}
 
 	private void renameConfiguration()

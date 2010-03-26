@@ -721,6 +721,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         // recache all prefs
         loadPreferences(env.techPool);
         TopLevel.getCurrentJFrame().getEMenuBar().restoreSavedBindings(false); //trying to cache again
+        User.technologyChanged();
         WindowFrame.repaintAllWindows();
         System.out.println("...preferences imported from " + fileURL.getFile());
     }
@@ -805,6 +806,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             if (newSnapshot.environment.toolSettings != oldSnapshot.environment.toolSettings)
                 ToolSettings.attachToGroup(newSnapshot.environment.toolSettings);
             if (newSnapshot.techPool != oldSnapshot.techPool) {
+                LayerVisibility.preserveVisibility();
                 loadPreferences(newSnapshot.techPool);
                 User.technologyChanged();
                 WindowFrame.repaintAllWindows();
@@ -925,12 +927,13 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     private static void loadPreferences(TechPool techPool) {
+        assert techPool == Environment.getThreadEnvironment().techPool;
         Pref.setCachedObjsFromPreferences();
         EditingPreferences ep = new EditingPreferences(false, techPool);
         EditingPreferences.setThreadEditingPreferences(ep);
         lastSavedEp = ep;
         currentGraphicsPreferences = new GraphicsPreferences(false, techPool);
-        LayerVisibility.setTechPool(techPool);
+        EditWindow.setLayerVisibilityAll(LayerVisibility.loadPreferences());
         ClickZoomWireListener.theOne.readPrefs();
     }
 

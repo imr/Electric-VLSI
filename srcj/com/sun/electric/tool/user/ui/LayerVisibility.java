@@ -443,6 +443,15 @@ public class LayerVisibility extends PrefPackage {
     }
 
     /**
+     * Load "standard" from Preferences
+     */
+    public static LayerVisibility loadPreferences() {
+        assert Job.isClientThread();
+        stdLayerVisibility = new LayerVisibility(false);
+        return stdLayerVisibility;
+    }
+
+    /**
      * Reset "standard" LayerVisibility to factory values.
      */
     public static void factoryReset() {
@@ -458,14 +467,5 @@ public class LayerVisibility extends PrefPackage {
         assert Job.isClientThread();
         if (stdLayerVisibility == null) return;
         stdLayerVisibility.resetOpacity();
-    }
-
-    /**
-     * Reload standard LayerVisibility from Preferences
-     * @param techPool new TechPool
-     */
-    public static void setTechPool(TechPool techPool) {
-        preserveVisibility();
-        stdLayerVisibility = new LayerVisibility(false, techPool);
     }
 }
