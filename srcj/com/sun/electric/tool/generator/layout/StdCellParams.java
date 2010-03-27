@@ -1132,6 +1132,7 @@ public class StdCellParams {
 	public Cell newPart(String partNm) {
 		error(findPart(partNm) != null, "Cell already exists: " + partNm);
 		Cell p = Cell.newInstance(layoutLib, partNm);
+        p.setTechnology(tech.getTechnology());
 		return p;
 	}
 
