@@ -121,19 +121,19 @@ public class TechTypeMoCMOS extends TechType {
 //	    p1Width = 2;
 //	    p1ToP1Space = 3;
 //	    gateToGateSpace = 3;
-	    gateToDiffContSpace = .5;
+//	    gateToDiffContSpace = .5;
 	    gateToDiffContSpaceDogBone = 1;
-        gateLength = 2;
-        offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
-        offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
-        selectSpace = 2;
-        selectSurroundDiffInTrans = 2;
-        selectSurround = -Double.NaN; // no valid value
-        selectSurroundDiffInActiveContact = 2;
-        selectSurroundDiffAlongGateInTrans = 2;
-        m1MinArea = 0;
-        diffCont_m1Width = 4;
-        diffContIncr = 5;
+//        gateLength = 2;
+//        offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
+//        offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
+//        selectSpace = 2;
+//        selectSurroundDiffInTrans = 2;
+//        selectSurround = -Double.NaN; // no valid value
+//        selectSurroundDiffInActiveContact = 2;
+//        selectSurroundDiffAlongGateInTrans = 2;
+//        m1MinArea = 0;
+//        diffCont_m1Width = 4;
+//        diffContIncr = 5;
 
         assert getWellWidth() == 17;
 	    assert getWellSurroundDiff() == 3;

@@ -13,9 +13,10 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.DRCTemplate.DRCRuleType;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.tool.Job;
@@ -136,6 +137,8 @@ public abstract class TechType implements Serializable {
         gateToDiffContSpaceDogBone,
         selectSurroundDiffInActiveContact,	// select surround in active contacts
         m1MinArea, 							// min area rules, sq lambda
+        polyContWidth,                      // width of poly of min size poly contact
+        diffContWidth,                      // width of diff of min sized diff contact
         diffCont_m1Width,					// width of m1 of min sized diff contact  
         diffContIncr;						// when diff cont increases by diffContIncr,
                                             // we get an additional cut
@@ -190,6 +193,19 @@ public abstract class TechType implements Serializable {
         Technology.NodeLayer[] nls = pn.getNodeLayers();
         for (Technology.NodeLayer nl: nls) {
             if (nl.getLayer() == l) {
+                return nl;
+            }
+        }
+        return null;
+    }
+
+    private Technology.NodeLayer findMulticut(PrimitiveNode pn) {
+        if (pn == null) {
+            return null;
+        }
+        Technology.NodeLayer[] nls = pn.getNodeLayers();
+        for (Technology.NodeLayer nl: nls) {
+            if (nl.getRepresentation() == Technology.NodeLayer.MULTICUTBOX) {
                 return nl;
             }
         }
@@ -381,15 +397,23 @@ public abstract class TechType implements Serializable {
         pmos33 = findNode(PrimitiveNode.Function.TRAPMOSHV3);//techy.findNodeProto("OD33-P-Transistor");
 
         Technology.NodeLayer nmos_gate = findNodeLayer(nmos, lgate);
-        Technology.NodeLayer nmos_nd = findNodeLayer(nmos,lnd);
+        Technology.NodeLayer nmos_nd = findNodeLayer(nmos, lnd);
+        Technology.NodeLayer nmos_nsel = findNodeLayer(nmos, lnsel);
         rotateTransistors = nmos_gate.getTopEdge().getGridAdder() - nmos_gate.getBottomEdge().getGridAdder() <
                 nmos_gate.getRightEdge().getGridAdder() - nmos_gate.getLeftEdge().getGridAdder();
+        double diffExtendAlongMos;
         if (rotateTransistors) {
-            p1Width = DBMath.gridToLambda(nmos_gate.getTopEdge().getGridAdder() - nmos_gate.getBottomEdge().getGridAdder());
+            p1Width = gateLength = DBMath.gridToLambda(nmos_gate.getTopEdge().getGridAdder() - nmos_gate.getBottomEdge().getGridAdder());
             gateExtendPastMOS = DBMath.gridToLambda(nmos_gate.getRightEdge().getGridAdder() - nmos_nd.getRightEdge().getGridAdder());
+            diffExtendAlongMos = DBMath.gridToLambda(nmos_nd.getTopEdge().getGridAdder() - nmos_gate.getTopEdge().getGridAdder());
+            selectSurroundDiffInTrans = DBMath.gridToLambda(nmos_nsel.getTopEdge().getGridAdder() - nmos_nd.getTopEdge().getGridAdder());
+            selectSurroundDiffAlongGateInTrans = DBMath.gridToLambda(nmos_nsel.getRightEdge().getGridAdder() - nmos_nd.getRightEdge().getGridAdder());
         } else {
-            p1Width = DBMath.gridToLambda(nmos_gate.getRightEdge().getGridAdder() - nmos_gate.getLeftEdge().getGridAdder());
+            p1Width = gateLength = DBMath.gridToLambda(nmos_gate.getRightEdge().getGridAdder() - nmos_gate.getLeftEdge().getGridAdder());
             gateExtendPastMOS = DBMath.gridToLambda(nmos_gate.getTopEdge().getGridAdder() - nmos_nd.getTopEdge().getGridAdder());
+            diffExtendAlongMos = DBMath.gridToLambda(nmos_nd.getRightEdge().getGridAdder() - nmos_gate.getRightEdge().getGridAdder());
+            selectSurroundDiffInTrans = DBMath.gridToLambda(nmos_nsel.getRightEdge().getGridAdder() - nmos_nd.getRightEdge().getGridAdder());
+            selectSurroundDiffAlongGateInTrans = DBMath.gridToLambda(nmos_nsel.getTopEdge().getGridAdder() - nmos_nd.getTopEdge().getGridAdder());
         }
 
         wellSurroundDiff = Double.NaN;
@@ -402,8 +426,32 @@ public abstract class TechType implements Serializable {
         }
 
         p1ToP1Space = getSpacing(lp1, lp1);
-        gateToGateSpace = getSpacing(lgate, lgate);
+        gateToGateSpace = Math.max(getSpacing(lgate, lgate), diffExtendAlongMos);
+        selectSpace = getSpacing(lnsel, lnsel);
+        DRCTemplate m1MinAreaRule = drcRules.getMinValue(lmets[0], DRCRuleType.MINAREA);
+        m1MinArea = m1MinAreaRule != null ? m1MinAreaRule.getValue(0) : 0.0;
 
+        Technology.NodeLayer ndm1_nd = findNodeLayer(ndm1, lnd);
+        Technology.NodeLayer ndm1_nsel = findNodeLayer(ndm1, lnsel);
+        Technology.NodeLayer ndm1_m1 = findNodeLayer(ndm1, lmets[0]);
+        Technology.NodeLayer ndm1_multicut = findMulticut(ndm1);
+        diffContWidth = DBMath.gridToLambda(ndm1_nd.getRightEdge().getGridAdder() - ndm1_nd.getLeftEdge().getGridAdder());
+        diffCont_m1Width = DBMath.gridToLambda(ndm1_m1.getRightEdge().getGridAdder() - ndm1_m1.getLeftEdge().getGridAdder());
+        selectSurroundDiffInActiveContact = DBMath.gridToLambda(ndm1_nsel.getRightEdge().getGridAdder() - ndm1_nd.getRightEdge().getGridAdder());
+        diffContIncr = DBMath.gridToLambda(ndm1_multicut.getGridMulticutSizeX() + ndm1_multicut.getGridMulticutSep1D());
+        if (drcRules.isAnySpacingRule(ndm1_multicut.getLayer(), lgate)) {
+            gateToDiffContSpace = gateToDiffContSpaceDogBone = DBMath.round(getSpacing(ndm1_multicut.getLayer(), lgate)
+                - 0.5*(diffContWidth - ndm1_multicut.getMulticutSizeX()));
+        } else {
+            gateToDiffContSpace = gateToDiffContSpaceDogBone = Double.NaN;
+        }
+
+        Technology.NodeLayer p1m1_p1 = findNodeLayer(p1m1, lp1);
+        polyContWidth = DBMath.gridToLambda(p1m1_p1.getRightEdge().getGridAdder() - p1m1_p1.getLeftEdge().getGridAdder());
+        offsetLShapePolyContact = DBMath.gridToLambda(p1m1_p1.getRightEdge().getGridAdder() - p1.getLayerGridExtend(lp1));
+        offsetTShapePolyContact = DBMath.gridToLambda(p1m1_p1.getRightEdge().getGridAdder() + p1.getLayerGridExtend(lp1));
+
+        selectSurround = Double.NaN;
     }
 
     //---------------------------- public classes -----------------------------
@@ -705,15 +753,15 @@ public abstract class TechType implements Serializable {
      * when the diffusion width is larger than the gate width */
     public double getGateToDiffContSpaceDogBone() {return gateToDiffContSpaceDogBone;}
     /** @return min width of diffusion surrounding diff contact */
-    public double getDiffContWidth() {
-        SizeOffset so = ndm1().getProtoSizeOffset();
-        return (ndm1().getMinSizeRule().getHeight() - so.getHighYOffset() - so.getLowYOffset());
-    }
+    public double getDiffContWidth() { return diffContWidth; }
+//        SizeOffset so = ndm1().getProtoSizeOffset();
+//        return (ndm1().getMinSizeRule().getHeight() - so.getHighYOffset() - so.getLowYOffset());
+//    }
     /** @return min width of poly contact */
-    public double getP1M1Width() {
-        SizeOffset so = p1m1().getProtoSizeOffset();
-        return (p1m1().getMinSizeRule().getHeight() - so.getHighYOffset() - so.getLowYOffset());
-    }
+    public double getP1M1Width() { return polyContWidth; }
+//        SizeOffset so = p1m1().getProtoSizeOffset();
+//        return (p1m1().getMinSizeRule().getHeight() - so.getHighYOffset() - so.getLowYOffset());
+//    }
     /** @return gate length that depends on foundry */
     public double getGateLength() {return gateLength;}
     /** @return amount that select surrounds diffusion in well? */

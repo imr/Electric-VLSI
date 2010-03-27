@@ -28,9 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.generator.layout.gates.DrcRing;
 
 public class DrcRings {
