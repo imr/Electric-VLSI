@@ -2,7 +2,6 @@ package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
 
 public class TechTypeMoCMOS extends TechType {
 	private static final long serialVersionUID = 0;
@@ -117,11 +116,11 @@ public class TechTypeMoCMOS extends TechType {
 
         assert name().equals("MOCMOS");
 
-	    wellSurroundDiff = 3;
-	    gateExtendPastMOS = 2;
-	    p1Width = 2;
-	    p1ToP1Space = 3;
-	    gateToGateSpace = 3;
+//	    wellSurroundDiff = 3;
+//	    gateExtendPastMOS = 2;
+//	    p1Width = 2;
+//	    p1ToP1Space = 3;
+//	    gateToGateSpace = 3;
 	    gateToDiffContSpace = .5;
 	    gateToDiffContSpaceDogBone = 1;
         gateLength = 2;

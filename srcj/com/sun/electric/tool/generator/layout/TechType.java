@@ -1,5 +1,6 @@
 package com.sun.electric.tool.generator.layout;
 
+import com.sun.electric.database.geometry.DBMath;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.XMLRules;
 import com.sun.electric.tool.Job;
 
 /** The TechType class holds technology dependent information for the layout
@@ -53,6 +55,7 @@ public abstract class TechType implements Serializable {
 
     private final Technology generic = Technology.findTechnology("generic");
     private final Technology technology;
+    private final XMLRules drcRules;
     private final PrimitiveNode essentialBounds =
         generic.findNodeProto("Essential-Bounds");
     private final PrimitiveNode facetCenter =
@@ -86,6 +89,7 @@ public abstract class TechType implements Serializable {
         m1m2, m2m3, m3m4, m4m5, m5m6, m6m7, m7m8, m8m9;
 
     /** Transistors */
+    private final boolean rotateTransistors;
     private final PrimitiveNode nmos, pmos, nmos18, pmos18, nmos25, pmos25,
         nmos33, pmos33;
     // nvth, pvth, nvtl, pvtl, nnat, pnat;
@@ -143,6 +147,9 @@ public abstract class TechType implements Serializable {
     private Layer getMetalLayer(int l) {
         return l <= lmets.length ? lmets[l-1] : null;
     }
+    private double getSpacing(Layer layer1, Layer layer2) {
+        return drcRules.getSpacingRule(layer1, null, layer2, null, false, -1, -1.0, -1.0).getValue(0);
+    }
     private ArcProto getArc(int n) {
         return n>(arcs.length-1) ? null : arcs[n];
     }
@@ -161,8 +168,32 @@ public abstract class TechType implements Serializable {
         }
         return null;
     }
+//    private double getArcLayerGridExtend(ArcProto ap, Layer layer1, Layer layer2) {
+//        if (ap == null) {
+//            return Double.NaN;
+//        }
+//        int arcIndex1 = ap.indexOf(layer1);
+//        int arcIndex2 = ap.indexOf(layer2);
+//        if (arcIndex1 < 0 || arcIndex2 < 0) {
+//            return Double.NaN;
+//        }
+//        return DBMath.gridToLambda((ap.getLayerGridExtend(arcIndex1) - ap.getLayerGridExtend(arcIndex2)));
+//    }
     private PrimitiveNode findPureNode(Layer layer) {
         return layer != null ? layer.getPureLayerNode() : null;
+    }
+
+    private Technology.NodeLayer findNodeLayer(PrimitiveNode pn, Layer l) {
+        if (pn == null) {
+            return null;
+        }
+        Technology.NodeLayer[] nls = pn.getNodeLayers();
+        for (Technology.NodeLayer nl: nls) {
+            if (nl.getLayer() == l) {
+                return nl;
+            }
+        }
+        return null;
     }
 
     private PrimitiveNode getVia(int n) {
@@ -224,10 +255,12 @@ public abstract class TechType implements Serializable {
         lmets = new Layer[techy.getNumMetals()];
         nbLay = 1 + lmets.length;
         technology = techy;
+        drcRules = technology.getFactoryDesignRules();
 
         //--------------------------- initialize layers -----------------------
         arcs = new ArcProto[nbLay];
         lp1 = techy.findLayerFromFunction(Layer.Function.POLY1, -1);
+        Layer lgate = techy.findLayerFromFunction(Layer.Function.GATE, -1);
         arcs[0] = findArc(lp1);
         for (int i=1; i<nbLay; i++) {
             Layer lm = techy.findLayerFromFunction(Layer.Function.getMetal(i), -1);
@@ -346,6 +379,31 @@ public abstract class TechType implements Serializable {
         pmos25 = findNode(PrimitiveNode.Function.TRAPMOSHV2);//techy.findNodeProto("OD25-P-Transistor");
         nmos33 = findNode(PrimitiveNode.Function.TRANMOSHV3);//techy.findNodeProto("OD33-N-Transistor");
         pmos33 = findNode(PrimitiveNode.Function.TRAPMOSHV3);//techy.findNodeProto("OD33-P-Transistor");
+
+        Technology.NodeLayer nmos_gate = findNodeLayer(nmos, lgate);
+        Technology.NodeLayer nmos_nd = findNodeLayer(nmos,lnd);
+        rotateTransistors = nmos_gate.getTopEdge().getGridAdder() - nmos_gate.getBottomEdge().getGridAdder() <
+                nmos_gate.getRightEdge().getGridAdder() - nmos_gate.getLeftEdge().getGridAdder();
+        if (rotateTransistors) {
+            p1Width = DBMath.gridToLambda(nmos_gate.getTopEdge().getGridAdder() - nmos_gate.getBottomEdge().getGridAdder());
+            gateExtendPastMOS = DBMath.gridToLambda(nmos_gate.getRightEdge().getGridAdder() - nmos_nd.getRightEdge().getGridAdder());
+        } else {
+            p1Width = DBMath.gridToLambda(nmos_gate.getRightEdge().getGridAdder() - nmos_gate.getLeftEdge().getGridAdder());
+            gateExtendPastMOS = DBMath.gridToLambda(nmos_gate.getTopEdge().getGridAdder() - nmos_nd.getTopEdge().getGridAdder());
+        }
+
+        wellSurroundDiff = Double.NaN;
+        if (nwm1Y == null) {
+            Technology.NodeLayer nwm1_nwell = findNodeLayer(nwm1, lnwell);
+            Technology.NodeLayer nwm1_nd = findNodeLayer(nwm1, lnd);
+            if (nwm1_nwell != null && nwm1_nd != null) {
+                wellSurroundDiff = DBMath.gridToLambda(nwm1_nwell.getTopEdge().getGridAdder() - nwm1_nd.getTopEdge().getGridAdder());
+            }
+        }
+
+        p1ToP1Space = getSpacing(lp1, lp1);
+        gateToGateSpace = getSpacing(lgate, lgate);
+
     }
 
     //---------------------------- public classes -----------------------------
