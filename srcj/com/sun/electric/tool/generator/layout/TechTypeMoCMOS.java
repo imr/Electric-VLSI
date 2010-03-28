@@ -1,6 +1,5 @@
 package com.sun.electric.tool.generator.layout;
 
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology;
 
 public class TechTypeMoCMOS extends TechType {
@@ -136,17 +135,19 @@ public class TechTypeMoCMOS extends TechType {
 //        diffContIncr = 5;
 
         assert getWellWidth() == 17;
-	    assert getWellSurroundDiff() == 3;
+	    assert getWellSurroundDiffInWellContact() == 3;
 	    assert getGateExtendPastMOS() == 2;
 	    assert getP1Width() == 2;
 	    assert getP1ToP1Space() == 3;
 	    assert getGateToGateSpace() == 3;
 	    assert getGateToDiffContSpace() == .5;
 	    assert getGateToDiffContSpaceDogBone() == 1;
+        assert getWellContWidth() == 5;
         assert getDiffContWidth() == 5;
         assert getP1M1Width() == 5;
         assert getGateLength() == 2;
-        assert selectSurroundDiffInActiveContact() == 2;
+        assert selectSurroundDiffInWellContact() == 2;
+        assert selectSurroundDiffInDiffContact() == 2;
         assert selectSurroundDiffAlongGateInTrans() == 2;
         assert getPolyLShapeOffset() == 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
         assert getPolyTShapeOffset() == 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
@@ -162,19 +163,7 @@ public class TechTypeMoCMOS extends TechType {
 	public double roundToGrid(double x)	{return Math.rint(x * 2) / 2;}
 
 	@Override
-	public MosInst newNmosInst(double x, double y, 
-							   double w, double l, Cell parent) {
-		return new MosInst.MosInstH1('n', x, y, w, l, this, parent);
-	}
-	@Override
-	public MosInst newPmosInst(double x, double y, 
-							   double w, double l, Cell parent) {
-		return new MosInst.MosInstH1('p', x, y, w, l, this, parent);
-	}
-	@Override
 	public String name() {return "MOCMOS";}
-    @Override
-    public int getNumMetals() {return 6;}
 
     // for fill generator
     @Override

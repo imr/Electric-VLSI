@@ -24,12 +24,8 @@
 package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 
-import java.util.Iterator;
 
 /**
  * The TechType class holds technology dependent information for the layout
@@ -40,23 +36,6 @@ public class TechTypeWizard extends TechType {
 
     public TechTypeWizard(Technology tech) {
         super(tech);
-    }
-
-    public int getNumMetals() {
-        return getTechnology().getNumMetals();
-    }
-
-     /** round to avoid MOCMOS CIF resolution errors */
-    public double roundToGrid(double x) {
-        throw new UnsupportedOperationException();
-    }
-
-    public MosInst newNmosInst(double x, double y, double w, double l, Cell parent) {
-        throw new UnsupportedOperationException();
-    }
-
-    public MosInst newPmosInst(double x, double y, double w, double l, Cell parent) {
-        throw new UnsupportedOperationException();
     }
 
     public String name() {

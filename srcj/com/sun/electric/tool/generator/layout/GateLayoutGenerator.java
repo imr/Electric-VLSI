@@ -238,8 +238,7 @@ public class GateLayoutGenerator {
             Library outLib = LayoutLib.openLibForWrite(outLibNm);
 
             StdCellParams stdCell;
-            Technology cmos90 = Technology.getCMOS90Technology();
-            if (cmos90 != null && technology == cmos90) {
+            if (technology == Technology.getCMOS90Technology()) {
                 stdCell = sportParams();
             } else {
                 //stdCell = locoParams(outLib);

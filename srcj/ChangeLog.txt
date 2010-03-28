@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3/28/10, DN) Fill generation failed.
+FIX: In CapCell use parameters for Well contact (not diffusion contact).
+
 IMP: (3/25/10, DN) Select layers in generator.layout.TechType by function (Bug #2696).
     Almost all values in TechType subclasses are initialized from technology and DRC deck .
 

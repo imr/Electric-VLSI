@@ -617,18 +617,11 @@ public class StdCellParams {
 	// Utilities for gate generators
 
     public StdCellParams(Technology tech) {
-        String techName = tech.getTechName();
-        if (techName.equals("mocmos") && tech == Technology.getMocmosTechnology()) {
-            initMoCMOS();
-            this.tech = TechType.getMOCMOS();
-        } else if (techName.equals("tsmc180") && tech == Technology.getTSMC180Technology()) {
-            initMoCMOS();
-            this.tech = TechType.getTSMC180();
-        } else if (techName.equals("cmos90") && tech == Technology.getCMOS90Technology()) {
+        this.tech = TechType.getTechType(tech);
+        if (tech == Technology.getCMOS90Technology()) {
             initCMOS90();
-            this.tech = TechType.getCMOS90();
         } else {
-            error(true, "Standard Cell Params does not understand technology "+tech);
+            initMoCMOS();
         }
     }
 

@@ -35,7 +35,7 @@ class CapCellMosis extends CapCell{
 	 *  since that is how we build CapCell */
 	private static class ProtoPlan{
 		private final double MAX_MOS_WIDTH = 40;
-		private final double SEL_WIDTH_OF_NDM1;
+		private final double SEL_WIDTH_OF_PWM1;
 		private final double SEL_TO_MOS;
 		public final double protoWidth, protoHeight;
 
@@ -54,7 +54,7 @@ class CapCellMosis extends CapCell{
 		public final double botWellContY;
 
 		public ProtoPlan(CapFloorplan instPlan, TechType tech) {
-			SEL_WIDTH_OF_NDM1 = tech.getDiffContWidth() + tech.selectSurroundDiffInActiveContact()*2;
+			SEL_WIDTH_OF_PWM1 = tech.getWellContWidth() + tech.selectSurroundDiffInWellContact()*2;
 			SEL_TO_MOS = tech.selectSurroundDiffAlongGateInTrans();
 			
 			protoWidth =
@@ -68,10 +68,10 @@ class CapCellMosis extends CapCell{
 			numMosY = (int) Math.floor((protoHeight-tech.getWellWidth())/mosPitchY);
 			botWellContY = - numMosY * mosPitchY / 2;
 
-			// min distance from left Cell edge to center of leftmost diffusion
+			// min distance from left Cell edge to center of leftmost well
 			// contact.
 			double cellEdgeToDiffContCenter =
-				tech.getWellSurroundDiff() + tech.getDiffContWidth()/2;
+				tech.getWellSurroundDiffInWellContact() + tech.getDiffContWidth()/2;
 			// min distance from left Cell Edge to center of leftmost poly
 			// contact.
 			double polyContWidth = Math.floor(gateLength / tech.getP1M1Width()) *
@@ -86,15 +86,15 @@ class CapCellMosis extends CapCell{
 			//double availForCap = protoWidth - 2*(SEL_TO_CELL_EDGE + SEL_WIDTH_OF_NDM1/2);
 			double availForCap = protoWidth - 2*cellEdgeToContCenter;
 			double numMosD = availForCap /
-							 (MAX_MOS_WIDTH + SEL_WIDTH_OF_NDM1 + 2*SEL_TO_MOS);
+							 (MAX_MOS_WIDTH + SEL_WIDTH_OF_PWM1 + 2*SEL_TO_MOS);
 			numMosX = (int) Math.ceil(numMosD);
 
             Job.error((numMosX < 1), "not enough space for cap cell. Increase template size.");
 
-            double mosWidth1 = availForCap/numMosX - SEL_WIDTH_OF_NDM1 - 2*SEL_TO_MOS;
+            double mosWidth1 = availForCap/numMosX - SEL_WIDTH_OF_PWM1 - 2*SEL_TO_MOS;
 			// round down mos Width to integral number of lambdas
 			gateWidth = Math.floor(mosWidth1);
-			mosPitchX = gateWidth + SEL_WIDTH_OF_NDM1 + 2*SEL_TO_MOS;
+			mosPitchX = gateWidth + SEL_WIDTH_OF_PWM1 + 2*SEL_TO_MOS;
 			leftWellContX = - numMosX * mosPitchX / 2;
 
 		}
