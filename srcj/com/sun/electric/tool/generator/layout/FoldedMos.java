@@ -364,8 +364,8 @@ public abstract class FoldedMos {
 			// always on grid.
 			ArcInst redundantAi = LayoutLib.newArcInst(diff, tech.getDiffCont_m1Width(), newPort,
 					             newPort);
-            redundantAi.setHeadExtended(false);
-            redundantAi.setTailExtended(false);
+//            redundantAi.setHeadExtended(false);
+//            redundantAi.setTailExtended(false);
 			
 			addM1ForMinArea(newPort, difContWid, justifyDiffCont);
 			

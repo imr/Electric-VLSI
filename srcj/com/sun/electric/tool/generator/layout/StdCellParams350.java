@@ -24,7 +24,13 @@
 package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 
 /**
  *
@@ -33,10 +39,32 @@ public class StdCellParams350 extends StdCellParams {
 
     private static final double minGateWid = 0.6;
     private static final double maxMosWidth = Double.POSITIVE_INFINITY;
+	private static final double m1OverhangsDiffCont = 0.15;
+	private static final double m1Space = 0.45;
+
 
     private TechType tech;
 
-    public StdCellParams350(Technology tech) {
+	private static void error(boolean pred, String msg) {
+		Job.error(pred, msg);
+	}
+
+    public static StdCellParams invParams(Technology technology) {
+        StdCellParams stdCell = new StdCellParams350(technology);
+        stdCell.setSizeQuantizationError(0);
+        stdCell.setMaxMosWidth(1000);
+        stdCell.setVddY(5.5);
+        stdCell.setGndY(-4.1);
+        stdCell.setNmosWellHeight(6.4);
+        stdCell.setPmosWellHeight(5.0/*6.4*/);
+//        stdCell.setVddExportName("VDD");
+//        stdCell.setGndExportName("VSS");
+        stdCell.setSimpleName(true);
+        stdCell.enableNCC("purpleFour");
+        return stdCell;
+    }
+
+    private StdCellParams350(Technology tech) {
         super(tech);
         this.tech = getTechType();
         setGndWidth(1.4);
@@ -118,8 +146,91 @@ public class StdCellParams350 extends StdCellParams {
 		return nbGroups;
 	}
 
+	/** Wire pmos or nmos to vdd or gnd, respectively.  Add an export
+	 * if there is none. */
+	public void wireVddGnd(FoldedMos[] moss, SelectSrcDrn select, Cell p) {
+		FoldedMos mos = moss[0];
+
+		PortInst leftDiff = mos.getSrcDrn(0);
+		Cell f = leftDiff.getNodeInst().getParent();
+		double busWid = mos instanceof FoldedPmos ? getVddWidth() : getGndWidth();
+		double busY = mos instanceof FoldedPmos ? getVddY() : getGndY();
+		TrackRouter net = new TrackRouterH(tech.m1(), busWid, busY, tech, p);
+
+		String exportNm = mos instanceof FoldedPmos ? getVddExportName() : getGndExportName();
+		if (f.findPortProto(exportNm)==null) {
+			// The export doesn't yet exist.  Create and export a metal2 pin
+			// aligned with the first diffusion.
+			double x = leftDiff.getBounds().getCenterX();
+			NodeInst pinProt = LayoutLib.newNodeInst(tech.m1pin(), x,
+			                                         busY, LayoutLib.DEF_SIZE, LayoutLib.DEF_SIZE, 0, f);
+			PortInst pin = pinProt.getOnlyPortInst();
+			Export e = Export.newInstance(f, pin, exportNm);
+			PortCharacteristic role =
+				mos instanceof FoldedPmos ? getVddExportRole() : getGndExportRole();
+			e.setCharacteristic(role);
+
+			// Connect the export to itself using a standard width power or
+			// ground strap.  The width of this strap serves as a hint to
+			// Electric as to the width to use to connect to this export at
+			// the next level up.
+			LayoutLib.newArcInst(tech.m1(), busWid, pin, pin);
+
+			net.connect(pin);
+		}
+		double diffY = LayoutLib.roundCenterY(leftDiff);
+		double notchLoY = Math.min(busY - busWid / 2, diffY);
+		double notchHiY = Math.max(busY + busWid / 2, diffY);
+		PortInst lastDiff = null;
+		for (int i=0; i<moss.length; i++) {
+			for (int j=0; j<moss[i].nbSrcDrns(); j++) {
+				if (select.connectThisOne(i, j)) {
+					PortInst thisDiff = moss[i].getSrcDrn(j);
+					net.connect(thisDiff);
+
+					if (lastDiff!=null) {
+						// Check to see if we just created a notch.
+						double leftX = LayoutLib.roundCenterX(lastDiff);
+						double rightX = LayoutLib.roundCenterX(thisDiff);
+						error(leftX>rightX,
+							  "wireVddGnd: trans not sorted left to right");
+						double deltaX = rightX - leftX;
+						if (deltaX>0
+							&& deltaX < m1OverhangsDiffCont*2+m1Space) {
+							// Fill notches, sigh! (This is starting to lose
+							// it's novelty value.)
+							//
+							// Make height integral number of lambdas so
+							// centerY will be on .5 lambda grid and connecting
+							// to center won't generate CIF resolution errors.
+							double dY = Math.ceil(notchHiY - notchLoY);
+							NodeInst patchNode =
+							  LayoutLib.newNodeInst(tech.m1Node(), (leftX+rightX)/2, notchLoY+dY/2,
+							  deltaX, dY, 0, f);
+							PortInst patch = patchNode.getOnlyPortInst();
+							LayoutLib.newArcInst(tech.m1(), LayoutLib.DEF_SIZE, patch, thisDiff);
+						}
+					}
+					lastDiff = thisDiff;
+				}
+			}
+		}
+	}
+
+	/** essential bounds for cells with both NMOS and PMOS */
+	public void addEssentialBounds(double loX, double hiX, Cell cell) {
+		LayoutLib.newNodeInst(tech.essentialBounds(), loX, getGndY(), LayoutLib.DEF_SIZE,
+		                      LayoutLib.DEF_SIZE, 180, cell);
+		LayoutLib.newNodeInst(tech.essentialBounds(), hiX, getVddY(), LayoutLib.DEF_SIZE,
+			                  LayoutLib.DEF_SIZE, 0, cell);
+	}
+
     @Override
 	public double roundGateWidth(double w) {
         return DBMath.gridToLambda(DBMath.lambdaToSizeGrid(w));
 	}
+
+    public double getDRCRingSpacing() { return 0.9; }
+
+
 }

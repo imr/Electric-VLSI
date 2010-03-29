@@ -36,6 +36,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.generator.layout.gates.Inv350;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.logicaleffort.LEInst;
 import com.sun.electric.tool.user.User;
@@ -92,6 +93,13 @@ public class GateLayoutGenerator {
                  System.out.println("ERROR invoking the CMOS90 gate generator");
             }
 //			c = CMOS90Generator.makeGate(pNm, x, stdCell);
+        } else if (tech.getTechnology().getTechName().equals("MIMOS_035"))
+        {
+            if (type.equals("inv")) {
+                c = Inv350.makePart(Xstrength, "", stdCell);
+            } else {
+                System.out.println("Can't generate cell " + type + " for technology " + tech.name());
+            }
         } else
         {
             c = MoCMOSGenerator.makeGate(type, Xstrength, stdCell);
@@ -240,6 +248,8 @@ public class GateLayoutGenerator {
             StdCellParams stdCell;
             if (technology == Technology.getCMOS90Technology()) {
                 stdCell = sportParams();
+            } else if (technology.getTechName().equals("MIMOS_035")) {
+                stdCell = StdCellParams350.invParams(technology);
             } else {
                 //stdCell = locoParams(outLib);
                 stdCell = dividerParams(technology);

@@ -49,6 +49,9 @@ public class DrcRing {
    * inside corner is at (0, 0).  All edges are on a 0.5 lambda grid
    * as long as w and h are multiples of 0.5 lambda. */
   private static void drawRing(ArcProto arc, double w, double h, Cell f) {
+      if (arc == null) {
+          return;
+      }
     // metal-5 minimum width is 6 lambda
     double arcW = 6;
 
