@@ -145,6 +145,16 @@ if (--limitLoops <= 0) change = false;
 		}
 	}
 
+    public static void compactHorizontally(Cell cell) {
+        CompactCell cc = new CompactCell(cell, false);
+        cc.compactOneDirection(CompactCell.Axis.HORIZONTAL);
+    }
+
+    public static void compactVertically(Cell cell) {
+        CompactCell cc = new CompactCell(cell, false);
+        cc.compactOneDirection(CompactCell.Axis.VERTICAL);
+    }
+
 	/****************************** OPTIONS ******************************/
 
 	private static Pref cacheAllowSpreading = Pref.makeBooleanPref("AllowSpreading", tool.prefs, false);
