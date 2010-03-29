@@ -26,6 +26,7 @@ package com.sun.electric.tool.generator.layout;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
@@ -361,8 +362,10 @@ public abstract class FoldedMos {
 			// Add redundant diffusion as a hint of the metal-1 wire size to 
 			// use to connect to this diffusion contact. Diffusion contact is
 			// always on grid.
-			LayoutLib.newArcInst(diff, tech.getDiffCont_m1Width(), newPort,
+			ArcInst redundantAi = LayoutLib.newArcInst(diff, tech.getDiffCont_m1Width(), newPort,
 					             newPort);
+            redundantAi.setHeadExtended(false);
+            redundantAi.setTailExtended(false);
 			
 			addM1ForMinArea(newPort, difContWid, justifyDiffCont);
 			

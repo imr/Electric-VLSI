@@ -2791,6 +2791,14 @@ public class TechEditWizardData
         }
     }
 
+    private void makeLayersRuleSpacing(Xml.Technology t, Xml.Layer l1, Xml.Layer l2, String ruleName, double ruleValue) {
+        double value = scaledValue(ruleValue);
+        for (Xml.Foundry f: t.foundries) {
+            f.rules.add(new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.SPACING,
+                l1.name, l2.name, new double[] {value, value}, null, null));
+        }
+    }
+
     private void makeLayersRuleSurround(Xml.Technology t, Xml.Layer l1, Xml.Layer l2, String ruleName, double ruleValue) {
         double value = scaledValue(ruleValue);
         for (Xml.Foundry f: t.foundries) {
@@ -4302,6 +4310,10 @@ public class TechEditWizardData
             makeLayerRuleMinWid(t, w, poly_width);
             makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, poly_spacing.rule, poly_spacing.value);
         }
+
+        // Gate contact spacing rules
+        makeLayersRuleSpacing(t, diffConLayer, polyGateLayer, gate_contact_spacing.rule, gate_contact_spacing.value);
+        makeLayersRuleSpacing(t, polyConLayer, polyGateLayer, gate_contact_spacing.rule, gate_contact_spacing.value);
     }
 
     private void addContactsOrCapacitors(Xml.Technology t, List<Contact> contacts, List<Xml.Layer> metalLayers,

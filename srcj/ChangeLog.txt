@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3/29.10, DN) Technology Wizard doesn't write gate_contact_spacing to DRC deck (Bug #2702).
+FIX: In TechEditWizardData.addStandardElements write spacing rules.
+
 BUG: (3/28/10, DN) Fill generation failed.
 FIX: In CapCell use parameters for Well contact (not diffusion contact).
 
