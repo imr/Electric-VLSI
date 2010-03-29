@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+IMP: (3/29.10, GVG) Amending tsmcSun40GP.xml and TechEditorWizard regression due to Bug #2702 changes.
+
 BUG: (3/29.10, DN) Technology Wizard doesn't write gate_contact_spacing to DRC deck (Bug #2702).
 FIX: In TechEditWizardData.addStandardElements write spacing rules.
 
