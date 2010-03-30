@@ -64,6 +64,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -481,9 +482,21 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		}
 		List<NodeInst> nodeList = new ArrayList<NodeInst>();
 		for(NodeInst ni : nodeSet) nodeList.add(ni);
-		Collections.sort(nodeList);
-		Collections.sort(arcList);
-		Collections.sort(exportList);
+		Collections.sort(nodeList, new Comparator<NodeInst> () {
+            public int compare(NodeInst n1, NodeInst n2) {
+                return TextUtils.STRING_NUMBER_ORDER.compare(n1.getName(), n2.getName());
+            }
+        });
+		Collections.sort(arcList, new Comparator<ArcInst> () {
+            public int compare(ArcInst a1, ArcInst a2) {
+                return TextUtils.STRING_NUMBER_ORDER.compare(a1.getName(), a2.getName());
+            }
+        });
+		Collections.sort(exportList, new Comparator<Export> () {
+            public int compare(Export e1, Export e2) {
+                return TextUtils.STRING_NUMBER_ORDER.compare(e1.getName(), e2.getName());
+            }
+        });
 
 		// determine the distance between arrayed entries
 		double xOverlap = TextUtils.atofDistance(xSpacing.getText());
