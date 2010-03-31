@@ -155,7 +155,8 @@ public class Output
 		if (type == FileType.SPICE) return new Spice.SpicePreferences(factory, false);
 		if (type == FileType.SVG) return new SVG.SVGPreferences(factory);
 		if (type == FileType.TEGAS) return new Tegas.TegasPreferences(factory);
-		if (type == FileType.VERILOG) return new Verilog.VerilogPreferences(factory);
+		if (type == FileType.VERILOG) return new Verilog.VerilogPreferences(factory, false);
+		if (type == FileType.VERILOGA) return new Verilog.VerilogPreferences(factory, true);
         return null;
     }
 
@@ -903,7 +904,6 @@ public class Output
 
         public boolean doIt() throws JobException
         {
-            boolean error = false;
             try
             {
                 if (newName != null) {

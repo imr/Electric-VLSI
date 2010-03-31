@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+IMP/MAN: (3/31/10, SMR) Added VerilogA output with "Tools / Simulation (Verilog) /
+     Write VerilogA Deck..." command (Bug #2705).
+
 BUG/MAN: (3/31/10, SMR) Parasitic preferences has User and Project preferences swapped (Bug #2701).
 FIX: Swapped the panels.
 

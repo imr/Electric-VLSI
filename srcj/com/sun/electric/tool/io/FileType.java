@@ -142,6 +142,7 @@ public class FileType implements Serializable {
 	/** Describes Tegas files. */			public static final FileType TEGAS        = makeFileType("Tegas", new String[] {"tdl"}, "Tegas File (tdl)", OTHERSIMGRP);
 	/** Describes text files. */			public static final FileType TEXT         = makeFileType("Text", new String[] {"txt"}, "Text File (txt)");
 	/** Describes Verilog decks. */			public static final FileType VERILOG      = makeFileType("Verilog", new String[] {"v", "vL"}, "Verilog Deck (v)", VERILOGSIMGRP);
+	/** Describes VerilogA decks. */	    public static final FileType VERILOGA     = makeFileType("VerilogA", new String[] {"va", "vLA"}, "VerilogA Deck (va)", VERILOGSIMGRP);
 	/** Describes Verilog output. */		public static final FileType VERILOGOUT   = makeFileType("Verilog Output", new String[] {"dump"}, "Verilog VCD Dump (vcd)", VERILOGSIMGRP);
 	/** Describes Xml files. */				public static final FileType XML          = makeFileType("XML", new String[] {"xml"}, "XML File (xml)");
 

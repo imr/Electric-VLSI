@@ -5,6 +5,7 @@
  * File: Verilog.java
  * Input/output tool: Verilog Netlist output
  * Written by Steven M. Rubin, Sun Microsystems.
+ * VerilogA by Min Hao Zhu, Villanova University.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -72,10 +73,80 @@ import java.util.Set;
  */
 public class Verilog extends Topology
 {
-	/** A set of keywords that are reserved in Verilog */
-	private static Set<String> reservedWords;
-	static
+	/** maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
+	/** name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
+	/** name of signals generated from negated wires */		private static final String IMPLICITINVERTERSIGNAME = "ImpInv";
+
+	/** key of Variable holding verilog code. */			public static final Variable.Key VERILOG_CODE_KEY = Variable.newKey("VERILOG_code");
+	/** key of Variable holding verilog declarations. */	public static final Variable.Key VERILOG_DECLARATION_KEY = Variable.newKey("VERILOG_declaration");
+    /** key of Variable holding verilog parameters. */		public static final Variable.Key VERILOG_PARAMETER_KEY = Variable.newKey("VERILOG_parameter");
+    /** key of Variable holding verilog code that is
+     ** external to the module. */							public static final Variable.Key VERILOG_EXTERNAL_CODE_KEY = Variable.newKey("VERILOG_external_code");
+	/** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = Variable.newKey("SIM_verilog_wire_type");
+	/** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = Variable.newKey("ATTR_verilog_template");
+    /** key of Variable holding verilog defparams. */		public static final Variable.Key VERILOG_DEFPARAM_KEY = Variable.newKey("ATTR_verilog_defparam");
+	/** key of Variable holding file name with Verilog. */	public static final Variable.Key VERILOG_BEHAVE_FILE_KEY = Variable.newKey("SIM_verilog_behave_file");
+	/** those cells that have overridden models */			private Set<Cell> modelOverrides = new HashSet<Cell>();
+	/** those cells that have modules defined */			private Map<String,String> definedModules = new HashMap<String,String>(); // key: module name, value: source description
+	/** those cells that have primitives defined */			private Map<Cell,VerilogData.VerilogModule> definedPrimitives = new HashMap<Cell,VerilogData.VerilogModule>(); // key: module name, value: VerilogModule
+	/** map of cells that are or contain standard cells */  private SCLibraryGen.StandardCellHierarchy standardCells = new SCLibraryGen.StandardCellHierarchy();
+    /** file we are writing to */                           private String filePath;
+	/** A set of keywords that are reserved in Verilog */	private Set<String> reservedWords;
+	private VerilogPreferences localPrefs;
+
+	public static class VerilogPreferences extends OutputPreferences
+    {
+        // Verilog Settings
+		public boolean useTrireg = Simulation.getVerilogUseTrireg();
+		public boolean useAssign = Simulation.getVerilogUseAssign();
+		public boolean useVerilogA = false;
+        // Verilog factory Prefs
+		public boolean stopAtStandardCells = Simulation.getFactoryVerilogStopAtStandardCells();
+		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
+		public boolean writeModuleForEachIcon = Simulation.isFactoryVerilogWriteModuleForEachIcon();
+        public Map<Cell,String> modelFiles = Collections.emptyMap();
+
+        // Verilog ouput preferences need VerilogInputPreferences in case of doc cells with Verilog code
+        public VerilogReader.VerilogPreferences inputPrefs;
+
+        public VerilogPreferences(boolean useVerilogA) { this(false, useVerilogA); }
+        public VerilogPreferences(boolean factory, boolean useVerilogA) {
+            super(factory);
+            inputPrefs = new VerilogReader.VerilogPreferences(factory);
+            this.useVerilogA = useVerilogA;
+            if (!factory)
+                fillPrefs();
+        }
+
+		private void fillPrefs()
+        {
+            // Verilog current Prefs
+			stopAtStandardCells = Simulation.getVerilogStopAtStandardCells();
+			parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
+			writeModuleForEachIcon = Simulation.isVerilogWriteModuleForEachIcon();
+            modelFiles = CellModelPrefs.verilogModelPrefs.getUnfilteredFileNames(EDatabase.clientDatabase());
+		}
+
+        @Override
+        public Output doOutput(Cell cell, VarContext context, String filePath)
+        {
+    		Verilog out = new Verilog(this);
+            if (out.openTextOutputStream(filePath)) return out.finishWrite();
+            out.filePath = filePath;
+    		if (out.writeCell(cell, context)) return out.finishWrite();
+    		if (out.closeTextOutputStream()) return out.finishWrite();
+    		System.out.println(filePath + " written");
+            return out.finishWrite();
+        }
+    }
+
+	/**
+	 * Creates a new instance of Verilog
+	 */
+	Verilog(VerilogPreferences vp)
 	{
+		localPrefs = vp;
+
 		reservedWords = new HashSet<String>();
 		reservedWords.add("always");
 		reservedWords.add("and");
@@ -94,6 +165,7 @@ public class Verilog extends Topology
 		reservedWords.add("defpram");
 		reservedWords.add("disable");
 		reservedWords.add("edge");
+		if (localPrefs.useVerilogA) reservedWords.add("electrical");
 		reservedWords.add("else");
 		reservedWords.add("end");
 		reservedWords.add("endattribute");
@@ -179,76 +251,9 @@ public class Verilog extends Topology
 		reservedWords.add("wor");
 		reservedWords.add("xnor");
 		reservedWords.add("xor");
+		if (localPrefs.useVerilogA) reservedWords.add("PCNFET");
+		if (localPrefs.useVerilogA) reservedWords.add("NCNFET");
 	}
-
-	/** maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
-	/** name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
-	/** name of signals generated from negated wires */		private static final String IMPLICITINVERTERSIGNAME = "ImpInv";
-
-	/** key of Variable holding verilog code. */			public static final Variable.Key VERILOG_CODE_KEY = Variable.newKey("VERILOG_code");
-	/** key of Variable holding verilog declarations. */	public static final Variable.Key VERILOG_DECLARATION_KEY = Variable.newKey("VERILOG_declaration");
-    /** key of Variable holding verilog parameters. */		public static final Variable.Key VERILOG_PARAMETER_KEY = Variable.newKey("VERILOG_parameter");
-    /** key of Variable holding verilog code that is
-     ** external to the module. */							public static final Variable.Key VERILOG_EXTERNAL_CODE_KEY = Variable.newKey("VERILOG_external_code");
-	/** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = Variable.newKey("SIM_verilog_wire_type");
-	/** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = Variable.newKey("ATTR_verilog_template");
-    /** key of Variable holding verilog defparams. */		public static final Variable.Key VERILOG_DEFPARAM_KEY = Variable.newKey("ATTR_verilog_defparam");
-	/** key of Variable holding file name with Verilog. */	public static final Variable.Key VERILOG_BEHAVE_FILE_KEY = Variable.newKey("SIM_verilog_behave_file");
-	/** those cells that have overridden models */			private Set<Cell> modelOverrides = new HashSet<Cell>();
-	/** those cells that have modules defined */			private Map<String,String> definedModules = new HashMap<String,String>(); // key: module name, value: source description
-	/** those cells that have primitives defined */			private Map<Cell,VerilogData.VerilogModule> definedPrimitives = new HashMap<Cell,VerilogData.VerilogModule>(); // key: module name, value: VerilogModule
-	/** map of cells that are or contain standard cells */  private SCLibraryGen.StandardCellHierarchy standardCells = new SCLibraryGen.StandardCellHierarchy();
-    /** file we are writing to */                           private String filePath;
-	private VerilogPreferences localPrefs;
-
-	public static class VerilogPreferences extends OutputPreferences
-    {
-        // Verilog Settings
-		public boolean useTrireg = Simulation.getVerilogUseTrireg();
-		public boolean useAssign = Simulation.getVerilogUseAssign();
-        // Verilog factory Prefs
-		public boolean stopAtStandardCells = Simulation.getFactoryVerilogStopAtStandardCells();
-		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
-		public boolean writeModuleForEachIcon = Simulation.isFactoryVerilogWriteModuleForEachIcon();
-        public Map<Cell,String> modelFiles = Collections.emptyMap();
-
-        // Verilog ouput preferences need VerilogInputPreferences in case of doc cells with Verilog code
-        public VerilogReader.VerilogPreferences inputPrefs;
-
-        public VerilogPreferences() { this(false); }
-        public VerilogPreferences(boolean factory) {
-            super(factory);
-            inputPrefs = new VerilogReader.VerilogPreferences(factory);
-            if (!factory)
-                fillPrefs();
-        }
-
-		private void fillPrefs()
-        {
-            // Verilog current Prefs
-			stopAtStandardCells = Simulation.getVerilogStopAtStandardCells();
-			parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
-			writeModuleForEachIcon = Simulation.isVerilogWriteModuleForEachIcon();
-            modelFiles = CellModelPrefs.verilogModelPrefs.getUnfilteredFileNames(EDatabase.clientDatabase());
-		}
-
-        @Override
-        public Output doOutput(Cell cell, VarContext context, String filePath)
-        {
-    		Verilog out = new Verilog(this);
-            if (out.openTextOutputStream(filePath)) return out.finishWrite();
-            out.filePath = filePath;
-    		if (out.writeCell(cell, context)) return out.finishWrite();
-    		if (out.closeTextOutputStream()) return out.finishWrite();
-    		System.out.println(filePath + " written");
-            return out.finishWrite();
-        }
-    }
-
-	/**
-	 * Creates a new instance of Verilog
-	 */
-	Verilog(VerilogPreferences vp) { localPrefs = vp; }
 
 //    public static String getVerilogSafeName(String name, boolean isNode, boolean isBus) {
 //    	Verilog v = new Verilog(new VerilogPreferences());
@@ -263,7 +268,8 @@ public class Verilog extends Topology
 		setContinuationString("      ");
 
 		// write header information
-		printWriter.println("/* Verilog for " + topCell + " from " + topCell.getLibrary() + " */");
+		String typeOfVerilog = localPrefs.useVerilogA ? "VerilogA" : "Verilog";
+		printWriter.println("/* " + typeOfVerilog + " for " + topCell + " from " + topCell.getLibrary() + " */");
 		emitCopyright("/* ", " */");
 		if (localPrefs.includeDateAndVersionInOutput)
 		{
@@ -406,13 +412,10 @@ public class Verilog extends Topology
 				for(int i=0; i<globalsToWrite.size(); i++)
 				{
 					Global global = globalsToWrite.get(i);
-					if (localPrefs.useTrireg)
-					{
-						printWriter.println("    trireg " + global.getName() + ";");
-					} else
-					{
-						printWriter.println("    wire " + global.getName() + ";");
-					}
+					String sigType;
+					if (localPrefs.useTrireg) sigType = "trireg"; else sigType = "wire";
+					if (localPrefs.useVerilogA) sigType = "electrical";
+					printWriter.println("    " + sigType + " " + global.getName() + ";");
 				}
 				printWriter.println("endmodule");
 			}
@@ -459,10 +462,13 @@ public class Verilog extends Topology
 		StringBuffer sb = new StringBuffer();
 		sb.append("module " + cellName + "(");
 		boolean first = true;
+		int flagvdd = 0, flaggnd = 0;
 		for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
 			CellAggregateSignal cas = it.next();
 			if (cas.getExport() == null) continue;
+			if (cas.getName() == "vdd") flagvdd++;
+			if (cas.getName() == "gnd") flaggnd++;
 			if (cas.getLowIndex() <= cas.getHighIndex() && cas.getIndices() != null)
 			{
 				// fragmented bus: write individual signals
@@ -482,6 +488,11 @@ public class Verilog extends Topology
 				sb.append(cas.getName());
 				first = false;
 			}
+		}
+		if (localPrefs.useVerilogA)
+		{
+			if (flagvdd == 0) sb.append(", vdd");
+			if (flaggnd == 0) sb.append(", gnd");
 		}
 		sb.append(");\n");
 		writeWidthLimited(sb.toString());
@@ -510,7 +521,68 @@ public class Verilog extends Topology
 			}
 		}
 
-		// write description of formal parameters to module
+		// write description of formal parameters to module (pass 1)
+		if (localPrefs.useVerilogA)
+		{
+			first = true;
+			int flagvdd1 = 0, flaggnd1 = 0;
+			for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
+			{
+				CellAggregateSignal cas = it.next();
+				Export pp = cas.getExport();
+				if (pp == null) continue;
+			
+				String portType = "input";
+				if (pp.getCharacteristic() == PortCharacteristic.PWR) flagvdd1++;
+				if (pp.getCharacteristic() == PortCharacteristic.GND) flaggnd1++;
+				if (pp.getCharacteristic() == PortCharacteristic.UNKNOWN) portType = "unknown";
+				if (pp.getCharacteristic() == PortCharacteristic.REFIN) portType = "refin";
+				if (pp.getCharacteristic() == PortCharacteristic.REFBASE) portType = "refbase";
+				if (pp.getCharacteristic() == PortCharacteristic.OUT) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.BIDIR) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.REFOUT) continue;
+				sb = new StringBuffer();
+				sb.append("  " + portType);
+
+				if (cas.getLowIndex() > cas.getHighIndex())
+				{
+					if (pp.getCharacteristic() == PortCharacteristic.PWR ) sb.append(" vdd;");
+					else if (pp.getCharacteristic() == PortCharacteristic.GND) sb.append(" gnd;");
+					else sb.append(" " + cas.getName() + ";");
+				} else
+				{
+					int [] indices = cas.getIndices();
+					if (indices != null)
+					{
+						for(int i=0; i<indices.length; i++)
+						{
+							int ind = i;
+							if (cas.isDescending()) ind = indices.length - i - 1;
+							if (i != 0) sb.append(",");
+							sb.append(" \\" + cas.getName() + "[" + indices[ind] + "] ");
+						}
+						sb.append(";");
+					} else
+					{
+						int low = cas.getLowIndex(), high = cas.getHighIndex();
+						if (cas.isDescending())
+						{
+							low = cas.getHighIndex();   high = cas.getLowIndex();
+						}
+						sb.append(" [" + low + ":" + high + "] " + cas.getName() + ";");
+					}
+				}
+				if (cas.getFlags() != 0)
+					sb.append("  electrical" + " " + cas.getName() + ";");
+				sb.append("\n");
+				writeWidthLimited(sb.toString());
+				first = false;
+			}
+			if (flagvdd1 == 0) printWriter.println("  input vdd;");
+			if (flaggnd1 == 0) printWriter.println("  input gnd;");
+		}
+
+		// write description of formal parameters to module (pass 2)
 		first = true;
 		for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 		{
@@ -518,14 +590,35 @@ public class Verilog extends Topology
 			Export pp = cas.getExport();
 			if (pp == null) continue;
 
-			String portType = "input";
-			if (pp.getCharacteristic() == PortCharacteristic.OUT)
+			String portType;
+			if (localPrefs.useVerilogA)
+			{
+				if (pp.getCharacteristic() == PortCharacteristic.IN) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.PWR) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.GND) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.CLK) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.C1) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.C2) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.C3) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.C4) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.C5) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.C6) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.UNKNOWN) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.REFIN) continue;
+				if (pp.getCharacteristic() == PortCharacteristic.REFBASE) continue;
 				portType = "output";
-			else if (pp.getCharacteristic() == PortCharacteristic.BIDIR)
-				portType = "inout";
-
+				if (pp.getCharacteristic() == PortCharacteristic.OUT) portType = "output";
+				if (pp.getCharacteristic() == PortCharacteristic.BIDIR) portType = "inout";
+			    if (pp.getCharacteristic() == PortCharacteristic.REFOUT) portType = "refout";
+			} else
+			{
+				portType = "input";
+				if (pp.getCharacteristic() == PortCharacteristic.OUT) portType = "output";
+				if (pp.getCharacteristic() == PortCharacteristic.BIDIR) portType = "inout";
+			}
 			sb = new StringBuffer();
 			sb.append("  " + portType);
+
 			if (cas.getLowIndex() > cas.getHighIndex())
 			{
 				sb.append(" " + cas.getName() + ";");
@@ -554,13 +647,70 @@ public class Verilog extends Topology
 			}
 			if (cas.getFlags() != 0)
 			{
-				if (cas.getFlags() == 1) sb.append("  wire"); else
-					sb.append("  trireg");
+				if (localPrefs.useVerilogA) sb.append("  electrical"); else
+				{
+					if (cas.getFlags() == 1) sb.append("  wire"); else
+						sb.append("  trireg");
+				}
 				sb.append(" " + cas.getName() + ";");
 			}
 			sb.append("\n");
 			writeWidthLimited(sb.toString());
 			first = false;
+		}
+
+		// write electrical nodes for CNFETs
+		int flagvdd2 = 0, flaggnd2 = 0;
+		if (localPrefs.useVerilogA)
+		{
+			for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
+			{
+				CellAggregateSignal cas = it.next();
+				Export pp = cas.getExport();
+				if (pp == null) continue;
+			
+				String portType = "electrical";
+				if ((pp.getCharacteristic() == PortCharacteristic.PWR)) flagvdd2++; else
+					if (( pp.getCharacteristic() == PortCharacteristic.GND)) flaggnd2++;
+				StringBuffer sb2 = new StringBuffer();
+				sb2.append("  " + portType);
+				if (cas.getLowIndex() > cas.getHighIndex())
+				{
+					sb2.append(" " + cas.getName() + ";");
+				} else
+				{
+					int [] indices = cas.getIndices();
+					if (indices != null)
+					{
+						for(int i=0; i<indices.length; i++)
+						{
+							int ind = i;
+							if (cas.isDescending()) ind = indices.length - i - 1;
+							if (i != 0) sb2.append(",");
+							sb2.append(" \\" + cas.getName() + "[" + indices[ind] + "] ");
+						}
+						sb2.append(";");
+					} else
+					{
+						int low = cas.getLowIndex(), high = cas.getHighIndex();
+						if (cas.isDescending())
+						{
+							low = cas.getHighIndex();   high = cas.getLowIndex();
+						}
+						sb2.append(" [" + low + ":" + high + "] " + cas.getName() + ";");
+					}
+				}
+				if (cas.getFlags() != 0)
+				{
+					if (cas.getFlags() == 1) sb2.append("  electrical"); else
+						sb2.append("  electrical");
+					sb2.append(" " + cas.getName() + ";");
+					
+				}
+				sb2.append("\n");
+				writeWidthLimited(sb2.toString());
+				first = false;
+			}
 		}
 		if (!first) printWriter.println();
 
@@ -574,12 +724,26 @@ public class Verilog extends Topology
 		}
 
 		// describe power and ground nets
-		if (cni.getPowerNet() != null) printWriter.println("  supply1 vdd;");
-		if (cni.getGroundNet() != null) printWriter.println("  supply0 gnd;");
+		if (localPrefs.useVerilogA)
+		{
+			if (flagvdd2 == 0) printWriter.println("  electrical vdd;");
+			if (flaggnd2 == 0) printWriter.println("  electrical gnd;");
+		} else
+		{
+			if (cni.getPowerNet() != null) printWriter.println("  supply1 vdd;");
+			if (cni.getGroundNet() != null) printWriter.println("  supply0 gnd;");
+		}
 
 		// determine whether to use "wire" or "trireg" for networks
-		String wireType = "wire";
-		if (localPrefs.useTrireg) wireType = "trireg";
+		String wireType;
+		if (localPrefs.useVerilogA)
+		{
+			wireType = "electrical";
+		} else
+		{
+			wireType = "wire";
+			if (localPrefs.useTrireg) wireType = "trireg";
+		}
 
 		// write "wire/trireg" declarations for internal single-wide signals
 		int localWires = 0;
@@ -597,8 +761,14 @@ public class Verilog extends Topology
 				String impSigName = wireType;
 				if (cas.getFlags() != 0)
 				{
-					if (cas.getFlags() == 1) impSigName = "wire"; else
-						impSigName = "trireg";
+					if (localPrefs.useVerilogA)
+					{
+						impSigName = "electrical";
+					} else
+					{
+						if (cas.getFlags() == 1) impSigName = "wire"; else
+							impSigName = "trireg";
+					}
 				}
 				if ((wt == 0) ^ !wireType.equals(impSigName))
 				{
@@ -664,7 +834,10 @@ public class Verilog extends Topology
             first = includeTypedCode(cell, VERILOG_DECLARATION_KEY, "declarations");
 		    first |= includeTypedCode(cell, VERILOG_CODE_KEY, "code");
 		    if (!first)
-			    printWriter.println("  /* automatically generated Verilog */");
+		    {
+		    	String verilogType = localPrefs.useVerilogA ? "VerilogA" : "Verilog";
+			    printWriter.println("  /* automatically generated " + verilogType + " */");
+		    }
         }
 
         // accumulate port connectivity information for port directional consistency check
@@ -892,12 +1065,14 @@ public class Verilog extends Topology
 				{
 					implicitPorts = 2;
 					nodeName = "tranif1";
+					if (nodeType == PrimitiveNode.Function.TRANMOSCN) nodeName = "NCNFET";
 					Variable varWeakNode = ((NodeInst)no).getVar(Simulation.WEAK_NODE_KEY);
 					if (varWeakNode != null) nodeName = "rtranif1";
 				} else if (nodeType.isPTypeTransistor())
 				{
 					implicitPorts = 2;
 					nodeName = "tranif0";
+					if (nodeType == PrimitiveNode.Function.TRAPMOSCN) nodeName = "PCNFET";
 					Variable varWeakNode = ((NodeInst)no).getVar(Simulation.WEAK_NODE_KEY);
 					if (varWeakNode != null) nodeName = "rtranif0";
 				} else if (nodeType == PrimitiveNode.Function.GATEAND)
@@ -1082,6 +1257,11 @@ public class Verilog extends Topology
 							String sigName = getSignalName(cs);
 							infstr.append(sigName);
 						}
+					}
+					if (localPrefs.useVerilogA)
+					{
+						if (nodeType.isNTypeTransistor()) infstr.append(", gnd");
+						if (nodeType.isPTypeTransistor()) infstr.append(", vdd");
 					}
 					infstr.append(");");
 					break;

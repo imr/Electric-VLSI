@@ -323,11 +323,14 @@ public class ToolMenu
 
 		//------------------- Simulation (Verilog)
 
-			// mnemonic keys available: AB  EFGHIJKLMNO QRS U WXYZ
+			// mnemonic keys available:  B  EFGHIJKLMNO QR  U  XYZ
             new EMenu("Simulation (_Verilog)",
 		        new EMenuItem("Write _Verilog Deck...") { public void run() {
                     Simulation.setVerilogStopAtStandardCells(false);
                     FileMenu.exportCommand(FileType.VERILOG, true); }},
+    		    new EMenuItem("Write Verilog_A Deck...") { public void run() {
+    		    	Simulation.setVerilogStopAtStandardCells(false);
+    		    	FileMenu.exportCommand(FileType.VERILOGA, true); }},    
 		        new EMenuItem("Plot Verilog VCD _Dump...") { public void run() {
                     Simulate.plotVerilogResults(); }},
 		        new EMenuItem("Plot Verilog for This _Cell") { public void run() {
@@ -350,7 +353,7 @@ public class ToolMenu
                         Simulation.setVerilogWireCommand(2); }}),
 
 				// mnemonic keys available: ABCDEFGHIJKLM OPQRSTUV XYZ
-                new EMenu("_Transistor Strength",
+                new EMenu("Transistor _Strength",
 		        	new EMenuItem("_Weak") { public void run() {
                         Simulation.setTransistorStrengthCommand(true); }},
 		        	new EMenuItem("_Normal") { public void run() {
