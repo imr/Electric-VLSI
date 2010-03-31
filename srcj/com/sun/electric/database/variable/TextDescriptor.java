@@ -98,7 +98,7 @@ public class TextDescriptor extends AbstractTextDescriptor {
         return getUniqueTextDescriptor(td);
     }
 
-    private static TextDescriptor getUniqueTextDescriptor(AbstractTextDescriptor td) {
+    private synchronized static TextDescriptor getUniqueTextDescriptor(AbstractTextDescriptor td) {
         TextDescriptor cacheTd = allDescriptors.get(td);
         if (cacheTd != null) {
             return cacheTd;
