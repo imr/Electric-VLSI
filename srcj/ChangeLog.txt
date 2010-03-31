@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG/MAN: (3/31/10, SMR) Parasitic preferences has User and Project preferences swapped (Bug #2701).
+FIX: Swapped the panels.
+
 BUG: (3/31/10, DN) Key Q doesn't work properly in Cadence color scheme (Bug #2704).
 FIX/MAN: Replace short cut for "Cycle Windows" in Cadence color scheme from 'Q' to 'W'.
 
