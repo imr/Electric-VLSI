@@ -242,6 +242,7 @@
                   <entry key="MenuKeyBinding-Cell | Unexpand Cell Instances | All the Way" value="ctrl F"/>
                   <entry key="MenuKeyBinding-Cell | Place Cell Instance..." value="N; I"/>
                   <entry key="MenuKeyBinding-Export | Create Export..." value="ctrl X; ctrl P"/>
+                  <entry key="MenuKeyBinding-Shortcuts | Window Cycle" value="W"/>
                   <entry key="MenuKeyBinding-Window | Fill Window" value="ctrl 9; ctrl NumPad-9; F"/>
                   <entry key="MenuKeyBinding-Window | Special Zoom | Focus on Highlighted" value="ctrl NumPad-5"/>
                   <entry key="MenuKeyBinding-Window | Redisplay Window" value="ctrl R"/>

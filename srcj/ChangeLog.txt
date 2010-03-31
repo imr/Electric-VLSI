@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (3/31/10, DN) Key Q doesn't work properly in Cadence color scheme (Bug #2704).
+FIX/MAN: Replace short cut for "Cycle Windows" in Cadence color scheme from 'Q' to 'W'.
+
 BUG: (3/29/10, DN) Array indices are not being generated correctly (Bug #2703).
 FIX: In Array.makeArray compare objects by STRING_NUMBER_ORDER.
 

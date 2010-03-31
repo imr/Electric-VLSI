@@ -53,10 +53,10 @@ public class StdCellParams350 extends StdCellParams {
         StdCellParams stdCell = new StdCellParams350(technology);
         stdCell.setSizeQuantizationError(0);
         stdCell.setMaxMosWidth(1000);
-        stdCell.setVddY(5.5);
-        stdCell.setGndY(-4.1);
-        stdCell.setNmosWellHeight(6.4);
-        stdCell.setPmosWellHeight(5.0/*6.4*/);
+        stdCell.setVddY(2*5.5);
+        stdCell.setGndY(-2*4.1);
+        stdCell.setNmosWellHeight(2*6.4);
+        stdCell.setPmosWellHeight(2*5.0/*6.4*/);
 //        stdCell.setVddExportName("VDD");
 //        stdCell.setGndExportName("VSS");
         stdCell.setSimpleName(true);
@@ -230,7 +230,9 @@ public class StdCellParams350 extends StdCellParams {
         return DBMath.gridToLambda(DBMath.lambdaToSizeGrid(w));
 	}
 
-    public double getDRCRingSpacing() { return 0.9; }
+    public double getDRCRingSpacing() {
+        return 2.3;
+    }
 
 
 }
