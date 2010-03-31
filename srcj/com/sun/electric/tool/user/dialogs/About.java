@@ -86,7 +86,8 @@ public class About extends EDialog
 			new CastOfThousands("Brian van Essen",			"Icon generation"),
 			new CastOfThousands("Andreas Wagner",			"Placement tool (Force Directed 1)"),
 			new CastOfThousands("Andrew West",				"Technology Creation Wizard"),
-			new CastOfThousands("Christian Wittner",		"Placement tool (Genetic 1)")
+			new CastOfThousands("Christian Wittner",		"Placement tool (Genetic 1)"),
+			new CastOfThousands("Min Hao Zhu",				"VerilogA output")
 		};
 		static CastOfThousands [] theCast = new CastOfThousands[]
 		{
