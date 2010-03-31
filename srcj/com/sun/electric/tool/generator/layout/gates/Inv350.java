@@ -65,7 +65,7 @@ public class Inv350 {
         double p1_p1_sp = tech.getP1ToP1Space();
 
         double exp_wid = 0.9;//4
-        double in_wid = 0.7;//3
+        double in_wid = 0.8;//3
         double outHiY = inY + (in_wid/2 + m1_m1_sp + exp_wid/2);
         double outLoY = inY - (in_wid/2 + m1_m1_sp + exp_wid/2);
 
