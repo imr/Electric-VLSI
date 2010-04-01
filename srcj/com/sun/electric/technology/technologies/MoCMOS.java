@@ -746,8 +746,12 @@ public class MoCMOS extends Technology
             nl.sep1d = rd.via_inline_spacing[i];
             nl.sep2d = rd.via_array_spacing[i];
             if (i + 1 >= numMetals) continue;
-            double halfSize = 0.5*rd.via_size[i] + rd.via_overhang[i + 1];
-            resizeSquare(via, halfSize, halfSize, halfSize, 0);
+            double upperHalfSize = 0.5*rd.via_size[i] + rd.via_overhang[i + 1];
+            double lowerHalfSize = upperHalfSize;
+            if (false) {
+                lowerHalfSize = 0.5*rd.via_size[i] + rd.via_overhang[i];
+            }
+            resizeSquare(via, upperHalfSize, lowerHalfSize, upperHalfSize, 0);
         }
         for (int i = P_TYPE; i <= N_TYPE; i++) {
             double activeE = 0.5*rd.diff_width;
