@@ -58,7 +58,6 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
 import java.awt.GridBagConstraints;
@@ -300,7 +299,7 @@ public class LibToTech
 
 		private TechFromLibJob(Library techLib, String newName, boolean alsoXML)
 		{
-			super("Make Technology from Technolog Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Technology from Technology Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.techLib = techLib;
 			this.newName = newName;
 			if (alsoXML)
@@ -2924,19 +2923,19 @@ public class LibToTech
 		t.spiceHeaders.add(spiceHeader);
 	}
 
-	private List<Object> makeMenuBoxXml(Xml.Technology t, Object o)
-	{
-		List<Object> menuBox = new ArrayList<Object>();
-		if (o != null)
-		{
-			if (o instanceof List)
-			{
-				for(Object subO : (List)o)
-					menuBox.add(subO);
-			} else menuBox.add(o);
-		}
-		return menuBox;
-	}
+//	private List<Object> makeMenuBoxXml(Xml.Technology t, Object o)
+//	{
+//		List<Object> menuBox = new ArrayList<Object>();
+//		if (o != null)
+//		{
+//			if (o instanceof List)
+//			{
+//				for(Object subO : (List)o)
+//					menuBox.add(subO);
+//			} else menuBox.add(o);
+//		}
+//		return menuBox;
+//	}
 
 	private DRCTemplate makeDesignRule(String ruleName, LayerInfo l1, LayerInfo l2, DRCTemplate.DRCRuleType type, double value)
 	{

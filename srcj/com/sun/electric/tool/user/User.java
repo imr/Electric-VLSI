@@ -47,14 +47,12 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.user.redisplay.VectorCache;
-import com.sun.electric.tool.user.tecEdit.GeneralInfo;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -973,28 +971,6 @@ public class User extends Listener
 	{
         assert SwingUtilities.isEventDispatchThread();
         Job.getExtendedUserInterface().setCurrentLibrary(lib);
-
-		// if switching to a technology library, load its colormap into the Artwork technology
-		Cell techLibFactors = null;
-		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
-		{
-			Cell cell = it.next();
-			if (cell.isInTechnologyLibrary() && cell.getName().equals("factors")) { techLibFactors = cell;   break; }
-		}
-		if (techLibFactors != null)
-		{
-			for(Iterator<NodeInst> it = techLibFactors.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = it.next();
-				Color [] colors = GeneralInfo.getTransparentColors(ni);
-				if (colors == null) continue;
-				if (colors != null)
-				{
-					Artwork.tech().setColorMapFromLayers(colors);
-					break;
-				}
-			}
-		}
 	}
 
 	/****************************** PROJECT PREFERENCES *****************************************/

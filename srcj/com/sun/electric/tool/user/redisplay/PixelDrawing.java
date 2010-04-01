@@ -45,10 +45,12 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.tecEdit.GeneralInfo;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.LayerVisibility;
@@ -281,6 +283,7 @@ public class PixelDrawing
 	/** the offscreen maps for transparent layers */		private byte [][][] layerBitMaps;
 	/** row pointers for transparent layers */				private byte [][] compositeRows;
 	/** the number of transparent layers */					int numLayerBitMaps;
+	/** the current transparent layers */					private Color [] trueColorMap;
 	/** the number of bytes per row in offscreen maps */	private final int numBytesPerRow;
 	/** the number of offscreen transparent maps made */	private int numLayerBitMapsCreated;
 	/** the technology of the window */						private Technology curTech;
@@ -299,7 +302,6 @@ public class PixelDrawing
 	/** the EditWindow being drawn */						private EditWindow0 wnd;
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
-	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
 	/** list of cell expansions. */							private static Map<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
     /** Set of changed cells. */                            private static final Set<CellId> changedCells = new HashSet<CellId>();
 	/** scale of cell expansions. */						private static double expandedScale = 0;
@@ -418,7 +420,7 @@ public class PixelDrawing
 		numBytesPerRow = (sz.width + 7) / 8;
 
 		// initialize the data
-		clearImage(null);
+		clearImage(null, null);
     }
 
     void initOrigin(double scale, double offx, double offy) {
@@ -428,7 +430,7 @@ public class PixelDrawing
     }
 
     void initDrawing(double scale) {
-		clearImage(null);
+		clearImage(null, null);
         initOrigin(scale, 0, 0);
     }
 
@@ -566,7 +568,7 @@ public class PixelDrawing
             clipLY = 0;
             clipHY = sz.height - 1;
         }
-		clearImage(renderBounds);
+		clearImage(renderBounds, cell);
 		periodicRefresh = true;
 		this.wnd = wnd;
 		objectCount = 0;
@@ -665,7 +667,7 @@ public class PixelDrawing
         clipHX = sz.width - 1;
         clipLY = 0;
         clipHY = sz.height - 1;
-		clearImage(null);
+		clearImage(null, cell);
 
         Set<CellId> changedCellsCopy;
         synchronized (changedCells) {
@@ -708,10 +710,10 @@ public class PixelDrawing
 	 * This is called before any rendering is done.
 	 * @param bounds the area of the image to actually draw (null to draw all).
 	 */
-	public void clearImage(Rectangle bounds)
+	public void clearImage(Rectangle bounds, Cell cell)
 	{
 		// pickup new technology if it changed
-		initForTechnology();
+		initForTechnology(cell);
         backgroundValue = gp.getColor(User.ColorPrefType.BACKGROUND).getRGB();
 		backgroundColor = backgroundValue & GraphicsPreferences.RGB_MASK;
 
@@ -777,9 +779,6 @@ public class PixelDrawing
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
 		{
-			// get the technology's color map
-			Color [] colorMap = gp.getColorMap(curTech);
-
 			// adjust the colors if any of the transparent layers are dimmed
 			boolean dimmedTransparentLayers = false;
 			for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
@@ -792,7 +791,7 @@ public class PixelDrawing
 			}
 			if (dimmedTransparentLayers)
 			{
-				Color [] newColorMap = new Color[colorMap.length];
+				Color [] newColorMap = new Color[trueColorMap.length];
 				int numTransparents = curTech.getNumTransparentLayers();
 				boolean [] dimLayer = new boolean[numTransparents];
 				for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
@@ -805,9 +804,9 @@ public class PixelDrawing
 					dimLayer[tIndex-1] = false;
 				}
 
-				for(int i=0; i<colorMap.length; i++)
+				for(int i=0; i<trueColorMap.length; i++)
 				{
-					newColorMap[i] = colorMap[i];
+					newColorMap[i] = trueColorMap[i];
 					if (i == 0) continue;
 					boolean dimThisEntry = true;
 					for(int j=0; j<numTransparents; j++)
@@ -823,13 +822,13 @@ public class PixelDrawing
 					}
 					if (dimThisEntry)
 					{
-						newColorMap[i] = new Color(dimColor(colorMap[i].getRGB()));
+						newColorMap[i] = new Color(dimColor(trueColorMap[i].getRGB()));
 					} else
 					{
-						newColorMap[i] = new Color(brightenColor(colorMap[i].getRGB()));
+						newColorMap[i] = new Color(brightenColor(trueColorMap[i].getRGB()));
 					}
 				}
-				colorMap = newColorMap;
+				trueColorMap = newColorMap;
 			}
 
 			// determine range
@@ -886,7 +885,7 @@ public class PixelDrawing
 						if (bits != 0)
 						{
 							// set a transparent color
-							newColor = colorMap[bits].getRGB() & 0xFFFFFF;
+							newColor = trueColorMap[bits].getRGB() & 0xFFFFFF;
 						}
 
 						// if alpha blending, merge with the opaque data
@@ -1081,21 +1080,44 @@ public class PixelDrawing
 		return bounds;
 	}
 
-	private void initForTechnology()
+	private void initForTechnology(Cell cell)
 	{
-		// allocate pointers to the overlappable layers
+		// get information about the transparent layers
 		Technology tech = Technology.getCurrent();
 		if (tech == null) return;
 		int transLayers = gp.getNumTransparentLayers(tech);
-		if (tech == curTech && numLayerBitMaps == transLayers) return;
-		if (transLayers != 0)
-		{
-			techWithLayers = curTech = tech;
-		}
-		if (curTech == null) curTech = techWithLayers;
-        if (curTech == null) return;
+		trueColorMap = gp.getColorMap(tech);
 
-		numLayerBitMaps = gp.getNumTransparentLayers(curTech);
+		// if using a technology library, generate its colormap from the "factors" cell
+		if (cell != null && cell.isInTechnologyLibrary() && tech == Artwork.tech())
+		{
+			Cell techLibFactors = null;
+			for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
+			{
+				Cell c = it.next();
+				if (c.getName().equals("factors")) { techLibFactors = c;   break; }
+			}
+			if (techLibFactors != null)
+			{
+				// technology library found: extract the colors
+				for(Iterator<NodeInst> it = techLibFactors.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					Color[] teColors = GeneralInfo.getTransparentColors(ni);
+					if (teColors != null)
+					{
+						trueColorMap = Technology.makeColorMap(teColors);
+						transLayers = teColors.length;
+						break;
+					}
+				}
+			}
+		}
+
+		if (tech == curTech && numLayerBitMaps == transLayers) return;
+		curTech = tech;
+
+		numLayerBitMaps = transLayers;
 		layerBitMaps = new byte[numLayerBitMaps][][];
 		compositeRows = new byte[numLayerBitMaps][];
 		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;

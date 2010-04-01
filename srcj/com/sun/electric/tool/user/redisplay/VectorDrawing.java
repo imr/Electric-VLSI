@@ -970,7 +970,7 @@ class VectorDrawing
 		subVD.takingLongTime = true;
 
 		// render the greeked cell
-		subVD.offscreen.clearImage(null);
+		subVD.offscreen.clearImage(null, null);
 		subVD.render(subVC, 0, 0, VarContext.globalContext, -1);
 		subVD.offscreen.composite(null);
 

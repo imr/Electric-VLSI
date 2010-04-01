@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (4/1/10, SMR) Exiting technology editor destroys its own colormap (Bug #2706).
+FIX: Detect technology-editor color maps in PixelDrawing.
+
 IMP/MAN: (3/31/10, SMR) Added VerilogA output with "Tools / Simulation (Verilog) /
      Write VerilogA Deck..." command (Bug #2705).
 

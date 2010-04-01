@@ -304,66 +304,66 @@ public class GraphicsPreferences extends PrefPackage {
          */
         private Color[] getColorMap() {
             if (colorMap == null)
-                colorMap = makeColorMap();
+                colorMap = Technology.makeColorMap(transparentColors);
             return colorMap.clone();
         }
 
-        private Color [] makeColorMap() {
-            int numEntries = 1 << transparentColors.length;
-            Color [] map = new Color[numEntries];
-            for (int i = 0; i < numEntries; i++) {
-                int r=200, g=200, b=200;
-                boolean hasPrevious = false;
-                for (int j = 0; j < transparentColors.length; j++) {
-                    if ((i & (1<<j)) == 0) continue;
-                    Color layerColor = transparentColors[j];
-                    if (hasPrevious) {
-                        // get the previous color
-                        double [] lastColor = new double[3];
-                        lastColor[0] = r / 255.0;
-                        lastColor[1] = g / 255.0;
-                        lastColor[2] = b / 255.0;
-                        normalizeColor(lastColor);
-
-                        // get the current color
-                        double [] curColor = new double[3];
-                        curColor[0] = layerColor.getRed() / 255.0;
-                        curColor[1] = layerColor.getGreen() / 255.0;
-                        curColor[2] = layerColor.getBlue() / 255.0;
-                        normalizeColor(curColor);
-
-                        // combine them
-                        for(int k=0; k<3; k++) curColor[k] += lastColor[k];
-                        normalizeColor(curColor);
-                        r = (int)(curColor[0] * 255.0);
-                        g = (int)(curColor[1] * 255.0);
-                        b = (int)(curColor[2] * 255.0);
-                    } else {
-                        r = layerColor.getRed();
-                        g = layerColor.getGreen();
-                        b = layerColor.getBlue();
-                        hasPrevious = true;
-                    }
-                }
-                map[i] = new Color(r, g, b);
-            }
-            return map;
-        }
-
-        /**
-         * Method to normalize a color stored in a 3-long array.
-         * @param a the array of 3 doubles that holds the color.
-         * All values range from 0 to 1.
-         * The values are adjusted so that they are normalized.
-         */
-        private void normalizeColor(double [] a)
-        {
-            double mag = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
-            if (mag < 1.0e-11f) return;
-            a[0] /= mag;
-            a[1] /= mag;
-            a[2] /= mag;
-        }
+//        private Color [] makeColorMap() {
+//            int numEntries = 1 << transparentColors.length;
+//            Color [] map = new Color[numEntries];
+//            for (int i = 0; i < numEntries; i++) {
+//                int r=200, g=200, b=200;
+//                boolean hasPrevious = false;
+//                for (int j = 0; j < transparentColors.length; j++) {
+//                    if ((i & (1<<j)) == 0) continue;
+//                    Color layerColor = transparentColors[j];
+//                    if (hasPrevious) {
+//                        // get the previous color
+//                        double [] lastColor = new double[3];
+//                        lastColor[0] = r / 255.0;
+//                        lastColor[1] = g / 255.0;
+//                        lastColor[2] = b / 255.0;
+//                        normalizeColor(lastColor);
+//
+//                        // get the current color
+//                        double [] curColor = new double[3];
+//                        curColor[0] = layerColor.getRed() / 255.0;
+//                        curColor[1] = layerColor.getGreen() / 255.0;
+//                        curColor[2] = layerColor.getBlue() / 255.0;
+//                        normalizeColor(curColor);
+//
+//                        // combine them
+//                        for(int k=0; k<3; k++) curColor[k] += lastColor[k];
+//                        normalizeColor(curColor);
+//                        r = (int)(curColor[0] * 255.0);
+//                        g = (int)(curColor[1] * 255.0);
+//                        b = (int)(curColor[2] * 255.0);
+//                    } else {
+//                        r = layerColor.getRed();
+//                        g = layerColor.getGreen();
+//                        b = layerColor.getBlue();
+//                        hasPrevious = true;
+//                    }
+//                }
+//                map[i] = new Color(r, g, b);
+//            }
+//            return map;
+//        }
+//
+//        /**
+//         * Method to normalize a color stored in a 3-long array.
+//         * @param a the array of 3 doubles that holds the color.
+//         * All values range from 0 to 1.
+//         * The values are adjusted so that they are normalized.
+//         */
+//        private void normalizeColor(double [] a)
+//        {
+//            double mag = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+//            if (mag < 1.0e-11f) return;
+//            a[0] /= mag;
+//            a[1] /= mag;
+//            a[2] /= mag;
+//        }
     }
 
     public GraphicsPreferences(boolean factory) {
