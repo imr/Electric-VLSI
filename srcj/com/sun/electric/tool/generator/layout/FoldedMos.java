@@ -322,6 +322,9 @@ public abstract class FoldedMos {
 		case 'B':
 			difContY-= difContSlop;
 			break;
+        case 'C':
+            difContWid = gateWidth;
+            break;
 		default:
 			error(true, "FoldedMos: justifyDiffCont must be 'T', or 'B'");
 		}
@@ -361,11 +364,13 @@ public abstract class FoldedMos {
 			
 			// Add redundant diffusion as a hint of the metal-1 wire size to 
 			// use to connect to this diffusion contact. Diffusion contact is
-			// always on grid.
+                // always on grid.
 			ArcInst redundantAi = LayoutLib.newArcInst(diff, tech.getDiffCont_m1Width(), newPort,
 					             newPort);
-//            redundantAi.setHeadExtended(false);
-//            redundantAi.setTailExtended(false);
+            if (justifyDiffCont == 'C') {
+            redundantAi.setHeadExtended(false);
+            redundantAi.setTailExtended(false);
+            }
 			
 			addM1ForMinArea(newPort, difContWid, justifyDiffCont);
 			

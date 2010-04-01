@@ -6,6 +6,7 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -13,6 +14,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.extract.LayerCoverageTool;
+import com.sun.electric.tool.extract.LayerCoverageTool.LCMode;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldedPmos;
@@ -77,10 +80,12 @@ public class Inv350 {
           wellOverhangDiff
         );
 
-        double tranHiInnerY = Math.max(wellOverhangDiff, outHiY + (exp_wid/2 + m1_m1_sp));
-        double tranLoInnerY = Math.min(-wellOverhangDiff, outLoY - (exp_wid/2 + m1_m1_sp));
+        double tranHiInnerY = wellOverhangDiff;
+        double tranLoInnerY = -wellOverhangDiff;
+//        double tranHiInnerY = Math.max(wellOverhangDiff, outHiY + (exp_wid/2 + m1_m1_sp));
+//        double tranLoInnerY = Math.min(-wellOverhangDiff, outLoY - (exp_wid/2 + m1_m1_sp));
         double tranHiOuterY = Math.min(stdCell.getCellTop() - outsideSpace, stdCell.getVddY() - stdCell.getVddWidth()/2 - m1_m1_sp);
-        double tranLoOuterY = Math.max(stdCell.getCellBot() + outsideSpace, stdCell.getGndY() + stdCell.getGndWidth()/2 - m1_m1_sp);
+        double tranLoOuterY = Math.max(stdCell.getCellBot() + outsideSpace, stdCell.getGndY() + stdCell.getGndWidth()/2 + m1_m1_sp);
 
         // find number of folds and width of PMOS
         double spaceAvail = tranHiOuterY - tranHiInnerY;
@@ -107,10 +112,10 @@ public class Inv350 {
         double mosX = tech.getDiffContWidth()/2 + tech.getSelectSurroundDiffInTrans() + tech.getSelectSpacingRule()/2;
         double nmosY = tranLoInnerY - fwN.physWid / 2;
         FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, 1,
-                                        fwN.gateWid, inv, tech);
+                                        fwN.gateWid, null, 'C', inv, tech);
         double pmosY = tranHiInnerY + fwP.physWid / 2;
         FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
-                                        fwP.gateWid, inv, tech);
+                                        fwP.gateWid, null, 'C', inv, tech);
 
         // inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2
         double rightestGateX = Math.max(
@@ -118,8 +123,9 @@ public class Inv350 {
                 pmos.getGate(pmos.nbGates() - 1, 'B').getCenter().getX());
         double outX = rightestGateX + p1m1_met_wid/2 + m1_m1_sp + exp_wid/2;
 //        double outX = StdCellParams.getRightDiffX(nmos, pmos) + m1_wid/2 + m1_m1_sp + m1_wid/2;
+        double outY = 0;
         Export eOut = LayoutLib.newExport(inv, "out", PortCharacteristic.OUT,
-                            tech.m1(), exp_wid, outX, 0);
+                            tech.m1(), exp_wid, outX, outY);
 
         // create vdd and gnd exports and connect to MOS source/drains
         stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);
@@ -127,7 +133,7 @@ public class Inv350 {
 
         // Connect up input. Do PMOS gates first because PMOS gate spacing
         // is a valid spacing for p1m1 vias even for small strengths.
-        TrackRouter in = new TrackRouterH(tech.m1(), in_wid, inY, tech, inv);
+        TrackRouter in = new TrackRouterH(tech.p1(), tech.getP1M1Width(), inY, tech, inv);
         in.connect(eIn);
         for (int i=0; i<pmos.nbGates(); i++)  in.connect(pmos.getGate(i, 'B'));
         for (int i=0; i<nmos.nbGates(); i++)  in.connect(nmos.getGate(i, 'T'));
@@ -161,14 +167,17 @@ public class Inv350 {
 //        }
 
         // connect up output
-        TrackRouter outHi = new TrackRouterH(tech.m1(), exp_wid, outHiY, tech, inv);
+        TrackRouter outH = new TrackRouterH(tech.m1(), exp_wid, outY, tech, inv);
+        TrackRouter outHi = outH;
+//        TrackRouter outHi = new TrackRouterH(tech.m1(), exp_wid, outHiY, tech, inv);
 //        outHi.setShareableViaDist(0);
         outHi.connect(eOut);
         for (int i=1; i<pmos.nbSrcDrns(); i += 2) {
             outHi.connect(pmos.getSrcDrn(i));
         }
 
-        TrackRouter outLo = new TrackRouterH(tech.m1(), exp_wid, outLoY, tech, inv);
+        TrackRouter outLo = outH;
+//        TrackRouter outLo = new TrackRouterH(tech.m1(), exp_wid, outLoY, tech, inv);
         outLo.connect(eOut);
         for (int i = 1; i < nmos.nbSrcDrns(); i += 2) {
             outLo.connect(nmos.getSrcDrn(i));
@@ -220,6 +229,9 @@ public class Inv350 {
             TextDescriptor td = e.getTextDescriptor(Export.EXPORT_NAME).withRelSize(0.5);
             e.setTextDescriptor(Export.EXPORT_NAME, td);
         }
+
+        LayerCoverageTool.LayerCoveragePreferences lcp = new LayerCoverageTool.LayerCoveragePreferences(true);
+        LayerCoverageTool.layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP, inv, false, lcp);
         
 		// perform Network Consistency Check
 		stdCell.doNCC(inv, nm+"{sch}");

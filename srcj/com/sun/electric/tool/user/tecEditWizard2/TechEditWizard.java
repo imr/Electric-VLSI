@@ -37,6 +37,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -90,6 +92,7 @@ public class TechEditWizard extends EDialog
 
 		addTreeNode(rootNode, "General");
 		addTreeNode(rootNode, "Active");
+		addTreeNode(rootNode, "Active2");
 		addTreeNode(rootNode, "Poly");
 		addTreeNode(rootNode, "Gate");
 		addTreeNode(rootNode, "Contact");
@@ -254,6 +257,21 @@ public class TechEditWizard extends EDialog
     {
         if (currentTabName.equals("Active"))
             return new Active(this, modal);
+        if (currentTabName.equals("Active2")) {
+            List<String> labels = Arrays.asList(
+                    "Width (A):",
+                    "Poly overhang (B):",
+                    "Contact overhang (C):",
+                    "Spacing (D):");
+            data = getTechEditData();
+            List<WizardField> fields = Arrays.asList(
+                    data.getDiffWidth(),
+                    data.getDiffPolyOverhang(),
+                    data.getDiffContactOverhang(),
+                    data.getDiffSpacing()
+                    );
+            return new GenericPanel(this, "Active", labels, fields);
+        }
         if (currentTabName.equals("General"))
             return new General(this, modal);
         if (currentTabName.equals("Gate"))

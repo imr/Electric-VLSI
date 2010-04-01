@@ -53,10 +53,10 @@ public class StdCellParams350 extends StdCellParams {
         StdCellParams stdCell = new StdCellParams350(technology);
         stdCell.setSizeQuantizationError(0);
         stdCell.setMaxMosWidth(1000);
-        stdCell.setVddY(2*5.5);
-        stdCell.setGndY(-2*4.1);
-        stdCell.setNmosWellHeight(2*6.4);
-        stdCell.setPmosWellHeight(2*5.0/*6.4*/);
+        stdCell.setVddY(5.5);
+        stdCell.setGndY(-4.1);
+        stdCell.setPmosWellHeight(6.4);
+        stdCell.setNmosWellHeight(5.0);
 //        stdCell.setVddExportName("VDD");
 //        stdCell.setGndExportName("VSS");
         stdCell.setSimpleName(true);
