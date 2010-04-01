@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.tecEditWizard;
+package com.sun.electric.tool.user.tecEditWizard2;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Resources;
