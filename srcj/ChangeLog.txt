@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 9.00d: ******************************
+
 ************************* Version 9.00c: ******************************
 
 IMP: (4/2/10, GVG) Two new layers in 40nm
