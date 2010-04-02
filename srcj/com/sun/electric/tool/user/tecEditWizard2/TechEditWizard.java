@@ -80,6 +80,7 @@ public class TechEditWizard extends EDialog
 		setName("");
 		addWindowListener(new WindowAdapter()
 		{
+            @Override
 			public void windowClosing(WindowEvent evt) { closeDialog(evt); }
 		});
 
@@ -92,12 +93,14 @@ public class TechEditWizard extends EDialog
 
 		addTreeNode(rootNode, "General");
 		addTreeNode(rootNode, "Active");
-		addTreeNode(rootNode, "Active2");
 		addTreeNode(rootNode, "Poly");
 		addTreeNode(rootNode, "Gate");
 		addTreeNode(rootNode, "Contact");
 		addTreeNode(rootNode, "Well/Implant");
 		addTreeNode(rootNode, "Metal");
+        for (int i = 1; i <= 3; i++) {
+            addTreeNode(rootNode, "Metal" + i);
+        }
 		addTreeNode(rootNode, "Via");
 		addTreeNode(rootNode, "Antenna");
 		addTreeNode(rootNode, "GDS");
@@ -255,9 +258,7 @@ public class TechEditWizard extends EDialog
 
     private TechEditWizardPanel createOptionPanel(boolean modal)
     {
-        if (currentTabName.equals("Active"))
-            return new Active(this, modal);
-        if (currentTabName.equals("Active2")) {
+        if (currentTabName.equals("Active")) {
             List<String> labels = Arrays.asList(
                     "Width (A):",
                     "Poly overhang (B):",
@@ -270,20 +271,109 @@ public class TechEditWizard extends EDialog
                     data.getDiffContactOverhang(),
                     data.getDiffSpacing()
                     );
-            return new GenericPanel(this, "Active", labels, fields);
+            return new GenericPanel(this, "Active", "Active Parameters", labels, fields);
         }
         if (currentTabName.equals("General"))
             return new General(this, modal);
-        if (currentTabName.equals("Gate"))
-            return new Gate(this, modal);
-        if (currentTabName.equals("Poly"))
-            return new Poly(this, modal);
-        if (currentTabName.equals("Contact"))
-            return new Contact(this, modal);
-        if (currentTabName.equals("Well/Implant"))
-            return new WellImplant(this, modal);
+        if (currentTabName.equals("Gate")) {
+            List<String> labels = Arrays.asList(
+                    "Length (A):",
+                    "Width (B):",
+                    "Contact spacing (C):",
+                    "Spacing (D):");
+            data = getTechEditData();
+            List<WizardField> fields = Arrays.asList(
+                    data.getGateLength(),
+                    data.getGateWidth(),
+                    data.getGateContactSpacing(),
+                    data.getGateSpacing()
+                    );
+            return new GenericPanel(this, "Gate", "Gate Parameters", labels, fields);
+        }
+        if (currentTabName.equals("Poly")) {
+            List<String> labels = Arrays.asList(
+                    "Width (A):",
+                    "Endcap (B):",
+                    "Active spacing (C):",
+                    "Spacing (D):");
+            data = getTechEditData();
+            List<WizardField> fields = Arrays.asList(
+                    data.getPolyWidth(),
+                    data.getPolyEndcap(),
+                    data.getPolyDiffSpacing(),
+                    data.getPolySpacing()
+                    );
+            return new GenericPanel(this, "Poly", "Polysilicon Parameters", labels, fields);
+        }
+        if (currentTabName.equals("Contact")) {
+            List<String> labels = Arrays.asList(
+                    "Cut size (A):",
+                    "Cut inline spacing (B):",
+                    "Cut array spacing (C):",
+                    "Metal overhang, inline (D):",
+                    "Metal overhang, all (E):",
+                    "Poly overhang (F):",
+                    "Active spacing (G):");
+            data = getTechEditData();
+            List<WizardField> fields = Arrays.asList(
+                    data.getContactSize(),
+                    data.getContactSpacing(),
+                    data.getContactArraySpacing(),
+                    data.getContactMetalOverhangInlineOnly(),
+                    data.getContactMetalOverhangAllSides(),
+                    data.getContactPolyOverhang(),
+                    data.getContactArraySpacing()
+                    );
+            return new GenericPanel(this, "Contact", "Contact Parameters", labels, fields);
+        }
+        if (currentTabName.equals("Well/Implant")) {
+            List<String> labels = Arrays.asList(
+                    "NPlus width (A):",
+                    "NPlus active overhang (B):",
+                    "NPlus STRAP overhang (B'):",
+                    "NPlus poly overhang (C):",
+                    "NPlus spacing (D):",
+                    "PPlus width (E):",
+                    "PPlus active overhang (F):",
+                    "PPlus STRAP overhang (F'):",
+                    "PPlus poly overhang (G):",
+                    "PPlus spacing (H):",
+                    "NWell width (I):",
+                    "NWell P active overhang (J):",
+                    "NWell N active overhang (K):",
+                    "NWell spacing (L):");
+            data = getTechEditData();
+            List<WizardField> fields = Arrays.asList(
+                    data.getNPlusWidth(),
+                    data.getNPlusOverhangDiff(),
+                    data.getNPlusOverhangStrap(),
+                    data.getNPlusOverhangPoly(),
+                    data.getNPlusSpacing(),
+                    data.getPPlusWidth(),
+                    data.getPPlusOverhangDiff(),
+                    data.getPPlusOverhangStrap(),
+                    data.getPPlusOverhangPoly(),
+                    data.getPPlusSpacing(),
+                    data.getNWellWidth(),
+                    data.getNWellOverhangDiffP(),
+                    data.getNWellOverhangDiffN(),
+                    data.getNWellWidth()
+                    );
+            return new GenericPanel(this, "WellImplant", "Well / Implant Parameters", labels, fields);
+        }
         if (currentTabName.equals("Metal"))
             return new Metal(this, modal);
+        if (currentTabName.startsWith("Metal")) {
+            int metalIndex = Integer.valueOf(currentTabName.substring(5));
+            List<String> labels = Arrays.asList(
+                    "Metal-" + metalIndex + " width (A):",
+                    "Metal-" + metalIndex + " spacing (B):");
+            List<WizardField> fields = Arrays.asList(
+                    data.getMetalWidth()[metalIndex - 1],
+                    data.getMetalSpacing()[metalIndex - 1]
+                    );
+            return new GenericPanel(this, "Metal", "Metal-" + metalIndex + " Parameters", labels, fields);
+        }
         if (currentTabName.equals("Via"))
             return new Via(this, modal);
         if (currentTabName.equals("Antenna"))

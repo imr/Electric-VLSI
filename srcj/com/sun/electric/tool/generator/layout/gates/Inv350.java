@@ -7,6 +7,7 @@ package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -229,6 +230,21 @@ public class Inv350 {
             TextDescriptor td = e.getTextDescriptor(Export.EXPORT_NAME).withRelSize(0.5);
             e.setTextDescriptor(Export.EXPORT_NAME, td);
         }
+
+        double gridTran = 0.10;
+        double epsWidP = fwP.gateWid*fwP.nbFolds - totWidP;
+        int nfixWidP = (int)Math.rint(epsWidP/gridTran);
+        for (int i = pmos.nbGates() - nfixWidP; i < pmos.nbGates(); i++) {
+            pmos.getGate(i, 'B').getNodeInst().modifyInstance(0, 0/*-gridTran/2*/, -gridTran, 0, Orientation.IDENT);
+            pmos.getSrcDrn(i + 1).getNodeInst().modifyInstance(0, 0/*-gridTran/2*/, 0, -gridTran, Orientation.IDENT);
+        }
+        double epsWidN = fwN.gateWid*fwN.nbFolds - totWidN;
+        int nfixWidN = (int)Math.rint(epsWidN/gridTran);
+        for (int i = nmos.nbGates() - nfixWidN; i < nmos.nbGates(); i++) {
+            nmos.getGate(i, 'T').getNodeInst().modifyInstance(0, 0/*gridTran/2*/, -gridTran, 0, Orientation.IDENT);
+            nmos.getSrcDrn(i + 1).getNodeInst().modifyInstance(0, 0/*gridTran/2*/, 0, -gridTran, Orientation.IDENT);
+        }
+        System.out.println(inv.getName() + " " + nfixWidP + " " + nfixWidN);
 
         LayerCoverageTool.LayerCoveragePreferences lcp = new LayerCoverageTool.LayerCoveragePreferences(true);
         LayerCoverageTool.layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP, inv, false, lcp);

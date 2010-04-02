@@ -173,19 +173,8 @@ public class FileMenu {
                     importLibraryCommand(FileType.ELIB, false, false, false); }},
                 new EMenuItem("_Readable Dump...") { public void run() {
                     importLibraryCommand(FileType.READABLEDUMP, false, false, false); }},
-                Job.getDebug() ? new EMenu("Fast JELIB reader",
-                    new EMenuItem("Database") { public void run() {
-                        JELIB2.newJelibReader(true, true, true, true, true); }},
-                    new EMenuItem("Snapshot") { public void run() {
-                        JELIB2.newJelibReader(true, true, true, true, false); }},
-                    new EMenuItem("primitiveBounds") { public void run() {
-                        JELIB2.newJelibReader(true, true, true, false, false); }},
-                    new EMenuItem("doBackup") { public void run() {
-                        JELIB2.newJelibReader(true, true, false, false, false); }},
-                    new EMenuItem("instantiate") { public void run() {
-                        JELIB2.newJelibReader(true, false, false, false, false); }},
-                    new EMenuItem("only parse") { public void run() {
-                        JELIB2.newJelibReader(false, false, false, false, false); }}) : null,
+                Job.getDebug() ? new EMenuItem("Fast JELIB...") { public void run() {
+                        JELIB2.newJelibReader(true, true, true, true, true); }} : null,
                 new EMenuItem("_Text Cell Contents...") { public void run() {
                     TextWindow.readTextCell(); }},
                 new EMenuItem("User _Preferences...") { public void run() {

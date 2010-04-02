@@ -40,6 +40,7 @@ import javax.swing.JTextField;
  */
 class GenericPanel extends TechEditWizardPanel {
     private final String name;
+    private final String title;
     private final List<String> labels;
     private final List<WizardField> fields;
     private JPanel panel;
@@ -47,9 +48,10 @@ class GenericPanel extends TechEditWizardPanel {
     private List<JTextField> ruleValues = new ArrayList<JTextField>();
     private List<JTextField> ruleNames = new ArrayList<JTextField>();
 
-    GenericPanel(TechEditWizard parent, String name, List<String> labels, List<WizardField> fields) {
+    GenericPanel(TechEditWizard parent, String name, String title, List<String> labels, List<WizardField> fields) {
         super(parent, parent.isModal());
         this.name = name;
+        this.title = title;
         this.labels = labels;
         this.fields = fields;
 		initComponents();
@@ -158,7 +160,7 @@ class GenericPanel extends TechEditWizardPanel {
         panel.add(jLabel5, gridBagConstraints);
 
         JLabel jLabel6 = new JLabel();
-        jLabel6.setText("Active Parameters");
+        jLabel6.setText(title);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
