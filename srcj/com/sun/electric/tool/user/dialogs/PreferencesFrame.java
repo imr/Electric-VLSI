@@ -524,12 +524,12 @@ public class PreferencesFrame extends EDialog
 	 */
 	private static class OKUpdate extends Job
 	{
-		private transient EDialog dialog;
+		private transient PreferencesFrame dialog;
 		private Setting.SettingChangeBatch changeBatch;
 		private boolean issueWarning;
 		private transient TechPool oldTechPool;
 
-		private OKUpdate(EDialog dialog, Setting.SettingChangeBatch changeBatch, boolean issueWarning)
+		private OKUpdate(PreferencesFrame dialog, Setting.SettingChangeBatch changeBatch, boolean issueWarning)
 		{
 			super("Update Project Preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
@@ -598,8 +598,7 @@ public class PreferencesFrame extends EDialog
 				}
 			}
 			if (dialog != null) {
-				dialog.setVisible(false);
-				dialog.dispose();
+                dialog.closeDialog(null);
 			}
 			if (getDatabase().getTechPool() != oldTechPool)
 			{

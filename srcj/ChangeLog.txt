@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00c: ******************************
 
+BUG: (4/2/10, DN) Changes in MoCMOS parameters don't immediately redisplay (Bug #2708).
+FIX: In PreferencesFrame.OKUpdate.terminateOK call cloaseDialog(null).
+
 BUG: (4/1/10, SMR) Exiting technology editor destroys its own colormap (Bug #2706).
 FIX: Detect technology-editor color maps in PixelDrawing.
 
