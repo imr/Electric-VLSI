@@ -227,7 +227,7 @@ public class StdCellParams350 extends StdCellParams {
 
     @Override
 	public double roundGateWidth(double w) {
-        return DBMath.gridToLambda(DBMath.lambdaToSizeGrid(w));
+        return DBMath.round(Math.ceil(w*10.0)/10.0);
 	}
 
     public double getDRCRingSpacing() {
