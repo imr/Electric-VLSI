@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG: (4/5/10, SMR) Option reconciliation truncates fields (Bug #2709).
+FIX: Put full string into tooltip.
+
 ************************* Version 9.00c: ******************************
 
 IMP: (4/2/10, GVG) Two new layers in 40nm

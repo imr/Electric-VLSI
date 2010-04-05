@@ -180,17 +180,13 @@ public class OptionReconcile extends EDialog
 				oldValue = trueMeaning[setting.getInt()];
 				newValue = trueMeaning[((Integer)obj).intValue()];
 			}
-			if (oldValue.length() > 30)
-				oldValue = oldValue.substring(0, 30) + "...";
-			if (newValue.length() > 30)
-				newValue = newValue.substring(0, 30) + "...";
 
 			// the second column is the option description
 			gbc.gridx = 1;       gbc.gridy = rowNumber;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0.2;   gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.fill = GridBagConstraints.NONE;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
 			optionBox.add(new JLabel(setting.getDescription()), gbc);
 
 			// the third column is the current value
@@ -198,8 +194,12 @@ public class OptionReconcile extends EDialog
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0.2;   gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.fill = GridBagConstraints.NONE;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			String toolTip = oldValue;
+			if (oldValue.length() > 30)
+				oldValue = oldValue.substring(0, 30) + "...";
 			JRadioButton curValue = new JRadioButton(oldValue, false);
+			curValue.setToolTipText(toolTip);
 			currentSettings.add(curValue);
 			optionBox.add(curValue, gbc);
 
@@ -208,8 +208,12 @@ public class OptionReconcile extends EDialog
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0.2;   gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.fill = GridBagConstraints.NONE;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			toolTip = oldValue;
+			if (newValue.length() > 30)
+				newValue = newValue.substring(0, 30) + "...";
 			JRadioButton libValue = new JRadioButton(newValue, true);
+			libValue.setToolTipText(toolTip);
 			changedSettings.put(libValue, setting);
 			optionBox.add(libValue, gbc);
 
@@ -222,7 +226,7 @@ public class OptionReconcile extends EDialog
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 0.2;   gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.WEST;
-			gbc.fill = GridBagConstraints.NONE;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
 			optionBox.add(new JLabel(setting.getLocation()), gbc);
 
 			rowNumber++;
