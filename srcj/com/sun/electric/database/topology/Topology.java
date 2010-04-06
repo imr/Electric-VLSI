@@ -300,13 +300,13 @@ public class Topology {
             if (ni != null && ni.getProto().getId().isIcon() == d.protoId.isIcon()) {
                 NodeProto oldProto = ni.getProto();
                 ni.setDInUndo(d);
-                if (ni.isCellInstance()) {
+                if (ni.getProto() != oldProto) {
+                    ni.updatePortInsts(true);
+                } else if (ni.isCellInstance()) {
                     int subCellIndex = ((Cell) ni.getProto()).getCellIndex();
                     if (full || exportsModified != null && exportsModified.get(subCellIndex)) {
-                        ni.updatePortInsts(full || ni.getProto() != oldProto);
+                        ni.updatePortInsts(full);
                     }
-                } else if (ni.getProto() != oldProto) {
-                    ni.updatePortInsts(true);
                 }
             } else {
                 ni = NodeInst.lowLevelNewInstance(this, d);
