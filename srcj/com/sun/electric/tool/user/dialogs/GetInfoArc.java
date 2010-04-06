@@ -386,7 +386,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 			width.setText(TextUtils.formatDistance(initialWidth, ai.getParent().getTechnology()));
 			length.setText(TextUtils.formatDistance(ai.getLambdaLength(), ai.getParent().getTechnology()));
 			busSize.setText(Integer.toString(busWidth));
-			angle.setText("Angle: " + TextUtils.formatDouble(ai.getAngle() / 10.0));
+			angle.setText("Angle: " + (ai.getAngle() == -1 ? "undefined" : TextUtils.formatDouble(ai.getAngle() / 10.0)));
 			easyToSelect.setSelected(initialEasyToSelect);
 			headNode.setText(ai.getHeadPortInst().getNodeInst().describe(true));
 			Point2D headPt = ai.getHeadLocation();

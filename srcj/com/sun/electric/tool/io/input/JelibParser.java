@@ -45,6 +45,7 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -1005,7 +1006,7 @@ public class JelibParser
         // Default flags are false except FIXED_ANGLE
         // SLIDABLE
         int flags = defaultArcFlags;
-        int angle = 0;
+        int angle = ArcInst.DEFAULTANGLE;
         parseStateInfo:
         for(int i=0; i<stateInfo.length(); i++)
         {

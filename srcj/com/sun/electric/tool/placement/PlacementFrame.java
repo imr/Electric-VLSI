@@ -761,7 +761,7 @@ public class PlacementFrame
 					{
 						// connect them
 						ArcInst.newInstance(newCell, Generic.tech().unrouted_arc, null, null,
-							lastPi, thisPi, lastPt, thisPt, gridExtend, 0, a.flags);						
+							lastPi, thisPi, lastPt, thisPt, gridExtend, ArcInst.DEFAULTANGLE, a.flags);						
 					}
 					lastPp = thisPp;
 					lastPi = thisPi;

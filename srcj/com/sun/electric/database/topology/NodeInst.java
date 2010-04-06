@@ -955,7 +955,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                         ai.kill();
                         adjustThisNode.move(dX, dY);
                         ArcInst newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
-                                newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], ai.getName(), 0);
+                                newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], ai.getName(), ArcInst.DEFAULTANGLE);
                         if (newAi == null) {
                             newNi.kill();
                             return null;
@@ -978,14 +978,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, topology.cell);
                 PortInst pinPi = pinNi.getOnlyPortInst();
                 newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
-                        new Point2D.Double(cX, cY), null, 0);
+                        new Point2D.Double(cX, cY), null, ArcInst.DEFAULTANGLE);
                 if (newAi == null) {
                     return null;
                 }
                 newAi.copyPropertiesFrom(ai);
 
                 ArcInst newAi2 = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
-                        newPoint[ArcInst.TAILEND], null, 0);
+                        newPoint[ArcInst.TAILEND], null, ArcInst.DEFAULTANGLE);
                 if (newAi2 == null) {
                     return null;
                 }
@@ -998,7 +998,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             } else {
                 // replace the arc with another arc
                 newAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
-                        newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], null, 0);
+                        newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], null, ArcInst.DEFAULTANGLE);
                 if (newAi == null) {
                     newNi.kill();
                     return null;

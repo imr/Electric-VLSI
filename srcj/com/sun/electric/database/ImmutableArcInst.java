@@ -342,6 +342,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @return the opposite rotation angle of this ImmutableArcInst (in tenth-degrees).
      */
     public int getOppositeAngle() {
+    	if (angle == -1) return angle;
         return angle >= 1800 ? angle - 1800 : angle + 1800;
     }
 
@@ -591,9 +592,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             throw new IllegalArgumentException("gridExtendOverMin");
         }
         int intGridExtendOverMin = (int) gridExtendOverMin;
-        angle %= 3600;
-        if (angle < 0) {
-            angle += 3600;
+
+        // the value -1 indicates an undefined angle
+        if (angle != -1)
+        {
+	        angle %= 3600;
+	        if (angle < 0) {
+	            angle += 3600;
+	        }
         }
         short shortAngle = updateAngle((short) angle, tailLocation, headLocation);
         flags &= DATABASE_FLAGS;
@@ -1028,7 +1034,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (isHeadNegated()) {
             assert headPortId instanceof PrimitivePortId;
         }
-        assert 0 <= angle && angle < 3600;
+        assert -1 <= angle && angle < 3600;
         if (!tailLocation.equals(headLocation)) {
             assert angle == GenMath.figureAngle(headLocation.getGridX() - tailLocation.getGridX(), headLocation.getGridY() - tailLocation.getGridY());
         }

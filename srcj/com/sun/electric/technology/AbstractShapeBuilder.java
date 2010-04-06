@@ -806,6 +806,8 @@ public abstract class AbstractShapeBuilder {
         }
 
         private void registerArcEnd(int[] angles, int nodeId, int angle, boolean is90, boolean extended) {
+        	// consider undefined angles to be horizontal
+        	if (angle == -1) angle = 0;
             assert angle >= 0 && angle < 3600;
             int ang = angles[nodeId];
             if (extended) {

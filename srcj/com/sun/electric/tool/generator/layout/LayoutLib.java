@@ -469,7 +469,7 @@ public class LayoutLib {
 //		ArcInst ai = ArcInst.newInstanceFull(ap, width,
 		                                 head, tail, new Point2D.Double(hX, hY),
 										 new Point2D.Double(tX, tY),
-										 null, 0);
+										 null, ArcInst.DEFAULTANGLE);
         Job.error(ai==null, "newArcInst failed");
 		ai.setFixedAngle(true);
 		return ai;

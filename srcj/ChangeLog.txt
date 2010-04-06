@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+IMP/MAN: (4/6/10, SMR) Zero-length arcs can stretch in either direction (Bug #2713).
+
 BUG/MAN: (4/6/10, SMR) Invisible Pins under Annotation Text should be selectable (Bug #2712).
 FIX: These pins are now "hard to select" and can be selected when in that mode.
 

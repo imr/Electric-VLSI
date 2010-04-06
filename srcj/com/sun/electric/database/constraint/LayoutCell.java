@@ -602,10 +602,16 @@ class LayoutCell {
                 double dy = newPts[thisEndIndex].getY() - thisLocation.getY();
                 double odx = newPts[thatEndIndex].getX() - thatLocation.getX();
                 double ody = newPts[thatEndIndex].getY() - thatLocation.getY();
-                if (DBMath.doublesEqual(thisLocation.getX(), thatLocation.getX())) {
+
+                // undefined arc angles take on the angle of the new motion
+                int angle = ai.getAngle();
+				if (angle == -1)
+					angle = DBMath.figureAngle(newPts[ArcInst.TAILEND], newPts[ArcInst.HEADEND]);
+
+				if (DBMath.doublesEqual(thisLocation.getX(), thatLocation.getX())) {
                     // null arcinst must not be explicitly horizontal
                     if (!DBMath.doublesEqual(thisLocation.getY(), thatLocation.getY())
-                            || ai.getAngle() == 900 || ai.getAngle() == 2700) {
+                            || angle == 900 || angle == 2700) {
                         // vertical arcinst: see if it really moved in X
                         if (dx == odx) {
                             dx = odx = 0;
@@ -891,6 +897,7 @@ class LayoutCell {
         // if the angle is the same or doesn't need to be, simply make the change
         if (!ai.isFixedAngle() || Layout.isRigid(ai)
                 || headPt.equals(tailPt)
+                || ai.getAngle() == -1
                 || (ai.getAngle() % 1800) == (DBMath.figureAngle(tailPt, headPt) % 1800)) {
             updateArc(ai, headPt, tailPt, arctyp);
             return;
@@ -953,7 +960,7 @@ class LayoutCell {
         ai.kill(); // !!! See ai2.copyVarsFrom(ai) below
 
         int flags1 = ImmutableArcInst.TAIL_NEGATED.set(arcFlags, false);
-        ArcInst ar1 = ArcInst.newInstanceBase(ap, wid, fpi, no2pi, headPt, no2Pt, null, 0, flags1);
+        ArcInst ar1 = ArcInst.newInstanceBase(ap, wid, fpi, no2pi, headPt, no2Pt, null, ArcInst.DEFAULTANGLE, flags1);
         if (ar1 == null) {
             return;
         }
@@ -962,7 +969,7 @@ class LayoutCell {
 
         int flags2 = ImmutableArcInst.TAIL_NEGATED.set(arcFlags, false);
         flags2 = ImmutableArcInst.HEAD_NEGATED.set(flags2, false);
-        ArcInst ar2 = ArcInst.newInstanceBase(ap, wid, no2pi, no1pi, no2Pt, no1Pt, arcName, 0, flags2);
+        ArcInst ar2 = ArcInst.newInstanceBase(ap, wid, no2pi, no1pi, no2Pt, no1Pt, arcName, ArcInst.DEFAULTANGLE, flags2);
         if (ar2 == null) {
             return;
         }
@@ -971,7 +978,7 @@ class LayoutCell {
 //        ar2.copyPropertiesFrom(ai);
 
         int flags3 = ImmutableArcInst.HEAD_NEGATED.set(arcFlags, false);
-        ArcInst ar3 = ArcInst.newInstanceBase(ap, wid, no1pi, tpi, no1Pt, tailPt, null, 0, flags3);
+        ArcInst ar3 = ArcInst.newInstanceBase(ap, wid, no1pi, tpi, no1Pt, tailPt, null, ArcInst.DEFAULTANGLE, flags3);
         if (ar3 == null) {
             return;
         }

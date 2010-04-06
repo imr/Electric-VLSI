@@ -320,7 +320,9 @@ public class JELIB extends Output {
             if (a.is(ImmutableArcInst.SLIDABLE)) arcBits.append("S");
             if (a.is(ImmutableArcInst.HEAD_ARROWED)) arcBits.append("X");
             if (a.is(ImmutableArcInst.TAIL_ARROWED)) arcBits.append("Y");
-            printWriter.print("|" + arcBits.toString() + a.getAngle());
+            String angle = "";
+            if (a.getAngle() != -1) angle += a.getAngle();
+            printWriter.print("|" + arcBits.toString() + angle);
 
             printWriter.print("|" + nodeNames.get(a.headNodeId) + "|" + getPortName(a.headPortId));
             printWriter.print("|" + TextUtils.formatDouble(a.headLocation.getX(), 0));

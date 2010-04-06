@@ -377,7 +377,7 @@ public class Routing extends Listener
 					PortInst head = netEnds[i].pi;
 					EPoint headP = netEnds[i].center;
 					ArcInst ai = ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null,
-						head, tail, headP, center, gridExtend, 0, a.flags);
+						head, tail, headP, center, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
 //					ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
 					if (ai == null)
 					{
@@ -421,7 +421,7 @@ public class Routing extends Listener
 					EPoint headP = netEnds[besti].center;
 					EPoint tailP = netEnds[bestj].center;
 					ArcInst ai = ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null,
-						head, tail, headP, tailP, gridExtend, 0, a.flags);
+						head, tail, headP, tailP, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
 //					ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, wid, head, tail);
 					if (ai == null)
 					{

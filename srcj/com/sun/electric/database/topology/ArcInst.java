@@ -87,6 +87,8 @@ import java.util.Comparator;
  */
 public class ArcInst extends Geometric implements Comparable<ArcInst> {
 
+	/** the default angle of an arc (used to be 0) */
+    public static final int DEFAULTANGLE = -1;
     /** empty array of ArcInsts. */
     public static final ArcInst[] NULL_ARRAY = {};
     /** The index of the tail of this ArcInst. */
@@ -207,7 +209,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     public static ArcInst makeInstance(ArcProto type, PortInst head, PortInst tail) {
         EditingPreferences ep = tail.getEditingPreferences();
         ImmutableArcInst a = type.getDefaultInst(ep);
-        return newInstanceBase(type, type.getDefaultLambdaBaseWidth(ep), head, tail, null, null, null, 0, a.flags);
+        return newInstanceBase(type, type.getDefaultLambdaBaseWidth(ep), head, tail, null, null, null, DEFAULTANGLE, a.flags);
     }
 
     /**
@@ -222,7 +224,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     public static ArcInst makeInstanceBase(ArcProto type, double baseWidth, PortInst head, PortInst tail) {
         EditingPreferences ep = tail.getEditingPreferences();
         ImmutableArcInst a = type.getDefaultInst(ep);
-        return newInstanceBase(type, baseWidth, head, tail, null, null, null, 0, a.flags);
+        return newInstanceBase(type, baseWidth, head, tail, null, null, null, DEFAULTANGLE, a.flags);
     }
 
     /**
@@ -240,7 +242,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             Point2D headPt, Point2D tailPt, String name) {
         EditingPreferences ep = tail.getEditingPreferences();
         ImmutableArcInst a = type.getDefaultInst(ep);
-        return newInstanceBase(type, type.getDefaultLambdaBaseWidth(ep), head, tail, headPt, tailPt, name, 0, a.flags);
+        return newInstanceBase(type, type.getDefaultLambdaBaseWidth(ep), head, tail, headPt, tailPt, name, DEFAULTANGLE, a.flags);
     }
 
     /**
@@ -259,7 +261,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             Point2D headPt, Point2D tailPt, String name) {
         EditingPreferences ep = tail.getEditingPreferences();
         ImmutableArcInst a = type.getDefaultInst(ep);
-        return newInstanceBase(type, baseWidth, head, tail, headPt, tailPt, name, 0, a.flags);
+        return newInstanceBase(type, baseWidth, head, tail, headPt, tailPt, name, DEFAULTANGLE, a.flags);
     }
 
     /**
@@ -272,7 +274,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * @return the newly created ArcInst, or null if there is an error.
      */
     public static ArcInst newInstanceBase(ArcProto type, double baseWidth, PortInst head, PortInst tail) {
-        return newInstanceBase(type, baseWidth, head, tail, null, null, null, 0, ImmutableArcInst.DEFAULT_FLAGS);
+        return newInstanceBase(type, baseWidth, head, tail, null, null, null, DEFAULTANGLE, ImmutableArcInst.DEFAULT_FLAGS);
     }
 
     /**
@@ -556,7 +558,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         }
 
         // first create the new nodeinst in place
-        ArcInst newar = ArcInst.newInstanceBase(ap, getLambdaBaseWidth(), headPortInst, tailPortInst, d.headLocation, d.tailLocation, null, 0);
+        ArcInst newar = ArcInst.newInstanceBase(ap, getLambdaBaseWidth(), headPortInst, tailPortInst, d.headLocation, d.tailLocation, null, ArcInst.DEFAULTANGLE);
         if (newar == null) {
             System.out.println("Cannot replace " + this + " with one of type " + ap.getName()
                     + " because the new arc failed to create");
