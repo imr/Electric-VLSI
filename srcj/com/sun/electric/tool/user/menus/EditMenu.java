@@ -978,9 +978,9 @@ public class EditMenu {
 			// "select all" should not include the cell-center
 			if (ni.getProto() == Generic.tech().cellCenterNode && !mustBeEasy && !mustBeHard) continue;
 			boolean hard = ni.isHardSelect();
-			if ((ni.isCellInstance()) && cellsAreHard) hard = true;
+			if (ni.isCellInstance() && cellsAreHard) hard = true;
 			if (mustBeEasy && hard) continue;
-			if (mustBeHard && !hard) continue;
+			if (mustBeHard && !hard && !ni.isInvisiblePinWithText()) continue;
 
 			// do not show primitives with all layers invisible
 			if (!User.isHighlightInvisibleObjects() && !ni.isCellInstance())
@@ -988,8 +988,9 @@ public class EditMenu {
 				PrimitiveNode np = (PrimitiveNode)ni.getProto();
 				if (!lv.isVisible(np)) continue;
 			}
-			if (!ni.isInvisiblePinWithText())
+			if (!ni.isInvisiblePinWithText() || mustBeHard)
 				highlighter.addElectricObject(ni, curCell);
+			if (ni.isInvisiblePinWithText() && mustBeHard && !hard) continue;
 			if (User.isTextVisibilityOnNode())
 			{
 				if (ni.isUsernamed())

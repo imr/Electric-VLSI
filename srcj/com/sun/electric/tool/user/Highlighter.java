@@ -1818,8 +1818,8 @@ public class Highlighter implements DatabaseChangeListener {
 			}
 			if (!findSpecial && hardToSelect) return found;
 
-			// do not "find" Invisible-Pins if they have text or exports
-			if (ni.isInvisiblePinWithText()) return found;
+			// Invisible-Pins with text are "hard to find"
+			if (!findSpecial && ni.isInvisiblePinWithText()) return found;
 
 			// ignore areaMustEnclose if bounds is size 0,0
 	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))

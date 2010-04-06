@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG: (4/6/10, SMR) Invisible Pins under Annotation Text should be selectable (Bug #2712).
+FIX: These pins are now "hard to select" and can be selected when in that mode.
+
 BUG: (4/5/10, SMR) Option reconciliation truncates fields (Bug #2709).
 FIX: Put full string into tooltip.
 
