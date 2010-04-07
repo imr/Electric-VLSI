@@ -23,20 +23,19 @@
  */
 package com.sun.electric.tool.user.redisplay;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -74,9 +73,12 @@ public class VectorCacheExt extends VectorCache {
                 }
             }
         });
-        for (int i = 0; i < 100; i++) {
-            System.out.println(i + " " + rects.get(i));
+        GeometryHandler merger = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 0);
+        for (Rectangle rect: rects) {
+            merger.add(layer, rect);
         }
+        merger.postProcess(true);
+        merger.getObjects(layer, false, true);
     }
 
     private void subTree(Cell cell, Orientation orient, Set<VectorCell> visited) {
