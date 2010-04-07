@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG/MAN: (4/7/10, SMR) The "Measure" cursor is ambiguous (which side is the pointer?)
+     and the measurement mode should snap the mouse when moving around (Bug #2718).
+FIX: The cursor now looks like a tape measure; the mouse snaps.
+
 IMP/MAN: (4/6/10, SMR) Zero-length arcs can stretch in either direction (Bug #2713).
 
 BUG/MAN: (4/6/10, SMR) Invisible Pins under Annotation Text should be selectable (Bug #2712).

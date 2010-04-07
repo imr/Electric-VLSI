@@ -719,7 +719,7 @@ public class ToolBar extends JToolBar
 	static final Cursor panCursor = readCursor("CursorPan.gif", 8, 8);
 	static final Cursor wiringCursor = readCursor("CursorWiring.gif", 0, 0);
 	static final Cursor outlineCursor = readCursor("CursorOutline.gif", 0, 8);
-	static final Cursor measureCursor = readCursor("CursorMeasure.gif", 0, 0);
+	static final Cursor measureCursor = readCursor("CursorMeasure.gif", 0, 12);
 
 	public static Cursor readCursor(String cursorName, int hotX, int hotY)
 	{
