@@ -1464,6 +1464,24 @@ public class User extends Listener
 	 */
 	public static int getFactoryDefGridYBoldFrequency() { return cacheDefGridYBoldFrequency.getIntFactoryValue(); }
 
+	private static Pref cacheGridAlignMeasurementCursor = Pref.makeBooleanPref("GridAlignMeasurementCursor", tool.prefs, false);
+	/**
+	 * Method to tell whether the "Measurement" mode snaps the cursor to grid-aligned positions.
+	 * The default is false.
+	 * @return true if "Measurement" mode snaps the cursor to grid-aligned positions.
+	 */
+	public static boolean isGridAlignMeasurementCursor() { return cacheGridAlignMeasurementCursor.getBoolean(); }
+	/**
+	 * Method to set whether the "Measurement" mode snaps the cursor to grid-aligned positions.
+	 * @param dist true if "Measurement" mode snaps the cursor to grid-aligned positions.
+	 */
+	public static void setGridAlignMeasurementCursor(boolean dist) { cacheGridAlignMeasurementCursor.setBoolean(dist); }
+	/**
+	 * Method to tell whether the "Measurement" mode snaps the cursor to grid-aligned positions, by default.
+	 * @return true if "Measurement" mode snaps the cursor to grid-aligned positions, by default.
+	 */
+	public static boolean isFactoryGridAlignMeasurementCursor() { return cacheGridAlignMeasurementCursor.getBooleanFactoryValue(); }
+
 	/**
 	 * Method to return the default alignment of objects to the grid.
 	 * The default is (1,1), meaning that placement and movement should land on whole grid units.
