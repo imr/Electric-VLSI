@@ -209,7 +209,7 @@ public class OptionReconcile extends EDialog
 			gbc.weightx = 0.2;   gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
-			toolTip = oldValue;
+			toolTip = newValue;
 			if (newValue.length() > 30)
 				newValue = newValue.substring(0, 30) + "...";
 			JRadioButton libValue = new JRadioButton(newValue, true);
