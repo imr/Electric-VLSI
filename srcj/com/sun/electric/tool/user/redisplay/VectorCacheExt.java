@@ -23,17 +23,24 @@
  */
 package com.sun.electric.tool.user.redisplay;
 
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -78,7 +85,26 @@ public class VectorCacheExt extends VectorCache {
             merger.add(layer, rect);
         }
         merger.postProcess(true);
-        merger.getObjects(layer, false, true);
+        Collection<PolyBase> polys = merger.getObjects(layer, true, true);
+        Library destLib = Library.newInstance("Metal9", null);
+        Cell destCell = Cell.newInstance(destLib, "merged{lay}");
+        PrimitiveNode pn = layer.getPureLayerNode();
+        for (PolyBase poly: polys) {
+            EPoint anchor = EPoint.fromGrid((long)poly.getCenterX(), (long)poly.getCenterY());
+            Rectangle2D box = poly.getBox();
+            if (box != null) {
+                long w = Math.round(box.getWidth());
+                long h = Math.round(box.getHeight());
+                if ((w&1) == 0 && (h&1) == 0) {
+                    NodeInst.newInstance(pn, anchor,
+                            DBMath.gridToLambda(w), DBMath.gridToLambda(h),
+                            destCell);
+                    continue;
+                }
+            }
+            NodeInst ni = NodeInst.newInstance(pn, anchor, 0, 0, destCell);
+            ni.setTrace(poly.getPoints());
+        }
     }
 
     private void subTree(Cell cell, Orientation orient, Set<VectorCell> visited) {
