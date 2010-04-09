@@ -243,8 +243,7 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 			try {
 				Robot r = new Robot();
 				Point offset = wnd.getLocationOnScreen();
-System.out.println("MOVING MOUSE FROM ("+evt.getX()+","+evt.getY()+") TO ("+newPos.x+","+newPos.y+") WITH WINDOW OFFSET ("+
-	offset.x+","+offset.y+")");
+//System.out.println("MOVING MOUSE FROM ("+evt.getX()+","+evt.getY()+") TO ("+newPos.x+","+newPos.y+") WITH WINDOW OFFSET ("+offset.x+","+offset.y+")");
 				r.mouseMove(offset.x+newPos.x, offset.y+newPos.y);
 				gridOffX = mouseX - newPos.x;
 				gridOffY = mouseY - newPos.y;
