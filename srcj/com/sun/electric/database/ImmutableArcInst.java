@@ -53,7 +53,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public static final int TAILEND = 0;
     /** The index of the head of this ArcInst. */
     public static final int HEADEND = 1;
-    /** Key of Varible holding arc curvature. */
+    /** Key of Variable holding arc curvature. */
     public static final Variable.Key ARC_RADIUS = Variable.newKey("ARC_radius");
     /** Maximal extend of arc over minimal-width arc */
     private static final int MAX_EXTEND = Integer.MAX_VALUE / 8;
@@ -120,7 +120,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     private static final int ELIB_REVERSEEND = 020000000;
     /** set if arc can't slide around in ports */
     private static final int ELIB_CANTSLIDE = 040000000;
-//	/** set if afixed arc was changed */                    private static final int FIXEDMOD =          0100000000;
+//	/** set if fixed arc was changed */                    private static final int FIXEDMOD =          0100000000;
 //	/** only local arcinst re-drawing desired */            private static final int RELOCLA =          01000000000;
 //	/**transparent arcinst re-draw is done */               private static final int RETDONA =          02000000000;
 //	/** opaque arcinst re-draw is done */                   private static final int REODONA =          04000000000;
@@ -245,7 +245,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * The private constructor of ImmutableArcInst. Use the factory "newInstance" instead.
      *
      * @param arcId id of this ArcInst in parent.
-     * @param protoId Id pf arc prototype.
+     * @param protoId Id of arc prototype.
      * @param name name of this ImmutableArcInst.
      * @param nameDescriptor TextDescriptor of name of this ImmutableArcInst.
      * @param tailNodeId NodeId on tail end of this ImmutableArcInst.
@@ -702,8 +702,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     }
 
     /**
-     * Returns ImmutableArcInst which differs from this ImmutableArcInst by angke.
-     * For arc with non-zero length returns ths ImmutableArcInst
+     * Returns ImmutableArcInst which differs from this ImmutableArcInst by angle.
+     * For arc with non-zero length returns this ImmutableArcInst
      * @param angle angle in tenth-degrees.
      * @return ImmutableArcInst which differs from this ImmutableArcInst by user bits.
      */
@@ -882,7 +882,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     }
 
     /**
-     * Indicates whether fields of other ImmutableElectricObject are equal to fileds of this object.
+     * Indicates whether fields of other ImmutableElectricObject are equal to fields of this object.
      * Variables of objects are not compared.
      * @param o other ImmutableElectricObject.
      * @return true if fields of objects are equal.
@@ -916,6 +916,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         int x, y;
         assert intCoords.length == 4;
         switch (angle) {
+            case -1:
             case 0:
                 y = (int) tailLocation.getGridY();
                 intCoords[0] = (int) tailLocation.getGridX() - et;
