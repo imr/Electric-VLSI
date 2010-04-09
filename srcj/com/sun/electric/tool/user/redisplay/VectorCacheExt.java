@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.bool.DeltaMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
@@ -54,56 +55,72 @@ import java.util.TreeSet;
  */
 public class VectorCacheExt extends VectorCache {
     Set<Layer> layers = new TreeSet<Layer>();
+    Cell topCell;
 
     public VectorCacheExt(Cell topCell) {
         super(topCell.getDatabase());
+        this.topCell = topCell;
         Set<VectorCell> visited = new HashSet<VectorCell>();
         subTree(topCell, Orientation.IDENT, visited);
-        for (Layer layer: layers) {
-            System.out.println(layer);
-        }
+        subTree(topCell, Orientation.R, visited);
+        showLayer("Metal-9", false);
+        showLayer("Metal-8", true);
+        showLayer("Metal-7", false);
+        showLayer("Metal-6", true);
+        showLayer("Metal-5", false);
+        showLayer("Metal-4", true);
+        showLayer("Metal-3", false);
+    }
+
+    public void showLayer(String layerName, boolean rotate) {
         List<Rectangle> rects = new ArrayList<Rectangle>();
-        Layer layer = Technology.getCMOS90Technology().findLayer("Metal-9");
-        collectLayer(layer, findVectorCell(topCell.getId(), Orientation.IDENT), new Point(0, 0), rects);
-        Collections.sort(rects, new Comparator<Rectangle>() {
-            public int compare(Rectangle r1, Rectangle r2) {
-                if (r1.x < r2.x) {
-                    return -1;
-                } else if (r1.x > r2.x) {
-                    return 1;
-                } else if (r1.y < r2.y) {
-                    return -1;
-                } else if (r1.y > r2.y) {
-                    return 1;
-                } else {
-                    return 0;
+        Layer layer = Technology.getCMOS90Technology().findLayer(layerName);
+        collectLayer(layer, findVectorCell(topCell.getId(), rotate ? Orientation.R : Orientation.IDENT), new Point(0, 0), rects);
+        if (true) {
+            System.out.println(layerName);
+            DeltaMerge dm = new DeltaMerge();
+            dm.loop(rects);
+        } else {
+            Collections.sort(rects, new Comparator<Rectangle>() {
+                public int compare(Rectangle r1, Rectangle r2) {
+                    if (r1.x < r2.x) {
+                        return -1;
+                    } else if (r1.x > r2.x) {
+                        return 1;
+                    } else if (r1.y < r2.y) {
+                        return -1;
+                    } else if (r1.y > r2.y) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
                 }
+            });
+            GeometryHandler merger = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 0);
+            for (Rectangle rect: rects) {
+                merger.add(layer, rect);
             }
-        });
-        GeometryHandler merger = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 0);
-        for (Rectangle rect: rects) {
-            merger.add(layer, rect);
-        }
-        merger.postProcess(true);
-        Collection<PolyBase> polys = merger.getObjects(layer, true, true);
-        Library destLib = Library.newInstance("Metal9", null);
-        Cell destCell = Cell.newInstance(destLib, "merged{lay}");
-        PrimitiveNode pn = layer.getPureLayerNode();
-        for (PolyBase poly: polys) {
-            EPoint anchor = EPoint.fromGrid((long)poly.getCenterX(), (long)poly.getCenterY());
-            Rectangle2D box = poly.getBox();
-            if (box != null) {
-                long w = Math.round(box.getWidth());
-                long h = Math.round(box.getHeight());
-                if ((w&1) == 0 && (h&1) == 0) {
-                    NodeInst.newInstance(pn, anchor,
-                            DBMath.gridToLambda(w), DBMath.gridToLambda(h),
-                            destCell);
-                    continue;
+            merger.postProcess(true);
+            Collection<PolyBase> polys = merger.getObjects(layer, true, true);
+            Library destLib = Library.newInstance("Metal9", null);
+            Cell destCell = Cell.newInstance(destLib, "merged{lay}");
+            PrimitiveNode pn = layer.getPureLayerNode();
+            for (PolyBase poly: polys) {
+                EPoint anchor = EPoint.fromGrid((long)poly.getCenterX(), (long)poly.getCenterY());
+                Rectangle2D box = poly.getBox();
+                if (box != null) {
+                    long w = Math.round(box.getWidth());
+                    long h = Math.round(box.getHeight());
+                    if ((w&1) == 0 && (h&1) == 0) {
+                        NodeInst.newInstance(pn, anchor,
+                                DBMath.gridToLambda(w), DBMath.gridToLambda(h),
+                                destCell);
+                        continue;
+                    }
                 }
+                NodeInst ni = NodeInst.newInstance(pn, anchor, 0, 0, destCell);
+                ni.setTrace(poly.getPoints());
             }
-            NodeInst ni = NodeInst.newInstance(pn, anchor, 0, 0, destCell);
-            ni.setTrace(poly.getPoints());
         }
     }
 
