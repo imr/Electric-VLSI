@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG: (4/8/10, GVG/SMR) New zero-length def of arcs and non-manhattan shapes (Bug #2720)
+FIX: ImmutableArcInst:isManhattan() and ImmutableArcInst:makeGridBoxInt handle angle=-1
+(introduced by Bug #2713)
+
 BUG/MAN: (4/7/10, SMR) The "Measure" cursor is ambiguous (which side is the pointer?)
      and the measurement mode should snap the mouse when moving around (Bug #2718).
      Measurement snapping-control is now in the "Grid" Preferences.

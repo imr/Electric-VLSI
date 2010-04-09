@@ -525,7 +525,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     private static boolean isManhattan(EPoint headLocation, EPoint tailLocation, int angle) {
         if (headLocation.getGridX() == tailLocation.getGridX()) {
             return headLocation.getGridY() != tailLocation.getGridY()
-                    || (angle == 0 || angle == 900 || angle == 1800 || angle == 2700);
+                    || (angle == -1 || angle == 0 || angle == 900 || angle == 1800 || angle == 2700);
         } else {
             return tailLocation.getGridY() == headLocation.getGridY();
         }
