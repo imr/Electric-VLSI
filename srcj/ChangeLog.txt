@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+IMP: (4/8/10, GVG) Added more error messages to detect failures in gateLayGen regression (Bug #2717)
+
 BUG: (4/8/10, GVG/SMR) New zero-length def of arcs and non-manhattan shapes (Bug #2720)
 FIX: ImmutableArcInst:isManhattan() and ImmutableArcInst:makeGridBoxInt handle angle=-1
 (introduced by Bug #2713)
