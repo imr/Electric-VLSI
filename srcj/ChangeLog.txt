@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG: (4/7/10, DN) The ruler text is too small (Bug #2718).
+FIX: In EditWindow.paintComponent select font for rule text with size 15*globalTextScale insteadof 10*globalTextScale.
+
 IMP: (4/8/10, GVG) Added more error messages to detect failures in gateLayGen regression (Bug #2717)
 
 BUG: (4/8/10, GVG/SMR) New zero-length def of arcs and non-manhattan shapes (Bug #2720)

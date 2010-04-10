@@ -1318,41 +1318,29 @@ public class EditWindow extends JPanel
 		// add cross-probed level display
 		showCrossProbeLevels(g);
 
-		if (Job.getDebug()) {
-			// add in highlighting
-			if (true/*Job.acquireExamineLock(false)*/) {
-				try {
-					// add in the frame if present
-					drawCellFrame(g);
+        try {
+            // add in the frame if present
+            drawCellFrame(g);
 
-					//long start = System.currentTimeMillis();
-					rulerHighlighter.showHighlights(this, g);
-					mouseOverHighlighter.showHighlights(this, g);
-					highlighter.showHighlights(this, g);
-					//long end = System.currentTimeMillis();
-					//System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
-//					Job.releaseExamineLock();
-				} catch (Error e) {
-//					Job.releaseExamineLock();
-					throw e;
-				}
-			}
-		} else {
-			// unsafe
-			try {
-				// add in the frame if present
-				drawCellFrame(g);
-
-				//long start = System.currentTimeMillis();
-				rulerHighlighter.showHighlights(this, g);
-				mouseOverHighlighter.showHighlights(this, g);
-				highlighter.showHighlights(this, g);
-				//long end = System.currentTimeMillis();
-				//System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
-			} catch (Exception e) {
-                e.printStackTrace();
-			}
-		}
+            //long start = System.currentTimeMillis();
+            if (rulerHighlighter.getNumHighlights() > 0) {
+                try {
+                    // Draw ruler text in a little large font
+                    Font fr = new Font(User.getDefaultFont(), Font.PLAIN, (int) (15 * globalTextScale));
+                    g.setFont(fr);
+                    rulerHighlighter.showHighlights(this, g);
+                } finally {
+                    g.setFont(f);
+                }
+            }
+//            rulerHighlighter.showHighlights(this, g);
+            mouseOverHighlighter.showHighlights(this, g);
+            highlighter.showHighlights(this, g);
+            //long end = System.currentTimeMillis();
+            //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 		// add in drag area
 		if (doingAreaDrag) showDragBox(g);
