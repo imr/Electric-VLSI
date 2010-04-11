@@ -40,6 +40,10 @@ import com.sun.electric.technology.Technology;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,24 +66,32 @@ public class VectorCacheExt extends VectorCache {
         this.topCell = topCell;
         Set<VectorCell> visited = new HashSet<VectorCell>();
         subTree(topCell, Orientation.IDENT, visited);
-        subTree(topCell, Orientation.R, visited);
-        showLayer("Metal-9", false);
-        showLayer("Metal-8", true);
-        showLayer("Metal-7", false);
-        showLayer("Metal-6", true);
-        showLayer("Metal-5", false);
-        showLayer("Metal-4", true);
+        subTree(topCell, Orientation.XR, visited);
+        showLayer("Metal-2", true);
         showLayer("Metal-3", false);
+        showLayer("Metal-4", true);
+        showLayer("Metal-5", false);
+        showLayer("Metal-6", true);
+        showLayer("Metal-7", false);
+        showLayer("Metal-8", true);
+        showLayer("Metal-9", false);
     }
 
     public void showLayer(String layerName, boolean rotate) {
         List<Rectangle> rects = new ArrayList<Rectangle>();
         Layer layer = Technology.getCMOS90Technology().findLayer(layerName);
-        collectLayer(layer, findVectorCell(topCell.getId(), rotate ? Orientation.R : Orientation.IDENT), new Point(0, 0), rects);
+        collectLayer(layer, findVectorCell(topCell.getId(), rotate ? Orientation.XR : Orientation.IDENT), new Point(0, 0), rects);
         if (true) {
             System.out.println(layerName);
             DeltaMerge dm = new DeltaMerge();
-            dm.loop(rects);
+            try {
+                DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(layerName + ".dm")));
+                out.writeBoolean(rotate);
+                dm.loop(rects, out);
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else {
             Collections.sort(rects, new Comparator<Rectangle>() {
                 public int compare(Rectangle r1, Rectangle r2) {
@@ -157,7 +169,7 @@ public class VectorCacheExt extends VectorCache {
                 int ly = anchor.y + vm.coords[i + 1];
                 int hx = anchor.x + vm.coords[i + 2];
                 int hy = anchor.y + vm.coords[i + 3];
-                assert lx < hx && ly < hy;
+                assert lx <= hx && ly <= hy;
                 result.add(new Rectangle(lx, ly, hx - lx, hy - ly));
             }
         }

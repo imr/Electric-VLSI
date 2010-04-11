@@ -26,6 +26,8 @@ package com.sun.electric.database.geometry.bool;
 import com.sun.electric.database.geometry.DBMath;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,7 +74,7 @@ public class DeltaMerge {
         chain.y = Integer.MIN_VALUE;
     }
 
-    public void loop(Collection<Rectangle> rects) {
+    public void loop(Collection<Rectangle> rects, DataOutputStream out) throws IOException {
         for (Rectangle rect: rects) {
             put(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
         }
@@ -94,9 +96,10 @@ public class DeltaMerge {
         curPoint = 0;
         while (getLine()) {
             scanLine();
-            printOut();
+            printOut(out);
             printSegments();
         }
+        out.writeBoolean(false);
     }
 
     private void put(int lx, int ly, int hx, int hy) {
@@ -110,16 +113,20 @@ public class DeltaMerge {
         points.add(positive ? new Point(x, y) : new NegativePoint(x, y));
     }
 
-    private void printOut() {
+    private void printOut(DataOutputStream out) throws IOException {
         if (outC == 0) {
             return;
         }
+        out.writeBoolean(true);
         System.out.print("x=" + DBMath.gridToLambda(x));
+        out.writeInt(x);
+        out.writeInt(outC);
         for (int i = 0; i < outC; i++) {
             int outVal = outA[i];
             int y = outVal >> 1;
             boolean df = (outVal & 1) != 0;
             System.out.print(" " + DBMath.gridToLambda(y) + (df?"^":"_"));
+            out.writeInt(outVal);
         }
         System.out.println();
     }
