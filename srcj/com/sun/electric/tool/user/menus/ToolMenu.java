@@ -327,6 +327,7 @@ public class ToolMenu
             new EMenu("Simulation (_Verilog)",
 		        new EMenuItem("Write _Verilog Deck...") { public void run() {
                     Simulation.setVerilogStopAtStandardCells(false);
+                    Simulation.setVerilogNetlistNonstandardCells(true);
                     FileMenu.exportCommand(FileType.VERILOG, true); }},
     		    new EMenuItem("Write Verilog_A Deck...") { public void run() {
     		    	Simulation.setVerilogStopAtStandardCells(false);

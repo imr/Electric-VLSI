@@ -1221,6 +1221,11 @@ public class Simulation extends Tool
 	public static boolean getVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBoolean(); }
 	public static boolean getFactoryVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBooleanFactoryValue(); }
 
+    private static Pref cacheVerilogNetlistNonstandardCells = Pref.makeBooleanPref("VerliogNetlistNonstandardCells", tool.prefs, true);
+    public static void setVerilogNetlistNonstandardCells(boolean b) { cacheVerilogNetlistNonstandardCells.setBoolean(b); }
+    public static boolean getVerilogNetlistNonstandardCells() { return cacheVerilogNetlistNonstandardCells.getBoolean(); }
+    public static boolean getFactoryVerilogNetlistNonstandardCells() { return cacheVerilogNetlistNonstandardCells.getBooleanFactoryValue(); }
+
     /**
      * BVE - Improved support for Verilog generation
      */

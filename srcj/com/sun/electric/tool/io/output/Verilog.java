@@ -102,7 +102,8 @@ public class Verilog extends Topology
 		public boolean useVerilogA = false;
         // Verilog factory Prefs
 		public boolean stopAtStandardCells = Simulation.getFactoryVerilogStopAtStandardCells();
-		public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
+        public boolean netlistNonstandardCells = Simulation.getFactoryVerilogNetlistNonstandardCells();
+        public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
 		public boolean writeModuleForEachIcon = Simulation.isFactoryVerilogWriteModuleForEachIcon();
         public Map<Cell,String> modelFiles = Collections.emptyMap();
 
@@ -122,7 +123,8 @@ public class Verilog extends Topology
         {
             // Verilog current Prefs
 			stopAtStandardCells = Simulation.getVerilogStopAtStandardCells();
-			parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
+            netlistNonstandardCells = Simulation.getVerilogNetlistNonstandardCells();
+            parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
 			writeModuleForEachIcon = Simulation.isVerilogWriteModuleForEachIcon();
             modelFiles = CellModelPrefs.verilogModelPrefs.getUnfilteredFileNames(EDatabase.clientDatabase());
 		}
@@ -285,10 +287,12 @@ public class Verilog extends Topology
 		if (localPrefs.stopAtStandardCells) {
 			// enumerate to find which cells contain standard cells
 			HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, standardCells);
-			for (Cell acell : standardCells.getDoesNotContainStandardCellsInHier()) {
-				reportWarning("Warning: Not netlisting cell "+acell.describe(false)+" because it does not contain any standard cells.");
-			}
-			if (standardCells.getNameConflict()) {
+            if (!localPrefs.netlistNonstandardCells) {
+                for (Cell acell : standardCells.getDoesNotContainStandardCellsInHier()) {
+                    reportWarning("Warning: Not netlisting cell "+acell.describe(false)+" because it does not contain any standard cells.");
+                }
+            }
+            if (standardCells.getNameConflict()) {
 				System.out.println("Name conflicts found, please see above messages");
 			}
 		}
@@ -305,10 +309,10 @@ public class Verilog extends Topology
         // do not netlist contents of standard cells
         // also, if writing a standard cell netlist, ignore all verilog views, verilog templates, etc.
         if (localPrefs.stopAtStandardCells) {
-            if (!standardCells.containsStandardCell(cell)) {
-                return true;
-            } else {
+            if (localPrefs.netlistNonstandardCells || standardCells.containsStandardCell(cell)) {
                 return false;
+            } else {
+                return true;
             }
         }
 
@@ -883,7 +887,7 @@ public class Verilog extends Topology
 			{
                 // if writing standard cell netlist, do not write out cells that
 				// do not contain standard cells
-				if (localPrefs.stopAtStandardCells)
+				if (localPrefs.stopAtStandardCells && !localPrefs.netlistNonstandardCells)
 				{
 					if (!standardCells.containsStandardCell((Cell)niProto) &&
 						!SCLibraryGen.isStandardCell((Cell)niProto)) continue;
@@ -1960,7 +1964,7 @@ public class Verilog extends Topology
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
 	protected boolean canParameterizeNames() {
-		if (localPrefs.stopAtStandardCells)
+		if (localPrefs.stopAtStandardCells && !localPrefs.netlistNonstandardCells)
 			return false;
 
 		// Check user preference
