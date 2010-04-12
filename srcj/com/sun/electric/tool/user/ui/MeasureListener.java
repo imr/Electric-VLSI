@@ -49,6 +49,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.SwingUtilities;
+
 /**
  * Class to make measurements in a window.
  */
@@ -221,7 +223,8 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 		}
 	}
 
-	int gridOffX = 0, gridOffY = 0;
+	private int gridOffX = 0, gridOffY = 0;
+	private Robot robot = null;
 
 	public void mouseMoved(MouseEvent evt)
 	{
@@ -240,14 +243,13 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 	        Point2D align = new Point2D.Double(dbMouse.getX(), dbMouse.getY());
 			EditWindow.gridAlign(align);
 			Point newPos = wnd.databaseToScreen(align);
+			gridOffX = mouseX - newPos.x;
+			gridOffY = mouseY - newPos.y;
 			try {
-				Robot r = new Robot();
-				Point offset = wnd.getLocationOnScreen();
-//System.out.println("MOVING MOUSE FROM ("+evt.getX()+","+evt.getY()+") TO ("+newPos.x+","+newPos.y+") WITH WINDOW OFFSET ("+offset.x+","+offset.y+")");
-				r.mouseMove(offset.x+newPos.x, offset.y+newPos.y);
-				gridOffX = mouseX - newPos.x;
-				gridOffY = mouseY - newPos.y;
-			} catch(AWTException e) {}
+				if (robot == null) robot = new Robot();
+			} catch (AWTException e) {}
+			SwingUtilities.convertPointToScreen(newPos, wnd); 
+			if (robot != null) robot.mouseMove(newPos.x, newPos.y);
 		}
 	}
 
