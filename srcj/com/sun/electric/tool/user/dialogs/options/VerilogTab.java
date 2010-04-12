@@ -61,7 +61,8 @@ public class VerilogTab extends PreferencePanel
 	{
 		// user preferences
 		stopAtStandardCells.setSelected(Simulation.getVerilogStopAtStandardCells());
-		preserveVerilogFormatting.setSelected(Simulation.getPreserveVerilogFormating());
+        netlistNonstandardCells.setSelected(Simulation.getVerilogNetlistNonstandardCells());
+        preserveVerilogFormatting.setSelected(Simulation.getPreserveVerilogFormating());
 		parameterizeModuleNames.setSelected(Simulation.getVerilogParameterizeModuleNames());
         runPlacement.setSelected(Simulation.getVerilogRunPlacementTool());
         writeModuleForEachIcon.setSelected(Simulation.isVerilogWriteModuleForEachIcon());
@@ -79,7 +80,8 @@ public class VerilogTab extends PreferencePanel
 	{
 		// user preferences
 		Simulation.setVerilogStopAtStandardCells(stopAtStandardCells.isSelected());
-		Simulation.setPreserveVerilogFormating(preserveVerilogFormatting.isSelected());
+        Simulation.setVerilogNetlistNonstandardCells(netlistNonstandardCells.isSelected());
+        Simulation.setPreserveVerilogFormating(preserveVerilogFormatting.isSelected());
 		Simulation.setVerilogParameterizeModuleNames(parameterizeModuleNames.isSelected());
 		Simulation.setVerilogRunPlacementTool(runPlacement.isSelected());
 		Simulation.setVerilogWriteModuleForEachIcon(writeModuleForEachIcon.isSelected());
@@ -97,7 +99,9 @@ public class VerilogTab extends PreferencePanel
 		// user preferences
 		if (Simulation.getFactoryVerilogStopAtStandardCells() != Simulation.getVerilogStopAtStandardCells())
 			Simulation.setVerilogStopAtStandardCells(Simulation.getFactoryVerilogStopAtStandardCells());
-		if (Simulation.getFactoryPreserveVerilogFormating() != Simulation.getPreserveVerilogFormating())
+        if (Simulation.getFactoryVerilogNetlistNonstandardCells() != Simulation.getVerilogNetlistNonstandardCells())
+            Simulation.setVerilogNetlistNonstandardCells(Simulation.getFactoryVerilogNetlistNonstandardCells());
+        if (Simulation.getFactoryPreserveVerilogFormating() != Simulation.getPreserveVerilogFormating())
 			Simulation.setPreserveVerilogFormating(Simulation.getFactoryPreserveVerilogFormating());
 		if (Simulation.getFactoryVerilogParameterizeModuleNames() != Simulation.getVerilogParameterizeModuleNames())
 			Simulation.setVerilogParameterizeModuleNames(Simulation.getFactoryVerilogParameterizeModuleNames());
@@ -125,6 +129,7 @@ public class VerilogTab extends PreferencePanel
         preserveVerilogFormatting = new javax.swing.JCheckBox();
         parameterizeModuleNames = new javax.swing.JCheckBox();
         writeModuleForEachIcon = new javax.swing.JCheckBox();
+        netlistNonstandardCells = new javax.swing.JCheckBox();
         projectSettings = new javax.swing.JPanel();
         verDefWireTrireg = new javax.swing.JCheckBox();
         verUseAssign = new javax.swing.JCheckBox();
@@ -187,7 +192,7 @@ public class VerilogTab extends PreferencePanel
         preserveVerilogFormatting.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         outputPanel.add(preserveVerilogFormatting, gridBagConstraints);
@@ -196,7 +201,7 @@ public class VerilogTab extends PreferencePanel
         parameterizeModuleNames.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         outputPanel.add(parameterizeModuleNames, gridBagConstraints);
@@ -210,10 +215,18 @@ public class VerilogTab extends PreferencePanel
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         outputPanel.add(writeModuleForEachIcon, gridBagConstraints);
+
+        netlistNonstandardCells.setText("Netlist Non-standard Cells");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        outputPanel.add(netlistNonstandardCells, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -279,6 +292,7 @@ public class VerilogTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel inputPanel;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JCheckBox netlistNonstandardCells;
     private javax.swing.JPanel outputPanel;
     private javax.swing.JCheckBox parameterizeModuleNames;
     private javax.swing.JPanel preferences;
