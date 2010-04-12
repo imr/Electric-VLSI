@@ -67,17 +67,41 @@ public class VectorCacheExt extends VectorCache {
         Set<VectorCell> visited = new HashSet<VectorCell>();
         subTree(topCell, Orientation.IDENT, visited);
         subTree(topCell, Orientation.XR, visited);
-        showLayer("Metal-2", true);
-        showLayer("Metal-3", false);
-        showLayer("Metal-4", true);
-        showLayer("Metal-5", false);
-        showLayer("Metal-6", true);
-        showLayer("Metal-7", false);
-        showLayer("Metal-8", true);
-        showLayer("Metal-9", false);
+        showLayer("Metal-2", true,
+                22.0, 9.0,
+                44.0, 2.8,  50.0, 2.8,  56.0, 2.8,  62.0, 2.8,
+                72.0, 9.0,
+                82.0, 2.8,  88.0, 2.8,  94.0, 2.8,  100.0, 2.8,  106.0, 2.8, 
+                122.0, 9.0);
+        showLayer("Metal-3", false,
+                0.0, 25.0,
+                /* 18.0, 2.8,  24.0, 2.8, */
+                24.0, 9.0,
+                /* ? 48.0, 9.0 */
+                30.0, 2.8,  36.0, 2.8, 42.0, 2.8,  48.0, 2.8,  54.0, 2.8,  60.0, 2.8,  66.0, 2.8,  72.0, 2.8,  78.0, 2.8,  84.0, 2.8,  90.0, 2.8,  96.0, 2.8,  102.0, 2.8,  108.0, 2.8,  114.0, 2.8,
+                /* 57.0, 2.8,  63.0, 2.8,  69.0, 2.8,  71.0, 2.8,  73.0, 2.8, */
+                /* ? 96.0, 9.0 */
+                120.0, 9.0
+                /* 120.0, 2.8,  126, 2.8, */
+                );
+        showLayer("Metal-4", true,
+                /* 0.0, 10.0 */
+                0.0, 2.8,  5.8, 0.0,  11.6, 2.8,  17.4, 2.8,  23.2, 2.8,
+                /* 4.6, 2.8,  13.8, 2.8,  23.0, 2.8, */
+                36.0, 15.0,
+                48.8, 2.8,  54.6, 2.8,  60.4, 2.8,  66.2, 2.8,  72.0, 2.8,  77.8, 2.8,  83.6, 2.8,  89.4, 2.8,  95.2, 2.8,
+                /* 57.5, 2.8,  63.3, 2.8,  69.1, 2.8,  74.9, 2.8,  80.7, 2.8,  86.5, 2.8, */
+                108.0, 15.0,
+                120.8, 2.8,  126.6, 2.8,  132.4, 2.8,  138.2, 2.8
+                /*121.0, 2.8, 130.2, 2.8, 139.4, 2.8*/);
+        showLayer("Metal-5", false, 12.0, 12.0,  60.0, 12.0,  84.0, 12.0,  132.0, 12.0);
+        showLayer("Metal-6", true , 16.0, 24.0,  56.0, 24.0,  88.0, 24.0,  128.0, 24.0);
+        showLayer("Metal-7", false, 16.0, 24.0,  56.0, 24.0,  88.0, 24.0,  128.0, 24.0);
+        showLayer("Metal-8", true , 18.0, 27.0,  54.0, 27.0,  90.0, 27.0,  126.0, 27.0);
+        showLayer("Metal-9", false, 18.0, 27.0,  54.0, 27.0,  90.0, 27.0,  126.0, 27.0);
     }
 
-    public void showLayer(String layerName, boolean rotate) {
+    public void showLayer(String layerName, boolean rotate, double... channels) {
         List<Rectangle> rects = new ArrayList<Rectangle>();
         Layer layer = Technology.getCMOS90Technology().findLayer(layerName);
         collectLayer(layer, findVectorCell(topCell.getId(), rotate ? Orientation.XR : Orientation.IDENT), new Point(0, 0), rects);
