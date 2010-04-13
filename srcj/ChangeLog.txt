@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+IMP: (4/12/10, JKG) Added Verilog option to write non-standard cells when writing standard cell netlist.
+
 BUG: (4/7/10, DN) The ruler text is too small (Bug #2718).
 FIX: In EditWindow.paintComponent select font for rule text with size 15*globalTextScale insteadof 10*globalTextScale.
 
