@@ -311,11 +311,12 @@ public class Verilog extends Topology
         if (localPrefs.stopAtStandardCells) {
             if (SCLibraryGen.isStandardCell(cell))
                 return true;
-            
-            if (localPrefs.netlistNonstandardCells || standardCells.containsStandardCell(cell)) {
-                return false;
-            } else {
-                return true;
+
+            if (!localPrefs.netlistNonstandardCells) {
+                if (standardCells.containsStandardCell(cell))
+                    return false;
+                else
+                    return true;
             }
         }
 
@@ -836,7 +837,7 @@ public class Verilog extends Topology
 		}
 
 		// add in any user-specified declarations and code
-        if (!localPrefs.stopAtStandardCells) {
+        if (!localPrefs.stopAtStandardCells || localPrefs.netlistNonstandardCells) {
             // STA does not like general verilog code (like and #delay out ina inb etc)
             first = includeTypedCode(cell, VERILOG_DECLARATION_KEY, "declarations");
 		    first |= includeTypedCode(cell, VERILOG_CODE_KEY, "code");
