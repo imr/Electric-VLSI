@@ -1,19 +1,49 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: VerilogData.java
+ * Input/output tool: reader for Verilog output (.v)
+ * Written by Gilda Garreton, Sun Microsystems.
+ *
+ * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.io.input.verilog;
 
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 
-import java.util.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 
-/**
- * User: gg151869
- * Date: Jan 19, 2007
- */
 public class VerilogData implements Serializable
 {
     String name;
@@ -35,7 +65,7 @@ public class VerilogData implements Serializable
         if (top == null) // found a cell called like the filename
         {
             // taking the first cell found in module
-            assert(lastModule != null); // it should have read at least one from file
+        	if (lastModule == null) return null;
             top = Library.findCellInLibraries(lastModule.name + View.SCHEMATIC.getAbbreviationExtension(),
                 View.SCHEMATIC, null);
         }

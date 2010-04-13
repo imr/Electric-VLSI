@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG: (4/13/10, SMR) Verilog reader throws exceptions on bad Verilog (Bug #2722).
+FIX: Catch errors more gracefully.
+
 IMP: (4/12/10, JKG) Added Verilog option to write non-standard cells when writing standard cell netlist.
 
 BUG: (4/7/10, DN) The ruler text is too small (Bug #2718).
