@@ -309,6 +309,9 @@ public class Verilog extends Topology
         // do not netlist contents of standard cells
         // also, if writing a standard cell netlist, ignore all verilog views, verilog templates, etc.
         if (localPrefs.stopAtStandardCells) {
+            if (SCLibraryGen.isStandardCell(cell))
+                return true;
+            
             if (localPrefs.netlistNonstandardCells || standardCells.containsStandardCell(cell)) {
                 return false;
             } else {
