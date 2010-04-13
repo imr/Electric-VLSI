@@ -118,17 +118,17 @@ public class DeltaMerge {
             return;
         }
         out.writeBoolean(true);
-        System.out.print("x=" + DBMath.gridToLambda(x));
+//        System.out.print("x=" + DBMath.gridToLambda(x));
         out.writeInt(x);
         out.writeInt(outC);
         for (int i = 0; i < outC; i++) {
             int outVal = outA[i];
             int y = outVal >> 1;
             boolean df = (outVal & 1) != 0;
-            System.out.print(" " + DBMath.gridToLambda(y) + (df?"^":"_"));
+//            System.out.print(" " + DBMath.gridToLambda(y) + (df?"^":"_"));
             out.writeInt(outVal);
         }
-        System.out.println();
+//        System.out.println();
     }
 
     private boolean getLine() {

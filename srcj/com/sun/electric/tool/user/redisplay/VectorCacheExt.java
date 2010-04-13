@@ -67,6 +67,7 @@ public class VectorCacheExt extends VectorCache {
         Set<VectorCell> visited = new HashSet<VectorCell>();
         subTree(topCell, Orientation.IDENT, visited);
         subTree(topCell, Orientation.XR, visited);
+        showLayer("Metal-1", false);
         showLayer("Metal-2", true,
                 22.0, 9.0,
                 44.0, 2.8,  50.0, 2.8,  56.0, 2.8,  62.0, 2.8,
