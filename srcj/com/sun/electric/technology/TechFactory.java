@@ -104,12 +104,12 @@ public abstract class TechFactory {
             Technology tech = newInstanceImpl(generic, fixedParamValues);
 
             // make sure the name is unique
-            Technology already = Technology.findTechnology(tech.getTechName());
-            if (already != null)
-            {
-            	System.out.println("ERROR: Multiple technologies named '" + tech.getTechName() + "'");
-            	return null;
-            }
+//            Technology already = Technology.findTechnology(tech.getTechName());
+//            if (already != null)
+//            {
+//            	System.out.println("ERROR: Multiple technologies named '" + tech.getTechName() + "'");
+//            	return null;
+//            }
 
             tech.setup();
             return tech;
