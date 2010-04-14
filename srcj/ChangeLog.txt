@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG: (4/14/10, SMR) Multiple technologies with the same name are not detected (Bug #2714).
+FIX: Detect this both for built-in and added technologies.
+
 BUG: (4/13/10, SMR) Verilog reader throws exceptions on bad Verilog (Bug #2722).
 FIX: Catch errors more gracefully.
 
