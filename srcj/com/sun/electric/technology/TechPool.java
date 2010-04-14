@@ -303,8 +303,14 @@ public class TechPool extends AbstractMap<TechId, Technology> {
                 TechFactory techFactory = TechFactory.fromXml(url, null);
                 Technology tech = techFactory.newInstance(generic, emptyParams);
 
-                // make sure the name is unique
-                if (softTechNames.contains(tech.getTechName()))
+                // make sure the name is unique . Tech is null if there is a pre-defined xml tech with
+                // the same nanme like mocmos.
+                if (tech == null)
+                {
+                    System.out.println("ERROR: Same name as a pre-defined technology. Ignoring new definition of " + softTechFile);
+                	continue;
+                }
+                else if (softTechNames.contains(tech.getTechName()))
                 {
                 	System.out.println("ERROR: Multiple added technologies named '" + tech.getTechName() +
                 		"'.  Ignoring " + softTechFile);
