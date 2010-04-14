@@ -23,11 +23,13 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -56,7 +58,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -120,7 +121,6 @@ import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -616,12 +616,22 @@ public class EditWindow extends JPanel
 				poly.transform(rotate);
 			} else
 			{
-				SizeOffset so = np.getProtoSizeOffset();
-				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-				double dX = (so.getHighXOffset() - so.getLowXOffset())/2;
-				double dY = (so.getHighYOffset() - so.getLowYOffset())/2;
-				poly = new Poly(drawnLoc.getX()-dX, drawnLoc.getY()-dY, trueSizeX, trueSizeY);
+                PrimitiveNode pn = (PrimitiveNode)np;
+                EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+                ERectangle baseRectangle = pn.getBaseRectangle();
+                double extendX = pn.getDefaultLambdaExtendX(ep);
+                double extendY = pn.getDefaultLambdaExtendY(ep);
+                poly = new Poly(
+                        drawnLoc.getX() + baseRectangle.getLambdaCenterX() - extendX,
+                        drawnLoc.getY() + baseRectangle.getLambdaCenterY() - extendY,
+                        baseRectangle.getLambdaWidth() + 2*extendX,
+                        baseRectangle.getLambdaHeight() + 2*extendY);
+//				SizeOffset so = np.getProtoSizeOffset();
+//				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+//				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+//				double dX = (so.getHighXOffset() - so.getLowXOffset())/2;
+//				double dY = (so.getHighYOffset() - so.getLowYOffset())/2;
+//				poly = new Poly(drawnLoc.getX()-dX, drawnLoc.getY()-dY, trueSizeX, trueSizeY);
 				AffineTransform trans = orient.rotateAbout(drawnLoc.getX(), drawnLoc.getY());
 				poly.transform(trans);
 			}
