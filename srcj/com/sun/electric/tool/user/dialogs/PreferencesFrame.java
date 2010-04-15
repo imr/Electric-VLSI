@@ -280,7 +280,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new NetworkTab(this, true), toolSet);
 		addTreeNode(new ParasiticTab(this, true), toolSet);
 		addTreeNode(new PlacementTab(this, true), toolSet);
-		addTreeNode(new RoutingTab(parent, true), toolSet);
+		addTreeNode(new RoutingTab(this, true), toolSet);
 		addTreeNode(new SiliconCompilerTab(parent, true), toolSet);
 		addTreeNode(new SimulatorsTab(parent, true), toolSet);
 		addTreeNode(new SpiceTab(parent, true), toolSet);
