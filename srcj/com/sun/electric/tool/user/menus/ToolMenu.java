@@ -107,11 +107,14 @@ import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
 import com.sun.electric.tool.placement.Placement;
+import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.Placement.PlacementPreferences;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.routing.River;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.routing.RoutingFrame;
 import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.sc.GetNetlist;
 import com.sun.electric.tool.sc.Maker;
@@ -130,6 +133,7 @@ import com.sun.electric.tool.user.dialogs.LanguageScripts;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ncc.HighlightEquivalent;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.InvisibleLayerConfiguration;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -159,7 +163,7 @@ import javax.swing.SwingUtilities;
  */
 public class ToolMenu
 {
-    private static EMenu languageMenu = null;
+    private static EMenu languageMenu = null, expRoutingMenu = null;
 
     static EMenu makeMenu() {
 		/****************************** THE TOOLS MENU ******************************/
@@ -173,12 +177,16 @@ public class ToolMenu
 	        new EMenuItem("Manage _Scripts...") { public void run() {
 	        	new LanguageScripts(); }},
             SEPARATOR);
-
 		SwingUtilities.invokeLater(new Runnable() { public void run() {
 	    	setDynamicLanguageMenu();
 		}});
 
-		// mnemonic keys available:  B   F H JK     Q      XYZ
+		expRoutingMenu = new EMenu("Experimental Routers");
+		SwingUtilities.invokeLater(new Runnable() { public void run() {
+			setDynamicExperimentalRoutingMenus();
+		}});
+
+    	// mnemonic keys available:  B   F H JK     Q      XYZ
 		return new EMenu("_Tools",
 
 		//------------------- DRC
@@ -556,9 +564,13 @@ public class ToolMenu
                     River.riverRoute(); }},
 
                 SEPARATOR,
-
+                
 		        new EMenuItem("Sea-Of-_Gates Route") { public void run() {
 		        	SeaOfGates.seaOfGatesRoute(); }},
+
+                SEPARATOR,
+
+                expRoutingMenu,
 
                 Routing.hasSunRouter() ? SEPARATOR : null,
                 Routing.hasSunRouter() ? new EMenuItem("Sun _Lava Router") { public void run() {
@@ -1945,6 +1957,74 @@ public class ToolMenu
         	}
         }
     }
+
+    /**
+     * Method to load the Experimental Routing menu.
+     */
+    public static void setDynamicExperimentalRoutingMenus()
+    {
+        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
+        {
+            JMenu menu = (JMenu)menuBarInstance.findMenuItem(expRoutingMenu.getPath());
+            RoutingFrame[] expRouters = RoutingFrame.getRoutingAlgorithms();
+            for(int i=0; i<expRouters.length; i++)
+            {
+            	EMenuItem elem = new DynamicExperimentalRoutingMenuItem(expRouters[i]);
+                JMenuItem item = elem.genMenu();
+                menu.add(item);
+            }
+        }
+    }
+
+    private static class DynamicExperimentalRoutingMenuItem extends EMenuItem
+    {
+    	private RoutingFrame rf;
+
+    	public DynamicExperimentalRoutingMenuItem(RoutingFrame router)
+        {
+            super(router.getAlgorithmName());
+            rf = router;
+        }
+
+        public String getDescription() { return "Experimental Routers"; }
+
+        protected void updateButtons() {}
+
+        public void run()
+        {
+            Cell cell = Job.getUserInterface().needCurrentCell();
+            if (cell == null) return;
+            new DoExperimentalRoutingJob(rf, cell);
+        }
+    }
+
+	private static class DoExperimentalRoutingJob extends Job
+	{
+		private String algorithmName;
+		private Cell cell;
+
+		private DoExperimentalRoutingJob(RoutingFrame rf, Cell cell)
+		{
+			super(" Routing", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			algorithmName = rf.getAlgorithmName();
+			this.cell = cell;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			for(RoutingFrame rf : RoutingFrame.getRoutingAlgorithms())
+			{
+				if (algorithmName.equals(rf.getAlgorithmName()))
+				{
+		    		int numDone = rf.doRouting(cell, null);
+		    		if (numDone == 0) return false;
+		    		return true;
+				}
+			}
+            return false;
+		}
+	}
 
     private static final int CONVERT_TO_VHDL     = 1;
 	private static final int COMPILE_VHDL_FOR_SC = 2;

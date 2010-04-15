@@ -28,7 +28,10 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.routing.RoutingFrame;
+import com.sun.electric.tool.routing.RoutingFrame.RoutingParameter;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.GridBagConstraints;
@@ -38,21 +41,29 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
 
 /**
  * Class to handle the "Routing" tab of the Preferences dialog.
  */
 public class RoutingTab extends PreferencePanel
 {
+	private PreferencesFrame parent;
+	private Map<RoutingParameter,JComponent> currentParameters;
+
 	/** Creates new form RoutingTab */
-	public RoutingTab(java.awt.Frame parent, boolean modal)
+	public RoutingTab(PreferencesFrame parent, boolean modal)
 	{
 		super(parent, modal);
+		this.parent = parent;
 		initComponents();
 
 		// make all text fields select-all when entered
@@ -145,7 +156,7 @@ public class RoutingTab extends PreferencePanel
 			routDefaultArc.setSelectedItem(initRoutDefArc.getName());
 		}
 
-		// auot routing section
+		// auto routing section
 		routAutoCreateExports.setSelected(Routing.isAutoStitchCreateExports());
 
 		// mimic routing section
@@ -158,6 +169,104 @@ public class RoutingTab extends PreferencePanel
 		routMimicOnlyNewTopology.setSelected(Routing.isMimicStitchOnlyNewTopology());
 		routMimicInteractive.setSelected(Routing.isMimicStitchInteractive());
         routMimicKeepPins.setSelected(Routing.isMimicStitchPinsKept());
+
+        // experimental routing section
+        RoutingFrame[] algorithms = RoutingFrame.getRoutingAlgorithms();
+        for(RoutingFrame rf : algorithms)
+        	routExperimental.addItem(rf.getAlgorithmName());
+        routExperimental.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { getAlgorithmParameters();   setupForAlgorithm(); }
+		});
+		for(RoutingFrame alg : algorithms)
+		{
+			List<RoutingParameter> params = alg.getParameters();
+			if (params == null) continue;
+			for(RoutingParameter pp : params)
+				pp.clearTempValue();
+		}
+
+		// show parameters for current algorithm
+		setupForAlgorithm();
+	}
+
+	private void setupForAlgorithm()
+	{
+		for(int i=experimental.getComponentCount()-1; i >= 2; i--)
+			experimental.remove(i);
+		experimental.updateUI();
+		currentParameters = new HashMap<RoutingParameter,JComponent>();
+
+		String algName = (String)routExperimental.getSelectedItem();
+        RoutingFrame[] algorithms = RoutingFrame.getRoutingAlgorithms();
+        RoutingFrame whichOne = null;
+		for(RoutingFrame an : algorithms)
+		{
+			if (algName.equals(an.getAlgorithmName())) { whichOne = an;   break; }
+		}
+		if (whichOne != null)
+		{
+			List<RoutingParameter> allParams = whichOne.getParameters();
+			if (allParams != null)
+			{
+				// load the parameters
+				int yPos = 1;
+				JSeparator sep = new JSeparator();
+				GridBagConstraints gbc = new GridBagConstraints();
+				gbc.gridx = 0;   gbc.gridy = yPos;
+				gbc.gridwidth = 2;
+				gbc.fill = GridBagConstraints.HORIZONTAL;
+				gbc.insets = new Insets(4, 10, 4, 10);
+				experimental.add(sep, gbc);
+				yPos++;
+
+				for(RoutingParameter pp : allParams)
+				{
+					if (pp.getType() == RoutingParameter.TYPEBOOLEAN)
+					{
+						JCheckBox cb = new JCheckBox(pp.getName());
+						gbc = new GridBagConstraints();
+						gbc.gridx = 0;   gbc.gridy = yPos;
+						gbc.anchor = GridBagConstraints.WEST;
+						gbc.gridwidth = 2;
+						gbc.insets = new Insets(1, 4, 1, 4);
+						experimental.add(cb, gbc);
+						currentParameters.put(pp, cb);
+					} else
+					{
+						JLabel lab = new JLabel(pp.getName());
+						gbc = new GridBagConstraints();
+						gbc.gridx = 0;   gbc.gridy = yPos;
+						gbc.anchor = GridBagConstraints.WEST;
+						gbc.insets = new Insets(1, 4, 1, 4);
+						experimental.add(lab, gbc);
+
+						String init = null;
+						if (pp.getType() == RoutingParameter.TYPEINTEGER)
+						{
+							init = "" + (pp.hasTempValue() ? pp.getTempIntValue() : pp.getIntValue());
+						} else if (pp.getType() == RoutingParameter.TYPESTRING)
+						{
+							init = pp.hasTempValue() ? pp.getTempStringValue() : pp.getStringValue();
+						} else if (pp.getType() == RoutingParameter.TYPEDOUBLE)
+						{
+							init = TextUtils.formatDouble(pp.hasTempValue() ? pp.getTempDoubleValue() : pp.getDoubleValue());
+						}
+						JTextField txt = new JTextField(init);
+						txt.setColumns(init.length()*2);
+						gbc = new GridBagConstraints();
+						gbc.gridx = 1;   gbc.gridy = yPos;
+						gbc.anchor = GridBagConstraints.WEST;
+						gbc.insets = new Insets(1, 4, 1, 4);
+						experimental.add(txt, gbc);
+						currentParameters.put(pp, txt);
+					}
+
+					yPos++;
+				}
+			}
+		}
+		parent.pack();
 	}
 
 	private void overrideChanged()
@@ -371,6 +480,19 @@ public class RoutingTab extends PreferencePanel
 		cur = routAutoCreateExports.isSelected();
 		if (cur != Routing.isAutoStitchCreateExports())
 			Routing.setAutoStitchCreateExports(cur);
+
+		// load values into temp parameters
+		getAlgorithmParameters();
+
+		// set parameters in experimental algorithms
+		RoutingFrame [] algorithms = RoutingFrame.getRoutingAlgorithms();
+		for(RoutingFrame alg : algorithms)
+		{
+			List<RoutingParameter> params = alg.getParameters();
+			if (params == null) continue;
+			for(RoutingParameter pp : params)
+				pp.makeTempSettingReal();
+		}
 	}
 
 	/**
@@ -427,6 +549,40 @@ public class RoutingTab extends PreferencePanel
 
 		if (Routing.isFactoryAutoStitchCreateExports() != Routing.isAutoStitchCreateExports())
 			Routing.setAutoStitchCreateExports(Routing.isFactoryAutoStitchCreateExports());
+
+		// reset parameters in experimental algorithms
+		RoutingFrame [] algorithms = RoutingFrame.getRoutingAlgorithms();
+		for(RoutingFrame alg : algorithms)
+		{
+			List<RoutingParameter> params = alg.getParameters();
+			if (params == null) continue;
+			for(RoutingParameter pp : params)
+				pp.resetToFactory();
+		}
+	}
+
+	private void getAlgorithmParameters()
+	{
+		if (currentParameters == null) return;
+
+		// get the parameters
+		for(RoutingParameter pp : currentParameters.keySet())
+		{
+			JComponent txt = currentParameters.get(pp);
+			if (pp.getType() == RoutingParameter.TYPEINTEGER)
+			{
+				pp.setTempIntValue(TextUtils.atoi(((JTextField)txt).getText()));
+			} else if (pp.getType() == RoutingParameter.TYPESTRING)
+			{
+				pp.setTempStringValue(((JTextField)txt).getText());
+			} else if (pp.getType() == RoutingParameter.TYPEDOUBLE)
+			{
+				pp.setTempDoubleValue(TextUtils.atof(((JTextField)txt).getText()));
+			} else if (pp.getType() == RoutingParameter.TYPEBOOLEAN)
+			{
+				pp.setTempBooleanValue(((JCheckBox)txt).isSelected());
+			}
+		}
 	}
 
 	/** This method is called from within the constructor to
@@ -434,7 +590,7 @@ public class RoutingTab extends PreferencePanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
@@ -462,6 +618,9 @@ public class RoutingTab extends PreferencePanel
         routArcLabel = new javax.swing.JLabel();
         routOverrideArc = new javax.swing.JCheckBox();
         right = new javax.swing.JPanel();
+        experimental = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        routExperimental = new javax.swing.JComboBox();
         auto = new javax.swing.JPanel();
         routAutoCreateExports = new javax.swing.JCheckBox();
         mimic = new javax.swing.JPanel();
@@ -476,23 +635,22 @@ public class RoutingTab extends PreferencePanel
         routMimicKeepPins = new javax.swing.JCheckBox();
         routMimicOnlyNewTopology = new javax.swing.JCheckBox();
 
-        getContentPane().setLayout(new java.awt.GridBagLayout());
-
         setTitle("Tool Options");
-        setName("");
+        setName(""); // NOI18N
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
+        getContentPane().setLayout(new java.awt.GridBagLayout());
 
         routing.setLayout(new java.awt.GridBagLayout());
 
         left.setLayout(new java.awt.GridBagLayout());
 
+        seaOfGates.setBorder(javax.swing.BorderFactory.createTitledBorder("Sea-of-Gates Router"));
         seaOfGates.setLayout(new java.awt.GridBagLayout());
 
-        seaOfGates.setBorder(javax.swing.BorderFactory.createTitledBorder("Sea-of-Gates Router"));
         jLabel1.setText("Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -591,9 +749,9 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.weightx = 0.5;
         left.add(seaOfGates, gridBagConstraints);
 
+        all.setBorder(javax.swing.BorderFactory.createTitledBorder("Stitching Routers"));
         all.setLayout(new java.awt.GridBagLayout());
 
-        all.setBorder(javax.swing.BorderFactory.createTitledBorder("Stitching Routers"));
         routTechLabel.setText("Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -601,7 +759,6 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
         all.add(routTechLabel, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
@@ -639,7 +796,6 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         all.add(routMimicStitcher, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
@@ -679,9 +835,31 @@ public class RoutingTab extends PreferencePanel
 
         right.setLayout(new java.awt.GridBagLayout());
 
-        auto.setLayout(new java.awt.GridBagLayout());
+        experimental.setBorder(javax.swing.BorderFactory.createTitledBorder("Experimental Routers"));
+        experimental.setLayout(new java.awt.GridBagLayout());
+
+        jLabel5.setText("Routing algorithm:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        experimental.add(jLabel5, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        experimental.add(routExperimental, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        right.add(experimental, gridBagConstraints);
 
         auto.setBorder(javax.swing.BorderFactory.createTitledBorder("Auto Stitcher"));
+        auto.setLayout(new java.awt.GridBagLayout());
+
         routAutoCreateExports.setText("Create exports where necessary");
         routAutoCreateExports.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         routAutoCreateExports.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -698,9 +876,9 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.weightx = 0.5;
         right.add(auto, gridBagConstraints);
 
+        mimic.setBorder(javax.swing.BorderFactory.createTitledBorder("Mimic Stitcher"));
         mimic.setLayout(new java.awt.GridBagLayout());
 
-        mimic.setBorder(javax.swing.BorderFactory.createTitledBorder("Mimic Stitcher"));
         jLabel70.setText("Restrictions (when non-interactive):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -826,10 +1004,12 @@ public class RoutingTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel all;
     private javax.swing.JPanel auto;
+    private javax.swing.JPanel experimental;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel70;
     private javax.swing.JPanel left;
     private javax.swing.JPanel mimic;
@@ -838,6 +1018,7 @@ public class RoutingTab extends PreferencePanel
     private javax.swing.JCheckBox routAutoCreateExports;
     private javax.swing.JRadioButton routAutoStitcher;
     private javax.swing.JComboBox routDefaultArc;
+    private javax.swing.JComboBox routExperimental;
     private javax.swing.JCheckBox routMimicInteractive;
     private javax.swing.JCheckBox routMimicKeepPins;
     private javax.swing.JCheckBox routMimicNoOtherArcs;

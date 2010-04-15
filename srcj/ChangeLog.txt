@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+IMP/MAN: (4/15/10, SMR) First pass of generalized routing framework (Bug #2724).
+
 BUG: (4/15/10, GVG) DRC error when diff contact serves two transistors of diff sizes (Bug #2683)
 FIX: Undoing "Better solution for "false drc error between pdiff contacts in 
 tsmcsun40GP (Bug #2311)" for now.
