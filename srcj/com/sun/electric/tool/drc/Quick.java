@@ -3720,12 +3720,13 @@ public class Quick
 			Rectangle2D nodeBounds = ni.getBounds();
 
             // Enough with checking if the transistor active covers 100% the union region
-            boolean newStrategy = nodeBounds.contains(bounds);
-
+//            boolean newStrategy = nodeBounds.contains(bounds);
+          
+            double cX = nodeBounds.getCenterX();
+            double cY = nodeBounds.getCenterY();
+            
 //            if (Job.getDebug())
 //            {
-//                double cX = nodeBounds.getCenterX();
-//                double cY = nodeBounds.getCenterY();
 //                boolean oldS = !((cX < bounds.getMinX() || cX > bounds.getMaxX() ||
 //                    cY < bounds.getMinY() || cY > bounds.getMaxY()));
 //
@@ -3733,10 +3734,10 @@ public class Quick
 //                    System.out.println("Error in transistor coverage");
 //            }
 
-            if (!newStrategy)
-                continue;
-//            if (cX < bounds.getMinX() || cX > bounds.getMaxX() ||
-//				cY < bounds.getMinY() || cY > bounds.getMaxY()) continue;
+//            if (!newStrategy)
+//                continue;
+            if (cX < bounds.getMinX() || cX > bounds.getMaxX() ||
+				cY < bounds.getMinY() || cY > bounds.getMaxY()) continue;
 
 			// determine the poly port  (MUST BE BETTER WAY!!!!)
 			PortProto badport = np.getPort(0);

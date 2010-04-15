@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG: (4/15/10, GVG) DRC error when diff contact serves two transistors of diff sizes (Bug #2683)
+FIX: Undoing "Better solution for "false drc error between pdiff contacts in 
+tsmcsun40GP (Bug #2311)" for now.
+
 BUG: (4/14/10, GVG) NPE in TechPool.getThreadTechPool (all regressions) (Bug #2723)
 FIX: Removed Technology.findTechnology in TechFactory.newInstance. Added extra
 code to detect if a new soft tech has same name as a pre-defined one.
