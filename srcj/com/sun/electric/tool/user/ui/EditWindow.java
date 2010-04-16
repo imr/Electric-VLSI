@@ -59,6 +59,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -617,22 +618,26 @@ public class EditWindow extends JPanel
 			} else
 			{
                 PrimitiveNode pn = (PrimitiveNode)np;
-                EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
-                ERectangle baseRectangle = pn.getBaseRectangle();
-                double extendX = pn.getDefaultLambdaExtendX(ep);
-                double extendY = pn.getDefaultLambdaExtendY(ep);
-                poly = new Poly(
-                        drawnLoc.getX() + baseRectangle.getLambdaCenterX() - extendX,
-                        drawnLoc.getY() + baseRectangle.getLambdaCenterY() - extendY,
-                        baseRectangle.getLambdaWidth() + 2*extendX,
-                        baseRectangle.getLambdaHeight() + 2*extendY);
-//				SizeOffset so = np.getProtoSizeOffset();
-//				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-//				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-//				double dX = (so.getHighXOffset() - so.getLowXOffset())/2;
-//				double dY = (so.getHighYOffset() - so.getLowYOffset())/2;
-//				poly = new Poly(drawnLoc.getX()-dX, drawnLoc.getY()-dY, trueSizeX, trueSizeY);
-				AffineTransform trans = orient.rotateAbout(drawnLoc.getX(), drawnLoc.getY());
+                // New code that should consider "Fix highligting when place asymmetrical primitive"
+//                EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+//                ERectangle baseRectangle = pn.getBaseRectangle();
+//                double extendX = pn.getDefaultLambdaExtendX(ep);
+//                double extendY = pn.getDefaultLambdaExtendY(ep);
+//                poly = new Poly(
+//                        drawnLoc.getX() + baseRectangle.getLambdaCenterX() - extendX,
+//                        drawnLoc.getY() + baseRectangle.getLambdaCenterY() - extendY,
+//                        baseRectangle.getLambdaWidth() + 2*extendX,
+//                        baseRectangle.getLambdaHeight() + 2*extendY);
+
+                // Old code
+                SizeOffset so = np.getProtoSizeOffset();
+				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+				double dX = (so.getHighXOffset() - so.getLowXOffset())/2;
+				double dY = (so.getHighYOffset() - so.getLowYOffset())/2;
+				poly = new Poly(drawnLoc.getX()-dX, drawnLoc.getY()-dY, trueSizeX, trueSizeY);
+
+                AffineTransform trans = orient.rotateAbout(drawnLoc.getX(), drawnLoc.getY());
 				poly.transform(trans);
 			}
 			Point2D [] points = poly.getPoints();
