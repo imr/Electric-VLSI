@@ -88,6 +88,7 @@ public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSign
 		for (int sweep = 0, numSweeps = getNumSweeps(); sweep < numSweeps; sweep++)
 		{
 			Signal waveform = getWaveform(sweep);
+if (waveform == null) continue;		// TODO: fix cause of null waveforms
             if (waveform instanceof BTreeSignal) {
                 // Hack
                 BTreeSignal btns = (BTreeSignal)waveform;
@@ -102,7 +103,6 @@ public class AnalogSignal extends Signal<ScalarSample> implements MultiSweepSign
                     highValue = approx.getSample(btns.eventWithMaxValue).getValue();
                 continue;
             }
-
 			for(int i=0, numEvents = waveform.getExactView().getNumEvents(); i<numEvents; i++)
 			{
                 result[0] = waveform.getExactView().getTime(i);
