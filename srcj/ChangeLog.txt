@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG: (4/16/10, GVG) F-P-Well contact size broken in tsmcSun40GP (Bug #2725)
+FIX: SizeOffset for p well contact in a substrate process corrected.
+
 BUG: (4/16/10, DN) Slidable arc should slide along contact array (Bug #2728).
 FIX: In CircuitCHangeJob.ManyMove.doIt don't move a node on head/tail if it is still in port.
 

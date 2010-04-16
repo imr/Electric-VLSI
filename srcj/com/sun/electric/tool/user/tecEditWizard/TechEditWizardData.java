@@ -3600,7 +3600,7 @@ public class TechEditWizardData
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.value /2 + diff_contact_overhang.value + nwell_overhang_diff_n.value);
         nso = scaledValue(/*diff_contact_overhang.v +*/ nwell_overhang_diff_n.value); // valid for elements that have nwell layers
-        pso = (!pSubstrateProcess)?nso:scaledValue(/*diff_contact_overhang.v +*/ nplus_overhang_diff.value);
+        pso = (!pSubstrateProcess)?nso:scaledValue(/*diff_contact_overhang.v +*/ pplus_overhang_strap.value);
         double[] wellSos = {pso, nso};
 
         Xml.Layer[] wellLayers = {pwellLayer, nwellLayer};
