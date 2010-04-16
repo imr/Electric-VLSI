@@ -1974,10 +1974,19 @@ public class CircuitChangeJobs
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
+                    
 					NodeInst ni1 = ai.getHeadPortInst().getNodeInst();
+                    Point2D newHead = new Point2D.Double(ai.getHeadLocation().getX()+dX, ai.getHeadLocation().getY()+dY);
+					if (!ai.headStillInPort(newHead, true)) {
+                        flag.add(ni1);
+                    }
+
 					NodeInst ni2 = ai.getTailPortInst().getNodeInst();
-					flag.add(ni1);
-					flag.add(ni2);
+					Point2D newTail = new Point2D.Double(ai.getTailLocation().getX()+dX, ai.getTailLocation().getY()+dY);
+                    if (!ai.tailStillInPort(newTail, true)) {
+    					flag.add(ni2);
+                    }
+                    
 					Layout.setTempRigid(ai, true);
 				}
 			}

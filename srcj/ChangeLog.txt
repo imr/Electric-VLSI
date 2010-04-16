@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00d: ******************************
 
+BUG: (4/16/10, DN) Slidable arc should slide along contact array (Bug #2728).
+FIX: In CircuitCHangeJob.ManyMove.doIt don't move a node on head/tail if it is still in port.
+
 IMP/MAN: (4/15/10, SMR) First pass of generalized routing framework (Bug #2724).
 
 BUG: (4/15/10, GVG) DRC error when diff contact serves two transistors of diff sizes (Bug #2683)
