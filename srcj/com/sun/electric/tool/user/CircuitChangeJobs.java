@@ -1977,13 +1977,13 @@ public class CircuitChangeJobs
                     
 					NodeInst ni1 = ai.getHeadPortInst().getNodeInst();
                     Point2D newHead = new Point2D.Double(ai.getHeadLocation().getX()+dX, ai.getHeadLocation().getY()+dY);
-					if (!ai.headStillInPort(newHead, true)) {
+					if (!(ai.isSlidable() && ai.headStillInPort(newHead, true))) {
                         flag.add(ni1);
                     }
 
 					NodeInst ni2 = ai.getTailPortInst().getNodeInst();
 					Point2D newTail = new Point2D.Double(ai.getTailLocation().getX()+dX, ai.getTailLocation().getY()+dY);
-                    if (!ai.tailStillInPort(newTail, true)) {
+                    if (!(ai.isSlidable() && ai.tailStillInPort(newTail, true))) {
     					flag.add(ni2);
                     }
                     
