@@ -619,23 +619,23 @@ public class EditWindow extends JPanel
 			{
                 PrimitiveNode pn = (PrimitiveNode)np;
                 // New code that should consider "Fix highligting when place asymmetrical primitive"
-//                EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
-//                ERectangle baseRectangle = pn.getBaseRectangle();
-//                double extendX = pn.getDefaultLambdaExtendX(ep);
-//                double extendY = pn.getDefaultLambdaExtendY(ep);
-//                poly = new Poly(
-//                        drawnLoc.getX() + baseRectangle.getLambdaCenterX() - extendX,
-//                        drawnLoc.getY() + baseRectangle.getLambdaCenterY() - extendY,
-//                        baseRectangle.getLambdaWidth() + 2*extendX,
-//                        baseRectangle.getLambdaHeight() + 2*extendY);
+                EditingPreferences ep = EditingPreferences.getThreadEditingPreferences();
+                ERectangle baseRectangle = pn.getBaseRectangle();
+                double extendX = pn.getDefaultLambdaExtendX(ep);
+                double extendY = pn.getDefaultLambdaExtendY(ep);
+                poly = new Poly(
+                        drawnLoc.getX() + baseRectangle.getLambdaCenterX(),
+                        drawnLoc.getY() + baseRectangle.getLambdaCenterY(),
+                        baseRectangle.getLambdaWidth() + 2*extendX,
+                        baseRectangle.getLambdaHeight() + 2*extendY);
 
                 // Old code
-                SizeOffset so = np.getProtoSizeOffset();
-				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-				double dX = (so.getHighXOffset() - so.getLowXOffset())/2;
-				double dY = (so.getHighYOffset() - so.getLowYOffset())/2;
-				poly = new Poly(drawnLoc.getX()-dX, drawnLoc.getY()-dY, trueSizeX, trueSizeY);
+//                SizeOffset so = np.getProtoSizeOffset();
+//				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+//				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+//				double dX = (so.getHighXOffset() - so.getLowXOffset())/2;
+//				double dY = (so.getHighYOffset() - so.getLowYOffset())/2;
+//				poly = new Poly(drawnLoc.getX()-dX, drawnLoc.getY()-dY, trueSizeX, trueSizeY);
 
                 AffineTransform trans = orient.rotateAbout(drawnLoc.getX(), drawnLoc.getY());
 				poly.transform(trans);
