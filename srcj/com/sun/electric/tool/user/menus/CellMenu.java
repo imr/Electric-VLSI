@@ -171,13 +171,15 @@ public class CellMenu {
 
 			SEPARATOR,
 
-			// mnemonic keys available:  BC      JK M OPQRS   WXYZ
+			// mnemonic keys available:  BC      JK M OPQR   WXYZ
 			new EMenu("Cell In_fo",
 				new EMenuItem("_Describe this Cell") { public void run() {
 					CellLists.describeThisCellCommand(); }},
 				new EMenuItem("_General Cell Lists...") { public void run() {
 					CellLists.generalCellListsCommand(); }},
 				SEPARATOR,
+				Job.getDebug() ? new EMenuItem("Design _Summary") { public void run() {
+					CellLists.designSummaryCommand(); }} : null,
 				new EMenuItem("List _Nodes/Arcs in this Cell") { public void run() {
 					CellLists.listNodesAndArcsInCellCommand(); }},
 				new EMenuItem("List Cell _Instances") { public void run() {

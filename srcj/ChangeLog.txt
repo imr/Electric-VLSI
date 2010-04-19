@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+IMP/MAN: (4/19/10, DN) Experimental "Cell|Cell info|Design Summary" command (only in -debug mode).
+
 BUG: (4/19/10, DN) Placement of pure layer nodes inconsistent with highlighter (Bug #2730)
 FIX: Set correct center in "Fix highligting when place asymmetrical primitive" on 4/13/10
 

@@ -34,6 +34,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
@@ -48,9 +49,11 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,6 +65,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.swing.JFrame;
 
@@ -575,6 +579,124 @@ public class CellLists extends EDialog
 			}
 		}
 	}
+
+    /**
+	 * This method implements the command to describe Design Summary like Cadence of the current Cell.
+	 */
+    public static void designSummaryCommand()
+    {
+        Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+
+        Library curLib = curCell.getLibrary();
+        URL url = curLib.getLibFile();
+        String editMode = "?";
+
+        System.out.println("                Show Environment                      ");
+        System.out.println("******************************************************");
+        System.out.println("Library   : " + curLib.getName());
+        System.out.println("Cell      : " + curCell.noLibDescribe());
+
+        if (url != null)
+        {
+            File f = new File(url.getPath());
+
+            if (f.canRead())
+                editMode = "Read";
+            if (f.canWrite())
+                editMode = "Write";
+
+            System.out.println("Path      : " + url.getPath());
+        }
+        else
+        {
+            System.out.println("Path      : *Not Saved*");
+            editMode = "Write";
+        }
+
+        System.out.println("Edit Mode : " + editMode);
+        System.out.println("******************************************************");
+
+        TreeMap<Layer,GenMath.MutableInteger> layerTable = new TreeMap<Layer,GenMath.MutableInteger> ();
+        TreeMap<Cell,GenMath.MutableInteger> instanceTable = new TreeMap<Cell,GenMath.MutableInteger> ();
+
+        // Perform Arc layers
+        for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+        {
+            ArcInst ai = it.next();
+            ArcProto ap = ai.getProto();
+
+            for(int idx = 0; idx < ap.getNumArcLayers(); idx++)
+            {
+                Layer layer = ap.getLayer(idx);
+                GenMath.addToBag(layerTable, layer);
+            }
+        }
+
+        // Perform Node layers
+        for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+        {
+            NodeInst ni = it.next();
+
+            if (ni.isCellInstance())
+            {
+                Cell subcell = (Cell) ni.getProto();
+                GenMath.addToBag(instanceTable, subcell);
+            }
+            else
+            {
+                NodeProto np = ni.getProto();
+                PrimitiveNode pn = (PrimitiveNode) np;
+
+                Technology.NodeLayer[] nodeLayerList = pn.getNodeLayers();
+
+                for (Technology.NodeLayer nl: nodeLayerList)
+                {
+                    if (nl.isPseudoLayer()) continue;
+                    Layer layer = nl.getLayer();
+                    GenMath.addToBag(layerTable, layer);
+                }
+            }
+        }
+
+        System.out.println("");
+        System.out.println("              Layer Object Statistics                 ");
+        System.out.println("******************************************************");
+        System.out.println("Count\tLayer");
+        System.out.println("******************************************************");
+
+        int totalVal = 0;
+        for (Map.Entry<Layer,GenMath.MutableInteger> e: layerTable.entrySet())
+        {
+            Layer layer = e.getKey();
+            GenMath.MutableInteger count = e.getValue();
+            System.out.printf("%5s\t%s\n", count, layer.getFullName());
+            totalVal += count.intValue();
+        }
+
+        if (!layerTable.isEmpty())
+            System.out.println("******************************************************");
+        System.out.println("Total: " + totalVal);
+
+        System.out.println("");
+        System.out.println("                Instance Statistics                   ");
+        System.out.println("******************************************************");
+        System.out.println("Count\tInstance");
+        System.out.println("******************************************************");
+
+        totalVal = 0;
+        for (Map.Entry<Cell,GenMath.MutableInteger> e: instanceTable.entrySet())
+        {
+            Cell subcell = e.getKey();
+            GenMath.MutableInteger count = e.getValue();
+            System.out.printf("%5s\t%s\n", count, subcell.describe(false));
+            totalVal += count.intValue();
+        }
+
+        if (!instanceTable.isEmpty())
+            System.out.println("******************************************************");
+        System.out.println("Total: " + totalVal);
+    }
 
 	/**
 	 * This method implements the command to describe the current Cell.
