@@ -537,7 +537,16 @@ public class CircuitChangeJobs
 				DBMath.gridAlign(arcHead, alignment);
 				DBMath.gridAlign(arcTail, alignment);
 
-				double headXOff = arcHead.getX() - origHead.getX();
+                if ((arcHead.getX() == arcTail.getX()) && (arcHead.getY() == arcTail.getY())) {
+                    // zero length arc, make sure angle is correct
+                    int ang = ai.getAngle();
+                    if (ang != 0 && ang != 900 && ang != 1800 && ang != 2700) {
+                        ai.setAngle(0);
+                        adjustedArcs++;
+                    }
+                }
+                
+                double headXOff = arcHead.getX() - origHead.getX();
 				double headYOff = arcHead.getY() - origHead.getY();
 				double tailXOff = arcTail.getX() - origTail.getX();
 				double tailYOff = arcTail.getY() - origTail.getY();
