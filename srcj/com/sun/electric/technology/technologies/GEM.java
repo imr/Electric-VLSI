@@ -491,7 +491,7 @@ public class GEM extends Technology
 
 	private void addHeadArrow(AbstractShapeBuilder b, ImmutableArcInst a, EGraphics graphicsOverride, Layer layer, EPoint headLoc)
 	{
-		int angle = a.getAngle();
+		int angle = a.getDefinedAngle();
 		angle = (angle + 1800) % 3600;
 		int angleOfArrow = 300;		// 30 degrees
 		int backAngle1 = angle - angleOfArrow;
@@ -505,7 +505,7 @@ public class GEM extends Technology
 
 	private EPoint addTailPlus(AbstractShapeBuilder b, ImmutableArcInst a, EGraphics graphicsOverride, Layer layer)
 	{
-		int angle = a.getAngle();
+		int angle = a.getDefinedAngle();
 		int angleOfPlus = 900;		// 90 degrees
 		int backAngleLeft = angle - angleOfPlus;
 		int backAngleRight = angle + angleOfPlus;
@@ -523,7 +523,7 @@ public class GEM extends Technology
 
 	private EPoint addHeadPlus(AbstractShapeBuilder b, ImmutableArcInst a, EGraphics graphicsOverride, Layer layer)
 	{
-		int angle = a.getAngle();
+		int angle = a.getDefinedAngle();
 		angle = (angle + 1800) % 3600;
 		int angleOfPlus = 900;		// 90 degrees
 		int backAngleLeft = angle - angleOfPlus;
@@ -542,7 +542,7 @@ public class GEM extends Technology
 
 	private void addDoubleLineArc(AbstractShapeBuilder b, ImmutableArcInst a, EGraphics graphicsOverride, Layer layer)
 	{
-		int angle = a.getAngle();
+		int angle = a.getDefinedAngle();
 		int angleOfArrow = 900;		// 90 degrees
 		angle = (angle + 1800) % 3600;
 		int backAngle1 = angle - angleOfArrow;
@@ -585,7 +585,7 @@ public class GEM extends Technology
 
 	private void addZigZagArc(AbstractShapeBuilder b, ImmutableArcInst a, EGraphics graphicsOverride, Layer layer)
 	{
-		int angle = a.getAngle();
+		int angle = a.getDefinedAngle();
 		int angleOfArrow = 900;		// 90 degrees
 		int backAngle1 = angle - angleOfArrow;
 		int backAngle2 = angle + angleOfArrow;

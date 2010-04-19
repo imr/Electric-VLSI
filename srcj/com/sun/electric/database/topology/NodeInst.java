@@ -906,7 +906,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             if (ai.isFixedAngle()) {
                 if (newPoint[0].getX() != newPoint[1].getX() || newPoint[0].getY() != newPoint[1].getY()) {
                     int ii = DBMath.figureAngle(newPoint[0], newPoint[1]);
-                    int ang = ai.getAngle();
+                    int ang = ai.getDefinedAngle();
                     if ((ii % 1800) != (ang % 1800)) {
                         zigzag = true;
                     }
@@ -914,7 +914,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             }
 
             // see if a bend can be a straight by some simple manipulations
-            if (zigzag && !ai.isRigid() && (ai.getAngle() % 900) == 0) {
+            if (zigzag && !ai.isRigid() && (ai.getDefinedAngle() % 900) == 0) {
                 // find the node at the other end
                 NodeInst adjustThisNode = ai.getPortInst(otherEnd).getNodeInst();
                 if (!adjustThisNode.hasExports()) {
@@ -930,18 +930,18 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                             adjustable = false;
                             break;
                         }
-                        if (otherArc.getAngle() % 900 != 0) {
+                        if (otherArc.getDefinedAngle() % 900 != 0) {
                             adjustable = false;
                             break;
                         }
-                        if (((ai.getAngle() / 900) & 1) == ((otherArc.getAngle() / 900) & 1)) {
+                        if (((ai.getDefinedAngle() / 900) & 1) == ((otherArc.getDefinedAngle() / 900) & 1)) {
                             adjustable = false;
                             break;
                         }
                     }
                     if (adjustable) {
                         double dX = 0, dY = 0;
-                        if ((ai.getAngle() % 1800) == 0) {
+                        if ((ai.getDefinedAngle() % 1800) == 0) {
                             // horizontal arc: move the other node vertically
                             dY = newPoint[1 - otherEnd].getY() - newPoint[otherEnd].getY();
                             newPoint[otherEnd] = new Point2D.Double(newPoint[otherEnd].getX(), newPoint[1 - otherEnd].getY());

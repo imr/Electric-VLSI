@@ -389,7 +389,7 @@ public abstract class AbstractShapeBuilder {
         short shrinkT = a.isTailExtended() ? shrinkage.get(a.tailNodeId) : Shrinkage.EXTEND_0;
         short shrinkH = a.isHeadExtended() ? shrinkage.get(a.headNodeId) : Shrinkage.EXTEND_0;
 
-        int angle = a.getAngle();
+        int angle = a.getDefinedAngle();
         double w2x = DBMath.roundShapeCoord(w2*GenMath.cos(angle));
         double w2y = DBMath.roundShapeCoord(w2*GenMath.sin(angle));
         double tx = 0;
@@ -398,7 +398,9 @@ public abstract class AbstractShapeBuilder {
             tx = -w2x;
             ty = -w2y;
         } else if (shrinkT != Shrinkage.EXTEND_0) {
-            Point2D e = computeExtension(w2, -w2x, -w2y, a.getOppositeAngle(), shrinkT);
+        	int oppAngle = a.getOppositeAngle();
+        	if (oppAngle == -1) oppAngle = 0;
+            Point2D e = computeExtension(w2, -w2x, -w2y, oppAngle, shrinkT);
             tx = e.getX();
             ty = e.getY();
         }

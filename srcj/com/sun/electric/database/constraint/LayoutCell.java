@@ -761,8 +761,8 @@ class LayoutCell {
         }
 
         // compute intersection of arc "bestai" with new moved arc "ai"
-        Point2D inter = DBMath.intersect(newPts[thisEndIndex], ai.getAngle(),
-                bestAI.getHeadLocation(), bestAI.getAngle());
+        Point2D inter = DBMath.intersect(newPts[thisEndIndex], ai.getDefinedAngle(),
+                bestAI.getHeadLocation(), bestAI.getDefinedAngle());
         if (inter == null) {
             newPts[thatEndIndex].setLocation(
                     newPts[thatEndIndex].getX() + newPts[thisEndIndex].getX() - thisEnd.getLocation().getX(),

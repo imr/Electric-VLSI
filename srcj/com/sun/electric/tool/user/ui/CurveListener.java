@@ -218,7 +218,7 @@ public class CurveListener
 		// get true center of arc through cursor
 		Point2D r0 = ai.getHeadLocation();
 		Point2D r1 = ai.getTailLocation();
-		int ang = ai.getAngle();
+		int ang = ai.getDefinedAngle();
 		double acx = (r0.getX() + r1.getX()) / 2;
 		double acy = (r0.getY() + r1.getY()) / 2;
 		Point2D ip = GenMath.intersect(new Point2D.Double(xcur, ycur), ang, new Point2D.Double(acx, acy), (ang+900)%3600);

@@ -719,9 +719,22 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * Method to return the rotation angle of this ArcInst.
      * This is an angle of direction from tailLocation to headLocation.
      * @return the rotation angle of this ArcInst (in tenth-degrees).
+     * Undefined-angles return -1;
      */
     public int getAngle() {
         return d.getAngle();
+    }
+
+    /**
+     * Method to return the rotation angle of this ArcInst.
+     * This is an angle of direction from tailLocation to headLocation.
+     * @return the rotation angle of this ArcInst (in tenth-degrees).
+     * Undefined-angles return 0;
+     */
+    public int getDefinedAngle() {
+    	int angle = d.getAngle();
+    	if (angle == -1) return 0;
+        return angle;
     }
 
     /**
@@ -1124,6 +1137,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      */
     private static TextDescriptor getSmartTextDescriptor(int angle, double width, TextDescriptor prev, EditingPreferences ep) {
         // assigning valid name: do smart text placement
+    	if (angle == -1) angle = 0;
         if ((angle % 1800) == 0) {
             // horizontal arc
             int smart = ep.getSmartHorizontalPlacementArc();

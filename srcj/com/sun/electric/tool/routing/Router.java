@@ -433,7 +433,8 @@ public abstract class Router {
         if (obj instanceof ArcInst) {
             ArcInst ai = (ArcInst)obj;
             if (ignoreAngle) return ai.getLambdaBaseWidth();
-            if (ai.getAngle() % 1800 == arcAngle) return ai.getLambdaBaseWidth();
+            int angle = ai.getDefinedAngle();
+            if (angle % 1800 == arcAngle) return ai.getLambdaBaseWidth();
             return ap.getDefaultLambdaBaseWidth();
         }
         if (obj == null || !(obj instanceof PortInst)) return ap.getDefaultLambdaBaseWidth();
@@ -447,7 +448,8 @@ public abstract class Router {
             ArcInst ai = c.getArc();
             if (ai.getProto() != ap) continue;
             if (!ignoreAngle) {
-                if (ai.getAngle() % 1800 != arcAngle % 1800) continue;
+                int angle = ai.getDefinedAngle();
+                if (angle % 1800 != arcAngle % 1800) continue;
             }
             double newWidth = c.getArc().getLambdaBaseWidth();
             if (width < newWidth) width = newWidth;
@@ -621,7 +623,7 @@ public abstract class Router {
 
             if (obj instanceof ArcInst) {
                 ArcInst ai = (ArcInst)obj;
-                angle = ai.getAngle();
+                angle = ai.getDefinedAngle();
                 double size = ai.getLambdaBaseWidth();
 
                 if (loc.equals(cornerLoc)) {

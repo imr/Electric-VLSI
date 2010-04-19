@@ -1674,7 +1674,8 @@ public class EditMenu {
                 Point2D tailPt = ai.getTailLocation();
                 double width = ai.getLambdaBaseWidth();
                 String arcName = ai.getName();
-                int angle = (ai.getAngle() + 900) % 3600;
+                int angle = ai.getDefinedAngle();
+                angle = (angle + 900) % 3600;
 
                 // create the new arcs
                 ArcInst newAi1 = ArcInst.makeInstanceBase(ap, width, headPort, pi, headPt, insert, null);

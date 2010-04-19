@@ -718,7 +718,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 //		if (ly > hy) { double swap = ly; ly = hy;  hy = swap; }
 
 		// do not reduce in X if arc is horizontal
-		if (angle != 0 && angle != 1800)
+		if (angle != -1 && angle != 0 && angle != 1800)
 		{
 			// determine reduced port area
 			lx = Math.max(bx, lx + realWid);   hx = Math.min(ux, hx - realWid);
@@ -738,7 +738,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 		}
 
 		// do not reduce in Y if arc is vertical
-		if (angle != 900 && angle != 2700)
+		if (angle != -1 && angle != 900 && angle != 2700)
 		{
 			// determine reduced port area
 			ly = Math.max(by, ly + realWid);   hy = Math.min(uy, hy - realWid);

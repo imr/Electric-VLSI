@@ -539,7 +539,7 @@ public class CircuitChangeJobs
 
                 if ((arcHead.getX() == arcTail.getX()) && (arcHead.getY() == arcTail.getY())) {
                     // zero length arc, make sure angle is correct
-                    int ang = ai.getAngle();
+                    int ang = ai.getDefinedAngle();
                     if (ang != 0 && ang != 900 && ang != 1800 && ang != 2700) {
                         ai.setAngle(0);
                         adjustedArcs++;
@@ -564,7 +564,7 @@ public class CircuitChangeJobs
 				}
 
 				// make sure an arc does not change angle
-				int ang = ai.getAngle();
+				int ang = ai.getDefinedAngle();
 				if (ang == 0 || ang == 1800)
 				{
 					// horizontal arc: both DY values must be the same
@@ -1851,7 +1851,7 @@ public class CircuitChangeJobs
 					double [] deltaYs = new double[2];
 					NodeInst [] niList = new NodeInst[2];
 					deltaXs[0] = deltaYs[0] = deltaXs[1] = deltaYs[1] = 0;
-					int arcangle = ai.getAngle();
+					int arcangle = ai.getDefinedAngle();
 					int j;
 					for(j=0; j<2; j++)
 					{
@@ -2636,7 +2636,7 @@ public class CircuitChangeJobs
 		{
 			Connection con = it.next();
 			ArcInst ai = con.getArc();
-			int angle = ai.getAngle();
+			int angle = ai.getDefinedAngle();
 			if (hor)
 			{
 				// only want horizontal arcs

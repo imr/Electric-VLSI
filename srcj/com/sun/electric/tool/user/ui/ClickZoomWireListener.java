@@ -1571,7 +1571,7 @@ public class ClickZoomWireListener
 
     private static int getAngleIncrement(ArcInst ai)
     {
-    	int angle = ai.getAngle();
+    	int angle = ai.getDefinedAngle();
     	if ((angle%900) == 0) return 90;
     	if ((angle%450) == 0) return 45;
     	if ((angle%300) == 0) return 30;

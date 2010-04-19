@@ -2297,7 +2297,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 Layer layer = primLayer.getLayer();
 
                 // remove a gap for the negating bubble
-                int angle = a.getAngle();
+                int angle = a.getDefinedAngle();
                 double gridBubbleSize = Schematics.tech().getNegatingBubbleSize()*DBMath.GRID;
                 double cosDist = DBMath.cos(angle) * gridBubbleSize;
                 double sinDist = DBMath.sin(angle) * gridBubbleSize;
@@ -2338,7 +2338,7 @@ public class Technology implements Comparable<Technology>, Serializable
         // add an arrow to the arc description
         if (!isNoDirectionalArcs() && !b.skipLayer(generic.glyphLay)) {
             final double lambdaArrowSize = 1.0*DBMath.GRID;
-            int angle = a.getAngle();
+            int angle = a.getDefinedAngle();
             if (a.isBodyArrowed()) {
                 b.pushPoint(a.headLocation);
                 b.pushPoint(a.tailLocation);

@@ -1584,7 +1584,7 @@ public class ViewChanges
 							// old arc was fixed-angle so look for a similar-angle path
 							Rectangle2D headBounds = newHeadPoly.getBounds2D();
 							Rectangle2D tailBounds = newTailPoly.getBounds2D();
-							Point2D [] newPoints = GenMath.arcconnects(ai.getAngle(), headBounds, tailBounds);
+							Point2D [] newPoints = GenMath.arcconnects(ai.getDefinedAngle(), headBounds, tailBounds);
 							if (newPoints != null)
 							{
 								pHead = new EPoint(newPoints[0].getX(), newPoints[0].getY());

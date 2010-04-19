@@ -1026,7 +1026,7 @@ public abstract class InteractiveRouter extends Router {
                         Connection conn = it.next();
                         ArcInst ai = conn.getArc();
                         if (ai.getProto().getLayerIterator().next() != layer) continue;
-                        int angle = ai.getAngle();
+                        int angle = ai.getDefinedAngle();
                         if (angle % 1800 == 0) {
                             if (horiz == null)
                                 horiz = ai.getBounds();
@@ -1288,6 +1288,7 @@ public abstract class InteractiveRouter extends Router {
             }
         }
         if (alignment != null) {
+        	if (arcAngle == -1) arcAngle = 0;
             if (arcAngle % 1800 == 0) {
                 // horizontal
                 if (isNumberAligned(point.getX(), alignment.getWidth()) &&
