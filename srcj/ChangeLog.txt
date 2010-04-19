@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+IMP: (4/19/10, DN) More strict checking in ImmutableArcInst.newInstance and ImmutableArcInst.withAngle.
+
 BUG: (4/19/10, SMR) Undefined arc angles still cause trouble (Bug #2729).
 FIX: Added new ArcInst and ImmutableArcInst methods: getDefinedAngle() which
      returns 0 instead of -1.

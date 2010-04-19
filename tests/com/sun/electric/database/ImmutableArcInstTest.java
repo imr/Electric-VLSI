@@ -712,8 +712,8 @@ public class ImmutableArcInstTest {
 
         ImmutableArcInst a2 = a1.withAngle(-1);
         a2.check();
-        assertEquals(3599, a2.getAngle());
-        assertFalse(isEasyShape(a2));
+        assertEquals(-1, a2.getAngle());
+        assertTrue(isEasyShape(a2));
     }
 
     /**
