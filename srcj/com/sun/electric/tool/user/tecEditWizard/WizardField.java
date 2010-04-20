@@ -44,6 +44,20 @@ public class WizardField extends WizardFieldBasic
     public WizardField(double v, String r) { value = v; rule = r; }
 }
 
+// Special class to contain both X and Y values of a rule
+class WizardRuleFields
+{
+    WizardField xValue, yValue;
+    String name; // variable name
+
+    WizardRuleFields(String n)
+    {
+        name = n;
+        xValue = new WizardField();
+        yValue = new WizardField();
+    }
+}
+
 /**
  * This class is to handle wide spacing rules
  */
