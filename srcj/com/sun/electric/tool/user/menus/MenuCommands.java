@@ -137,6 +137,10 @@ public final class MenuCommands
                 ClickZoomWireListener.theOne.wireTo(8); }},
             new EMenuItem("Wire to M9", KeyStroke.getKeyStroke(KeyEvent.VK_9, 0)) { public void run() {
                 ClickZoomWireListener.theOne.wireTo(9); }},
+            new EMenuItem("Wire Down One Level", KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0)) { public void run() {
+                ClickZoomWireListener.theOne.wireDownUp(true); }},
+            new EMenuItem("Wire Up One Level", KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, 0)) { public void run() {
+                ClickZoomWireListener.theOne.wireDownUp(false); }},
             new EMenuItem("Switch Wiring Target", KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)) { public void run() {
                 ClickZoomWireListener.theOne.switchWiringTarget(); }},
             EMenuItem.SEPARATOR,

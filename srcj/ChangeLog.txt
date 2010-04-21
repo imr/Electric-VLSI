@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+IMP/MAN: (4/21/10, JKG) Added menu commands to wire up and down one layer in layout
+
 IMP/MAN: (4/21/10, SMR) Can now resize multiple nodes and multiple arcs (Bug #2732).
 
 BUG: (4/21/10, DN) Netbeans build doesn't create manifest.

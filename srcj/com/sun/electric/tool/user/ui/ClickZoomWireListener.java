@@ -1714,6 +1714,89 @@ public class ClickZoomWireListener
 		User.getUserTool().setCurrentArcProto(ap);
     }
 
+    /**
+     * Wire up or down a layer
+     * @param down true to wire down a layer, otherwise wire up a layer
+     */
+    public void wireDownUp(boolean down) {
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+        Cell cell = wnd.getCell();
+        if (cell == null) return;
+
+        // find current arcs that can connect to portinst
+        Technology tech = cell.getTechnology();
+        if (highlighter.getNumHighlights() == 1 && cell != null) {
+            ElectricObject obj = highlighter.getOneHighlight().getElectricObject();
+            if (obj instanceof PortInst) {
+                PortInst pi = (PortInst)obj;
+                ArcProto [] connArcs = pi.getPortProto().getBasePort().getConnections();
+                if (connArcs == null || connArcs.length == 0) return;
+                ArcProto sourceAp = null;
+                for (ArcProto ap : connArcs) {
+                    if (ap.getTechnology() != tech) continue;
+                    if (ap.isNotUsed()) continue;               // ignore arcs that aren't used
+                    if (!ap.getFunction().isPoly() && !ap.getFunction().isMetal()) continue;
+
+                    if (sourceAp == null) {
+                        sourceAp = ap; continue;
+                    }
+                    // can't compare poly versus metal using getLevel()
+                    if (down && ap.getFunction().isPoly() && sourceAp.getFunction().isMetal()) {
+                        sourceAp = ap; continue; // poly is lower than metal
+                    }
+                    if (!down && ap.getFunction().isMetal() && sourceAp.getFunction().isPoly()) {
+                        sourceAp = ap; continue;
+                    }
+                    // can compare by getLevel() since both of type poly or both of type metal
+                    if (down && ap.getFunction().getLevel() < sourceAp.getFunction().getLevel()) {
+                        sourceAp = ap; continue;
+                    }
+                    if (!down && ap.getFunction().getLevel() > sourceAp.getFunction().getLevel()) {
+                        sourceAp = ap;
+                    }
+                }
+                // found lowest or highest level arc that can connect to portinst
+                boolean metal = sourceAp.getFunction().isMetal(); // otherwise poly
+                int level = sourceAp.getFunction().getLevel();
+
+                // now go down one or up one
+                if (down && level == 1 && !metal) {
+                    // lower boundary condition - can't go lower
+                    return;
+                } else if (down && level == 1 && metal) {
+                    // lower boundary condition - switch to metal
+                    metal = false; // level is 1
+                } else if (down) {
+                    level--;
+                } else if (!down) { // up
+                    level++;
+                }
+
+                // get new arc fuction
+                ArcProto.Function newFunc = metal ? ArcProto.Function.getMetal(level) : ArcProto.Function.getPoly(level);
+                if (newFunc == null) return;
+
+                // get new arc
+                ArcProto destAp = null;
+                boolean found = false;
+                for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+                    destAp = it.next();
+                    if (destAp.isNotUsed()) continue;               // ignore arcs that aren't used
+                    if (destAp.getFunction() == newFunc) {
+                        found = true; break;
+                    }
+                }
+                if (!found) return;
+
+                router.makeVerticalRoute(wnd, pi, destAp);
+
+                // switch palette to arc
+                User.getUserTool().setCurrentArcProto(destAp);
+            }
+        }
+    }
 
     // ********************************* Popup Menus *********************************
 
