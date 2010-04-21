@@ -788,7 +788,7 @@ public class TechEditWizardData
 					if (spacePos < 0) spacePos = equalsPos; else
 						spacePos = Math.min(spacePos, equalsPos);
 					String varName = buf.substring(1, spacePos);
-
+                    boolean single = buf.startsWith("$");
 					int semiPos = buf.indexOf(';');
 					if (semiPos < 0)
 					{
@@ -941,12 +941,27 @@ public class TechEditWizardData
                     if (varName.equalsIgnoreCase("gds_marking_layer")) marking_layer.setGDSData(getGDSValuesFromString(varValue));
                     else
                     {
-                        WizardField wf = findWizardField(varName);
-                        if (wf != null)
+                        Object obj = null;
+                        if (single)
                         {
-                            fillRule(varValue, wf);
+                            WizardField wf = findWizardField(varName);
+                            if (wf != null)
+                            {
+                                fillRule(varValue, wf);
+                            }
+                            obj = wf;
                         }
                         else
+                        {
+                            // two rules in the definition
+                            WizardRuleFields wfs = findWizardRuleFields(varName);
+                            if (wfs != null)
+                            {
+                                fillRules(varValue, wfs);
+                            }
+                            obj = wfs;
+                        }
+                        if (obj == null)
                         {
                             Job.getUserInterface().showErrorMessage("Unknown keyword '" + varName + "' on line " + lineReader.getLineNumber(),
                                 "Syntax Error In Technology File");
@@ -965,7 +980,6 @@ public class TechEditWizardData
 	}
 
     private static List<WizardField> extraVariables = new ArrayList<WizardField>();
-
     private WizardField findWizardField(String varName)
     {
         for (WizardField wf : extraVariables)
@@ -976,6 +990,20 @@ public class TechEditWizardData
         // it doesn't exist yet. Adding it now.
         WizardField w = new WizardField(varName);
         extraVariables.add(w);
+        return w;
+    }
+
+    private static List<WizardRuleFields> extraDoubleFields = new ArrayList<WizardRuleFields>();    
+    private WizardRuleFields findWizardRuleFields(String varName)
+    {
+        for (WizardRuleFields wf : extraDoubleFields)
+        {
+            if (wf.name.equals(varName))
+                return wf;
+        }
+        // it doesn't exist yet. Adding it now.
+        WizardRuleFields w = new WizardRuleFields(varName);
+        extraDoubleFields.add(w);
         return w;
     }
 
@@ -1130,6 +1158,12 @@ public class TechEditWizardData
 			pos++;
 		}
 	}
+
+    // fillRules
+    private static void fillRules(String str, WizardRuleFields rule)
+    {
+        fillRule(str, "(,)", rule.xValue, rule.yValue);
+    }
 
     // fillRule
     private static void fillRule(String str, WizardField... rules)
@@ -4004,8 +4038,12 @@ public class TechEditWizardData
                 // OD18. od18y is corrected to match gateOD18ud1Len
                 od18y = scaledValue(gateOD18ud1Len.value /2+diff_poly_overhang.value +od18_diff_overhang[1].value);
                 addXmlNodeLayer(nodesList, t, "OD_18", od18x, od18y);
-                // OD18ud15. Same side as OD18
-                addXmlNodeLayer(nodesList, t, "OD_18ud15", od18x, od18y);
+                // OD18ud15. Not the same as od18 anymore to be more flexible.
+                WizardRuleFields od18ud15DifOverhang = findWizardRuleFields("od18u15_diff_overhang");
+                double od18du15x = scaledValue(gate_od18_width.value /2+od18ud15DifOverhang.xValue.value);
+                double od18du15y = scaledValue(gateOD18ud1Len.value /2+diff_poly_overhang.value +od18ud15DifOverhang.yValue.value);
+
+                addXmlNodeLayer(nodesList, t, "OD_18ud15", od18du15x, od18du15y);
 
                 // adding short select
                 shortSelectX = scaledValue(gate_od18_width.value /2+poly_endcap.value);
@@ -4013,15 +4051,32 @@ public class TechEditWizardData
                 xTranSelLayer = (makeXmlNodeLayer(shortSelectX, shortSelectX, selecty, selecty, selectLayer, Poly.Type.FILLED));
                 nodesList.add(xTranSelLayer);
 
+                // Assuming od18 is bigger than od18ud15
+                double wellX = od18x;
+                double wellY = od18y;
+                double biggerX = od18_diff_overhang[0].value;
+                double biggerY = od18_diff_overhang[1].value;
+
+                // adjusting well and so values if od18ud15 is bigger
+                if (DBMath.isGreaterThan(od18ud15DifOverhang.xValue.value, od18_diff_overhang[0].value))
+                {
+                    wellX = od18du15x;
+                    biggerX = od18ud15DifOverhang.xValue.value;
+                }
+                if (DBMath.isGreaterThan(od18ud15DifOverhang.yValue.value, od18_diff_overhang[1].value))
+                {
+                    wellY = od18du15y;
+                    biggerY = od18ud15DifOverhang.yValue.value;
+                }
+
                 // adding well
                 if (wellLayer != null)
                 {
-                    xTranWellLayer = (makeXmlNodeLayer(od18x, od18x, od18y, od18y, wellLayer, Poly.Type.FILLED));
+                    xTranWellLayer = (makeXmlNodeLayer(wellX, wellX, wellY, wellY, wellLayer, Poly.Type.FILLED));
                     nodesList.add(xTranWellLayer);
                 }
-
-                sox = scaledValue(od18_diff_overhang[0].value);
-                soy = scaledValue(diff_poly_overhang.value +od18_diff_overhang[1].value);
+                sox = scaledValue(biggerX);
+                soy = scaledValue(diff_poly_overhang.value + biggerY);
                 n = makeXmlPrimitive(t.nodeGroups, "OD18ud15-" + name + "-Transistor-S", func, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
                 g.addElement(n, "18ud15-" + name + "-S");

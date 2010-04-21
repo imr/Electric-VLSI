@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+BUG: (4/21/10, DN) Netbeans build doesn't create manifest.
+FIX: Add "trunk/srcj/manifest.mf" template. 
+
 IMP: (4/20/10, GVG) TechEditorWizard: better handliing of asymetric rules (Bug #2656)
 Added WizardRuleFields class which should be the first step for this request.
 
