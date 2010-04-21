@@ -72,10 +72,13 @@ import javax.swing.JTextField;
 public class SizeListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
-	private Geometric stretchGeom;
+	private List<Geometric> stretchGeoms;
+	private Cell stretchCell;
 	private EventListener oldListener;
 	private Cursor oldCursor;
 	private Point2D farthestCorner, farthestEdge, closestCorner, closestEdge;
+	private NodeInst selectedNode;
+	private ArcInst selectedArc;
 	private static Cursor sizeCursor = ToolBar.readCursor("CursorSize.gif", 14, 14);
 	private static SizeListener currentListener = null;
 	private SizeListener() {}
@@ -91,27 +94,31 @@ public class SizeListener
 
 		List<Geometric> geomList = highlighter.getHighlightedEObjs(true, true);
 		if (geomList == null) return;
-		if (geomList.size() != 1)
+		int numArcs = 0, numPrims = 0;
+		for(Geometric geom : geomList)
 		{
-			System.out.println("Select just one object to size");
+			if (geom instanceof ArcInst) numArcs++; else
+			{
+				NodeInst ni = (NodeInst)geom;
+				if (!ni.isCellInstance()) numPrims++;
+			}
+		}
+		if (numPrims == 0 && numArcs == 0)
+		{
+			System.out.println("You must select arcs or primitive nodes.  Cell instances cannot be resized.");
 			return;
 		}
-		Geometric geom = geomList.get(0);
-		if (geom instanceof NodeInst)
+		if (numPrims != 0 && numArcs != 0)
 		{
-			NodeInst ni = (NodeInst)geom;
-			if (ni.isCellInstance())
-			{
-				System.out.println("You can only resize primitive nodes, not cell instances.");
-				return;
-			}
+			System.out.println("You must select either arcs or primitive nodes, but not a mix of both.");
+			return;
 		}
 
 		// remember the listener that was there before
 		EventListener oldListener = WindowFrame.getListener();
 		Cursor oldCursor = TopLevel.getCurrentCursor();
 
-		System.out.println("Click to stretch " + geom);
+		System.out.println("Click to stretch");
 		EventListener newListener = oldListener;
 		if (newListener == null || !(newListener instanceof SizeListener))
 		{
@@ -119,7 +126,8 @@ public class SizeListener
 			newListener = currentListener;
 			WindowFrame.setListener(newListener);
 		}
-		((SizeListener)newListener).stretchGeom = geom;
+		((SizeListener)newListener).stretchGeoms = geomList;
+		((SizeListener)newListener).stretchCell = wnd.getCell();
 
 		// Only store data when the previous event listener is not this one
 		if (!(oldListener instanceof SizeListener))
@@ -130,12 +138,15 @@ public class SizeListener
 
 		// change the cursor
 		TopLevel.setCurrentCursor(sizeCursor);
+		((SizeListener)newListener).selectedNode = null;
+		((SizeListener)newListener).selectedArc = null;
+		((SizeListener)newListener).showHighlight(null, wnd);
 	}
 
 	public static void restorePreviousListener(Object toDelete)
 	{
 		if (currentListener == null) return; // nothing to restore
-		if (currentListener.stretchGeom == toDelete)
+		if (currentListener.stretchGeoms == toDelete)
 			currentListener.restoringOriginalSetup(null);
 	}
 
@@ -351,20 +362,106 @@ public class SizeListener
 
 	public void mousePressed(MouseEvent evt)
 	{
-		farthestCorner = farthestEdge = null;
-		showHighlight(evt, (EditWindow)evt.getSource(), false);
+		findClosestObjectAndPoint(evt);
+		showHighlight(evt, (EditWindow)evt.getSource());
 	}
 
-	public void mouseMoved(MouseEvent evt)
+	private void findClosestObjectAndPoint(MouseEvent evt)
 	{
-		farthestCorner = farthestEdge = null;
-		showHighlight(evt, (EditWindow)evt.getSource(), true);
-		farthestCorner = farthestEdge = null;
+		closestCorner = farthestCorner = null;
+		closestEdge = farthestEdge = null;
+		selectedNode = null;
+		selectedArc = null;
+
+		// get the coordinates of the cursor in database coordinates
+		EditWindow wnd = (EditWindow)evt.getSource();
+		int oldx = evt.getX();
+		int oldy = evt.getY();
+		Point2D pt = wnd.screenToDatabase(oldx, oldy);
+
+		double closestDist = Double.MAX_VALUE;
+		for(Geometric geom : stretchGeoms)
+		{
+			if (geom instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)geom;
+				long gridWidth = DBMath.lambdaToSizeGrid(ai.getLambdaBaseWidth());
+				Poly poly = ai.makeLambdaPoly(gridWidth, Poly.Type.CLOSED);
+				if (poly == null) continue;
+				Point2D [] stretchedPoints = poly.getPoints();
+				int angle = ai.getDefinedAngle();
+				for(int i=0; i<stretchedPoints.length; i++)
+				{
+					int lastI = i - 1;
+					if (lastI < 0) lastI = stretchedPoints.length - 1;
+					int thisAng = DBMath.figureAngle(stretchedPoints[lastI], stretchedPoints[i]);
+					if (thisAng%1800 == angle%1800)
+					{
+	                    double cX = (stretchedPoints[lastI].getX() + stretchedPoints[i].getX()) / 2;
+	                    double cY = (stretchedPoints[lastI].getY() + stretchedPoints[i].getY()) / 2;
+						double dist = pt.distance(new Point2D.Double(cX, cY));
+						if (dist < closestDist)
+						{
+							closestDist = dist;
+							closestCorner = farthestCorner = null;
+							closestEdge = farthestEdge = null;
+							selectedNode = null;
+							selectedArc = ai;
+						}
+					}
+				}
+			} else
+			{
+				// get information about the node being stretched
+				NodeInst ni = (NodeInst)geom;
+				if (ni.getProto() instanceof Cell) continue;
+
+				// setup outline of node with standard offset
+				Poly nodePoly = ni.getBaseShape();
+				AffineTransform transIn = ni.transformIn();
+				Point2D xPt = transIn.transform(pt, null);
+				nodePoly.transform(transIn);
+
+				// determine the closest point on the outline
+				Point2D [] points = nodePoly.getPoints();
+				for(int i=0; i<points.length; i++)
+				{
+					double dist = xPt.distance(points[i]);
+					if (dist < closestDist)
+					{
+						closestDist = dist;
+						closestCorner = points[i];
+						farthestCorner = points[(i + points.length/2) % points.length];
+						closestEdge = farthestEdge = null;
+						selectedNode = ni;
+						selectedArc = null;
+					}
+					int lastI = i-1;
+					if (lastI < 0) lastI = points.length-1;
+					Point2D edge = new Point2D.Double((points[i].getX() + points[lastI].getX())/2,
+						(points[i].getY() + points[lastI].getY())/2);
+					dist = xPt.distance(edge);
+					if (dist < closestDist)
+					{
+						closestDist = dist;
+						int oppI = (i + points.length/2) % points.length;
+						lastI = oppI-1;
+						if (lastI < 0) lastI = points.length-1;
+						closestEdge = edge;
+						farthestEdge = new Point2D.Double((points[oppI].getX() + points[lastI].getX())/2,
+							(points[oppI].getY() + points[lastI].getY())/2);
+						closestCorner = farthestCorner = null;
+						selectedNode = ni;
+						selectedArc = null;
+					}
+				}
+			}
+		}
 	}
 
 	public void mouseDragged(MouseEvent evt)
 	{
-		showHighlight(evt, (EditWindow)evt.getSource(), false);
+		showHighlight(evt, (EditWindow)evt.getSource());
 	}
 
 	public void mouseReleased(MouseEvent evt)
@@ -373,21 +470,24 @@ public class SizeListener
 		EditWindow wnd = (EditWindow)evt.getSource();
 		restoringOriginalSetup(wnd);
 
-		// Checking the element hasn't been removed
-		assert(stretchGeom.isLinked());
-
-		// handle scaling the selected objects
-		if (stretchGeom instanceof NodeInst)
+		for(Geometric geom : stretchGeoms)
 		{
-			NodeInst ni = (NodeInst)stretchGeom;
-			Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
-			Point2D newSize = getNewNodeSize(evt, newCenter);
-			new ScaleNode(ni, new EPoint(newCenter.getX(), newCenter.getY()), newSize.getX(), newSize.getY());
-		} else
-		{
-			ArcInst ai = (ArcInst)stretchGeom;
-			double newLambdaBaseWidth = getNewArcSize(evt);
-			new ScaleArc(ai, newLambdaBaseWidth);
+			// Checking the elements haven't been removed
+			assert(geom.isLinked());
+	
+			// handle scaling the selected objects
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+				Point2D newSize = getNewNodeSize(evt, newCenter, ni);
+				new ScaleNode(ni, new EPoint(newCenter.getX(), newCenter.getY()), newSize.getX(), newSize.getY());
+			} else
+			{
+				ArcInst ai = (ArcInst)geom;
+				double newLambdaBaseWidth = getNewArcSize(evt, ai);
+				new ScaleArc(ai, newLambdaBaseWidth);
+			}
 		}
 		wnd.repaint();
 	}
@@ -398,7 +498,13 @@ public class SizeListener
 		WindowFrame.setListener(oldListener);
 		TopLevel.setCurrentCursor(oldCursor);
 		if (wnd != null)
-			showHighlight(null, wnd, false);
+		{
+			Highlighter highlighter = wnd.getHighlighter();
+			highlighter.clear();
+			for(Geometric geom : stretchGeoms)
+				highlighter.addElectricObject(geom, stretchCell);
+			highlighter.finished();
+		}
 	}
 
 	public void keyPressed(KeyEvent evt)
@@ -412,10 +518,11 @@ public class SizeListener
 		if (chr == KeyEvent.VK_ESCAPE)
 		{
 			restoringOriginalSetup(wnd);
-		   System.out.println("Sizing aborted");
+			System.out.println("Sizing aborted");
 		}
 	}
 
+	public void mouseMoved(MouseEvent evt) {}
 	public void mouseClicked(MouseEvent evt) {}
 	public void mouseEntered(MouseEvent evt) {}
 	public void mouseExited(MouseEvent evt) {}
@@ -423,27 +530,32 @@ public class SizeListener
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
 
-	private void showHighlight(MouseEvent evt, EditWindow wnd, boolean stillUp)
+	private void showHighlight(MouseEvent evt, EditWindow wnd)
 	{
 		Highlighter highlighter = wnd.getHighlighter();
-		Cell cell = stretchGeom.getParent();
-
 		highlighter.clear();
-		highlighter.addElectricObject(stretchGeom, cell);
-		if (evt != null)
+
+		for(Geometric geom : stretchGeoms)
 		{
+			// highlight the node/arc
+			highlighter.addElectricObject(geom, stretchCell);
+
 			double boxSize = 5 / wnd.getScale();
 			Color dotColor = new Color(User.getColor(User.ColorPrefType.GRID));
-			if (stretchGeom instanceof NodeInst)
+			if (geom instanceof NodeInst)
 			{
-				NodeInst ni = (NodeInst)stretchGeom;
-				Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
-				Point2D newSize = getNewNodeSize(evt, newCenter);
+				NodeInst ni = (NodeInst)geom;
+				if (ni.isCellInstance()) continue;
 
-                if (stillUp)
+				Point2D newCenter, newSize;
+				if (evt != null)
+				{
+					newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+					newSize = getNewNodeSize(evt, newCenter, ni);
+				} else
                 {
-                    newSize.setLocation(ni.getLambdaBaseXSize(), ni.getLambdaBaseYSize());
-                    newCenter.setLocation(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+                    newSize = new Point2D.Double(ni.getLambdaBaseXSize(), ni.getLambdaBaseYSize());
+                    newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
                 }
 
                 Poly stretchedPoly = ni.getBaseShape(EPoint.snap(newCenter), newSize.getX(), newSize.getY());
@@ -452,31 +564,41 @@ public class SizeListener
 				{
 					int lastI = i - 1;
 					if (lastI < 0) lastI = stretchedPoints.length - 1;
-					highlighter.addLine(stretchedPoints[lastI], stretchedPoints[i], cell);
+					highlighter.addLine(stretchedPoints[lastI], stretchedPoints[i], stretchCell);
 
                     double cX = (stretchedPoints[lastI].getX() + stretchedPoints[i].getX()) / 2;
                     double cY = (stretchedPoints[lastI].getY() + stretchedPoints[i].getY()) / 2;
                     Poly poly = new Poly(cX, cY, boxSize, boxSize);
                     poly.setStyle(Poly.Type.FILLED);
-                    highlighter.addPoly(poly, cell, dotColor);
+                    highlighter.addPoly(poly, stretchCell, dotColor);
 
                     poly = new Poly(stretchedPoints[i].getX(), stretchedPoints[i].getY(), boxSize, boxSize);
                     poly.setStyle(Poly.Type.FILLED);
-                    highlighter.addPoly(poly, cell, dotColor);
+                    highlighter.addPoly(poly, stretchCell, dotColor);
 				}
 			} else
 			{
 				// construct the polygons that describe the basic arc
-				long newGridWidth = DBMath.lambdaToSizeGrid(getNewArcSize(evt));
-				ArcInst ai = (ArcInst)stretchGeom;
+				ArcInst ai = (ArcInst)geom;
+				long newGridWidth = DBMath.lambdaToSizeGrid(getNewArcSize(evt, ai));
 				Poly stretchedPoly = ai.makeLambdaPoly(newGridWidth, Poly.Type.CLOSED);
 				if (stretchedPoly == null) return;
 				Point2D [] stretchedPoints = stretchedPoly.getPoints();
+				int angle = ai.getDefinedAngle();
 				for(int i=0; i<stretchedPoints.length; i++)
 				{
 					int lastI = i - 1;
 					if (lastI < 0) lastI = stretchedPoints.length - 1;
-					highlighter.addLine(stretchedPoints[lastI], stretchedPoints[i], cell);
+					highlighter.addLine(stretchedPoints[lastI], stretchedPoints[i], stretchCell);
+					int thisAng = DBMath.figureAngle(stretchedPoints[lastI], stretchedPoints[i]);
+					if (thisAng%1800 == angle%1800)
+					{
+	                    double cX = (stretchedPoints[lastI].getX() + stretchedPoints[i].getX()) / 2;
+	                    double cY = (stretchedPoints[lastI].getY() + stretchedPoints[i].getY()) / 2;
+	                    Poly poly = new Poly(cX, cY, boxSize, boxSize);
+	                    poly.setStyle(Poly.Type.FILLED);
+	                    highlighter.addPoly(poly, stretchCell, dotColor);						
+					}
 				}
 			}
 		}
@@ -487,57 +609,19 @@ public class SizeListener
 	 * Method to determine the proper size for the NodeInst being stretched, given a cursor location.
 	 * @param evt the event with the current cursor location.
 	 */
-	private Point2D getNewNodeSize(MouseEvent evt, Point2D newCenter)
+	private Point2D getNewNodeSize(MouseEvent evt, Point2D newCenter, NodeInst desiredNI)
 	{
+		NodeInst selNode = selectedNode;
+		if (selNode == null) selNode = desiredNI;
+
 		// get the coordinates of the cursor in database coordinates
 		EditWindow wnd = (EditWindow)evt.getSource();
 		int oldx = evt.getX();
 		int oldy = evt.getY();
 		Point2D pt = wnd.screenToDatabase(oldx, oldy);
 
-		// get information about the node being stretched
-		NodeInst ni = (NodeInst)stretchGeom;
-		if (ni.getProto() instanceof Cell) return new Point2D.Double(0, 0);
-
-		// setup outline of node with standard offset
-		Poly nodePoly = ni.getBaseShape();
-		AffineTransform transIn = ni.transformIn();
+		AffineTransform transIn = selNode.transformIn();
 		transIn.transform(pt, pt);
-		nodePoly.transform(transIn);
-
-		// determine the closest point on the outline
-		Point2D [] points = nodePoly.getPoints();
-		if (farthestCorner == null && farthestEdge == null)
-		{
-			double closestDist = Double.MAX_VALUE;
-			for(int i=0; i<points.length; i++)
-			{
-				double dist = pt.distance(points[i]);
-				if (dist < closestDist)
-				{
-					closestDist = dist;
-					closestCorner = points[i];
-					farthestCorner = points[(i + points.length/2) % points.length];
-					farthestEdge = closestEdge = null;
-				}
-				int lastI = i-1;
-				if (lastI < 0) lastI = points.length-1;
-				Point2D edge = new Point2D.Double((points[i].getX() + points[lastI].getX())/2,
-					(points[i].getY() + points[lastI].getY())/2);
-				dist = pt.distance(edge);
-				if (dist < closestDist)
-				{
-					closestDist = dist;
-					int oppI = (i + points.length/2) % points.length;
-					lastI = oppI-1;
-					if (lastI < 0) lastI = points.length-1;
-					farthestEdge = new Point2D.Double((points[oppI].getX() + points[lastI].getX())/2,
-						(points[oppI].getY() + points[lastI].getY())/2);
-					closestEdge = edge;
-					farthestCorner = closestCorner = null;
-				}
-			}
-		}
 
 		// if SHIFT and CONTROL is held, use center-based sizing
 		boolean centerBased = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
@@ -548,7 +632,7 @@ public class SizeListener
 			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0 && farthestCorner != null;
 
 		// if SHIFT held (or if a square primitive) make growth the same in both axes
-		boolean square = !ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isSquare();
+		boolean square = !selNode.isCellInstance() && ((PrimitiveNode)selNode.getProto()).isSquare();
 		if ((evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
 			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) == 0) square = true;
 
@@ -556,22 +640,25 @@ public class SizeListener
 		double growthRatioX = 1, growthRatioY = 1;
 		Point2D closest = (closestCorner != null ? closestCorner : closestEdge);
 		Point2D farthest = (farthestCorner != null ? farthestCorner : farthestEdge);
-		if (centerBased)
+		if (closest != null && farthest != null)
 		{
-			double ptToCenterX = Math.abs(pt.getX());
-			double closestToCenterX = Math.abs(closest.getX());
-			double ptToCenterY = Math.abs(pt.getY());
-			double closestToCenterY = Math.abs(closest.getY());
-			if (closestToCenterX != 0) growthRatioX = ptToCenterX / closestToCenterX;
-			if (closestToCenterY != 0) growthRatioY = ptToCenterY / closestToCenterY;
-		} else
-		{
-			double ptToFarthestX = pt.getX() - farthest.getX();
-			double closestToFarthestX = closest.getX() - farthest.getX();
-			double ptToFarthestY = pt.getY() - farthest.getY();
-			double closestToFarthestY = closest.getY() - farthest.getY();
-			if (closestToFarthestX != 0) growthRatioX = ptToFarthestX / closestToFarthestX;
-			if (closestToFarthestY != 0) growthRatioY = ptToFarthestY / closestToFarthestY;
+			if (centerBased)
+			{
+				double ptToCenterX = Math.abs(pt.getX());
+				double closestToCenterX = Math.abs(closest.getX());
+				double ptToCenterY = Math.abs(pt.getY());
+				double closestToCenterY = Math.abs(closest.getY());
+				if (closestToCenterX != 0) growthRatioX = ptToCenterX / closestToCenterX;
+				if (closestToCenterY != 0) growthRatioY = ptToCenterY / closestToCenterY;
+			} else
+			{
+				double ptToFarthestX = pt.getX() - farthest.getX();
+				double closestToFarthestX = closest.getX() - farthest.getX();
+				double ptToFarthestY = pt.getY() - farthest.getY();
+				double closestToFarthestY = closest.getY() - farthest.getY();
+				if (closestToFarthestX != 0) growthRatioX = ptToFarthestX / closestToFarthestX;
+				if (closestToFarthestY != 0) growthRatioY = ptToFarthestY / closestToFarthestY;
+			}
 		}
 		int direction = -1; // both X and Y
 		if (singleAxis)
@@ -606,8 +693,8 @@ public class SizeListener
 		}
 
 		// compute the new node size
-		double newXSize = ni.getLambdaBaseXSize() * growthRatioX;
-		double newYSize = ni.getLambdaBaseYSize() * growthRatioY;
+		double newXSize = selNode.getLambdaBaseXSize() * growthRatioX;
+		double newYSize = selNode.getLambdaBaseYSize() * growthRatioY;
 		double signX = newXSize < 0 ? -1 : 1;
 		double signY = newYSize < 0 ? -1 : 1;
 		Point2D newSize = new Point2D.Double(Math.abs(newXSize), Math.abs(newYSize));
@@ -618,17 +705,38 @@ public class SizeListener
 		// determine the new center point
 		if (!centerBased)
 		{
-			double closestX = closest.getX();
-			double closestY = closest.getY();
-			double farthestX = farthest.getX();
-			double farthestY = farthest.getY();
-			double newClosestX = (closestX == farthestX ? closestX : farthestX + newSize.getX()*signX*(closestX > farthestX ? 1 : -1));
-			double newClosestY = (closestY == farthestY ? closestY : farthestY + newSize.getY()*signY*(closestY > farthestY ? 1 : -1));
+			if (closest != null && farthest != null)
+			{
+				double closestX = closest.getX();
+				double closestY = closest.getY();
+				double farthestX = farthest.getX();
+				double farthestY = farthest.getY();
+				double newClosestX = (closestX == farthestX ? closestX : farthestX + newSize.getX()*signX*(closestX > farthestX ? 1 : -1));
+				double newClosestY = (closestY == farthestY ? closestY : farthestY + newSize.getY()*signY*(closestY > farthestY ? 1 : -1));
 
-			newCenter.setLocation((farthestX + newClosestX) / 2, (farthestY + newClosestY) / 2);
-			ni.transformOut().transform(newCenter, newCenter);
+				newCenter.setLocation((farthestX + newClosestX) / 2, (farthestY + newClosestY) / 2);
+				selNode.transformOut().transform(newCenter, newCenter);
+			} else
+			{
+				newCenter.setLocation(desiredNI.getAnchorCenterX(), desiredNI.getAnchorCenterY());
+			}
 		}
 
+		if (selNode != desiredNI)
+		{
+			double offX = newCenter.getX() - selNode.getAnchorCenterX();
+			double offY = newCenter.getY() - selNode.getAnchorCenterY();
+			newCenter.setLocation(desiredNI.getAnchorCenterX() + offX, desiredNI.getAnchorCenterY() + offY);
+
+			offX = newSize.getX() - selNode.getXSizeWithoutOffset();
+			offY = newSize.getY() - selNode.getXSizeWithoutOffset();
+			if ((selNode.getAngle() == 900 || selNode.getAngle() == 2700) !=
+				(desiredNI.getAngle() == 900 || desiredNI.getAngle() == 2700))
+			{
+				double swap = offX;   offX = offY;   offY = swap;
+			}
+			newSize.setLocation(desiredNI.getXSizeWithoutOffset() + offX, desiredNI.getXSizeWithoutOffset() + offY);
+		}
 		return newSize;
 	}
 
@@ -637,24 +745,29 @@ public class SizeListener
 	 * @param evt the event with the current cursor location.
 	 * @return the new base size for the ArcInst in lambda units.
 	 */
-	private double getNewArcSize(MouseEvent evt)
+	private double getNewArcSize(MouseEvent evt, ArcInst desiredAI)
 	{
+		if (evt == null) return desiredAI.getLambdaBaseWidth();
+
 		// get the coordinates of the cursor in database coordinates
 		EditWindow wnd = (EditWindow)evt.getSource();
 		int oldx = evt.getX();
 		int oldy = evt.getY();
 		Point2D pt = wnd.screenToDatabase(oldx, oldy);
 
-		// get information about the arc being stretched
-		ArcInst ai = (ArcInst)stretchGeom;
-
 		// determine point on arc that is closest to the cursor
-		Point2D ptOnLine = DBMath.closestPointToLine(ai.getHeadLocation(), ai.getTailLocation(), pt);
+		Point2D ptOnLine = DBMath.closestPointToLine(selectedArc.getHeadLocation(), selectedArc.getTailLocation(), pt);
 		double newLambdaBaseWidth = ptOnLine.distance(pt)*2;
 		Point2D newLambdaBaseSize = new Point2D.Double(newLambdaBaseWidth, newLambdaBaseWidth);
 
 		EditWindow.gridAlignSize(newLambdaBaseSize, -1);
-		return newLambdaBaseSize.getX();
+		double newWid = newLambdaBaseSize.getX();
+		if (selectedArc != desiredAI)
+		{
+			double off = newWid - selectedArc.getLambdaBaseWidth();
+			newWid = desiredAI.getLambdaBaseWidth() + off;
+		}
+		return newWid;
 	}
 
 	private static class ScaleNode extends Job
