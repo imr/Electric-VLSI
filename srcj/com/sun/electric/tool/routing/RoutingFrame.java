@@ -52,6 +52,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.placement.Placement;
 import com.sun.electric.tool.routing.experimentalSeaOfGates.RoutingFrameSeaOfGates;
@@ -68,33 +69,34 @@ import java.util.Map;
 
 /**
  * Class to define a framework for Routing algorithms.
- * To make Routing algorithms easier to write, all Routing algorithms must extend this class.
- * The Routing algorithm then defines two methods:
+ * To make Routing algorithms easier to write, Routing algorithms can extend this class.
+ * The Routing algorithm does this by defining two methods:
  *
- *    public String getAlgorithmName()
- *       returns the name of the Routing algorithm
+ *    String getAlgorithmName()
+ *       Returns the name of the Routing algorithm.
  *
- *    int runRouting(List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,
- *            List<RoutingNode> allNodes, List<RoutingGeometry> otherBlockages, List<RoutingContact> allContacts)
- *       Routes "segmentsToRoute" using the layers in "allLayers".
- *       The existing "blockages" are defined by "allNodes".
- *       Layer-changing can be done using one of the contacts in "allContacts".
+ *    void runRouting(Cell cell, List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,
+ *            List<RoutingContact> allContacts, List<RoutingGeometry> blockages)
+ *       Routes Electric Cell "cell" (this is not required, but may be useful for highlighting).
+ *       The List "segmentsToRoute" defines all of the routes that must be made.
+ *       The List "allLayers" defines the layers that can be used in routing (the Metal layers).
+ *       The List "allContacts" defines the layer-to-layer contacts that can be used in routing.
+ *       The List "blockages" defines existing geometry that must be routed-around.
+ *       Routes are defined by calling, for each RoutingSegment, the methods "addWire()" and "addContact()".
  *
  * To avoid the complexities of the Electric database, these shadow-classes are defined to
  * describe the necessary information that routing algorithms want:
  *
  * RoutingSegment defines a segment that must be routed.
- *    It has coordinates of the endpoints of the segment as well as layer information at those ends.
+ * RoutingEnd defines the ends of a RoutingSegment.
  * RoutingLayer defines the layers that are used in routing.
- *    It also includes minimum spacing information to other layers.
- * RoutingNode is an actual node that already exists in the cell.
- *    It may be at the end of a route, and it does contain a list of layers that act as routing blockages.
- * RoutingContact defines a particular type of contact between routing arcs for layer changes.
- *    It consists of many RoutingGeometry objects that define the contact.
- *    It also defines the two layers that connect through it.
  * RoutingGeometry defines a piece of geometry on a given RoutingLayer.
- *    It is relative to the center of the RoutingNode or RoutingContact.
+ * RoutingContact defines a particular type of contact between routing arcs for layer changes.
  * RoutingParameter is a way for code to store preference values persistently.
+ *
+ * These classes exist to define a solved route:
+ *   RoutePoint defines a point in the finished route.
+ *   RouteWire defines a wire between two RoutePoint objects in the finished route.
  */
 public class RoutingFrame
 {
@@ -120,8 +122,8 @@ public class RoutingFrame
 	 * @param allNodes a list of all nodes involved in the routing.
 	 * @param allContacts a list of all contacts that can be used in routing.
 	 */
-	protected int runRouting(List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,
-		List<RoutingNode> allNodes, List<RoutingGeometry> otherBlockages, List<RoutingContact> allContacts) { return 0; }
+	protected void runRouting(Cell cell, List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,
+		List<RoutingContact> allContacts, List<RoutingGeometry> blockages) {}
 
 	/**
 	 * Method to return the name of the routing algorithm (overridden by actual Routing algorithms).
@@ -135,6 +137,8 @@ public class RoutingFrame
 	 */
 	public List<RoutingParameter> getParameters() { return null; }
 
+	private static Map<RoutingParameter,Pref> separatePrefs;
+
 	/**
 	 * Class to define a parameter for a routing algorithm.
 	 */
@@ -147,58 +151,102 @@ public class RoutingFrame
 
 		private String title;
 		private int type;
-		private Pref pref;
-		private int tempInt;
-		private String tempString;
-		private double tempDouble;
-		private boolean tempBoolean;
+		private int tempInt, cachedInt;
+		private String tempString, cachedString;
+		private double tempDouble, cachedDouble;
+		private boolean tempBoolean, cachedBoolean;
 		private boolean tempValueSet;
+		private boolean cached;
 
+		/**
+		 * Constructor to create an integer routing parameter.
+		 * @param name the parameter name (should be simple, no spaces).
+		 * @param title the title of the parameter (used in the Preferences dialog).
+		 * @param factory the default value of the parameter.
+		 */
 		public RoutingParameter(String name, String title, int factory)
 		{
 			this.title = title;
 			type = TYPEINTEGER;
-			tempValueSet = false;
-			pref = Pref.makeIntPref(getAlgorithmName()+"-"+name, Routing.getRoutingTool().prefs, factory);
+			tempValueSet = cached = false;
+			if (separatePrefs == null) separatePrefs = new HashMap<RoutingParameter,Pref>();
+			separatePrefs.put(this, Pref.makeIntPref(getAlgorithmName()+"-"+name, Routing.getRoutingTool().prefs, factory));
 		}
 
+		/**
+		 * Constructor to create a String routing parameter.
+		 * @param name the parameter name (should be simple, no spaces).
+		 * @param title the title of the parameter (used in the Preferences dialog).
+		 * @param factory the default value of the parameter.
+		 */
 		public RoutingParameter(String name, String title, String factory)
 		{
 			this.title = title;
 			type = TYPESTRING;
-			tempValueSet = false;
-			pref = Pref.makeStringPref(getAlgorithmName()+"-"+name, Routing.getRoutingTool().prefs, factory);
+			tempValueSet = cached = false;
+			if (separatePrefs == null) separatePrefs = new HashMap<RoutingParameter,Pref>();
+			separatePrefs.put(this, Pref.makeStringPref(getAlgorithmName()+"-"+name, Routing.getRoutingTool().prefs, factory));
 		}
 
+		/**
+		 * Constructor to create a double routing parameter.
+		 * @param name the parameter name (should be simple, no spaces).
+		 * @param title the title of the parameter (used in the Preferences dialog).
+		 * @param factory the default value of the parameter.
+		 */
 		public RoutingParameter(String name, String title, double factory)
 		{
 			this.title = title;
 			type = TYPEDOUBLE;
-			tempValueSet = false;
-			pref = Pref.makeDoublePref(getAlgorithmName()+"-"+name, Routing.getRoutingTool().prefs, factory);
+			tempValueSet = cached = false;
+			if (separatePrefs == null) separatePrefs = new HashMap<RoutingParameter,Pref>();
+			separatePrefs.put(this, Pref.makeDoublePref(getAlgorithmName()+"-"+name, Routing.getRoutingTool().prefs, factory));
 		}
 
+		/**
+		 * Constructor to create a boolean routing parameter.
+		 * @param name the parameter name (should be simple, no spaces).
+		 * @param title the title of the parameter (used in the Preferences dialog).
+		 * @param factory the default value of the parameter.
+		 */
 		public RoutingParameter(String name, String title, boolean factory)
 		{
 			this.title = title;
 			type = TYPEBOOLEAN;
-			tempValueSet = false;
-			pref = Pref.makeBooleanPref(getAlgorithmName()+"-"+name, Routing.getRoutingTool().prefs, factory);
+			tempValueSet = cached = false;
+			if (separatePrefs == null) separatePrefs = new HashMap<RoutingParameter,Pref>();
+			separatePrefs.put(this, Pref.makeBooleanPref(getAlgorithmName()+"-"+name, Routing.getRoutingTool().prefs, factory));
 		}
 
 		public String getName() { return title; }
 
 		public int getType() { return type; }
 
-		public int getIntValue() { return pref.getInt(); }
+		/**
+		 * Method to get the current Parameter value for an integer.
+		 * @return the current Parameter value for an integer.
+		 */
+		public int getIntValue() { if (cached) return cachedInt; return separatePrefs.get(this).getInt(); }
 
-		public String getStringValue() { return pref.getString(); }
+		/**
+		 * Method to get the current Parameter value for a String.
+		 * @return the current Parameter value for a String.
+		 */
+		public String getStringValue() { if (cached) return cachedString; return separatePrefs.get(this).getString(); }
 
-		public double getDoubleValue() { return pref.getDouble(); }
+		/**
+		 * Method to get the current Parameter value for a double.
+		 * @return the current Parameter value for an double.
+		 */
+		public double getDoubleValue() { if (cached) return cachedDouble; return separatePrefs.get(this).getDouble(); }
 
-		public boolean getBooleanValue() { return pref.getBoolean(); }
+		/**
+		 * Method to get the current Parameter value for a boolean.
+		 * @return the current Parameter value for a boolean.
+		 */
+		public boolean getBooleanValue() { if (cached) return cachedBoolean; return separatePrefs.get(this).getBoolean(); }
 
-		public void resetToFactory() { pref.factoryReset(); }
+		public void resetToFactory() { separatePrefs.get(this).factoryReset(); }
 
 		/******************** TEMP VALUES DURING THE PREFERENCES DIALOG ********************/ 
 
@@ -220,7 +268,19 @@ public class RoutingFrame
 
 		public boolean hasTempValue() { return tempValueSet; }
 
-		public void clearTempValue() { tempValueSet = false; }
+		public void clearTempValue() { tempValueSet = cached = false; }
+
+		public void cacheValue()
+		{
+			cached = true;
+			switch (type)
+			{
+				case TYPEINTEGER: cachedInt = separatePrefs.get(this).getInt();         break;
+				case TYPESTRING:  cachedString = separatePrefs.get(this).getString();   break;
+				case TYPEDOUBLE:  cachedDouble = separatePrefs.get(this).getDouble();   break;
+				case TYPEBOOLEAN: cachedBoolean = separatePrefs.get(this).getBoolean(); break;
+			}
+		}
 
 		public void makeTempSettingReal()
 		{
@@ -228,11 +288,12 @@ public class RoutingFrame
 			{
 				switch (type)
 				{
-					case TYPEINTEGER: pref.setInt(tempInt);         break;
-					case TYPESTRING:  pref.setString(tempString);   break;
-					case TYPEDOUBLE:  pref.setDouble(tempDouble);   break;
-					case TYPEBOOLEAN: pref.setBoolean(tempBoolean); break;
+					case TYPEINTEGER: separatePrefs.get(this).setInt(tempInt);         break;
+					case TYPESTRING:  separatePrefs.get(this).setString(tempString);   break;
+					case TYPEDOUBLE:  separatePrefs.get(this).setDouble(tempDouble);   break;
+					case TYPEBOOLEAN: separatePrefs.get(this).setBoolean(tempBoolean); break;
 				}
+				cached = false;
 			}
 		}
 	}
@@ -245,39 +306,93 @@ public class RoutingFrame
 		private Layer layer;
 		private ArcProto ap;
 		private double minWidth;
+		private double maxSurround;
 		private Map<RoutingLayer,Double> minSpacing;
+		private RoutingContact pin;
+		private boolean isMetal;
 
 		/**
 		 * Method to create a RoutingLayer object.
-		 * @param type the original Electric type of this RoutingNode.
-		 * @param name the name to give the node once routed (can be null).
+		 * @param layer the Electric Layer associated with this RoutingLayer.
+		 * @param ap the Electric ArcProto associated with this RoutingLayer (only valid for via layers).
+		 * @param minWidth the minimum width of wires on this RoutingLayer (only valid for via layers).
+		 * @param maxSurround the maximum DRC rule around this RoutingLayer.
 		 */
-		public RoutingLayer(Layer layer, ArcProto ap, double minWidth)
+		public RoutingLayer(Layer layer, ArcProto ap, double minWidth, double maxSurround)
 		{
 			this.layer = layer;
 			this.ap = ap;
 			this.minWidth = minWidth;
+			this.maxSurround = maxSurround;
+			isMetal = layer.getFunction().isMetal();
 			minSpacing = new HashMap<RoutingLayer,Double>();
+
+			// add the pin information
+			if (ap != null)
+			{
+				PrimitiveNode pinNP = ap.findPinProto();
+				pin = new RoutingContact(pinNP, null, this, this, 0);
+			}
 		}
 
-		public Layer getLayer() { return layer; }
-
-		public ArcProto getArcProto() { return ap; }
-
+		/**
+		 * Method to return the name of this RoutingLayer.
+		 * @return the name of this RoutingLayer.
+		 */
 		public String getName() { return layer.getName(); }
 
+		/**
+		 * Method to tell whether this layer is metal or via.
+		 * @return true for Metal, false for a via.
+		 */
+		public boolean isMetal() { return isMetal; }
+
+		/**
+		 * Method to return the metal layer number of this RoutingLayer.
+		 * Only valid when this layer is Metal (not Via).
+		 * @return the metal layer number (Metal-1 returns 1, etc.)
+		 */
+		public int getMetalNumber() { return layer.getFunction().getLevel(); }
+
+		/**
+		 * Method to return the proper RoutingContact to use when joining two of these layers.
+		 * Pins are different than contacts: they have no geometry and are just
+		 * virtual connection points, whereas contacts have geometry on two different
+		 * metal layers as well as on a via layer in order to connect the two metals.
+		 * This is only valid for metal layers (returns null for via layers).
+		 * @return the proper RoutingContact to use when joining two of these layers.
+		 */
+		public RoutingContact getPin() { return pin; }
+
+		/**
+		 * Method to return the minimum width of wires on this RoutingLayer.
+		 * Most wires should be created with this width.
+		 * Some wires can be made wider if they are connecting to larger objects.
+		 * This is only valid for metal layers (returns 0 for via layers).
+		 * @return the minimum width of wires on this RoutingLayer.
+		 */
 		public double getMinWidth() { return minWidth; }
 
+		/**
+		 * Method to return the maximum DRC surround for this RoutingLayer.
+		 * All design rules that involve this layer will be less than or
+		 * equal to this value, so examining geometry in the vicinity of
+		 * this layer only needs to look this far.
+		 * @return the maximum DRC surround for this RoutingLayer.
+		 */
+		public double getMaxSurround() { return maxSurround; }
+
+		/**
+		 * Method to return the minimum spacing between this and another RoutingLayer.
+		 * @param other the other RoutingLayer.
+		 * @return the minimum distance that the two RoutingLayer objects must
+		 * stay apart to avoid design-rule violations.
+		 */
 		public double getMinSpacing(RoutingLayer other)
 		{
 			Double dist = minSpacing.get(other);
 			if (dist == null) return 0;
 			return dist.doubleValue();
-		}
-
-		public void setMinSpacing(RoutingLayer other, double dist)
-		{
-			minSpacing.put(other, new Double(dist));
 		}
 	}
 
@@ -292,6 +407,9 @@ public class RoutingFrame
 
 		/**
 		 * Method to create a RoutingGeometry object.
+		 * @param layer the RoutingLayer on which this RoutingGeometry resides.
+		 * @param bounds the shape of this RoutingGeometry.
+		 * @param netID the global network number of this RoutingGeometry.
 		 */
 		public RoutingGeometry(RoutingLayer layer, Rectangle2D bounds, int netID)
 		{
@@ -300,8 +418,27 @@ public class RoutingFrame
 			this.netID = netID;
 		}
 
+		/**
+		 * Method to return the RoutingLayer that this piece of RoutingGeometry uses.
+		 * @return the RoutingLayer that this piece of RoutingGeometry uses.
+		 */
 		public RoutingLayer getLayer() { return layer; }
+
+		/**
+		 * Method to return the shape of this RoutingGeometry.
+		 * The meaning of the shape varies depending on the context of
+		 * this RoutingGeometry.  When found in a RoutingContact, the shape is
+		 * based on the center of the contact.
+		 * @return the shape of this RoutingGeometry.
+		 */
 		public Rectangle2D getBounds() { return bounds; }
+
+		/**
+		 * Method to return the global network index of this RoutingGeometry.
+		 * These numbers help determine whether two pieces of geometry
+		 * are on the same electrical network or not.
+		 * @return the global network index of this RoutingGeometry.
+		 */
 		public int getNetID() { return netID; }
 	}
 
@@ -313,76 +450,137 @@ public class RoutingFrame
 		private PrimitiveNode np;
 		private List<RoutingGeometry> layers;
 		private RoutingLayer first, second;
+		private double viaSpacing;
+		private double defWidth, defHeight;
 
-		public static RoutingContact STARTPOINT = new RoutingContact(null, null, null, null);
-		public static RoutingContact FINISHPOINT = new RoutingContact(null, null, null, null);
+		/** a special RoutingContact that defines the start of a segment */
+		public static RoutingContact STARTPOINT = new RoutingContact(null, null, null, null, 0);
+
+		/** a special RoutingContact that defines the end of a segment */
+		public static RoutingContact FINISHPOINT = new RoutingContact(null, null, null, null, 0);
 
 		/**
 		 * Method to create a RoutingContact object.
+		 * @param np the PrimitiveNode associated with this RoutingContact.
+		 * @param layers the geometry that composes this RoutingContact.
+		 * @param first the first layer that this RoutingContact connects.
+		 * @param second the second layer that this RoutingContact connects.
+		 * @param viaSpacing the center-to-center minimum spacing of the vias in this RoutingContact.
 		 */
-		public RoutingContact(PrimitiveNode np, List<RoutingGeometry> layers, RoutingLayer first, RoutingLayer second)
+		public RoutingContact(PrimitiveNode np, List<RoutingGeometry> layers, RoutingLayer first, RoutingLayer second,
+			double viaSpacing)
 		{
 			this.np = np;
 			this.layers = layers;
 			this.first = first;
 			this.second = second;
+			this.viaSpacing = viaSpacing;
+			if (np != null)
+			{
+				this.defWidth = np.getDefWidth();
+				this.defHeight = np.getDefHeight();
+			}
 		}
-
-		public String getName() { return np.describe(false); }
-
-		public List<RoutingGeometry> getGeometry() { return layers; }
-
-		public RoutingLayer getFirstLayer() { return first; }
-
-		public RoutingLayer getSecondLayer() { return second; }
-	}
-
-	/**
-	 * Class to define a node that is being routed.
-	 * This is a shadow class for the internal Electric object "NodeInst".
-	 * There are minor differences between RoutingNode and NodeInst,
-	 * for example, RoutingNode is presumed to be centered in the middle, with
-	 * port offsets based on that center, whereas the NodeInst has a cell-center
-	 * that may not be in the middle.
-	 */
-	public static class RoutingNode
-	{
-		private String name;
-		private List<RoutingGeometry> layers;
-		private Object userObject;
-
-		public Object getUserObject() { return userObject; }
-		public void setUserObject(Object obj) { userObject = obj; }
 
 		/**
-		 * Method to create a RoutingNode object.
-		 * @param type the original Electric type of this RoutingNode.
-		 * @param name the name to give the node once routed (can be null).
+		 * Method to return the name of this RoutingContact.
+		 * This is useful for debugging.
+		 * @return the name of this RoutingContact.
 		 */
-		public RoutingNode(String name, List<RoutingGeometry> layers)
+		public String getName()
 		{
-			this.name = name;
-			this.layers = layers;
+			if (this == STARTPOINT) return "START-POINT";
+			if (this == FINISHPOINT) return "FINISH-POINT";
+			return np.describe(false);
 		}
 
-		public String getName() { return name; }
+		/**
+		 * Method to return a List of pieces of RoutingGeometry that compose this RoutingContact.
+		 * Each piece of RoutingGeometry has coordinates that are relative to the center of the contact.
+		 * @return a List of pieces of RoutingGeometry that compose this RoutingContact.
+		 */
+		public List<RoutingGeometry> getGeometry() { return layers; }
 
-		public List<RoutingGeometry> getLayers() { return layers; }
+		/**
+		 * Method to return the first RoutingLayer that this RoutingContact connects.
+		 * Each RoutingContact connects two different RoutingLayers.
+		 * @return the first RoutingLayer that this RoutingContact connects.
+		 */
+		public RoutingLayer getFirstLayer() { return first; }
 
-		public String toString()
+		/**
+		 * Method to return the second RoutingLayer that this RoutingContact connects.
+		 * Each RoutingContact connects two different RoutingLayers.
+		 * @return the second RoutingLayer that this RoutingContact connects.
+		 */
+		public RoutingLayer getSecondLayer() { return second; }
+
+		/**
+		 * Method to return the minimum spacing between vias of this RoutingContact.
+		 * When two contacts are nearby, the center coordinates of their vias must be
+		 * separated by this distance.
+		 * @return the minimum spacing between vias of this RoutingContact.
+		 */
+		public double getViaSpacing() { return viaSpacing; }
+
+		/**
+		 * Method to return the default width of this RoutingContact.
+		 * Since this framework doesn't handle larger-than-normal contacts,
+		 * this is actually the only width.
+		 * @return the default width of this RoutingContact.
+		 */
+		public double getDefWidth() { return defWidth; }
+
+		/**
+		 * Method to return the default height of this RoutingContact.
+		 * Since this framework doesn't handle larger-than-normal contacts,
+		 * this is actually the only height.
+		 * @return the default height of this RoutingContact.
+		 */
+		public double getDefHeight() { return defHeight; }
+	}
+
+	/**
+	 * Class to define an end of a RoutingSegment.
+	 */
+	public static class RoutingEnd
+	{
+		private PortInst pi;
+		private Point2D location;
+
+		/**
+		 * Constructor for building an end of a RoutingSegment.
+		 * @param pi the Electric PortInst that is at this end of the route.
+		 */
+		public RoutingEnd(PortInst pi)
 		{
-			return name;
+			this.pi = pi;
+			location = pi.getCenter();
+		}
+
+		/**
+		 * Method to return the coordinates of this RoutingEnd.
+		 * @return the coordinates of this RoutingEnd.
+		 */
+		public Point2D getLocation() { return location; }
+
+		/**
+		 * Method to return a description of this RoutingEnd.
+		 * The description (for debugging) has the name of the Electric node and port.
+		 * @return a description of this RoutingEnd.
+		 */
+		public String describe()
+		{
+			return pi.getPortProto().getName() + " of node " + pi.getNodeInst().describe(false);
 		}
 	}
 
 	/**
-	 * Class to define networks of RoutingPort objects.
-	 * This is a shadow class for the internal Electric object "Network", but it is simplified for Routing.
+	 * Class to define a desired route that should be created.
 	 */
 	public static class RoutingSegment
 	{
-		private Point2D start, finish;
-		private PortInst startPI, finishPI;
+		private RoutingEnd startEnd, finishEnd;
 		private List<RoutingLayer> startLayers, finishLayers;
 		private double startWidestArc, finishWidestArc;
 		private List<RoutePoint> routedPoints;
@@ -392,21 +590,19 @@ public class RoutingFrame
 		private List<Geometric> thingsToDelete;
 
 		/**
-		 * Constructor to create this RoutingSegment.
+		 * Constructor to create a RoutingSegment.
 		 */
-		public RoutingSegment(Point2D start, PortInst startPI, List<RoutingLayer> startLayers,
-			Point2D finish, PortInst finishPI, List<RoutingLayer> finishLayers, int netID, String netName,
+		public RoutingSegment(RoutingEnd startEnd, List<RoutingLayer> startLayers,
+			RoutingEnd finishEnd, List<RoutingLayer> finishLayers, int netID, String netName,
 			List<Geometric> thingsToDelete)
 		{
-			this.start = start;
 			this.startLayers = startLayers;
-			this.startPI = startPI;
-			this.startWidestArc = getWidestMetalArcOnPort(startPI);
+			this.startEnd = startEnd;
+			this.startWidestArc = getWidestMetalArcOnPort(startEnd.pi);
 
-			this.finish = finish;
 			this.finishLayers = finishLayers;
-			this.finishPI = finishPI;
-			this.finishWidestArc = getWidestMetalArcOnPort(finishPI);
+			this.finishEnd = finishEnd;
+			this.finishWidestArc = getWidestMetalArcOnPort(finishEnd.pi);
 
 			this.netID = netID;
 			this.netName = netName;
@@ -416,7 +612,91 @@ public class RoutingFrame
 		}
 
 		/**
-		 * Get the widest metal arc already connected to a given PortInst.
+		 * Method to return the starting RoutingEnd of this RoutingSegment.
+		 * Each RoutingSegment has a start and finish end that must be connected.
+		 * @return the starting RoutingEnd of this RoutingSegment.
+		 */
+		public RoutingEnd getStartEnd() { return startEnd; }
+
+		/**
+		 * Method to return a List of RoutingLayers that may connect to
+		 * the starting end of this RoutingSegment.
+		 * Typically only one RoutingLayer can connect, but if the starting
+		 * point is a contact, then two layers may connect.
+		 * @return a List of RoutingLayers that may connect to
+		 * the starting end of this RoutingSegment.
+		 */
+		public List<RoutingLayer> getStartLayers() { return startLayers; }
+
+		/**
+		 * Method to return the widest arc that is connected to the starting end.
+		 * Routers should run wider wires when connecting here.
+		 * @return the widest arc that is connected to the starting end.
+		 */
+		public double getWidestArcAtStart() { return startWidestArc; }
+
+		/**
+		 * Method to return the ending RoutingEnd of this RoutingSegment.
+		 * Each RoutingSegment has a start and finish end that must be connected.
+		 * @return the ending RoutingEnd of this RoutingSegment.
+		 */
+		public RoutingEnd getFinishEnd() { return finishEnd; }
+
+		/**
+		 * Method to return a List of RoutingLayers that may connect to
+		 * the finish end of this RoutingSegment.
+		 * Typically only one RoutingLayer can connect, but if the finish
+		 * point is a contact, then two layers may connect.
+		 * @return a List of RoutingLayers that may connect to
+		 * the finish end of this RoutingSegment.
+		 */
+		public List<RoutingLayer> getFinishLayers() { return finishLayers; }
+
+		/**
+		 * Method to return the widest arc that is connected to the finish end.
+		 * Routers should run wider wires when connecting here.
+		 * @return the widest arc that is connected to the finish end.
+		 */
+		public double getWidestArcAtFinish() { return finishWidestArc; }
+
+		/**
+		 * Method to return the global network identifier for this RoutingSegment.
+		 * These numbers help determine what is connected (when they have the same NetID).
+		 * @return the global network identifier for this RoutingSegment.
+		 */
+		public int getNetID() { return netID; }
+
+		/**
+		 * Method to return the name of this RoutingSegment.
+		 * This is for debugging.
+		 * @return the name of this RoutingSegment.
+		 */
+		public String getNetName() { return netName; }
+
+		/**
+		 * Method to define a wire segment that is part of the final route.
+		 * Routers must call this method and the "addWireEnd()" method to
+		 * define the actual route.
+		 * @param rw a wire segment that is part of the final route.
+		 */
+		public void addWire(RouteWire rw)
+		{
+			routedWires.add(rw);
+		}
+
+		/**
+		 * Method to define a wire end that is part of the final route.
+		 * Routers must call this method and the "addWire()" method to
+		 * define the actual route.
+		 * @param rp a contact that is part of the final route.
+		 */
+		public void addWireEnd(RoutePoint rp)
+		{
+			routedPoints.add(rp);
+		}
+
+		/**
+		 * Method to return the widest metal arc already connected to a given PortInst.
 		 * Looks recursively down the hierarchy.
 		 * @param pi the PortInst to connect.
 		 * @return the widest metal arc connect to that port (zero if none)
@@ -445,58 +725,24 @@ public class RoutingFrame
 			}
 			return width;
 		}
-
-		/**
-		 * Method to return the starting point on this RoutingSegment.
-		 * @return the starting point on this RoutingSegment.
-		 */
-		public Point2D getStartLocation() { return start; }
-
-		public List<RoutingLayer> getStartLayers() { return startLayers; }
-
-		public PortInst getStartPort() { return startPI; }
-
-		public double getWidestArcAtStart() { return startWidestArc; }
-
-		/**
-		 * Method to return the ending point on this RoutingSegment.
-		 * @return the ending point on this RoutingSegment.
-		 */
-		public Point2D getFinishLocation() { return finish; }
-
-		public List<RoutingLayer> getFinishLayers() { return finishLayers; }
-
-		public PortInst getFinishPort() { return finishPI; }
-
-		public double getWidestArcAtFinish() { return finishWidestArc; }
-
-		public void addWire(RouteWire rw)
-		{
-			routedWires.add(rw);
-		}
-
-		public void addContact(RoutePoint rp)
-		{
-			routedPoints.add(rp);
-		}
-
-		public List<RouteWire> getWires() { return routedWires; }
-
-		public List<RoutePoint> getContacts() { return routedPoints; }
-
-		public int getNetID() { return netID; }
-
-		public String getNetName() { return netName; }
-
-		public List<Geometric> getThingsToDelete() { return thingsToDelete; }
 	}
 
+	/**
+	 * Class to define a wire in the final routing of a RoutingSegment.
+	 */
 	public static class RouteWire
 	{
 		private RoutingLayer layer;
 		private RoutePoint start, end;
 		private double width;
 
+		/**
+		 * Constructor for defining a wire in the final routing.
+		 * @param layer the RoutingLayer on which this wire resides.
+		 * @param start a RoutePoint that defines the start of the wire.
+		 * @param end a RoutePoint that defines the finish of the wire.
+		 * @param width the width of the wire.
+		 */
 		public RouteWire(RoutingLayer layer, RoutePoint start, RoutePoint end, double width)
 		{
 			this.layer = layer;
@@ -504,41 +750,54 @@ public class RoutingFrame
 			this.end = end;
 			this.width = width;
 		}
-
-		public RoutingLayer getLayer() { return layer; }
-
-		public RoutePoint getStart() { return start; }
-
-		public RoutePoint getFinish() { return end; }
-
-		public double getWidth() { return width; }
 	}
 
+	/**
+	 * Class to define a point in the final routing of a RoutingSegment.
+	 */
 	public static class RoutePoint
 	{
 		private RoutingContact contact;
 		private Point2D loc;
+		private int angle;
 
-		public RoutePoint(RoutingContact contact, Point2D loc)
+		/**
+		 * Constructor to create a RoutePoint in the final routing.
+		 * @param contact the RoutingContact to place at this point.
+		 * For the ends of the RoutingSegment, use RoutingContact.STARTPOINT
+		 * and RoutingContact.FINISHPOINT.
+		 * @param loc the coordinates of this RoutePoint.
+		 * @param angle the rotation of the RoutingContact (in degrees).
+		 */
+		public RoutePoint(RoutingContact contact, Point2D loc, int angle)
 		{
 			this.contact = contact;
 			this.loc = loc;
+			this.angle = angle;
 		}
 
+		/**
+		 * Method to return the RoutingContact that is to be placed at this RoutePoint.
+		 * @return the RoutingContact that is to be placed at this RoutePoint.
+		 */
 		public RoutingContact getContact() { return contact; }
 
+		/**
+		 * Method to return the coordinates of this RoutePoint.
+		 * @return the coordinates of this RoutePoint.
+		 */
 		public Point2D getLocation() { return loc; }
 	}
 
 	/**
-	 * Entry point to do Routing of a Cell.
+	 * Entry point to do Routing of a Cell, called by Electric to do routing.
 	 * Gathers the requirements for Routing into a collection of shadow objects
-	 * (RoutingNode, RoutingSegment, etc.)
-	 * Then invokes the alternate version of "doRouting()" that works from shadow objects.
+	 * (RoutingNode, RoutingSegment, etc.) then invokes "runRouting()" to route
+	 * and finally places the routed geometry.
 	 * @param cell the Cell to route.
 	 * @return the number of segments that were routed.
 	 */
-	public int doRouting(Cell cell, Placement.PlacementPreferences prefs)
+	public int doRouting(Cell cell)
 	{
 		// get network information for the Cell
 		Netlist netList = cell.getNetlist();
@@ -558,7 +817,18 @@ public class RoutingFrame
 			if (!ap.getFunction().isMetal()) continue;
 			Layer layer = ap.getLayer(0);
 			double minWidth = ap.getDefaultLambdaBaseWidth();
-			RoutingLayer rl = new RoutingLayer(layer, ap, minWidth);
+			double maxSurround = DRC.getMaxSurround(layer, Double.MAX_VALUE);
+			RoutingLayer rl = new RoutingLayer(layer, ap, minWidth, maxSurround);
+			routingLayers.put(layer, rl);
+			allLayers.add(rl);
+		}
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = it.next();
+			if (!layer.getFunction().isContact()) continue;
+			if (layer.getFunction().getLevel() == 0) continue;
+			double maxSurround = DRC.getMaxSurround(layer, Double.MAX_VALUE);
+			RoutingLayer rl = new RoutingLayer(layer, null, 0, maxSurround);
 			routingLayers.put(layer, rl);
 			allLayers.add(rl);
 		}
@@ -566,14 +836,16 @@ public class RoutingFrame
 		// now fill in all of the design rules
 		for(RoutingLayer rl : allLayers)
 		{
-			Layer layer = rl.getLayer();
+			Layer layer = rl.layer;
 			for(RoutingLayer oRl : allLayers)
 			{
-				Layer oLayer = oRl.getLayer();
-				double width = 3;		// TODO: finish this
+				Layer oLayer = oRl.layer;
+
+				// advanced design-rules for wider-than-normal geometry is not implemented in this framework
+				double width = 3;
 				double length = 50;
 				DRCTemplate rule = DRC.getSpacingRule(layer, null, oLayer, null, false, -1, width, length);
-				if (rule != null) rl.setMinSpacing(oRl, rule.getValue(0));
+				if (rule != null) rl.minSpacing.put(oRl, new Double(rule.getValue(0)));
 			}
 		}
 
@@ -585,11 +857,18 @@ public class RoutingFrame
 			if (pnp.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 			List<RoutingGeometry> contactGeom = new ArrayList<RoutingGeometry>();
 			NodeLayer[] nLayers = pnp.getNodeLayers();
+			Layer cutLayer = null;
 			double width = pnp.getDefWidth();
 			double height = pnp.getDefHeight();
 			for(int i=0; i<nLayers.length; i++)
 			{
-				RoutingLayer rl = routingLayers.get(nLayers[i].getLayer());
+				Layer lay = nLayers[i].getLayer();
+				if (lay.getFunction().isContact())
+				{
+					cutLayer = lay;
+					continue;
+				}
+				RoutingLayer rl = routingLayers.get(lay);
 				if (rl == null) continue;
 
 				EdgeH left = nLayers[i].getLeftEdge();
@@ -622,21 +901,41 @@ public class RoutingFrame
 						if (second == null) second = rl;
 				}
 			}
-			if (first != null && second != null)
+			if (first != null && second != null && cutLayer != null)
 			{
-				RoutingContact rc = new RoutingContact(pnp, contactGeom, first, second);
+				// determine via surround
+				double spacing = 2;
+
+				// advanced design-rules for wider-than-normal geometry is not implemented in this framework
+				double arcWidth = 3;
+				double arcLength = 50;
+				DRCTemplate ruleSpacing = DRC.getSpacingRule(cutLayer, null, cutLayer, null, false, -1, arcWidth, arcLength);
+				if (ruleSpacing != null) spacing = ruleSpacing.getValue(0);
+			
+				// determine cut size
+				double cutWidth = 0;
+				DRCTemplate ruleWidth = DRC.getMinValue(cutLayer, DRCTemplate.DRCRuleType.NODSIZ);
+				if (ruleWidth != null) cutWidth = ruleWidth.getValue(0);
+			
+				double viaSurround = spacing + cutWidth;
+				RoutingContact rc = new RoutingContact(pnp, contactGeom, first, second, viaSurround);
 				allContacts.add(rc);
 			}
 		}
 
+		// define all of the nodes in the cell and the arc geometry at the top level
+		List<RoutingGeometry> blockages = new ArrayList<RoutingGeometry>();
+		Map<ArcInst,Integer> netIDs = new HashMap<ArcInst,Integer>();
+		GeometryVisitor visitor = new GeometryVisitor(routingLayers, blockages, netIDs);
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, visitor);
+
 		// create the RoutingSegment objects from the Unrouted arcs in the Cell
-		List<RoutingSegment> allRoutes = new ArrayList<RoutingSegment>();
+		List<RoutingSegment> segmentsToRoute = new ArrayList<RoutingSegment>();
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = it.next();
 			if (ai.getProto() != Generic.tech().unrouted_arc) continue;
 
-			Point2D start = ai.getHeadLocation();
 			List<RoutingLayer> startLayers = new ArrayList<RoutingLayer>();
 			ArcProto [] startArcs = ai.getHeadPortInst().getPortProto().getBasePort().getConnections();
 			for(int i=0; i<startArcs.length; i++)
@@ -650,7 +949,6 @@ public class RoutingFrame
 				}
 			}
 
-			Point2D finish = ai.getTailLocation();
 			List<RoutingLayer> finishLayers = new ArrayList<RoutingLayer>();
 			ArcProto [] endArcs = ai.getTailPortInst().getPortProto().getBasePort().getConnections();
 			for(int i=0; i<endArcs.length; i++)
@@ -664,59 +962,111 @@ public class RoutingFrame
 				}
 			}
 
-			PortInst startPI = ai.getHeadPortInst();
-			PortInst finishPI = ai.getTailPortInst();
+			RoutingEnd startPI = new RoutingEnd(ai.getHeadPortInst());
+			RoutingEnd finishPI = new RoutingEnd(ai.getTailPortInst());
 			List<Geometric> thingsToDelete = new ArrayList<Geometric>();
 			thingsToDelete.add(ai);
-			int netID = 0;	// TODO: finish
+			Integer netID = netIDs.get(ai);
 			String netName = netList.getNetworkName(ai);
-			RoutingSegment rs = new RoutingSegment(start, startPI, startLayers, finish, finishPI, finishLayers, netID,
-				netName, thingsToDelete);
-			allRoutes.add(rs);
+			RoutingSegment rs = new RoutingSegment(startPI, startLayers, finishPI, finishLayers,
+				netID == null ? 0 : netID.intValue(), netName, thingsToDelete);
+			segmentsToRoute.add(rs);
 		}
 
-		// define all of the nodes in the cell and the arc geometry at the top level
-		List<RoutingNode> allNodes = new ArrayList<RoutingNode>();
-		List<RoutingGeometry> otherBlockages = new ArrayList<RoutingGeometry>();
-		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+		// prepare for routing
+        long startTime = System.currentTimeMillis();
+        System.out.println("Running Routing on cell '" + cell.describe(false) + "' using the '" + getAlgorithmName() + "' algorithm");
+
+        // do the real work of Routing
+		runRouting(cell, segmentsToRoute, allLayers, allContacts, blockages);
+
+		// now implement the results
+		int numRouted = 0;
+		for(RoutingSegment rs : segmentsToRoute)
 		{
-			NodeInst ni = it.next();
-			List<RoutingGeometry> geometryInCell = new ArrayList<RoutingGeometry>();
-			BlockageVisitor visitor = new BlockageVisitor(ni, geometryInCell, routingLayers, otherBlockages);
-			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, visitor);
+			// see if the route was created 
+			List<RoutePoint> contacts = rs.routedPoints;
+			List<RouteWire> wires = rs.routedWires;
+			if (contacts.size() == 0 && wires.size() == 0) continue;
+
+			// create the contacts
+			Map<RoutePoint,PortInst> builtContacts = new HashMap<RoutePoint,PortInst>();
+			for(RoutePoint rp : contacts)
+			{
+				RoutingContact rc = rp.getContact();
+				if (rc == RoutingContact.FINISHPOINT || rc == RoutingContact.STARTPOINT) continue;
+				Orientation orient = Orientation.fromAngle(rp.angle);
+				double width = rc.np.getDefWidth();
+				double height = rc.np.getDefHeight();
+				NodeInst ni = NodeInst.makeInstance(rc.np, rp.loc, width, height, cell, orient, null);
+				builtContacts.put(rp, ni.getOnlyPortInst());
+			}
+			for(RouteWire rw : wires)
+			{
+				RoutePoint start = rw.start;
+				PortInst startPI = builtContacts.get(start);
+				if (startPI == null)
+				{
+					if (start.getContact() == RoutingContact.STARTPOINT) startPI = rs.startEnd.pi; else
+						if (start.getContact() == RoutingContact.FINISHPOINT) startPI = rs.finishEnd.pi;
+					if (startPI == null)
+					{
+						System.out.println("CANNOT DETERMINE STARTING POINT OF WIRE");
+					}
+				}
+
+				RoutePoint finish = rw.end;
+				PortInst finishPI = builtContacts.get(finish);
+				if (finishPI == null)
+				{
+					if (finish.getContact() == RoutingContact.STARTPOINT) finishPI = rs.startEnd.pi; else
+						if (finish.getContact() == RoutingContact.FINISHPOINT) finishPI = rs.finishEnd.pi;
+					if (finishPI == null)
+					{
+						System.out.println("CANNOT DETERMINE ENDING POINT OF WIRE");
+					}
+				}
+				ArcProto ap = rw.layer.ap;
+				ArcInst ai = ArcInst.makeInstanceBase(ap, rw.width, startPI, finishPI);
+				if (ai == null)
+				{
+					System.out.println("FAILED TO RUN ARC");
+				} else
+				{
+					if (start.loc.getX() != finish.loc.getX() && start.loc.getY() != finish.loc.getY())
+						ai.setFixedAngle(false);
+				}
+			}
+
+			// now delete the things to delete
+			for(Geometric geom : rs.thingsToDelete)
+				if (geom instanceof ArcInst) ((ArcInst)geom).kill();
+			for(Geometric geom : rs.thingsToDelete)
+				if (geom instanceof NodeInst) ((NodeInst)geom).kill();
+			numRouted++;
 		}
 
-		// do the Routing from the shadow objects
-		int numRouted = doRouting(cell, allRoutes, allLayers, allNodes, otherBlockages, allContacts);
-		return numRouted;
-	}
-
-	private void addGeometry(Cell cell, PolyBase poly, List<RoutingGeometry> geometryInCell, Map<Layer,RoutingLayer> routingLayers, int netID)
-	{
-		RoutingLayer rl = routingLayers.get(poly.getLayer());
-		if (rl == null) return;
-		Rectangle2D bounds = poly.getBounds2D();
-		RoutingGeometry rg = new RoutingGeometry(rl, bounds, netID);
-		geometryInCell.add(rg);
+		long endTime = System.currentTimeMillis();
+        System.out.println("Routed " + numRouted + " out of " + segmentsToRoute.size() +
+        	" segments (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+        return numRouted;
 	}
 
 	/**
-	 * HierarchyEnumerator subclass to examine a cell for a given layer and fill an R-Tree.
+	 * HierarchyEnumerator subclass to geometry and build shadow data structures for routing.
 	 */
-	private class BlockageVisitor extends HierarchyEnumerator.Visitor
+	private class GeometryVisitor extends HierarchyEnumerator.Visitor
 	{
-		private List<RoutingGeometry> geometryInCell;
-		private NodeInst theNi;
 		private Map<Layer,RoutingLayer> routingLayers;
-		private List<RoutingGeometry> otherBlockages;
+		private List<RoutingGeometry> blockages;
+		private Map<ArcInst,Integer> netIDs;
 
-		public BlockageVisitor(NodeInst ni, List<RoutingGeometry> geometryInCell, Map<Layer,RoutingLayer> routingLayers,
-			List<RoutingGeometry> otherBlockages)
+		public GeometryVisitor(Map<Layer,RoutingLayer> routingLayers, List<RoutingGeometry> blockages,
+			Map<ArcInst,Integer> netIDs)
 		{
-			this.geometryInCell = geometryInCell;
-			this.theNi = ni;
 			this.routingLayers = routingLayers;
-			this.otherBlockages = otherBlockages;
+			this.blockages = blockages;
+			this.netIDs = netIDs;
 		}
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
@@ -737,19 +1087,16 @@ public class RoutingFrame
 				for(int i=0; i<polys.length; i++)
 				{
 					polys[i].transform(trans);
-					if (info.isRootCell())
-					{
-						addGeometry(cell, polys[i], otherBlockages, routingLayers, netID);
-					} else
-					{
-						addGeometry(cell, polys[i], geometryInCell, routingLayers, netID);
-					}
+					addGeometry(cell, polys[i], blockages, netID);
 				}
+				if (info.isRootCell() && ai.getProto() == Generic.tech().unrouted_arc)
+					netIDs.put(ai, new Integer(netID));
 			}
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (info.isRootCell() && ni != theNi) continue;
+				if (ni.isCellInstance()) continue;
+				if (ni.getFunction() == PrimitiveNode.Function.PIN) continue;
 				AffineTransform nodeTrans = ni.rotateOut(trans);
 				Technology tech = ni.getProto().getTechnology();
 				PolyBase [] polys = tech.getShapeOfNode(ni, true, false, null);
@@ -763,113 +1110,20 @@ public class RoutingFrame
 						Network net = nl.getNetwork(ni, poly.getPort(), 0);
 						if (net != null) netID = info.getNetID(net);
 					}
-					addGeometry(cell, poly, geometryInCell, routingLayers, netID);
+					addGeometry(cell, poly, blockages, netID);
 				}
 			}
 		}
 
-		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) { return true; }
+
+		private void addGeometry(Cell cell, PolyBase poly, List<RoutingGeometry> blockages, int netID)
 		{
-			NodeInst ni = no.getNodeInst();
-			if (info.isRootCell() && ni != theNi) return false;
-			if (!ni.isCellInstance())
-			{
-				Cell cell = info.getCell();
-				Netlist nl = info.getNetlist();
-				AffineTransform trans = info.getTransformToRoot();
-				AffineTransform nodeTrans = ni.rotateOut(trans);
-				PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
-				Technology tech = pNp.getTechnology();
-				Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, false, null);
-				for(int i=0; i<nodeInstPolyList.length; i++)
-				{
-					PolyBase poly = nodeInstPolyList[i];
-					poly.transform(nodeTrans);
-					int netID = -1;
-					if (poly.getPort() != null)
-					{
-						Network net = nl.getNetwork(no, poly.getPort(), 0);
-						if (net != null) netID = info.getNetID(net);
-					}
-					addGeometry(cell, poly, geometryInCell, routingLayers, netID);
-				}
-			}
-			return true;
+			RoutingLayer rl = routingLayers.get(poly.getLayer());
+			if (rl == null) return;
+			Rectangle2D bounds = poly.getBounds2D();
+			RoutingGeometry rg = new RoutingGeometry(rl, bounds, netID);
+			blockages.add(rg);
 		}
-	}
-
-	/**
-	 * Entry point for other tools that wish to describe a network to be routed.
-	 * @return the number of segments that were routed.
-	 */
-	public int doRouting(Cell cell, List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,
-		List<RoutingNode> allNodes, List<RoutingGeometry> otherBlockages, List<RoutingContact> allContacts)
-	{
-        long startTime = System.currentTimeMillis();
-        System.out.println("Running Routing on cell '" + cell.describe(false) + "' using the '" + getAlgorithmName() + "' algorithm");
-
-        // do the real work of Routing
-		int numRouted = runRouting(segmentsToRoute, allLayers, allNodes, otherBlockages, allContacts);
-
-		// do the routing
-		for(RoutingSegment rs : segmentsToRoute)
-		{
-			Map<RoutePoint,PortInst> builtContacts = new HashMap<RoutePoint,PortInst>();
-
-			// create the contacts
-			List<RoutePoint> contacts = rs.getContacts();
-			for(RoutePoint rp : contacts)
-			{
-				RoutingContact rc = rp.getContact();
-				if (rc == RoutingContact.FINISHPOINT || rc == RoutingContact.STARTPOINT) continue;
-				Orientation orient = null;
-				double width = rc.np.getDefWidth();
-				double height = rc.np.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(rc.np, rp.loc, width, height, cell, orient, null);
-				builtContacts.put(rp, ni.getOnlyPortInst());
-			}
-			List<RouteWire> wires = rs.getWires();
-			for(RouteWire rw : wires)
-			{
-				RoutePoint start = rw.getStart();
-				PortInst startPI = builtContacts.get(start);
-				if (startPI == null)
-				{
-					if (start.getContact() == RoutingContact.STARTPOINT) startPI = rs.startPI; else
-						if (start.getContact() == RoutingContact.FINISHPOINT) startPI = rs.finishPI;
-					if (startPI == null)
-					{
-						System.out.println("CANNOT DETERMINE STARTING POINT OF WIRE");
-					}
-				}
-
-				RoutePoint finish = rw.getFinish();
-				PortInst finishPI = builtContacts.get(finish);
-				if (finishPI == null)
-				{
-					if (finish.getContact() == RoutingContact.STARTPOINT) finishPI = rs.startPI; else
-						if (finish.getContact() == RoutingContact.FINISHPOINT) finishPI = rs.finishPI;
-					if (finishPI == null)
-					{
-						System.out.println("CANNOT DETERMINE ENDING POINT OF WIRE");
-					}
-				}
-				ArcProto ap = rw.layer.getArcProto();
-				ArcInst ai = ArcInst.makeInstanceBase(ap, rw.getWidth(), startPI, finishPI);
-				if (start.loc.getX() != finish.loc.getX() && start.loc.getY() != finish.loc.getY())
-					ai.setFixedAngle(false);
-			}
-
-			// now delete the things to delete
-			for(Geometric geom : rs.getThingsToDelete())
-				if (geom instanceof ArcInst) ((ArcInst)geom).kill();
-			for(Geometric geom : rs.getThingsToDelete())
-				if (geom instanceof NodeInst) ((NodeInst)geom).kill();
-		}
-
-        long endTime = System.currentTimeMillis();
-        System.out.println("Routed " + numRouted + " out of " + segmentsToRoute.size() +
-        	" segments (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-        return numRouted;
 	}
 }

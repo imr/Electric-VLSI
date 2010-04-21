@@ -225,6 +225,7 @@ public class RoutingTab extends PreferencePanel
 					if (pp.getType() == RoutingParameter.TYPEBOOLEAN)
 					{
 						JCheckBox cb = new JCheckBox(pp.getName());
+						cb.setSelected(pp.hasTempValue() ? pp.getTempBooleanValue() : pp.getBooleanValue());
 						gbc = new GridBagConstraints();
 						gbc.gridx = 0;   gbc.gridy = yPos;
 						gbc.anchor = GridBagConstraints.WEST;

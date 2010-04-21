@@ -116,6 +116,7 @@ import com.sun.electric.tool.routing.River;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.routing.RoutingFrame;
 import com.sun.electric.tool.routing.SeaOfGates;
+import com.sun.electric.tool.routing.RoutingFrame.RoutingParameter;
 import com.sun.electric.tool.sc.GetNetlist;
 import com.sun.electric.tool.sc.Maker;
 import com.sun.electric.tool.sc.Place;
@@ -2005,8 +2006,10 @@ public class ToolMenu
 
 		private DoExperimentalRoutingJob(RoutingFrame rf, Cell cell)
 		{
-			super(" Routing", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Routing", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			algorithmName = rf.getAlgorithmName();
+			for(RoutingParameter rp : rf.getParameters())
+				rp.cacheValue();
 			this.cell = cell;
 			startJob();
 		}
@@ -2017,7 +2020,7 @@ public class ToolMenu
 			{
 				if (algorithmName.equals(rf.getAlgorithmName()))
 				{
-		    		int numDone = rf.doRouting(cell, null);
+		    		int numDone = rf.doRouting(cell);
 		    		if (numDone == 0) return false;
 		    		return true;
 				}
