@@ -1001,6 +1001,10 @@ public class Xml {
                     curLayer.pureLayerNode.style = styleStr != null ? Poly.Type.valueOf(styleStr) : Poly.Type.FILLED;
                     curLayer.pureLayerNode.port = a("port");
                     curDistance = curLayer.pureLayerNode.size;
+                    Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+                    n.name = curLayer.pureLayerNode.name;
+                    n.function = com.sun.electric.technology.PrimitiveNode.Function.NODE;
+                    tech.pureLayerNodes.add(n);
                     break;
                 case arcProto:
                     curArc = new ArcProto();
