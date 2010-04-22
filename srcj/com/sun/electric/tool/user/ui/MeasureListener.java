@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
@@ -63,6 +64,7 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 	private static boolean measuring = false; // true if drawing measure line
 	private static List<Highlight> lastHighlights = new ArrayList<Highlight>();
 	private Point2D dbStart; // start of measure in database units
+	private static final boolean CADENCEMODE = true;
 
 	private MeasureListener() {}
 
@@ -99,31 +101,82 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 
 			// show coords at start and end point
             Cell cell = wnd.getCell();
-            if (cell == null)
-            {
-//                System.out.println("No cell available for measure");
-                return; // nothing available
-            }
+            if (cell == null) return; // nothing available
 
             Technology tech = cell.getTechnology();
-			lastHighlights.add(highlighter.addMessage(cell, "("
-				+ TextUtils.formatDistance(start.getX(), tech) + "," + TextUtils.formatDistance(start.getY(), tech)
-				+ ")", start));
-			lastHighlights.add(highlighter.addMessage(cell, "("
-				+ TextUtils.formatDistance(end.getX(), tech) + "," + TextUtils.formatDistance(end.getY(), tech)
-				+ ")", end));
-			// add in line
-			lastHighlights.add(highlighter.addLine(start, end, cell));
+            if (CADENCEMODE)
+            {
+    			Point stScreen = wnd.databaseToScreen(start);
+    			Point enScreen = wnd.databaseToScreen(end);
+    			double dbDist = start.distance(end);
+    			double screenDist = Math.sqrt((stScreen.x-enScreen.x)*(stScreen.x-enScreen.x) +
+    				(stScreen.y-enScreen.y)*(stScreen.y-enScreen.y));
+    			if (dbDist > 0 && screenDist > 0)
+    			{
+	    			double dbLargeTickSize = 8 / screenDist * dbDist;
+	    			double dbSmallTickSize = 3 / screenDist * dbDist;
+	    			int lineAngle = DBMath.figureAngle(start, end);
+	    			int tickAngle = (lineAngle + 900) % 3600;
 
-			lastMeasuredDistanceX = Math.abs(start.getX() - end.getX());
-			lastMeasuredDistanceY = Math.abs(start.getY() - end.getY());
-			Point2D center = new Point2D.Double((start.getX() + end.getX()) / 2,
-				(start.getY() + end.getY()) / 2);
-			double dist = start.distance(end);
-			String show = TextUtils.formatDistance(dist, tech) + " (dX="
-				+ TextUtils.formatDistance(lastMeasuredDistanceX, tech) + " dY="
-				+ TextUtils.formatDistance(lastMeasuredDistanceY, tech) + ")";
-			lastHighlights.add(highlighter.addMessage(cell, show, center, 1));
+	    			// draw main line and starting/ending tick marks
+	    			lastHighlights.add(highlighter.addLine(start, end, cell));
+	    			double tickX = start.getX() + DBMath.cos(tickAngle) * dbLargeTickSize;
+	    			double tickY = start.getY() + DBMath.sin(tickAngle) * dbLargeTickSize;
+	    			Point2D tickLocation = new Point2D.Double(tickX, tickY);
+	    			lastHighlights.add(highlighter.addLine(start, tickLocation, cell));
+					lastHighlights.add(highlighter.addMessage(cell, "0", tickLocation));
+	    			tickX = end.getX() + DBMath.cos(tickAngle) * dbLargeTickSize;
+	    			tickY = end.getY() + DBMath.sin(tickAngle) * dbLargeTickSize;
+	    			tickLocation = new Point2D.Double(tickX, tickY);
+	    			lastHighlights.add(highlighter.addLine(end, tickLocation, cell));
+					lastHighlights.add(highlighter.addMessage(cell, TextUtils.formatDistance(dbDist, tech), tickLocation));
+
+					// now do intermediate ticks
+					double minorTickDist = Math.min(wnd.getGridXSpacing(), wnd.getGridYSpacing());
+					int numMinorTicks = (int)(dbDist / minorTickDist);
+					while (numMinorTicks >= screenDist/10)
+					{
+						minorTickDist *= 2;
+						numMinorTicks = (int)(dbDist / minorTickDist);
+					}
+					for(int i=1; i<=numMinorTicks; i++)
+					{
+						double distSoFar = minorTickDist * i;
+						double minorTickX = start.getX() + distSoFar*DBMath.cos(lineAngle);
+						double minorTickY = start.getY() + distSoFar*DBMath.sin(lineAngle);
+		    			tickX = minorTickX + DBMath.cos(tickAngle) * dbSmallTickSize;
+		    			tickY = minorTickY + DBMath.sin(tickAngle) * dbSmallTickSize;
+		    			tickLocation = new Point2D.Double(tickX, tickY);
+		    			lastHighlights.add(highlighter.addLine(new Point2D.Double(minorTickX, minorTickY),
+		    				tickLocation, cell));
+						if (distSoFar > dbDist-minorTickDist) break;
+		    			if ((i%5) == 0)
+		    			{
+							lastHighlights.add(highlighter.addMessage(cell, TextUtils.formatDistance(distSoFar, tech), tickLocation));
+		    			}
+					}
+    			}
+            } else
+            {
+				lastHighlights.add(highlighter.addMessage(cell, "("
+					+ TextUtils.formatDistance(start.getX(), tech) + "," + TextUtils.formatDistance(start.getY(), tech)
+					+ ")", start));
+				lastHighlights.add(highlighter.addMessage(cell, "("
+					+ TextUtils.formatDistance(end.getX(), tech) + "," + TextUtils.formatDistance(end.getY(), tech)
+					+ ")", end));
+				// add in line
+				lastHighlights.add(highlighter.addLine(start, end, cell));
+
+				lastMeasuredDistanceX = Math.abs(start.getX() - end.getX());
+				lastMeasuredDistanceY = Math.abs(start.getY() - end.getY());
+				Point2D center = new Point2D.Double((start.getX() + end.getX()) / 2,
+					(start.getY() + end.getY()) / 2);
+				double dist = start.distance(end);
+				String show = TextUtils.formatDistance(dist, tech) + " (dX="
+					+ TextUtils.formatDistance(lastMeasuredDistanceX, tech) + " dY="
+					+ TextUtils.formatDistance(lastMeasuredDistanceY, tech) + ")";
+				lastHighlights.add(highlighter.addMessage(cell, show, center, 1));
+            }
 			highlighter.finished();
 			wnd.clearDoingAreaDrag();
 			wnd.repaint();
@@ -203,6 +256,17 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 		}
 	}
 
+	public void mouseReleased(MouseEvent evt)
+	{
+        if (CADENCEMODE)
+        {
+			lastValidMeasuredDistanceX = lastMeasuredDistanceX;
+			lastValidMeasuredDistanceY = lastMeasuredDistanceY;
+			measuring = false;
+			lastHighlights.clear();
+        }
+	}
+
 	public void mouseDragged(MouseEvent evt)
 	{
 		gridMouse(evt);
@@ -256,7 +320,6 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 	public void mouseClicked(MouseEvent evt) {}
 	public void mouseEntered(MouseEvent evt) {}
 	public void mouseExited(MouseEvent evt) {}
-	public void mouseReleased(MouseEvent evt) {}
 	public void mouseWheelMoved(MouseWheelEvent evt) {}
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
@@ -276,15 +339,12 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 		}
 	}
 
-	// mac stuff
-	private static final boolean isMac = Client.isOSMac();
-
 	/**
 	 * See if event is a left mouse click. Platform independent.
 	 */
 	private boolean isLeftMouse(MouseEvent evt)
 	{
-		if (isMac)
+		if (Client.isOSMac())
 		{
 			if (!evt.isMetaDown())
 			{

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+BUG: (4/22/10, SMR) The ruler should have tick marks (Bug #2718).
+FIX: Redid MeasureListener to draw Cadence-like rulers.
+
 BUG: (4/22/10, SMR) Text Properties dialog changes non-centered text on rotated nodes (Bug #2733).
 FIX: Ignore code in PolyBase.unRotateType() which is not needed since Bug #2635.
 
@@ -17,7 +20,7 @@ IMP/MAN: (4/21/10, SMR) Can now resize multiple nodes and multiple arcs (Bug #27
 BUG: (4/21/10, DN) Netbeans build doesn't create manifest.
 FIX: Add "trunk/srcj/manifest.mf" template. 
 
-IMP: (4/20/10, GVG) TechEditorWizard: better handliing of asymetric rules (Bug #2656)
+IMP: (4/20/10, GVG) TechEditorWizard: better handling of asymmetric rules (Bug #2656)
 Added WizardRuleFields class which should be the first step for this request.
 
 IMP: (4/19/10, DN) More strict checking in ImmutableArcInst.newInstance and ImmutableArcInst.withAngle.
@@ -29,13 +32,13 @@ FIX: Added new ArcInst and ImmutableArcInst methods: getDefinedAngle() which
 IMP/MAN: (4/19/10, DN) Experimental "Cell|Cell info|Design Summary" command (only in -debug mode).
 
 BUG: (4/19/10, DN) Placement of pure layer nodes inconsistent with highlighter (Bug #2730)
-FIX: Set correct center in "Fix highligting when place asymmetrical primitive" on 4/13/10
+FIX: Set correct center in "Fix highlighting when place asymmetrical primitive" on 4/13/10
 
 BUG: (4/19/10, DN) Slidable arc should slide along contact array (Bug #2728).
 FIX: In CircuitChangeJob.ManyMove.doIt don't move a node on head/tail of slidable arc if it is still in port.
 
 BUG: (4/16/10, GVG) Placement of pure layer nodes inconsistent with highlighter (Bug #2730)
-FIX: Undone ""Fix highligting when place asymmetrical primitive" on 4/13/10
+FIX: Undone ""Fix highlighting when place asymmetrical primitive" on 4/13/10
 
 ************************* Version 9.00d: ******************************
 
@@ -64,11 +67,11 @@ FIX: Catch errors more gracefully.
 IMP: (4/12/10, JKG) Added Verilog option to write non-standard cells when writing standard cell netlist.
 
 BUG: (4/7/10, DN) The ruler text is too small (Bug #2718).
-FIX: In EditWindow.paintComponent select font for rule text with size 15*globalTextScale insteadof 10*globalTextScale.
+FIX: In EditWindow.paintComponent select font for rule text with size 15*globalTextScale instead of 10*globalTextScale.
 
 IMP: (4/8/10, GVG) Added more error messages to detect failures in gateLayGen regression (Bug #2717)
 
-BUG: (4/8/10, GVG/SMR) New zero-length def of arcs and non-manhattan shapes (Bug #2720)
+BUG: (4/8/10, GVG/SMR) New zero-length def of arcs and non-Manhattan shapes (Bug #2720)
 FIX: ImmutableArcInst:isManhattan() and ImmutableArcInst:makeGridBoxInt handle angle=-1
 (introduced by Bug #2713)
 
@@ -125,7 +128,7 @@ FIX: In NetSchem.updateSchematic fix a test that old Netlist is still valid.
 BUG: Layer order not restored with preferences (Bug #2699).
 FIX: In UserInterfaceAll.loadPreferences call LayerVisibility.loadPreferences.
 
-IMP: (3/35/10, GVG) Compaction regressionand changes in API (Bug #2633)
+IMP: (3/35/10, GVG) Compaction regression and changes in API (Bug #2633)
 
 BUG: (3/25/10, GVG) NPE if layer is not found by name (Bug #2698)
 FIX: Just detect the case and allow to catch any exception in writeXML()
@@ -215,7 +218,7 @@ FIX: In PrefPackage.putPrefs insert "field.setAccessible(true)".
 
 IMP: (3/9/10, DN) Encapsulate fields in EditingPreferences (Bug #2672).
 
-IMP: (3/8/10, GVG) Add OD18ud15 Transitors to the 40nm tech (Bug #2680)
+IMP: (3/8/10, GVG) Add OD18ud15 Transistors to the 40nm tech (Bug #2680)
 
 IMP: (3/8/10, AM) Finish implementation of MinMaxOperation.
 
