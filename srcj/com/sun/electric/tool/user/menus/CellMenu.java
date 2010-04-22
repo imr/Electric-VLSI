@@ -178,8 +178,8 @@ public class CellMenu {
 				new EMenuItem("_General Cell Lists...") { public void run() {
 					CellLists.generalCellListsCommand(); }},
 				SEPARATOR,
-				Job.getDebug() ? new EMenuItem("Design _Summary") { public void run() {
-					CellLists.designSummaryCommand(); }} : null,
+				new EMenuItem("_Summarize Cell Contents") { public void run() {
+					CellLists.designSummaryCommand(); }},
 				new EMenuItem("List _Nodes/Arcs in this Cell") { public void run() {
 					CellLists.listNodesAndArcsInCellCommand(); }},
 				new EMenuItem("List Cell _Instances") { public void run() {

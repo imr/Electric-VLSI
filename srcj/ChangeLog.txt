@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+IMP/MAN: (4/19/10, SMR) Added Design Summary code contributed by GNU users.
+     The command is "Cell|Cell Info|Summarize Cell Contents" (Bug #2734).
+
 BUG: (4/22/10, SMR) The ruler should have tick marks (Bug #2718).
 FIX: Redid MeasureListener to draw Cadence-like rulers.
 
@@ -29,7 +32,7 @@ BUG: (4/19/10, SMR) Undefined arc angles still cause trouble (Bug #2729).
 FIX: Added new ArcInst and ImmutableArcInst methods: getDefinedAngle() which
      returns 0 instead of -1.
 
-IMP/MAN: (4/19/10, DN) Experimental "Cell|Cell info|Design Summary" command (only in -debug mode).
+IMP: (4/19/10, DN) Experimental "Cell|Cell info|Design Summary" command (only in -debug mode).
 
 BUG: (4/19/10, DN) Placement of pure layer nodes inconsistent with highlighter (Bug #2730)
 FIX: Set correct center in "Fix highlighting when place asymmetrical primitive" on 4/13/10

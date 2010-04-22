@@ -588,33 +588,25 @@ public class CellLists extends EDialog
         Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
-        Library curLib = curCell.getLibrary();
-        URL url = curLib.getLibFile();
-        String editMode = "?";
-
-        System.out.println("                Show Environment                      ");
+        System.out.println("                   Cell Environment");
         System.out.println("******************************************************");
-        System.out.println("Library   : " + curLib.getName());
-        System.out.println("Cell      : " + curCell.noLibDescribe());
-
+        Library curLib = curCell.getLibrary();
+        System.out.println("Cell:      " + curCell.noLibDescribe());
+        System.out.println("Library:   " + curLib.getName());
+        String editMode = "?";
+        URL url = curLib.getLibFile();
         if (url != null)
         {
             File f = new File(url.getPath());
-
-            if (f.canRead())
-                editMode = "Read";
-            if (f.canWrite())
-                editMode = "Write";
-
-            System.out.println("Path      : " + url.getPath());
-        }
-        else
+            if (f.canRead()) editMode = "Read";
+            if (f.canWrite()) editMode = "Write";
+            System.out.println("Path:      " + url.getPath());
+        } else
         {
-            System.out.println("Path      : *Not Saved*");
+            System.out.println("Path:      *Not Saved*");
             editMode = "Write";
         }
-
-        System.out.println("Edit Mode : " + editMode);
+        System.out.println("Edit Mode: " + editMode);
         System.out.println("******************************************************");
 
         TreeMap<Layer,GenMath.MutableInteger> layerTable = new TreeMap<Layer,GenMath.MutableInteger> ();
@@ -642,8 +634,7 @@ public class CellLists extends EDialog
             {
                 Cell subcell = (Cell) ni.getProto();
                 GenMath.addToBag(instanceTable, subcell);
-            }
-            else
+            } else
             {
                 NodeProto np = ni.getProto();
                 PrimitiveNode pn = (PrimitiveNode) np;
@@ -659,12 +650,10 @@ public class CellLists extends EDialog
             }
         }
 
-        System.out.println("");
-        System.out.println("              Layer Object Statistics                 ");
+        System.out.println();
+        System.out.println("                     Layer Usage");
         System.out.println("******************************************************");
         System.out.println("Count\tLayer");
-        System.out.println("******************************************************");
-
         int totalVal = 0;
         for (Map.Entry<Layer,GenMath.MutableInteger> e: layerTable.entrySet())
         {
@@ -673,17 +662,13 @@ public class CellLists extends EDialog
             System.out.printf("%5s\t%s\n", count, layer.getFullName());
             totalVal += count.intValue();
         }
+        System.out.println("------- Total: " + totalVal + " -------");
+        System.out.println("******************************************************");
 
-        if (!layerTable.isEmpty())
-            System.out.println("******************************************************");
-        System.out.println("Total: " + totalVal);
-
-        System.out.println("");
-        System.out.println("                Instance Statistics                   ");
+        System.out.println();
+        System.out.println("                    Cell Instances");
         System.out.println("******************************************************");
         System.out.println("Count\tInstance");
-        System.out.println("******************************************************");
-
         totalVal = 0;
         for (Map.Entry<Cell,GenMath.MutableInteger> e: instanceTable.entrySet())
         {
@@ -692,10 +677,8 @@ public class CellLists extends EDialog
             System.out.printf("%5s\t%s\n", count, subcell.describe(false));
             totalVal += count.intValue();
         }
-
-        if (!instanceTable.isEmpty())
-            System.out.println("******************************************************");
-        System.out.println("Total: " + totalVal);
+        System.out.println("------- Total: " + totalVal + " -------");
+        System.out.println("******************************************************");
     }
 
 	/**
