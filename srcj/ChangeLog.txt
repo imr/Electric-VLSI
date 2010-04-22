@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+BUG: (4/22/10, SMR) Text Properties dialog changes non-centered text on rotated nodes (Bug #2733).
+FIX: Ignore code in PolyBase.unRotateType() which is not needed since Bug #2635.
+
 BUG: (4/21/10, GVG) Adding pure layer nodes in palette and those warning messages (Bug #2726)
 FIX: Added PrimitiveNode instances into tech.pureLayerNodes while parsing XML tech.
 

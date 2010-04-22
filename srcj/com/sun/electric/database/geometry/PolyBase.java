@@ -30,7 +30,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Job;
 
@@ -358,7 +357,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 
 	/**
 	 * Method to tell whether a coordinate is inside of this Poly.
-     * The algorith relies on the Java class Area. Very slow.
+     * The algorithm relies on the Java class Area. Very slow.
 	 * @param pt the point in question.
 	 * @return true if the point is inside of this Poly.
 	 */
@@ -624,8 +623,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 			double rad = Math.max(dx, dy);
             if (!DBMath.pointInRect(new Point2D.Double(ctr.getX()+rad,ctr.getY()+rad), bounds)) return false;
             if (!DBMath.pointInRect(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad), bounds)) return false;
-			//if (!bounds.contains(new Point2D.Double(ctr.getX()+rad,ctr.getY()+rad))) return false;
-			//if (!bounds.contains(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad))) return false;
 			return true;
 		}
         for (Point2D p : points)
@@ -664,7 +661,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 	{
 		// look down to the bottom level node/port
 		PortOriginal fp = new PortOriginal(pi);
-//		AffineTransform trans = fp.getTransformToTop();
 		NodeInst ni = fp.getBottomNodeInst();
 
 		// do not reduce port if not filled
@@ -698,7 +694,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 		// determine the edge and center of the port polygon
 		double bx = portBounds.getMinX();     double ux = portBounds.getMaxX();
 		double by = portBounds.getMinY();     double uy = portBounds.getMaxY();
-//		double cx = portBounds.getCenterX();  double cy = portBounds.getCenterY();
 
 		// compute the area of the nodeinst
         Rectangle2D r = ni.getBaseShape().getBounds2D();
@@ -706,16 +701,6 @@ public class PolyBase implements Shape, PolyNodeMerge
         double hx = r.getMaxX();
         double ly = r.getMinY();
         double hy = r.getMaxY();
-//		SizeOffset so = ni.getSizeOffset();
-//		Rectangle2D nodeBounds = ni.getBounds();
-//		Point2D lowerLeft = new Point2D.Double(nodeBounds.getMinX()+so.getLowXOffset(), nodeBounds.getMinY()+so.getLowYOffset());
-//		trans.transform(lowerLeft, lowerLeft);
-//		Point2D upperRight = new Point2D.Double(nodeBounds.getMaxX()-so.getHighXOffset(), nodeBounds.getMaxY()-so.getHighYOffset());
-//		trans.transform(upperRight, upperRight);
-//		double lx = lowerLeft.getX();   double hx = upperRight.getX();
-//		double ly = lowerLeft.getY();   double hy = upperRight.getY();
-//		if (lx > hx) { double swap = lx; lx = hx;  hx = swap; }
-//		if (ly > hy) { double swap = ly; ly = hy;  hy = swap; }
 
 		// do not reduce in X if arc is horizontal
 		if (angle != -1 && angle != 0 && angle != 1800)
@@ -869,6 +854,7 @@ if (Poly.NEWTEXTTREATMENT) return origType;
 	 */
 	public static Poly.Type unRotateType(Poly.Type origType, ElectricObject eObj)
 	{
+if (Poly.NEWTEXTTREATMENT) return origType;
 		// centered text does not rotate its anchor
 		if (origType == Poly.Type.TEXTCENT || origType == Poly.Type.TEXTBOX) return origType;
 
@@ -897,7 +883,6 @@ if (Poly.NEWTEXTTREATMENT) return origType;
 		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis()) rotAngle = -rotAngle;
 		Orientation orient = Orientation.fromJava(rotAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
         AffineTransform trans = orient.pureRotate();
-//		AffineTransform trans = NodeInst.pureRotate(rotAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
 
 		Point2D pt = new Point2D.Double(100, 0);
 		trans.transform(pt, pt);
@@ -1800,19 +1785,6 @@ if (Poly.NEWTEXTTREATMENT) return origType;
 			if (bounds != null)
 			{
 				double area = GenMath.getArea(bounds);
-
-				/* now determine the sign of the area */
-//				double sign = 0;
-//				if (points[0].getX() == points[1].getX())
-//				{
-//					/* first line is vertical */
-//					sign = (points[2].getX() - points[1].getX()) * (points[1].getY() - points[0].getY());
-//				} else
-//				{
-//					/* first line is horizontal */
-//					sign = (points[1].getX() - points[0].getX()) * (points[1].getY() - points[2].getY());
-//				}
-				//if (sign < 0) area = -area;
 				return Math.abs(area);
 			}
 
@@ -2353,17 +2325,14 @@ if (Poly.NEWTEXTTREATMENT) return origType;
 		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
 
-		// !DBMath.isGreaterThan(hX, bX) == bX >= hX
 		if (!DBMath.isGreaterThan(hX, bX) || !DBMath.isGreaterThan(hY, bY) ||
 		    !DBMath.isGreaterThan(uX, lX) || !DBMath.isGreaterThan(uY, lY)) return 0;
-		//if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
 
 		// if the box to be cropped is within the other, say so
 		boolean blX = !DBMath.isGreaterThan(bX, lX);
 		boolean uhX = !DBMath.isGreaterThan(hX, uX);
 		boolean blY = !DBMath.isGreaterThan(bY, lY);
 		boolean uhY = !DBMath.isGreaterThan(hY, uY);
-		//if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
 		if (blX && uhX && blY && uhY) return 1;
 
 		// see which direction is being cropped
@@ -2373,14 +2342,10 @@ if (Poly.NEWTEXTTREATMENT) return origType;
 		{
 			// one above the other: crop in Y
 			if (blX && uhX)
-			//if (bX <= lX && uX >= hX)
 			{
 				// it covers in X...do the crop
-				//if (uY >= hY) hY = bY;
 				if (!DBMath.isGreaterThan(hY, uY)) hY = bY;
-				//if (bY <= lY) lY = uY;
 				if (blY) lY = uY;
-				//if (hY <= lY) return 1;
 				if (!DBMath.isGreaterThan(hY, lY)) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
@@ -2389,14 +2354,10 @@ if (Poly.NEWTEXTTREATMENT) return origType;
 		{
 			// one next to the other: crop in X
 			if (blY && uhY)
-			//if (bY <= lY && uY >= hY)
 			{
 				// it covers in Y...crop in X
-				//if (uX >= hX) hX = bX;
 				if (!DBMath.isGreaterThan(hX, uX)) hX = bX;
-				//if (bX <= lX) lX = uX;
 				if (blX) lX = uX;
-				//if (hX <= lX) return 1;
 				if (!DBMath.isGreaterThan(hX, lX)) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
