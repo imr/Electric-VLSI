@@ -99,52 +99,6 @@ public class HSpiceOut extends Simulate
 		String string;
 	}
 
-	private static class SweepAnalysis extends AnalogAnalysis {
-		double [][] commonTime; // sweep, signal
-		List<List<float[]>> theSweeps = new ArrayList<List<float[]>>(); // sweep, event, signal
-
-		private SweepAnalysis(Stimuli sd, AnalogAnalysis.AnalysisType type) {
-			super(sd, type, false);
-		}
-
-		protected Signal[] loadWaveforms(AnalogSignal signal) {
-			int sigIndex = signal.getIndexInAnalysis();
-			Signal[] waveforms = new Signal[commonTime.length];
-			for (int sweep = 0; sweep < waveforms.length; sweep++) {
-				double[] times = commonTime[sweep];
-				List<float[]> theSweep = theSweeps.get(sweep);
-				Signal waveform;
-				if (getAnalysisType() == ANALYSIS_AC) {
-					double[] realValues = new double[times.length];
-					double[] imagValues = new double[times.length];
-					for (int eventNum = 0; eventNum < realValues.length; eventNum++) {
-						float[] eventValues = theSweep.get(eventNum);
-                        /*
-                        tree.insert(times[i],
-                                    eventValues[sigIndex*2 + 1],
-                                    eventValues[sigIndex*2 + 2]);
-                        */
-					}
-                    // FIXME
-					//waveform = new ComplexWaveform(times, realValues, imagValues);
-                    waveform = null;
-				} else {
-					double[] values = new double[times.length];
-					for (int eventNum = 0; eventNum < values.length; eventNum++)
-						values[eventNum] = theSweep.get(eventNum)[sigIndex + 1];
-                    ScalarSignal scalarsignal = new ScalarSignal(signal.getAnalysis(),
-                                                                 signal.getSignalName(),
-                                                                 signal.getSignalContext());
-                    for(int i=0; i<times.length; i++)
-                        scalarsignal.addSample(times[i], new ScalarSample(values[i]));
-                    waveform = scalarsignal;
-				}
-				waveforms[sweep] = waveform;
-			}
-			return waveforms;
-		}
-	}
-
 	HSpiceOut() {}
 
 	/**
@@ -474,7 +428,7 @@ public class HSpiceOut extends Simulate
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		SweepAnalysis an = new SweepAnalysis(sd, analysisType);
+		AnalogAnalysis an = new AnalogAnalysis(sd, analysisType, false);
 		startProgressDialog("HSpice " + analysisType.toString() + " analysis", fileURL.getFile());
 		System.out.println("Reading HSpice " + analysisType.toString() + " analysis '" + fileURL.getFile() + "'");
 
@@ -729,96 +683,6 @@ public class HSpiceOut extends Simulate
 		}
 		resetBinaryTRACDCReader();
 
-		// setup the simulation information
-		boolean isComplex = analysisType == Analysis.ANALYSIS_AC;
-		double[] minValues = new double[numSignals];
-		double[] maxValues = new double[numSignals];
-		Arrays.fill(minValues, Double.POSITIVE_INFINITY);
-		Arrays.fill(maxValues, Double.NEGATIVE_INFINITY);
-		int sweepCounter = sweepcnt;
-		for(;;)
-		{
-			// get sweep info
-			if (sweepcnt > 0)
-			{
-				float sweepValue = getHSpiceFloat(false);
-				if (eofReached)  { System.out.println("EOF before sweep data");   break; }
-				String sweepName = TextUtils.formatDouble(sweepValue);
-				if (DEBUGCONDITIONS) System.out.println("READING SWEEP NUMBER: "+sweepValue);
-
-				// if there are more than 2 conditions, read extra sweep values
-				for(int i=2; i<cndcnt; i++)
-				{
-					float anotherSweepValue = getHSpiceFloat(false);
-					if (eofReached)  { System.out.println("EOF reading sweep header");   break; }
-					sweepName += "," + TextUtils.formatDouble(anotherSweepValue);
-					if (DEBUGCONDITIONS) System.out.println("  EXTRA SWEEP NUMBER: "+anotherSweepValue);
-				}
-				an.addSweep(sweepName);
-			}
-
-			// now read the data
-			List<float[]> allTheData = new ArrayList<float[]>();
-			for(;;)
-			{
-				// get the first number, see if it terminates
-				float time = getHSpiceFloat(true);
-				if (eofReached) break;
-				float [] oneSetOfData = new float[isComplex ? numSignals*2 + 1 : numSignals + 1];
-				oneSetOfData[0] = time;
-
-				// get a row of numbers
-				for(int k=0; k<numSignals; k++)
-				{
-					int numSignal = (k + numnoi) % numSignals;
-					double value;
-					if (isComplex)
-					{
-						float realPart = getHSpiceFloat(false);
-						float imagPart = getHSpiceFloat(false);
-						oneSetOfData[numSignal*2 + 1] = realPart;
-						oneSetOfData[numSignal*2 + 2] = imagPart;
-						value = Math.hypot(realPart, imagPart); // amplitude of complex number
-					} else
-					{
-						value = oneSetOfData[numSignal + 1] = getHSpiceFloat(false);
-					}
-					if (eofReached)
-					{
-						System.out.println("EOF in the middle of the data (at " + k + " out of " + numSignals +
-							" after " + allTheData.size() + " sets of data)");
-						break;
-					}
-					if (value < minValues[numSignal]) minValues[numSignal] = value;
-					if (value > maxValues[numSignal]) maxValues[numSignal] = value;
-				}
-				if (eofReached)  { System.out.println("EOF before the end of the data");   break; }
-				allTheData.add(oneSetOfData);
-			}
-			an.theSweeps.add(allTheData);
-			sweepCounter--;
-			if (sweepCounter <= 0) break;
-			eofReached = false;
-		}
-		closeInput();
-
-		// Put data to Stimuli
-		an.commonTime = new double[an.theSweeps.size()][];
-		double minTime = Double.POSITIVE_INFINITY;
-		double maxTime = Double.NEGATIVE_INFINITY;
-		for (int sweepNum=0; sweepNum<an.commonTime.length; sweepNum++)
-		{
-			List<float[]> allTheData = an.theSweeps.get(sweepNum);
-			an.commonTime[sweepNum] = new double[allTheData.size()];
-			for (int eventNum = 0; eventNum < allTheData.size(); eventNum++)
-			{
-				double time = allTheData.get(eventNum)[0];
-				an.commonTime[sweepNum][eventNum] = time;
-				if (time < minTime) minTime = time;
-				if (time > maxTime) maxTime = time;
-			}
-		}
-
 		// preprocess signal names to remove constant prefix (this code also occurs in VerilogOut.readVerilogFile)
 		String constantPrefix = null;
 		boolean hasPrefix = true;
@@ -831,8 +695,7 @@ public class HSpiceOut extends Simulate
 			if (constantPrefix == null) constantPrefix = prefix;
 			if (!constantPrefix.equals(prefix)) { hasPrefix = false;   break; }
 		}
-		if (!hasPrefix) constantPrefix = null; else
-		{
+		if (!hasPrefix) constantPrefix = null; else {
 			String fileName = fileURL.getFile();
 			int pos = fileName.lastIndexOf(File.separatorChar);
 			if (pos >= 0) fileName = fileName.substring(pos+1);
@@ -844,8 +707,8 @@ public class HSpiceOut extends Simulate
 				constantPrefix = null;
 		}
 
-		for(int k=0; k<numSignals; k++)
-		{
+        AnalogSignal[] signals = new AnalogSignal[numSignals];
+		for(int k=0; k<numSignals; k++) {
 			String name = signalNames[k];
 			if (constantPrefix != null &&
 				name.startsWith(constantPrefix))
@@ -857,9 +720,59 @@ public class HSpiceOut extends Simulate
 				context = name.substring(0, lastDotPos);
 				name = name.substring(lastDotPos+1);
 			}
-			AnalogSignal as = an.addSignal(name, context, minTime, maxTime, minValues[k], maxValues[k]);
-            an.getWaveform(as, 0);
+			signals[k] = new AnalogSignal(an, name, context);
 		}
+
+		// setup the simulation information
+		boolean isComplex = analysisType == Analysis.ANALYSIS_AC;
+		int sweepCounter = sweepcnt;
+		for(;;) {
+			// get sweep info
+            String sweepName = "";
+			if (sweepcnt > 0) {
+				float sweepValue = getHSpiceFloat(false);
+				if (eofReached)  { System.out.println("EOF before sweep data");   break; }
+				sweepName = TextUtils.formatDouble(sweepValue);
+				if (DEBUGCONDITIONS) System.out.println("READING SWEEP NUMBER: "+sweepValue);
+				// if there are more than 2 conditions, read extra sweep values
+				for(int i=2; i<cndcnt; i++) {
+					float anotherSweepValue = getHSpiceFloat(false);
+					if (eofReached)  { System.out.println("EOF reading sweep header");   break; }
+					sweepName += "," + TextUtils.formatDouble(anotherSweepValue);
+					if (DEBUGCONDITIONS) System.out.println("  EXTRA SWEEP NUMBER: "+anotherSweepValue);
+				}
+                sweepName = ":"+sweepName;
+			}
+
+			for(;;) {
+				// get the first number, see if it terminates
+				float time = getHSpiceFloat(true);
+				if (eofReached) break;
+				// get a row of numbers
+				for(int k=0; k<numSignals; k++) {
+					if (isComplex) {
+						float realPart = getHSpiceFloat(false);
+						float imagPart = getHSpiceFloat(false);
+                        /*
+                        signals[k].addSample(time, new ComplexSample(realPart, imagPart));
+                        */
+                        signals[k].addSample(time, new ScalarSample(realPart));
+					} else {
+                        signals[k].addSample(time, new ScalarSample(getHSpiceFloat(false)));
+					}
+					if (eofReached) {
+						System.out.println("EOF in the middle of the data (at " + k + " out of " + numSignals +")");
+						break;
+					}
+				}
+				if (eofReached)  { System.out.println("EOF before the end of the data");   break; }
+			}
+			sweepCounter--;
+			if (sweepCounter <= 0) break;
+			eofReached = false;
+		}
+		closeInput();
+
 		stopProgressDialog();
 		System.out.println("Done reading " + analysisType.toString() + " analysis");
 	}
@@ -1068,3 +981,4 @@ public class HSpiceOut extends Simulate
 	}
 
 }
+

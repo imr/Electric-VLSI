@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+BUG: (4/25/10, AM) Spice input crashes (Bug #2727)
+FIX: Remove special-purpose code in HSpiceOut, use general-purpose code
+     from BTreeSignal.
+
 IMP: (4/25/10, AM) AnalogSignal extends ScalarSignal.
 
 IMP: (4/25/10, AM) Allow null keys in getSummaryFromKeys() when one or
