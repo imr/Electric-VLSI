@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+BUG: (4/26/10, GVG) Exception when running STA (Bug #2738)
+FIX: Caching Verilog Preference in RunPrimeTime constructor now.
+
 BUG: (4/26/10, SMR) PostScript output does not handle background color (Bug #2735).
 FIX: In color mode, fill background color.
 
