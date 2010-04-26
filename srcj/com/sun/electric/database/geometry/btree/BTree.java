@@ -297,13 +297,13 @@ public class BTree
         throw new RuntimeException("not implemented");
     }
 
-    /** compute the summary of all (key,value) pairs between min and max, inclusive */
+    /** compute the summary of all (key,value) pairs between min and max, inclusive; null means "no limit" */
     public S getSummaryFromKeys(K min, K max) {
-        uk.serialize(min, keybuf, 0);
-        uk.serialize(max, keybuf2, 0);
+        if (min!=null) uk.serialize(min, keybuf, 0);
+        if (max!=null) uk.serialize(max, keybuf2, 0);
         int ret = 0;
-        ret = (Integer)walk(keybuf, 0, null, null, Op.SUMMARIZE_LEFT,  ret, keybuf2, 0, sbuf, 0);
-        ret = (Integer)walk(keybuf, 0, null, null, Op.SUMMARIZE_RIGHT, ret, keybuf2, 0, sbuf, 0);
+        ret = (Integer)walk(min==null?null:keybuf, 0, null, null, Op.SUMMARIZE_LEFT,  ret, max==null?null:keybuf2, 0, sbuf, 0);
+        ret = (Integer)walk(min==null?null:keybuf, 0, null, null, Op.SUMMARIZE_RIGHT, ret, max==null?null:keybuf2, 0, sbuf, 0);
         return ret==0 ? null : (S)summary.deserialize(sbuf, 0);
     }
     
@@ -488,14 +488,14 @@ public class BTree
             }
 
             if (op==Op.SUMMARIZE_LEFT || op==Op.SUMMARIZE_RIGHT) {
-                int start = cur.search(key, key_ofs);
+                int start = key==null ? 0 : cur.search(key, key_ofs);
                 start--;
                 start = Math.max(0,start);
                 int next = op==Op.SUMMARIZE_RIGHT ? -1 : start;
                 if (!cur.isLeafNode()) start = Math.max(1,start);
                 for(int i=start; i<cur.getNumBuckets(); i++) {
-                    int cmpLeft = cur.compare(key, key_ofs, i);
-                    int cmpRight = i==cur.getNumBuckets()-1 ? -1 : cur.compare(key2, key2_ofs, i+1);
+                    int cmpLeft  = key==null  ? -1 : cur.compare(key, key_ofs, i);
+                    int cmpRight = i==cur.getNumBuckets()-1 ? -1 : key2==null ? 1 : cur.compare(key2, key2_ofs, i+1);
                     if (cmpLeft <= 0 && (cur.isLeafNode() || cmpRight > 0)) {
                         if (summaryInitialized) {
                             cur.getSummary(i, monbuf, 0);
