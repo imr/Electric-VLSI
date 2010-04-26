@@ -44,6 +44,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.GraphicsPreferences;
+import com.sun.electric.tool.user.User.ColorPrefType;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 
 import java.awt.Color;
@@ -318,7 +319,8 @@ public class PostScript extends Output
 		// for pure color plotting, use special merging code
 		if (psUseColorMerge && localPrefs.override == null)
 		{
-			PostScriptColor.psColorPlot(this, cell, localPrefs.printEncapsulate, localPrefs.printForPlotter, pageWid, pageHei, pageMarginPS);
+			PostScriptColor.psColorPlot(this, cell, localPrefs.printEncapsulate, localPrefs.printForPlotter,
+				pageWid, pageHei, pageMarginPS, localPrefs.wnd);
 			return false;
 		}
 
@@ -469,6 +471,24 @@ public class PostScript extends Output
 			{
 				printWriter.println((pageHei+pageWid)/2/75 + " 300 mul " + (pageHei-pageWid)/2/75 + " 300 mul translate 90 rotate");
 			}
+		}
+
+		// fill background color if in color mode
+		if (psUseColor)
+		{
+			// color: emit the background color
+			PolyBase poly = new PolyBase(localPrefs.printBounds);
+			setColor(localPrefs.gp.getColor(ColorPrefType.BACKGROUND));
+			Point2D[] points = poly.getPoints();
+			putPSHeader(HEADERPOLYGON);
+			printWriter.print("[");
+			for(int k=0; k<points.length; k++)
+			{
+				if (k != 0) printWriter.print(" ");
+				Point2D ps = psXform(points[k]);
+				printWriter.print(TextUtils.formatDouble(ps.getX()) + " " + TextUtils.formatDouble(ps.getY()));
+			}
+			printWriter.println("] Polygon fill");
 		}
 
 		// initialize list of EGraphics modules that have been put out
@@ -1373,7 +1393,9 @@ public class PostScript extends Output
 		putPSHeader(HEADERSTRING);
 
 		// set text color
-		Color full = EGraphics.getColorFromIndex(td.getColorIndex());
+		Color [] map = localPrefs.gp.getColorMap(cell.getTechnology());
+		Color full = map[td.getColorIndex()];
+		if (td.getColorIndex() == 0) full = localPrefs.gp.getColor(ColorPrefType.TEXT);
 		setColor(full);
 
 		boolean changedFont = false;

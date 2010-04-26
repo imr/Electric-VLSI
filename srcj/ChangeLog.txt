@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+BUG: (4/26/10, SMR) PostScript output does not handle background color (Bug #2735).
+FIX: In color mode, fill background color.
+
 BUG: (4/25/10, AM) Spice input crashes (Bug #2727)
 FIX: Remove special-purpose code in HSpiceOut, use general-purpose code
      from BTreeSignal.

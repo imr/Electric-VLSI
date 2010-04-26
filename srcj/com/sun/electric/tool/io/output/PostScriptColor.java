@@ -35,11 +35,10 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -110,7 +109,6 @@ public class PostScriptColor
 
 	private static class PsCell
 	{
-		int	             cellNum;
 		List<PsBox>      boxes;
 		List<PsPoly>     polys;
 		List<PsLabel>    labels;
@@ -164,7 +162,6 @@ public class PostScriptColor
 	private int                  totalCells = 0;
 	private int                  totalPolys = 0;
 	private int                  totalInstances = 0;
-	private int                  cellNumber;
 	private boolean              curveWarning;
 	private Set<Technology>      techsSetup;
 	private Map<Cell,PsCell>     cellStructs;
@@ -186,14 +183,14 @@ public class PostScriptColor
 	 * @param pageMargin the inset margins (in 1/75 of an inch).
 	 */
 	public static void psColorPlot(PostScript psObject, Cell cell, boolean epsFormat, boolean usePlotter,
-		double pageWid, double pageHei, double pageMargin)
+		double pageWid, double pageHei, double pageMargin, EditWindow0 wnd)
 	{
 		PostScriptColor psc = new PostScriptColor(psObject);
-		psc.doPrinting(cell, epsFormat, usePlotter, pageWid, pageHei, pageMargin);
+		psc.doPrinting(cell, epsFormat, usePlotter, pageWid, pageHei, pageMargin, wnd);
 	}
 
 	private void doPrinting(Cell cell, boolean epsFormat, boolean usePlotter,
-		double pageWid, double pageHei, double pageMargin)
+		double pageWid, double pageHei, double pageMargin, EditWindow0 wnd)
 	{
 		totalBoxes = totalCells = totalPolys = totalInstances = 0;
 		psBoundaries[0] = 1<<30;
@@ -203,7 +200,6 @@ public class PostScriptColor
 
 		for (int i=0; i<MAXLAYERS; i++)
 			quadTrees[i] = null;
-		cellNumber = 1;
 
 		// initialize layer maps for the current technology
 		numLayers = 0;
@@ -219,7 +215,7 @@ public class PostScriptColor
 		mergeBoxes();
 		flatten();
 		genOverlapShapesAfterFlattening();
-		writePS(cell, usePlotter, pageWid, pageHei, pageMargin);
+		writePS(cell, usePlotter, pageWid, pageHei, pageMargin, wnd);
 //		printStatistics();
 	}
 
@@ -324,7 +320,6 @@ public class PostScriptColor
 
 		// create a cell
 		PsCell curCell = new PsCell();
-		curCell.cellNum = cellNumber++;
 		curCell.boxes = new ArrayList<PsBox>();
 		curCell.polys = new ArrayList<PsPoly>();
 		curCell.labels = new ArrayList<PsLabel>();
@@ -983,7 +978,7 @@ public class PostScriptColor
 		}
 	}
 
-	private void writePS(Cell cell, boolean usePlotter, double pageWidth, double pageHeight, double border)
+	private void writePS(Cell cell, boolean usePlotter, double pageWidth, double pageHeight, double border, EditWindow0 wnd)
 	{
 		// Header info
 		PrintWriter printWriter = psObject.printWriter;
@@ -1111,7 +1106,7 @@ public class PostScriptColor
 					size = s.getSize();
 				}
 			}
-			EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+//			EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
 			if (wnd != null) size *= wnd.getGlobalTextScale();
 			double psLX = l.pos[0];   double psHX = l.pos[1];
 			double psLY = l.pos[2];   double psHY = l.pos[3];
