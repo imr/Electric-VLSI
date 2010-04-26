@@ -29,8 +29,6 @@ import com.sun.electric.tool.simulation.*;
 
 abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
 
-    public int eventWithMinValue; // FIXME: get rid of this
-    public int eventWithMaxValue; // FIXME: get rid of this
     private S minValue = null;
     private S maxValue = null;
     private Signal.View<S> preferredApproximation = null;
@@ -78,7 +76,6 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
             this.t0 = t0;
             this.t1 = t1;
             this.numEvents = numEvents;
-            //System.err.println("minEvent="+minEvent+", maxEvent="+maxEvent+", ne="+numEvents + " t0="+t0+ " t1="+t1);
         }
         public int    getNumEvents() { return numEvents; }
         public double getTime(int event) { return t0 + (event*(t1-t0))/(numEvents-1); }
@@ -86,22 +83,10 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
             return getSampleForTime(getTime(event), /* FIXME: should interpolate */ true);
         }
         public int    getTimeDenominator() { throw new RuntimeException("not implemented"); }
-        public int    getEventWithMinValue() { throw new RuntimeException("not implemented"); }
-        public int    getEventWithMaxValue() { throw new RuntimeException("not implemented"); }
         public int    getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }
     }
 
-    public void addSample(double time, S sample) {
-        tree.insert(time, sample);
-        if (minValue==null || sample.compareTo(minValue) < 0) {
-            this.eventWithMinValue = getEventForTime(time, false);
-            minValue = sample;
-        }
-        if (maxValue==null || sample.compareTo(maxValue) > 0) {
-            this.eventWithMaxValue = getEventForTime(time, false);
-            maxValue = sample;
-        }
-    }
+    public void addSample(double time, S sample) { tree.insert(time, sample); }
 
     public synchronized Signal.View<S> getExactView() {
         return preferredApproximation;
@@ -121,6 +106,11 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
         return new BTreeRasterView(t0, t1, numPixels);
     }
 
+    protected Pair<Pair<Double,S>,Pair<Double,S>> getSummaryFromKeys(Double t1, Double t2) { return tree.getSummaryFromKeys(t1, t2); }
+
+	public double getMinTime()  { return tree.size()==0 ? 0 : getExactView().getTime(0); }
+	public double getMaxTime()  { return tree.size()==0 ? 0 : getExactView().getTime(getExactView().getNumEvents()-1); }
+
     private class BTreeSignalApproximation implements Signal.View<S> {
         public int getNumEvents() { return tree.size(); }
         public double             getTime(int index) {
@@ -135,8 +125,6 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
         }
         public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
         public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
-        public int getEventWithMaxValue() { return eventWithMaxValue; }
-        public int getEventWithMinValue() { return eventWithMinValue; }
     }
 
     private class BTreeRasterView implements Signal.View<RangeSample<S>> {
@@ -159,8 +147,6 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
         }
         public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
         public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
-        public int getEventWithMaxValue() { throw new RuntimeException("not implemented"); }
-        public int getEventWithMinValue() { throw new RuntimeException("not implemented"); }
     }
 
     private static CachingPageStorage ps = null;

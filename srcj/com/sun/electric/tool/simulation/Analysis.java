@@ -71,7 +71,6 @@ public abstract class Analysis<S extends Signal>
 	/** the type of analysis data here */						private AnalysisType type;
 	/** a list of all signals in this Analysis */				private List<S> signals = new ArrayList<S>();
 	/** a map of all signal names in this Analysis */			private HashMap<String,S> signalNames = new HashMap<String,S>();
-	/** the range of values in this Analysis */					private Rectangle2D bounds;
 	/** the left and right side of the Analysis */				private double leftEdge, rightEdge;
 	/** true to extrapolate last value in waveform window */	private boolean extrapolateToRight;
     /** group of signals from extracted netlist of same net */  private HashMap<String,List<S>> signalGroup = new HashMap<String,List<S>>();
@@ -169,7 +168,6 @@ public abstract class Analysis<S extends Signal>
 		signals.add(ws);
 		String sigName = ws.getFullName();
 		if (sigName != null) nameSignal(ws, sigName);
-		setBoundsDirty();
 	}
 
     private static String getBaseNameFromExtractedNet(String signalFullName, String delim) {
@@ -202,84 +200,29 @@ public abstract class Analysis<S extends Signal>
 	 * @return a Rectangle2D that has time bounds in the X part and
 	 * value bounds in the Y part.
 	 */
-	public Rectangle2D getBounds()
-	{
-		if (bounds == null)
-		{
-			bounds = null;
-			for(Signal sig : signals)
-			{
-				if (bounds == null)
-				{
-                    Rectangle2D bounds =
-                        sig instanceof DigitalSignal
-                        ? new Rectangle2D.Double(sig.getMinTime(),
-                                                 0,
-                                                 sig.getMaxTime()-sig.getMinTime(),
-                                                 1)
-                        : new Rectangle2D.Double(sig.getMinTime(),
-                                                 ((Signal<ScalarSample>)sig).getMinValue().getValue(),
-                                                 sig.getMaxTime()-sig.getMinTime(),
-                                                 ((Signal<ScalarSample>)sig).getMaxValue().getValue()-
-                                                 ((Signal<ScalarSample>)sig).getMinValue().getValue());
-					leftEdge = sig.getMinTime();
-					rightEdge = sig.getMaxTime();
-				} else
-				{
-                    Rectangle2D sigBounds =
-                        sig instanceof DigitalSignal
-                        ? new Rectangle2D.Double(sig.getMinTime(),
-                                                 0,
-                                                 sig.getMaxTime()-sig.getMinTime(),
-                                                 1)
-                        : new Rectangle2D.Double(sig.getMinTime(),
-                                                 ((Signal<ScalarSample>)sig).getMinValue().getValue(),
-                                                 sig.getMaxTime()-sig.getMinTime(),
-                                                 ((Signal<ScalarSample>)sig).getMaxValue().getValue()-
-                                                 ((Signal<ScalarSample>)sig).getMinValue().getValue());
-					Rectangle2D.union(bounds, sigBounds, bounds);
-					if (leftEdge < rightEdge)
-					{
-						leftEdge = Math.min(leftEdge, sig.getMinTime());
-						rightEdge = Math.max(rightEdge, sig.getMaxTime());
-					} else
-					{
-						// backwards time values
-						leftEdge = Math.max(leftEdge, sig.getMinTime());
-						rightEdge = Math.min(rightEdge, sig.getMaxTime());
-					}
-				}
-			}
-		}
-        if (bounds==null) bounds = new Rectangle2D.Double(0, 0, 0, 0);
-		return bounds;
+	public Rectangle2D getBounds() {
+        double minX = Double.MAX_VALUE;
+        double maxX = Double.MIN_VALUE;
+        double minY = Double.MAX_VALUE;
+        double maxY = Double.MIN_VALUE;
+        for(Signal sig : signals) {
+            if (sig instanceof DigitalSignal) {
+                minY = Math.min(minY, 0);
+                maxY = Math.max(maxY, 1);
+            } else if (sig instanceof ScalarSignal) {
+                ScalarSignal ssig = (ScalarSignal)sig;
+                minY = ssig.getMinValue()==null ? minY : Math.min(minY, ssig.getMinValue().getValue());
+                maxY = ssig.getMaxValue()==null ? maxY : Math.max(maxY, ssig.getMaxValue().getValue());
+            }
+            minX = Math.min(minX, sig.getMinTime());
+            maxX = Math.max(maxX, sig.getMaxTime());
+        }
+        return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
 
-	/**
-	 * Method to return the leftmost X coordinate of this Analysis.
-	 * This value may not be the same as the minimum-x of the bounds, because
-	 * the data may not be monotonically increasing (may run backwards, for example).
-	 * @return the leftmost X coordinate of this Analysis.
-	 */
-	public double getMinTime()
-	{
-		getBounds();
-		return leftEdge;
-	}
-
-	/**
-	 * Method to return the rightmost X coordinate of this Analysis.
-	 * This value may not be the same as the maximum-x of the bounds, because
-	 * the data may not be monotonically increasing (may run backwards, for example).
-	 * @return the rightmost X coordinate of this Analysis.
-	 */
-	public double getMaxTime()
-	{
-		getBounds();
-		return rightEdge;
-	}
-
-	public void setBoundsDirty() { bounds = null; }
+	public double getMinTime() { return getBounds().getX(); }
+	public double getMaxTime() { return getBounds().getX()+getBounds().getWidth(); }
+	public void setBoundsDirty() { }
 
 	/**
 	 * Method to tell whether this simulation data is analog or digital.

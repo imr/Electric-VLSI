@@ -90,8 +90,6 @@ public abstract class Signal<SS extends Sample> {
         /** the absolute value of the event in question */              SS     getSample(int event);
         /** the numerator of the time of the specified event */         int    getTimeNumerator(int event);
         /** the common denominator of all times */                      int    getTimeDenominator();
-        /** returns the index of the event having the least value */    int    getEventWithMinValue();
-        /** returns the index of the event having the greatest value */ int    getEventWithMaxValue();
     }
 
     /**
@@ -111,10 +109,10 @@ public abstract class Signal<SS extends Sample> {
     /** Returns a view with all the data, no loss in fidelity. */
     public abstract Signal.View<SS> getExactView();
 
-	public double getMinTime()  { return getExactView().getTime(0); }
-	public double getMaxTime()  { return getExactView().getTime(getExactView().getNumEvents()-1); }
-	public SS getMinValue() { return getExactView().getSample(getExactView().getEventWithMinValue()); }
-	public SS getMaxValue() { return getExactView().getSample(getExactView().getEventWithMaxValue()); }
+	public abstract double getMinTime();
+	public abstract double getMaxTime();
+	public abstract SS     getMinValue();
+	public abstract SS     getMaxValue();
 
     protected static class DumbRasterView<SS extends Sample> implements Signal.View<RangeSample<SS>> {
         private final Signal.View<SS> exactView;
@@ -127,8 +125,6 @@ public abstract class Signal<SS extends Sample> {
         }
         public int getTimeNumerator(int index) { return exactView.getTimeNumerator(index); }
         public int getTimeDenominator() { return exactView.getTimeDenominator(); }
-        public int getEventWithMaxValue() { return exactView.getEventWithMaxValue(); }
-        public int getEventWithMinValue() { return exactView.getEventWithMinValue(); }
     }
 
 }

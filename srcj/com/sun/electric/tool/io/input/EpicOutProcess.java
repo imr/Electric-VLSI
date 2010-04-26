@@ -149,9 +149,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         }
     }
 
-    private Stimuli readEpicFile(Stimuli sd)
-        throws IOException
-    {
+    private Stimuli readEpicFile(Stimuli sd) throws IOException {
         EpicAnalysis an = this.epicAnalysis;
         int numSignals = 0;
         ContextBuilder contextBuilder = new ContextBuilder();
@@ -171,7 +169,6 @@ public class EpicOutProcess extends Simulate implements Runnable
                     contextBuilder.strings.add(name);
                     byte type = b == 'V' ? EpicAnalysis.VOLTAGE_TYPE: EpicAnalysis.CURRENT_TYPE;
                     contextBuilder.contexts.add(EpicAnalysis.getContext(type));
-                    EpicAnalysis.EpicSignal s = new EpicAnalysis.EpicSignal(an, name, null, type, numSignals++, sigNum);
                     break;
                 case 'D':
                     String down = readString();
@@ -450,11 +447,6 @@ public class EpicOutProcess extends Simulate implements Runnable
                     int sigNum = atoi(split[2]);
                     while (signalsByEpicIndex.size() <= sigNum)
                         signalsByEpicIndex.add(null);
-                    EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
-                    if (s == null) {
-                        s = new EpicReaderSignal(sigNum);
-                        signalsByEpicIndex.set(sigNum, s);
-                    }
                 
                     // name the signal
                     if (name.startsWith("v(") && name.endsWith(")")) {
@@ -465,6 +457,15 @@ public class EpicOutProcess extends Simulate implements Runnable
                         name = name.substring(3, name.length() - 1);
                     }
                     rootCtx.addSig(name, separator, type, sigNum);
+
+                    EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
+                    if (s == null) {
+                        String context  = name.indexOf(separator)==-1 ? ""   : name.substring(0, name.lastIndexOf(separator));
+                        String basename = name.indexOf(separator)==-1 ? name : name.substring(name.lastIndexOf(separator)+1);
+                        s = new EpicReaderSignal(sigNum, basename, context);
+                        signalsByEpicIndex.set(sigNum, s);
+                    }
+
                     /*
                       int lastSlashPos = name.lastIndexOf(separator);
                       String contextName = "";
@@ -737,10 +738,6 @@ public class EpicOutProcess extends Simulate implements Runnable
                 stdOut.writeDouble(voltageResolution);
                 stdOut.writeDouble(currentResolution);
                 stdOut.writeDouble(curTime*timeResolution);
-                for (EpicReaderSignal s: signalsByEpicIndex) {
-                    if (s == null) continue;
-                    epicAnalysis.putWaveform(s.sigNum, s.getBWaveform());
-                }
                 stdOut.writeInt(-1);
                 waveStream.close();
             
@@ -857,9 +854,9 @@ public class EpicOutProcess extends Simulate implements Runnable
         int sigNum;
         int count = 0;
 
-        public EpicReaderSignal(int sigNum) {
+        public EpicReaderSignal(int sigNum, String name, String context) {
             this.sigNum = sigNum;
-            this.signal = new ScalarSignal(null, null, null);
+            this.signal = new AnalogSignal(epicAnalysis, name, context);
         }
 
         public Signal getBWaveform() {

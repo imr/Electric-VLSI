@@ -133,42 +133,20 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	 */
 	public AnalogSignal addSignal(String signalName, String signalContext, double[] values)
 	{
-		AnalogSignal as = addEmptySignal(signalName, signalContext);
-        ScalarSignal signal = new ScalarSignal(this, signalName, signalContext);
+        if (values.length==0) throw new RuntimeException("attempt to create an empty signal");
+        AnalogSignal as = new AnalogSignal(this, signalName, signalContext);
         for(int i=0; i<commonTime.length; i++)
-            signal.addSample(commonTime[i], new ScalarSample(values[i]));
-        Signal[] waveforms = { signal };
-        waveformCache.put(as, waveforms);
+            as.addSample(commonTime[i], new ScalarSample(values[i]));
+        waveformCache.put(as, new Signal[] { as });
 		return as;
 	}
 
-	/**
-	 * Create new AnalogSignal with specified name.
-	 * Signal obtains range constructed from common time range and specified value bounds.
-	 * @param signalName signal name.
-	 * @param signalContext a common prefix for the signal name.
-	 * @param minValue the minimum value.
-	 * @param maxValue the maximum value.
-	 * @return new AnalogSignal of this AnalogAnalysis
-	 */
-	public AnalogSignal addSignal(String signalName, String signalContext, double minTime, double maxTime, 
-                                  double minValue, double maxValue)
-	{
-		AnalogSignal as = addEmptySignal(signalName, signalContext);
+    public AnalogSignal addSignal(String signalName, String signalContext, double minTime, double maxTime, 
+                                  double minValue, double maxValue) {
+        AnalogSignal as = new AnalogSignal(this, signalName, signalContext);
+        waveformCache.put(as, new Signal[] { as });
 		return as;
-	}
-
-	/**
-	 * Create new AnalogSignal with specified name.
-	 * @param signalName signal name.
-	 * @param signalContext a common prefix for the signal name.
-	 * @return new AnalogSignal of this AnalogAnalysis
-	 */
-	private AnalogSignal addEmptySignal(String signalName, String signalContext)
-	{
-		AnalogSignal as = new AnalogSignal(this, signalName, signalContext);
-		return as;
-	}
+    }
 
 	/**
 	 * Method to return the waveform of specified signal in specified sweep.

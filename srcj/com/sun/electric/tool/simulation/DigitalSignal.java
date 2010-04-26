@@ -55,6 +55,9 @@ public class DigitalSignal extends BTreeSignal<DigitalSample> {
         super.addSample(time, sample);
     }
 
+	public DigitalSample getMinValue() { return getSummaryFromKeys(null, null).getKey().getValue(); }
+	public DigitalSample getMaxValue() { return getSummaryFromKeys(null, null).getValue().getValue(); }
+
 	/**
 	 * Method to request that this signal be a bus.
 	 * Builds the necessary data structures to hold bus information.

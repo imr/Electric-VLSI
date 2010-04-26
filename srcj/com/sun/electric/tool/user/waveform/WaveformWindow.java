@@ -58,6 +58,7 @@ import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.ScalarSample;
+import com.sun.electric.tool.simulation.ScalarSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
@@ -4272,23 +4273,25 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 			}
 
-			Rectangle2D yBounds = null;
-			for(WaveSignal ws : wp.getSignals())
-			{
-				Rectangle2D sigBounds =
-                    ws.getSignal() instanceof DigitalSignal
-                    ? new Rectangle2D.Double(ws.getSignal().getMinTime(),
-                                             0,
-                                             ws.getSignal().getMaxTime()-ws.getSignal().getMinTime(),
-                                             1)
-                    : new Rectangle2D.Double(ws.getSignal().getMinTime(),
-                                             ((Signal<ScalarSample>)ws.getSignal()).getMinValue().getValue(),
-                                             ws.getSignal().getMaxTime()-ws.getSignal().getMinTime(),
-                                             ((Signal<ScalarSample>)ws.getSignal()).getMaxValue().getValue()-
-                                             ((Signal<ScalarSample>)ws.getSignal()).getMinValue().getValue());
-				if (yBounds == null) yBounds = sigBounds;
-                else Rectangle2D.union(yBounds, sigBounds, yBounds);
-			}
+            double minX = Double.MAX_VALUE;
+            double maxX = Double.MIN_VALUE;
+            double minY = Double.MAX_VALUE;
+            double maxY = Double.MIN_VALUE;
+			for(WaveSignal ws : wp.getSignals()) {
+                Signal sig = ws.getSignal();
+                if (sig instanceof DigitalSignal) {
+                    minY = Math.min(minY, 0);
+                    maxY = Math.max(maxY, 1);
+                } else if (sig instanceof ScalarSignal) {
+                    ScalarSignal ssig = (ScalarSignal)sig;
+                    minY = ssig.getMinValue()==null ? minY : Math.min(minY, ssig.getMinValue().getValue());
+                    maxY = ssig.getMaxValue()==null ? maxY : Math.max(maxY, ssig.getMaxValue().getValue());
+                }
+                minX = Math.min(minX, sig.getMinTime());
+                maxX = Math.max(maxX, sig.getMaxTime());
+            }
+			Rectangle2D yBounds = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
+
 			if (yBounds == null)
 			{
 				Analysis an = sd.findAnalysis(wp.getAnalysisType());

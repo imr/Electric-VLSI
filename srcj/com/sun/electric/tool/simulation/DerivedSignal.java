@@ -66,8 +66,6 @@ public abstract class DerivedSignal<SS extends Sample> extends Signal<SS> {
         }
         public int             getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }
         public int             getTimeDenominator() { throw new RuntimeException("not implemented"); }
-        public int             getEventWithMinValue() { throw new RuntimeException("not implemented"); }
-        public int             getEventWithMaxValue() { throw new RuntimeException("not implemented"); }
     }
 
     public Signal.View<SS> getExactView() {

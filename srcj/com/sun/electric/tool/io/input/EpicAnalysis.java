@@ -203,7 +203,7 @@ public class EpicAnalysis extends AnalogAnalysis {
      * @param treePath specified TreePath.
      * @return EpicSignal or null.
      */
-    public static EpicSignal getSignal(TreePath treePath) {
+    public static AnalogSignal getSignal(TreePath treePath) {
         Object[] path = treePath.getPath();
         int i = 0;
         while (i < path.length && !(path[i] instanceof EpicRootTreeNode))
@@ -216,7 +216,7 @@ public class EpicAnalysis extends AnalogAnalysis {
             EpicTreeNode tn = (EpicTreeNode)path[i];
             index += tn.nodeOffset;
             if (tn.isLeaf())
-                return (EpicSignal)an.signalsUnmodifiable.get(index);
+                return (AnalogSignal)an.signalsUnmodifiable.get(index);
         }
         return null;
     }
@@ -360,17 +360,8 @@ public class EpicAnalysis extends AnalogAnalysis {
     HashMap<Integer, Signal> loadWaveformCache =
         new HashMap<Integer, Signal>();
 
-    @Override
-        protected Signal[] loadWaveforms(AnalogSignal signal) {
-        int index = ((EpicSignal)signal).sigNum;
-        Signal wave = loadWaveformCache.get(new Integer(index));
-        if (wave == null) return new Signal[] { };
-        return new Signal[] { wave };
-    }
+    protected Signal[] loadWaveforms(AnalogSignal signal) { return new Signal[] { signal }; }
 
-    void putWaveform(int signum, Signal w) {
-        loadWaveformCache.put(new Integer(signum), w);
-    }
     
 
 
@@ -588,7 +579,7 @@ public class EpicAnalysis extends AnalogAnalysis {
         
         /**
          * Searches an EpicTreeNode in this context where signal with specified flat offset lives.
-         * @param offset flat offset of EpicSignal.
+         * @param offset flat offset of AnalogSignal.
          * @return index of EpicTreeNode in this Context or -1.
          */
         private int localSearch(int offset) {
@@ -718,40 +709,4 @@ public class EpicAnalysis extends AnalogAnalysis {
         }
     };
     
-    /************************* EpicSignal *********************************************
-     * Class which represents Epic AnalogSignal.
-     */
-    static class EpicSignal extends AnalogSignal {
-        int sigNum;
-        
-        EpicSignal(EpicAnalysis an, String signalName, String signalContext, byte type, int index, int sigNum) {
-            super(an, signalName, signalContext);
-            assert getIndexInAnalysis() == index;
-            if (type == VOLTAGE_TYPE)
-                an.voltageSignals.set(index);
-            else
-                assert type == CURRENT_TYPE;
-            this.sigNum = sigNum;
-        }
-
-        public void calcBounds() {
-            Signal wave = getWaveform(0);
-            if (!(wave instanceof ScalarSignal)) { super.calcBounds(); return; }
-            ScalarSignal btns = (ScalarSignal)wave;
-            this.bounds = new Rectangle2D.Double(btns.getExactView().getTime(0),
-                                                 (btns.getExactView().getSample(btns.eventWithMinValue)).getValue(),
-                                                 btns.getExactView().getTime(btns.getExactView().getNumEvents()-1),
-                                                 (btns.getExactView().getSample(btns.eventWithMaxValue)).getValue());
-        }
-        /*
-        void setBounds(int minV, int maxV) {
-            EpicAnalysis an = (EpicAnalysis)getAnalysis();
-            double resolution = an.getValueResolution(getIndexInAnalysis());
-            leftEdge = minT;
-            rightEdge = maxT;
-            bounds = new Rectangle2D.Double(leftEdge, minV*resolution, rightEdge, (maxV - minV)*resolution);
-            //            rightEdge = minV*resolution;
-        }
-        */
-    }
 }
