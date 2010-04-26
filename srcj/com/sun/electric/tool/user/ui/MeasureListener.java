@@ -258,13 +258,11 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 
 	public void mouseReleased(MouseEvent evt)
 	{
-        if (CADENCEMODE)
-        {
-			lastValidMeasuredDistanceX = lastMeasuredDistanceX;
-			lastValidMeasuredDistanceY = lastMeasuredDistanceY;
-			measuring = false;
-			lastHighlights.clear();
-        }
+		// uncomment this to do measurements by click, drag, release instead of click/click
+//		lastValidMeasuredDistanceX = lastMeasuredDistanceX;
+//		lastValidMeasuredDistanceY = lastMeasuredDistanceY;
+//		measuring = false;
+//		lastHighlights.clear();
 	}
 
 	public void mouseDragged(MouseEvent evt)
