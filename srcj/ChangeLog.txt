@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+BUG: (4/27/10, SMR) Bean Shell cannot access currently highlighted objects (Bug #2739).
+FIX: Added EvalJavaBsh.getHighlighted() to access the list from inside a Job.
+
 IMP: (4/26/10, AM) Waveform viewer Panel no longer has a hardwired
      analysis type (will accept a Signal from any Analysis).
 

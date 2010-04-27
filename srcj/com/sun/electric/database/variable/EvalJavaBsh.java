@@ -24,13 +24,17 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -290,6 +294,17 @@ public class EvalJavaBsh {
         }
     }
 
+    /**
+     * Method to return the highlighted NodeInsts and ArcInsts to the currently running BSH script.
+     */
+    public static List<Geometric> getHighlighted()
+    {
+        Job curJob = Job.getRunningJob();
+        if (curJob instanceof runScriptJob)
+            return ((runScriptJob)curJob).highlightedEObjs;
+        return null;
+    }
+
     /** Run a Java Bean Shell script */
     public static Job runScriptJob(String script) {
         return new runScriptJob(script);
@@ -299,14 +314,26 @@ public class EvalJavaBsh {
 
         private String script;
         private Cell cell;
+        private List<Geometric> highlightedEObjs;
 
         protected runScriptJob(String script) {
             super("JavaBsh script: " + script, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.script = script;
+
+            // cache highlighted objects
+            highlightedEObjs = null;
+        	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        	if (wf != null)
+        	{
+        		Highlighter highlighter = wf.getContent().getHighlighter();
+        		if (highlighter != null)
+        			highlightedEObjs = highlighter.getHighlightedEObjs(true, true);
+        	}
         }
 
         public boolean doIt() throws JobException {
-            EvalJavaBsh evaluator = new EvalJavaBsh();
+
+        	EvalJavaBsh evaluator = new EvalJavaBsh();
             evaluator.doSource(script); // May throw exception
             return true;
         }
