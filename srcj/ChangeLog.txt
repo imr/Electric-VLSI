@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+IMP: (4/26/10, AM) Waveform viewer Panel no longer has a hardwired
+     analysis type (will accept a Signal from any Analysis).
+
 IMP: (4/26/10, JKG) Set netlist nonstandard cells to false for runSTA command.
 Changed verilogA option to false for STA runs when writing verilog netlist.
 

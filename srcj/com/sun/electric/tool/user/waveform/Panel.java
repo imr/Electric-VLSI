@@ -149,7 +149,6 @@ public class Panel extends JPanel
 	/** current measurement being displayed */				private Rectangle2D curMeasurement;
 	/** true if this waveform panel is selected */			private boolean selected;
 	/** true if this waveform panel is hidden */			private boolean hidden;
-	/** the type of analysis shown in this panel */			private Analysis.AnalysisType analysisType;
 	/** true for analog panel; false for digital */			private boolean analog;
 	/** the horizontal ruler at the top of this panel. */	private HorizRuler horizRulerPanel;
 	/** true if the horizontal ruler is logarithmic */		private boolean horizRulerPanelLogarithmic;
@@ -180,12 +179,10 @@ public class Panel extends JPanel
 	/**
 	 * Constructor creates a panel in a WaveformWindow.
 	 * @param waveWindow the WaveformWindow in which to place this Panel.
-	 * @param analysisType the type of data shown in this Panel.
 	 */
-	public Panel(WaveformWindow waveWindow, boolean analog, Analysis.AnalysisType analysisType) {
+	public Panel(WaveformWindow waveWindow, boolean analog) {
 		// remember state
 		this.waveWindow = waveWindow;
-		setAnalysisType(analysisType);
 		this.analog = analog;
 		selected = false;
 		panelNumber = nextPanelNumber++;
@@ -345,6 +342,7 @@ public class Panel extends JPanel
 				public void actionPerformed(ActionEvent evt) { deleteAllSignalsFromPanel(); }
 			});
 
+            /*
 			// the "signal type" selector for this panel (analog only)
 			boolean hasACData = waveWindow.getSimData().findAnalysis(Analysis.ANALYSIS_AC) != null;
 			boolean hasDCData = waveWindow.getSimData().findAnalysis(Analysis.ANALYSIS_DC) != null;
@@ -369,6 +367,7 @@ public class Panel extends JPanel
 					public void actionPerformed(ActionEvent evt) { setPanelSignalType(); }
 				});
 			}
+            */
 
 			// the list of signals in this panel (analog only)
 			signalButtons = new JPanelX();
@@ -492,14 +491,6 @@ public class Panel extends JPanel
 
 	public boolean isAnalog() { return analog; }
 
-	public Analysis.AnalysisType getAnalysisType() { return analysisType; };
-
-	public void setAnalysisType(Analysis.AnalysisType a)
-	{
-		analysisType = a;
-		computeSmallestValues();
-	}
-
 	/**
 	 * Method to ensure that a signal can be shown in this panel.
 	 * Displays an error if not.
@@ -508,12 +499,7 @@ public class Panel extends JPanel
 	 */
 	public boolean wrongPanelType(Signal sSig)
 	{
-		if (sSig.getAnalysis().getAnalysisType() == getAnalysisType()) return false;
-		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-			"Cannot drop a " + sSig.getAnalysis().getAnalysisType() + " signal onto a " + getAnalysisType() + " panel.  " +
-			"First convert the panel with the popup in the upper-left.",
-			"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
-		return true;
+        return false;
 	}
 
 	public JPanel getSignalButtons() { return signalButtons; };
@@ -621,40 +607,6 @@ public class Panel extends JPanel
 
 	private void setPanelSignalType()
 	{
-		String typeName = (String)analysisCombo.getSelectedItem();
-		Analysis.AnalysisType analysisType = Analysis.AnalysisType.findAnalysisType(typeName);
-		if (getAnalysisType() != analysisType && getNumSignals() > 0)
-		{
-			String warning = "The signals in this panel are not " + analysisType +
-				" data.  Remove them from the panel?";
-			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), warning);
-			if (response != JOptionPane.YES_OPTION)
-			{
-				// aborted: reset panel type
-				analysisCombo.setSelectedItem(getAnalysisType().toString());
-				return;
-			}
-			xAxisSignal = null;
-			if (waveWindow.isXAxisLocked()) waveWindow.setXAxisSignalAll(null);
-			waveWindow.deleteAllSignalsFromPanel(this);
-		}
-		setAnalysisType(analysisType);
-
-		// redo X scale if time unlocked or this is the only panel
-		Analysis an = waveWindow.getSimData().findAnalysis(analysisType);
-		if (an != null)
-		{
-			Rectangle2D bounds = an.getBounds();
-			double lowValue = bounds.getMinY();
-			double highValue = bounds.getMaxY();
-			setYAxisRange(lowValue, highValue);
-			if (!waveWindow.isXAxisLocked() || waveWindow.getNumPanels() == 1)
-			{
-				// set the X range
-				setXAxisRange(an.getMinTime(), an.getMaxTime());
-			}
-		}
-
 		repaintWithRulers();
 	}
 
@@ -793,23 +745,6 @@ public class Panel extends JPanel
 	}
 
 	// ************************************* X AND Y AXIS CONTROL *************************************
-
-	/**
-	 * Method to compute the smallest X and Y values (for log display).
-	 */
-	private void computeSmallestValues()
-	{
-		if (analysisType == null) return;
-		Stimuli sd = waveWindow.getSimData();
-		Analysis an = sd.findAnalysis(analysisType);
-		if (an == null) return;
-		Rectangle2D anBounds = an.getBounds();
-		if (anBounds == null) return; // no signals
-		smallestXValue = anBounds.getMinX();
-		smallestYValue = anBounds.getMinY();
-//		smallestXValue = anBounds.getWidth() / 1000;
-//		smallestYValue = anBounds.getHeight() / 1000;
-	}
 
 	/**
 	 * Method to set the X axis range in this panel.

@@ -379,6 +379,7 @@ public class HorizRuler extends JPanel implements MouseListener, MouseMotionList
 		{
 			Panel wp = it.next();
 			if (!waveWindow.isXAxisLocked() && wp != wavePanel) continue;
+            /*
 			if (wp.getAnalysisType() == Analysis.ANALYSIS_MEAS)
 			{
 				if (wp.getNumSignals() > 0)
@@ -397,6 +398,7 @@ public class HorizRuler extends JPanel implements MouseListener, MouseMotionList
 					analysisType = waveWindow.getSimData().getAnalyses().next().getAnalysisType();
 				wp.setAnalysisType(analysisType);
 			}
+            */
 			wp.setXAxisSignal(null);
 			wp.setXAxisRange(leftEdge, rightEdge);
 			if (wp.getHorizRuler() != null) wp.getHorizRuler().repaint();
