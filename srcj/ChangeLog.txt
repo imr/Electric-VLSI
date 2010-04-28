@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+IMP: (4/27/10, AM) Remove MultiSweepSignal.
+
 BUG: (4/27/10, SMR) Bean Shell cannot access currently highlighted objects (Bug #2739).
 FIX: Added EvalJavaBsh.getHighlighted() to access the list from inside a Job.
 

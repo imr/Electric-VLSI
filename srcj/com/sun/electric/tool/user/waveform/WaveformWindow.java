@@ -3602,18 +3602,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					{
 						AnalogSignal as = (AnalogSignal)sig;
 						AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
-						int numSweeps = as.getNumSweeps();
-						if (numSweeps <= 1)
-						{
-							addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
-						} else
-						{
-							for (int s = 0; s < numSweeps; s++)
-							{
-								if (!ww.isSweepSignalIncluded(an, s)) continue;
-								addSignalSweep(sig, s, dumpSignals, dumpSweeps, dumpWaveforms);
-							}
-						}
+                        addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
 					} else
 					{
 						addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
@@ -3699,10 +3688,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 		dumpSignals.add(sig);
 		dumpSweeps.add(new Integer(s));
-		Signal waveform = null;
-		if (sig instanceof AnalogSignal)
-			waveform = ((AnalogSignal)sig).getWaveform(s == -1 ? 0 : s);
-		waveforms.add(waveform);
+		waveforms.add(sig);
 	}
 
 	/**
