@@ -322,7 +322,7 @@ public class EvalJavaBsh {
 
             // cache highlighted objects
             highlightedEObjs = null;
-        	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        	WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
         	if (wf != null)
         	{
         		Highlighter highlighter = wf.getContent().getHighlighter();
