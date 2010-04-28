@@ -90,14 +90,10 @@ class LayoutCell {
     private boolean modified;
     /** True if change of Exports of this Cell causes recomputation of upper Cells. */
     private boolean exportsModified;
-//    /** True if subcells changed names of Library:Cell:Export */
-//    private boolean subcellsRenamed;
     /** True if this Cell is computed by Layout constraint system. */
     private boolean computed;
     /** Backup of this Cell before Job */
     private final CellBackup oldBackup;
-//    /** Map from ArcInst to its change clock */
-//    private HashMap<Geometric,Integer> changeClock;
     /** Set of nodes already moved not to move twice. */
     private HashSet<NodeInst> movedNodes;
     private CellBackup.Memoization m;
@@ -131,7 +127,6 @@ class LayoutCell {
         }
         // Release unnecessary memory
         oldArcs = null;
-//        changeClock = null;
         movedNodes = null;
     }
 
@@ -139,7 +134,6 @@ class LayoutCell {
      * Compute this Cell.
      **/
     private void doCompute() {
-//        changeClock = new HashMap<Geometric,Integer>();
         movedNodes = new HashSet<NodeInst>();
         m = cell.getMemoization();
 
@@ -217,7 +211,7 @@ class LayoutCell {
         movedNodes.add(ni);
 
         // see if this nodeinst is a port of the current cell
-        if (hasExports(ni)) //		if (ni.hasExports())
+        if (hasExports(ni))
         {
             exportsModified = true;
         }
@@ -258,7 +252,7 @@ class LayoutCell {
 
         // build a list of the arcs with both ends on this nodeinst
         List<ArcInst> interiorArcs = new ArrayList<ArcInst>();
-        for (Iterator<Connection> it = getConnections(ni); it.hasNext();) //		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+        for (Iterator<Connection> it = getConnections(ni); it.hasNext();)
         {
             Connection con = it.next();
             ArcInst ai = con.getArc();
@@ -267,7 +261,6 @@ class LayoutCell {
             if (ai.getHeadPortInst().getNodeInst() != ai.getTailPortInst().getNodeInst()) {
                 continue;
             }
-//			if (getChangeClock(ai) == AI_RIGID.intValue()) continue;
 
             // include in the list to be considered here
             interiorArcs.add(ai);
@@ -280,7 +273,7 @@ class LayoutCell {
             }
 
             // if arcinst has already been changed check its connectivity
-            if (arcMoved(ai)) //			if (getChangeClock(ai) == AI_RIGID.intValue())
+            if (arcMoved(ai))
             {
                 if (Layout.DEBUG) {
                     System.out.println("    Arc already changed");
@@ -313,13 +306,12 @@ class LayoutCell {
     private void modRigid(NodeInst ni, Orientation dOrient) {
         // build a list of the rigid arcs on this nodeinst
         List<Connection> rigidArcs = new ArrayList<Connection>();
-        for (Iterator<Connection> it = getConnections(ni); it.hasNext();) //		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+        for (Iterator<Connection> it = getConnections(ni); it.hasNext();)
         {
             Connection con = it.next();
             ArcInst ai = con.getArc();
 
             // ignore if arcinst is not flexible
-//			if (getChangeClock(ai) == AI_FLEX.intValue()) continue;
             if (!Layout.isRigid(ai)) {
                 continue;
             }
@@ -348,7 +340,7 @@ class LayoutCell {
             }
 
             // if rigid arcinst has already been changed check its connectivity
-            if (arcMoved(ai)) //			if (getChangeClock(ai) == AI_RIGID.intValue())
+            if (arcMoved(ai))
             {
                 if (Layout.DEBUG) {
                     System.out.println("    Arc already changed");
@@ -363,7 +355,6 @@ class LayoutCell {
 
             PortInst opi = ai.getPortInst(otherEndIndex);
             NodeInst ono = opi.getNodeInst();
-//			PortProto opt = opi.getPortProto();
             EPoint otherLocation = ai.getLocation(otherEndIndex);
 
             // create the two points that will be the new ends of this arc
@@ -479,13 +470,12 @@ class LayoutCell {
     private void modFlex(NodeInst ni, Orientation dOrient) {
         // build a list of the flexible arcs on this nodeinst
         List<Connection> flexArcs = new ArrayList<Connection>();
-        for (Iterator<Connection> it = getConnections(ni); it.hasNext();) //		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+        for (Iterator<Connection> it = getConnections(ni); it.hasNext();)
         {
             Connection con = it.next();
             ArcInst ai = con.getArc();
 
             // ignore if arcinst is not flexible
-//			if (getChangeClock(ai) == AI_RIGID.intValue()) continue;
             if (Layout.isRigid(ai)) {
                 continue;
             }
@@ -514,7 +504,7 @@ class LayoutCell {
             }
 
             // if flexible arcinst has been changed, verify its connectivity
-            if (arcMoved(ai)) //			if (getChangeClock(ai) >= AI_FLEX.intValue())
+            if (arcMoved(ai))
             {
                 if (Layout.DEBUG) {
                     System.out.println("   Arc already changed");
@@ -544,6 +534,27 @@ class LayoutCell {
                         DBMath.round(newPts[i].getY()));
             }
 
+            // arc is slidable, see if it can slide at this end to keep other end unmoved
+            if (ai.isSlidable())
+            {
+                // undefined arc angles take on the angle of the new motion
+                int angle = ai.getAngle();
+				Point2D alternate = null;
+				if (angle == 0 || angle == 1800 || angle == -1)
+				{
+					// horizontal arc: see if it can fit when this end's Y is set to that end's Y
+					alternate = new Point2D.Double(newPts[thisEndIndex].getX(), thatLocation.getY());
+					if (!ai.stillInPort(thisEndIndex, alternate, true)) alternate = null;
+				}
+				if (angle == 900 || angle == 2700 || angle == -1)
+				{
+					// vertical arc: see if it can fit when this end's X is set to that end's X
+					alternate = new Point2D.Double(thatLocation.getX(), newPts[thisEndIndex].getY());
+					if (!ai.stillInPort(thisEndIndex, alternate, true)) alternate = null;
+				}
+				if (alternate != null) newPts[thisEndIndex] = alternate;
+            }
+            
             // make sure the arc end is still in the port
             Poly poly = thisEnd.getPortInst().getPoly();
             if (!poly.isInside(newPts[thisEndIndex])) {
@@ -737,7 +748,7 @@ class LayoutCell {
         // look for longest other arc on "ono" to determine proper end position
         double bestDist = Double.NEGATIVE_INFINITY;
         ArcInst bestAI = null;
-        for (Iterator<Connection> it = getConnections(ai.getPortInst(thatEndIndex)); it.hasNext();) //		for(Iterator<Connection> it = ai.getPortInst(thatEndIndex).getConnections(); it.hasNext(); )
+        for (Iterator<Connection> it = getConnections(ai.getPortInst(thatEndIndex)); it.hasNext();)
         {
             Connection con = it.next();
             ArcInst oai = con.getArc();
@@ -854,11 +865,6 @@ class LayoutCell {
      * @param arctyp the nature of the arc: 0 for rigid, 1 for flexible.
      */
     private void updateArc(ArcInst ai, Point2D headPt, Point2D tailPt, Integer arctyp) {
-        // set the proper arcinst position
-//		Point2D oldHeadPt = ai.getHeadLocation();
-//		Point2D oldTailPt = ai.getTailLocation();
-//		double oldHeadX = oldHeadPt.getX();   double oldHeadY = oldHeadPt.getY();
-//		double oldTailX = oldTailPt.getX();   double oldTailY = oldTailPt.getY();
         // now make the change
         ImmutableArcInst oldD = ai.getD();
         ImmutableArcInst d = oldD;
@@ -908,14 +914,11 @@ class LayoutCell {
             System.out.println("Jogging arc");
         }
         PortInst fpi = ai.getHeadPortInst();
-//		NodeInst fno = fpi.getNodeInst();   PortProto fpt = fpi.getPortProto();
         PortInst tpi = ai.getTailPortInst();
-//		NodeInst tno = tpi.getNodeInst();   PortProto tpt = tpi.getPortProto();
 
         ArcProto ap = ai.getProto();
         Cell pnt = ai.getParent();
         double wid = ai.getLambdaBaseWidth();
-//        double wid = ai.getLambdaFullWidth();
 
         // figure out what nodeinst proto connects these arcs
         EditingPreferences ep = ai.getEditingPreferences();
@@ -1040,12 +1043,23 @@ class LayoutCell {
 
         double scaleX = 1;
         double scaleY = 1;
-        // Zero means flat port or artwork. Valid for new technology
-        if (oldPoly.getBounds2D().getWidth() > 0) {
-            scaleX = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
-        }
-        if (oldPoly.getBounds2D().getHeight() > 0) {
-            scaleY = curPoly.getBounds2D().getHeight() / oldPoly.getBounds2D().getHeight();
+        if (ni.isCellInstance())
+        {
+            // Zero means flat port or artwork. Valid for new technology
+            if (oldPoly.getBounds2D().getWidth() > 0)
+                scaleX = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
+            if (oldPoly.getBounds2D().getHeight() > 0)
+                scaleY = curPoly.getBounds2D().getHeight() / oldPoly.getBounds2D().getHeight();
+        } else
+        {
+        	// new code considers the node size changes
+        	PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
+	    	double oldWid = DBMath.gridToLambda(d.size.getGridX() + pNp.getBaseRectangle().getGridWidth());
+	        if (oldWid > 0)
+	        	scaleX = ni.getXSizeWithoutOffset() / oldWid;
+	    	double oldHei = DBMath.gridToLambda(d.size.getGridY() + pNp.getBaseRectangle().getGridHeight());
+	        if (oldHei > 0)
+	            scaleY = ni.getYSizeWithoutOffset() / oldHei;
         }
 
         double newX = curPoly.getCenterX() - oldPoly.getCenterX() * scaleX;

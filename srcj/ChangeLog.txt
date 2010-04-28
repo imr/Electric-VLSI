@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+BUG: (4/28/10, SMR) Constraint system does not keep alignment between nodes
+     and moves too much (Bug #2736).
+FIX: In LayoutCell.java, scale sizes more uniformly (in transformByPort())
+     and allow nodes to stay where they are if slidability can be done.
+
 BUG: (4/28/10, SMR) Autostitch makes arcs that are not grid-aligned (Bug #2740).
 FIX: Added alignment to AutoStitch.AutoStitchJob constructor and fixed bug
      in InteractiveRouter.getClosestValue().
