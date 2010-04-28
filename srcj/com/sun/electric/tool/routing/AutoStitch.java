@@ -174,6 +174,7 @@ public class AutoStitch
 		private double lX, hX, lY, hY;
 		private boolean forced;
 		private AutoOptions prefs;
+		private Dimension2D alignment;
 
 		private AutoStitchJob(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
 			double lX, double hX, double lY, double hY, boolean forced)
@@ -190,6 +191,8 @@ public class AutoStitch
 			setReportExecutionFlag(true);
 			prefs = new AutoOptions();
 			prefs.initFromUserDefaults();
+		    double resolution = cell.getTechnology().getFactoryResolution();
+		    alignment = new Dimension2D.Double(resolution, resolution);
 			startJob();
 		}
 
@@ -198,7 +201,7 @@ public class AutoStitch
 			Rectangle2D limitBound = null;
 			if (lX != hX && lY != hY)
 				limitBound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-			runAutoStitch(cell, nodesToStitch, arcsToStitch, this, null, limitBound, forced, false, prefs, false, null);
+			runAutoStitch(cell, nodesToStitch, arcsToStitch, this, null, limitBound, forced, false, prefs, false, alignment);
 			return true;
 		}
 	}
@@ -667,7 +670,7 @@ public class AutoStitch
 
 				// find ports on this arc
 				ObjectQTree oqt = nodePortBounds.get(ni);
-				Set set = oqt.find(searchBounds);
+				Set<?> set = oqt.find(searchBounds);
 				if (set != null)
 				{
 					for (Object obj : set)
@@ -862,7 +865,7 @@ name=null;
 			// complex node instance: look at all ports near this bound
 			ObjectQTree oqt = nodePortBounds.get(ni);
 			Rectangle2D biggerBounds = new Rectangle2D.Double(oBounds.getMinX()-1, oBounds.getMinY()-1, oBounds.getWidth()+2, oBounds.getHeight()+2);
-			Set set = oqt.find(biggerBounds);
+			Set<?> set = oqt.find(biggerBounds);
 			if (set != null)
 			{
 				for (Object obj : set)
@@ -1166,7 +1169,7 @@ name=null;
 		ObjectQTree oqt = nodePortBounds.get(ni);
 		Rectangle2D aBounds = ai.getBounds();
 		Rectangle2D biggerBounds = new Rectangle2D.Double(aBounds.getMinX()-1, aBounds.getMinY()-1, aBounds.getWidth()+2, aBounds.getHeight()+2);
-		Set set = oqt.find(biggerBounds);
+		Set<?> set = oqt.find(biggerBounds);
 		if (set == null || set.size() == 0) return;
 
 		// look at all polygons on the arcinst
@@ -1378,7 +1381,7 @@ name=null;
 			// find ports near this bound
 			ObjectQTree oqt = nodePortBounds.get(oNi);
 			Rectangle2D biggerBounds = new Rectangle2D.Double(bounds.getMinX()-1, bounds.getMinY()-1, bounds.getWidth()+2, bounds.getHeight()+2);
-			Set set = oqt.find(biggerBounds);
+			Set<?> set = oqt.find(biggerBounds);
 			if (set != null)
 			{
 				for (Object obj : set)
@@ -1841,7 +1844,7 @@ name=null;
 
         // this is the arc ai at the top level
         int netID = gatherNetworks.getGlobalNetworkID(VarContext.globalContext, ai.getHeadPortInst());
-        SubPolygon sp2 = new SubPolygon(arcPoly, VarContext.globalContext, netID, ai, null);
+        SubPolygon sp2 = new SubPolygon(arcPoly, VarContext.globalContext, netID, ai);
 
 		// look for geometry inside the cell that touches the arc, and make an export so it can connect
 		ArcTouchVisitor atv = new ArcTouchVisitor(ai, arcPoly, ni, false, gatherNetworks);
@@ -1861,82 +1864,6 @@ name=null;
 		if (sp != null)
 		{
             registerPoly(overlapMap, new PolyConnection(sp, sp2));
-
-//			// get arc transformed to top-level
-//			ArcInst breakArc = (ArcInst)sp.theObj;
-//			if (!breakArc.isLinked()) return;
-//			Point2D head = breakArc.getHeadLocation();
-//			head = new Point2D.Double(head.getX(), head.getY());
-//			Point2D tail = breakArc.getTailLocation();
-//			tail = new Point2D.Double(tail.getX(), tail.getY());
-//			sp.xfToTop.transform(head, head);
-//			sp.xfToTop.transform(tail, tail);
-//			int angle = DBMath.figureAngle(head, tail);
-//
-//			// find where it intersects the top-level arc
-//			Point2D breakPt = null;
-//			if (angle%1800 == ai.getAngle()%1800)
-//			{
-//				if (DBMath.distToLine(head, tail, ai.getHeadLocation()) <
-//					DBMath.distToLine(head, tail, ai.getTailLocation()))
-//				{
-//					breakPt = DBMath.intersect(head, angle, ai.getHeadLocation(), (ai.getAngle()+900)%3600);
-//				} else
-//				{
-//					breakPt = DBMath.intersect(head, angle, ai.getTailLocation(), (ai.getAngle()+900)%3600);
-//				}
-//			} else
-//			{
-//				breakPt = DBMath.intersect(head, angle, ai.getHeadLocation(), ai.getAngle());
-//			}
-//			if (breakPt == null) return;
-//
-//			// transform the intersection point back down into low-level
-//			try
-//			{
-//				sp.xfToTop.inverseTransform(breakPt, breakPt);
-//			} catch (NoninvertibleTransformException e) { return; }
-//
-//			// break the arc at that point
-//			PrimitiveNode pinType = breakArc.getProto().findPinProto();
-//			NodeInst pin = NodeInst.newInstance(pinType, breakPt, pinType.getDefaultLambdaBaseWidth(ep),
-//				pinType.getDefaultLambdaBaseHeight(ep), breakArc.getParent());
-//			if (pin == null) return;
-//
-//			PortInst pi = pin.getOnlyPortInst();
-//			PortInst headPort = breakArc.getHeadPortInst();
-//            PortInst tailPort = breakArc.getTailPortInst();
-//            Point2D headPt = breakArc.getHeadLocation();
-//            Point2D tailPt = breakArc.getTailLocation();
-//            double width = breakArc.getLambdaBaseWidth();
-//            String arcName = breakArc.getName();
-//
-//            // create the new arcs
-//            ArcInst newAi1 = ArcInst.makeInstanceBase(breakArc.getProto(), width, headPort, pi, headPt, breakPt, null);
-//            ArcInst newAi2 = ArcInst.makeInstanceBase(breakArc.getProto(), width, pi, tailPort, breakPt, tailPt, null);
-//            if (newAi1 == null || newAi2 == null) return;
-//            newAi1.setHeadNegated(breakArc.isHeadNegated());
-//            newAi1.setHeadExtended(breakArc.isHeadExtended());
-//            newAi1.setHeadArrowed(breakArc.isHeadArrowed());
-//            newAi2.setTailNegated(breakArc.isTailNegated());
-//            newAi2.setTailExtended(breakArc.isTailExtended());
-//            newAi2.setTailArrowed(breakArc.isTailArrowed());
-//            breakArc.kill();
-//            if (arcName != null)
-//            {
-//                if (headPt.distance(breakPt) > tailPt.distance(breakPt))
-//                {
-//                    newAi1.setName(arcName);
-//                    newAi1.copyTextDescriptorFrom(breakArc, ArcInst.ARC_NAME);
-//                } else
-//                {
-//                	newAi2.setName(arcName);
-//                	newAi2.copyTextDescriptorFrom(breakArc, ArcInst.ARC_NAME);
-//                }
-//            }
-//
-//            // now drill the break pin to the top
-//			makeExportDrill(pin, pi.getPortProto(), sp.context, null, null);
 		}
 	}
 
@@ -2119,7 +2046,7 @@ name=null;
 						double dist = poly.separation(arcPoly);
 						if (dist >= DBMath.getEpsilon()) continue;
 						int netIDglobal = gatherNetworks.getGlobalNetworkID(info.getContext(), ai.getHeadPortInst());
-                        SubPolygon sp = new SubPolygon(poly, info.getContext(), netIDglobal, ai, arcTrans);
+                        SubPolygon sp = new SubPolygon(poly, info.getContext(), netIDglobal, ai);
 						bestSubPolygon = sp;
 					}
 				}
@@ -2149,7 +2076,7 @@ name=null;
 						poly.transform(nodeTrans);
 						double dist = poly.separation(arcPoly);
 						if (dist >= DBMath.getEpsilon()) continue;
-						SubPolygon sp = new SubPolygon(poly, info.getContext(), netIDglobal, ni, null);
+						SubPolygon sp = new SubPolygon(poly, info.getContext(), netIDglobal, ni);
 						if (bestSubPolygon != null)
 						{
 							if (!ni.hasExports()) continue;
@@ -2335,20 +2262,6 @@ name=null;
             }
         }
 
-//      // see if there is already a pin/export here
-//		NodeInst ni = null;
-//		Rectangle2D searchBound = new Rectangle2D.Double(topLoc.getX(), topLoc.getY(), 0, 0);
-//		for(Iterator<RTBounds> it = cell.searchIterator(searchBound); it.hasNext(); )
-//		{
-//			Geometric geom = (Geometric)it.next();
-//			if (geom instanceof ArcInst) continue;
-//			NodeInst foundNI = (NodeInst)geom;
-//			if (foundNI.getAnchorCenterX() != topLoc.getX() || foundNI.getAnchorCenterY() != topLoc.getY()) continue;
-//			if (foundNI.getFunction() != PrimitiveNode.Function.PIN) continue;
-//			ni = foundNI;
-//			break;
-//		}
-
 		// make a pin at the desired location on the arc
         NodeInst ni = null;
 
@@ -2412,15 +2325,13 @@ name=null;
 		int netID;
 		VarContext context;
 		Geometric theObj;
-		AffineTransform xfToTop;
 
-		SubPolygon(PolyBase poly, VarContext context, int netID, Geometric theObj, AffineTransform xfToTop)
+		SubPolygon(PolyBase poly, VarContext context, int netID, Geometric theObj)
 		{
 			this.poly = poly;
 			this.context = context;
 			this.netID = netID;
 			this.theObj = theObj;
-			this.xfToTop = xfToTop;
 		}
 
 		public Rectangle2D getBounds() { return poly.getBounds2D(); }
@@ -2492,7 +2403,7 @@ name=null;
                     netID = gatherNetworks.getGlobalNetworkID(VarContext.globalContext, ni1.findPortInstFromProto(poly.getPort()));
                 }
                 if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
-				rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, VarContext.globalContext, netID, ni1, null));
+				rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, VarContext.globalContext, netID, ni1));
 			}
 		}
 
@@ -2505,34 +2416,6 @@ name=null;
         for (PolyConnection p : polysFound) {
             registerPoly(overlapMap, p);
         }
-
-//      // show what is matched
-//		for(PolyConnection p : polysFound)
-//		{
-//			if (p.sp1.theObj instanceof ArcInst && p.sp2.theObj instanceof NodeInst)
-//			{
-//				if (p.sp1.context != VarContext.globalContext)
-//				{
-//					Point2D topLoc = makeExportDrill((NodeInst)p.sp2.theObj, p.sp2.poly.getPort(), p.sp2.context);
-//					makeExportDrillOnArc(topLoc, p.sp1);
-//				}
-//				continue;
-//			}
-//			if (p.sp1.theObj instanceof NodeInst && p.sp2.theObj instanceof ArcInst)
-//			{
-//				if (p.sp2.context != VarContext.globalContext)
-//				{
-//					Point2D topLoc = makeExportDrill((NodeInst)p.sp1.theObj, p.sp1.poly.getPort(), p.sp1.context);
-//					makeExportDrillOnArc(topLoc, p.sp2);
-//				}
-//				continue;
-//			}
-//			if (p.sp1.theObj instanceof NodeInst && p.sp2.theObj instanceof NodeInst)
-//			{
-//				makeExportDrill((NodeInst)p.sp1.theObj, p.sp1.poly.getPort(), p.sp1.context);
-//				makeExportDrill((NodeInst)p.sp2.theObj, p.sp2.poly.getPort(), p.sp2.context);
-//			}
-//		}
 	}
 
 	/**
@@ -2583,7 +2466,7 @@ name=null;
 						if (sp.poly.getLayer() != poly.getLayer()) continue;
 						if (sp.poly.separation(poly) >= DBMath.getEpsilon()) continue;
 						int netID = gatherNetworks.getGlobalNetworkID(info.getContext(), ni.findPortInstFromProto(poly.getPort()));
-						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ni, null);
+						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ni);
 						addConnection(sp, sp2);
 					}
 				}
@@ -2606,7 +2489,7 @@ name=null;
 						if (sp.poly.getLayer() != poly.getLayer()) continue;
 						if (sp.poly.separation(poly) > 0) continue;
 						int netID = gatherNetworks.getGlobalNetworkID(info.getContext(), ai.getHeadPortInst());
-						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ai, null);
+						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ai);
 						addConnection(sp, sp2);
 					}
 				}
@@ -2705,7 +2588,7 @@ name=null;
 					poly.transform(nodeTrans);
 					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 					int netID = gatherNetworks.getGlobalNetworkID(info.getContext(), ni.findPortInstFromProto(poly.getPort()));
-					rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, info.getContext(), netID, ni, null));
+					rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, info.getContext(), netID, ni));
 				}
 			}
 
@@ -2723,7 +2606,7 @@ name=null;
 					poly.transform(toTop);
 					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 					int netID = gatherNetworks.getGlobalNetworkID(info.getContext(), ai.getHeadPortInst());
-					rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, info.getContext(), netID, ai, null));
+					rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, info.getContext(), netID, ai));
 				}
 			}
 		}

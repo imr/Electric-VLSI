@@ -1331,8 +1331,8 @@ public abstract class InteractiveRouter extends Router {
     protected static double getClosestValue(double min, double max, double clicked, double alignment) {
         if (alignment > 0) {
             max = Math.floor(max / alignment) * alignment;
-            min = Math.ceil(max / alignment) * alignment;
-            clicked = Math.round(max / alignment) * alignment;
+            min = Math.ceil(min / alignment) * alignment;
+            clicked = Math.round(clicked / alignment) * alignment;
         }
         if (clicked >= max) {
             return max;
