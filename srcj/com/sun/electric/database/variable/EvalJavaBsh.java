@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.tool.Job;
@@ -322,13 +323,16 @@ public class EvalJavaBsh {
 
             // cache highlighted objects
             highlightedEObjs = null;
-        	WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-        	if (wf != null)
-        	{
-        		Highlighter highlighter = wf.getContent().getHighlighter();
-        		if (highlighter != null)
-        			highlightedEObjs = highlighter.getHighlightedEObjs(true, true);
-        	}
+            if (!Main.isBatch())
+            {
+	        	WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+	        	if (wf != null)
+	        	{
+	        		Highlighter highlighter = wf.getContent().getHighlighter();
+	        		if (highlighter != null)
+	        			highlightedEObjs = highlighter.getHighlightedEObjs(true, true);
+	        	}
+            }
         }
 
         public boolean doIt() throws JobException {
