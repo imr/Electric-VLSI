@@ -53,7 +53,12 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.dialogs.*;
+import com.sun.electric.tool.user.dialogs.AnnularRing;
+import com.sun.electric.tool.user.dialogs.CellBrowser;
+import com.sun.electric.tool.user.dialogs.ComponentMenu;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.LayoutImage;
+import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.redisplay.AbstractDrawing;
 import com.sun.electric.tool.user.redisplay.PixelDrawing;
@@ -135,6 +140,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	/** menu entry bounds */							private Rectangle entryRect;
 	/** Variables needed for drag-and-drop */			private DragSource dragSource = null;
 	/** Offscreen image */								private PixelDrawing offscreen;
+	/** the current technology */						private Technology curTech;
 
 	TechPalette()
 	{
@@ -160,6 +166,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	public Dimension loadForTechnology(Technology tech, Cell curCell)
 	{
+		curTech = tech;
 		inPalette.clear();
 		elementsMap.clear();
 
@@ -174,7 +181,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			menuY = paletteMatrix.length;
 			inPalette.clear();
 
-
             for (int i = 0; i < menuX; i++)
 			{
 				for (int j = 0; j < menuY; j++)
@@ -183,18 +189,14 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 					if (item instanceof NodeInst)
 					{
 						item = rotateTransistor((NodeInst)item);
-					} else if (item instanceof List)
+					} else if (item instanceof List<?>)
 					{
-						List nodes = (List)item;
+						List<Object> nodes = (List<Object>)item;
 						for(int k=0; k<nodes.size(); k++)
 						{
+							// Set equivalent ports
 							Object o = nodes.get(k);
-                            // Set equivalent ports
                             User.getUserTool().setEquivalentPortProto(o);
-
-                            // only the first element for current contact
-//                            if (k == 0)
-//                            User.getUserTool().setCurrentContactNodeProto(o);
 							if (o instanceof NodeInst)
 							{
 								NodeInst ni = (NodeInst)o;
@@ -261,35 +263,44 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	/**
 	 * Method to compose item name depending on object class
 	 */
-	private static String getItemName(Object item, boolean getVarName)
+	public static String getItemName(Technology tech, Object item, boolean getVarName)
 	{
 		if (item instanceof PrimitiveNode)
 		{
 			PrimitiveNode np = (PrimitiveNode)item;
-			return (np.getName());
+			return np.getName();
 		}
 		if (item instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)item;
-            Technology tech = ni.getProto().getTechnology();
-            // Only for schematics we use Variables
+
+			// Only for schematics we use Variables
             if (tech == Schematics.tech())
             {
                 Variable var = ni.getVar(TECH_TMPVAR);
-                if (getVarName && var != null) // && !var.isDisplay())
-                {
-                    return (var.getObject().toString());
-                }
+                if (getVarName && var != null)
+                    return var.getObject().toString();
             }
+
             // At least case for well contacts
-            return (ni.getProto().getName());
+            return ni.getProto().getName();
         }
         if (item instanceof ArcProto)
         {
             ArcProto ap = (ArcProto)item;
-            return (ap.getName());
+            return ap.getName();
         }
-        return ("");
+        if (item instanceof Xml.PrimitiveNode)
+        {
+        	Xml.PrimitiveNode np = (Xml.PrimitiveNode)item;
+            return np.name;
+        }
+        if (item instanceof Xml.MenuNodeInst)
+        {
+        	Xml.MenuNodeInst ni = (Xml.MenuNodeInst)item;
+            return ni.protoName;
+        }
+        return "";
     }
 
 	/**
@@ -433,45 +444,56 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         if (obj == null) return; // nothing selected
 
-        if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof ArcProto || obj instanceof List)
+        if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof ArcProto || obj instanceof List<?>)
         {
-            if (obj instanceof List)
+            if (obj instanceof List<?>)
             {
-                List<?> list = (List)obj;
+                List<?> list = (List<?>)obj;
 	            // Getting first element
                 obj = list.get(0);
-	            if (obj instanceof List) obj = ((List)obj).get(0);
+	            if (obj instanceof List<?>) obj = ((List<?>)obj).get(0);
                 if (list.size() > 1 && isCursorOnCorner(e))
 				{
                     // Careful with this name
-					JPopupMenu menu = new JPopupMenu(getItemName(obj, true));
+                	String popupName = getItemName(curTech, obj, false);
+					JPopupMenu menu = new JPopupMenu(popupName);
 
 					for (Object item : list)
 					{
 						if (item.equals(Technology.SPECIALMENUSEPARATOR))
 							menu.add(new JSeparator());
-						else if (item instanceof List)
+						else if (item instanceof List<?>)
 						{
-							List<?> subList = (List)item;
+							List<?> subList = (List<?>)item;
 							for (Object subItem : subList)
 							{
                                 subItem = getInUse(subItem);
                                 if (subItem == null) continue;
-								menu.add(menuItem = new JMenuItem(getItemName(subItem, true)));
-                                menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, subItem, list, subList));
+								menu.add(menuItem = new JMenuItem(getItemName(curTech, subItem, true)));
+                                menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel,
+                                	popupName, subItem, list, subList));
 							}
 						}
                         else
 						{
                             item = getInUse(item);
                             if (item == null) continue;
-							menu.add(menuItem = new JMenuItem(getItemName(item, true)));
-                            menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, item, list, null));
+							menu.add(menuItem = new JMenuItem(getItemName(curTech, item, true)));
+                            menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel,
+                            	popupName, item, list, null));
 						}
 					}
 					menu.show(panel, e.getX(), e.getY());
 					return;
 				}
+
+                // switch to the selected entry in the list
+                String curEntry = User.getUserTool().getCurrentContactNodeProto(curTech, getItemName(curTech, obj, false));
+                for(Object o : list)
+                {
+                	String thisOne = getItemName(curTech, o, true);
+                	if (thisOne.equals(curEntry)) obj = o;
+                }
             }
             if (obj instanceof ArcProto)
 				User.getUserTool().setCurrentArcProto((ArcProto)obj);
@@ -916,15 +938,17 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         }
     }
 
-    static class PlacePopupListListener extends PlacePopupListener
+    private class PlacePopupListListener extends PlacePopupListener
         implements ActionListener
     {
-        List list;
-	    List subList;
+        List<?> list;
+	    List<?> subList;
+	    private String popupName;
 
-        PlacePopupListListener(TechPalette panel, Object obj, List list, List subList)
+        PlacePopupListListener(TechPalette panel, String popupName, Object obj, List<?> list, List<?> subList)
         {
 	        super(panel, obj);
+	        this.popupName = popupName;
 	        this.list = list;
 	        this.subList = subList;
         }
@@ -936,29 +960,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 assert(subList == null);
                 Collections.swap(list, 0, list.indexOf(obj));
                 User.getUserTool().setCurrentArcProto((ArcProto)obj);
-            }
-            else
+            } else
             {
-                PaletteFrame.PlaceNodeListener listener = PaletteFrame.placeInstance(obj, panel, false);
+                PaletteFrame.placeInstance(obj, panel, false);
 
-                // Only if the listener is valid, swap the elements in the list otherwise
-                // the list won't match with the icon drawn
-                if (listener != null)
-                {
-                    // switching the default contact port if element is a contact
-                    User.getUserTool().setCurrentContactNodeProto(obj);
-
-                    // No first element -> make it default
-                    if (subList == null)
-                        Collections.swap(list, 0, list.indexOf(obj));
-                    else
-                    {
-                        Collections.swap(list, 0, list.indexOf(subList));
-                        Collections.swap(subList, 0, subList.indexOf(obj));
-                    }
-                }
+                // switch the default menu subentry and port
+                User.getUserTool().setCurrentContactNodeProto(curTech, popupName, obj);
+                panel.paletteImageStale = true;
+                panel.repaint();
             }
-            panel.paletteImageStale = true;
         }
     }
 
@@ -1006,10 +1016,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     public void mouseMoved(MouseEvent e)
     {
         Object obj = getObjectUnderCursor(e.getX(), e.getY());
-        if (obj instanceof List)
+        if (obj instanceof List<?>)
         {
-            obj = ((List)obj).get(0);
-	        if (obj instanceof List) obj = ((List)obj).get(0);
+            obj = ((List<?>)obj).get(0);
+	        if (obj instanceof List<?>) obj = ((List<?>)obj).get(0);
         }
         if (obj instanceof PrimitiveNode)
         {
@@ -1106,7 +1116,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         {
             Object obj = inPalette.get(i);
             if (obj == null) continue;
-            if (obj instanceof List) obj = ((List)obj).get(0);
+            if (obj instanceof List<?>) obj = ((List<?>)obj).get(0);
             if (obj == arcObj)
             {
                 index = i;
@@ -1127,7 +1137,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
     private final static double menuArcLength = 8;
 
-    private void renderPaletteImage() {
+    private void renderPaletteImage()
+    {
         // draw the menu entries
         if (entrySize < 2) return;
         entryRect = new Rectangle(new Dimension(entrySize-2, entrySize-2));
@@ -1138,8 +1149,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         g.clearRect(0, 0, getWidth(), getHeight());
         GraphicsPreferences gp = UserInterfaceMain.getGraphicsPreferences();
 
-        for(int x=0; x<menuX; x++) {
-            for(int y=0; y<menuY; y++) {
+        for(int x=0; x<menuX; x++)
+        {
+            for(int y=0; y<menuY; y++)
+            {
                 // render the entry into an Image
                 int index = x * menuY + y;
                 if (index >= inPalette.size()) continue;
@@ -1148,10 +1161,17 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 //System.out.print("ENTRY "+x+","+y+" IS "+toDraw);
 //if (toDraw != null) System.out.print(" (TYPE="+toDraw.getClass()+")");
 //System.out.println();
-                if (toDraw instanceof List) {
-                    List list = ((List)toDraw);
+                if (toDraw instanceof List<?>)
+                {
+                    List<?> list = ((List<?>)toDraw);
                     toDraw = list.get(0);
-                    if (toDraw instanceof List) toDraw = ((List)toDraw).get(0);
+                    if (toDraw instanceof List<?>) toDraw = ((List<?>)toDraw).get(0);
+                    String curEntry = User.getUserTool().getCurrentContactNodeProto(curTech, getItemName(curTech, toDraw, false));
+                    for(Object obj : list)
+                    {
+                    	String thisOne = getItemName(curTech, obj, true);
+                    	if (thisOne.equals(curEntry)) toDraw = obj;
+                    }
                     drawArrow = list.size() > 1;
                 }
 
@@ -1324,17 +1344,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         	// not a pin: just use the largest dimension of the node
             if (np.getDefHeight() > largest) largest = np.getDefHeight();
             if (np.getDefWidth() > largest) largest = np.getDefWidth();
-
-//			// just find the largest in the group
-//			PrimitiveNode.Function groupFunction = np.getGroupFunction();
-//			for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); )
-//			{
-//				PrimitiveNode otherNp = it.next();
-//				if (otherNp.getGroupFunction() != groupFunction) continue;
-//				if (otherNp.isSkipSizeInPalette()) continue;
-//				if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
-//				if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
-//				}
         }
         if (largest == 0) largest = 1;
         return largest;

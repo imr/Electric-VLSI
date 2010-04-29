@@ -54,6 +54,7 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.user.redisplay.VectorCache;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TechPalette;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -93,8 +94,6 @@ public class User extends Listener
     private Technology currentTech = null;
     private Map<String,PrimitivePort> currentContactPortProtoMap = new HashMap<String,PrimitivePort>();
     private Map<String,List<PrimitivePort>> equivalentPortProtoMap = new HashMap<String,List<PrimitivePort>>();
-//	private NodeProto currentNodeProto = null;
-//	private boolean undoRedo;
 
 	/**
 	 * The constructor sets up the User tool.
@@ -122,400 +121,6 @@ public class User extends Listener
 	 * @return the User tool.
 	 */
 	public static User getUserTool() { return tool; }
-
-//	/**
-//	 * Method to handle a change to a NodeInst.
-//	 * @param ni the NodeInst that was changed.
-//	 * @param oldD the old contents of the NodeInst.
-//	 */
-//	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oldD)
-//	{
-//		Clipboard.nodeMoved(ni, oldD.anchor.getX(), oldD.anchor.getY());
-//
-//		// remember what has changed in the cell
-//		Cell cell = ni.getParent();
-//		Rectangle2D.Double oldBounds = new Rectangle2D.Double();
-//		oldD.computeBounds(ni, oldBounds);
-//		Rectangle2D.Double newBounds = new Rectangle2D.Double();
-//		ni.getD().computeBounds(ni, newBounds);	// TO DO Why can't we use "ni.getBounds()" ?
-//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//		{
-//			WindowFrame wf = it.next();
-//			if (wf.getContent() instanceof EditWindow)
-//			{
-//				EditWindow wnd = (EditWindow)wf.getContent();
-//				if (wnd.getCell() == cell)
-//				{
-//					// TO DO figure out way to find text bounds on the OLD object
-//					setChangedInWindow(wnd, oldBounds);
-//
-//					// figure out full bounds including text
-//					Rectangle2D newTextBounds = ni.getTextBounds(wnd);
-//					if (newTextBounds == null) setChangedInWindow(wnd, newBounds); else
-//					{
-//						Rectangle2D.union(newTextBounds, newBounds, newTextBounds);
-//						setChangedInWindow(wnd, newTextBounds);
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	/**
-//	 * Method to handle a change to an ArcInst.
-//	 * @param ai the ArcInst that changed.
-//	 * @param oD the old contents of the ArcInst.
-//	 */
-//	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
-//	{
-//		// remember what has changed in the cell
-//		Cell cell = ai.getParent();
-//		Poly oldPoly = ArcInst.makePolyForArc(ai, oD.length, oD.width, oD.headLocation, oD.tailLocation, Poly.Type.FILLED);
-//		Rectangle2D oldBounds = oldPoly.getBounds2D();
-//		Rectangle2D newBounds = ai.getBounds();
-//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//		{
-//			WindowFrame wf = it.next();
-//			if (wf.getContent() instanceof EditWindow)
-//			{
-//				EditWindow wnd = (EditWindow)wf.getContent();
-//				if (wnd.getCell() == cell)
-//				{
-//					// TO DO figure out way to find text bounds on the OLD object
-//					setChangedInWindow(wnd, oldBounds);
-//
-//					// figure out full bounds including text
-//					Rectangle2D newTextBounds = ai.getTextBounds(wnd);
-//					if (newTextBounds == null) setChangedInWindow(wnd, newBounds); else
-//					{
-//						Rectangle2D.union(newTextBounds, newBounds, newTextBounds);
-//						setChangedInWindow(wnd, newTextBounds);
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	/**
-//	 * Method to handle a change to an Export.
-//	 * @param pp the Export that moved.
-//	 * @param oD the old contents of the Export.
-//	 */
-//	public void modifyExport(Export pp, ImmutableExport oD)
-//	{
-//		PortInst oldPi = ((Cell)pp.getParent()).getPortInst(oD.originalNodeId, oD.originalPortId);
-//		// remember what has changed in the cell
-//		Cell cell = (Cell)pp.getParent();
-//		NodeInst oldNi = oldPi.getNodeInst();
-//		NodeInst newNi = pp.getOriginalPort().getNodeInst();
-//		Rectangle2D oldBounds = oldPi.getBounds();
-//		Rectangle2D newBounds = newNi.getBounds();
-//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//		{
-//			WindowFrame wf = it.next();
-//			if (wf.getContent() instanceof EditWindow)
-//			{
-//				EditWindow wnd = (EditWindow)wf.getContent();
-//				if (wnd.getCell() == cell)
-//				{
-//					// figure out full bounds including text
-//					Rectangle2D oldTextBounds = oldNi.getTextBounds(wnd);
-//					if (oldTextBounds == null) setChangedInWindow(wnd, oldBounds); else
-//					{
-//						Rectangle2D.union(oldTextBounds, oldBounds, oldTextBounds);
-//						setChangedInWindow(wnd, oldTextBounds);
-//					}
-//
-//					// figure out full bounds including text
-//					Rectangle2D newTextBounds = newNi.getTextBounds(wnd);
-//					if (newTextBounds == null) setChangedInWindow(wnd, newBounds); else
-//					{
-//						Rectangle2D.union(newTextBounds, newBounds, newTextBounds);
-//						setChangedInWindow(wnd, newTextBounds);
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	/**
-//	 * Method to handle a change to a Cell.
-//	 * @param cell the Cell that was changed.
-//	 * @param oD the old contents of the Cell.
-//	 */
-//	public void modifyCell(Cell cell, ImmutableCell oD) {
-//		redrawObject(cell);
-//		CellName oldCellName = oD.cellName;
-//		if (cell.getCellName() == oldCellName) return;
-//		if (cell.isInTechnologyLibrary()) {
-//			Manipulate.renamedCell(oldCellName.getName(), cell.getName());
-//		}
-//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
-//			WindowFrame wf = it.next();
-//			WindowContent content = wf.getContent();
-//			if (content.getCell() != cell) continue;
-//			content.setWindowTitle();
-//		}
-//	}
-//
-//	/**
-//	 * Method to handle a change to a Library.
-//	 * @param lib the Library that was changed.
-//	 * @param oldD the old contents of the Library.
-//	 */
-//	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {}
-//
-//	/**
-//	 * Method to handle the creation of a new ElectricObject.
-//	 * @param obj the ElectricObject that was just created.
-//	 */
-//	public void newObject(ElectricObject obj)
-//	{
-//		// remember what has changed in the cell
-//		Cell cell = null;
-//		Rectangle2D bounds = null;
-//		if (obj instanceof NodeInst)
-//		{
-//			NodeInst ni = (NodeInst)obj;
-//			cell = ni.getParent();
-//			bounds = ni.getBounds();
-//		} else if (obj instanceof ArcInst)
-//		{
-//			ArcInst ai = (ArcInst)obj;
-//			cell = ai.getParent();
-//			bounds = ai.getBounds();
-//		} else if (obj instanceof Export)
-//		{
-//			Export pp = (Export)obj;
-//			cell = (Cell)pp.getParent();
-//			bounds = pp.getOriginalPort().getNodeInst().getBounds();
-//		}
-//		if (cell == null) return;
-//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//		{
-//			WindowFrame wf = it.next();
-//			if (wf.getContent() instanceof EditWindow)
-//			{
-//				EditWindow wnd = (EditWindow)wf.getContent();
-//				if (wnd.getCell() == cell)
-//				{
-//					// figure out full bounds including text
-//					Rectangle2D textBounds = obj.getTextBounds(wnd);
-//					if (textBounds == null) setChangedInWindow(wnd, bounds); else
-//					{
-//						Rectangle2D.union(textBounds, bounds, textBounds);
-//						setChangedInWindow(wnd, bounds);
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	/**
-//	 * Method to handle the deletion of an ElectricObject.
-//	 * @param obj the ElectricObject that was just deleted.
-//	 */
-//	public void killObject(ElectricObject obj)
-//	{
-//		if (obj instanceof Cell)
-//		{
-//			Cell cell = (Cell)obj;
-//			if (cell.isInTechnologyLibrary())
-//			{
-//				Manipulate.deletedCell(cell);
-//			}
-//			return;
-//		}
-//
-//		// remember what has changed in the cell
-//		// remember what has changed in the cell
-//		Cell cell = null;
-//		Rectangle2D bounds = null;
-//		if (obj instanceof NodeInst)
-//		{
-//			NodeInst ni = (NodeInst)obj;
-//			cell = ni.getParent();
-//			bounds = ni.getBounds();
-//		} else if (obj instanceof ArcInst)
-//		{
-//			ArcInst ai = (ArcInst)obj;
-//			cell = ai.getParent();
-//			bounds = ai.getBounds();
-//		} else if (obj instanceof Export)
-//		{
-//			Export pp = (Export)obj;
-//			cell = (Cell)pp.getParent();
-//			bounds = pp.getOriginalPort().getNodeInst().getBounds();
-//		}
-//		if (cell == null) return;
-//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//		{
-//			WindowFrame wf = it.next();
-//			if (wf.getContent() instanceof EditWindow)
-//			{
-//				EditWindow wnd = (EditWindow)wf.getContent();
-//				if (wnd.getCell() == cell)
-//				{
-//					// figure out full bounds including text
-//					Rectangle2D textBounds = obj.getTextBounds(wnd);
-//					if (textBounds == null) setChangedInWindow(wnd, bounds); else
-//					{
-//						Rectangle2D.union(textBounds, bounds, textBounds);
-//						setChangedInWindow(wnd, bounds);
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	/**
-//	 * Method to handle the renaming of an ElectricObject.
-//	 * @param obj the ElectricObject that was renamed.
-//	 * @param oldName the former name of that ElectricObject.
-//	 */
-//	public void renameObject(ElectricObject obj, Object oldName)
-//	{
-//		if (obj instanceof Cell)
-//		{
-//			Cell cell = (Cell)obj;
-//			if (cell.isInTechnologyLibrary())
-//			{
-//				Manipulate.renamedCell((String)oldName, cell.getName());
-//			}
-//			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//			{
-//				WindowFrame wf = it.next();
-//				WindowContent content = wf.getContent();
-//				if (content.getCell() != cell) continue;
-//				content.setWindowTitle();
-//			}
-//		}
-//	}
-//
-//	/**
-//	 * Method to request that an object be redrawn.
-//	 * @param obj the ElectricObject to be redrawn.
-//	 */
-//	public void redrawObject(ElectricObject obj)
-//	{
-//		Cell cell = null;
-//		Rectangle2D bounds = null;
-//		if (obj instanceof Geometric)
-//		{
-//			Geometric geom = (Geometric)obj;
-//			cell = geom.getParent();
-//		}
-//		if (obj instanceof PortInst)
-//		{
-//			PortInst pi = (PortInst)obj;
-//			cell = pi.getNodeInst().getParent();
-//		}
-//		if (cell != null)
-//		{
-//			markCellForRedraw(cell, true);
-//			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//			{
-//				WindowFrame wf = it.next();
-//				if (wf.getContent() instanceof EditWindow)
-//				{
-//					EditWindow wnd = (EditWindow)wf.getContent();
-//					if (wnd.getCell() == cell)
-//					{
-//						setChangedInWindow(wnd, bounds);
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	/**
-//	 * Method to announce that a Library is about to be saved to disk.
-//	 * @param lib the Library that will be written.
-//	 */
-//	public void writeLibrary(Library lib)
-//	{
-//	}
-//
-//	public void startBatch(Tool t, boolean undoRedo)
-//	{
-//		this.undoRedo = undoRedo;
-//
-//		// project management tool runs quietly
-//		Undo.ChangeBatch batch = Undo.getCurrentBatch();
-//		if (batch != null && batch.getTool() == Project.getProjectTool()) this.undoRedo = true;
-//	}
-//
-//	/**
-//	 * Daemon Method called when a batch of changes ends.
-//	 */
-//	public void endBatch()
-//	{
-//		if (Job.BATCHMODE) return;
-//
-//		// redraw all windows with Cells that changed
-//		for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
-//		{
-//			Cell cell = it.next();
-//			markCellForRedraw(cell, true);
-//		}
-//
-//		// update "last designer" field
-//		if (!undoRedo)
-//		{
-//			String userName = System.getProperty("user.name");
-//			List<Cell> updateLastDesigner = new ArrayList<Cell>();
-//
-//			for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
-//			{
-//				Cell cell = it.next();
-//				if (!cell.isLinked()) continue;
-//
-//				// see if the "last designer" should be changed on the cell
-//				Variable var = cell.getVar(FRAME_LAST_CHANGED_BY);
-//				if (var != null)
-//				{
-//					String lastDesigner = (String)var.getObject();
-//					if (lastDesigner.equals(userName)) continue;
-//				}
-//
-//				// HACK: if cell is checked-in, don't try to modify it
-//				int status = Project.getCellStatus(cell);
-//				if (status == Project.CHECKEDIN || status == Project.CHECKEDOUTTOOTHERS) continue;
-//
-//				// must update the "last designer" on this cell
-//				updateLastDesigner.add(cell);
-//			}
-//
-//			if (updateLastDesigner.size() > 0)
-//			{
-//				// change the "last designer" on these cells
-//				new SetLastDesigner(userName, updateLastDesigner);
-//			}
-//		}
-//	}
-//
-//	private static class SetLastDesigner extends Job
-//	{
-//		private String userName;
-//		private List<Cell> updateLastDesigner;
-//
-//		protected SetLastDesigner(String userName, List<Cell> updateLastDesigner)
-//		{
-//			super("Set Last Designer", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-//			this.userName = userName;
-//			this.updateLastDesigner = updateLastDesigner;
-//			startJob();
-//		}
-//
-//		public boolean doIt() throws JobException
-//		{
-//			for(Cell cell : updateLastDesigner)
-//			{
-//				cell.newVar(FRAME_LAST_CHANGED_BY, userName);
-//			}
-//			return true;
-//		}
-//	}
 
    /**
 	 * Handles database changes of a Job.
@@ -624,66 +229,6 @@ public class User extends Listener
 	}
 
 	/**
-	 * Method to accumulate the area of a window that has changed and needs redisplay.
-	 * @param wnd the EditWindow in question.
-	 * @param changedArea the area (in database coordinates) that has changed in the window.
-	 */
-//	private static void setChangedInWindow(EditWindow wnd, Rectangle2D changedArea)
-//	{
-////		Rectangle2D lastChanged = changedWindowRects.get(wnd);
-////		if (lastChanged == null) changedWindowRects.put(wnd, changedArea); else
-////		{
-////			Rectangle2D.union(lastChanged, changedArea, lastChanged);
-////		}
-//	}
-
-//	/**
-//	 * Method to recurse flag all windows showing a cell to redraw.
-//	 * @param cell the Cell that changed.
-//	 * @param cellChanged true if the cell changed and should be marked so.
-//	 */
-//	public static void markCellForRedraw(Cell cell, boolean cellChanged)
-//	{
-//		HashSet<Cell> marked = new HashSet<Cell>();
-//		markCellForRedrawRecursively(cell, marked);
-//		if (cellChanged)
-//		{
-////			VectorDrawing.cellChanged(cell);
-//			EditWindow.forceRedraw(cell);
-//			// recurse up the hierarchy so that all windows showing the cell get redrawn
-//			for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
-//				NodeInst ni = it.next();
-//				markCellForRedrawRecursively(ni.getParent(), marked);
-//			}
-//		}
-//
-//		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
-//		{
-//			WindowFrame wf = wit.next();
-//			WindowContent content = wf.getContent();
-//			if (!(content instanceof EditWindow)) continue;
-//			Cell winCell = content.getCell();
-//			if (marked.contains(winCell))
-//			{
-//				EditWindow wnd = (EditWindow)content;
-//				wnd.fullRepaint();
-//			}
-//		}
-//	}
-//
-//	private static void markCellForRedrawRecursively(Cell cell, HashSet<Cell> marked) {
-//		if (marked.contains(cell)) return;
-//		marked.add(cell);
-//		// recurse up the hierarchy so that all windows showing the cell get redrawn
-//		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
-//		{
-//			NodeInst ni = it.next();
-//			if (ni.isExpanded())
-//				markCellForRedrawRecursively(ni.getParent(), marked);
-//		}
-//	}
-
-	/**
 	 * Method called when a technology's parameters change.
 	 * All cells that use the technology must be recached.
 	 */
@@ -700,7 +245,6 @@ public class User extends Listener
 	 * Method to return the "current" PrimitivePort per a given pair of arcs, as maintained by the user interface.
 	 * @return the "current" PrimitivePort, as maintained by the user interface.
 	 */
-//	public NodeProto getCurrentNodeProto() { return currentNodeProto; }
     public PrimitivePort getCurrentContactPortProto(ArcProto key1, ArcProto key2)
     {
         Technology tech = key1.getTechnology();
@@ -716,17 +260,6 @@ public class User extends Listener
         key = key2.getName() + "@" + key1.getName();
         return currentContactPortProtoMap.get(key);
     }
-
-//    /**
-//     * Method to return the "current" PrimitivePort per a given PrimitivePort, as maintained by the user interface.
-//     * @param p
-//     * @return
-//     */
-//    public PrimitivePort getCurrentContactPortProto(PrimitivePort p)
-//    {
-//        List<String> list = getArcNamesSorted(p);
-//        return currentContactPortProtoMap.get(getKeyFromList(list));
-//    }
 
     public List<PrimitivePort> getPrimitivePortConnectedToArc(ArcProto ap)
     {
@@ -758,13 +291,39 @@ public class User extends Listener
         return list;
     }
 
-//    /**
-//	 * Method to set the "current" PrimitivePort per a given pair of arc, as maintained by the user interface.
-//	 * @param tech
-//	 */
-//	public void setCurrentNodeProto(NodeProto np) { currentNodeProto = np; }
+    private Map<String,Pref> contactNodeProtoMap = new HashMap<String,Pref>();
 
-    public void setCurrentContactNodeProto(Object obj)
+    private Pref getContactNodePref(Technology tech, String mainContactName)
+    {
+    	Pref thisEntry = contactNodeProtoMap.get(mainContactName);
+    	if (thisEntry == null)
+    	{
+    		thisEntry = Pref.makeStringPref("ComponentMenuEntryFor" + mainContactName + "In" + tech.getTechName(),
+    			tool.prefs, mainContactName);
+    		contactNodeProtoMap.put(mainContactName, thisEntry);
+    	}
+    	return thisEntry;
+    }
+
+    /**
+     * Method to return the current contact in the component menu when an entry has multiple choices.
+     * @param tech the technology being displayed in the component menu.
+     * @param mainContactName the name of the "main" (first) contact in the list.
+     * @return the name of the component that is "current".
+     */
+    public String getCurrentContactNodeProto(Technology tech, String mainContactName)
+    {
+    	Pref thisEntry = getContactNodePref(tech, mainContactName);
+    	return thisEntry.getString();
+    }
+
+    /**
+     * Method to set the current contact in the component menu when an entry has multiple choices.
+     * @param tech the technology being displayed in the component menu.
+     * @param mainContactName the name of the "main" (first) contact in the list.
+     * @param obj the current entry that should be the displayed choice.
+     */
+    public void setCurrentContactNodeProto(Technology tech, String mainContactName, Object obj)
     {
         NodeProto np;
         if (obj instanceof NodeProto)
@@ -778,7 +337,14 @@ public class User extends Listener
         else
             return; // not the valid object
 
-        if (!(np instanceof PrimitiveNode)) return;
+        // remember the setting
+        if (mainContactName != null)
+        {
+	    	Pref thisEntry = getContactNodePref(tech, mainContactName);
+	    	thisEntry.setString(TechPalette.getItemName(tech, obj, true));
+        }
+
+    	if (!(np instanceof PrimitiveNode)) return;
     	updatePrimitiveNodeConnections((PrimitiveNode)np);
     }
 
@@ -826,7 +392,7 @@ public class User extends Listener
         {
             List<?> menuBoxList = menuPalette.menuBoxes.get(i);
             if (menuBoxList == null || menuBoxList.isEmpty()) continue;
-            setCurrentContactNodeProto(menuBoxList.get(0));
+            setCurrentContactNodeProto(tech, null, menuBoxList.get(0));
         }
     }
 
@@ -2133,41 +1699,6 @@ public class User extends Listener
 	}
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
-
-//	public static final String INITIALWORKINGDIRSETTING_BASEDONOS = "Based on OS";
-//	public static final String INITIALWORKINGDIRSETTING_USECURRENTDIR = "Use current directory";
-//	public static final String INITIALWORKINGDIRSETTING_USELASTDIR = "Use last used directory";
-//	private static final String [] initialWorkingDirectorySettingChoices = {INITIALWORKINGDIRSETTING_BASEDONOS, INITIALWORKINGDIRSETTING_USECURRENTDIR, INITIALWORKINGDIRSETTING_USELASTDIR};
-//	private static Pref cacheInitialWorkingDirectorySetting = Pref.makeStringPref("InitialWorkingDirectorySetting", tool.prefs, initialWorkingDirectorySettingChoices[0]);
-//
-//	/**
-//	 * Method to get the way Electric chooses the initial working directory
-//	 * @return a string describing the way Electric chooses the initial working directory
-//	 */
-//	public static String getInitialWorkingDirectorySetting() { return cacheInitialWorkingDirectorySetting.getString(); }
-//
-//	/**
-//	 * Method to set the way Electric chooses the initial working directory
-//	 * @param setting one of the String settings from getInitialWorkingDirectorySettings
-//	 */
-//	public static void setInitialWorkingDirectorySetting(String setting) {
-//		for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++) {
-//			if ((initialWorkingDirectorySettingChoices[i]).equals(setting)) {
-//				cacheInitialWorkingDirectorySetting.setString(setting);
-//			}
-//		}
-//	}
-//
-//	/**
-//	 * Get the choices for the way Electric chooses the initial working directory
-//	 * @return an iterator over a list of strings that can be used with setIntialWorkingDirectorySetting()
-//	 */
-//	public static Iterator<String> getInitialWorkingDirectorySettings() {
-//		ArrayList<String> list = new ArrayList<String>();
-//		for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++)
-//			list.add(initialWorkingDirectorySettingChoices[i]);
-//		return list.iterator();
-//	}
 
 	private static Pref cacheWorkingDirectory = Pref.makeStringPref("WorkingDirectory", tool.prefs, java.lang.System.getProperty("user.dir"));
 	/**

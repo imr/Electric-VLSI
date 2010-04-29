@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00e: ******************************
 
+IMP: (4/29/10, SMR) Component menu now remembers the which variation of a node
+     is selected (Bug #2741).
+
 BUG: (4/28/10, SMR) Constraint system does not keep alignment between nodes
      and moves too much (Bug #2736).
 FIX: In LayoutCell.java, scale sizes more uniformly (in transformByPort())
