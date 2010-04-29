@@ -1293,7 +1293,7 @@ public class View3DWindow extends JPanel
 				selectObject(true, true);
 			}
 		}
-        WindowFrame.curMouseListener.mouseClicked(evt);
+        WindowFrame.getMouseListener().mouseClicked(evt);
 	}
 
 	public void mouseEntered(MouseEvent evt)
@@ -1339,17 +1339,17 @@ public class View3DWindow extends JPanel
 	}
 
 	// the MouseWheelListener events
-	public void mouseWheelMoved(MouseWheelEvent evt) { WindowFrame.curMouseWheelListener.mouseWheelMoved(evt); }
+	public void mouseWheelMoved(MouseWheelEvent evt) { WindowFrame.getMouseWheelListenerListener().mouseWheelMoved(evt); }
 
 	// the KeyListener events
 	public void keyPressed(KeyEvent evt) {
-		System.out.println("Here keyPressed");WindowFrame.curKeyListener.keyPressed(evt); }
+		System.out.println("Here keyPressed");WindowFrame.getKeyListenerListener().keyPressed(evt); }
 
 	public void keyReleased(KeyEvent evt) {
-		System.out.println("Here keyReleased");WindowFrame.curKeyListener.keyReleased(evt); }
+		System.out.println("Here keyReleased");WindowFrame.getKeyListenerListener().keyReleased(evt); }
 
 	public void keyTyped(KeyEvent evt) {
-		System.out.println("Here keyTyped");WindowFrame.curKeyListener.keyTyped(evt); }
+		System.out.println("Here keyTyped");WindowFrame.getKeyListenerListener().keyTyped(evt); }
 
 	public Point getLastMousePosition()
 	{

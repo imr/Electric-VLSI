@@ -96,10 +96,10 @@ public class WindowFrame extends Observable
 	/** the list of all windows on the screen */		private static List<WindowFrame> windowList = new ArrayList<WindowFrame>();
 	/** the current windows. */							private static WindowFrame curWindowFrame = null;
 
-	/** current mouse listener */						public static MouseListener curMouseListener = ClickZoomWireListener.theOne;
-    /** current mouse motion listener */				public static MouseMotionListener curMouseMotionListener = ClickZoomWireListener.theOne;
-    /** current mouse wheel listener */					public static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
-    /** current key listener */							public static KeyListener curKeyListener = ClickZoomWireListener.theOne;
+	/** current mouse listener */						private static MouseListener curMouseListener = null;
+    /** current mouse motion listener */				private static MouseMotionListener curMouseMotionListener = null;
+    /** current mouse wheel listener */					private static MouseWheelListener curMouseWheelListener = null;
+    /** current key listener */							private static KeyListener curKeyListener = null;
 
     /**
      * Use by highlight tools to bring the frame to the front.
@@ -741,7 +741,55 @@ public class WindowFrame extends Observable
 	 * There is a single listener in effect everywhere, usually controlled by the toolbar.
 	 * @return the current listener.
 	 */
-	public static EventListener getListener() { return curMouseListener; }
+	public static EventListener getListener()
+	{
+		if (curMouseListener == null) curMouseListener = ClickZoomWireListener.theOne;
+		return curMouseListener;
+	}
+
+	/**
+	 * Method to get the current MouseListener that responds to clicks in any window.
+	 * There is a single listener in effect everywhere, usually controlled by the toolbar.
+	 * @return the current MouseListener.
+	 */
+	public static MouseListener getMouseListener()
+	{
+		if (curMouseListener == null) curMouseListener = ClickZoomWireListener.theOne;
+		return curMouseListener;
+	}
+
+	/**
+	 * Method to get the current MouseMotionListener that responds to clicks in any window.
+	 * There is a single listener in effect everywhere, usually controlled by the toolbar.
+	 * @return the current MouseMotionListener.
+	 */
+	public static MouseMotionListener getMouseMotionListenerListener()
+	{
+		if (curMouseMotionListener == null) curMouseMotionListener = ClickZoomWireListener.theOne;
+		return curMouseMotionListener;
+	}
+
+	/**
+	 * Method to get the current MouseWheelListener that responds to clicks in any window.
+	 * There is a single listener in effect everywhere, usually controlled by the toolbar.
+	 * @return the current MouseWheelListener.
+	 */
+	public static MouseWheelListener getMouseWheelListenerListener()
+	{
+		if (curMouseWheelListener == null) curMouseWheelListener = ClickZoomWireListener.theOne;
+		return curMouseWheelListener;
+	}
+
+	/**
+	 * Method to get the current KeyListener that responds to clicks in any window.
+	 * There is a single listener in effect everywhere, usually controlled by the toolbar.
+	 * @return the current KeyListener.
+	 */
+	public static KeyListener getKeyListenerListener()
+	{
+		if (curKeyListener == null) curKeyListener = ClickZoomWireListener.theOne;
+		return curKeyListener;
+	}
 
 	/**
 	 * Method to return the current Cell.

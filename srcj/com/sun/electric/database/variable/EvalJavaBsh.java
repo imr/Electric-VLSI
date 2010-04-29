@@ -323,16 +323,13 @@ public class EvalJavaBsh {
 
             // cache highlighted objects
             highlightedEObjs = null;
-            if (!Main.isBatch())
-            {
-	        	WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-	        	if (wf != null)
-	        	{
-	        		Highlighter highlighter = wf.getContent().getHighlighter();
-	        		if (highlighter != null)
-	        			highlightedEObjs = highlighter.getHighlightedEObjs(true, true);
-	        	}
-            }
+        	WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+        	if (wf != null)
+        	{
+        		Highlighter highlighter = wf.getContent().getHighlighter();
+        		if (highlighter != null)
+        			highlightedEObjs = highlighter.getHighlightedEObjs(true, true);
+        	}
         }
 
         public boolean doIt() throws JobException {

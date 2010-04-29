@@ -402,32 +402,32 @@ public class EditWindow extends JPanel
 		requestFocus();
 		UserInterfaceMain.userCommandIssued();
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
-		WindowFrame.curMouseListener.mousePressed(evt);
+		WindowFrame.getMouseListener().mousePressed(evt);
 	}
 
 	public void mouseReleased(MouseEvent evt)
 	{
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
-		WindowFrame.curMouseListener.mouseReleased(evt);
+		WindowFrame.getMouseListener().mouseReleased(evt);
 	}
 
 	public void mouseClicked(MouseEvent evt)
 	{
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
-		WindowFrame.curMouseListener.mouseClicked(evt);
+		WindowFrame.getMouseListener().mouseClicked(evt);
 	}
 
 	public void mouseEntered(MouseEvent evt)
 	{
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		showCoordinates(evt);
-		WindowFrame.curMouseListener.mouseEntered(evt);
+		WindowFrame.getMouseListener().mouseEntered(evt);
 	}
 
 	public void mouseExited(MouseEvent evt)
 	{
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
-		WindowFrame.curMouseListener.mouseExited(evt);
+		WindowFrame.getMouseListener().mouseExited(evt);
 	}
 
 	// the MouseMotionListener events
@@ -435,14 +435,14 @@ public class EditWindow extends JPanel
 	{
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		showCoordinates(evt);
-		WindowFrame.curMouseMotionListener.mouseMoved(evt);
+		WindowFrame.getMouseMotionListenerListener().mouseMoved(evt);
 	}
 
 	public void mouseDragged(MouseEvent evt)
 	{
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		showCoordinates(evt);
-		WindowFrame.curMouseMotionListener.mouseDragged(evt);
+		WindowFrame.getMouseMotionListenerListener().mouseDragged(evt);
 	}
 
 	private void showCoordinates(MouseEvent evt)
@@ -499,18 +499,18 @@ public class EditWindow extends JPanel
 	}
 
 	// the MouseWheelListener events
-	public void mouseWheelMoved(MouseWheelEvent evt) { WindowFrame.curMouseWheelListener.mouseWheelMoved(evt); }
+	public void mouseWheelMoved(MouseWheelEvent evt) { WindowFrame.getMouseWheelListenerListener().mouseWheelMoved(evt); }
 
 	// the KeyListener events
 	public void keyPressed(KeyEvent evt)
 	{
 		UserInterfaceMain.userCommandIssued();
-		WindowFrame.curKeyListener.keyPressed(evt);
+		WindowFrame.getKeyListenerListener().keyPressed(evt);
 	}
 
-	public void keyReleased(KeyEvent evt) { WindowFrame.curKeyListener.keyReleased(evt); }
+	public void keyReleased(KeyEvent evt) { WindowFrame.getKeyListenerListener().keyReleased(evt); }
 
-	public void keyTyped(KeyEvent evt) { WindowFrame.curKeyListener.keyTyped(evt); }
+	public void keyTyped(KeyEvent evt) { WindowFrame.getKeyListenerListener().keyTyped(evt); }
 
 	public void highlightChanged(Highlighter which) {
 		repaint();
