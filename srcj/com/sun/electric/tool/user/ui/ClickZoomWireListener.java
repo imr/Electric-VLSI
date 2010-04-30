@@ -1645,6 +1645,7 @@ public class ClickZoomWireListener
             // nothing under mouse to route to/switch between, return
         } else {
             // toggle fat wiring mode
+/*
             EditingPreferences ep = UserInterfaceMain.getEditingPreferences();
             ep = ep.withFatWires(!ep.isFatWires());
             UserInterfaceMain.setEditingPreferences(ep);
@@ -1653,6 +1654,7 @@ public class ClickZoomWireListener
             } else {
                 System.out.println("Disabling fat wiring mode");
             }
+*/
         }
     }
 
