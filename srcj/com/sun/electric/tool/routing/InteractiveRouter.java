@@ -713,7 +713,7 @@ public abstract class InteractiveRouter extends Router {
 
             // normally we route center to center (for PortInsts) in fat wiring mode,
             // but if the objects overlap (both ports and objects themselves, then we will route directly
-            if (!objsOverlap || !overlapX) {
+            if (!overlapX) {
                 // center X on both objects (if they are port insts)
                 if (startObj instanceof PortInst) {
                     startBounds.setRect(startCenter.getX(), startBounds.getY(), 0, startBounds.getHeight());
@@ -722,7 +722,7 @@ public abstract class InteractiveRouter extends Router {
                     endBounds.setRect(endCenter.getX(), endBounds.getY(), 0, endBounds.getHeight());
                 }
             }
-            if (!objsOverlap || !overlapY) {
+            if (!overlapY) {
                 // center Y on both objects (if they are port insts)
                 if (startObj instanceof PortInst) {
                     startBounds.setRect(startBounds.getX(), startCenter.getY(), startBounds.getWidth(), 0);
