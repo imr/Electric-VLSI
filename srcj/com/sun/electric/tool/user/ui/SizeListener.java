@@ -728,14 +728,22 @@ public class SizeListener
 			double offY = newCenter.getY() - selNode.getAnchorCenterY();
 			newCenter.setLocation(desiredNI.getAnchorCenterX() + offX, desiredNI.getAnchorCenterY() + offY);
 
+			boolean selNodeSideways = (selNode.getAngle() == 900 || selNode.getAngle() == 2700);
+			boolean desiredNodeSideways = (desiredNI.getAngle() == 900 || desiredNI.getAngle() == 2700);
 			offX = newSize.getX() - selNode.getXSizeWithoutOffset();
-			offY = newSize.getY() - selNode.getXSizeWithoutOffset();
-			if ((selNode.getAngle() == 900 || selNode.getAngle() == 2700) !=
-				(desiredNI.getAngle() == 900 || desiredNI.getAngle() == 2700))
+			offY = newSize.getY() - selNode.getYSizeWithoutOffset();
+			if (selNodeSideways)
+			{
+				offX = newSize.getY() - selNode.getXSizeWithoutOffset();
+				offY = newSize.getX() - selNode.getYSizeWithoutOffset();			
+			}
+			offX = offX + desiredNI.getXSizeWithoutOffset();
+			offY = offY + desiredNI.getYSizeWithoutOffset();
+			if (desiredNodeSideways)
 			{
 				double swap = offX;   offX = offY;   offY = swap;
 			}
-			newSize.setLocation(desiredNI.getXSizeWithoutOffset() + offX, desiredNI.getXSizeWithoutOffset() + offY);
+			newSize.setLocation(offX, offY);
 		}
 		return newSize;
 	}
