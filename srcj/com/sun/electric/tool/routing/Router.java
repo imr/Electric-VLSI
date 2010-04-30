@@ -451,6 +451,8 @@ public abstract class Router {
                 int angle = ai.getDefinedAngle();
                 if (angle % 1800 != arcAngle % 1800) continue;
             }
+            // ignore default-sized arcs created by RouteElementArc.doAction() to deal with DRC errors when using fat wiring mode
+            if (fatWires && c.getArc().getLambdaBaseWidth() == ap.getDefaultLambdaBaseWidth()) continue;
             double newWidth = c.getArc().getLambdaBaseWidth();
             if (width < newWidth) width = newWidth;
             arcFound = true;
@@ -462,7 +464,9 @@ public abstract class Router {
         if (!arcFound && (ni.getProto() instanceof PrimitiveNode)) {
             PrimitiveNode pn = (PrimitiveNode)ni.getProto();
             if (fatWires) {
-                if (pn.getFunction().isContact()) {
+                // if a contact or substrate tap or well tap
+                if (pn.getFunction().isContact() || pn.getFunction() == PrimitiveNode.Function.SUBSTRATE
+                        || pn.getFunction() == PrimitiveNode.Function.WELL) {
                     // size calls take into account rotation
                     double xsize = ni.getXSizeWithoutOffset();
                     double ysize = ni.getYSizeWithoutOffset();
