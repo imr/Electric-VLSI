@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 9.00f: ******************************
+
 ************************* Version 9.00e: ******************************
 
 BUG: (4/30/10, SMR) Interactive resizing of multiple nodes doesn't work right
