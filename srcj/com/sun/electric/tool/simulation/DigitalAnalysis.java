@@ -46,11 +46,6 @@ public class DigitalAnalysis extends Analysis<DigitalSignal> {
     }
     
     @Override
-    public void finished() {
-        super.finished();
-    }
-    
-    @Override
 	public boolean isAnalog() { return false; }
     
 	/**
@@ -58,14 +53,5 @@ public class DigitalAnalysis extends Analysis<DigitalSignal> {
 	 * @return a List of signals.
 	 */
 	public List<DigitalSignal> getBussedSignals() { return allBussedSignals; }
-
-    public Rectangle2D getBounds() {
-        Rectangle2D bounds = new Rectangle2D.Double(0,0,0,0);
-        for(Signal sig : getSignals())
-            Rectangle2D.union(bounds,
-                              new Rectangle2D.Double(sig.getMinTime(), 0, sig.getMaxTime()-sig.getMinTime(), 1),
-                              bounds);
-        return bounds;
-    }
 
 }
