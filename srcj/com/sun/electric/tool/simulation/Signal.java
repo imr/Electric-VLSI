@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.simulation;
 
-import java.awt.geom.Rectangle2D;
-
 /**
  * A Signal represents simulation data captured for a particular node
  * over a stretch of time.  Internally, it associates Samples to
@@ -48,9 +46,10 @@ public abstract class Signal<SS extends Sample> {
         this.analysis = analysis;
 		this.signalName = signalName;
 		this.signalContext = signalContext;
+        this.analysisType = analysis==null ? Analysis.ANALYSIS_SIGNALS : analysis.getAnalysisType();
         this.fullSignalName = signalContext==null
             ? signalName
-            : signalContext + getAnalysis().getStimuli().getSeparatorChar() + signalName;
+            : signalContext + (analysis==null ? '.' : analysis.getStimuli().getSeparatorChar()) + signalName;
 		if (analysis!=null) analysis.nameSignal(this, getFullName());
     }
 
@@ -58,9 +57,13 @@ public abstract class Signal<SS extends Sample> {
 	/** the context of this signal (qualifications to name) */		private final String signalContext;
 	/** the context of this signal (qualifications to name) */		private final String fullSignalName;
     /** the Analysis to which this signal belongs */                private final Analysis analysis;
+    /** the Analysis to which this signal belongs */                private final Analysis.AnalysisType analysisType;
 
 	/** the Analysis in which this signal resides. */
 	public final Analysis getAnalysis() { return analysis; }
+
+
+	public final Analysis.AnalysisType getAnalysisType() { return analysisType; }
 
 	/** The name of this simulation signal, not including hierarchical path information */
 	public final String getSignalName() { return signalName; }
@@ -72,7 +75,7 @@ public abstract class Signal<SS extends Sample> {
 	public final String getFullName() { return fullSignalName; }
 
     /**
-     *  An Approximation is a collection of events indexed by natural
+     *  A View is a collection of events indexed by natural
      *  numbers.  An event is an ordered pair of a rational number for
      *  the time and an SS for the value.  All times share a common
      *  denominator.  Times are guaranteed to be monotonic.
@@ -82,14 +85,14 @@ public abstract class Signal<SS extends Sample> {
      *    getTime(i)  = getTime(0)  + getTimeNumerator(i)/getTimeDenominator()
      *
      *  The time-distance between events is NOT guaranteed to be
-     *  uniform.  However, the instances of Approximation returned by
+     *  uniform.  However, the instances of View returned by
      *  getApproximation(DDIDDI) <i>do</i> make this guarantee --
      *  in particular, those instances promise that for all x,
      *  getTimeNumerator(i)==i.  Instances returned by other methods
      *  do not offer this guarantee.
      */
     public static interface View<SS extends Sample> {
-        /** the number of indices ("events") in this approximation */   int    getNumEvents();
+        /** the number of indices ("events") in this view */            int    getNumEvents();
         /** the absolute time of the event in question */               double getTime(int event);
         /** the absolute value of the event in question */              SS     getSample(int event);
         /** the numerator of the time of the specified event */         int    getTimeNumerator(int event);

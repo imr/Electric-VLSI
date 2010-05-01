@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+IMP: (5/01/10, AM) Add Signal.getAnalysisType(), first step towards
+     removing Signal.getAnalysis().
+
 ************************* Version 9.00e: ******************************
 
-<<<<<<< HEAD
 BUG: (4/30/10, SMR) Interactive resizing of multiple nodes doesn't work right
      when they are different size (Bug #2732).
 FIX: Fixed SizeListener.getNewNodeSize().
@@ -22,9 +24,8 @@ FIX: In LayoutCell.java, scale sizes more uniformly (in transformByPort())
 BUG: (4/28/10, SMR) Autostitch makes arcs that are not grid-aligned (Bug #2740).
 FIX: Added alignment to AutoStitch.AutoStitchJob constructor and fixed bug
      in InteractiveRouter.getClosestValue().
-=======
+
 IMP: (4/27/10, AM) Remove AnalogSignal.getIndexInAnalysis().
->>>>>>> IMP: (4/27/10, AM) Remove AnalogSignal.getIndexInAnalysis().
 
 IMP: (4/27/10, AM) Remove MultiSweepSignal.
 

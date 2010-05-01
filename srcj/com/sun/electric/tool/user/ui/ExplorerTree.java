@@ -892,11 +892,10 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 					String sigName = sSig.getFullName();
 					if (sSig instanceof AnalogSignal)
 					{
-						AnalogSignal as = (AnalogSignal)sSig;
-						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
-							if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
-								if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
-									if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
+						if (sSig.getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
+							if (sSig.getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
+								if (sSig.getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
+									if (sSig.getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
 					}
 					buf.append(sigName);
 					buf.append("\n");
