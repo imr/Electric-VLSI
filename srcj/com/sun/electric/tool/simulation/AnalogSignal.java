@@ -29,24 +29,10 @@ import java.awt.geom.Rectangle2D;
  * Class to define an analog signal in the simulation waveform window.
  */
 public final class AnalogSignal extends ScalarSignal {
-	/** the Analysis object in which this DigitalSignal resides. */		private final AnalogAnalysis an;
-	/** index of this signal in its AnalogAnalysis */					private final int index;
 
-	/**
-	 * Constructor for an analog signal.
-	 * @param an the AnalogAnalysis object in which this signal will reside.
-	 */
 	public AnalogSignal(AnalogAnalysis an, String signalName, String signalContext) {
         super(an, signalName, signalContext);
-		this.an = an;
-		index = an.getSignals().size();
 		an.addSignal(this);
 	}
-
-	/**
-	 * Method to return the index of this AnalogSignal in its AnalogAnalysis.
-	 * @return the index of this AnalogSignal in its AnalogAnalysis.
-	 */
-	public int getIndexInAnalysis() { return index; }
 
 }
