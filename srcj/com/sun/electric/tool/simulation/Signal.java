@@ -48,11 +48,15 @@ public abstract class Signal<SS extends Sample> {
         this.analysis = analysis;
 		this.signalName = signalName;
 		this.signalContext = signalContext;
+        this.fullSignalName = signalContext==null
+            ? signalName
+            : signalContext + getAnalysis().getStimuli().getSeparatorChar() + signalName;
 		if (analysis!=null) analysis.nameSignal(this, getFullName());
     }
 
 	/** the name of this signal */									private final String signalName;
 	/** the context of this signal (qualifications to name) */		private final String signalContext;
+	/** the context of this signal (qualifications to name) */		private final String fullSignalName;
     /** the Analysis to which this signal belongs */                private final Analysis analysis;
 
 	/** the Analysis in which this signal resides. */
@@ -65,7 +69,7 @@ public abstract class Signal<SS extends Sample> {
 	public final String getSignalContext() { return signalContext; }
 
 	/** Return the full name (context+signalName) */
-	public final String getFullName() { return signalContext==null ? signalName : signalContext + getAnalysis().getStimuli().getSeparatorChar() + signalName; }
+	public final String getFullName() { return fullSignalName; }
 
     /**
      *  An Approximation is a collection of events indexed by natural
@@ -113,18 +117,5 @@ public abstract class Signal<SS extends Sample> {
 	public abstract double getMaxTime();
 	public abstract SS     getMinValue();
 	public abstract SS     getMaxValue();
-
-    protected static class DumbRasterView<SS extends Sample> implements Signal.View<RangeSample<SS>> {
-        private final Signal.View<SS> exactView;
-        public DumbRasterView(Signal.View<SS> exactView) { this.exactView = exactView; }
-        public int getNumEvents() { return exactView.getNumEvents(); }
-        public double getTime(int index) { return exactView.getTime(index); }
-        public RangeSample<SS> getSample(int index) {
-            SS ss = exactView.getSample(index);
-            return new RangeSample(ss, ss);
-        }
-        public int getTimeNumerator(int index) { return exactView.getTimeNumerator(index); }
-        public int getTimeDenominator() { return exactView.getTimeDenominator(); }
-    }
 
 }

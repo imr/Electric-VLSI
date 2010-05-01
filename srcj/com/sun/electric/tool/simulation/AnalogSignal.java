@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.simulation;
 
-import java.awt.geom.Rectangle2D;
-
 /**
  * Class to define an analog signal in the simulation waveform window.
  */

@@ -184,7 +184,6 @@ public class Sim
 		for(Signal s : als.an.getSignals()) {
 			DigitalSignal sig = (DigitalSignal)s;
 			if (sigsChanged.contains(sig)) continue;
-            sig.reset();
 		}
 		
 		als.ww.repaint();
