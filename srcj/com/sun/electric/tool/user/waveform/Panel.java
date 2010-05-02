@@ -1499,7 +1499,6 @@ public class Panel extends JPanel
 			if (!(ws.getSignal() instanceof DigitalSignal)) {
 				// draw analog trace
 				Signal as = ws.getSignal();
-				Analysis an = as.getAnalysis();
                 int s = 0;
                 /*
 				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++)
@@ -1550,7 +1549,7 @@ public class Panel extends JPanel
 	                            }
 	                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
 							}
-	                        if (an.extrapolateValues() && i == numEvents-1)
+	                        if (as.extrapolateValues() && i == numEvents-1)
 	                    	{
 	                    		if (getMinXAxis() < getMaxXAxis())
 	                    		{
@@ -1585,7 +1584,6 @@ public class Panel extends JPanel
             } else {
 				// draw digital traces
 				DigitalSignal ds = (DigitalSignal)ws.getSignal();
-				DigitalAnalysis an = (DigitalAnalysis)ds.getAnalysis();
 				List<DigitalSignal> bussedSignals = ds.getBussedSignals();
 				if (bussedSignals != null)
 				{
@@ -1669,7 +1667,7 @@ public class Panel extends JPanel
 						lastX = x;
 						if (nextXValue == Double.MAX_VALUE) break;
 					}
-					if (an.extrapolateValues())
+					if (ds.extrapolateValues())
 					{
 						int wid = sz.width;
 						if (lastX+5 < wid)
@@ -1741,7 +1739,7 @@ public class Panel extends JPanel
 					{
 						if (processABox(g, lastx, lastLowy, x, lastHighy, bounds, forPs, selectedObjects, ws, false, 0)) return selectedObjects;
 					}
-					if (an.extrapolateValues())
+					if (ds.extrapolateValues())
 					{
 						if (i >= numEvents-1)
 						{

@@ -46,6 +46,7 @@ public abstract class Signal<SS extends Sample> {
         this.analysis = analysis;
 		this.signalName = signalName;
 		this.signalContext = signalContext;
+		this.extrapolateToRight = analysis==null ? false : analysis.extrapolateValues();
         this.analysisType = analysis==null ? Analysis.ANALYSIS_SIGNALS : analysis.getAnalysisType();
         this.fullSignalName = signalContext==null
             ? signalName
@@ -58,10 +59,12 @@ public abstract class Signal<SS extends Sample> {
 	/** the context of this signal (qualifications to name) */		private final String fullSignalName;
     /** the Analysis to which this signal belongs */                private final Analysis analysis;
     /** the Analysis to which this signal belongs */                private final Analysis.AnalysisType analysisType;
+    private final boolean extrapolateToRight;
 
 	/** the Analysis in which this signal resides. */
 	public final Analysis getAnalysis() { return analysis; }
-
+    
+    public boolean extrapolateValues() { return extrapolateToRight; }
 	public final Analysis.AnalysisType getAnalysisType() { return analysisType; }
 
 	/** The name of this simulation signal, not including hierarchical path information */
