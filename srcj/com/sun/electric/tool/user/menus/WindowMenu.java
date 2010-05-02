@@ -275,7 +275,7 @@ public class WindowMenu {
                 SEPARATOR,
                 new EMenuItem("Create New Waveform Panel",
                               Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif")) { public void run() {
-                                  WaveformWindow.getCurrentWaveformWindow().makeNewPanel(null);
+                                  WaveformWindow.getCurrentWaveformWindow().makeNewPanel();
                     }},
                 new EMenuItem("Toggle Horizontal Panel Lock",
                               Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif")) { public void run() {

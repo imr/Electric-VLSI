@@ -137,6 +137,7 @@ public abstract class Analysis<S extends Signal>
 	 * @return a List of signals.
 	 */
 	public List<S> getSignals() { return signals; }
+	public boolean hasSignal(Signal s) { return signals.contains(s); }
 
 	public void nameSignal(S ws, String sigName)
 	{

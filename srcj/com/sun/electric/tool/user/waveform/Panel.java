@@ -708,7 +708,7 @@ public class Panel extends JPanel
 			for(Signal subSig : bussedSignals)
 			{
 				DigitalSignal subDS = (DigitalSignal)subSig;
-				Panel wp = waveWindow.makeNewPanel(null);
+				Panel wp = waveWindow.makeNewPanel();
 				WaveSignal wsig = new WaveSignal(wp, subDS);
 
 				if (WaveformWindow.USETABLES)

@@ -170,7 +170,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the list of panels. */								private JComboBox signalNameList;
-	/** mapping from analysis to entries in "SIGNALS" tree*/private Map<Analysis,TreePath> treePathFromAnalysis = new HashMap<Analysis,TreePath>();
+	/** mapping from analysis to entries in "SIGNALS" tree*/private Map<Signal,TreePath> treePathFromSignal = new HashMap<Signal,TreePath>();
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
@@ -331,7 +331,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			overall.add(addPanel, gbc);
 			addPanel.addActionListener(new ActionListener()
 			{
-				public void actionPerformed(ActionEvent evt) { makeNewPanel(null); }
+				public void actionPerformed(ActionEvent evt) { makeNewPanel(); }
 			});
 
 			showPoints = new JButton(iconLineOnPointOff);
@@ -1376,42 +1376,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to create a new panel with an X range similar to others on the display.
 	 * @return the newly created Panel.
 	 */
-	public Panel makeNewPanel(Analysis analysis)
+	public Panel makeNewPanel()
 	{
-		// determine panel's analysis type
-		Analysis.AnalysisType analysisType;
-		if (analysis != null) analysisType = analysis.getAnalysisType(); else
-		{
-			analysisType = Analysis.ANALYSIS_SIGNALS;
-			if (sd.isAnalog())
-			{
-				if (sd.getNumAnalyses() > 0)
-					analysisType = sd.getAnalyses().next().getAnalysisType();
-				if (xAxisLocked && xAxisSignalAll != null)
-				{
-					AnalogSignal as = (AnalogSignal)xAxisSignalAll;
-					analysisType = as.getAnalysis().getAnalysisType();
-				}
-			}
-		}
 		int panelSize = User.getWaveformDigitalPanelHeight();
 		if (sd.isAnalog()) panelSize = User.getWaveformAnalogPanelHeight();
 
 		// determine the X and Y ranges
 		Rectangle2D bounds = null;
 		double leftEdge, rightEdge;
-		Analysis an = sd.findAnalysis(analysisType);
-		if (an != null)
-		{
-			bounds = an.getBounds();
-			leftEdge = an.getMinTime();
-			rightEdge = an.getMaxTime();
-		} else
-		{
-			bounds = sd.getBounds();
-			leftEdge = sd.getMinTime();
-			rightEdge = sd.getMaxTime();
-		}
+        bounds = sd.getBounds();
+        leftEdge = sd.getMinTime();
+        rightEdge = sd.getMaxTime();
+
 		double lowValue = bounds.getMinY();
 		double highValue = bounds.getMaxY();
 		int vertAxisPos = -1;
@@ -1437,8 +1413,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// set the X and Y ranges
 		panel.setXAxisRange(leftEdge, rightEdge);
-		if (analysisType != null)
-			panel.setYAxisRange(lowValue, highValue);
 		if (vertAxisPos > 0) panel.setVertAxisPos(vertAxisPos);
 
 		// show and return the panel
@@ -2188,7 +2162,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		TreePath rootPath = new TreePath(ExplorerTreeModel.rootNode);
 		ArrayList<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
 
-		treePathFromAnalysis.clear();
+		treePathFromSignal.clear();
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
@@ -2229,12 +2203,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         if (an instanceof EpicAnalysis)
         {
 			DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
-			treePathFromAnalysis.put(an, parentPath.pathByAddingChild(analysisNode));
+            TreePath path = parentPath.pathByAddingChild(analysisNode);
+            for (Signal s : (List<Signal>)an.getSignals())
+                treePathFromSignal.put(s, path);
 			return analysisNode;
         }
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
 		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
-		treePathFromAnalysis.put(an, analysisPath);
+        for (Signal s : (List<Signal>)an.getSignals())
+            treePathFromSignal.put(s, analysisPath);
 		Map<String,TreePath> contextMap = new HashMap<String,TreePath>();
 		contextMap.put("", analysisPath);
 		Collections.sort(signals, new SignalsByName());
@@ -2343,7 +2320,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		boolean first = true;
 		for(SweepSignal ss : sweepSignals)
 		{
-			if (ss.getAnalysis() != an) continue;
 			if (first)
 			{
 				first = false;
@@ -2409,7 +2385,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			// add the signal
 			if (newPanel)
 			{
-				wp = makeNewPanel(sSig.getAnalysis());
+				wp = makeNewPanel();
 				boolean isAnalog = false;
 				if (sSig instanceof AnalogSignal) isAnalog = true;
 				if (isAnalog)
@@ -2840,11 +2816,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	}
 
 	private TreePath treePathFromSignal(Signal sig) {
-		Analysis an = sig.getAnalysis();
-		TreePath treePath = treePathFromAnalysis.get(an);
+		TreePath treePath = treePathFromSignal.get(sig);
 		if (treePath == null) return null;
 		String fullName = sig.getFullName();
-		char separator = an.getStimuli().getSeparatorChar();
+		char separator = sd.getSeparatorChar();
 		int sBeg = 0;
 		while (sBeg < fullName.length()) {
 			int sEnd = fullName.indexOf(separator, sBeg);
@@ -3601,7 +3576,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (sig instanceof AnalogSignal)
 					{
 						AnalogSignal as = (AnalogSignal)sig;
-						AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
                         addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
 					} else
 					{
@@ -3619,9 +3593,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				int s = dumpSweeps.get(i-1).intValue();
 				if (s >= 0)
 				{
-					AnalogAnalysis an = (AnalogAnalysis)sig.getAnalysis();
-					Object sweepObj = an.getSweep(s);
-					entries[i] += "/S=" + sweepObj;
+					entries[i] += "/S=" + s;
 				}
 			}
 			for(int i=0; i<numEntries; i++)
@@ -4109,7 +4081,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (!found)
 			{
 				// create a new panel for the signal
-				Panel wp = makeNewPanel(as.getAnalysis());
+				Panel wp = makeNewPanel();
 				double lowValue = as.getMinValue().getValue();
 				double highValue = as.getMaxValue().getValue();
 				double range = highValue - lowValue;
@@ -4126,7 +4098,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		} else
 		{
 			// add digital signal in new panel
-			Panel wp = makeNewPanel(sig.getAnalysis());
+			Panel wp = makeNewPanel();
 			new WaveSignal(wp, sig);
 			overall.validate();
 			wp.repaintContents();
@@ -4552,7 +4524,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							sSig = ws.getSignal();
 							break;
 						}
-						analysisType = sSig.getAnalysis().getAnalysisType();
+						analysisType = sSig.getAnalysisType();
 					}
 				} else
 				{
@@ -4770,7 +4742,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 
 				// add this signal in a new panel
-				panel = ww.makeNewPanel(sSig.getAnalysis());
+				panel = ww.makeNewPanel();
 				panel.fitToSignal(sSig);
 				new WaveSignal(panel, sSig);
 			}

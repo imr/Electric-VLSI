@@ -159,8 +159,6 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 		Signal[] waveforms = waveformCache.get(signal);
 		if (waveforms == null)
 		{
-			if (signal.getAnalysis() != this)
-				throw new IllegalArgumentException();
 			waveforms = loadWaveforms(signal);
 			assert waveforms.length == getNumSweeps();
 			waveformCache.put(signal, waveforms);

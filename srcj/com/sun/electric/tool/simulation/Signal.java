@@ -62,7 +62,6 @@ public abstract class Signal<SS extends Sample> {
 	/** the Analysis in which this signal resides. */
 	public final Analysis getAnalysis() { return analysis; }
 
-
 	public final Analysis.AnalysisType getAnalysisType() { return analysisType; }
 
 	/** The name of this simulation signal, not including hierarchical path information */
