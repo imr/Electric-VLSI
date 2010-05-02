@@ -115,7 +115,7 @@ public abstract class Simulate extends Input
         else if (type == FileType.RAWLTSPICEOUT)  is = new LTSpiceOut();
         else if (type == FileType.RAWSSPICEOUT)   is = new SmartSpiceOut();
         else if (type == FileType.SPICEOUT)       is = new SpiceOut();
-        else if (type == FileType.EPIC)           is = new EpicOutProcess();
+        else if (type == FileType.EPIC)           is = new EpicOut.EpicOutProcess();
         else if (type == FileType.VERILOGOUT)     is = new VerilogOut();
         return is;
     }

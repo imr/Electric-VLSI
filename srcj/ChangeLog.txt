@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+IMP: (5/01/10, AM) Merge EpicOutProcess and EpicAnalysis into
+     EpicOut.java (which follows the same naming convention as the
+     rest of the simulation output readers).
+
 IMP: (5/01/10, AM) Add Signal.extrapolateToRight to avoid more calls
      to Signal.getAnalysis().
 
