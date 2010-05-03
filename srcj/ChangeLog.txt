@@ -41,6 +41,7 @@ FIX: Added alignment to AutoStitch.AutoStitchJob constructor and fixed bug
      in InteractiveRouter.getClosestValue().
 
 IMP: (4/27/10, AM) Remove MultiSweepSignal.
+IMP: (4/27/10, AM) Remove AnalogSignal.getIndexInAnalysis()
 
 BUG: (4/27/10, SMR) Bean Shell cannot access currently highlighted objects (Bug #2739).
 FIX: Added EvalJavaBsh.getHighlighted() to access the list from inside a Job.
