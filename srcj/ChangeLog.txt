@@ -17,6 +17,11 @@ IMP: (5/01/10, AM) Turn WaveformWindow.treePathFromAnalysis into
 IMP: (5/01/10, AM) Add Signal.getAnalysisType(), first step towards
      removing Signal.getAnalysis().
 
+IMP/MAN: (4/30/10, JKG) Removed spacebar toggle of fat wiring mode, as it is now a preference.
+Substrate and well contacts included in as contacts for finding width of connecting wire.
+Ignore default-sized arcs when choosing arc size to connect to portinst,
+as RouteElementArc.doAction creates default-sized arcs for 0 length connections.
+
 ************************* Version 9.00e: ******************************
 
 BUG: (4/30/10, SMR) Interactive resizing of multiple nodes doesn't work right
@@ -34,8 +39,6 @@ FIX: In LayoutCell.java, scale sizes more uniformly (in transformByPort())
 BUG: (4/28/10, SMR) Autostitch makes arcs that are not grid-aligned (Bug #2740).
 FIX: Added alignment to AutoStitch.AutoStitchJob constructor and fixed bug
      in InteractiveRouter.getClosestValue().
-
-IMP: (4/27/10, AM) Remove AnalogSignal.getIndexInAnalysis().
 
 IMP: (4/27/10, AM) Remove MultiSweepSignal.
 
