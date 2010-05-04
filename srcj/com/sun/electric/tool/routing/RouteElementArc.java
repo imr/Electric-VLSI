@@ -42,6 +42,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.geom.Point2D;
@@ -393,7 +394,10 @@ public class RouteElementArc extends RouteElement {
                     if (arcProto.getDefaultLambdaBaseWidth() < thisWidth)
                         thisWidth = arcProto.getDefaultLambdaBaseWidth();   // Sept 4 2008. Force to be a flat arc
                 } else
-                    thisWidth = 0; // Sept 4 2008. Force to be a single point
+                {
+                	if (arcProto != Schematics.tech().bus_arc)
+                		thisWidth = 0; // Sept 4 2008. Force to be a single point
+                }
             }
             ArcInst newAi = ArcInst.makeInstanceBase(arcProto, thisWidth, headPi, tailPi, headPoint, tailPoint, arcName);
             if (newAi == null) return null;

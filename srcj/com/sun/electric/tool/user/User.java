@@ -488,6 +488,18 @@ public class User extends Listener
 	public ArcProto getCurrentArcProto() { return currentArcProto; }
 
 	/**
+	 * Method to set the "current" ArcProto but only temporarily.
+	 * This does not update the display in the component menu, and it is expected that
+	 * the call will be reset to the "true current" ArcProto soon.
+	 * This is used to force the routing planners to use the correct arc.
+	 * @param ap the new "current" ArcProto.
+	 */
+	public void setCurrentArcProtoTemporarily(ArcProto ap)
+	{
+		currentArcProto = ap;
+	}
+
+	/**
 	 * Method to set the "current" ArcProto, as maintained by the user interface.
 	 * The current ArcProto is highlighted with a bolder red border in the component menu on the left.
 	 * @param ap the new "current" ArcProto.

@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+BUG: (5/4/10, SMR) AutoStitch gives errors and fails to correctly route bus ports (Bug #2745).
+FIX: AutoStitch.testPoly() handles busses separately when deciding whether or not ports
+     are already connected.  It also has a bug in which it fails to report that it has made
+     a connection.  Other fixes in InteractiveRouter.planRoute(), RouteElementArc.doAction().
+
 BUG: (5/3/10, GVG) Autostitch creating 2 arcs when connecting bus ports in icons (Bug #2745)
 FIX: Calling getNetwork(Nodable no, Name portName) in case of busses (temp fix)
 

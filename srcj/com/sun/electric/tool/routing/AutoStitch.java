@@ -43,6 +43,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -1356,7 +1357,7 @@ name=null;
 	 * @param arcLayers a map from ArcProtos to Layers.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider connections that occur in this area.
-	 * @return the number of connections made (0 if none).
+	 * @return true if connections were made.
 	 */
 	private boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, StitchingTopology top,
 		Map<NodeInst, ObjectQTree> nodePortBounds,
@@ -1365,6 +1366,8 @@ name=null;
 //System.out.println("FOR LAYER "+ap.getName()+" CONSIDER PORT "+pp.getName()+" OF NODE "+ni.describe(false));
 		// get network associated with the node/port
 		PortInst pi = ni.findPortInstFromProto(pp);
+		Name portNK = pp.getNameKey();
+		boolean connectionsMade = false;
 
 		// keep track of which networks we've already tied together
         Set<Network> netsConnectedTo = new TreeSet<Network>();
@@ -1389,23 +1392,23 @@ name=null;
                     PortInst oPi = (PortInst)obj;
 					PortProto mPp = oPi.getPortProto();
 
-//                    // keep track of which networks we've already tied together
-//                    Cell subcell = (Cell)oNi.getProto();
-//                    Netlist netlist = subcell.getNetlist();
-//                    if (mPp instanceof Export) {
-//                        Export mPpe = (Export)mPp;
-//                        Network netm = netlist.getNetwork(mPpe, 0);
-//                        assert netm != null;
-//                        if (netsConnectedTo.contains(netm)) continue;
-//                        netsConnectedTo.add(netm);
-//                    }
-
 					// port must be able to connect to the arc
 					if (!mPp.getBasePort().connectsTo(ap)) continue;
 
-					// do not stitch where there is already an electrical connection
-					Network oNet = top.getPortNetwork(oNi.findPortInstFromProto(mPp));
-					if (net != null && oNet == net) continue;
+					Network oNet = null;
+					Name oPortNK = mPp.getNameKey();
+			        if (portNK.isBus() && oPortNK.isBus())
+			        {
+						// both ports are busses: do not stitch if their sizes differ
+//System.out.println("ROUTING BUS ARC "+ap.describe());
+			        	if (portNK.busWidth() != oPortNK.busWidth()) continue;
+			        	ap = Schematics.tech().bus_arc;
+			        } else
+			        {
+						// do not stitch where there is already an electrical connection
+			        	oNet = top.getPortNetwork(oNi.findPortInstFromProto(mPp));
+						if (net != null && oNet == net) continue;
+			        }
 
 					// do not stitch if there is already an arc connecting these two ports
 					boolean ignore = false;
@@ -1441,11 +1444,7 @@ name=null;
                         Export mPpe = (Export)mPp;
                         Network netm = netlist.getNetwork(mPpe, 0);
                         assert netm != null;
-                        if (netsConnectedTo.contains(netm))
-                        {
-//System.out.println("   ---PORT "+mPp.getName()+" OF NODE "+oPi.getNodeInst().describe(false)+" FAILS NETLIST");
-                        	continue;
-                        }
+                        if (netsConnectedTo.contains(netm)) continue;
                         netsConnectedTo.add(netm);
                     }
 
@@ -1456,7 +1455,8 @@ name=null;
 					{
 						// not a geometric primitive: look for ports that touch
 						Poly oPoly = oNi.getShapeOfPort(mPp);
-						comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound);
+						if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
+							connectionsMade = true;
 					} else
 					{
 						// a geometric primitive: look for ports on layers that touch
@@ -1483,7 +1483,10 @@ name=null;
 							// transform the polygon and pass it on to the next test
 							oPoly.transform(trans);
 							if (comparePoly(oNi, mPp, oPoly, oNet, ni, pp, poly, net, ap, stayInside, top, limitBound))
+							{
+								connectionsMade = true;
 								break;
+							}
 						}
 					}
 				}
@@ -1587,7 +1590,7 @@ name=null;
 				}
 			}
 		}
-		return false;
+		return connectionsMade;
 	}
 
 	/**
@@ -1687,7 +1690,17 @@ name=null;
 		PortInst pi = ni.findPortInstFromProto(pp);
 		PortInst opi = oNi.findPortInstFromProto(opp);
 //System.out.println("   *** MAKING THE CONNECTION");
-		return connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside, top);
+
+		// remember the current ArcProto and force the desired one
+		ArcProto oldAP = User.getUserTool().getCurrentArcProto();
+		User.getUserTool().setCurrentArcProtoTemporarily(ap);
+
+		// make the connection
+		boolean didConnect = connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside, top);
+
+		// restore the current ArcProto
+		User.getUserTool().setCurrentArcProtoTemporarily(oldAP);
+		return didConnect;
 	}
 
 	/**

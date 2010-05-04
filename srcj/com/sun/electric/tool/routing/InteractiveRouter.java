@@ -337,7 +337,8 @@ public abstract class InteractiveRouter extends Router {
         double startArcWidth = 0;
         double endArcWidth = 0;
 
-        if (!fatWires) {
+//        if (!fatWires)
+        {
             // if not using fat wiring mode, determine arc sizes now, and
             // start and end points based off of arc sizes and startObj and endObj port sizes
             startArcWidth = getArcWidthToUse(startObj, startArc, 0, true, fatWires);
@@ -348,7 +349,7 @@ public abstract class InteractiveRouter extends Router {
             }
         }
 
-        // if extension not supressed, use defaults from arcs
+        // if extension not suppressed, use defaults from arcs
         if (extendArcHead) extendArcHead = startArc.getDefaultInst(ep).isHeadExtended() || endArc.getDefaultInst(ep).isHeadExtended();
         if (extendArcTail) extendArcTail = startArc.getDefaultInst(ep).isTailExtended() || endArc.getDefaultInst(ep).isTailExtended();
 
