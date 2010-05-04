@@ -663,7 +663,8 @@ public abstract class Netlist {
         PortProto portProto = pi.getPortProto();
         if (portProto.getNameKey().isBus()) {
             System.out.println("PortInst.getNetwork() was called for instance of bus port " + portProto.getName());
-            return null;
+            return getNetwork(pi.getNodeInst(), pi.getPortProto().getNameKey().subname(0));
+//            return null;
         }
         return getNetwork(pi.getNodeInst(), portProto, 0);
     }

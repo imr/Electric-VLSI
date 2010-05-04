@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+BUG: (5/3/10, GVG) Autostitch creating 2 arcs when connecting bus ports in icons (Bug #2745)
+FIX: Calling getNetwork(Nodable no, Name portName) in case of busses (temp fix)
+
 IMP: (5/01/10, AM) Merge EpicOutProcess and EpicAnalysis into
      EpicOut.java (which follows the same naming convention as the
      rest of the simulation output readers).
