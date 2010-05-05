@@ -43,7 +43,6 @@ package com.sun.electric.tool.simulation;
 public abstract class Signal<SS extends Sample> {
 
     public Signal(Analysis analysis, String signalName, String signalContext) {
-        this.analysis = analysis;
 		this.signalName = signalName;
 		this.signalContext = signalContext;
 		this.extrapolateToRight = analysis==null ? false : analysis.extrapolateValues();
@@ -52,18 +51,21 @@ public abstract class Signal<SS extends Sample> {
             ? signalName
             : signalContext + (analysis==null ? '.' : analysis.getStimuli().getSeparatorChar()) + signalName;
 		if (analysis!=null) analysis.nameSignal(this, getFullName());
+        this.stimuli = analysis==null ? null : analysis.getStimuli();
     }
 
 	/** the name of this signal */									private final String signalName;
 	/** the context of this signal (qualifications to name) */		private final String signalContext;
 	/** the context of this signal (qualifications to name) */		private final String fullSignalName;
-    /** the Analysis to which this signal belongs */                private final Analysis analysis;
     /** the Analysis to which this signal belongs */                private final Analysis.AnalysisType analysisType;
-    private final boolean extrapolateToRight;
+    /** the extrapolateToRight setting of the Analysis */           private final boolean extrapolateToRight;
+    /** the stimuli of the Analysis */                              private final Stimuli stimuli;
 
-	/** the Analysis in which this signal resides. */
-	public final Analysis getAnalysis() { return analysis; }
-    
+    // methods relocated from other classes
+    public void clearControlPoints() { stimuli.clearControlPoints(this); }
+    public void removeControlPoint(double time) { stimuli.removeControlPoint(this, time); }
+    public void addControlPoint(double time) { stimuli.addControlPoint(this, time); }
+    public Double[] getControlPoints() { return stimuli.getControlPoints(this); }
     public boolean extrapolateValues() { return extrapolateToRight; }
 	public final Analysis.AnalysisType getAnalysisType() { return analysisType; }
 

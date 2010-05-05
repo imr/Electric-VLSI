@@ -1777,7 +1777,7 @@ public class Panel extends JPanel
 		{
 			if (g != null) g.setColor(ws.getColor());
 
-			Double [] points = ws.getSignal().getAnalysis().getStimuli().getControlPoints(ws.getSignal());
+			Double [] points = ws.getSignal().getControlPoints();
 			if (points == null) continue;
 			if (g != null) g.setColor(ws.getColor());
 			for(int i=0; i<points.length; i++)
@@ -2190,9 +2190,9 @@ public class Panel extends JPanel
 			// draw analog trace
 			AnalogSignal as = (AnalogSignal)ws.getSignal();
             double[] result = new double[3];
+            /*
             AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
-
-			for(int s=0, numSweeps = 1/*as.getNumSweeps()*/; s<numSweeps; s++)
+			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
                 Signal waveform = as;//as.getWaveform(s);
@@ -2212,6 +2212,7 @@ public class Panel extends JPanel
 					}
 				}
 			}
+            */
 		}
 
 		// snap to any waveform lines
@@ -2224,9 +2225,9 @@ public class Panel extends JPanel
 			AnalogSignal as = (AnalogSignal)ws.getSignal();
             double[] result = new double[3];
             double[] lastResult = new double[3];
+            /*
             AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
-
-			for(int s=0, numSweeps = /*as.getNumSweeps()*/1; s<numSweeps; s++)
+			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
                 Signal waveform = as;//as.getWaveform(s);
@@ -2249,6 +2250,7 @@ public class Panel extends JPanel
 					lastPt = thisPt;
 				}
 			}
+            */
 		}
 
 		// no snapping: return the original point

@@ -405,7 +405,7 @@ public class Analyzer extends Engine
 			return;
 		}
 		Signal sig = signals.get(0);
-		sig.getAnalysis().getStimuli().clearControlPoints(sig);
+		sig.clearControlPoints();
 
 		SimVector lastSV = null;
 		for(SimVector sv = firstVector; sv != null; sv = sv.next)
@@ -472,7 +472,7 @@ public class Analyzer extends Engine
 			Panel wp = it.next();
 			for(WaveSignal ws : wp.getSignals())
 			{
-				ws.getSignal().getAnalysis().getStimuli().clearControlPoints(ws.getSignal());
+				ws.getSignal().clearControlPoints();
 			}
 		}
 
@@ -581,7 +581,7 @@ public class Analyzer extends Engine
 				Panel wp = it.next();
 				for(WaveSignal ws : wp.getSignals())
 				{
-					ws.getSignal().getAnalysis().getStimuli().clearControlPoints(ws.getSignal());
+					ws.getSignal().clearControlPoints();
 				}
 			}
 			System.out.println("Reading " + vectorFileName);
@@ -913,7 +913,7 @@ public class Analyzer extends Engine
 					// add this moment in time to the control points for the signal
 					for(Signal sig : newsv.sigs)
 					{
-						sig.getAnalysis().getStimuli().addControlPoint(sig, insertTime);
+						sig.addControlPoint(insertTime);
 					}
 				}
 				break;
@@ -1058,7 +1058,7 @@ public class Analyzer extends Engine
 							if (s == sig)
 							{
 								found = true;
-                                sig.getAnalysis().getStimuli().removeControlPoint(sig, insertTime);
+                                sig.removeControlPoint(insertTime);
 								break;
 							}
 						}
