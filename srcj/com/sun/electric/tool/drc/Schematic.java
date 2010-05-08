@@ -24,6 +24,7 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
@@ -40,8 +41,11 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.topology.RTNode;
+import com.sun.electric.database.topology.RTNode.Search;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -486,6 +490,37 @@ public class Schematic
                     errorLogger.logMessage("Arc " + ai.describe(true) + " (" + signals + " wide) connects to " +
                         pp + " of " + ni + " (" + portWidth + " wide)", geomList, cell, eg.getSortKey(), true);
                 }
+            }
+            
+            // check to see if it covers a pin
+            Rectangle2D rect = ai.getBounds();
+            Network net = netlist.getNetwork(ai, 0);
+            for(RTNode.Search sea = new RTNode.Search(rect, cell.getTopology().getRTree(), true); sea.hasNext(); )
+            {
+            	Geometric oGeom = (Geometric)sea.next();
+            	if (oGeom instanceof NodeInst)
+            	{
+            		NodeInst ni = (NodeInst)oGeom;
+
+            		// must be a pin on an unconnected network
+            		if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
+            		if (ni.getProto().getTechnology() == Generic.tech()) continue;
+            		Network oNet = netlist.getNetwork(ni.getOnlyPortInst());
+            		if (net == oNet) continue;
+
+            		// error if it is on the line of this arc
+	            	Rectangle2D bound = ni.getBounds();
+	            	if (bound.getWidth() > 0 || bound.getHeight() > 0) continue;
+	            	Point2D ctr = new Point2D.Double(bound.getCenterX(), bound.getCenterY());
+	            	if (GenMath.isOnLine(ai.getHeadLocation(), ai.getTailLocation(), ctr))
+	            	{
+	                    List<Geometric> geomList = new ArrayList<Geometric>();
+	                    geomList.add(ai);
+	                    geomList.add(ni);
+	                    errorLogger.logMessage("Pin " + ni.describe(false) + " touches arc " + ai.describe(true) + " but does not connect to it ",
+	                    	geomList, cell, eg.getSortKey(), true);
+	            	}
+            	}
             }
         }
     }

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+BUG/MAN: (5/7/10, SMR) Schematic DRC missing arcs touching if they are labeled (Bug #2748).
+FIX: Also check for unconnected pins laying on an arc.
+
 IMP: (5/5/10, AM) Add skeleton of RadixTrie (a Map<String,V> that
      maintains the statistics needed to detect the hierarchy
      separator).
