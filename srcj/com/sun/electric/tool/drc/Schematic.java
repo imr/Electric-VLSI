@@ -262,7 +262,7 @@ public class Schematic
                     ArcInst ai = con.getArc();
                     if (ai.getProto() != Schematics.tech().bus_arc) continue;
                     hadBusses = true;
-                    int wid = ai.getNameKey().busWidth();
+                    int wid = netlist.getBusWidth(ai);
                     for(int i=0; i<wid; i++)
                     {
                     	Network net = netlist.getNetwork(ai, i);
