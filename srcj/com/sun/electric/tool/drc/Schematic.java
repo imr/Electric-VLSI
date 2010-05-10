@@ -253,24 +253,42 @@ public class Schematic
                     }
                 }
 
-                // flag bus pin if more than 1 wire is connected
-                int i = 0;
+                // make a list of all bus networks at the pin
+                Set<Network> onPin = new HashSet<Network>();
+                boolean hadBusses = false;
                 for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
                 {
                     Connection con = it.next();
-                    if (con.getArc().getProto() == Schematics.tech().wire_arc) i++;
-                }
-                if (i > 1)
-                {
-                    List<Geometric> geomList = new ArrayList<Geometric>();
-                    geomList.add(geom);
-                    for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+                    ArcInst ai = con.getArc();
+                    if (ai.getProto() != Schematics.tech().bus_arc) continue;
+                    hadBusses = true;
+                    int wid = ai.getNameKey().busWidth();
+                    for(int i=0; i<wid; i++)
                     {
-                        Connection con = it.next();
-                        if (con.getArc().getProto() == Schematics.tech().wire_arc) i++;
-                        geomList.add(con.getArc());
+                    	Network net = netlist.getNetwork(ai, i);
+                    	onPin.add(net);
                     }
-                    errorLogger.logMessage("Wire arcs cannot connect through a bus pin", geomList, cell, eg.getSortKey(), true);
+                }
+
+                // flag any wire arcs not connected to each other through the bus pin
+                List<Geometric> geomList = null;
+                for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+                {
+                    Connection con = it.next();
+                    ArcInst ai = con.getArc();
+                    if (ai.getProto() != Schematics.tech().wire_arc) continue;
+                    Network net = netlist.getNetwork(ai, 0);
+                    if (onPin.contains(net)) continue;
+                    if (geomList == null) geomList = new ArrayList<Geometric>();
+                    geomList.add(ai);
+                }
+                if (geomList != null)
+                {
+                	geomList.add(ni);
+                	String msg;
+                	if (hadBusses) msg = "Wire arcs do not connect to bus through a bus pin"; else
+                		msg = "Wire arcs do not connect to each other through a bus pin";
+                    errorLogger.logMessage(msg, geomList, cell, eg.getSortKey(), true);
                     return;
                 }
             }
