@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+BUG: (5/12/10, FS) Bug #2746
+FIX: Fixed for small chips
+
 BUG/MAN: (5/7/10, SMR) Schematic DRC missing wire and bus arcs connected
      at a bus pin but not really connected (Bug #2748).
 FIX: Now reported.
