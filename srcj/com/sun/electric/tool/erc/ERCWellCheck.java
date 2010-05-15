@@ -126,7 +126,7 @@ public class ERCWellCheck {
 	private Netlist netList;
 
 	// TODO [felix] remove this flag
-	private boolean useFelixCode = false;
+	public boolean useFelixCode = false;
 
 	private static final boolean GATHERSTATISTICS = false;
 	private static final boolean DISTANTSEEDS = true;
