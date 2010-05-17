@@ -146,8 +146,8 @@ public class GDS extends Geometry
 		public boolean collapseVddGndPinNames = IOTool.isGDSColapseVddGndPinNames();
 		int outDefaultTextLayer = IOTool.getGDSOutDefaultTextLayer();
 		boolean outMergesBoxes = IOTool.isGDSOutMergesBoxes();
-		int cellNameLenMax = IOTool.getGDSCellNameLenMax();
-		boolean outUpperCase = IOTool.isGDSOutUpperCase();
+		public int cellNameLenMax = IOTool.getGDSCellNameLenMax();
+		public boolean outUpperCase = IOTool.isGDSOutUpperCase();
         boolean includeText = IOTool.isGDSInIncludesText();
         double outputScale =  IOTool.getGDSOutputScale();
 

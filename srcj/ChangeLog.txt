@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+BUG: (5/17/10, GVG) Still null messages in jobs (Bug #2747)
+FIX: Pref values cached before ExternalScript is executed.
+
 IMP: (5/17/10, DN) Minor changes in Added Design Summary code from GNU user (Bug #2734).
    - Skip icon of parent and Generic primitives
    - Better diagnostics when library has no fileURL
