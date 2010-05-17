@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
-IMP: (5/13/10, DN) Minor changes in Added Design Summary code from GNU user (Bug #2734).
+IMP: (5/17/10, DN) Minor changes in Added Design Summary code from GNU user (Bug #2734).
    - Skip icon of parent and Generic primitives
    - Better diagnostics when library has no fileURL
    - Clean comments

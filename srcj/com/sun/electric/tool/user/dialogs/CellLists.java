@@ -589,8 +589,6 @@ public class CellLists extends EDialog
        Cell curCell = WindowFrame.needCurCell();
                if (curCell == null) return;
 
-       Technology tech = curCell.getTechnology();
-
        // Print environment section
        System.out.println("                   Cell Environment");
        System.out.println("******************************************************");
@@ -648,7 +646,7 @@ public class CellLists extends EDialog
                PrimitiveNode pn = (PrimitiveNode) np;
 
                // Ignore generic components
-               if (tech instanceof Generic)
+               if (pn.getTechnology() instanceof Generic)
                    continue;
 
                Technology.NodeLayer[] nodeLayerList = pn.getNodeLayers();
