@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+BUG: (5/18/10, SMR) Small arcs of a circle may draw as full circles (Bug #2757).
+FIX: Fixed PixelDrawing.drawCircleArc().
+
 BUG: (5/18/10, GVG) Some layers have wrong default visibility settings for layer visibility groups (Bug #2753)
 FIX: Make sure top layers are defined as overglass in the 40nm tech
 

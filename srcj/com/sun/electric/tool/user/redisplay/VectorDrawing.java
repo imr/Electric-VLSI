@@ -677,7 +677,7 @@ class VectorDrawing
 				gridToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
 				gridToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
 				gridToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
-				offscreen.drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, layerBitMap, graphics, dimmed);
+				offscreen.drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, vca.bigArc, layerBitMap, graphics, dimmed);
 			}
 		}
 	}

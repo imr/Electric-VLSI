@@ -290,9 +290,10 @@ public class VectorCache {
 
         int cX, cY, eX1, eY1, eX2, eY2;
         boolean thick;
+        boolean bigArc;
 
         VectorCircleArc(double cX, double cY, double eX1, double eY1, double eX2, double eY2, boolean thick,
-                Layer layer, EGraphics graphicsOverride) {
+                boolean bigArc, Layer layer, EGraphics graphicsOverride) {
             super(layer, graphicsOverride);
             this.cX = databaseToGrid(cX);
             this.cY = databaseToGrid(cY);
@@ -301,6 +302,7 @@ public class VectorCache {
             this.eX2 = databaseToGrid(eX2);
             this.eY2 = databaseToGrid(eY2);
             this.thick = thick;
+            this.bigArc = bigArc;
         }
     }
 
@@ -1560,9 +1562,13 @@ public class VectorCache {
             return;
         }
         if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC) {
+        	int startAngle = GenMath.figureAngle(points[0], points[1]);
+			int endAngle = GenMath.figureAngle(points[0], points[2]);
+			if (startAngle < endAngle) startAngle += 3600;
+			boolean bigArc = startAngle-endAngle > 1800;
             VectorCircleArc vca = new VectorCircleArc(points[0].getX(), points[0].getY(),
                     points[1].getX(), points[1].getY(), points[2].getX(), points[2].getY(),
-                    style == Poly.Type.THICKCIRCLEARC, layer, graphicsOverride);
+                    style == Poly.Type.THICKCIRCLEARC, bigArc, layer, graphicsOverride);
             shapes.add(vca);
             return;
         }
