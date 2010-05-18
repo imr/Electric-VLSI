@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+BUG: (5/18/10, FS) Bug #2746
+IMP: - Cache networks and transistors for faster progress
+     - handle more then two transistors per network
+
 BUG: (5/17/10, GVG) Still null messages in jobs (Bug #2747)
 FIX: Pref values cached before ExternalScript is executed.
 
