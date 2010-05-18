@@ -126,7 +126,7 @@ public class ERCWellCheck {
 	private Netlist netList;
 
 	// TODO [felix] remove this flag
-	public static boolean useFelixCode = false;
+	public static boolean useFelixCode = true;
 
 	private static final boolean GATHERSTATISTICS = false;
 	private static final boolean DISTANTSEEDS = true;
@@ -449,14 +449,14 @@ public class ERCWellCheck {
 	// FIXME remove this debug stuff
 	Integer total;
 	double ratio = 1;
+	int cacheHits = 0;
 
 	// XXX [felix] define each analyzing step in each own module and use a
 	// strategy pattern
 	// XXX [felix] do analyzing parallel (task parallel) - easy to parallize
 	// after rework
 	private int doNewWay() {
-		
-		
+
 		pWellRoot = RTNode.makeTopLevel();
 		nWellRoot = RTNode.makeTopLevel();
 
@@ -470,6 +470,9 @@ public class ERCWellCheck {
 		System.out.println("   Geometry collection found " + (numPRects + numNRects) + " well pieces, took "
 				+ TextUtils.getElapsedTime(endTime - startTime));
 		startTime = endTime;
+
+		wcVisitor.clear();
+		wcVisitor = null;
 
 		// determine the number of threads to use
 		// XXX [felix] not here in the algorithm try to determine this in the
@@ -553,7 +556,8 @@ public class ERCWellCheck {
 		// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 		// more analysis
 
-		int cacheHits = 0;
+		cacheHits = 0;
+		System.out.println(wellCons.size());
 		boolean hasPCon = false, hasNCon = false;
 		for (WellCon wc : wellCons) {
 			if (canBeSubstrateTap(wc.fun))
@@ -573,17 +577,10 @@ public class ERCWellCheck {
 					if (startTrans != null) {
 						if (createTransistorChain(startPath, startTrans.get(0), false)) {
 							wc.onRail = true;
-							// for(Integer val: startPath) {
-							// System.out.print(val + " ");
-							// }
-							// System.out.println();
 							networkWithExportCache.addAll(startPath);
 						}
 					}
 				}
-				// for (Set<Integer> path : paths)
-				// if (path.contains(wc.netNum))
-				// wc.onRail = true;
 			}
 
 			if (!(wc.onRail || wc.onProperRail)) {
@@ -717,7 +714,7 @@ public class ERCWellCheck {
 
 		errorLogger.termLogging(true);
 		int errorCount = errorLogger.getNumErrors();
-		
+
 		return errorCount;
 	}
 
@@ -725,7 +722,7 @@ public class ERCWellCheck {
 		alreadyHit = new LinkedList<Transistor>();
 
 		result |= createTransistorRec(path, node, result, node.drainNet.get());
-		if (!result)
+		if(!result)
 			result |= createTransistorRec(path, node, result, node.sourceNet.get());
 
 		return result;
@@ -734,49 +731,50 @@ public class ERCWellCheck {
 
 	private boolean createTransistorRec(Set<Integer> path, Transistor node, boolean result, int num) {
 
-		Transistor transis = node;
+		List<Transistor> transis = new LinkedList<Transistor>();
+		transis.add(node);
 		Transistor transis_old = null;
 		Transistor transis_parent = null;
+		alreadyHit.add(node);
 
-		while (transis != null) {
-			transis_old = transis;
+		while (transis.size() > 0) {
+			Transistor transistor = transis.get(0);
+			transis_old = transistor;
 
-			// transistors.remove(transis);
+			transis.remove(transistor);
 
 			Integer neighbor = null;
 
-			if (transis.drainNet.get() == num) {
-				neighbor = transis.sourceNet.get();
+			if (transistor.drainNet.get() == num) {
+				neighbor = transistor.sourceNet.get();
 			} else {
-				neighbor = transis.drainNet.get();
+				neighbor = transistor.drainNet.get();
 			}
-
-			// System.out.println(transis.neighbors.size());
 
 			path.add(neighbor);
 			num = neighbor;
 
 			result |= networkExportAvailable.contains(neighbor);
 
-			transis = null;
+			if (!result) {
+				result |= networkWithExportCache.contains(neighbor);
+				if (result)
+					cacheHits++;
+			}
+
+			// cut the line
+			if (result)
+				return result;
 
 			for (Transistor trans : transistors.get(neighbor)) {
 				if (!alreadyHit.contains(trans)) {
-					transis = trans;
+					transis.add(trans);
 					alreadyHit.add(trans);
-					break;
 				}
 			}
 
-			// for (Transistor trans : transistors.get(neighbor)) {
-			// if (!trans.equals(transis_old)) {
-			// transis = trans;
-			// alreadyHit.add(trans);
-			// break;
-			// }
-			// }
-
 		}
+
 		return result;
 	}
 
@@ -1230,20 +1228,20 @@ public class ERCWellCheck {
 				Integer num = cinfo.getNetID(net);
 				netNum.set(num);
 
-				 if (!transistors.containsKey(num)) {
-				 List<Transistor> tmpList = new LinkedList<Transistor>();
-				 transistors.put(num, tmpList);
-				 }
-				 transistors.get(num).add(trans);
+				if (!transistors.containsKey(num)) {
+					List<Transistor> tmpList = new LinkedList<Transistor>();
+					transistors.put(num, tmpList);
+				}
+				transistors.get(num).add(trans);
 
-//				Transistor otherTrans = neighborCache.get(num);
-//
-//				if (otherTrans != null) {
-//					trans.neighbors.add(otherTrans);
-//					otherTrans.neighbors.add(trans);
-//				}
-//
-//				neighborCache.put(num, trans);
+				// Transistor otherTrans = neighborCache.get(num);
+				//
+				// if (otherTrans != null) {
+				// trans.neighbors.add(otherTrans);
+				// otherTrans.neighbors.add(trans);
+				// }
+				//
+				// neighborCache.put(num, trans);
 			}
 		}
 
@@ -1314,6 +1312,7 @@ public class ERCWellCheck {
 					wellCons.add(wc);
 				}
 			}
+
 			return true;
 		}
 
@@ -1393,6 +1392,16 @@ public class ERCWellCheck {
 					}
 				}
 			}
+		}
+
+		public void clear() {
+			neighborCache.clear();
+			networkCache.clear();
+
+			neighborCache = null;
+			networkCache = null;
+
+			System.out.println("visitor cleared ...");
 		}
 	}
 
