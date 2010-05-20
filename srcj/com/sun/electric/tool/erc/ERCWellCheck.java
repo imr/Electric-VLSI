@@ -65,6 +65,7 @@ import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.HierarchyEnumeratorParallel;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
@@ -90,9 +91,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.dialogs.EModelessDialog;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -557,7 +555,7 @@ public class ERCWellCheck {
 		// more analysis
 
 		cacheHits = 0;
-		System.out.println(wellCons.size());
+		//System.out.println(wellCons.size());
 		boolean hasPCon = false, hasNCon = false;
 		for (WellCon wc : wellCons) {
 			if (canBeSubstrateTap(wc.fun))
@@ -600,7 +598,7 @@ public class ERCWellCheck {
 			}
 		}
 
-		System.out.println("Cache Hits: " + cacheHits);
+		//System.out.println("Cache Hits: " + cacheHits);
 
 		// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -1401,7 +1399,7 @@ public class ERCWellCheck {
 			neighborCache = null;
 			networkCache = null;
 
-			System.out.println("visitor cleared ...");
+		//	System.out.println("visitor cleared ...");
 		}
 	}
 
