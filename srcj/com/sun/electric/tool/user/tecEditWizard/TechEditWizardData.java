@@ -141,16 +141,33 @@ public class TechEditWizardData
 	private WizardField [] via_array_spacing;
 	private WizardField [] via_overhang;
 
-    // generic cross contacts
-    private static class ContactNode
+    // generic contacts
+    private static class LayerNode
     {
         String layer;
+        LayerNode(String l) {layer = l;}
+    }
+
+    private static class PolygonLayerNode extends LayerNode
+    {
+        List<EPoint> pList;
+
+        PolygonLayerNode(String l, List<EPoint> list)
+        {
+            super(l);
+            pList = list;
+        }
+    }
+
+    // generic rectangular contacts
+    private static class RectLayerNode extends LayerNode
+    {
         WizardField valueX; // overhang or size X value. Size value for cuts
         WizardField valueY; // overhang or size Y value. Size value for cuts
 
-        ContactNode(String l, double valX, String nameX, double valY, String nameY)
+        RectLayerNode(String l, double valX, String nameX, double valY, String nameY)
         {
-            layer = l;
+            super(l);
             valueX = new WizardField(valX, nameX);
             valueY = new WizardField(valY, nameY);
         }
@@ -160,19 +177,20 @@ public class TechEditWizardData
         // some primitives might not have prefix. "-" should not be in the prefix to avoid
         // being displayed in the palette
         String prefix;
-        List<ContactNode> layers;
+        List<LayerNode> layers;
 
         // odd metals go vertical
         Contact (String p)
         {
             prefix = p;
-            layers = new ArrayList<ContactNode>();
+            layers = new ArrayList<LayerNode>();
         }
     }
 
     private Map<String,List<Contact>> metalContacts = new HashMap<String,List<Contact>>();
     private Map<String,List<Contact>> otherContacts = new HashMap<String,List<Contact>>(); 
-    private Map<String,List<Contact>> genericContacts = new HashMap<String,List<Contact>>();
+    private Map<String,List<Contact>> noMultiContacts = new HashMap<String,List<Contact>>();
+    private Map<String,List<Contact>> generalContacts = new HashMap<String,List<Contact>>();
     private Map<String,List<Contact>> capacitors = new HashMap<String,List<Contact>>();
 
     private static class PaletteGroup
@@ -767,7 +785,9 @@ public class TechEditWizardData
 			URLConnection urlCon = url.openConnection();
 			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
 			LineNumberReader lineReader = new LineNumberReader(is);
-			for(;;)
+            boolean validFile = false;
+
+            for(;;)
 			{
 				String buf = lineReader.readLine();
 				if (buf == null) break;
@@ -775,202 +795,211 @@ public class TechEditWizardData
 				if (buf.length() == 0 || buf.startsWith("#")) continue;
 
 				// parse the assignment
-				if (buf.startsWith("$") || buf.startsWith("@"))
-				{
-					int spacePos = buf.indexOf(' ');
-					int equalsPos = buf.indexOf('=');
-					if (equalsPos < 0)
-					{
-						Job.getUserInterface().showErrorMessage("Missing '=' on line " + lineReader.getLineNumber(),
-							"Syntax Error In Technology File");
-						break;
-					}
-					if (spacePos < 0) spacePos = equalsPos; else
-						spacePos = Math.min(spacePos, equalsPos);
-					String varName = buf.substring(1, spacePos);
-                    boolean single = buf.startsWith("$");
-					int semiPos = buf.indexOf(';');
-					if (semiPos < 0)
-					{
-						Job.getUserInterface().showErrorMessage("Missing ';' on line " + lineReader.getLineNumber(),
-							"Syntax Error In Technology File");
-						break;
-					}
-					equalsPos++;
-					while (equalsPos < semiPos && buf.charAt(equalsPos) == ' ') equalsPos++;
-					String varValue = buf.substring(equalsPos, semiPos);
+                // not a valid line
+                if (!(buf.startsWith("$") || buf.startsWith("@")))
+                    continue; // keep reading
 
-					// now figure out what to assign
-					if (varName.equalsIgnoreCase("tech_libname")) { } else
-					if (varName.equalsIgnoreCase("tech_name")) setTechName(stripQuotes(varValue)); else
-					if (varName.equalsIgnoreCase("tech_description")) setTechDescription(stripQuotes(varValue)); else
-					if (varName.equalsIgnoreCase("num_metal_layers")) setNumMetalLayers(TextUtils.atoi(varValue)); else
-                    if (varName.equalsIgnoreCase("psubstrate_process")) setPSubstratelProcess(Boolean.valueOf(varValue)); else
-                    if (varName.equalsIgnoreCase("horizontal_transistors")) setHorizontalTransistors(Boolean.valueOf(varValue)); else
-                    if (varName.equalsIgnoreCase("extra_info")) setCaseFlag(Integer.valueOf(varValue)); else
-                    if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
-                    if (varName.equalsIgnoreCase("resolution")) setResolution(TextUtils.atof(varValue)); else
-                    if (varName.equalsIgnoreCase("analog_elements")) setAnalogFlag(Boolean.valueOf(varValue)); else
-                    if (varName.equalsIgnoreCase("second_poly")) setSecondPolyFlag(Boolean.valueOf(varValue)); else
+                validFile = true;
+                
+                int spacePos = buf.indexOf(' ');
+                int equalsPos = buf.indexOf('=');
+                if (equalsPos < 0)
+                {
+                    Job.getUserInterface().showErrorMessage("Missing '=' on line " + lineReader.getLineNumber(),
+                        "Syntax Error In Technology File");
+                    break;
+                }
+                if (spacePos < 0) spacePos = equalsPos; else
+                    spacePos = Math.min(spacePos, equalsPos);
+                String varName = buf.substring(1, spacePos);
+                boolean single = buf.startsWith("$");
+                int semiPos = buf.indexOf(';');
+                if (semiPos < 0)
+                {
+                    Job.getUserInterface().showErrorMessage("Missing ';' on line " + lineReader.getLineNumber(),
+                        "Syntax Error In Technology File");
+                    break;
+                }
+                equalsPos++;
+                while (equalsPos < semiPos && buf.charAt(equalsPos) == ' ') equalsPos++;
+                String varValue = buf.substring(equalsPos, semiPos);
 
-                    if (varName.equalsIgnoreCase("diff_width")) diff_width.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("diff_width_rule")) diff_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("diff_poly_overhang")) diff_poly_overhang.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("diff_poly_overhang_rule")) diff_poly_overhang.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("diff_contact_overhang")) diff_contact_overhang.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("diff_contact_overhang_rule")) diff_contact_overhang.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("diff_contact_overhang_short_min")) diff_contact_overhang_min_short.value = TextUtils.atof(varValue); else
-                    if (varName.equalsIgnoreCase("diff_contact_overhang_short_min_rule")) diff_contact_overhang_min_short.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("diff_contact_overhang_long_min")) diff_contact_overhang_min_long.value = TextUtils.atof(varValue); else
-                    if (varName.equalsIgnoreCase("diff_contact_overhang_long_min_rule")) diff_contact_overhang_min_long.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("diff_spacing")) diff_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("diff_spacing_rule")) diff_spacing.rule = stripQuotes(varValue); else
+                // now figure out what to assign
+                if (varName.equalsIgnoreCase("tech_libname")) { } else
+                if (varName.equalsIgnoreCase("tech_name")) setTechName(stripQuotes(varValue)); else
+                if (varName.equalsIgnoreCase("tech_description")) setTechDescription(stripQuotes(varValue)); else
+                if (varName.equalsIgnoreCase("num_metal_layers")) setNumMetalLayers(TextUtils.atoi(varValue)); else
+                if (varName.equalsIgnoreCase("psubstrate_process")) setPSubstratelProcess(Boolean.valueOf(varValue)); else
+                if (varName.equalsIgnoreCase("horizontal_transistors")) setHorizontalTransistors(Boolean.valueOf(varValue)); else
+                if (varName.equalsIgnoreCase("extra_info")) setCaseFlag(Integer.valueOf(varValue)); else
+                if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
+                if (varName.equalsIgnoreCase("resolution")) setResolution(TextUtils.atof(varValue)); else
+                if (varName.equalsIgnoreCase("analog_elements")) setAnalogFlag(Boolean.valueOf(varValue)); else
+                if (varName.equalsIgnoreCase("second_poly")) setSecondPolyFlag(Boolean.valueOf(varValue)); else
 
-					if (varName.equalsIgnoreCase("poly_width")) poly_width.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("poly_width_rule")) poly_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("poly_endcap")) poly_endcap.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("poly_endcap_rule")) poly_endcap.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("poly_spacing")) poly_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("poly_spacing_rule")) poly_spacing.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("poly_diff_spacing")) poly_diff_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("poly_diff_spacing_rule")) poly_diff_spacing.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("poly_protection_spacing")) poly_protection_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("poly_protection_spacing_rule")) poly_protection_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("diff_width")) diff_width.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("diff_width_rule")) diff_width.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("diff_poly_overhang")) diff_poly_overhang.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("diff_poly_overhang_rule")) diff_poly_overhang.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("diff_contact_overhang")) diff_contact_overhang.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("diff_contact_overhang_rule")) diff_contact_overhang.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("diff_contact_overhang_short_min")) diff_contact_overhang_min_short.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("diff_contact_overhang_short_min_rule")) diff_contact_overhang_min_short.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("diff_contact_overhang_long_min")) diff_contact_overhang_min_long.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("diff_contact_overhang_long_min_rule")) diff_contact_overhang_min_long.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("diff_spacing")) diff_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("diff_spacing_rule")) diff_spacing.rule = stripQuotes(varValue); else
 
-                    if (varName.equalsIgnoreCase("gate_length")) gate_length.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("gate_length_rule")) gate_length.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("gate_width")) gate_width.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("gate_width_rule")) gate_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("gate_spacing")) gate_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("gate_spacing_rule")) gate_spacing.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("gate_contact_spacing")) gate_contact_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("gate_contact_spacing_rule")) gate_contact_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("poly_width")) poly_width.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("poly_width_rule")) poly_width.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("poly_endcap")) poly_endcap.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("poly_endcap_rule")) poly_endcap.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("poly_spacing")) poly_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("poly_spacing_rule")) poly_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("poly_diff_spacing")) poly_diff_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("poly_diff_spacing_rule")) poly_diff_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("poly_protection_spacing")) poly_protection_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("poly_protection_spacing_rule")) poly_protection_spacing.rule = stripQuotes(varValue); else
 
-                    if (varName.equalsIgnoreCase("gate_od18_length")) fillRule(varValue, gate_od18_length); else
-                    if (varName.equalsIgnoreCase("gate_od18_width")) fillRule(varValue, gate_od18_width); else
-                    if (varName.equalsIgnoreCase("od18_diff_overhang")) fillRule(varValue, od18_diff_overhang); else
+                if (varName.equalsIgnoreCase("gate_length")) gate_length.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("gate_length_rule")) gate_length.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("gate_width")) gate_width.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("gate_width_rule")) gate_width.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("gate_spacing")) gate_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("gate_spacing_rule")) gate_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("gate_contact_spacing")) gate_contact_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("gate_contact_spacing_rule")) gate_contact_spacing.rule = stripQuotes(varValue); else
 
-                    if (varName.equalsIgnoreCase("gate_nt_length")) fillRule(varValue, gate_nt_length); else
-                    if (varName.equalsIgnoreCase("gate_nt_width")) fillRule(varValue, gate_nt_width); else
-                    if (varName.equalsIgnoreCase("poly_nt_endcap")) fillRule(varValue, poly_nt_endcap); else
-                    if (varName.equalsIgnoreCase("nt_diff_overhang")) fillRule(varValue, nt_diff_overhang); else
+                if (varName.equalsIgnoreCase("gate_od18_length")) fillRule(varValue, gate_od18_length); else
+                if (varName.equalsIgnoreCase("gate_od18_width")) fillRule(varValue, gate_od18_width); else
+                if (varName.equalsIgnoreCase("od18_diff_overhang")) fillRule(varValue, od18_diff_overhang); else
 
-                    if (varName.equalsIgnoreCase("vthl_diff_overhang")) fillRule(varValue, vthl_diff_overhang); else
-                    if (varName.equalsIgnoreCase("vthl_poly_overhang")) fillRule(varValue, vthl_poly_overhang); else
+                if (varName.equalsIgnoreCase("gate_nt_length")) fillRule(varValue, gate_nt_length); else
+                if (varName.equalsIgnoreCase("gate_nt_width")) fillRule(varValue, gate_nt_width); else
+                if (varName.equalsIgnoreCase("poly_nt_endcap")) fillRule(varValue, poly_nt_endcap); else
+                if (varName.equalsIgnoreCase("nt_diff_overhang")) fillRule(varValue, nt_diff_overhang); else
 
-                    if (varName.equalsIgnoreCase("contact_size")) contact_size.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("contact_size_rule")) contact_size.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("contact_spacing")) contact_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("contact_spacing_rule")) contact_spacing.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("contact_array_spacing")) contact_array_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("contact_array_spacing_rule")) contact_array_spacing.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only")) contact_metal_overhang_inline_only.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only_rule")) contact_metal_overhang_inline_only.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides")) contact_metal_overhang_all_sides.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides_rule")) contact_metal_overhang_all_sides.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("contact_poly_overhang")) contact_poly_overhang.value = TextUtils.atof(varValue); else
-                    if (varName.equalsIgnoreCase("contact_poly_overhang_rule")) contact_poly_overhang.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("polycon_diff_spacing")) polycon_diff_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("polycon_diff_spacing_rule")) polycon_diff_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("vthl_diff_overhang")) fillRule(varValue, vthl_diff_overhang); else
+                if (varName.equalsIgnoreCase("vthl_poly_overhang")) fillRule(varValue, vthl_poly_overhang); else
 
-					if (varName.equalsIgnoreCase("nplus_width")) nplus_width.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nplus_width_rule")) nplus_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nplus_overhang_diff")) nplus_overhang_diff.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nplus_overhang_diff_rule")) nplus_overhang_diff.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nplus_overhang_strap")) nplus_overhang_strap.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nplus_overhang_strap_rule")) nplus_overhang_strap.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nplus_overhang_poly")) nplus_overhang_poly.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nplus_overhang_poly_rule")) nplus_overhang_poly.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("nplus_spacing")) nplus_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nplus_spacing_rule")) nplus_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("contact_size")) contact_size.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("contact_size_rule")) contact_size.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("contact_spacing")) contact_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("contact_spacing_rule")) contact_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("contact_array_spacing")) contact_array_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("contact_array_spacing_rule")) contact_array_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only")) contact_metal_overhang_inline_only.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only_rule")) contact_metal_overhang_inline_only.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides")) contact_metal_overhang_all_sides.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides_rule")) contact_metal_overhang_all_sides.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("contact_poly_overhang")) contact_poly_overhang.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("contact_poly_overhang_rule")) contact_poly_overhang.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("polycon_diff_spacing")) polycon_diff_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("polycon_diff_spacing_rule")) polycon_diff_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("pplus_width")) pplus_width.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("pplus_width_rule")) pplus_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("pplus_overhang_diff")) pplus_overhang_diff.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("pplus_overhang_diff_rule")) pplus_overhang_diff.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("pplus_overhang_strap")) pplus_overhang_strap.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("pplus_overhang_strap_rule")) pplus_overhang_strap.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("pplus_overhang_poly")) pplus_overhang_poly.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("pplus_overhang_poly_rule")) pplus_overhang_poly.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("pplus_spacing")) pplus_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("pplus_spacing_rule")) pplus_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("nplus_width")) nplus_width.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("nplus_width_rule")) nplus_width.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("nplus_overhang_diff")) nplus_overhang_diff.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("nplus_overhang_diff_rule")) nplus_overhang_diff.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("nplus_overhang_strap")) nplus_overhang_strap.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("nplus_overhang_strap_rule")) nplus_overhang_strap.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("nplus_overhang_poly")) nplus_overhang_poly.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("nplus_overhang_poly_rule")) nplus_overhang_poly.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("nplus_spacing")) nplus_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("nplus_spacing_rule")) nplus_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("nwell_width")) nwell_width.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nwell_width_rule")) nwell_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nwell_overhang_diff_p")) nwell_overhang_diff_p.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nwell_overhang_diff_rule_p")) nwell_overhang_diff_p.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nwell_overhang_diff_n")) nwell_overhang_diff_n.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nwell_overhang_diff_rule_n")) nwell_overhang_diff_n.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("nwell_spacing")) nwell_spacing.value = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nwell_spacing_rule")) nwell_spacing.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("pplus_width")) pplus_width.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("pplus_width_rule")) pplus_width.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("pplus_overhang_diff")) pplus_overhang_diff.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("pplus_overhang_diff_rule")) pplus_overhang_diff.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("pplus_overhang_strap")) pplus_overhang_strap.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("pplus_overhang_strap_rule")) pplus_overhang_strap.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("pplus_overhang_poly")) pplus_overhang_poly.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("pplus_overhang_poly_rule")) pplus_overhang_poly.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("pplus_spacing")) pplus_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("pplus_spacing_rule")) pplus_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("metal_width")) fillWizardArray(varValue, metal_width, false); else
-					if (varName.equalsIgnoreCase("metal_width_rule")) fillWizardArray(varValue, metal_width, true); else
-					if (varName.equalsIgnoreCase("metal_spacing")) fillWizardArray(varValue, metal_spacing, false); else
-					if (varName.equalsIgnoreCase("metal_spacing_rule")) fillWizardArray(varValue, metal_spacing, true); else
-                    if (varName.equalsIgnoreCase("wide_metal_spacing_rules")) fillWizardWideArray(varValue, wide_metal_spacing); else
-                    if (varName.equalsIgnoreCase("via_size")) fillWizardArray(varValue, via_size, false); else
-					if (varName.equalsIgnoreCase("via_size_rule")) fillWizardArray(varValue, via_size, true); else
-					if (varName.equalsIgnoreCase("via_spacing")) fillWizardArray(varValue, via_inline_spacing, false); else
-					if (varName.equalsIgnoreCase("via_spacing_rule")) fillWizardArray(varValue, via_inline_spacing, true); else
-					if (varName.equalsIgnoreCase("via_array_spacing")) fillWizardArray(varValue, via_array_spacing, false); else
-					if (varName.equalsIgnoreCase("via_array_spacing_rule")) fillWizardArray(varValue, via_array_spacing, true); else
-					if (varName.equalsIgnoreCase("via_overhang_inline")) fillWizardArray(varValue, via_overhang, false); else
-					if (varName.equalsIgnoreCase("via_overhang_inline_rule")) fillWizardArray(varValue, via_overhang, true); else
+                if (varName.equalsIgnoreCase("nwell_width")) nwell_width.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("nwell_width_rule")) nwell_width.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("nwell_overhang_diff_p")) nwell_overhang_diff_p.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("nwell_overhang_diff_rule_p")) nwell_overhang_diff_p.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("nwell_overhang_diff_n")) nwell_overhang_diff_n.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("nwell_overhang_diff_rule_n")) nwell_overhang_diff_n.rule = stripQuotes(varValue); else
+                if (varName.equalsIgnoreCase("nwell_spacing")) nwell_spacing.value = TextUtils.atof(varValue); else
+                if (varName.equalsIgnoreCase("nwell_spacing_rule")) nwell_spacing.rule = stripQuotes(varValue); else
 
-                    if (varName.equalsIgnoreCase("metal_contacts_series")) fillContactSeries(varValue, metalContacts); else
-                    if (varName.equalsIgnoreCase("contacts_series")) fillContactSeries(varValue, otherContacts); else
-                    // capacitors
-                    if (varName.equalsIgnoreCase("capacitors_series")) fillContactSeries(varValue, capacitors); else
-                    // more generic contacts that are not multicuts.
-                    if (varName.equalsIgnoreCase("nomulti_contacts_series")) fillContactSeries(varValue, genericContacts); else
-                    // Special layers
-                    if (varName.equalsIgnoreCase("extra_layers")) fillLayerSeries(varValue, extraLayers); else
-                        
-                    if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
-					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
+                if (varName.equalsIgnoreCase("metal_width")) fillWizardArray(varValue, metal_width, false); else
+                if (varName.equalsIgnoreCase("metal_width_rule")) fillWizardArray(varValue, metal_width, true); else
+                if (varName.equalsIgnoreCase("metal_spacing")) fillWizardArray(varValue, metal_spacing, false); else
+                if (varName.equalsIgnoreCase("metal_spacing_rule")) fillWizardArray(varValue, metal_spacing, true); else
+                if (varName.equalsIgnoreCase("wide_metal_spacing_rules")) fillWizardWideArray(varValue, wide_metal_spacing); else
+                if (varName.equalsIgnoreCase("via_size")) fillWizardArray(varValue, via_size, false); else
+                if (varName.equalsIgnoreCase("via_size_rule")) fillWizardArray(varValue, via_size, true); else
+                if (varName.equalsIgnoreCase("via_spacing")) fillWizardArray(varValue, via_inline_spacing, false); else
+                if (varName.equalsIgnoreCase("via_spacing_rule")) fillWizardArray(varValue, via_inline_spacing, true); else
+                if (varName.equalsIgnoreCase("via_array_spacing")) fillWizardArray(varValue, via_array_spacing, false); else
+                if (varName.equalsIgnoreCase("via_array_spacing_rule")) fillWizardArray(varValue, via_array_spacing, true); else
+                if (varName.equalsIgnoreCase("via_overhang_inline")) fillWizardArray(varValue, via_overhang, false); else
+                if (varName.equalsIgnoreCase("via_overhang_inline_rule")) fillWizardArray(varValue, via_overhang, true); else
 
-					if (varName.equalsIgnoreCase("gds_diff_layer")) diff_layer.setGDSData(getGDSValuesFromString(varValue)); else
-					if (varName.equalsIgnoreCase("gds_poly_layer")) poly_layer.setGDSData(getGDSValuesFromString(varValue)); else
-                    if (varName.equalsIgnoreCase("gds_nplus_layer")) nplus_layer.setGDSData(getGDSValuesFromString(varValue)); else
-					if (varName.equalsIgnoreCase("gds_pplus_layer")) pplus_layer.setGDSData(getGDSValuesFromString(varValue)); else
-					if (varName.equalsIgnoreCase("gds_nwell_layer")) nwell_layer.setGDSData(getGDSValuesFromString(varValue)); else
-                    if (varName.equalsIgnoreCase("gds_contact_layer")) contact_layer.setGDSData(getGDSValuesFromString(varValue)); else
-					if (varName.equalsIgnoreCase("gds_metal_layer")) metal_layers = setGDSDataArray(varValue, num_metal_layers, "Metal-"); else
-					if (varName.equalsIgnoreCase("gds_via_layer")) via_layers = setGDSDataArray(varValue, num_metal_layers - 1, "Via-"); else
-                    if (varName.equalsIgnoreCase("gds_marking_layer")) marking_layer.setGDSData(getGDSValuesFromString(varValue));
+                if (varName.equalsIgnoreCase("metal_contacts_series")) fillContactSeries(varValue, metalContacts); else
+                if (varName.equalsIgnoreCase("contacts_series")) fillContactSeries(varValue, otherContacts); else
+                // capacitors
+                if (varName.equalsIgnoreCase("capacitors_series")) fillContactSeries(varValue, capacitors); else
+                // more generic contacts that are not multicuts.
+                if (varName.equalsIgnoreCase("nomulti_contacts_series")) fillContactSeries(varValue, noMultiContacts); else
+                // contacts defined by a set of polygons and not multicuts
+                if (varName.equalsIgnoreCase("general_contacts_series")) fillPolygonalContactSeries(varValue, generalContacts); else
+                // Special layers
+                if (varName.equalsIgnoreCase("extra_layers")) fillLayerSeries(varValue, extraLayers); else
+
+                if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
+                if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
+
+                if (varName.equalsIgnoreCase("gds_diff_layer")) diff_layer.setGDSData(getGDSValuesFromString(varValue)); else
+                if (varName.equalsIgnoreCase("gds_poly_layer")) poly_layer.setGDSData(getGDSValuesFromString(varValue)); else
+                if (varName.equalsIgnoreCase("gds_nplus_layer")) nplus_layer.setGDSData(getGDSValuesFromString(varValue)); else
+                if (varName.equalsIgnoreCase("gds_pplus_layer")) pplus_layer.setGDSData(getGDSValuesFromString(varValue)); else
+                if (varName.equalsIgnoreCase("gds_nwell_layer")) nwell_layer.setGDSData(getGDSValuesFromString(varValue)); else
+                if (varName.equalsIgnoreCase("gds_contact_layer")) contact_layer.setGDSData(getGDSValuesFromString(varValue)); else
+                if (varName.equalsIgnoreCase("gds_metal_layer")) metal_layers = setGDSDataArray(varValue, num_metal_layers, "Metal-"); else
+                if (varName.equalsIgnoreCase("gds_via_layer")) via_layers = setGDSDataArray(varValue, num_metal_layers - 1, "Via-"); else
+                if (varName.equalsIgnoreCase("gds_marking_layer")) marking_layer.setGDSData(getGDSValuesFromString(varValue));
+                else
+                {
+                    Object obj = null;
+                    if (single)
+                    {
+                        WizardField wf = findWizardField(varName);
+                        if (wf != null)
+                        {
+                            fillRule(varValue, wf);
+                        }
+                        obj = wf;
+                    }
                     else
                     {
-                        Object obj = null;
-                        if (single)
+                        // two rules in the definition
+                        WizardRuleFields wfs = findWizardRuleFields(varName);
+                        if (wfs != null)
                         {
-                            WizardField wf = findWizardField(varName);
-                            if (wf != null)
-                            {
-                                fillRule(varValue, wf);
-                            }
-                            obj = wf;
+                            fillRules(varValue, wfs);
                         }
-                        else
-                        {
-                            // two rules in the definition
-                            WizardRuleFields wfs = findWizardRuleFields(varName);
-                            if (wfs != null)
-                            {
-                                fillRules(varValue, wfs);
-                            }
-                            obj = wfs;
-                        }
-                        if (obj == null)
-                        {
-                            Job.getUserInterface().showErrorMessage("Unknown keyword '" + varName + "' on line " + lineReader.getLineNumber(),
-                                "Syntax Error In Technology File");
-                            break;
-                        }
+                        obj = wfs;
                     }
-				}
+                    if (obj == null)
+                    {
+                        Job.getUserInterface().showErrorMessage("Unknown keyword '" + varName + "' on line " + lineReader.getLineNumber(),
+                            "Syntax Error In Technology File");
+                        break;
+                    }
+                }
 			}
-			lineReader.close();
+            if (!validFile)
+            {
+               Job.getUserInterface().showErrorMessage("'" + fileName + "' is not a valid Parameters file. Check content.", "Syntax Error In Technology File"); 
+            }
+            lineReader.close();
 		} catch (IOException e)
 		{
 			System.out.println("Error reading " + fileName);
@@ -1241,11 +1270,11 @@ public class TechEditWizardData
         }
     }
 
-    // to get general contact
+    // to get most of the rectangular contact series including the non-multi cuts
     private void fillContactSeries(String str, Map<String, List<Contact>> contactMap)
     {
         StringTokenizer parse = new StringTokenizer(str, "[]", false);
-        List<ContactNode> nodeList = new ArrayList<ContactNode>();
+        List<RectLayerNode> nodeList = new ArrayList<RectLayerNode>();
 
         while (parse.hasMoreTokens())
         {
@@ -1282,8 +1311,8 @@ public class TechEditWizardData
                     for (int i = 0; i < layerNames.size(); i++)
                     {
                         String name = layerNames.get(i);
-                        ContactNode tmp = nodeList.get(i);
-                        ContactNode node = new ContactNode(name,
+                        RectLayerNode tmp = nodeList.get(i);
+                        RectLayerNode node = new RectLayerNode(name,
                             tmp.valueX.value,  tmp.valueX.rule,
                             tmp.valueY.value,  tmp.valueY.rule);
                         cont.layers.add(node);
@@ -1344,11 +1373,73 @@ public class TechEditWizardData
                         itemCount++;
                     }
                     assert(itemCount == 4);
-                    ContactNode node = new ContactNode("", overX, overXS, overY, overYS);
+                    RectLayerNode node = new RectLayerNode("", overX, overXS, overY, overYS);
                     nodeList.add(node);
                 }
             }
         }
+    }
+
+    // to read contacts defined by set of points. The first set defines the angles.
+    private void fillPolygonalContactSeries(String str, Map<String, List<Contact>> contactMap)
+    {
+        StringTokenizer parse = new StringTokenizer(str, "{}", false);
+        int count = 0;
+        double[] points = new double[2];
+        List<PolygonLayerNode> nodeList = new ArrayList<PolygonLayerNode>();
+
+        while (parse.hasMoreTokens())
+        {
+            String value = parse.nextToken();
+
+            if (value.equals(";")) // end of line
+                continue;
+
+            StringTokenizer par = new StringTokenizer(value, "[]", false);
+
+            while (par.hasMoreTokens())
+            {
+                String val = par.nextToken();
+                List<EPoint> pList = new ArrayList<EPoint>();
+
+                // they should come in pairs!
+                count++;
+                if (count%2 == 1) // odd
+                {
+                    // point definition (X,Y)
+                    StringTokenizer p = new StringTokenizer(val, "()", false);
+                    while (p.hasMoreTokens())
+                    {
+                        String v = p.nextToken();
+                        StringTokenizer g = new StringTokenizer(v, ", ", false);
+                        int index = 0;
+                        points[0] = points[1] = Double.MIN_VALUE;
+
+                        while (g.hasMoreTokens())
+                        {
+                            assert(index < 2);
+                            points[index++] = Double.parseDouble(g.nextToken());
+                        }
+                        assert(index == 2);
+                        EPoint point = new EPoint(points[0], points[1]);
+                        pList.add(point);
+                    }
+                }
+                else // even -> layer definition
+                {
+                    // Reading layer names
+                    StringTokenizer n = new StringTokenizer(val, ", ", false);
+                    while (n.hasMoreTokens())
+                    {
+                        String l = n.nextToken();
+                        PolygonLayerNode node = new PolygonLayerNode(l, pList); // copy or just share the list?
+                        nodeList.add(node);
+                    }
+                }
+            }
+        }
+
+//        generalContacts.add(con);
     }
 
     /************************************** EXPORT RAW NUMBERS TO DISK **************************************/
@@ -2511,7 +2602,7 @@ public class TechEditWizardData
         }
 
         // Generic contacts which might be based on extraLayers
-        addGenericContacts(t, genericContacts, extraPaletteList);
+        addGenericContacts(t, noMultiContacts, extraPaletteList);
 
         // Palette elements should be added at the end so they will appear in groups
         PaletteGroup[] metalPalette = new PaletteGroup[num_metal_layers];
@@ -2575,8 +2666,8 @@ public class TechEditWizardData
             {
                 // We know those layer names are numbers!
                 assert(c.layers.size() == 2);
-                ContactNode verticalLayer = c.layers.get(0);
-                ContactNode horizontalLayer = c.layers.get(1);
+                RectLayerNode verticalLayer = (RectLayerNode)c.layers.get(0);
+                RectLayerNode horizontalLayer = (RectLayerNode)c.layers.get(1);
 
                 int i = Integer.valueOf(verticalLayer.layer);
                 int j = Integer.valueOf(horizontalLayer.layer);
@@ -4402,15 +4493,15 @@ public class TechEditWizardData
             Xml.Layer ly = null, lx = null;
             Xml.Layer conLay = diffConLayer;
             PaletteGroup g = null;
-            ContactNode metalLayer = c.layers.get(0);
-            ContactNode otherLayer = c.layers.get(1);
+            RectLayerNode metalLayer = (RectLayerNode)c.layers.get(0);
+            RectLayerNode otherLayer = (RectLayerNode)c.layers.get(1);
             String extraName = "";
 
             if (!TextUtils.isANumber(metalLayer.layer)) // horizontal must be!
             {
                 assert (TextUtils.isANumber(otherLayer.layer));
-                metalLayer = c.layers.get(1);
-                otherLayer = c.layers.get(0);
+                metalLayer = (RectLayerNode)c.layers.get(1);
+                otherLayer = (RectLayerNode)c.layers.get(0);
             }
 
             int m1 = Integer.valueOf(metalLayer.layer);
@@ -4465,7 +4556,7 @@ public class TechEditWizardData
 
             for (int i = 2; i < c.layers.size(); i++) // rest of layers. Either select or well.
             {
-                ContactNode node = c.layers.get(i);
+                RectLayerNode node = (RectLayerNode)c.layers.get(i);
                 Xml.Layer lz = t.findLayer(node.layer);
 
                 if ((lz == pwellLayer && lx == diffLayers[0]) ||
@@ -4535,13 +4626,14 @@ public class TechEditWizardData
             {
                 // Assuming is that the last layer is the cut layer
                 assert(c.layers.size() == 3);
-                ContactNode aLayer = c.layers.get(0);
-                ContactNode bLayer = c.layers.get(1);
-                ContactNode cutLayer = c.layers.get(2);
+                RectLayerNode aLayer = (RectLayerNode)c.layers.get(0);
+                RectLayerNode bLayer = (RectLayerNode)c.layers.get(1);
+                RectLayerNode cutLayer = (RectLayerNode)c.layers.get(2);
                 // Look for existing palette elemnent to place the contact in.
                 PaletteGroup grp = null;
-                for (ContactNode n : c.layers)
+                for (LayerNode l : c.layers)
                 {
+                    RectLayerNode n = (RectLayerNode)l;
                     for (LayerInfo info : extraLayers)
                     {
                         if (info.name.equals(n.layer))
