@@ -177,6 +177,7 @@ public class Input
 		if (type == FileType.DXF) return new DXF.DXFPreferences(factory);
 		if (type == FileType.EDIF) return new EDIF.EDIFPreferences(factory);
 		if (type == FileType.GDS) return new GDS.GDSPreferences(factory);
+		if (type == FileType.GERBER) return new Gerber.GerberPreferences(factory);
 		if (type == FileType.LEF) return new LEF.LEFPreferences(factory);
 		if (type == FileType.SPICE) return new Spice.SpicePreferences(factory);
 		if (type == FileType.SUE) return new Sue.SuePreferences(factory);

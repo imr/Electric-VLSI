@@ -100,6 +100,7 @@ public class FileType implements Serializable {
 	/** Describes FPGA files.*/				public static final FileType FPGA         = makeFileType("FPGA", new String[] {"fpga"}, "FPGA Architecture File (fpga)", EXPORTIMPORTGRP);
 	/** Describes GDS files. */				public static final FileType GDS          = makeFileType("GDS", new String[] {"gds"}, "GDS File (gds)", EXPORTIMPORTGRP);
 	/** Describes GDS layer Map files. */	public static final FileType GDSMAP       = makeFileType("GDS Map", new String[] {"map"}, "GDS Layer Map File (map)", EXPORTIMPORTGRP);
+	/** Describes Gerber files. */			public static final FileType GERBER       = makeFileType("Gerber", new String[] {"gbr"}, "Gerber File (gbr)", EXPORTIMPORTGRP);
 	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = makeFileTypeNumeric("HSpice Output", new String[] {"tr"}, "HSpice Output File (tr0,1,2...)", SPICESIMGRP);
 	/** Describes HPGL files. */			public static final FileType HPGL         = makeFileType("HPGL", new String[] {"hpgl2"}, "HPGL File (hpgl2)", EXPORTIMPORTGRP);
 	/** Describes HTML files. */			public static final FileType HTML         = makeFileType("HTML", new String[] {"html"}, "HTML File (html)");

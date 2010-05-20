@@ -59,6 +59,7 @@ import com.sun.electric.tool.user.dialogs.options.FastHenryTab;
 import com.sun.electric.tool.user.dialogs.options.FrameTab;
 import com.sun.electric.tool.user.dialogs.options.GDSTab;
 import com.sun.electric.tool.user.dialogs.options.GeneralTab;
+import com.sun.electric.tool.user.dialogs.options.GerberTab;
 import com.sun.electric.tool.user.dialogs.options.GridAndAlignmentTab;
 import com.sun.electric.tool.user.dialogs.options.IconTab;
 import com.sun.electric.tool.user.dialogs.options.LayersTab;
@@ -259,6 +260,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new DEFTab(parent, true), ioSet);
 		addTreeNode(new CDLTab(parent, true), ioSet);
 		addTreeNode(new DXFTab(this, true), ioSet);
+		addTreeNode(new GerberTab(parent, true), ioSet);
 		addTreeNode(new SUETab(parent, true), ioSet);
 		if (IOTool.hasDais())
 			addTreeNode(new DaisTab(parent, true), ioSet);

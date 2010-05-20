@@ -142,7 +142,7 @@ public class FileMenu {
 			ToolBar.openLibraryCommand, // O
             openRecentLibs,
 
-		// mnemonic keys available:      F HI    NO QR   VW YZ
+		// mnemonic keys available:      F HI    NO Q    VW YZ
             new EMenu("_Import",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
                     importLibraryCommand(FileType.CIF, false, true, true); }},
@@ -158,8 +158,10 @@ public class FileMenu {
                     importLibraryCommand(FileType.DEF, false, true, true); }},
                 new EMenuItem("D_XF (AutoCAD)...") { public void run() {
                     importLibraryCommand(FileType.DXF, false, true, false); }},
-                new EMenuItem("Spice Dec_ks...") {	public void run() {
+                new EMenuItem("Spice Dec_ks...") { public void run() {
                     importLibraryCommand(FileType.SPICE, true, true, false); }},
+                new EMenuItem("Ge_rber...") { public void run() {
+                    importLibraryCommand(FileType.GERBER, false, true, false); }},
                 new EMenuItem("S_UE (Schematic User Environment)...") {	public void run() {
                     importLibraryCommand(FileType.SUE, false, true, true); }},
                 new EMenuItem("_Verilog...") {	public void run() {

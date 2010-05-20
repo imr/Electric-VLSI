@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+IMP/MAN: (5/20/10, SMR) Initial version of Gerber reader.  Has Preferences panel for
+    some controls (Bug #2749).
+
 IMP/MAN: (5/20/10, GVG) Error window in TechEditorWizard in case of loading Parameters file that
 doesn't comply with format.
 

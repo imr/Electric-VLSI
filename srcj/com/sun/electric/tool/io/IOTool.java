@@ -1353,6 +1353,50 @@ public class IOTool extends Tool
 	 */
 	public static boolean isFactorySueConvertsExpressions() { return cacheSueConvertsExpressions.getBooleanFactoryValue(); }
 
+	/****************************** GERBER INPUT PREFERENCES ******************************/
+
+	private static Pref cacheGerberReadsAllFiles = Pref.makeBooleanPref("GerberReadsAllFiles", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether Gerber input reads all .GBR files found in the directory.
+	 * Without this, only the selected file is read.
+	 * The default is "true".
+	 * @return true if Gerber input reads all .GBR files found in the directory.
+	 */
+	public static boolean isGerberReadsAllFiles() { return cacheGerberReadsAllFiles.getBoolean(); }
+	/**
+	 * Method to set whether Gerber input reads all .GBR files found in the directory.
+	 * Without this, only the selected file is read.
+	 * @param on true if Gerber input reads all .GBR files found in the directory.
+	 */
+	public static void setGerberReadsAllFiles(boolean on) { cacheGerberReadsAllFiles.setBoolean(on); }
+	/**
+	 * Method to tell whether Gerber input reads all .GBR files found in the directory, by default.
+	 * Without this, only the selected file is read.
+	 * @return true if Gerber input reads all .GBR files found in the directory, by default.
+	 */
+	public static boolean isFactoryGerberReadsAllFiles() { return cacheGerberReadsAllFiles.getBooleanFactoryValue(); }
+
+	private static Pref cacheGerberFillsPolygons = Pref.makeBooleanPref("GerberFillsPolygons", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether Gerber input fills polygons.
+	 * Without this, polygons appear as outlines.
+	 * The default is "true".
+	 * @return true if Gerber input fills polygons.
+	 */
+	public static boolean isGerberFillsPolygons() { return cacheGerberFillsPolygons.getBoolean(); }
+	/**
+	 * Method to set whether Gerber input fills polygons.
+	 * Without this, polygons appear as outlines.
+	 * @param on true if Gerber input fills polygons.
+	 */
+	public static void setGerberFillsPolygons(boolean on) { cacheGerberFillsPolygons.setBoolean(on); }
+	/**
+	 * Method to tell whether Gerber input fills polygons, by default.
+	 * Without this, polygons appear as outlines.
+	 * @return true if Gerber input fills polygons, by default.
+	 */
+	public static boolean isFactoryGerberFillsPolygons() { return cacheGerberFillsPolygons.getBooleanFactoryValue(); }
+
 	/****************************** SKILL OUTPUT PREFERENCES ******************************/
 
 	private static Pref cacheSkillExcludesSubcells = Pref.makeBooleanPref("SkillExcludesSubcells", IOTool.tool.prefs, false);
