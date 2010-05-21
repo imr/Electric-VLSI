@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00f: ******************************
 
+BUG: (5/21/10, GVG) False DRC errors on tsmcsun40gp poly resistors (Bug #2762)
+FIX: Special case to detect network associated to poly in resistors.
+
 IMP/MAN: (5/20/10, SMR) Initial version of Gerber reader.  Has Preferences panel for
     some controls (Bug #2749).
 

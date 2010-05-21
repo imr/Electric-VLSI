@@ -1290,9 +1290,17 @@ public class Quick
 						// determine network for this polygon
 						int nNet = getDRCNetNumber(netlist, npoly.getPort(), ni, cellGlobalIndex);
 
-						// see whether the two objects are electrically connected
+                        // if(net == -1 && nNet == -1) in case of wells for example
+                        // see whether the two objects are electrically connected
 						boolean con = false;
-						if (nNet >= 0 && nNet == net) con = true;
+                        if (nNet >=0)
+                        {
+                            con = (nNet == net);
+                            if (!con && net == -1) // geom is a resitor
+                                con = isConnectedToResistor(netlist, cellGlobalIndex, tech, nLayer, nNet, layer, geom);
+                        }
+                        else
+                            con = isConnectedToResistor(netlist, cellGlobalIndex, tech, layer, net, nLayer, ni);
 
                         // Checking extension, it could be slow
                         boolean ret = checkExtensionGateRule(geom, layer, poly, nLayer, npoly, netlist);
@@ -1378,7 +1386,7 @@ public class Quick
 				// if they connect electrically and adjoin, don't check
 //				if (con && touch) continue;
 
-				// get the shape of each arcinst layer
+                // get the shape of each arcinst layer
 				Poly [] subPolyList = tech.getShapeOfArc(ai);
 				int tot = subPolyList.length;
 				for(int i=0; i<tot; i++)
@@ -1405,7 +1413,11 @@ public class Quick
 						nPolyRect.getMaxY() < rBound.getMinY()) continue;
 
                     boolean ret = false;
-				    // if they connect electrically and adjoin, don't check
+
+                    // try the resistor part
+                    if (!con)
+                        con = isConnectedToResistor(netlist, cellGlobalIndex, tech, nLayer, nNet, layer, geom);
+                    // if they connect electrically and adjoin, don't check
                     // We must check if there are minor defects if they overlap regardless if they are connected or not
 				    if (con && touch)
                     {
@@ -3585,7 +3597,8 @@ public class Quick
     /***************************START of Poly Cover By Any VT Layer Functions ************************************/
     // Special functions not available for all technologies.
     private static final Layer.Function.Set vtLayers = new Layer.Function.Set(Layer.Function.IMPLANTP, Layer.Function.IMPLANTN);
-     /**
+
+    /**
      * This method determines if one of the polysilicon polygons is covered by a vth layer. If yes, VT{H/L}_{P/N}.S.2
      * doesn't apply
      * @param polys
@@ -3644,6 +3657,45 @@ public class Quick
          return found;
      }
 
+    /**
+     * Method to look for network in m1 that would allow consider the poly layers as maytouch
+     * @return
+     */
+    private static final Layer.Function.Set m1Layer = new Layer.Function.Set(Layer.Function.METAL1);
+    private boolean isConnectedToResistor(Netlist netlist, int cellGlobalIndex, Technology tech,
+                                          Layer layer1, int net, Layer layer2, Geometric geom2)
+    {
+        // both have to be polys
+        if (layer1 != layer2)
+            return false;
+        // Checking poly!
+        if (!layer2.getFunction().isPoly())
+            return false; // no poly
+        // if it is a poly resistor
+        if (!(geom2 instanceof NodeInst))
+            return false; // arc
+        NodeInst ni = (NodeInst) geom2;
+
+        if (ni.isCellInstance())
+            return false; // a cell, not sure if it should reach this line as a cell; just in case
+        NodeProto np = (NodeProto)ni.getProto();
+
+        // Since layer1 is from geom1 -> test sufficient to detect the poly resistor
+        if (!np.getFunction().isResistor())
+            return false;
+
+        // Get m1 port closer to poly2 (the other geometry)
+        Poly [] metalList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, m1Layer);
+
+        for (Poly p : metalList)
+        {
+            int m1Net = getDRCNetNumber(netlist, p.getPort(), ni, cellGlobalIndex);
+            if (m1Net == net)
+                return true; // found same network!
+        }
+        return false;
+    }
+    
     /**
 	 * Method to see if the two boxes are active elements, connected to opposite
 	 * sides of a field-effect transistor that resides inside of the box area.
