@@ -1,0 +1,104 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: PJob.java
+ *
+ * Copyright (c) 2010 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.util.concurrent.patterns;
+
+import com.sun.electric.tool.util.CollectionFactory;
+import java.util.List;
+
+/**
+ * Parallel Reduce Job. Parallel reduce is a parallel for loop with a result
+ * aggregation at the end of the parallel execution.
+ */
+public class PReduceJob<T> extends PForJob {
+
+	// TODO use concurrent data structure
+	private List<PReduceTask<T>> tasks = CollectionFactory.createArrayList();
+	private T result;
+
+	public PReduceJob(BlockedRange range, Class<? extends PReduceTask> task) {
+		super(range, task);
+	}
+
+	@Override
+	public void execute() {
+		super.execute();
+
+		result = null;
+		PReduceTask<T> oldTask = null;
+
+		// TODO parallize it
+		if (tasks.size() > 0) {
+			if (tasks.size() == 1) {
+				result = tasks.get(0).reduce(null);
+			} else {
+				for (PReduceTask<T> task : tasks) {
+					if (oldTask != null) {
+						result = task.reduce(oldTask);
+					}
+					oldTask = task;
+				}
+			}
+		}
+	}
+
+	public T getResult() {
+		return result;
+	}
+
+	/**
+     * felix: tbd
+     */
+	public class ReduceTask extends PTask {
+
+		private int step;
+		private int start;
+		private boolean firstRound;
+
+		public ReduceTask(PJob job, int start, int step, boolean firstRound, ReduceTask reportTo) {
+			super(job);
+			this.step = step;
+			this.start = start;
+			this.firstRound = firstRound;
+		}
+
+		@Override
+		public void execute() {
+			if (firstRound) {
+				PReduceTask<T> tmp = tasks.get(start);
+				for (int i = start + 1; i < start + step; i++) {
+					tmp.reduce(tasks.get(i));
+				}
+			} else {
+
+			}
+		}
+	}
+
+	@Override
+	public void add(PTask task) {
+		super.add(task);
+		if(PReduceTask.class.isInstance(task))
+			tasks.add((PReduceTask<T>)task);
+	}
+}
