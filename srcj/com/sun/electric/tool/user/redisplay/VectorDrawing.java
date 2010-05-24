@@ -40,6 +40,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
@@ -118,7 +119,7 @@ class VectorDrawing
 	 */
 	public void render(PixelDrawing offscreen, double scale, Point2D offset, Cell cell, boolean fullInstantiate,
 		List<NodeInst> inPlaceNodePath, Cell inPlaceCurrent, Rectangle screenLimit,
-		VarContext context, double greekSizeLimit, double greekCellSizeLimit)
+		VarContext context, double greekSizeLimit, double greekCellSizeLimit, LayerVisibility lv)
 	{
 		// see if any layers are being highlighted/dimmed
 		this.offscreen = offscreen;
@@ -181,7 +182,7 @@ class VectorDrawing
 		{
 			VectorCache.VectorCell topVC = drawCell(cell, Orientation.IDENT, context);
 			topVD = this;
-			render(topVC, 0, 0, context, 0);
+			render(topVC, 0, 0, context, 0, lv);
 			drawList(0, 0, topVC.getTopOnlyShapes(), 0, false);
 		} catch (AbortRenderingException e)
 		{
@@ -269,8 +270,9 @@ class VectorDrawing
 	 * @param oY the Y offset for rendering the cell (in database grid coordinates).
 	 * @param context the VarContext for this point in the rendering.
 	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
+	 * @param lv current layer visibility.
 	 */
-	private void render(VectorCache.VectorCell vc, int oX, int oY, VarContext context, int level)
+	private void render(VectorCache.VectorCell vc, int oX, int oY, VarContext context, int level, LayerVisibility lv)
 		throws AbortRenderingException
 	{
 		// render main list of shapes
@@ -309,9 +311,9 @@ class VectorDrawing
 				VarContext subContext = context.push(cell, vsc.n);
 				VectorCache.VectorCell subVC_ = drawCell(subCell, recurseTrans, subContext);
 				assert subVC_ == subVC;
-                makeGreekedImage(subVC);
+                makeGreekedImage(subVC, lv);
 
-				int fadeColor = getFadeColor(subVC, subContext);
+				int fadeColor = getFadeColor(subVC, subContext, lv);
 				drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
 				tinySubCellCount++;
 				continue;
@@ -357,8 +359,8 @@ class VectorDrawing
 					boolean smallerThanGreek = useCellGreekingImages && hX-lX <= MAXGREEKSIZE && hY-lY <= MAXGREEKSIZE;
 					if (allFeaturesTiny || smallerThanGreek)
 					{
-                        makeGreekedImage(subVC);
-						int fadeColor = getFadeColor(subVC, context);
+                        makeGreekedImage(subVC, lv);
+						int fadeColor = getFadeColor(subVC, context, lv);
 						drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
 						tinySubCellCount++;
 						continue;
@@ -367,7 +369,7 @@ class VectorDrawing
 
 				int subLevel = level;
 				if (subLevel == 0) subLevel = 1;
-				render(subVC, soX, soY, subContext, subLevel);
+				render(subVC, soX, soY, subContext, subLevel, lv);
 			} else
 			{
 				// now draw with the proper line type
@@ -910,7 +912,7 @@ class VectorDrawing
 		return true;
 	}
 
-	private void makeGreekedImage(VectorCache.VectorCell subVC)
+	private void makeGreekedImage(VectorCache.VectorCell subVC, LayerVisibility lv)
 		throws AbortRenderingException
 	{
 		if (subVC.fadeImage) return;
@@ -971,7 +973,7 @@ class VectorDrawing
 
 		// render the greeked cell
 		subVD.offscreen.clearImage(null, null);
-		subVD.render(subVC, 0, 0, VarContext.globalContext, -1);
+		subVD.render(subVC, 0, 0, VarContext.globalContext, -1, lv);
 		subVD.offscreen.composite(null);
 
 		// remember the greeked cell image
@@ -998,7 +1000,7 @@ class VectorDrawing
 	 * @param vc the cached cell.
 	 * @return the fade color (an integer with red/green/blue).
 	 */
-	private int getFadeColor(VectorCache.VectorCell vc, VarContext context)
+	private int getFadeColor(VectorCache.VectorCell vc, VarContext context, LayerVisibility lv)
 		throws AbortRenderingException
 	{
 		if (vc.hasFadeColor) return vc.fadeColor;
@@ -1007,19 +1009,25 @@ class VectorDrawing
 		Map<Layer,MutableDouble> layerAreas = new HashMap<Layer,MutableDouble>();
 		gatherContents(vc, layerAreas, context);
 
-		// now compute the color
+        // now compute the color
 		Set<Layer> keys = layerAreas.keySet();
 		double totalArea = 0;
 		for(Layer layer : keys)
 		{
+			if (!lv.isVisible(layer)) continue;
 			MutableDouble md = layerAreas.get(layer);
 			totalArea += md.doubleValue();
 		}
 		double r = 0, g = 0, b = 0;
-		if (totalArea != 0)
+		if (totalArea == 0)
+		{
+			// no fade color, make it the background color
+			vc.fadeColor = PixelDrawing.gp.getColor(User.ColorPrefType.BACKGROUND).getRGB();
+		} else
 		{
 			for(Layer layer : keys)
 			{
+				if (!lv.isVisible(layer)) continue;
 				MutableDouble md = layerAreas.get(layer);
 				double portion = md.doubleValue() / totalArea;
 				EGraphics desc = PixelDrawing.gp.getGraphics(layer);
@@ -1028,11 +1036,11 @@ class VectorDrawing
 				g += col.getGreen() * portion;
 				b += col.getBlue() * portion;
 			}
+			if (r < 0) r = 0;   if (r > 255) r = 255;
+			if (g < 0) g = 0;   if (g > 255) g = 255;
+			if (b < 0) b = 0;   if (b > 255) b = 255;
+			vc.fadeColor = (((int)r) << 16) | (((int)g) << 8) | (int)b;
 		}
-		if (r < 0) r = 0;   if (r > 255) r = 255;
-		if (g < 0) g = 0;   if (g > 255) g = 255;
-		if (b < 0) b = 0;   if (b > 255) b = 255;
-		vc.fadeColor = (((int)r) << 16) | (((int)g) << 8) | (int)b;
 		vc.hasFadeColor = true;
 		return vc.fadeColor;
 	}

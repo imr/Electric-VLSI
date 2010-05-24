@@ -596,7 +596,7 @@ public class PixelDrawing
 		} else
 		{
 			drawing.vd.render(this, scale, new Point2D.Double(drawing.da.offX, drawing.da.offY), cell, fullInstantiate,
-				inPlaceNodePath, wnd.getCell(), renderBounds, varContext, greekSizeLimit, greekCellSizeLimit);
+				inPlaceNodePath, wnd.getCell(), renderBounds, varContext, greekSizeLimit, greekCellSizeLimit, lv);
 		}
 
 		// merge transparent image into opaque one
@@ -692,7 +692,7 @@ public class PixelDrawing
 		{
             VectorDrawing vd = new VectorDrawing(ep.isUseCellGreekingImages());
 			vd.render(this, scale, offset, cell, false, null, null, null, varContext,
-                    ep.getGreekSizeLimit(), ep.getGreekCellSizeLimit());
+                    ep.getGreekSizeLimit(), ep.getGreekCellSizeLimit(), lv);
 		}
 
 		// merge transparent image into opaque one

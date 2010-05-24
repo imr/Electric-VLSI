@@ -1220,6 +1220,7 @@ public class VectorCache {
                 for (VectorCell vc : vcg.orientations.values()) {
                     vc.fadeImageColors = null;
                     vc.fadeImage = false;
+                    vc.hasFadeColor = false;
                 }
             }
             assert vcg.bounds == snapshot.getCellBounds(cellIndex);

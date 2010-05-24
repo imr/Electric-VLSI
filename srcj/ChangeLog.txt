@@ -3,11 +3,15 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
-IMP (5/24/10, FS) First refactoring (improved interface) 
-    features: parallel (for|reduce), and simple task scheduler for own algorithms 
 
-IMP (5/21/10, FS) First commit of a parallel infrastructure, 
-    com.sun.electric.tool.util.concurrent
+BUG: (5/24/10, SMR) Greeked cells are not re-evaluated when layer visibility changes (Bug #2756).
+FIX: Fixed VectorCache and VectorDrawing to recompute the cell color.
+
+IMP: (5/24/10, FS) First refactoring (improved interface) 
+     features: parallel (for|reduce), and simple task scheduler for own algorithms 
+
+IMP: (5/21/10, FS) First commit of a parallel infrastructure, 
+     com.sun.electric.tool.util.concurrent
 
 ************************* Version 9.00f: ******************************
 
