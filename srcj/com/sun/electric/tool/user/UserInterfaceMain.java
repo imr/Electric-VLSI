@@ -471,29 +471,65 @@ public class UserInterfaceMain extends AbstractUserInterface
                 // Something found to highlight
                 if (highlighter != null)
                 {
-                    highlighter.ensureHighlightingSeen();
                     highlighter.finished();
+                	if (User.isShiftWindowToErrors())
+                	{
+                		Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
+                		Rectangle2D displayBounds = wnd.displayableBounds();
+                		if (wnd.isInPlaceEdit())
+                		{
+                			Point2D llPt = new Point2D.Double(displayBounds.getMinX(), displayBounds.getMinY());
+                			Point2D urPt = new Point2D.Double(displayBounds.getMaxX(), displayBounds.getMaxY());
+                			AffineTransform intoCell = wnd.getInPlaceTransformIn();
+                			intoCell.transform(llPt, llPt);
+                			intoCell.transform(urPt, urPt);
+                			double lX = Math.min(llPt.getX(), urPt.getX());
+                			double hX = Math.max(llPt.getX(), urPt.getX());
+                			double lY = Math.min(llPt.getY(), urPt.getY());
+                			double hY = Math.max(llPt.getY(), urPt.getY());
+                			displayBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+                		}
+                		if (bounds.getMinX() >= displayBounds.getMaxX() ||
+                			bounds.getMaxX() <= displayBounds.getMinX() ||
+                			bounds.getMinY() >= displayBounds.getMaxY() ||
+                			bounds.getMaxY() <= displayBounds.getMinY())
+                		{
+                			Rectangle2D newBounds = highlighter.getHighlightedArea(wnd);
+                			double newLX = newBounds.getMinX() - newBounds.getWidth()/2;
+                			double newHX = newBounds.getMaxX() + newBounds.getWidth()/2;
+                			double newLY = newBounds.getMinY() - newBounds.getHeight()/2;
+                			double newHY = newBounds.getMaxY() + newBounds.getHeight()/2;
+                			newBounds.setRect(newLX, newLY, newHX-newLX, newHY-newLY);
+                			wnd.focusScreen(newBounds);
+                		} else
+                		{
+                    		highlighter.ensureHighlightingSeen();
+                		}
+                	} else
+                	{
+                		highlighter.ensureHighlightingSeen();
+                	}
 
-                    // make sure the selection is visible
-                    Rectangle2D hBounds = highlighter.getHighlightedArea(wnd);
-                    Rectangle2D shown = wnd.getDisplayedBounds();
-            		if (wnd.isInPlaceEdit())
-            		{
-            			Point2D llPt = new Point2D.Double(shown.getMinX(), shown.getMinY());
-            			Point2D urPt = new Point2D.Double(shown.getMaxX(), shown.getMaxY());
-            			AffineTransform intoCell = wnd.getInPlaceTransformIn();
-            			intoCell.transform(llPt, llPt);
-            			intoCell.transform(urPt, urPt);
-            			double lX = Math.min(llPt.getX(), urPt.getX());
-            			double hX = Math.max(llPt.getX(), urPt.getX());
-            			double lY = Math.min(llPt.getY(), urPt.getY());
-            			double hY = Math.max(llPt.getY(), urPt.getY());
-            			shown = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-            		}
-                    if (!shown.intersects(hBounds))
-                    {
-                        wnd.focusOnHighlighted();
-                    }
+//                    // make sure the selection is visible
+//                    Rectangle2D hBounds = highlighter.getHighlightedArea(wnd);
+//                    Rectangle2D shown = wnd.getDisplayedBounds();
+//            		if (wnd.isInPlaceEdit())
+//            		{
+//            			Point2D llPt = new Point2D.Double(shown.getMinX(), shown.getMinY());
+//            			Point2D urPt = new Point2D.Double(shown.getMaxX(), shown.getMaxY());
+//            			AffineTransform intoCell = wnd.getInPlaceTransformIn();
+//            			intoCell.transform(llPt, llPt);
+//            			intoCell.transform(urPt, urPt);
+//            			double lX = Math.min(llPt.getX(), urPt.getX());
+//            			double hX = Math.max(llPt.getX(), urPt.getX());
+//            			double lY = Math.min(llPt.getY(), urPt.getY());
+//            			double hY = Math.max(llPt.getY(), urPt.getY());
+//            			shown = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+//            		}
+//                    if (!shown.intersects(hBounds))
+//                    {
+//                        wnd.focusOnHighlighted();
+//                    }
                 }
                 nothingDone = false;
             }

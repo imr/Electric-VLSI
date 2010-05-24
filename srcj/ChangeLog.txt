@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+IMP/MAN: (5/24/10, SMR) New "Display Control" preference "Shift window to show errors"
+     moves the window to focus on errors if they are not visible (Bug #2755).
+
 BUG: (5/24/10, SMR) Greeked cells are not re-evaluated when layer visibility changes (Bug #2756).
 FIX: Fixed VectorCache and VectorDrawing to recompute the cell color.
 

@@ -2102,6 +2102,27 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryErrorHighlightingPulsate() { return cacheErrorHighlightingPulsate.getBooleanFactoryValue(); }
 
+	private static Pref cacheShiftWindowToErrors = Pref.makeBooleanPref("ShiftWindowToErrors", tool.prefs, false);
+	/**
+	 * Method to tell whether to shift the editing window so that the next error is visible.
+	 * When this is not set, an arrow is drawn to indicate where the next error is located.
+	 * The default is "false".
+	 * @return true to show error highlights with pulsating outlines.
+	 */
+	public static boolean isShiftWindowToErrors() { return cacheShiftWindowToErrors.getBoolean(); }
+	/**
+	 * Method to set whether to shift the editing window so that the next error is visible.
+	 * When this is not set, an arrow is drawn to indicate where the next error is located.
+	 * @param dim true to shift the editing window so that the next error is visible.
+	 */
+	public static void setShiftWindowToErrors(boolean dim) { cacheShiftWindowToErrors.setBoolean(dim); }
+	/**
+	 * Method to tell whether to shift the editing window so that the next error is visible, by default.
+	 * When this is not set, an arrow is drawn to indicate where the next error is located.
+	 * @return true to shift the editing window so that the next error is visible, by default.
+	 */
+	public static boolean isFactoryShiftWindowToErrors() { return cacheShiftWindowToErrors.getBooleanFactoryValue(); }
+
 	private static Pref cacheWhichDisplayAlgorithm = Pref.makeIntPref("WhichDisplayAlgorithm", tool.prefs, 1);
 	/**
 	 * Method to tell which display algorithm to use.

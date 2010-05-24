@@ -72,6 +72,7 @@ public class DisplayControlTab extends PreferencePanel
 		// top half (miscellaneous controls)
 		generalShowCursorCoordinates.setSelected(User.isShowHierarchicalCursorCoordinates());
 		makeErrorHighlightingPulsate.setSelected(User.isErrorHighlightingPulsate());
+		shiftWindowToErrors.setSelected(User.isShiftWindowToErrors());
 		showCellsInNewWindow.setSelected(User.isShowCellsInNewWindow());
 		dimUpperWhenDownInPlace.setSelected(User.isDimUpperLevelWhenDownInPlace());
 		sideBarOnRight.setSelected(User.isSideBarOnRight());
@@ -118,6 +119,10 @@ public class DisplayControlTab extends PreferencePanel
 		currBoolean = makeErrorHighlightingPulsate.isSelected();
 		if (currBoolean != User.isErrorHighlightingPulsate())
 			User.setErrorHighlightingPulsate(currBoolean);
+
+		currBoolean = shiftWindowToErrors.isSelected();
+		if (currBoolean != User.isShiftWindowToErrors())
+			User.setShiftWindowToErrors(currBoolean);
 
 		currBoolean = showCellsInNewWindow.isSelected();
 		if (currBoolean != User.isShowCellsInNewWindow())
@@ -219,6 +224,8 @@ public class DisplayControlTab extends PreferencePanel
 			User.setDisplayStyle(User.getFactoryDisplayStyle());
 		if (User.isFactoryErrorHighlightingPulsate() != User.isErrorHighlightingPulsate())
 			User.setErrorHighlightingPulsate(User.isFactoryErrorHighlightingPulsate());
+		if (User.isFactoryShiftWindowToErrors() != User.isShiftWindowToErrors())
+			User.setShiftWindowToErrors(User.isFactoryShiftWindowToErrors());		
 		if (User.isFactoryShowCellsInNewWindow() != User.isShowCellsInNewWindow())
 			User.setShowCellsInNewWindow(User.isFactoryShowCellsInNewWindow());
 
@@ -282,6 +289,7 @@ public class DisplayControlTab extends PreferencePanel
         makeErrorHighlightingPulsate = new javax.swing.JCheckBox();
         dimUpperWhenDownInPlace = new javax.swing.JCheckBox();
         showCellsInNewWindow = new javax.swing.JCheckBox();
+        shiftWindowToErrors = new javax.swing.JCheckBox();
 
         setTitle("Edit Options");
         setName(""); // NOI18N
@@ -315,13 +323,13 @@ public class DisplayControlTab extends PreferencePanel
         jLabel1.setText("Panning distance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(jLabel1, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(generalPanningDistance, gridBagConstraints);
@@ -486,7 +494,7 @@ public class DisplayControlTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -495,14 +503,14 @@ public class DisplayControlTab extends PreferencePanel
         jLabel2.setText("Display style:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(displayStyle, gridBagConstraints);
@@ -533,6 +541,15 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(showCellsInNewWindow, gridBagConstraints);
+
+        shiftWindowToErrors.setText("Shift window to show errors");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        general.add(shiftWindowToErrors, gridBagConstraints);
 
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
@@ -583,6 +600,7 @@ public class DisplayControlTab extends PreferencePanel
     private javax.swing.JTextField patternScaleLimit;
     private javax.swing.JRadioButton pixelDisplay;
     private javax.swing.JButton resetOpacity;
+    private javax.swing.JCheckBox shiftWindowToErrors;
     private javax.swing.JCheckBox showCellsInNewWindow;
     private javax.swing.JCheckBox sideBarOnRight;
     private javax.swing.JCheckBox useNewBlending;
