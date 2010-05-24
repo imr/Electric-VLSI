@@ -551,7 +551,8 @@ public class LEF extends LEFDEF
 			}
 
 			if (key.equalsIgnoreCase("SHAPE") || key.equalsIgnoreCase("CAPACITANCE") ||
-				key.equalsIgnoreCase("ANTENNASIZE"))
+				key.equalsIgnoreCase("ANTENNASIZE") || key.equalsIgnoreCase("ANTENNADIFFAREA") ||
+				key.equalsIgnoreCase("ANTENNAMODEL") || key.equalsIgnoreCase("ANTENNAGATEAREA"))
 			{
 				if (ignoreToSemicolon(key)) return true;
 				continue;
