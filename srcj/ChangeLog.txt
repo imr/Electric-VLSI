@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+BUG: (5/24/10, SMR) Multi-object Properties crashes when in resize mode (Bug #2763).
+FIX: Fixed Highlight.HighlightSorting class to handle null returns from "getInfo()".
+
 IMP/MAN: (5/24/10, SMR) New "Display Control" preference "Shift window to show errors"
      moves the window to focus on errors if they are not visible (Bug #2755).
 

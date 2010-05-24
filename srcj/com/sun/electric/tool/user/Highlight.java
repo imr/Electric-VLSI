@@ -553,7 +553,11 @@ public abstract class Highlight implements Cloneable{
     {
         public int compare(Highlight h1, Highlight h2)
         {
-            return  h1.getInfo().compareTo(h2.getInfo());
+        	String h1Info = h1.getInfo();
+        	String h2Info = h2.getInfo();
+        	if (h1Info == null) h1Info = "";
+        	if (h2Info == null) h2Info = "";
+            return h1Info.compareTo(h2Info);
         }
     }
 }
@@ -1522,7 +1526,7 @@ class HighlightText extends Highlight
         super(c);
         this.eobj = e;
         this.varKey = key;
-        Class cls = null;
+        Class<?> cls = null;
         if (key == NodeInst.NODE_NAME || key == NodeInst.NODE_PROTO)
             cls = NodeInst.class;
         else if (key == ArcInst.ARC_NAME)
