@@ -31,7 +31,8 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
 	ThreadPool_T.class,
 	PForJob_T.class,
-    PReduceJob_T.class
+    PReduceJob_T.class,
+    Parallel_T.class
 })
 public class ConcurrencyTestSuite {
 

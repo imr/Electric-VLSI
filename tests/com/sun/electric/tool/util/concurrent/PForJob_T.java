@@ -29,12 +29,13 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.sun.electric.tool.util.concurrent.patterns.PForJob;
 import com.sun.electric.tool.util.UniqueIDGenerator;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
-import com.sun.electric.tool.util.concurrent.patterns.PForTask;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 public class PForJob_T {
@@ -44,7 +45,7 @@ public class PForJob_T {
 
 		ThreadPool pool = ThreadPool.initialize();
 
-		PForJob pforjob = new PForJob(new BlockedRange1D(0, 10, 2), TestForTask.class);
+		PForJob pforjob = new PForJob(new BlockedRange1D(0, 10, 2), new TestForTask());
 		pforjob.execute();
 
 		pool.shutdown();
@@ -57,7 +58,7 @@ public class PForJob_T {
 		private int id = idGen.getUniqueId();
 
 		@Override
-		public void execute() {
+		public void execute(BlockedRange range) {
 
 			BlockedRange1D tmpRange = (BlockedRange1D) range;
 
@@ -73,7 +74,7 @@ public class PForJob_T {
 	private static int[][] matB;
 	private static Integer[][] matCPar;
 	private static Integer[][] matCSer;
-	private static int size = 2000;
+	private static int size = 20;
 
 	@Test
 	public void testMatrixMultiply() throws PoolExistsException, InterruptedException {
@@ -96,7 +97,7 @@ public class PForJob_T {
 		ThreadPool pool = ThreadPool.initialize();
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10), MatrixMultTask.class);
+		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask());
 		pforjob.execute();
 
 		long endPar = System.currentTimeMillis() - start;
@@ -134,7 +135,7 @@ public class PForJob_T {
 	public static class MatrixMultTask extends PForTask {
 
 		@Override
-		public void execute() {
+		public void execute(BlockedRange range) {
 			BlockedRange2D tmpRange = (BlockedRange2D) range;
 
 			for (int i = tmpRange.getRow().getStart(); i < tmpRange.getRow().getEnd(); i++) {

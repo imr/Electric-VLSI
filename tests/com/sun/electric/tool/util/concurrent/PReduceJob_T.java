@@ -23,15 +23,16 @@
  */
 package com.sun.electric.tool.util.concurrent;
 
-import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
-import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;
-import com.sun.electric.tool.util.concurrent.patterns.PReduceTask;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
-import org.junit.Ignore;
+import junit.framework.Assert;
+
 import org.junit.Test;
 
-
+import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
+import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
+import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
  * 
@@ -39,44 +40,57 @@ import org.junit.Test;
  */
 public class PReduceJob_T {
 
-    @Ignore
 	@Test
-	public void testPReduce() throws PoolExistsException, InterruptedException {
+	public void testPReduce() throws PoolExistsException, InterruptedException,
+			CloneNotSupportedException {
 		ThreadPool pool = ThreadPool.initialize();
-		PReduceJob<Double> pReduceJob = new PReduceJob<Double>(new BlockedRange1D(0, 10000, 100),
-				ReduceTask.class);
+		int stepW = 1000000;
+		double step = 1.0 / stepW;
+		PReduceJob<Double> pReduceJob = new PReduceJob<Double>(new BlockedRange1D(0, stepW, 100),
+				new PITask(step));
 		pReduceJob.execute();
 
-		System.out.println("pi = " + pReduceJob.getResult());
-		
+		System.out.println("calc pi = " + pReduceJob.getResult());
+		System.out.println("math pi = " + Math.PI);
+
 		pool.shutdown();
+		
+		Assert.assertEquals(Math.PI, pReduceJob.getResult(), 0.00001);
 	}
 
-	public class ReduceTask extends PReduceTask<Double> {
+	public static class PITask extends PReduceTask<Double> {
 
 		private double pi;
+		private double step;
 
-		public ReduceTask() {
-
+		public PITask(double step) {
+			this.step = step;
 		}
 
 		@Override
 		public Double reduce(PReduceTask<Double> other) {
-			ReduceTask task = (ReduceTask) other;
+			PITask task = (PITask) other;
 			this.pi += task.pi;
-			return this.pi;
+			return this.pi * step;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * com.sun.electric.tool.util.concurrent.patterns.PForTask#execute(com
+		 * .sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
+		 */
 		@Override
-		public void execute() {
+		public void execute(BlockedRange range) {
 			BlockedRange1D tmpRange = (BlockedRange1D) range;
 			this.pi = 0.0;
-			double step_width = 1.0 / tmpRange.getStep();
 
 			for (int i = tmpRange.getStart(); i < tmpRange.getEnd(); i++) {
-				double x = step_width * ((double) i - 0.5);
-				pi += 4.0 / (1.0 + x * x);
+				double x = step * ((double) i - 0.5);
+				this.pi += 4.0 / (1.0 + x * x);
 			}
+
 		}
 	}
 }

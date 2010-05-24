@@ -31,8 +31,6 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 import org.junit.Test;
 
-
-
 public class ThreadPool_T {
 
 	@Test
@@ -57,6 +55,32 @@ public class ThreadPool_T {
 
 		pool.shutdown();
 		System.out.println("time: " + (System.currentTimeMillis() - start));
+	}
+
+	public static class CreateParallelJobs extends PTask {
+
+		/**
+		 * @param job
+		 */
+		public CreateParallelJobs(PJob job) {
+			super(job);
+			// TODO Auto-generated constructor stub
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#execute()
+		 */
+		@Override
+		public void execute() {
+
+			PJob job = new PJob();
+			job.add(new TestTask(-2, job));
+			job.execute();
+
+		}
+
 	}
 
 	private static class TestTask extends PTask {
