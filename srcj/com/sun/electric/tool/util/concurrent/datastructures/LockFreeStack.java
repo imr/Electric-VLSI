@@ -91,7 +91,7 @@ public class LockFreeStack<T> extends IStructure<T> {
 		}
 	}
 
-	private Node tryPop() throws EmptyException {
+	private Node<T> tryPop() throws EmptyException {
 		Node<T> oldTop = top.get();
 		if (oldTop == null) {
 			throw new EmptyException();

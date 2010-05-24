@@ -23,10 +23,11 @@
  */
 package com.sun.electric.tool.util;
 
-import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.LockFreeQueue;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 
+import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 
@@ -38,37 +39,47 @@ import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
  */
 public class CollectionFactory {
 
-    /**
-     * Create a new array list.
-     */
+	/**
+	 * Create a new array list.
+	 */
 	public static <T> ArrayList<T> createArrayList() {
 		return new ArrayList<T>();
 	}
 
-    /**
-     * Create a new linked list.
-     */
+	/**
+	 * Create a new hash set
+	 * 
+	 * @param <T>
+	 * @return HashSet of type T
+	 */
+	public static <T> HashSet<T> createHashSet() {
+		return new HashSet<T>();
+	}
+
+	/**
+	 * Create a new linked list.
+	 */
 	public static <T> LinkedList<T> createLinkedList() {
 		return new LinkedList<T>();
 	}
 
-    /**
-     * Create a new lock free queue (concurrent).
-     */
+	/**
+	 * Create a new lock free queue (concurrent).
+	 */
 	public static <T> LockFreeQueue<T> createLockFreeQueue() {
 		return new LockFreeQueue<T>();
 	}
 
-    /**
-     * Create a new lock free stack (concurrent).
-     */
+	/**
+	 * Create a new lock free stack (concurrent).
+	 */
 	public static <T> LockFreeStack<T> createLockFreeStack() {
 		return new LockFreeStack<T>();
 	}
 
-    /**
-     * Create a new double ended queue (concurrent).
-     */
+	/**
+	 * Create a new double ended queue (concurrent).
+	 */
 	public static <T> BDEQueue<T> createBoundedDoubleEndedQueue(int capacity) {
 		return new BDEQueue<T>(capacity);
 	}

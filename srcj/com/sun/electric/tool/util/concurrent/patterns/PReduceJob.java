@@ -23,8 +23,9 @@
  */
 package com.sun.electric.tool.util.concurrent.patterns;
 
-import com.sun.electric.tool.util.CollectionFactory;
 import java.util.List;
+
+import com.sun.electric.tool.util.CollectionFactory;
 
 /**
  * Parallel Reduce Job. Parallel reduce is a parallel for loop with a result
@@ -36,7 +37,7 @@ public class PReduceJob<T> extends PForJob {
 	private List<PReduceTask<T>> tasks = CollectionFactory.createArrayList();
 	private T result;
 
-	public PReduceJob(BlockedRange range, Class<? extends PReduceTask> task) {
+	public PReduceJob(BlockedRange range, PReduceTask<T> task) {
 		super(range, task);
 	}
 
@@ -67,8 +68,25 @@ public class PReduceJob<T> extends PForJob {
 	}
 
 	/**
-     * felix: tbd
-     */
+	 * 
+	 * @author fs239085
+	 */
+	public abstract static class PReduceTask<T> extends PForTask implements Cloneable {
+
+		/**
+		 * reduce function. This function is called after the execution of the
+		 * parallel for loop
+		 * 
+		 * @param other
+		 * @return
+		 */
+		public abstract T reduce(PReduceTask<T> other);
+
+	}
+
+	/**
+	 * felix: tbd
+	 */
 	public class ReduceTask extends PTask {
 
 		private int step;
@@ -95,10 +113,11 @@ public class PReduceJob<T> extends PForJob {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void add(PTask task) {
 		super.add(task);
-		if(PReduceTask.class.isInstance(task))
-			tasks.add((PReduceTask<T>)task);
+		if (PForTaskWrapper.class.isInstance(task))
+			tasks.add((PReduceTask<T>) ((PForTaskWrapper) task).getTask());
 	}
 }

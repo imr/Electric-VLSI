@@ -122,7 +122,7 @@ public class ThreadPool {
      */
 	protected class Worker extends Thread {
 
-		private volatile Boolean abort = false;
+		@SuppressWarnings("unused")
 		private ThreadPool pool;
 		private int threadId;
 		private PoolWorkerStrategy strategy;
@@ -139,7 +139,6 @@ public class ThreadPool {
 		}
 
 		public void shutdown() {
-			abort = true;
 			strategy.shutdown();
 		}
 

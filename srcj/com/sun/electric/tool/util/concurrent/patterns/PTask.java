@@ -28,7 +28,7 @@ package com.sun.electric.tool.util.concurrent.patterns;
  * Base task for task parallel programming
  *
  */
-public abstract class PTask {
+public abstract class PTask implements Cloneable {
 
 	protected PJob job;
 	protected int threadId;
@@ -49,6 +49,14 @@ public abstract class PTask {
 
 	public void setThreadID(int id) {
 		this.threadId = id;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 
 }
