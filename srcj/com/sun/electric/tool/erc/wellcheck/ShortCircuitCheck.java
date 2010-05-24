@@ -59,7 +59,6 @@ public class ShortCircuitCheck implements WellCheckAnalysisStrategy {
 	 * @see
 	 * com.sun.electric.tool.erc.wellcheck.WellCheckAnalysisStrategy#execute()
 	 */
-	@Override
 	public void execute() {
 		Map<Integer, WellCon> wellContacts = new HashMap<Integer, WellCon>();
 		Map<Integer, Set<Integer>> wellShorts = new HashMap<Integer, Set<Integer>>();

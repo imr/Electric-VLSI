@@ -67,7 +67,6 @@ public class ConnectionCheck implements WellCheckAnalysisStrategy {
 	 * @see
 	 * com.sun.electric.tool.erc.wellcheck.WellCheckAnalysisStrategy#execute()
 	 */
-	@Override
 	public void execute() {
 		if (parameter.getWellPrefs().pWellCheck != 2)
 			findUnconnected(pWellRoot, pWellRoot, WellType.pwell);

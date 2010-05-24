@@ -76,7 +76,6 @@ public class DRCCheck implements WellCheckAnalysisStrategy {
 	 * @see
 	 * com.sun.electric.tool.erc.wellcheck.WellCheckAnalysisStrategy#execute()
 	 */
-	@Override
 	public void execute() {
 		if (parameters.getWellPrefs().drcCheck) {
 			long startTime = System.currentTimeMillis();

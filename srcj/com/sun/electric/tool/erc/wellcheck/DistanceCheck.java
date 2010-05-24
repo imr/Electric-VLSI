@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
@@ -85,7 +86,6 @@ public class DistanceCheck implements WellCheckAnalysisStrategy {
 	 * @see
 	 * com.sun.electric.tool.erc.wellcheck.WellCheckAnalysisStrategy#execute()
 	 */
-	@Override
 	public void execute() {
 		if (parameter.getWellPrefs().findWorstCaseWell) {
 			long startTime = System.currentTimeMillis();
