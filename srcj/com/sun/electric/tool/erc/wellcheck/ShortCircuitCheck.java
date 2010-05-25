@@ -31,9 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
-import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
 
 /**
  * @author fschmidt
@@ -88,9 +86,8 @@ public class ShortCircuitCheck implements WellCheckAnalysisStrategy {
 						List<EPoint> pointList = new ArrayList<EPoint>();
 						pointList.add(new EPoint(wc.getCtr().getX(), wc.getCtr().getY()));
 						pointList.add(new EPoint(other.getCtr().getX(), other.getCtr().getY()));
-						parameter.getErrorLogger().logMessage(
-								"Short circuit between well contacts", pointList,
-								parameter.getCell(), 0, true);
+						parameter.getErrorLogger().logMessage("Short circuit between well contacts",
+								pointList, parameter.getCell(), 0, true);
 						shortsInWC.add(otherNetNum);
 						shortsInOther.add(wcNetNum);
 					}

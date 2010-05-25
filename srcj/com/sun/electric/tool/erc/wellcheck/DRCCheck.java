@@ -28,16 +28,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
-import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
-import com.sun.electric.tool.erc.ERCWellCheck.WellCheckPreferences;
-import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
+import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
 
 /**
  * @author fschmidt
@@ -60,8 +57,8 @@ public class DRCCheck implements WellCheckAnalysisStrategy {
 	 * @param errorLogger
 	 * @param cell
 	 */
-	public DRCCheck(StrategyParameter parameters, Layer pWellLayer, Layer nWellLayer,
-			RTNode pWellRoot, RTNode nWellRoot) {
+	public DRCCheck(StrategyParameter parameters, Layer pWellLayer, Layer nWellLayer, RTNode pWellRoot,
+			RTNode nWellRoot) {
 		super();
 		this.parameters = parameters;
 		this.pWellLayer = pWellLayer;
@@ -79,18 +76,15 @@ public class DRCCheck implements WellCheckAnalysisStrategy {
 	public void execute() {
 		if (parameters.getWellPrefs().drcCheck) {
 			long startTime = System.currentTimeMillis();
-			DRCTemplate pRule = DRC.getSpacingRule(pWellLayer, null, pWellLayer, null, false, -1,
-					0, 0);
-			DRCTemplate nRule = DRC.getSpacingRule(nWellLayer, null, nWellLayer, null, false, -1,
-					0, 0);
+			DRCTemplate pRule = DRC.getSpacingRule(pWellLayer, null, pWellLayer, null, false, -1, 0, 0);
+			DRCTemplate nRule = DRC.getSpacingRule(nWellLayer, null, nWellLayer, null, false, -1, 0, 0);
 			if (pRule != null)
 				findDRCViolations(pWellRoot, pRule.getValue(0));
 			if (nRule != null)
 				findDRCViolations(nWellRoot, nRule.getValue(0));
 
 			long endTime = System.currentTimeMillis();
-			System.out.println("   Design rule check took "
-					+ TextUtils.getElapsedTime(endTime - startTime));
+			System.out.println("   Design rule check took " + TextUtils.getElapsedTime(endTime - startTime));
 			startTime = endTime;
 		}
 
@@ -104,10 +98,10 @@ public class DRCCheck implements WellCheckAnalysisStrategy {
 					continue;
 
 				// look all around this geometry for others in the well area
-				Rectangle2D searchArea = new Rectangle2D.Double(child.getBounds().getMinX()
-						- minDist, child.getBounds().getMinY() - minDist, child.getBounds()
-						.getWidth()
-						+ minDist * 2, child.getBounds().getHeight() + minDist * 2);
+				Rectangle2D searchArea = new Rectangle2D.Double(child.getBounds().getMinX() - minDist, child
+						.getBounds().getMinY()
+						- minDist, child.getBounds().getWidth() + minDist * 2, child.getBounds().getHeight()
+						+ minDist * 2);
 				for (RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext();) {
 					WellBound other = (WellBound) sea.next();
 					if (other.getNetID().getIndex() <= child.getNetID().getIndex())
@@ -126,8 +120,8 @@ public class DRCCheck implements WellCheckAnalysisStrategy {
 						polyList.add(new PolyBase(other.getBounds()));
 						parameters.getErrorLogger().logMessage(
 								"Well areas too close (are " + TextUtils.formatDistance(trueDist)
-										+ " but should be " + TextUtils.formatDistance(minDist)
-										+ " apart)", polyList, parameters.getCell(), 0, true);
+										+ " but should be " + TextUtils.formatDistance(minDist) + " apart)",
+								polyList, parameters.getCell(), 0, true);
 					}
 				}
 			} else {

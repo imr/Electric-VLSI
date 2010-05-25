@@ -24,11 +24,10 @@
 package com.sun.electric.tool.erc.wellcheck;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.RTNode;
-import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
-import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
-import com.sun.electric.tool.erc.ERCWellCheck.WellType;
+import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
+import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
+import com.sun.electric.tool.erc.ERCWellCheck2.WellType;
 
 /**
  * @author fschmidt
@@ -51,8 +50,8 @@ public class ConnectionCheck implements WellCheckAnalysisStrategy {
 	 * @param pWellRoot
 	 * @param nWellRoot
 	 */
-	public ConnectionCheck(StrategyParameter parameter, boolean hasPCon, boolean hasNCon,
-			RTNode pWellRoot, RTNode nWellRoot) {
+	public ConnectionCheck(StrategyParameter parameter, boolean hasPCon, boolean hasNCon, RTNode pWellRoot,
+			RTNode nWellRoot) {
 		super();
 		this.parameter = parameter;
 		this.hasPCon = hasPCon;
@@ -73,12 +72,12 @@ public class ConnectionCheck implements WellCheckAnalysisStrategy {
 		if (parameter.getWellPrefs().nWellCheck != 2)
 			findUnconnected(nWellRoot, nWellRoot, WellType.nwell);
 		if (parameter.getWellPrefs().pWellCheck == 1 && !hasPCon) {
-			parameter.getErrorLogger().logError("No P-Well contact found in this cell",
-					parameter.getCell(), 0);
+			parameter.getErrorLogger().logError("No P-Well contact found in this cell", parameter.getCell(),
+					0);
 		}
 		if (parameter.getWellPrefs().nWellCheck == 1 && !hasNCon) {
-			parameter.getErrorLogger().logError("No N-Well contact found in this cell",
-					parameter.getCell(), 0);
+			parameter.getErrorLogger().logError("No N-Well contact found in this cell", parameter.getCell(),
+					0);
 		}
 	}
 
@@ -87,12 +86,11 @@ public class ConnectionCheck implements WellCheckAnalysisStrategy {
 			if (current.getFlag()) {
 				WellBound child = (WellBound) current.getChild(j);
 				if (child.getNetID() == null) {
-					Utils.spreadWellSeed(child.getBounds().getCenterX(), child.getBounds()
-							.getCenterY(), new NetValues(), rtree, 0);
-					parameter.getErrorLogger().logError(
-							"No " + type + "-Well contact in this area",
-							new EPoint(child.getBounds().getCenterX(), child.getBounds()
-									.getCenterY()), parameter.getCell(), 0);
+					Utils.spreadWellSeed(child.getBounds().getCenterX(), child.getBounds().getCenterY(),
+							new NetValues(), rtree, 0);
+					parameter.getErrorLogger().logError("No " + type + "-Well contact in this area",
+							new EPoint(child.getBounds().getCenterX(), child.getBounds().getCenterY()),
+							parameter.getCell(), 0);
 				}
 			} else {
 				RTNode child = (RTNode) current.getChild(j);

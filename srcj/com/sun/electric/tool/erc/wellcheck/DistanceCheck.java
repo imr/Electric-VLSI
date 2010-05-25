@@ -26,16 +26,13 @@ package com.sun.electric.tool.erc.wellcheck;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import com.sun.electric.database.Environment;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.RTNode;
-import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
-import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
-import com.sun.electric.tool.erc.ERCWellCheck.WellCheckPreferences;
-import com.sun.electric.tool.erc.ERCWellCheck.WellNet;
+import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
+import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
+import com.sun.electric.tool.erc.ERCWellCheck2.WellNet;
 
 /**
  * @author fschmidt
@@ -45,11 +42,19 @@ public class DistanceCheck implements WellCheckAnalysisStrategy {
 
 	private StrategyParameter parameter;
 	private double worstPWellDist;
+	
+	@SuppressWarnings("unused")
 	private Point2D worstPWellCon;
+	
+	@SuppressWarnings("unused")
 	private Point2D worstPWellEdge;
 	private double worstNWellDist;
+	
+	@SuppressWarnings("unused")
 	private Point2D worstNWellCon;
-	private Point2D worstNWellEdge;;
+	
+	@SuppressWarnings("unused")
+	private Point2D worstNWellEdge;
 	private RTNode pWellRoot;
 	private RTNode nWellRoot;
 
@@ -66,8 +71,8 @@ public class DistanceCheck implements WellCheckAnalysisStrategy {
 	 * @param nWellRoot
 	 */
 	public DistanceCheck(StrategyParameter parameter, double worstPWellDist, Point2D worstPWellCon,
-			Point2D worstPWellEdge, double worstNWellDist, Point2D worstNWellCon,
-			Point2D worstNWellEdge, RTNode pWellRoot, RTNode nWellRoot) {
+			Point2D worstPWellEdge, double worstNWellDist, Point2D worstNWellCon, Point2D worstNWellEdge,
+			RTNode pWellRoot, RTNode nWellRoot) {
 		super();
 		this.parameter = parameter;
 		this.worstPWellDist = worstPWellDist;
@@ -103,8 +108,7 @@ public class DistanceCheck implements WellCheckAnalysisStrategy {
 				Integer netNUM = new Integer(wc.getWellNum().getIndex());
 				WellNet wn = wellNets.get(netNUM);
 				if (wn == null) {
-					wn = new WellNet(new ArrayList<Point2D>(), new ArrayList<WellCon>(), wc
-							.getFun());
+					wn = new WellNet(new ArrayList<Point2D>(), new ArrayList<WellCon>(), wc.getFun());
 					wellNets.put(netNUM, wn);
 				}
 				wn.getContactsOnNet().add(wc);
@@ -163,22 +167,14 @@ public class DistanceCheck implements WellCheckAnalysisStrategy {
 				WellNet wn = wellNets.get(netNUM);
 				if (wn == null)
 					continue;
-				wn.getPointsOnNet()
-						.add(
-								new Point2D.Double(child.getBounds().getMinX(), child.getBounds()
-										.getMinY()));
-				wn.getPointsOnNet()
-						.add(
-								new Point2D.Double(child.getBounds().getMaxX(), child.getBounds()
-										.getMinY()));
-				wn.getPointsOnNet()
-						.add(
-								new Point2D.Double(child.getBounds().getMaxX(), child.getBounds()
-										.getMaxY()));
-				wn.getPointsOnNet()
-						.add(
-								new Point2D.Double(child.getBounds().getMinX(), child.getBounds()
-										.getMaxY()));
+				wn.getPointsOnNet().add(
+						new Point2D.Double(child.getBounds().getMinX(), child.getBounds().getMinY()));
+				wn.getPointsOnNet().add(
+						new Point2D.Double(child.getBounds().getMaxX(), child.getBounds().getMinY()));
+				wn.getPointsOnNet().add(
+						new Point2D.Double(child.getBounds().getMaxX(), child.getBounds().getMaxY()));
+				wn.getPointsOnNet().add(
+						new Point2D.Double(child.getBounds().getMinX(), child.getBounds().getMaxY()));
 			} else {
 				RTNode child = (RTNode) rtree.getChild(j);
 				findWellNetPoints(child, wellNets);

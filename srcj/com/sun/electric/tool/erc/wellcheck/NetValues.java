@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.erc.wellcheck;
 
-
 /**
  * @author fschmidt
  * 

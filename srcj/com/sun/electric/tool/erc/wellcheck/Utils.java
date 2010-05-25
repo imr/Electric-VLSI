@@ -31,8 +31,8 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
-import com.sun.electric.tool.erc.ERCWellCheck.WellBoundRecord;
+import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
+import com.sun.electric.tool.erc.ERCWellCheck2.WellBoundRecord;
 
 /**
  * @author fschmidt
@@ -66,8 +66,7 @@ public class Utils {
 		return fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.RESNWELL;
 	}
 
-	public static void spreadWellSeed(double cX, double cY, NetValues wellNum, RTNode rtree,
-			int threadIndex) {
+	public static void spreadWellSeed(double cX, double cY, NetValues wellNum, RTNode rtree, int threadIndex) {
 		RTNode allFound = null;
 		Point2D ctr = new Point2D.Double(cX, cY);
 		Rectangle2D searchArea = new Rectangle2D.Double(cX, cY, 0, 0);
@@ -115,8 +114,7 @@ public class Utils {
 					sides[numSides++].setRect(newLX, hY, newHX - newLX, newHY - hY);
 			} else {
 				// just keep growing the search area
-				allFound = searchInArea(searchArea, wellNum, rtree, allFound, ctr, keepSearching,
-						threadIndex);
+				allFound = searchInArea(searchArea, wellNum, rtree, allFound, ctr, keepSearching, threadIndex);
 			}
 		}
 	}

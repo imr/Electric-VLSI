@@ -25,10 +25,10 @@ package com.sun.electric.tool.erc.wellcheck;
 
 /**
  * @author fschmidt
- *
+ * 
  */
 public interface WellCheckAnalysisStrategy {
-	
+
 	public void execute();
 
 }

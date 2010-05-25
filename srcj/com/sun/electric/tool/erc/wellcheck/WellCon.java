@@ -31,7 +31,7 @@ import com.sun.electric.technology.PrimitiveNode.Function;
 
 /**
  * @author fschmidt
- *
+ * 
  */
 public class WellCon {
 
@@ -42,7 +42,7 @@ public class WellCon {
 	private boolean onRail;
 	private PrimitiveNode.Function fun;
 	private NodeInst ni;
-	
+
 	/**
 	 * @param ctr
 	 * @param netNum
@@ -52,8 +52,8 @@ public class WellCon {
 	 * @param fun
 	 * @param ni
 	 */
-	public WellCon(Point2D ctr, int netNum, NetValues wellNum, boolean onProperRail,
-			boolean onRail, Function fun, NodeInst ni) {
+	public WellCon(Point2D ctr, int netNum, NetValues wellNum, boolean onProperRail, boolean onRail,
+			Function fun, NodeInst ni) {
 		super();
 		this.ctr = ctr;
 		this.netNum = netNum;
@@ -63,45 +63,59 @@ public class WellCon {
 		this.fun = fun;
 		this.ni = ni;
 	}
+
 	public Point2D getCtr() {
 		return ctr;
 	}
+
 	public void setCtr(Point2D ctr) {
 		this.ctr = ctr;
 	}
+
 	public int getNetNum() {
 		return netNum;
 	}
+
 	public void setNetNum(int netNum) {
 		this.netNum = netNum;
 	}
+
 	public NetValues getWellNum() {
 		return wellNum;
 	}
+
 	public void setWellNum(NetValues wellNum) {
 		this.wellNum = wellNum;
 	}
+
 	public boolean isOnProperRail() {
 		return onProperRail;
 	}
+
 	public void setOnProperRail(boolean onProperRail) {
 		this.onProperRail = onProperRail;
 	}
+
 	public boolean isOnRail() {
 		return onRail;
 	}
+
 	public void setOnRail(boolean onRail) {
 		this.onRail = onRail;
 	}
+
 	public PrimitiveNode.Function getFun() {
 		return fun;
 	}
+
 	public void setFun(PrimitiveNode.Function fun) {
 		this.fun = fun;
 	}
+
 	public NodeInst getNi() {
 		return ni;
 	}
+
 	public void setNi(NodeInst ni) {
 		this.ni = ni;
 	}

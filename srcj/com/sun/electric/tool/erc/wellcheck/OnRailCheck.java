@@ -30,11 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
-import com.sun.electric.tool.erc.ERCWellCheck.Transistor;
-import com.sun.electric.tool.erc.ERCWellCheck.WellCheckPreferences;
-import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
+import com.sun.electric.tool.erc.ERCWellCheck2.Transistor;
 import com.sun.electric.tool.util.CollectionFactory;
 
 /**
@@ -75,7 +72,6 @@ public class OnRailCheck implements WellCheckAnalysisStrategy {
 	public void execute() {
 		int cacheHits = 0;
 		// System.out.println(wellCons.size());
-		boolean hasPCon = false, hasNCon = false;
 		for (WellCon wc : parameter.getWellCons()) {
 
 			if (!wc.isOnRail()) {
@@ -99,15 +95,15 @@ public class OnRailCheck implements WellCheckAnalysisStrategy {
 			if (!(wc.isOnRail() || wc.isOnProperRail())) {
 				if (Utils.canBeSubstrateTap(wc.getFun())) {
 					if (parameter.getWellPrefs().mustConnectPWellToGround) {
-						parameter.getErrorLogger().logError("P-Well contact '" + wc.getNi().getName()
-								+ "' not connected to ground", new EPoint(wc.getCtr().getX(), wc
-								.getCtr().getY()), parameter.getCell(), 0);
+						parameter.getErrorLogger().logError(
+								"P-Well contact '" + wc.getNi().getName() + "' not connected to ground",
+								new EPoint(wc.getCtr().getX(), wc.getCtr().getY()), parameter.getCell(), 0);
 					}
 				} else {
 					if (parameter.getWellPrefs().mustConnectNWellToPower) {
-						parameter.getErrorLogger().logError("N-Well contact '" + wc.getNi().getName()
-								+ "' not connected to power", new EPoint(wc.getCtr().getX(), wc
-								.getCtr().getY()), parameter.getCell(), 0);
+						parameter.getErrorLogger().logError(
+								"N-Well contact '" + wc.getNi().getName() + "' not connected to power",
+								new EPoint(wc.getCtr().getX(), wc.getCtr().getY()), parameter.getCell(), 0);
 					}
 				}
 			}
