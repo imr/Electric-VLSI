@@ -200,7 +200,7 @@ public class Change extends EModelessDialog implements HighlightListener
 	/** Creates new form Change */
 	private Change(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
         getRootPane().setDefaultButton(done);
         apply.setMnemonic('A');

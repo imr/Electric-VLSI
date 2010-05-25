@@ -158,7 +158,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
      */
     private Attributes(Frame parent)
     {
-        super(parent, false);
+        super(parent);
         initComponents();
 
         if (showParamsOnly) {

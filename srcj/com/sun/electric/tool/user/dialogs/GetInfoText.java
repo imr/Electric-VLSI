@@ -240,7 +240,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 	 */
 	private GetInfoText(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 

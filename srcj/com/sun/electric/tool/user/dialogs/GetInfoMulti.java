@@ -273,7 +273,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	/** Creates new form Multi-Object Get Info */
 	private GetInfoMulti(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		highlightList = new ArrayList<Highlight>();
 		initComponents();
         getRootPane().setDefaultButton(ok);

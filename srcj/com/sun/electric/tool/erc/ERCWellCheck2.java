@@ -1140,7 +1140,7 @@ public class ERCWellCheck2 {
 		private Color[] hColors = new Color[] { Color.WHITE, Color.RED, Color.GREEN, Color.BLUE };
 
 		public ShowWellBoundOrder() {
-			super(TopLevel.isMDIMode() ? TopLevel.getCurrentJFrame() : null, false);
+			super(TopLevel.isMDIMode() ? TopLevel.getCurrentJFrame() : null);
 			initComponents();
 			finishInitialization();
 			setVisible(true);

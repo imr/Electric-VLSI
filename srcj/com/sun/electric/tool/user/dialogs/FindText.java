@@ -97,7 +97,7 @@ public class FindText extends EModelessDialog
 	/** Creates new form Search and Replace */
 	private FindText(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
 
 		// make all text fields select-all when entered

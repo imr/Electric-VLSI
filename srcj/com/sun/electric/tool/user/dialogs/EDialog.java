@@ -60,8 +60,8 @@ import javax.swing.tree.TreePath;
  */
 public class EDialog extends JDialog
 {
-	private static Map<Class,Point> locations = new HashMap<Class,Point>();
-	private static Map<Class,Dimension> sizes = new HashMap<Class,Dimension>();
+	private static Map<Class<?>,Point> locations = new HashMap<Class<?>,Point>();
+	private static Map<Class<?>,Dimension> sizes = new HashMap<Class<?>,Dimension>();
 	private static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
 	private static TextBoxMouseListener textBoxMouseListener = new TextBoxMouseListener();
 	private static JTextField justMoused = null;
@@ -87,6 +87,9 @@ public class EDialog extends JDialog
 			public void actionPerformed(ActionEvent event) { escapePressed(); }
 		});
 
+		// manage keeping dialog on top
+		if (!modal) TopLevel.addModelessDialog(this);
+
 //		// add a focus listener for SDI mode so dialogs are always on top
 //		if (parent == null && !TopLevel.isMDIMode())
 //		{
@@ -94,7 +97,7 @@ public class EDialog extends JDialog
 //		}
 	}
 
-	public static Point getDialogLocation(Class clz)
+	public static Point getDialogLocation(Class<?> clz)
 	{
 		Point pt = locations.get(clz);
 		if (pt == null)
@@ -106,7 +109,7 @@ public class EDialog extends JDialog
 		return pt;
 	}
 
-	public static Dimension getDialogSize(Class clz)
+	public static Dimension getDialogSize(Class<?> clz)
 	{
 		Dimension sz = sizes.get(clz);
 		return sz;
@@ -291,14 +294,14 @@ public class EDialog extends JDialog
 
 		public void componentResized(ComponentEvent e)
 		{
-			Class cls = e.getSource().getClass();
+			Class<?> cls = e.getSource().getClass();
 			Rectangle bound = ((Container)e.getSource()).getBounds();
 			sizes.put(cls, new Dimension(bound.width, bound.height));
 		}
 
 		public void componentMoved(ComponentEvent e)
 		{
-			Class cls = e.getSource().getClass();
+			Class<?> cls = e.getSource().getClass();
 			Rectangle bound = ((Container)e.getSource()).getBounds();
 			int x = (int)bound.getMinX();
 			int y = (int)bound.getMinY();

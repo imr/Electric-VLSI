@@ -71,11 +71,12 @@ public class DisplayControlTab extends PreferencePanel
 	{
 		// top half (miscellaneous controls)
 		generalShowCursorCoordinates.setSelected(User.isShowHierarchicalCursorCoordinates());
+		sideBarOnRight.setSelected(User.isSideBarOnRight());
+		dimUpperWhenDownInPlace.setSelected(User.isDimUpperLevelWhenDownInPlace());
+		showCellsInNewWindow.setSelected(User.isShowCellsInNewWindow());
 		makeErrorHighlightingPulsate.setSelected(User.isErrorHighlightingPulsate());
 		shiftWindowToErrors.setSelected(User.isShiftWindowToErrors());
-		showCellsInNewWindow.setSelected(User.isShowCellsInNewWindow());
-		dimUpperWhenDownInPlace.setSelected(User.isDimUpperLevelWhenDownInPlace());
-		sideBarOnRight.setSelected(User.isSideBarOnRight());
+		keepModelessDialogsOnTop.setSelected(User.isKeepModelessDialogsOnTop());
 		generalPanningDistance.addItem("Small");
 		generalPanningDistance.addItem("Medium");
 		generalPanningDistance.addItem("Large");
@@ -111,10 +112,18 @@ public class DisplayControlTab extends PreferencePanel
 		boolean currBoolean = generalShowCursorCoordinates.isSelected();
 		if (currBoolean != User.isShowHierarchicalCursorCoordinates())
 			User.setShowHierarchicalCursorCoordinates(currBoolean);
+		
+		currBoolean = sideBarOnRight.isSelected();
+		if (currBoolean != User.isSideBarOnRight())
+			User.setSideBarOnRight(currBoolean);
 
 		currBoolean = dimUpperWhenDownInPlace.isSelected();
 		if (currBoolean != User.isDimUpperLevelWhenDownInPlace())
 			User.setDimUpperLevelWhenDownInPlace(currBoolean);
+
+		currBoolean = showCellsInNewWindow.isSelected();
+		if (currBoolean != User.isShowCellsInNewWindow())
+			User.setShowCellsInNewWindow(currBoolean);
 
 		currBoolean = makeErrorHighlightingPulsate.isSelected();
 		if (currBoolean != User.isErrorHighlightingPulsate())
@@ -124,13 +133,9 @@ public class DisplayControlTab extends PreferencePanel
 		if (currBoolean != User.isShiftWindowToErrors())
 			User.setShiftWindowToErrors(currBoolean);
 
-		currBoolean = showCellsInNewWindow.isSelected();
-		if (currBoolean != User.isShowCellsInNewWindow())
-			User.setShowCellsInNewWindow(currBoolean);
-		
-		currBoolean = sideBarOnRight.isSelected();
-		if (currBoolean != User.isSideBarOnRight())
-			User.setSideBarOnRight(currBoolean);
+		currBoolean = keepModelessDialogsOnTop.isSelected();
+		if (currBoolean != User.isKeepModelessDialogsOnTop())
+			User.setKeepModelessDialogsOnTop(currBoolean);
 
 		int currInt = generalPanningDistance.getSelectedIndex();
 		if (currInt != User.getPanningDistance())
@@ -212,22 +217,25 @@ public class DisplayControlTab extends PreferencePanel
     @Override
 	public void reset()
 	{
+		// top half (miscellaneous controls)
 		if (User.isFactoryShowHierarchicalCursorCoordinates() != User.isShowHierarchicalCursorCoordinates())
 			User.setShowHierarchicalCursorCoordinates(User.isFactoryShowHierarchicalCursorCoordinates());
-		if (User.isFactoryDimUpperLevelWhenDownInPlace() != User.isDimUpperLevelWhenDownInPlace())
-			User.setDimUpperLevelWhenDownInPlace(User.isFactoryDimUpperLevelWhenDownInPlace());
 		if (User.isFactorySideBarOnRight() != User.isSideBarOnRight())
 			User.setSideBarOnRight(User.isFactorySideBarOnRight());
+		if (User.isFactoryDimUpperLevelWhenDownInPlace() != User.isDimUpperLevelWhenDownInPlace())
+			User.setDimUpperLevelWhenDownInPlace(User.isFactoryDimUpperLevelWhenDownInPlace());
+		if (User.isFactoryShowCellsInNewWindow() != User.isShowCellsInNewWindow())
+			User.setShowCellsInNewWindow(User.isFactoryShowCellsInNewWindow());
+		if (User.isFactoryErrorHighlightingPulsate() != User.isErrorHighlightingPulsate())
+			User.setErrorHighlightingPulsate(User.isFactoryErrorHighlightingPulsate());
+		if (User.isFactoryShiftWindowToErrors() != User.isShiftWindowToErrors())
+			User.setShiftWindowToErrors(User.isFactoryShiftWindowToErrors());
+		if (User.isFactoryKeepModelessDialogsOnTop() != User.isKeepModelessDialogsOnTop())
+			User.setKeepModelessDialogsOnTop(User.isFactoryKeepModelessDialogsOnTop());
 		if (User.getFactoryPanningDistance() != User.getPanningDistance())
 			User.setPanningDistance(User.getFactoryPanningDistance());
 		if (User.getFactoryDisplayStyle() != User.getDisplayStyle())
 			User.setDisplayStyle(User.getFactoryDisplayStyle());
-		if (User.isFactoryErrorHighlightingPulsate() != User.isErrorHighlightingPulsate())
-			User.setErrorHighlightingPulsate(User.isFactoryErrorHighlightingPulsate());
-		if (User.isFactoryShiftWindowToErrors() != User.isShiftWindowToErrors())
-			User.setShiftWindowToErrors(User.isFactoryShiftWindowToErrors());		
-		if (User.isFactoryShowCellsInNewWindow() != User.isShowCellsInNewWindow())
-			User.setShowCellsInNewWindow(User.isFactoryShowCellsInNewWindow());
 
 		// bottom half (display algorithm)
 		if (User.getFactoryDisplayAlgorithm() != User.getDisplayAlgorithm())
@@ -245,11 +253,6 @@ public class DisplayControlTab extends PreferencePanel
 		if (User.getFactoryAlphaBlendingOvercolorLimit() != User.getAlphaBlendingOvercolorLimit())
 			User.setAlphaBlendingOvercolorLimit(User.getFactoryAlphaBlendingOvercolorLimit());
         LayerVisibility.setDefaultOpacity();
-//		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-//		{
-//			Technology tech = it.next();
-//			EditWindow.setDefaultOpacity(tech);
-//		}
 	}
 
 	/** This method is called from within the constructor to
@@ -290,6 +293,7 @@ public class DisplayControlTab extends PreferencePanel
         dimUpperWhenDownInPlace = new javax.swing.JCheckBox();
         showCellsInNewWindow = new javax.swing.JCheckBox();
         shiftWindowToErrors = new javax.swing.JCheckBox();
+        keepModelessDialogsOnTop = new javax.swing.JCheckBox();
 
         setTitle("Edit Options");
         setName(""); // NOI18N
@@ -323,13 +327,13 @@ public class DisplayControlTab extends PreferencePanel
         jLabel1.setText("Panning distance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(jLabel1, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(generalPanningDistance, gridBagConstraints);
@@ -494,7 +498,7 @@ public class DisplayControlTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -503,14 +507,14 @@ public class DisplayControlTab extends PreferencePanel
         jLabel2.setText("Display style:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(displayStyle, gridBagConstraints);
@@ -550,6 +554,15 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(shiftWindowToErrors, gridBagConstraints);
+
+        keepModelessDialogsOnTop.setText("Keep modeless dialogs on top");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        general.add(keepModelessDialogsOnTop, gridBagConstraints);
 
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
@@ -595,6 +608,7 @@ public class DisplayControlTab extends PreferencePanel
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JCheckBox keepModelessDialogsOnTop;
     private javax.swing.JRadioButton layerDisplay;
     private javax.swing.JCheckBox makeErrorHighlightingPulsate;
     private javax.swing.JTextField patternScaleLimit;

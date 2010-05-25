@@ -977,7 +977,7 @@ public class ViewChanges
 		/** Creates new form */
 		private MakeNewViewDialog(Cell oldCell, EditWindow wnd)
 		{
-			super(TopLevel.getCurrentJFrame(), false);
+			super(TopLevel.getCurrentJFrame(), true);
 			this.oldCell = oldCell;
 			initComponents();
 

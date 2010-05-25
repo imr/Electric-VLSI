@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
@@ -31,6 +32,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -44,11 +47,10 @@ import javax.swing.KeyStroke;
 public class EModelessDialog extends JFrame
 {
 	/** Creates new form */
-	public EModelessDialog(Frame parent, boolean modal)
+	public EModelessDialog(Frame parent)
 	{
 		super("Title", (parent == null) ? (TopLevel.getCurrentJFrame() == null ? null :
 			TopLevel.getCurrentJFrame().getGraphicsConfiguration()) : parent.getGraphicsConfiguration());
-        assert !modal;
 
         final String CANCEL_DIALOG = "cancel-dialog";
 		KeyStroke accel = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
@@ -63,6 +65,9 @@ public class EModelessDialog extends JFrame
 
 		setIconImage(TopLevel.getFrameIcon().getImage());
 		addComponentListener(new EDialog.MoveComponentListener());
+
+		// manage keeping dialog on top
+		TopLevel.addModelessDialog(this);
 	}
 
 	/**

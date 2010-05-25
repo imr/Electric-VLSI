@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
-IMP (5/24/10, FS)
+IMP/MAN: (5/25/10, SMR) New "Display Control" Preference to keep modeless
+     dialogs on top (Bug #2767).
+
+IMP: (5/24/10, FS)
      - Use new parallel infrastructure in ERC Well Check Tool
      - Refactoring of ERC Well Check Tool
 

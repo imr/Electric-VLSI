@@ -45,13 +45,16 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.ImageIcon;
 import javax.swing.JDesktopPane;
@@ -69,20 +72,21 @@ import javax.swing.UIManager;
  */
 public class TopLevel extends JFrame
 {
+    /** true to resize initial MDI window forces redraw) */	private static final boolean MDIINITIALRESIZE = true;
     /** True if in MDI mode, otherwise SDI. */				private static UserInterfaceMain.Mode mode;
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop = null;
 	/** The main frame (if MDI). */							private static TopLevel topLevel = null;
-	/** The only status bar (if MDI). */					private StatusBar sb = null;
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The messagesWindow window. */						private static MessagesWindow messagesWindow;
     /** The rate of double-clicks. */						private static int doubleClickDelay;
 	/** The cursor being displayed. */						private static Cursor cursor;
-    /** If the busy cursor is overriding the normal cursor */ private static boolean busyCursorOn = false;
+    /** If busy cursor is overriding the normal cursor */	private static boolean busyCursorOn = false;
+	/** List of modeless dialogs to keep on top. */			private static Set<Window> modelessDialogs = new HashSet<Window>();
+	/** The WindowAdapter for keeping dialogs on top. */	private static WindowAdapter onTopWindowAdapter = new MyWindowAdapter();
 
+	/** The only status bar (if MDI). */					private StatusBar sb = null;
     /** The menu bar */                                     private EMenuBar.Instance menuBar;
     /** The tool bar */                                     private ToolBar toolBar;
-
-    /** true to resize initial MDI window forces redraw) */	private static final boolean MDIINITIALRESIZE = true;
 
 	/**
 	 * Constructor to build a window.
@@ -112,6 +116,7 @@ public class TopLevel extends JFrame
             //setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 //            addWindowFocusListener(EDialog.dialogFocusHandler);
 		}
+		addWindowFocusListener(onTopWindowAdapter);
 
 		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 
@@ -126,7 +131,34 @@ public class TopLevel extends JFrame
 		}
 	}
 
-    public void createStructure(WindowFrame frame) {
+	/**
+	 * Method to register a dialog as "modeless" so that it can be kept on top (if requested).
+	 * @param dialog the dialog to keep on top.
+	 */
+	public static void addModelessDialog(Window dialog) { modelessDialogs.add(dialog); }
+
+	/**
+	 * Method to remove a modeless dialog from the list of dialogs to keep on top (if requested).
+	 * @param dialog the dialog to remove from the list (because it is being deleted).
+	 */
+	public static void removeModelessDialog(JFrame dialog) { modelessDialogs.remove(dialog); }
+
+	/**
+	 * Class to keep modeless dialogs on top when requested.
+	 */
+	private static class MyWindowAdapter extends WindowAdapter
+	{
+		public void windowGainedFocus(WindowEvent e)
+		{
+			if (!User.isKeepModelessDialogsOnTop()) return;
+			for(Window jf : modelessDialogs)
+			{
+				if (jf.isVisible()) jf.toFront();
+			}
+		}
+	}
+
+	public void createStructure(WindowFrame frame) {
 		// create the menu bar
         try{
             menuBar = MenuCommands.menuBar().genInstance();
@@ -548,13 +580,18 @@ public class TopLevel extends JFrame
         //System.out.println(this.getClass()+" being disposed of");
         // clean up menubar
         setJMenuBar(null);
-        // TODO: figure out why Swing still sends events to finished menuBars
+
+		removeWindowFocusListener(onTopWindowAdapter);
+
+		// TODO: figure out why Swing still sends events to finished menuBars
         menuBar.finished(); menuBar = null;
+
         // clean up toolbar
         Container container = getContentPane();
         if (container != null) container.remove(toolBar);
 //        getContentPane().remove(toolBar);
         toolBar.finished(); toolBar = null;
+
         // clean up scroll bar
         if (container != null) container.remove(sb);
         sb.finished(); sb = null;

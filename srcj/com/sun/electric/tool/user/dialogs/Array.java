@@ -142,7 +142,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 	/** Creates new form Array */
 	private Array(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 		UserInterfaceMain.addDatabaseChangeListener(this);

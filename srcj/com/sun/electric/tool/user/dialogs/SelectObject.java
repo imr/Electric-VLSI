@@ -96,7 +96,7 @@ public class SelectObject extends EModelessDialog implements DatabaseChangeListe
 	/** Creates new form SelectObject */
 	private SelectObject(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
 		getRootPane().setDefaultButton(done);
 		UserInterfaceMain.addDatabaseChangeListener(this);

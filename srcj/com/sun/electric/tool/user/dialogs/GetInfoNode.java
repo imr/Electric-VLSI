@@ -66,6 +66,8 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -179,7 +181,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	/** Creates new form Node Properties */
 	private GetInfoNode(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 

@@ -344,7 +344,7 @@ public class ManualViewer extends EModelessDialog
 	 */
 	private ManualViewer(Frame parent, String preference, Class baseClass, String htmlDir) throws Exception
 	{
-		super(parent, false);
+		super(parent);
 		htmlBaseClass = baseClass;
 		htmlDirectory = htmlDir;
 		pageSequence = new ArrayList<PageInfo>();
@@ -1331,7 +1331,7 @@ public class ManualViewer extends EModelessDialog
 
 		private EditHTML(Frame parent, URL file, ManualViewer world)
 		{
-			super(parent, false);
+			super(parent);
 			this.file = file;
 			this.world = world;
 			getContentPane().setLayout(new GridBagLayout());

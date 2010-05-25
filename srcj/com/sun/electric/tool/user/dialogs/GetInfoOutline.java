@@ -91,7 +91,7 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 	/** Creates new form GetInfoOutline */
 	public GetInfoOutline(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
         getRootPane().setDefaultButton(apply);
 

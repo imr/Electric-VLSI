@@ -70,7 +70,7 @@ public class SavedViews extends EModelessDialog implements HighlightListener
 	/** Creates new form Saved Views */
 	private SavedViews(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
 
 		Highlighter.addHighlightListener(this);

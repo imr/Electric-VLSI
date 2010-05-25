@@ -222,7 +222,7 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 	/** Creates new form Export Get-Info */
 	private GetInfoExport(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

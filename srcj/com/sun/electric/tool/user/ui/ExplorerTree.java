@@ -467,7 +467,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 		/** Creates new form FindCellDialog */
 		private FindCellDialog(Frame parent)
 		{
-			super(parent, false);
+			super(parent);
 			GridBagConstraints gbc;
 			setTitle("Find Cells");
 			setName("");

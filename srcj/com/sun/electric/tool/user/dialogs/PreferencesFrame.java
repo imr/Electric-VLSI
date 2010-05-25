@@ -134,7 +134,7 @@ import javax.swing.tree.TreePath;
 /**
  * Class to handle the "Preferences Frame" dialog.
  */
-public class PreferencesFrame extends EDialog
+public class PreferencesFrame extends EModelessDialog
 {
 	private JSplitPane splitPane1, splitPane2;
 	private JTree optionTree;
@@ -191,7 +191,7 @@ public class PreferencesFrame extends EDialog
 	/** Creates new form Preferences Frame */
 	public PreferencesFrame(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		getContentPane().setLayout(new GridBagLayout());
 		setTitle("Preferences");
 		setName("");
@@ -231,7 +231,7 @@ public class PreferencesFrame extends EDialog
 			try
 			{
 				Class<?> testTab = Class.forName("com.sun.electric.plugins.tests.TestTab");
-				Constructor tab = testTab.getDeclaredConstructor(new Class[]{Frame.class, Boolean.class});
+				Constructor<?> tab = testTab.getDeclaredConstructor(new Class[]{Frame.class, Boolean.class});
 				addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, Boolean.TRUE}), generalSet);
 			}
 			catch (Exception ex) { /* do nothing */ };
@@ -427,7 +427,7 @@ public class PreferencesFrame extends EDialog
 		loadOptionPanel();
 		splitPane1.setLeftComponent(leftPanel);
 		splitPane2.setRightComponent(splitPane1);
-		recursivelyHighlight(optionTree, rootNode, initialDMTN, optionTree.getPathForRow(0));
+		EDialog.recursivelyHighlight(optionTree, rootNode, initialDMTN, optionTree.getPathForRow(0));
 
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 0;

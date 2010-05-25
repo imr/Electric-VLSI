@@ -125,7 +125,7 @@ public class ArtworkLook extends EModelessDialog implements HighlightListener
 	/** Creates new form ArtworkLook */
 	public ArtworkLook(Frame parent, List<Geometric> artObjects)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 

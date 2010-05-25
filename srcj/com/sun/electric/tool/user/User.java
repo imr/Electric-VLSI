@@ -2123,6 +2123,27 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryShiftWindowToErrors() { return cacheShiftWindowToErrors.getBooleanFactoryValue(); }
 
+	private static Pref cacheKeepModelessDialogsOnTop = Pref.makeBooleanPref("KeepModelessDialogsOnTop", tool.prefs, false);
+	/**
+	 * Method to tell whether to keep modeless dialogs on top of the edit window.
+	 * When false, the edit window may obscure modeless dialogs (such as the Properties dialogs).
+	 * The default is "false".
+	 * @return true to keep modeless dialogs on top of the edit window.
+	 */
+	public static boolean isKeepModelessDialogsOnTop() { return cacheKeepModelessDialogsOnTop.getBoolean(); }
+	/**
+	 * Method to set whether to keep modeless dialogs on top of the edit window.
+	 * When false, the edit window may obscure modeless dialogs (such as the Properties dialogs).
+	 * @param dim true to keep modeless dialogs on top of the edit window.
+	 */
+	public static void setKeepModelessDialogsOnTop(boolean dim) { cacheKeepModelessDialogsOnTop.setBoolean(dim); }
+	/**
+	 * Method to tell whether to keep modeless dialogs on top of the edit window, by default.
+	 * When false, the edit window may obscure modeless dialogs (such as the Properties dialogs).
+	 * @return true to keep modeless dialogs on top of the edit window, by default.
+	 */
+	public static boolean isFactoryKeepModelessDialogsOnTop() { return cacheKeepModelessDialogsOnTop.getBooleanFactoryValue(); }
+
 	private static Pref cacheWhichDisplayAlgorithm = Pref.makeIntPref("WhichDisplayAlgorithm", tool.prefs, 1);
 	/**
 	 * Method to tell which display algorithm to use.

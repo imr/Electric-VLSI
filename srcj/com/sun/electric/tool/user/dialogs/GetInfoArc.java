@@ -192,7 +192,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 	/** Creates new form Arc Get-Info */
 	private GetInfoArc(Frame parent)
 	{
-		super(parent, false);
+		super(parent);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 		UserInterfaceMain.addDatabaseChangeListener(this);
