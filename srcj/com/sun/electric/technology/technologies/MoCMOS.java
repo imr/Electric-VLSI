@@ -130,6 +130,7 @@ public class MoCMOS extends Technology
 
     @Override
     protected void copyState(Technology that) {
+        assert !IMMUTABLE_TECHS;
         super.copyState(that);
         MoCMOS mocmos = (MoCMOS)that;
         paramRuleSet = mocmos.paramRuleSet;

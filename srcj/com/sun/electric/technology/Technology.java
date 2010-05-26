@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.Environment;
@@ -130,7 +129,7 @@ public class Technology implements Comparable<Technology>, Serializable
     protected static final boolean ALWAYS_SKIP_WIPED_PINS = false;
 
     // Change in TechSettings takes effect only after restart
-    public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
+    public static final boolean IMMUTABLE_TECHS = true;
 
     /** Jelib writes base sizes since this Electric Version */
     public static final Version DISK_VERSION_1 = Version.parseVersion("8.05g");
@@ -1384,6 +1383,7 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
     protected void copyState(Technology that) {
+        assert !IMMUTABLE_TECHS;
         currentState = new State(that.currentState.paramValues);
         xmlTech = that.xmlTech;
         factoryMenuPalette = that.factoryMenuPalette;

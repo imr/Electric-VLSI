@@ -1200,6 +1200,7 @@ public class EditWindow extends JPanel
 
     public void loadTechnologies() {
         lv = LayerVisibility.getLayerVisibility();
+        setDrawingAlgorithm();
     }
 
 	/**

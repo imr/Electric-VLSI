@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+IMP: (5/25/10, DN) Technologies are immutable - new Technology objects are used if technology parameters are changed.
+   Can be disablesd by Tecyhnology.IMMUTABLE_TECHS = false;
+
 IMP/MAN: (5/25/10, SMR) New "Display Control" Preference to keep modeless
      dialogs on top (Bug #2767).
 

@@ -565,6 +565,9 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             writer.writeBoolean(sameState);
             if (sameState) continue;
             boolean sameTech = tech == old.getTech(techId);
+            if (Technology.IMMUTABLE_TECHS) {
+                assert !sameTech;
+            }
             writer.writeBoolean(sameTech);
             if (!sameTech)
                 tech.techFactory.write(writer);
@@ -604,6 +607,9 @@ public class TechPool extends AbstractMap<TechId, Technology> {
                 continue;
             }
             boolean sameTech = reader.readBoolean();
+            if (Technology.IMMUTABLE_TECHS) {
+                assert !sameTech;
+            }
             TechFactory techFactory = sameTech ? old.getTech(techId).techFactory : TechFactory.read(reader);
             HashMap<TechFactory.Param,Object> paramValues = new HashMap<TechFactory.Param,Object>();
             for (TechFactory.Param techParam: techFactory.getTechParams()) {
