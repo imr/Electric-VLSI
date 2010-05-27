@@ -412,6 +412,7 @@ public class EDIF extends Input
 		public String acceptedParameters;
 		public String configurationFile;
 		public boolean cadenceCompatibility;
+		public boolean showArcNames, showNodeNames;
 		public IconParameters iconParameters = IconParameters.makeInstance(false);
 		public AutoStitch.AutoOptions autoParameters = new AutoStitch.AutoOptions();
 
@@ -423,6 +424,8 @@ public class EDIF extends Input
 			acceptedParameters = IOTool.getEDIFAcceptedParameters();
 			configurationFile = IOTool.getEDIFConfigurationFile();
 			cadenceCompatibility = IOTool.isEDIFCadenceCompatibility();
+			showArcNames = IOTool.isEDIFShowArcNames();
+			showNodeNames = IOTool.isEDIFShowNodeNames();
 			iconParameters.initFromUserDefaults();
 			autoParameters.initFromUserDefaults();
 			autoParameters.createExports = false;
@@ -731,6 +734,12 @@ public class EDIF extends Input
 				if (ai.getNameKey().isTempname())
 				{
 					ai.setName(arcName);
+					if (!localPrefs.showArcNames)
+					{
+						TextDescriptor td = ai.getTextDescriptor(ArcInst.ARC_NAME);
+						td = td.withDisplay(TextDescriptor.Display.NONE);
+						ai.setTextDescriptor(ArcInst.ARC_NAME, td);
+					}
 				} else
 				{
 					// two names on one arc: duplicate the arc
@@ -738,6 +747,8 @@ public class EDIF extends Input
 						ai.getHeadPortInst(), ai.getTailPortInst(), ai.getHeadLocation(), ai.getTailLocation(),
 						arcName, ai.getAngle(), ai.getD().flags);
 					TextDescriptor td = TextDescriptor.getArcTextDescriptor().withOff(0, -1);
+					if (!localPrefs.showArcNames)
+						td = td.withDisplay(TextDescriptor.Display.NONE);
 					second.setTextDescriptor(ArcInst.ARC_NAME, td);
 				}
 			}
@@ -1284,6 +1295,17 @@ public class EDIF extends Input
 				cellArcNames.put(name, arcsWithName);
 			}
 			arcsWithName.add(ai);
+		}
+	}
+
+	private void putNameOnNode(NodeInst ni, String name)
+	{
+		ni.setName(convertParens(name));
+		if (!localPrefs.showNodeNames)
+		{
+			TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME);
+			td = td.withDisplay(TextDescriptor.Display.NONE);
+			ni.setTextDescriptor(NodeInst.NODE_NAME, td);
 		}
 	}
 
@@ -2535,14 +2557,12 @@ public class EDIF extends Input
 							 */
 							if (instanceReference.equalsIgnoreCase(instanceName))
 							{
-								ni.setName(convertParens(nodeName));
+								putNameOnNode(ni, nodeName);
 							} else
 							{
 								// now add the original name as the displayed name (only to the first element)
 								if (iX == 0 && iY == 0)
-								{
-									ni.setName(convertParens(instanceName));
-								}
+									putNameOnNode(ni, instanceName);
 
 								// now save the EDIF name (not displayed)
 								ni.newVar("EDIF_name", stripPercentEscapes(nodeName));
@@ -2671,12 +2691,13 @@ public class EDIF extends Input
 									Variable.Key varKey;
 									if (instanceReference.equalsIgnoreCase(instanceName))
 									{
-										ni.setName(convertParens(nodeName));
+										putNameOnNode(ni, nodeName);
 										varKey = NodeInst.NODE_NAME;
 									} else
 									{
 										// now add the original name as the displayed name (only to the first element)
-										if (iX == 0 && iY == 0) ni.setName(convertParens(instanceName));
+										if (iX == 0 && iY == 0)
+											putNameOnNode(ni, instanceName);
 
 										// now save the EDIF name (not displayed)
 										Variable var = ni.newVar("EDIF_name", stripPercentEscapes(nodeName));
@@ -2743,7 +2764,8 @@ public class EDIF extends Input
 								varValue = Double.toString(newValue);
 							}
 						}
-						TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(true);
+						TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(true).
+							withDispPart(TextDescriptor.DispPos.NAMEVALUE);
 						Cell parent = (Cell)curNode.getProto();
 						for(Iterator<Variable> it = parent.getParameters(); it.hasNext(); )
 						{
@@ -3110,6 +3132,12 @@ public class EDIF extends Input
 				if (unNamedArc != null)
 				{
 					unNamedArc.setName(exportName);
+					if (!localPrefs.showArcNames)
+					{
+						TextDescriptor td = unNamedArc.getTextDescriptor(ArcInst.ARC_NAME);
+						td = td.withDisplay(TextDescriptor.Display.NONE);
+						unNamedArc.setTextDescriptor(ArcInst.ARC_NAME, td);
+					}
 				} else
 				{
 					if (arcsOnNet.size() > 0)
@@ -3120,6 +3148,8 @@ public class EDIF extends Input
 							ai.getHeadPortInst(), ai.getTailPortInst(), ai.getHeadLocation(), ai.getTailLocation(),
 							exportName, ai.getAngle(), ai.getD().flags);
 						TextDescriptor td = TextDescriptor.getArcTextDescriptor().withOff(0, -1);
+						if (!localPrefs.showArcNames)
+							td = td.withDisplay(TextDescriptor.Display.NONE);
 						second.setTextDescriptor(ArcInst.ARC_NAME, td);
 					} else if (nodesOnNet.size() > 0)
 					{
@@ -4091,7 +4121,8 @@ public class EDIF extends Input
 				{
 					curCellParameterOff++;
 					TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).
-						withInherit(true).withParam(true).withOff(0, curCellParameterOff);
+						withInherit(true).withParam(true).withOff(0, curCellParameterOff).
+						withDispPart(TextDescriptor.DispPos.NAMEVALUE);
 					Variable param = Variable.newInstance(Variable.newKey("ATTR_" + propertyReference), propertyValue, td);
 					curCell.getCellGroup().addParam(param);
 				}

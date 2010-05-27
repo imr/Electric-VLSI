@@ -1166,6 +1166,42 @@ public class IOTool extends Tool
 	 */
 	public static boolean isFactoryEDIFCadenceCompatibility() { return cacheEDIFCadenceCompatibility.getBooleanFactoryValue(); }
 
+	private static Pref cacheEDIFShowArcNames = Pref.makeBooleanPref("EDIFShowArcNames", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether EDIF input should display names on arcs.
+	 * The default is "true".
+	 * @return true if EDIF input should display names on arcs.
+	 */
+	public static boolean isEDIFShowArcNames() { return cacheEDIFShowArcNames.getBoolean(); }
+	/**
+	 * Method to set whether EDIF input should display names on arcs.
+	 * @param c true if EDIF input should display names on arcs.
+	 */
+	public static void setEDIFShowArcNames(boolean c) { cacheEDIFShowArcNames.setBoolean(c); }
+	/**
+	 * Method to tell whether EDIF input should display names on arcs, by default.
+	 * @return true if EDIF input should display names on arcs, by default.
+	 */
+	public static boolean isFactoryEDIFShowArcNames() { return cacheEDIFShowArcNames.getBooleanFactoryValue(); }
+
+	private static Pref cacheEDIFShowNodeNames = Pref.makeBooleanPref("EDIFShowNodeNames", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether EDIF input should display names on nodes.
+	 * The default is "true".
+	 * @return true if EDIF input should display names on nodes.
+	 */
+	public static boolean isEDIFShowNodeNames() { return cacheEDIFShowNodeNames.getBoolean(); }
+	/**
+	 * Method to set whether EDIF input should display names on nodes.
+	 * @param c true if EDIF input should display names on nodes.
+	 */
+	public static void setEDIFShowNodeNames(boolean c) { cacheEDIFShowNodeNames.setBoolean(c); }
+	/**
+	 * Method to tell whether EDIF input should display names on nodes, by default.
+	 * @return true if EDIF input should display names on nodes, by default.
+	 */
+	public static boolean isFactoryEDIFShowNodeNames() { return cacheEDIFShowNodeNames.getBooleanFactoryValue(); }
+
 	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 0.05);
 	/**
 	 * Method to return the EDIF input scale.
