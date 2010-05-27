@@ -580,7 +580,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             throw new IllegalArgumentException("name");
         }
         if (nameDescriptor != null) {
-            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
+            nameDescriptor = nameDescriptor.withoutParam();
         }
         if (tailNodeId < 0) {
             throw new IllegalArgumentException("tailNodeId");
@@ -661,7 +661,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      */
     public ImmutableArcInst withNameDescriptor(TextDescriptor nameDescriptor) {
         if (nameDescriptor != null) {
-            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
+            nameDescriptor = nameDescriptor.withoutParam();
         }
         if (this.nameDescriptor == nameDescriptor) {
             return this;
@@ -1039,7 +1039,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             assert name.getBasename() == BASENAME && !name.isBus();
         }
         if (nameDescriptor != null) {
-            assert nameDescriptor.isDisplay() && !nameDescriptor.isParam();
+            assert /*nameDescriptor.isDisplay() &&*/ !nameDescriptor.isParam();
         }
         assert tailNodeId >= 0;
         assert tailPortId != null;

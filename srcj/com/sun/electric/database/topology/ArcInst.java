@@ -859,7 +859,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * @return the number of displayable Variables on this ArcInst.
      */
     public int numDisplayableVariables(boolean multipleStrings) {
-        return super.numDisplayableVariables(multipleStrings) + (isUsernamed() ? 1 : 0);
+        return super.numDisplayableVariables(multipleStrings) + (isUsernamed() && d.nameDescriptor.isDisplay() ? 1 : 0);
     }
 
     /**
@@ -871,7 +871,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      */
     public int addDisplayableVariables(Rectangle2D rect, Poly[] polys, int start, EditWindow0 wnd, boolean multipleStrings) {
         int numVars = 0;
-        if (isUsernamed()) {
+        if (isUsernamed() && d.nameDescriptor.isDisplay()) {
             double cX = rect.getCenterX();
             double cY = rect.getCenterY();
             TextDescriptor td = d.nameDescriptor;

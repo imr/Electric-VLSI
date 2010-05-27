@@ -398,6 +398,16 @@ public class TextDescriptor extends AbstractTextDescriptor {
         return newTextDescriptor(mtd);
     }
 
+    public TextDescriptor withoutParam() {
+        if (/*isDisplay() &&*/ !isParam()) {
+            return this;
+        }
+        MutableTextDescriptor mtd = new MutableTextDescriptor(this);
+        /*mtd.setDisplay(Display.SHOWN);*/
+        mtd.setParam(false);
+        return newTextDescriptor(mtd);
+    }
+
     public static int cacheSize() {
         return allDescriptors.size();
     }
