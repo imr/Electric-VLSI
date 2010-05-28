@@ -574,11 +574,15 @@ public abstract class Client {
                 break;
             default:
                 System.err.println("Unknown tag="+tag);
-                for (int i = 0; i < 20; i++) {
+                byte[] bytes = reader.readBytes();
+                StringBuffer sf = new StringBuffer();
+                for (int i = 0; i < bytes.length; i++) { // 20 before
                     char c = (char)reader.readByte();
+                    sf.append(c);
                     System.err.print(" " + Integer.toHexString(c) + "(" + c + ")");
                 }
                 System.err.println();
+                System.err.println("Original error: '" + sf + "'");
                 throw new AssertionError();
         }
         event.timeStamp = timeStamp;
