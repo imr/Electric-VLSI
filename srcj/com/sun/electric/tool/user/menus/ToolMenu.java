@@ -57,6 +57,7 @@ import com.sun.electric.database.variable.EvalJython;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.geometry.btree.EquivalenceClasses;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
@@ -1466,8 +1467,9 @@ public class ToolMenu
         // Consider integrating this into HierarchyEnumerator; it's useful.
         final HashSet<Cell> visited = new HashSet<Cell>();
 
-        // After a Cell is visited, all of its driven ports are added to this hashset.
-        final HashSet<PortProto> drivenPorts = new HashSet<PortProto>();
+        final Object DRIVEN = new Object();
+        // Equivalence classes for connected ports
+        final EquivalenceClasses<Object> connected = new EquivalenceClasses<Object>();
 
         // We perform a bottom-up traversal, but never visit a Cell
         // twice (even if it has many instances)
@@ -1489,6 +1491,10 @@ public class ToolMenu
         				arcMap = cell.getNetlist().getArcInstsByNetwork();
                 		portMap = cell.getNetlist().getPortInstsByNetwork();
         			}
+                    /*
+                    for(Network net : i2i(cell.getNetlist().getNetworks())) {
+                    final EquivalenceClasses<Network> connectedNetworks = new EquivalenceClasses<Network>();
+                    */
                     for(Network net : i2i(cell.getNetlist().getNetworks())) {
                         boolean driven = false;
                         boolean hasInputExport = false;
@@ -1506,10 +1512,13 @@ public class ToolMenu
                             PortProto pp = pi.getPortProto();
                             if (ni.isCellInstance() && ((Cell)ni.getProto()).getView() == View.ICON)
                                 pp = ((Export)pp).findEquivalent(((Cell)ni.getProto()).contentsView());
-                            if (drivenPorts.contains(pp)) { driven = true; break; }
+                            if (connected.isEquivalent(pp, DRIVEN)) { driven = true; break; }
                             if (ni.getProto() instanceof PrimitiveNode) {
                                 PrimitiveNode np = (PrimitiveNode)ni.getProto();
                                 if (np.getFunction().isResistor()) {
+                                    /*
+                                    for(PortInst pi : i2i(ni.getPortInsts()))
+                                    */
                                     driven = true;
                                     break;
                                 } else if (np.getFunction().isTransistor()) {
@@ -1535,7 +1544,7 @@ public class ToolMenu
                         if (driven)
                             for(Export e : i2i(net.getExports()))
                                 switch (e.getCharacteristic()) {
-                                    case OUT:  case BIDIR:    drivenPorts.add(e); break;
+                                    case OUT:  case BIDIR: connected.merge(e, DRIVEN); break;
                                 }
                         if (!driven && !hasInputExport) {
                             // problem!

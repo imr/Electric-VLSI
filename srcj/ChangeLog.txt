@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+IMP: (5/28/10, AM) Use EquivalenceClasses in undriven nodes check.
+
 IMP: (5/28/10, AM) Add EquivalenceClasses.
 
 IMP: (5/28/10, AM) Add ability to open simulation data from command line.
