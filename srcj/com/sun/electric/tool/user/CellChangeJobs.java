@@ -1589,7 +1589,9 @@ public class CellChangeJobs
 			while (found)
 			{
 				found = false;
-				for(Iterator<Cell> it = fromCellWalk.getCellGroup().getCells(); it.hasNext(); )
+                Cell.CellGroup fromCellWalkGrp = fromCellWalk.getCellGroup();
+                if (fromCellWalkGrp == null) continue; // grp of given cell was moved?
+                for(Iterator<Cell> it = fromCellWalkGrp.getCells(); it.hasNext(); )
 				{
 					Cell np = it.next();
 					if (np.isIcon()) continue;

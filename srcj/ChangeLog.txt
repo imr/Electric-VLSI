@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+BUG: (5/28/10, GVG) NPE in cross library copy (Bug #2771)
+FIX: Detecting when cell doesn't longer have a group.
+
 IMP: (/5/28/10, GVG) Unknown tag in Client.read() (Bug #2759)
 Added extra code to detect the source of the unknown tag
 
