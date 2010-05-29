@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+IMP: (5/29/10, AM) Finish implementing hierarchical "undriven nets
+     check".  Marina full-chip schematics pass except for
+     arrays-of-cell-instances, which the netlister does not seem to
+     handle properly.
+
 IMP: (5/29/10, AM) Network.java: when determining connectivity, check
      all wires of a bus instead of only using the 0th wire.
 

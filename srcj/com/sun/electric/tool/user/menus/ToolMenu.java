@@ -1469,7 +1469,7 @@ public class ToolMenu
 
         final Object DRIVEN = new Object();
         // Equivalence classes for connected ports
-        final EquivalenceClasses<Object> connected = new EquivalenceClasses<Object>();
+        final EquivalenceClasses<Object> protoConnections = new EquivalenceClasses<Object>();
 
         // We perform a bottom-up traversal, but never visit a Cell
         // twice (even if it has many instances)
@@ -1484,84 +1484,104 @@ public class ToolMenu
                 }
                 public void exitCell(CellInfo cellInfo) {
                     Cell cell = cellInfo.getCell();
-        			Map<Network,ArcInst[]> arcMap = null;
-        			Map<Network,PortInst[]> portMap = null;
-        			if (cell.getView() != View.SCHEMATIC)
-        			{
-        				arcMap = cell.getNetlist().getArcInstsByNetwork();
-                		portMap = cell.getNetlist().getPortInstsByNetwork();
-        			}
-                    /*
-                    for(Network net : i2i(cell.getNetlist().getNetworks())) {
-                    final EquivalenceClasses<Network> connectedNetworks = new EquivalenceClasses<Network>();
-                    */
-                    for(Network net : i2i(cell.getNetlist().getNetworks())) {
-                        boolean driven = false;
-                        boolean hasInputExport = false;
+                    final EquivalenceClasses<Object> instanceConnections = new EquivalenceClasses<Object>();
 
-                        // because we're in exitCell, we know that we've already added any Ports to drivenPorts
+                    for(Network net : i2i(cell.getNetlist().getNetworks())) {
+
+                        // merge this Network with all Exports it touches
+                        for(Export e : i2i(net.getExports())) {
+                            instanceConnections.merge(net, e);
+                            if (e.isNamedGround() || e.isNamedPower() ||
+                                e.getCharacteristic()==PortCharacteristic.GND || e.getCharacteristic()==PortCharacteristic.PWR)
+                                instanceConnections.merge(e, DRIVEN);
+                        }
+
             			PortInst[] portsOnNet = null;
-            			if (portMap != null) portsOnNet = portMap.get(net); else
-            			{
+                        Map<Network,PortInst[]> portMap = null;
+                        if (cell.getView() != View.SCHEMATIC) portMap = cell.getNetlist().getPortInstsByNetwork();
+            			if (portMap != null) portsOnNet = portMap.get(net); else {
             				List<PortInst> portList = new ArrayList<PortInst>();
             				for(Iterator<PortInst> pIt = net.getPorts(); pIt.hasNext(); ) portList.add(pIt.next());
             				portsOnNet = portList.toArray(new PortInst[]{});
             			}
+
+                        // merge this Network with all PortInst's it touches
                         for(PortInst pi : portsOnNet) {
+                            // merge net with portinst
+                            instanceConnections.merge(net, pi);
+
                             NodeInst ni = pi.getNodeInst();
                             PortProto pp = pi.getPortProto();
                             if (ni.isCellInstance() && ((Cell)ni.getProto()).getView() == View.ICON)
                                 pp = ((Export)pp).findEquivalent(((Cell)ni.getProto()).contentsView());
-                            if (connected.isEquivalent(pp, DRIVEN)) { driven = true; break; }
+
+                            // merge instances based on proto connectivity
+                            if (protoConnections.isEquivalent(pp, DRIVEN))
+                                instanceConnections.merge(pi, DRIVEN);
+                            for(PortInst pi2 : i2i(ni.getPortInsts())) {
+                                if (protoConnections.isEquivalent(pp, pi2.getPortProto()))
+                                    instanceConnections.merge(pi, pi2);
+                            }
+
                             if (ni.getProto() instanceof PrimitiveNode) {
                                 PrimitiveNode np = (PrimitiveNode)ni.getProto();
                                 if (np.getFunction().isResistor()) {
-                                    /*
-                                    for(PortInst pi : i2i(ni.getPortInsts()))
-                                    */
-                                    driven = true;
-                                    break;
+                                    for(PortInst pi2 : i2i(ni.getPortInsts()))
+                                        instanceConnections.merge(pi, pi2);
                                 } else if (np.getFunction().isTransistor()) {
-                                    if (pi == ni.getTransistorDrainPort() || pi == ni.getTransistorSourcePort()) {
-                                        driven = true;
-                                        break;
-                                    }
+                                    if (pi == ni.getTransistorDrainPort() || pi == ni.getTransistorSourcePort())
+                                        instanceConnections.merge(net, DRIVEN);
                                 }
                                 if (np.getFunction() == PrimitiveNode.Function.CONGROUND ||
-                                    np.getFunction() == PrimitiveNode.Function.CONPOWER) {
-                                    driven = true;
-                                    break;
-                                }
+                                    np.getFunction() == PrimitiveNode.Function.CONPOWER)
+                                    instanceConnections.merge(net, DRIVEN);
                             }
                         }
-                        for(Export e : i2i(net.getExports())) {
-                            if (e.isNamedGround() || e.isNamedPower()) driven = true;
-                            switch (e.getCharacteristic()) {
-                                case IN:  case BIDIR:    hasInputExport = true; break;
-                                case GND: case PWR:      driven = true;         break;
-                            }
+                    }
+
+                    // now check for Networks which are undriven and not connected to an input Export
+                    OUTER: for(Network net : i2i(cell.getNetlist().getNetworks())) {
+                        if (instanceConnections.isEquivalent(net, DRIVEN))
+                            continue;
+                        for(Export e : i2i(net.getExports()))
+                            if (e.getCharacteristic()==PortCharacteristic.IN || e.getCharacteristic()==PortCharacteristic.BIDIR)
+                                continue OUTER;
+                        // problem!
+                        List<ArcInst> arcsOnNet = null;
+                        Map<Network,ArcInst[]> arcMap = null;
+                        if (cell.getView() != View.SCHEMATIC)
+                            arcMap = cell.getNetlist().getArcInstsByNetwork();
+                        if (arcMap != null) arcsOnNet = new ArrayList<ArcInst>(Arrays.asList(arcMap.get(net))); else {
+                            arcsOnNet = new ArrayList<ArcInst>();
+                            for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); ) arcsOnNet.add(aIt.next());
                         }
-                        if (driven)
-                            for(Export e : i2i(net.getExports()))
-                                switch (e.getCharacteristic()) {
-                                    case OUT:  case BIDIR: connected.merge(e, DRIVEN); break;
-                                }
-                        if (!driven && !hasInputExport) {
-                            // problem!
-            				List<ArcInst> arcsOnNet = null;
-                			if (arcMap != null) arcsOnNet = new ArrayList<ArcInst>(Arrays.asList(arcMap.get(net))); else
-                			{
-                				arcsOnNet = new ArrayList<ArcInst>();
-                				for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); ) arcsOnNet.add(aIt.next());
-                			}
-                            if (arcsOnNet.size() > 0)
-                                errorLogger.logMessage("Undriven network", arcsOnNet, cell, 0, true);
-                            else if (portsOnNet.length > 0) {
+                        if (arcsOnNet.size() > 0)
+                            errorLogger.logMessage("Undriven network", arcsOnNet, cell, 0, true);
+                        else {
+                            PortInst[] portsOnNet = null;
+                            Map<Network,PortInst[]> portMap = null;
+                            if (cell.getView() != View.SCHEMATIC) portMap = cell.getNetlist().getPortInstsByNetwork();
+                            if (portMap != null) portsOnNet = portMap.get(net); else {
+                                List<PortInst> portList = new ArrayList<PortInst>();
+                                for(Iterator<PortInst> pIt = net.getPorts(); pIt.hasNext(); ) portList.add(pIt.next());
+                                portsOnNet = portList.toArray(new PortInst[]{});
+                            }
+                            if (portsOnNet.length > 0) {
                                 PortInst pi = portsOnNet[0];
                                 errorLogger.logMessage("Undriven network on node " + pi.getNodeInst().describe(false) + ", port " +
                                                        pi.getPortProto().getName(), null, null, cell, 0, true);
                             }
                         }
+                    }
+
+                    // finally, use instanceConnections to update protoConnections
+                    for (Export e : i2i(cell.getExports())) {
+                        if (instanceConnections.isEquivalent(e, DRIVEN))
+                            protoConnections.merge(e, DRIVEN);
+                        // XXX: inefficient! n^2
+                        for (Export e2 : i2i(cell.getExports()))
+                            if (instanceConnections.isEquivalent(e, e2))
+                                protoConnections.merge(e, e2);
                     }
                 }
                 public boolean visitNodeInst(Nodable ni, CellInfo info) {
