@@ -44,6 +44,10 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.UserInterfaceInitial;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -508,7 +512,13 @@ public final class Main
             User.setWorkingDirectory(TextUtils.getFilePath(url));
             // setting database path for future references
             FileType.setDatabaseGroupPath(User.getWorkingDirectory());
-            FileMenu.openLibraryCommand(url);
+            if (arg.indexOf('.')!=-1 && Simulate.isKnownSimulationFormatExtension(arg.substring(arg.lastIndexOf('.')+1))) {
+                WindowFrame wf = new WindowFrame();
+                WaveformWindow ww = wf.createWaveformWindow(new Stimuli()).getWaveformWindow();
+                Simulate.plotSimulationResults2(FileType.SPICE, null, url, ww);
+            } else {
+                FileMenu.openLibraryCommand(url);
+            }
         }
     }
 

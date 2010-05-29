@@ -120,57 +120,73 @@ public abstract class Simulate extends Input
         return is;
     }
 
+    public static boolean isKnownSimulationFormatExtension(String extension) {
+        if ("raw".equals(extension)) return true;
+        if ("dump".equals(extension)) return true; 
+        if ("spo".equals(extension)) return true;
+        if ("out".equals(extension)) return true;
+        if ("txt".equals(extension)) return true;
+        if (extension.startsWith("tr")) return true;
+        if (extension.startsWith("ac")) return true;
+        return false;
+    }
+
 	/**
 	 * Method to read simulation output of a given type.
 	 */
 	public static void plotSimulationResults(FileType type, Cell cell, URL fileURL, WaveformWindow ww)
 	{
-		if (cell == null)
+		if (cell != null) { plotSimulationResults2(type, cell, fileURL, ww); return; }
+        if (fileURL == null) {
+            String fileName = OpenFile.chooseInputFile(type, null);
+            if (fileName == null) return;
+            fileURL = TextUtils.makeURLToFile(fileName);
+        }
+        String cellName = TextUtils.getFileNameWithoutExtension(fileURL);
+        Library curLib = Library.getCurrent();
+        cell = curLib.findNodeProto(cellName);
+        if (cell == null) {
+            CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCellToAssoc);
+            dialog.setVisible(true);
+            cell = dialog.getSelectedCell();
+            if (cell == null) return;
+        }
+		Simulate is = getSimulate(type, fileURL);
+		if (is == null)
 		{
-			if (fileURL == null)
-			{
-				String fileName = OpenFile.chooseInputFile(type, null);
-				if (fileName == null) return;
-				fileURL = TextUtils.makeURLToFile(fileName);
-			}
-			String cellName = TextUtils.getFileNameWithoutExtension(fileURL);
-			Library curLib = Library.getCurrent();
-			cell = curLib.findNodeProto(cellName);
-			if (cell == null)
-			{
-				CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCellToAssoc);
-		        dialog.setVisible(true);
-				cell = dialog.getSelectedCell();
-				if (cell == null) return;
-			}
-		} else
-		{
-			if (fileURL == null)
-			{
-                if (type == FileType.SPICE) {
-                    if      (new File(type.getGroupPath(), cell.getName()+".raw").exists()) type = FileType.RAWLTSPICEOUT;
-                    else if (new File(type.getGroupPath(), cell.getName()+".dump").exists()) type = FileType.RAWSPICEOUT;
-                    else if (new File(type.getGroupPath(), cell.getName()+".spo").exists()) type = FileType.SPICEOUT;
-                    else if (new File(type.getGroupPath(), cell.getName()+".out").exists()) type = FileType.EPIC;
-                    else if (new File(type.getGroupPath(), cell.getName()+".tr0").exists()) type = FileType.HSPICEOUT;
-                    else if (new File(type.getGroupPath(), cell.getName()+".txt").exists()) type = FileType.PSPICEOUT;
-                }
-
-                String fileName = cell.getName() + "." + type.getFirstExtension();
-
-                // look for file in library path
-                String filePath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-                File file = new File(filePath, fileName);
-                if (!file.exists())
-                {
-                    // look for file in spice working directory
-                    String dir = type.getGroupPath();
-                    File altFile = new File(dir, fileName);
-                    if (altFile.exists()) file = altFile;
-                }
-                fileURL = TextUtils.makeURLToFile(file.getPath());
-			}
+			System.out.println("Cannot handle " + type.getName() + " files yet");
+			return;
 		}
+		(new ReadSimulationOutput(type, is, fileURL, cell, ww)).start();
+    }
+
+	/**
+	 * Method to read simulation output of a given type, never asks for a cell
+	 */
+	public static void plotSimulationResults2(FileType type, Cell cell, URL fileURL, WaveformWindow ww) {
+        if (fileURL == null) {
+            if (type == FileType.SPICE) {
+                if      (new File(type.getGroupPath(), cell.getName()+".raw").exists()) type = FileType.RAWLTSPICEOUT;
+                else if (new File(type.getGroupPath(), cell.getName()+".dump").exists()) type = FileType.RAWSPICEOUT;
+                else if (new File(type.getGroupPath(), cell.getName()+".spo").exists()) type = FileType.SPICEOUT;
+                else if (new File(type.getGroupPath(), cell.getName()+".out").exists()) type = FileType.EPIC;
+                else if (new File(type.getGroupPath(), cell.getName()+".tr0").exists()) type = FileType.HSPICEOUT;
+                else if (new File(type.getGroupPath(), cell.getName()+".txt").exists()) type = FileType.PSPICEOUT;
+            }
+            
+            String fileName = cell.getName() + "." + type.getFirstExtension();
+            
+            // look for file in library path
+            String filePath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+            File file = new File(filePath, fileName);
+            if (!file.exists()) {
+                // look for file in spice working directory
+                String dir = type.getGroupPath();
+                File altFile = new File(dir, fileName);
+                if (altFile.exists()) file = altFile;
+            }
+            fileURL = TextUtils.makeURLToFile(file.getPath());
+        }
 		Simulate is = getSimulate(type, fileURL);
 		if (is == null)
 		{

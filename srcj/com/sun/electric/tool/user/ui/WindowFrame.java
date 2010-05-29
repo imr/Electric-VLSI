@@ -658,7 +658,8 @@ public class WindowFrame extends Observable
             });
             return;
         }
-		explorerTab.redoContentTrees(content.loadExplorerTrees());
+        if (explorerTab!=null)
+            explorerTab.redoContentTrees(content.loadExplorerTrees());
 	}
 
 	public static void setSideBarLocation(boolean onLeft)
