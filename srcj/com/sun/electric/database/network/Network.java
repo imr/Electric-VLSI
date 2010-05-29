@@ -125,8 +125,11 @@ public class Network implements Comparable {
             NodeInst ni = it.next();
             for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext();) {
                 PortInst pi = pit.next();
-                if (netlist.getNetIndex(ni, pi.getPortProto(), 0) == netIndex) {
-                    ports.add(pi);
+                for(int i=0; i<pi.getPortProto().getNameKey().busWidth(); i++) {
+                    if (netlist.getNetIndex(ni, pi.getPortProto(), i) == netIndex) {
+                        ports.add(pi);
+                        break;
+                    }
                 }
             }
         }
