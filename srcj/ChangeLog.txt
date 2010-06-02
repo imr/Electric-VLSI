@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+IMP: (6/2/10, AM) Merge LTSpiceOut with RawSpiceOut.
+
 BUG: (6/2/10, AM) Verilog simulation not working (Bug #2780)
 FIX: Fix DigitalSample.fromOldStyle().
 

@@ -29,20 +29,47 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.Stimuli;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.IOException;
 import java.net.URL;
 
 /**
- * Class for reading and displaying waveforms from Raw Spice output.
- * These are contained in .raw files.
+ * Class for reading and displaying waveforms from Raw Spice output
+ * (including LTSpice).  These are contained in .raw files.
  */
-public class RawSpiceOut extends Input<Stimuli>
-{
+public class RawSpiceOut extends Input<Stimuli> {
+
 	RawSpiceOut() {}
 
+	private static final boolean DEBUG = false;
+
+	private boolean complexValues;
+
 	/**
-	 * Method to read an Raw Spice output file.
+	 * Class for handling swept signals.
+	 */
+	private static class SweepAnalysisLT extends AnalogAnalysis
+	{
+		double [][] commonTime; // sweep, signal
+		List<List<double[]>> theSweeps = new ArrayList<List<double[]>>(); // sweep, event, signal
+
+		private SweepAnalysisLT(Stimuli sd, AnalogAnalysis.AnalysisType type)
+		{
+			super(sd, type, false);
+		}
+	}
+
+	/**
+	 * Method to read an LTSpice output file.
 	 */
 	protected Stimuli processInput(URL fileURL, Cell cell)
 		throws IOException
@@ -50,13 +77,13 @@ public class RawSpiceOut extends Input<Stimuli>
         Stimuli sd = new Stimuli();
 
 		// open the file
-		if (openTextInput(fileURL)) return sd;
+		if (openBinaryInput(fileURL)) return sd;
 
 		// show progress reading .raw file
-		startProgressDialog("Raw Spice output", fileURL.getFile());
+		startProgressDialog("LTSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .raw file
-		readRawFile(cell, sd);
+		readRawLTSpiceFile(cell, sd);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -64,33 +91,33 @@ public class RawSpiceOut extends Input<Stimuli>
         return sd;
 	}
 
-	private void readRawFile(Cell cell, Stimuli sd)
+	private void readRawLTSpiceFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
-		// once per deck
-		boolean first = true;
-		sd.setCell(cell);
-
-		// once per analysis in the deck
-		AnalogAnalysis an = null; // new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
-		int numSignals = -1;
-		int eventCount = -1;
+		complexValues = false;
+		boolean realValues = false;
+		int signalCount = -1;
 		String[] signalNames = null;
+		int rowCount = -1;
+		AnalogAnalysis.AnalysisType aType = AnalogAnalysis.ANALYSIS_TRANS;
+        boolean isLTSpice = false;
+		boolean first = true;
+
+		sd.setCell(cell);
+		AnalogAnalysis an = null;
+
 		double[][] values = null;
-		for(;;)
-		{
-			String line = getLineAndUpdateProgress();
+		for(;;) {
+			String line = getLineFromBinary();
 			if (line == null) break;
+			updateProgressDialog(line.length());
 
 			// make sure this isn't an HSPICE deck (check first line)
-			if (first)
-			{
+			if (first) {
 				first = false;
-				if (line.length() >= 20)
-				{
+				if (line.length() >= 20) {
 					String hsFormat = line.substring(16, 20);
-					if (hsFormat.equals("9007") || hsFormat.equals("9601"))
-					{
+					if (hsFormat.equals("9007") || hsFormat.equals("9601")) {
 						System.out.println("This is an HSPICE file, not a RAWFILE file");
 						System.out.println("Change the SPICE format (in Preferences) and reread");
 						return;
@@ -99,175 +126,332 @@ public class RawSpiceOut extends Input<Stimuli>
 			}
 
 			// find the ":" separator
-			int colonPos = line.indexOf(":");
+			int colonPos = line.indexOf(':');
 			if (colonPos < 0) continue;
-			String preColon = line.substring(0, colonPos);
-			String postColon = line.substring(colonPos+1).trim();
+			String keyWord = line.substring(0, colonPos);
+			String restOfLine = line.substring(colonPos+1).trim();
 
-			if (preColon.equals("Plotname"))
-			{
-				// terminate any previous analysis
-				if (an != null)
-				{
-					numSignals = -1;
-					eventCount = -1;
-					signalNames = null;
-					values = null;
-				}
+            if (keyWord.equals("Command")) {
+                isLTSpice = restOfLine.indexOf("LTspice")!=-1;
+                continue;
+            }
 
-				// start reading a new analysis
-				if (postColon.startsWith("Transient Analysis"))
-				{
-					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
-				} else if (postColon.startsWith("DC Analysis"))
-				{
-					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_DC, false);
-				} else if (postColon.startsWith("AC Analysis"))
-				{
-					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_AC, false);
-				} else
-				{
-					System.out.println("ERROR: Unknown analysis: " + postColon);
-					return;
-				}
-				continue;
-			}
+			if (keyWord.equals("Plotname"))
+                {
+                    // see if known analysis is specified
+                    // terminate any previous analysis
+                    if (an != null)
+                        {
+                            signalCount = -1;
+                            rowCount = -1;
+                            signalNames = null;
+                            values = null;
+                        }
 
-			if (preColon.equals("No. Variables"))
-			{
-				numSignals = TextUtils.atoi(postColon) - 1;
-				continue;
-			}
+                    // start reading a new analysis
+                    if (restOfLine.startsWith("Transient Analysis")) {
+                        an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
+                    } else if (restOfLine.startsWith("DC Analysis")) {
+                        an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_DC, false);
+                    } else if (restOfLine.startsWith("AC Analysis")) {
+                        an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_AC, false);
+                        aType = AnalogAnalysis.ANALYSIS_AC;
+                    } else {
+                        System.out.println("ERROR: Unknown analysis: " + restOfLine);
+                        return;
+                    }
+                    continue;
+                }
 
-			if (preColon.equals("No. Points"))
-			{
-				eventCount = TextUtils.atoi(postColon);
-				an.buildCommonTime(eventCount);
-				continue;
-			}
+			if (keyWord.equals("Flags"))
+                {
+                    // the first signal is Time
+                    int complex = restOfLine.indexOf("complex");
+                    if (complex >= 0) complexValues = true;
+                    int r = restOfLine.indexOf("real");
+                    if (r >= 0) realValues = true;
+                    continue;
+                }
 
-			if (preColon.equals("Variables"))
-			{
-				if (numSignals < 0)
-				{
-					System.out.println("Missing variable count in file");
-					return;
-				}
-				signalNames = new String[numSignals];
-				values = new double[numSignals][eventCount];
-				for(int i=0; i<=numSignals; i++)
-				{
-					if (postColon.length() > 0)
-					{
-						line = postColon;
-						postColon = "";
-					} else
-					{
-						line = getLineAndUpdateProgress();
-						if (line == null)
-						{
-							System.out.println("Error: end of file during signal names");
-							return;
-						}
-					}
-					line = line.trim();
-					int numberOnLine = TextUtils.atoi(line);
-					if (numberOnLine != i)
-						System.out.println("Warning: Variable " + i + " has number " + numberOnLine);
-					int spacePos = line.indexOf(" ");   if (spacePos < 0) spacePos = line.length();
-					int tabPos = line.indexOf("\t");    if (tabPos < 0) tabPos = line.length();
-					int pos = Math.min(spacePos, tabPos);
-					String name = line.substring(pos).trim();
-					spacePos = name.indexOf(" ");   if (spacePos < 0) spacePos = name.length();
-					tabPos = name.indexOf("\t");    if (tabPos < 0) tabPos = name.length();
-					pos = Math.min(spacePos, tabPos);
-					name = name.substring(0, pos);
-					if (i == 0)
-					{
-						if (!name.equals("time") && an.getAnalysisType() == AnalogAnalysis.ANALYSIS_TRANS)
-							System.out.println("Warning: the first variable should be time, is '" + name + "'");
-					} else
-					{
-						signalNames[i-1] = name;
-					}
-				}
-				continue;
-			}
-			if (preColon.equals("Values"))
-			{
-				if (numSignals < 0)
-				{
-					System.out.println("Missing variable count in file");
-					return;
-				}
-				if (eventCount < 0)
-				{
-					System.out.println("Missing point count in file");
-					return;
-				}
-				for(int j=0; j<eventCount; j++)
-				{
-					for(int i = -1; i <= numSignals; )
-					{
-						line = getLineAndUpdateProgress();
-						if (line == null)
-						{
-							System.out.println("Error: end of file during data points (read " + j + " out of " + eventCount);
-							return;
-						}
-						line = line.trim();
-						if (line.length() == 0) continue;
-						int charPos = 0;
-						while (charPos <= line.length())
-						{
-							int tabPos = line.indexOf("\t", charPos);
-							if (tabPos < 0) tabPos = line.length();
-							String field = line.substring(charPos, tabPos);
-							charPos = tabPos+1;
-							while (charPos < line.length() && line.charAt(charPos) == '\t') charPos++;
-							if (i < 0)
-							{
-								int lineNumber = TextUtils.atoi(field);
-								if (lineNumber != j)
-									System.out.println("Warning: event " + j + " has wrong event number: " + lineNumber);
-							} else
-							{
-								double val = TextUtils.atof(field);
-								if (i == 0) an.setCommonTime(j, val); else
-									values[i-1][j] = val;
-							}
-							i++;
-							if (i > numSignals) break;
-						}
-					}
-				}
-				for (int i = 0; i < numSignals; i++)
-					an.addSignal(signalNames[i], null, values[i]);
-				continue;
-			}
-			if (preColon.equals("Binary"))
-			{
-				if (numSignals < 0)
-				{
-					System.out.println("Missing variable count in file");
-					return;
-				}
-				if (eventCount < 0)
-				{
-					System.out.println("Missing point count in file");
-					return;
-				}
+			if (keyWord.equals("No. Variables"))
+                {
+                    // the first signal is Time
+                    signalCount = TextUtils.atoi(restOfLine) - 1;
+                    continue;
+                }
 
-				// read the data
-				for(int j=0; j<eventCount; j++)
-				{
-					an.setCommonTime(j, dataInputStream.readDouble());
-					for(int i=0; i<numSignals; i++)
-						values[i][j] = dataInputStream.readDouble();
-				}
-				continue;
-			}
-		}
+			if (keyWord.equals("No. Points"))
+                {
+                    rowCount = TextUtils.atoi(restOfLine);
+                    an.buildCommonTime(rowCount);
+                    continue;
+                }
+
+            if (!isLTSpice) {
+                if (keyWord.equals("Variables")) {
+                    if (signalCount < 0) {
+                        System.out.println("Missing variable count in file");
+                        return;
+                    }
+                    signalNames = new String[signalCount];
+                    values = new double[signalCount][rowCount];
+                    for(int i=0; i<=signalCount; i++) {
+                        if (restOfLine.length() > 0) {
+                            line = restOfLine;
+                            restOfLine = "";
+                        } else {
+                            line = getLineAndUpdateProgress();
+                            if (line == null) {
+                                System.out.println("Error: end of file during signal names");
+                                return;
+                            }
+                        }
+                        line = line.trim();
+                        int numberOnLine = TextUtils.atoi(line);
+                        if (numberOnLine != i)
+                            System.out.println("Warning: Variable " + i + " has number " + numberOnLine);
+                        int spacePos = line.indexOf(" ");   if (spacePos < 0) spacePos = line.length();
+                        int tabPos = line.indexOf("\t");    if (tabPos < 0) tabPos = line.length();
+                        int pos = Math.min(spacePos, tabPos);
+                        String name = line.substring(pos).trim();
+                        spacePos = name.indexOf(" ");   if (spacePos < 0) spacePos = name.length();
+                        tabPos = name.indexOf("\t");    if (tabPos < 0) tabPos = name.length();
+                        pos = Math.min(spacePos, tabPos);
+                        name = name.substring(0, pos);
+                        if (i == 0) {
+                            if (!name.equals("time") && an.getAnalysisType() == AnalogAnalysis.ANALYSIS_TRANS)
+                                System.out.println("Warning: the first variable should be time, is '" + name + "'");
+                        } else {
+                            signalNames[i-1] = name;
+                        }
+                    }
+                    continue;
+                }
+                if (keyWord.equals("Values")) {
+                    if (signalCount < 0) {
+                        System.out.println("Missing variable count in file");
+                        return;
+                    }
+                    if (rowCount < 0) {
+                        System.out.println("Missing point count in file");
+                        return;
+                    }
+                    for(int j=0; j<rowCount; j++) {
+                        for(int i = -1; i <= signalCount; ) {
+                            line = getLineAndUpdateProgress();
+                            if (line == null) {
+                                System.out.println("Error: end of file during data points (read " + j + " out of " + rowCount);
+                                return;
+                            }
+                            line = line.trim();
+                            if (line.length() == 0) continue;
+                            int charPos = 0;
+                            while (charPos <= line.length()) {
+                                int tabPos = line.indexOf("\t", charPos);
+                                if (tabPos < 0) tabPos = line.length();
+                                String field = line.substring(charPos, tabPos);
+                                charPos = tabPos+1;
+                                while (charPos < line.length() && line.charAt(charPos) == '\t') charPos++;
+                                if (i < 0) {
+                                    int lineNumber = TextUtils.atoi(field);
+                                    if (lineNumber != j)
+                                        System.out.println("Warning: event " + j + " has wrong event number: " + lineNumber);
+                                } else {
+                                    double val = TextUtils.atof(field);
+                                    if (i == 0) an.setCommonTime(j, val); else
+                                        values[i-1][j] = val;
+                                }
+                                i++;
+                                if (i > signalCount) break;
+                            }
+                        }
+                    }
+                    for (int i = 0; i < signalCount; i++)
+                        an.addSignal(signalNames[i], null, values[i]);
+                    continue;
+                }
+                if (keyWord.equals("Binary")) {
+                    if (signalCount < 0) {
+                        System.out.println("Missing variable count in file");
+                        return;
+                    }
+                    if (rowCount < 0) {
+                        System.out.println("Missing point count in file");
+                        return;
+                    }
+
+                    // read the data
+                    for(int j=0; j<rowCount; j++) {
+                        an.setCommonTime(j, dataInputStream.readDouble());
+                        for(int i=0; i<signalCount; i++)
+                            values[i][j] = dataInputStream.readDouble();
+                    }
+                    continue;
+                }
+            } else {
+                if (keyWord.equals("Variables"))
+                    {
+                        if (signalCount < 0)
+                            {
+                                System.out.println("Missing variable count in file");
+                                return;
+                            }
+                        signalNames = new String[signalCount];
+                        for(int i=0; i<=signalCount; i++)
+                            {
+                                restOfLine = getLineFromBinary();
+                                if (restOfLine == null) break;
+                                updateProgressDialog(restOfLine.length());
+                                restOfLine = restOfLine.trim();
+                                int indexOnLine = TextUtils.atoi(restOfLine);
+                                if (indexOnLine != i)
+                                    System.out.println("Warning: Variable " + i + " has number " + indexOnLine);
+                                int nameStart = 0;
+                                while (nameStart < restOfLine.length() && !Character.isWhitespace(restOfLine.charAt(nameStart))) nameStart++;
+                                while (nameStart < restOfLine.length() && Character.isWhitespace(restOfLine.charAt(nameStart))) nameStart++;
+                                int nameEnd = nameStart;
+                                while (nameEnd < restOfLine.length() && !Character.isWhitespace(restOfLine.charAt(nameEnd))) nameEnd++;
+                                String name = restOfLine.substring(nameStart, nameEnd);
+                                if (name.startsWith("V(") && name.endsWith(")"))
+                                    {
+                                        name = name.substring(2, name.length()-1);
+                                    }
+                                if (i > 0) signalNames[i-1] = name;
+                            }
+                        continue;
+                    }
+
+                if (keyWord.equals("Binary"))
+                    {
+                        if (signalCount < 0)
+                            {
+                                System.out.println("Missing variable count in file");
+                                return;
+                            }
+                        if (rowCount < 0)
+                            {
+                                System.out.println("Missing point count in file");
+                                return;
+                            }
+
+                        // initialize the stimuli object
+                        SweepAnalysisLT lan = new SweepAnalysisLT(sd, aType);
+                        sd.setCell(cell);
+                        if (DEBUG)
+                            {
+                                System.out.println(signalCount+" VARIABLES, "+rowCount+" SAMPLES");
+                                for(int i=0; i<signalCount; i++)
+                                    System.out.println("VARIABLE "+i+" IS "+signalNames[i]);
+                            }
+
+                        // read all of the data in the RAW file
+                        values = new double[signalCount][rowCount];
+                        double [] timeValues = new double[rowCount];
+                        for(int j=0; j<rowCount; j++)
+                            {
+                                double time = getNextDouble();
+                                if (DEBUG) System.out.println("TIME AT "+j+" IS "+time);
+                                timeValues[j] = Math.abs(time);
+                                for(int i=0; i<signalCount; i++)
+                                    {
+                                        double value = 0;
+                                        if (realValues) value = getNextFloat(); else
+                                            value = getNextDouble();
+                                        if (DEBUG) System.out.println("   DATA POINT "+i+" ("+signalNames[i]+") IS "+value);
+                                        values[i][j] = value;
+                                    }
+                            }
+
+                        // figure out where the sweep breaks occur
+                        List<Integer> sweepLengths = new ArrayList<Integer>();
+                        //				int sweepLength = -1;
+                        int sweepStart = 0;
+                        int sweepCount = 0;
+                        for(int j=1; j<=rowCount; j++)
+                            {
+                                if (j == rowCount || timeValues[j] < timeValues[j-1])
+                                    {
+                                        int sl = j - sweepStart;
+                                        sweepLengths.add(new Integer(sl));
+                                        sweepStart = j;
+                                        sweepCount++;
+                                        lan.addSweep(Integer.toString(sweepCount));
+                                    }
+                            }
+                        if (DEBUG) System.out.println("FOUND " + sweepCount + " SWEEPS");
+
+                        // place data into the Analysis object
+                        lan.commonTime = new double[sweepCount][];
+                        int offset = 0;
+                        for(int s=0; s<sweepCount; s++)
+                            {
+                                int sweepLength = sweepLengths.get(s).intValue();
+                                lan.commonTime[s] = new double[sweepLength];
+                                for (int j = 0; j < sweepLength; j++)
+                                    lan.commonTime[s][j] = timeValues[j + offset];
+
+                                List<double[]> allTheData = new ArrayList<double[]>();
+                                for(int i=0; i<signalCount; i++)
+                                    {
+                                        double[] oneSetOfData = new double[sweepLength];
+                                        for(int j=0; j<sweepLength; j++)
+                                            oneSetOfData[j] = values[i][j+offset];
+                                        allTheData.add(oneSetOfData);
+                                    }
+                                lan.theSweeps.add(allTheData);
+                                offset += sweepLength;
+                            }
+
+                        // add signal names to the analysis
+                        for (int i = 0; i < signalCount; i++)
+                            {
+                                String name = signalNames[i];
+                                int lastDotPos = name.lastIndexOf('.');
+                                String context = null;
+                                if (lastDotPos >= 0)
+                                    {
+                                        context = name.substring(0, lastDotPos);
+                                        name = name.substring(lastDotPos + 1);
+                                    }
+                                double minTime = 0, maxTime = 0, minValues = 0, maxValues = 0;
+                                lan.addSignal(signalNames[i], context, minTime, maxTime, minValues, maxValues);
+                            }
+                        return;
+                    }
+            }
+        }
+	}
+
+	private double getNextDouble()
+		throws IOException
+	{
+		// double values appear with reversed bytes
+		long lt = dataInputStream.readLong();
+		lt = Long.reverseBytes(lt);
+		double t = Double.longBitsToDouble(lt);
+		int amtRead = 8;
+
+		// for complex plots, ignore imaginary part
+		if (complexValues) { amtRead *= 2;   dataInputStream.readLong(); }
+
+		updateProgressDialog(amtRead);
+		return t;
+	}
+
+	private float getNextFloat()
+		throws IOException
+	{
+		// float values appear with reversed bytes
+		int lt = dataInputStream.readInt();
+		lt = Integer.reverseBytes(lt);
+		float t = Float.intBitsToFloat(lt);
+		int amtRead = 4;
+
+		// for complex plots, ignore imaginary part
+		if (complexValues) { amtRead *= 2;   dataInputStream.readInt(); }
+
+		updateProgressDialog(amtRead);
+		return t;
 	}
 
 }
