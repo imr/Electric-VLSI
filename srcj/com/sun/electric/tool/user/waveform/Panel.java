@@ -780,8 +780,8 @@ public class Panel extends JPanel
 		if (sSig instanceof AnalogSignal)
 		{
 			AnalogSignal as = (AnalogSignal)sSig;
-			double lowValue = as.getMinValue().getValue();
-			double highValue = as.getMaxValue().getValue();
+			double lowValue = as.getMinValue()==null ? 0 : as.getMinValue().getValue();
+			double highValue = as.getMaxValue()==null ? 1 : as.getMaxValue().getValue();
 			double range = highValue - lowValue;
 			if (range == 0) range = 2;
 			double rangeExtra = range / 10;

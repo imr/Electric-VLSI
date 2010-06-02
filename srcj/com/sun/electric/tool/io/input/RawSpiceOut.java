@@ -151,9 +151,9 @@ public class RawSpiceOut extends Input<Stimuli> {
                     // start reading a new analysis
                     if (restOfLine.startsWith("Transient Analysis")) {
                         an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
-                    } else if (restOfLine.startsWith("DC Analysis")) {
+                    } else if (restOfLine.startsWith("DC ")) {
                         an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_DC, false);
-                    } else if (restOfLine.startsWith("AC Analysis")) {
+                    } else if (restOfLine.startsWith("AC ")) {
                         an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_AC, false);
                         aType = AnalogAnalysis.ANALYSIS_AC;
                     } else {

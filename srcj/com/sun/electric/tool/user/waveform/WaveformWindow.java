@@ -4082,18 +4082,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				// create a new panel for the signal
 				Panel wp = makeNewPanel();
-				double lowValue = as.getMinValue().getValue();
-				double highValue = as.getMaxValue().getValue();
-				double range = highValue - lowValue;
-				if (range == 0) range = 2;
-				double rangeExtra = range / 10;
-				wp.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
-				wp.makeSelectedPanel(-1, -1);
-				if (!xAxisLocked)
-					wp.setXAxisRange(as.getMinTime(), as.getMaxTime());
-				WaveSignal.addSignalToPanel(sig, wp, null);
-				if (getMainHorizRuler() != null)
-					getMainHorizRuler().repaint();
+                double lowValue = as.getMinValue()==null ? 0 : as.getMinValue().getValue();
+                double highValue = as.getMaxValue()==null ? 1 : as.getMaxValue().getValue();
+                double range = highValue - lowValue;
+                if (range == 0) range = 2;
+                double rangeExtra = range / 10;
+                wp.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
+                wp.makeSelectedPanel(-1, -1);
+                if (!xAxisLocked)
+                    wp.setXAxisRange(as.getMinTime(), as.getMaxTime());
+                WaveSignal.addSignalToPanel(sig, wp, null);
+                if (getMainHorizRuler() != null)
+                    getMainHorizRuler().repaint();
 			}
 		} else
 		{
