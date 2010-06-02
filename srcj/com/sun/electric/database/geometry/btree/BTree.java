@@ -417,6 +417,7 @@ public class BTree
                         int ord,
                         byte[] key2, int key2_ofs,
                         byte[] ret, int ret_ofs) {
+        Object return_val = null;
         int pageid = rootpage;
         int idx = -1;
         int global_ord = 0;
@@ -442,7 +443,7 @@ public class BTree
             }
         }
 
-        while(true) {
+        OUT: while(true) {
             if (cur==null || cur.getCachedPage()==null || cur.getPageId() != pageid) {
                 CachedPage cp = ps.getPage(pageid, true);
                 cur = LeafNodeCursor.isLeafNode(cp) ? leafNodeCursor : interiorNodeCursor;
@@ -583,6 +584,7 @@ public class BTree
                 if (largestKeyPage==-1) largestKeyPage = pageid;
                 if (comp==0) return leafNodeCursor.setVal(idx, newval);
                 leafNodeCursor.insertVal(idx+1, key, key_ofs, newval);
+                if (op==Op.INSERT) break OUT;
                 return null;
             } else {
                 switch(op) {
@@ -614,6 +616,11 @@ public class BTree
                 continue;
             }
         }
+        while(cur.getParent() != cur.getPageId()) {
+            interiorNodeCursor.setBuf(ps.getPage(cur.getParent(), true));
+            cur = interiorNodeCursor;
+        }
+        return return_val;
     }
 
     static long insertionFastPath = 0;
