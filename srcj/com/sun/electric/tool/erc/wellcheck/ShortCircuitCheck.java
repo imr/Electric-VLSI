@@ -60,6 +60,7 @@ public class ShortCircuitCheck implements WellCheckAnalysisStrategy {
 	public void execute() {
 		Map<Integer, WellCon> wellContacts = new HashMap<Integer, WellCon>();
 		Map<Integer, Set<Integer>> wellShorts = new HashMap<Integer, Set<Integer>>();
+		
 		for (WellCon wc : parameter.getWellCons()) {
 			Integer wellIndex = new Integer(wc.getWellNum().getIndex());
 			WellCon other = wellContacts.get(wellIndex);

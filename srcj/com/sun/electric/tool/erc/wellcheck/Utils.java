@@ -25,7 +25,13 @@ package com.sun.electric.tool.erc.wellcheck;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath.MutableBoolean;
@@ -33,6 +39,7 @@ import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
 import com.sun.electric.tool.erc.ERCWellCheck2.WellBoundRecord;
+import com.sun.electric.tool.erc.wellcheck.WellCon.WellConComparator;
 
 /**
  * @author fschmidt
@@ -41,7 +48,7 @@ import com.sun.electric.tool.erc.ERCWellCheck2.WellBoundRecord;
 public class Utils {
 
 	public static final boolean GATHERSTATISTICS = false;
-	public static final boolean DISTANTSEEDS = true;
+	public static final boolean DISTANTSEEDS = false;
 	public static final boolean INCREMENTALGROWTH = false;
 	public static List<WellBoundRecord> wellBoundSearchOrder;
 	public static int numObjSearches;
@@ -166,6 +173,49 @@ public class Utils {
 			keepSearching.setValue(true);
 		}
 		return allFound;
+	}
+
+	public static WellCon[] getStarters(int numberOfThreads, List<WellCon> wellCons) {
+		if (numberOfThreads > wellCons.size()) {
+			throw new IndexOutOfBoundsException();
+		}
+		Random rand = new Random(System.currentTimeMillis());
+		WellCon[] startValues = new WellCon[numberOfThreads];
+		Set<Integer> usedStarters = new HashSet<Integer>();
+		usedStarters.add(-1);
+		for (int i = 0; i < numberOfThreads; i++) {
+			int startValue = -1;
+			while (usedStarters.contains(startValue)) {
+				startValue = rand.nextInt(wellCons.size());
+			}
+			usedStarters.add(startValue);
+			startValues[i] = wellCons.get(startValue);
+		}
+		return startValues;
+	}
+
+	public static Set<WellCon> sortWellConList(WellCon base, List<WellCon> pool) {
+		Set<WellCon> result = new TreeSet(new WellConComparator(base));
+
+		for (WellCon con : pool) {
+			result.add(con);
+		}
+
+		return result;
+	}
+
+	private static Map<List<?>, Integer> safeRemoveIdx = new HashMap<List<?>, Integer>();
+
+	public static <T> T safeListRemove(List<T> list, int index) {
+		synchronized (list) {
+			synchronized (safeRemoveIdx) {
+				Integer idx = safeRemoveIdx.get(list);
+				idx = idx != null ? idx : 0;
+				safeRemoveIdx.put(list, idx + 1);
+
+				return list.remove(index - idx);
+			}
+		}
 	}
 
 }

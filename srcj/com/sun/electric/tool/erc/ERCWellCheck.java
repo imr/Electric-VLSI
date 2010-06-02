@@ -88,6 +88,7 @@ import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.erc.wellcheck.WellCon;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EModelessDialog;
@@ -120,7 +121,6 @@ public class ERCWellCheck {
 	private Set<Integer> networkExportAvailable;
 	private List<Transistor> alreadyHit;
 	private Set<Integer> networkWithExportCache;
-	private Netlist netList;
 
 	// TODO [felix] remove this flag
 	public static boolean useFelixCode = true;
@@ -307,7 +307,6 @@ public class ERCWellCheck {
 		}
 	}
 
-	// XXX [felix] Why to iterate over all technologies? why do I need
 	private int runNow() {
 		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 		long startTime = System.currentTimeMillis();
@@ -363,7 +362,7 @@ public class ERCWellCheck {
 
 	// XXX [felix] ugly style use concurrent data structure
 	private WellCon getNextWellCon(int threadIndex) {
-		synchronized (wellConIterator[threadIndex]) {
+		synchronized (wellConLists[threadIndex]) {
 			while (wellConIterator[threadIndex].hasNext()) {
 				WellCon wc = wellConIterator[threadIndex].next();
 				if (wc.wellNum == null)
@@ -375,7 +374,7 @@ public class ERCWellCheck {
 		int numLists = wellConIterator.length;
 		for (int i = 1; i < numLists; i++) {
 			int otherList = (threadIndex + i) % numLists;
-			synchronized (wellConIterator[otherList]) {
+			synchronized (wellConLists[otherList]) {
 				while (wellConIterator[otherList].hasNext()) {
 					WellCon wc = wellConIterator[otherList].next();
 					if (wc.wellNum == null)
@@ -554,7 +553,7 @@ public class ERCWellCheck {
 		// more analysis
 
 		cacheHits = 0;
-		//System.out.println(wellCons.size());
+		// System.out.println(wellCons.size());
 		boolean hasPCon = false, hasNCon = false;
 		for (WellCon wc : wellCons) {
 			if (canBeSubstrateTap(wc.fun))
@@ -597,7 +596,7 @@ public class ERCWellCheck {
 			}
 		}
 
-		//System.out.println("Cache Hits: " + cacheHits);
+		// System.out.println("Cache Hits: " + cacheHits);
 
 		// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -719,7 +718,7 @@ public class ERCWellCheck {
 		alreadyHit = new LinkedList<Transistor>();
 
 		result |= createTransistorRec(path, node, result, node.drainNet.get());
-		if(!result)
+		if (!result)
 			result |= createTransistorRec(path, node, result, node.sourceNet.get());
 
 		return result;
@@ -1398,7 +1397,7 @@ public class ERCWellCheck {
 			neighborCache = null;
 			networkCache = null;
 
-		//	System.out.println("visitor cleared ...");
+			// System.out.println("visitor cleared ...");
 		}
 	}
 

@@ -24,6 +24,8 @@
 package com.sun.electric.tool.erc.wellcheck;
 
 import java.awt.geom.Point2D;
+import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
@@ -37,11 +39,12 @@ public class WellCon {
 
 	private Point2D ctr;
 	private int netNum;
-	private NetValues wellNum;
+	private NetValues wellNum = null;
 	private boolean onProperRail;
 	private boolean onRail;
 	private PrimitiveNode.Function fun;
 	private NodeInst ni;
+	private AtomicBoolean marked = new AtomicBoolean(false);
 
 	/**
 	 * @param ctr
@@ -118,6 +121,37 @@ public class WellCon {
 
 	public void setNi(NodeInst ni) {
 		this.ni = ni;
+	}
+
+	public void setMarked(AtomicBoolean marked) {
+		this.marked = marked;
+	}
+
+	public AtomicBoolean getMarked() {
+		return marked;
+	}
+	
+	public static class WellConComparator implements Comparator<WellCon> {
+
+		private WellCon base;
+
+		public WellConComparator(WellCon base) {
+			this.base = base;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.util.Comparator#compare(java.lang.Object,
+		 * java.lang.Object)
+		 */
+		public int compare(WellCon o1, WellCon o2) {
+			Double o1Dist = o1.getCtr().distance(base.getCtr());
+			Double o2Dist = o2.getCtr().distance(base.getCtr());
+
+			return Double.compare(o1Dist, o2Dist);
+		}
+
 	}
 
 }
