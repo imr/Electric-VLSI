@@ -183,4 +183,12 @@ class InteriorNodeCursor
                          buf, ofs,
                          bt.summary.getSize());
     }
+
+    // ugly
+    public int getSlotByChildPageId(int pageid) {
+        for(int i=0; i<getNumBuckets(); i++)
+            if (getBucketPageId(i)==pageid)
+                return i;
+        return -1;
+    }
 }

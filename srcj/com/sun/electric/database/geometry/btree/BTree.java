@@ -597,13 +597,6 @@ public class BTree
                             interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
                             wb = true;
                         }
-                        if (summary != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
-                            byte[] vbuf = new byte[uk.getSize()+uv.getSize()];
-                            System.arraycopy(key, 0, vbuf, 0, uk.getSize());
-                            uv.serialize(newval, vbuf, uk.getSize());
-                            summary.call(vbuf, 0, monbuf, 0);
-                            interiorNodeCursor.mergeSummaryCommutative(idx, monbuf, 0);
-                        }
                         if (wb) interiorNodeCursor.writeBack();
                 }
                 if (op.isGetOrd())
@@ -616,8 +609,18 @@ public class BTree
                 continue;
             }
         }
+        byte[] vbuf = new byte[uk.getSize()+uv.getSize()];
         while(cur.getParent() != cur.getPageId()) {
-            interiorNodeCursor.setBuf(ps.getPage(cur.getParent(), true));
+            parentNodeCursor.setBuf(ps.getPage(cur.getParent(), true));
+            int slot = parentNodeCursor.getSlotByChildPageId(cur.getPageId());
+            if (summary!=null && slot < parentNodeCursor.getNumBuckets()-1) {
+                System.arraycopy(key, 0, vbuf, 0, uk.getSize());
+                uv.serialize(newval, vbuf, uk.getSize());
+                summary.call(vbuf, 0, monbuf, 0);
+                parentNodeCursor.mergeSummaryCommutative(slot, monbuf, 0);
+                parentNodeCursor.writeBack();
+            }
+            InteriorNodeCursor<K,V,S> ic = interiorNodeCursor; interiorNodeCursor = parentNodeCursor; parentNodeCursor = ic;
             cur = interiorNodeCursor;
         }
         return return_val;
