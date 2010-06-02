@@ -81,7 +81,7 @@ public class Input<ResultType>
 
 	// ----------------------- public methods -------------------------------
 
-    public ResultType processInput(URL url, Cell cell) {
+    protected ResultType processInput(URL url, Cell cell) throws IOException {
         return null;
     }
 

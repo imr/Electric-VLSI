@@ -65,7 +65,7 @@ public class LTSpiceOut extends Simulate
 	/**
 	 * Method to read an LTSpice output file.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected Stimuli processInput(URL fileURL, Cell cell)
 		throws IOException
 	{
         Stimuli sd = new Stimuli();

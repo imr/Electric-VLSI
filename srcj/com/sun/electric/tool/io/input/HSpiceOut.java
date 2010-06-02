@@ -107,7 +107,7 @@ public class HSpiceOut extends Simulate
 	 * @param fileURL the URL to one of the output files.
 	 * @param cell the Cell associated with these HSpice output files.
 	 */
-	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
+	protected Stimuli processInput(URL fileURL, Cell cell)
 		throws IOException
 	{
         Stimuli sd = new Stimuli();

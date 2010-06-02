@@ -251,7 +251,7 @@ public abstract class Simulate extends Input<Stimuli>
 
 			try
 			{
-                sd = is.readSimulationOutput(fileURL, cell);
+                sd = is.processInput(fileURL, cell);
 				if (sd != null)
 				{
 					sd.setDataType(type);
@@ -269,11 +269,6 @@ public abstract class Simulate extends Input<Stimuli>
 			}
 		}
 	}
-
-	/**
-	 * Method that is overridden by subclasses to actually do the work.
-	 */
-	protected abstract Stimuli readSimulationOutput(URL fileURL, Cell cell) throws IOException;
 
 	public static FileType getSpiceOutputType(String format, Simulation.SpiceEngine engine)
 	{
