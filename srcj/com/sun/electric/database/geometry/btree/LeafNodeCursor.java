@@ -114,6 +114,18 @@ class LeafNodeCursor
         writeBack();
     }
 
+    /** Delete the key/value pair at the designated bucket. */
+    public void deleteVal(int bucket) {
+        assert bucket < getNumBuckets();
+        System.arraycopy(getBuf(),
+                         LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*(bucket+1),
+                         getBuf(),
+                         LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket,
+                         (getNumBuckets()-bucket-1)*LEAF_ENTRY_SIZE);
+        setNumBuckets(getNumBuckets()-1);
+        writeBack();
+    }
+
     protected void scoot(byte[] oldBuf, int endOfBuf, int splitPoint) {
         int len = LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE * splitPoint;
         System.arraycopy(oldBuf, len,
@@ -139,4 +151,14 @@ class LeafNodeCursor
 
     public K getKey(int bucket) { return bt.uk.deserialize(getBuf(), LEAF_HEADER_SIZE + LEAF_ENTRY_SIZE*bucket); }
 
+    public void getSummary(byte[] buf, int ofs) {
+        byte[] buf2 = new byte[bt.summary.getSize()];
+        getSummary(0, buf, ofs);
+        for(int i=1; i<getNumBuckets(); i++) {
+            getSummary(i, buf2, 0);
+            bt.summary.multiply(buf, ofs,
+                                buf2, 0,
+                                buf, ofs);
+        }
+    }
 }

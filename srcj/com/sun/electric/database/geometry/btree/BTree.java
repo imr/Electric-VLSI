@@ -570,34 +570,41 @@ public class BTree
                     case GET_ORD_FROM_KEY_FLOOR: return new Integer(idx+global_ord /*FIXME: off the end?*/);
                     case GET_ORD_FROM_KEY_CEIL:
                         return comp==0 ? new Integer(idx+global_ord) : new Integer(idx+global_ord+1 /*FIXME: off the end?*/);
+                    case REMOVE:
+                        if (comp!=0) throw new RuntimeException("attempt to remove key which did not exist");
+                        return_val = leafNodeCursor.getVal(idx);
+                        leafNodeCursor.deleteVal(idx);
+                        // FIXME: REMOVE needs to update largestKeyPage
+                        break OUT;
                     case INSERT:
                         if (comp==0) throw new RuntimeException("attempt to re-insert a value at key "+leafNodeCursor.getKey(idx));
                         if (cheat) insertionFastPath++; else insertionSlowPath++;
-                        break;
+                        if (largestKeyPage==-1 || cheat) System.arraycopy(key, key_ofs, largestKey, 0, largestKey.length);
+                        if (largestKeyPage==-1) largestKeyPage = pageid;
+                        leafNodeCursor.insertVal(idx+1, key, key_ofs, newval);
+                        break OUT;
                     case REPLACE:
-                        if (comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
-                        break;
-                    case REMOVE:
-                        break;
+                        if (comp!=0) throw new RuntimeException("attempt to replace a key that wasn't there");
+                        if (cheat) insertionFastPath++; else insertionSlowPath++;
+                        if (largestKeyPage==-1 || cheat) System.arraycopy(key, key_ofs, largestKey, 0, largestKey.length);
+                        if (largestKeyPage==-1) largestKeyPage = pageid;
+                        return_val = leafNodeCursor.setVal(idx, newval);
+                        break OUT;
                 }
-                if (largestKeyPage==-1 || cheat) System.arraycopy(key, key_ofs, largestKey, 0, largestKey.length);
-                if (largestKeyPage==-1) largestKeyPage = pageid;
-                if (comp==0) return leafNodeCursor.setVal(idx, newval);
-                leafNodeCursor.insertVal(idx+1, key, key_ofs, newval);
-                if (op==Op.INSERT) break OUT;
-                return null;
             } else {
                 switch(op) {
                     case REMOVE:
-                        InvertibleOperation io = (InvertibleOperation)summary;
-                        throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
+                        if (idx < interiorNodeCursor.getNumBuckets()-1) {
+                            interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)-1);
+                            interiorNodeCursor.writeBack();
+                        }
+                        break;
                     case INSERT:
-                        boolean wb = false;
                         if (idx < interiorNodeCursor.getNumBuckets()-1) {
                             interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
-                            wb = true;
+                            interiorNodeCursor.writeBack();
                         }
-                        if (wb) interiorNodeCursor.writeBack();
+                        break;
                 }
                 if (op.isGetOrd())
                     for(int i = 0; i < idx; i++)
@@ -614,11 +621,21 @@ public class BTree
             parentNodeCursor.setBuf(ps.getPage(cur.getParent(), true));
             int slot = parentNodeCursor.getSlotByChildPageId(cur.getPageId());
             if (summary!=null && slot < parentNodeCursor.getNumBuckets()-1) {
-                System.arraycopy(key, 0, vbuf, 0, uk.getSize());
-                uv.serialize(newval, vbuf, uk.getSize());
-                summary.call(vbuf, 0, monbuf, 0);
-                parentNodeCursor.mergeSummaryCommutative(slot, monbuf, 0);
-                parentNodeCursor.writeBack();
+                switch(op) {
+                    case REMOVE:
+                    case REPLACE: // (actually we can do better for REPLACE with an InvertibleOperation)
+                        cur.getSummary(monbuf, 0);
+                        parentNodeCursor.setSummary(slot, monbuf, 0);
+                        parentNodeCursor.writeBack();
+                        break;
+                    case INSERT:
+                        System.arraycopy(key, 0, vbuf, 0, uk.getSize());
+                        uv.serialize(newval, vbuf, uk.getSize());
+                        summary.call(vbuf, 0, monbuf, 0);
+                        parentNodeCursor.mergeSummaryCommutative(slot, monbuf, 0);
+                        parentNodeCursor.writeBack();
+                        break;
+                }
             }
             InteriorNodeCursor<K,V,S> ic = interiorNodeCursor; interiorNodeCursor = parentNodeCursor; parentNodeCursor = ic;
             cur = interiorNodeCursor;

@@ -112,24 +112,29 @@ public class BTreeTest {
                 case 2: { // put
                     int val = rand.nextInt();
                     boolean already_there = false;
+                    boolean should_delete = false;
+                    if (do_bt) already_there = do_tm ? tm.get(key)!=null : btree.getValFromKey(key)!=null;
+                    if (already_there) should_delete = Math.abs(rand.nextInt()) % 10 < 5;
                     if (do_tm) {
-                        if (do_bt) already_there = tm.get(key)!=null;
-                        tm.put(key, val);
+                        if (should_delete)
+                            tm.remove(key);
+                        else
+                            tm.put(key, val);
                     }
                     if (do_bt) {
-                        if (!do_tm) already_there = btree.getValFromKey(key)!=null;
-                        if (already_there)
+                        if (should_delete)
+                            btree.remove(key);
+                        else if (already_there)
                             btree.replace(key, val);
                         else
                             btree.insert(key, val);
                     }
-                    puts++;
+                    if (should_delete)
+                        deletes++;
+                    else
+                        puts++;
                     break;
                 }
-
-                case 3: // delete
-                    deletes++;
-                    break;
             }
         }
     }

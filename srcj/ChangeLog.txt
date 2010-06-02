@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+IMP: (6/1/10, AM) Implement BTree.remove().
+
 IMP: (5/29/10, AM) Finish implementing hierarchical "undriven nets
      check".  Marina full-chip schematics pass except for
      arrays-of-cell-instances, which the netlister does not seem to

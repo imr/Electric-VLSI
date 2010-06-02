@@ -191,4 +191,12 @@ class InteriorNodeCursor
                 return i;
         return -1;
     }
+
+    public void getSummary(byte[] buf, int ofs) {
+        getSummary(0, buf, ofs);
+        for(int i=1; i<getNumBuckets(); i++)
+            bt.summary.multiply(buf, ofs,
+                                getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*i,
+                                buf, ofs);
+    }
 }
