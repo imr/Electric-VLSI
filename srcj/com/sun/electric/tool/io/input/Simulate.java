@@ -50,7 +50,7 @@ import javax.swing.SwingUtilities;
 /**
  * This class reads simulation output files and plots them.
  */
-public abstract class Simulate extends Input
+public abstract class Simulate extends Input<Stimuli>
 {
 	public Simulate() {}
 

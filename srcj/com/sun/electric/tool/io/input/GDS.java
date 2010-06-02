@@ -101,7 +101,7 @@ import java.util.TreeSet;
  * <LI>MAG - no scaling is possible, must create a separate object for each value, don't scale.  (TEXT does scale.)</LI>
  * </UL>
  */
-public class GDS extends Input
+public class GDS extends Input<Object>
 {
 	private static final boolean DEBUGALL = false;				/* true for debugging */
 	private static final boolean SHOWPROGRESS = false;			/* true for debugging */

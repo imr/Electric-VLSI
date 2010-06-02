@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * This class defines supporting structures and methods for reading of LEF and DEF files.
  */
-public class LEFDEF extends Input
+public class LEFDEF extends Input<Object>
 {
 	// special controls to ignore LEF/DEF data (set false to eliminate data)
 	protected static final boolean PLACELEFGEOMETRY = true;

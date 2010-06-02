@@ -57,8 +57,9 @@ import javax.swing.SwingUtilities;
 /**
  * This class manages reading files in different formats.
  * The class is subclassed by the different file readers.
+ * ResultType is the type of result produced by processInput()
  */
-public class Input
+public class Input<ResultType>
 {
 	protected static final int READ_BUFFER_SIZE = 65536;
 
@@ -79,6 +80,10 @@ public class Input
 	public Input() {}
 
 	// ----------------------- public methods -------------------------------
+
+    public ResultType processInput(URL url, Cell cell) {
+        return null;
+    }
 
 	/**
 	 * Method to tell if a new library was created for this import operation.

@@ -60,7 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-public class VerilogReader extends Input
+public class VerilogReader extends Input<Object>
 {
     List<NodeInst> transistors = new ArrayList<NodeInst>();
     double maxWidth = 100, nodeWidth = 10;

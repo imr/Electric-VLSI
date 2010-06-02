@@ -64,7 +64,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-public class Applicon860 extends Input
+public class Applicon860 extends Input<Object>
 {
 	private static final int POLYSPLIT    = 999;	/* maximum polygon record size (was 62) */
 	private static final int BYTESSWAPPED = 1;		/* bit set if bytes are swapped */

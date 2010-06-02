@@ -59,7 +59,7 @@ import java.util.Map;
 /**
  * This class reads files in DEF files.
  */
-public class DXF extends Input
+public class DXF extends Input<Object>
 {
 	private static class DXFLayer
 	{

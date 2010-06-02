@@ -60,7 +60,7 @@ import java.util.Map;
 /**
  * This class reads files in Gerber files.
  */
-public class Gerber extends Input
+public class Gerber extends Input<Object>
 {
 	private static double UNSCALE = 1000.0;
 

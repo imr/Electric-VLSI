@@ -82,7 +82,7 @@ import java.util.Set;
 /**
  * This class reads files in Sue files.
  */
-public class Sue extends Input
+public class Sue extends Input<Object>
 {
 	/*************** SUE EQUIVALENCES ***************/
 

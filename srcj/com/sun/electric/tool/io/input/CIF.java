@@ -60,7 +60,7 @@ import java.util.Set;
 /**
  * This class reads files in CIF files.
  */
-public class CIF extends Input
+public class CIF extends Input<Object>
 {
 	/** max depth of minmax stack */		private static final int MAXMMSTACK = 50;
 	/** max value that can add extra digit */private static final int BIGSIGNED = ((0X7FFFFFFF-9)/10);

@@ -207,7 +207,7 @@ import java.util.Set;
  *  )
  * )
  */
-public class EDIF extends Input
+public class EDIF extends Input<Object>
 {
 	private static final double INCH = 10;
 	private static final int SHEETWIDTH = 44;		// was 32

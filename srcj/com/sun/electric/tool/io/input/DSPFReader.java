@@ -17,7 +17,7 @@ import java.io.IOException;
  * User: gg151869
  * Date: Nov 10, 2009
  */
-public class DSPFReader extends Input
+public class DSPFReader extends Input<Object>
 {
     private DSPFReaderPreferences localPrefs;
 
