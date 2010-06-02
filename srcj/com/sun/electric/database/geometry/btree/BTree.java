@@ -286,14 +286,29 @@ public class BTree
         return (V)walk(keybuf, 0, oldval, newval, Op.REPLACE, 0);
     }
 
-    /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
-    public V remove(K key) {
-        throw new RuntimeException("not implemented");
-        // size--;
+    /** removes key from the tree; throws an exception if key not found; may not be used if there is a summary */
+    public V remove(K key) { return remove(key, null); }
+
+    /** removes (key,val) from the tree; throws an exception if key not found or get(key)!=val */
+    public V remove(K key, V val) {
+        if (val==null && summary!=null)
+            throw new RuntimeException("remove(key) and remove(key,null) may not be used on BTrees with summaries");
+        if (summary!=null && !(summary instanceof InvertibleOperation))
+            throw new RuntimeException("BTrees with non-InvertibleOperation summaries are insert-only");
+        uk.serialize(key, keybuf, 0);
+        V ret = (V)walk(keybuf, 0, val, null, Op.REMOVE, 0);
+        if (ret!=null) size--;
+        return ret;
     }
 
     /** remove all entries */
     public void clear() {
+        size = 0;
+        largestKeyPage = -1;
+        // free all pages except rootpage
+        // make rootpage a leaf page, set its size to zero
+        //leafNodeCursor.initBuf(ps.getPage(rootpage, false), true);
+        //leafNodeCursor.writeBack();
         throw new RuntimeException("not implemented");
     }
 
@@ -395,7 +410,13 @@ public class BTree
      *  On writes/deletes, this returns the previous value.
      *
      */
-    private Object walk(byte[] key, int key_ofs, V oldval, V newval, Op op, int ord, byte[] key2, int key2_ofs, byte[] ret, int ret_ofs) {
+    private Object walk(byte[] key, int key_ofs,
+                        V oldval,
+                        V newval,
+                        Op op,
+                        int ord,
+                        byte[] key2, int key2_ofs,
+                        byte[] ret, int ret_ofs) {
         int pageid = rootpage;
         int idx = -1;
         int global_ord = 0;
@@ -540,44 +561,45 @@ public class BTree
                     case GET_KEY_FROM_ORD:       return ord >= leafNodeCursor.getNumBuckets() ? null : leafNodeCursor.getKey(ord);
                     case GET_VAL_FROM_KEY:       return comp==0 ? leafNodeCursor.getVal(idx) : null;
                     case GET_VAL_FROM_KEY_FLOOR: return leafNodeCursor.getVal(idx);
-                    case GET_VAL_FROM_KEY_CEIL:  /* might need to backtrack one step */ throw new RuntimeException("not implemented");
+                    case GET_VAL_FROM_KEY_CEIL:  /*might need to backtrack one step*/ throw new RuntimeException("not implemented");
                     case GET_ORD_FROM_KEY:       return comp==0 ? new Integer(idx+global_ord) : new Integer(-1);
                     case GET_ORD_FROM_KEY_FLOOR: return new Integer(idx+global_ord /*FIXME: off the end?*/);
-                    case GET_ORD_FROM_KEY_CEIL:  return comp==0 ? new Integer(idx+global_ord) : new Integer(idx+global_ord+1 /*FIXME: off the end?*/);
-                    default: /* INSERT or REPLACE; fall through */
+                    case GET_ORD_FROM_KEY_CEIL:
+                        return comp==0 ? new Integer(idx+global_ord) : new Integer(idx+global_ord+1 /*FIXME: off the end?*/);
+                    case INSERT:
+                        if (comp==0) throw new RuntimeException("attempt to re-insert a value at key "+leafNodeCursor.getKey(idx));
+                        if (cheat) insertionFastPath++; else insertionSlowPath++;
+                        break;
+                    case REPLACE:
+                        if (comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
+                        break;
+                    case REMOVE:
+                        break;
                 }
-                if (op==Op.INSERT && comp==0) throw new RuntimeException("attempt to re-insert a value at key " + leafNodeCursor.getKey(idx));
-                if (op==Op.REPLACE && comp!=0) throw new RuntimeException("attempt to replace a value that did not exist");
-                if (op==Op.INSERT) { if (cheat) insertionFastPath++; else insertionSlowPath++; }
-                if (largestKeyPage==-1 || cheat)
-                    System.arraycopy(key, key_ofs, largestKey, 0, largestKey.length);
+                if (largestKeyPage==-1 || cheat) System.arraycopy(key, key_ofs, largestKey, 0, largestKey.length);
                 if (largestKeyPage==-1) largestKeyPage = pageid;
-                if (comp==0) {
-                    if (newval==null) throw new RuntimeException("deletion is not yet implemented");
-                    return leafNodeCursor.setVal(idx, newval);
-                }
+                if (comp==0) return leafNodeCursor.setVal(idx, newval);
                 leafNodeCursor.insertVal(idx+1, key, key_ofs, newval);
                 return null;
             } else {
-                if (op==Op.REMOVE) {
-                    if (summary!=null && !(summary instanceof InvertibleOperation))
-                        throw new RuntimeException("cannot remove values from a BTree with a non-InvertibleOperation summary");
-                    throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
-                }
-                if (op==Op.INSERT) {
-                    boolean wb = false;
-                    if (idx < interiorNodeCursor.getNumBuckets()-1) {
-                        interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
-                        wb = true;
-                    }
-                    if (summary != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
-                        byte[] vbuf = new byte[uk.getSize()+uv.getSize()];
-                        System.arraycopy(key, 0, vbuf, 0, uk.getSize());
-                        uv.serialize(newval, vbuf, uk.getSize());
-                        summary.call(vbuf, 0, monbuf, 0);
-                        interiorNodeCursor.mergeSummaryCommutative(idx, monbuf, 0);
-                    }
-                    if (wb) interiorNodeCursor.writeBack();
+                switch(op) {
+                    case REMOVE:
+                        InvertibleOperation io = (InvertibleOperation)summary;
+                        throw new RuntimeException("need to adjust 'least value under X' on the way down for deletions");
+                    case INSERT:
+                        boolean wb = false;
+                        if (idx < interiorNodeCursor.getNumBuckets()-1) {
+                            interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)+1);
+                            wb = true;
+                        }
+                        if (summary != null && (idx < interiorNodeCursor.getNumBuckets()-1 || !interiorNodeCursor.isRightMost())) {
+                            byte[] vbuf = new byte[uk.getSize()+uv.getSize()];
+                            System.arraycopy(key, 0, vbuf, 0, uk.getSize());
+                            uv.serialize(newval, vbuf, uk.getSize());
+                            summary.call(vbuf, 0, monbuf, 0);
+                            interiorNodeCursor.mergeSummaryCommutative(idx, monbuf, 0);
+                        }
+                        if (wb) interiorNodeCursor.writeBack();
                 }
                 if (op.isGetOrd())
                     for(int i = 0; i < idx; i++)
