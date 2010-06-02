@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: PTask.java
+ * File: IWorkStealing.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,52 +21,14 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent.patterns;
+package com.sun.electric.tool.util.concurrent.datastructures;
 
 /**
- * 
- * Base task for task parallel programming
- * 
+ * @author fs239085
+ *
  */
-public abstract class PTask implements Cloneable {
+public interface IWorkStealing {
+	
+	public void registerThread();
 
-	protected PJob job;
-	protected int threadId;
-
-	public PTask(PJob job) {
-		this.job = job;
-	}
-
-	/**
-	 * abstract method, body of a task
-	 */
-	public abstract void execute();
-
-	/**
-	 * do init work
-	 */
-	public void before() {
-
-	}
-
-	/**
-	 * do finalize work, this funtion has to be called on the super object
-	 */
-	public void after() {
-		this.job.finishTask();
-	}
-
-	public void setThreadID(int id) {
-		this.threadId = id;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#clone()
-	 */
-	@Override
-	public Object clone() throws CloneNotSupportedException {
-		return super.clone();
-	}
 }

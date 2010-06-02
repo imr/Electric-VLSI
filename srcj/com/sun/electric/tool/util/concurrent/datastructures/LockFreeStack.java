@@ -23,10 +23,10 @@
  */
 package com.sun.electric.tool.util.concurrent.datastructures;
 
-import com.sun.electric.tool.util.EmptyException;
-import com.sun.electric.tool.util.IStructure;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.sun.electric.tool.util.EmptyException;
+import com.sun.electric.tool.util.IStructure;
 
 /**
  * 
@@ -60,13 +60,16 @@ public class LockFreeStack<T> extends IStructure<T> {
 
 	private boolean tryPush(Node<T> node) {
 		Node<T> oldTop = top.get();
-		node.next = oldTop;
+		node.next = new AtomicReference<Node<T>>(oldTop);
 		return (top.compareAndSet(oldTop, node));
 	}
 
 	@Override
 	public boolean isEmpty() {
-		// TODO Auto-generated method stub
+		Node<T> oldTop = top.get();
+		if (oldTop == null) {
+			return true;
+		}
 		return false;
 	}
 
@@ -96,7 +99,7 @@ public class LockFreeStack<T> extends IStructure<T> {
 		if (oldTop == null) {
 			throw new EmptyException();
 		}
-		Node<T> newTop = oldTop.next;
+		Node<T> newTop = oldTop.next.get();
 		if (top.compareAndSet(oldTop, newTop))
 			return oldTop;
 		else

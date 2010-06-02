@@ -26,14 +26,21 @@ package com.sun.electric.tool.util.concurrent.runtime;
 /**
  * 
  * Strategy pattern for pool worker
- *
+ * 
  */
 public abstract class PoolWorkerStrategy {
-	
-	protected volatile boolean abort; 
-	
+
+	protected volatile boolean abort;
+
+	/**
+	 * Abstract method, this method should contain the body of the worker
+	 * strategy
+	 */
 	public abstract void execute();
-    
+
+	/**
+	 * shutdown the current worker
+	 */
 	public void shutdown() {
 		abort = true;
 	}

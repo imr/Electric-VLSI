@@ -44,6 +44,8 @@ public class BDEQueue<T> extends IDEStructure<T> {
 	private volatile int amount;
 
 	/**
+	 * Constructor
+	 * 
 	 * @param capacity
 	 *            of bounded double ended queue
 	 */
@@ -55,6 +57,9 @@ public class BDEQueue<T> extends IDEStructure<T> {
 		amount = 0;
 	}
 
+	/**
+	 * @return element from the top of the data structure
+	 */
 	@Override
 	public T getFromTop() {
 		int[] stamp = new int[1];
@@ -72,14 +77,20 @@ public class BDEQueue<T> extends IDEStructure<T> {
 		return null;
 	}
 
+	/**
+	 * Add a item to the data structure
+	 */
 	@Override
 	public void add(T item) {
 		this.tryAdd(item);
 	}
 
+	/**
+	 * return true if the data structure is empty; otherwise false
+	 */
 	@Override
 	public boolean isEmpty() {
-		return (top.getReference() < bottom);
+		return !(top.getReference() < bottom);
 	}
 
 	@Override

@@ -40,7 +40,7 @@ public class PForJob extends PJob {
 		super();
 		this.add(new SplitIntoTasks(this, range, task));
 	}
-	
+
 	/**
 	 * 
 	 * Base task for parallel for
@@ -59,16 +59,29 @@ public class PForJob extends PJob {
 			super(null);
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#execute()
 		 */
 		@Override
-		public void execute() {
-			
+		public final void execute() {
+
 		}
 
+		/**
+		 * Abstract method: this method should contain the body of the task. The
+		 * thread pool will call this function
+		 * 
+		 * @param range
+		 */
 		public abstract void execute(BlockedRange range);
 
+		/**
+		 * set current job
+		 * 
+		 * @param job
+		 */
 		public void setPJob(PJob job) {
 			this.job = job;
 		}
@@ -77,10 +90,10 @@ public class PForJob extends PJob {
 
 	/**
 	 * 
-	 * Task to create parallel for tasks
+	 * Task to create parallel for tasks (internal)
 	 * 
 	 */
-	public static class SplitIntoTasks extends PTask {
+	public final static class SplitIntoTasks extends PTask {
 
 		private BlockedRange range;
 		private PForTask task;
@@ -100,8 +113,7 @@ public class PForJob extends PJob {
 			BlockedRange tmpRange;
 			while ((tmpRange = range.splitBlockedRange()) != null) {
 				try {
-					PForTaskWrapper taskObj = new PForTaskWrapper(job, (PForTask) task.clone(),
-							tmpRange);
+					PForTaskWrapper taskObj = new PForTaskWrapper(job, (PForTask) task.clone(), tmpRange);
 					job.add(taskObj);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -111,7 +123,11 @@ public class PForJob extends PJob {
 
 	}
 
-	public static class PForTaskWrapper extends PTask {
+	/**
+	 * Wrapper object for PForTask objects. This wrapper provides a PTask
+	 * interface for PForTasks (internal)
+	 */
+	public final static class PForTaskWrapper extends PTask {
 
 		private PForTask task;
 		private BlockedRange range;
@@ -211,7 +227,6 @@ public class PForJob extends PJob {
 		 * split the current block range into smaller pieces according to step
 		 * width
 		 */
-//		@Override
 		public BlockedRange1D splitBlockedRange() {
 
 			if (current == null)
@@ -219,8 +234,8 @@ public class PForJob extends PJob {
 			if (current >= range.end)
 				return null;
 
-			BlockedRange1D result = new BlockedRange1D(current, Math.min(current + range.step,
-					this.range.end), range.step);
+			BlockedRange1D result = new BlockedRange1D(current, Math
+					.min(current + range.step, this.range.end), range.step);
 			current += range.step;
 			return result;
 		}
@@ -239,8 +254,7 @@ public class PForJob extends PJob {
 		private Integer currentCol = null;
 		private Integer currentRow = null;
 
-		public BlockedRange2D(int startRow, int endRow, int stepRow, int startCol, int endCol,
-				int stepCol) {
+		public BlockedRange2D(int startRow, int endRow, int stepRow, int startCol, int endCol, int stepCol) {
 			this.col = new Range(startCol, endCol, stepCol);
 			this.row = new Range(startRow, endRow, stepRow);
 		}
@@ -257,7 +271,6 @@ public class PForJob extends PJob {
 		 * split current 2-dimensional blocked range into smaller pieces
 		 * according to both step widths
 		 */
-//		@Override
 		public BlockedRange2D splitBlockedRange() {
 
 			if (currentRow == null) {
@@ -277,9 +290,8 @@ public class PForJob extends PJob {
 				}
 			}
 
-			BlockedRange2D result = new BlockedRange2D(currentRow, Math.min(currentRow + row.step,
-					row.end), row.step, currentCol, Math.min(currentCol + col.step, col.end),
-					col.step);
+			BlockedRange2D result = new BlockedRange2D(currentRow, Math.min(currentRow + row.step, row.end),
+					row.step, currentCol, Math.min(currentCol + col.step, col.end), col.step);
 
 			currentCol += col.step;
 

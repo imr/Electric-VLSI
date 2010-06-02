@@ -29,25 +29,35 @@ import com.sun.electric.tool.util.IStructure;
 
 /**
  * 
- * Thread safe, lock free, concurrent queue 
- *
+ * Thread safe, lock free, concurrent queue
+ * 
  * @param <T>
  */
 public class LockFreeQueue<T> extends IStructure<T> {
 
-	AtomicReference<Node<T>> head = new AtomicReference<Node<T>>(null);
-	AtomicReference<Node<T>> tail = new AtomicReference<Node<T>>(null);
+	AtomicReference<Node<T>> head = null;
+	AtomicReference<Node<T>> tail = null;
+	
+	/**
+	 * 
+	 */
+	public LockFreeQueue() {
+		Node<T> dummy = new Node<T>(null);
+		head = new AtomicReference<Node<T>>(dummy);
+		tail = new AtomicReference<Node<T>>(dummy);
+	}
 
 	@Override
 	public void add(T item) {
 		Node<T> node = new Node<T>(item);
 		while (true) {
 			Node<T> last = tail.get();
-			Node<T> next = last.next;
+			Node<T> next = last.next.get();
 			if (last == tail.get()) {
 				if (next == null) {
-					last.next = node;
+					last.next = new AtomicReference<Node<T>>(node);
 					tail.compareAndSet(last, node);
+					return;
 				} else {
 					tail.compareAndSet(last, next);
 				}
@@ -57,14 +67,38 @@ public class LockFreeQueue<T> extends IStructure<T> {
 
 	@Override
 	public boolean isEmpty() {
-		// TODO Auto-generated method stub
+		Node<T> first = head.get();
+		Node<T> last = tail.get();
+		Node<T> next = first.next.get();
+		if (first == head.get()) {
+			if (first == last) {
+				if (next == null) {
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public T remove() {
-		// TODO Auto-generated method stub
-		return null;
+		while (true) {
+			Node<T> first = head.get();
+			Node<T> last = tail.get();
+			Node<T> next = first.next.get();
+			if (first == head.get()) {
+				if (first == last) {
+					if (next == null) {
+						return null;
+					}
+					tail.compareAndSet(last, next);
+				} else {
+					T value = next.value;
+					if (head.compareAndSet(first, next))
+						return value;
+				}
+			}
+		}
 	}
 
 }

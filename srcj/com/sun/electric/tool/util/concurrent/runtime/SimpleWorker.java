@@ -29,10 +29,10 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
 /**
  * 
  * Simple thread pool worker
- *
+ * 
  */
 public class SimpleWorker extends PoolWorkerStrategy {
-	
+
 	protected int threadId;
 	protected IStructure<PTask> taskPool = null;
 
@@ -43,21 +43,33 @@ public class SimpleWorker extends PoolWorkerStrategy {
 		this.abort = false;
 	}
 
+	/**
+	 * This function iterates while the flag abort is false. <br>
+	 * <b>Algorithm:</b>
+	 * <ul>
+	 * <li>pick one task from thread pool's task queue</li>
+	 * <li>if task not equal to null, then set threadId and do some
+	 * initialization work on the task object</li>
+	 * <li>execute the task</li>
+	 * <li>finalize work on the task object</li>
+	 * <li>do it again ...</li>
+	 * </ul>
+	 */
 	@Override
 	public void execute() {
 		while (!abort) {
-            // retrieve a new task
+			// retrieve a new task
 			PTask task = taskPool.remove();
 			if (task != null) {
 				try {
-                    // set the current thread id
+					// set the current thread id
 					task.setThreadID(threadId);
-                    // do something before execution
+					// do something before execution
 					task.before();
-                    // execute the task
+					// execute the task
 					task.execute();
 				} finally {
-                    // do some clean up work etc. after execution of the task
+					// do some clean up work etc. after execution of the task
 					task.after();
 				}
 			} else {

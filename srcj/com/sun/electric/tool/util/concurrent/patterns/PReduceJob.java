@@ -43,11 +43,16 @@ public class PReduceJob<T> extends PForJob {
 
 	@Override
 	public void execute() {
+		long start = System.currentTimeMillis();
 		super.execute();
+
+		// TODO debug
+		System.out.println("par part: " + (System.currentTimeMillis() - start));
 
 		result = null;
 		PReduceTask<T> oldTask = null;
 
+		start = System.currentTimeMillis();
 		// TODO parallize it
 		if (tasks.size() > 0) {
 			if (tasks.size() == 1) {
@@ -61,8 +66,16 @@ public class PReduceJob<T> extends PForJob {
 				}
 			}
 		}
+
+		// TODO debug
+		System.out.println("red part: " + (System.currentTimeMillis() - start));
 	}
 
+	/**
+	 * get the aggregated result
+	 * 
+	 * @return
+	 */
 	public T getResult() {
 		return result;
 	}
@@ -82,35 +95,6 @@ public class PReduceJob<T> extends PForJob {
 		 */
 		public abstract T reduce(PReduceTask<T> other);
 
-	}
-
-	/**
-	 * felix: tbd
-	 */
-	public class ReduceTask extends PTask {
-
-		private int step;
-		private int start;
-		private boolean firstRound;
-
-		public ReduceTask(PJob job, int start, int step, boolean firstRound, ReduceTask reportTo) {
-			super(job);
-			this.step = step;
-			this.start = start;
-			this.firstRound = firstRound;
-		}
-
-		@Override
-		public void execute() {
-			if (firstRound) {
-				PReduceTask<T> tmp = tasks.get(start);
-				for (int i = start + 1; i < start + step; i++) {
-					tmp.reduce(tasks.get(i));
-				}
-			} else {
-
-			}
-		}
 	}
 
 	@SuppressWarnings("unchecked")

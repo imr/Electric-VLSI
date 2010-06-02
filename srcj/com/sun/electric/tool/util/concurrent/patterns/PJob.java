@@ -25,9 +25,9 @@ package com.sun.electric.tool.util.concurrent.patterns;
 
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
-
 /**
- * parallel job. This job ends if a new further tasks for this job are available.
+ * Parallel job. This job ends if a new further tasks for this job are
+ * available.
  * 
  */
 public class PJob {
@@ -35,26 +35,44 @@ public class PJob {
 	protected int numOfTasksTotal = 0;
 	protected int numOfTasksFinished = 0;
 	protected ThreadPool pool;
-	
+
 	public PJob() {
-		this.pool = ThreadPool.getThreadPool(); 	
+		this.pool = ThreadPool.getThreadPool();
 	}
 
-    /**
-     * Call back function for thread pool workers, to tell this job that a task
-     * of this job is finished.
-     */
+	/**
+	 * Call back function for thread pool workers, to tell this job that a task
+	 * of this job is finished.
+	 */
 	public synchronized void finishTask() {
 		numOfTasksFinished++;
 	}
 
-    /**
-     * Executor method of a job. This job ends
-     */
+	/**
+	 * Executor method of a job. This function uses the default and block after
+	 * starting the job.
+	 */
 	public void execute() {
-		
-		pool.start();
+		this.execute(true);
+	}
 
+	/**
+	 * Executor method of a job. In some cases it could be necessary to start
+	 * the job non-blocking, e.g. for parallel jobs.
+	 */
+	public void execute(boolean block) {
+
+		//pool.start();
+
+		if (block) {
+			this.join();
+		}
+	}
+
+	/**
+	 * Wait for the job while not finishing.
+	 */
+	public void join() {
 		while (numOfTasksFinished != numOfTasksTotal) {
 			try {
 				Thread.sleep(100);
@@ -64,12 +82,13 @@ public class PJob {
 		}
 	}
 
-    /**
-     * Use this method to add tasks to this job. This will affect that the new
-     * task is registered by this job.
-     * @param task
-     */
-	public void add(PTask task) {		
+	/**
+	 * Use this method to add tasks to this job. This will affect that the new
+	 * task is registered by this job.
+	 * 
+	 * @param task
+	 */
+	public void add(PTask task) {
 		numOfTasksTotal++;
 		pool.add(task);
 	}

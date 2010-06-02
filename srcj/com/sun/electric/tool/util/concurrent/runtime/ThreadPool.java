@@ -23,6 +23,9 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime;
 
+import com.sun.electric.database.Environment;
+import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.UniqueIDGenerator;
@@ -33,13 +36,14 @@ import java.util.ArrayList;
 /**
  * 
  * Magic thread pool
- *
+ * 
  */
 public class ThreadPool {
 
-    /**
-     * states of the thread pool. This is very similar to states of processes or tasks.
-     */
+	/**
+	 * states of the thread pool. This is very similar to states of processes or
+	 * tasks.
+	 */
 	private enum ThreadPoolState {
 		New, Init, Started, Closed;
 	}
@@ -49,12 +53,14 @@ public class ThreadPool {
 	private ArrayList<Worker> workers = null;
 	private ThreadPoolState state;
 	private UniqueIDGenerator generator;
+	private UserInterface userInterface;
 
-    /**
-     * prevent from creating thread pools via constructor
-     * @param taskPool
-     * @param numOfThreads
-     */
+	/**
+	 * prevent from creating thread pools via constructor
+	 * 
+	 * @param taskPool
+	 * @param numOfThreads
+	 */
 	private ThreadPool(IStructure<PTask> taskPool, int numOfThreads) {
 		state = ThreadPoolState.New;
 		this.taskPool = taskPool;
@@ -63,15 +69,17 @@ public class ThreadPool {
 
 		workers = CollectionFactory.createArrayList();
 
+		setUserInterface(Job.getUserInterface());
+
 		for (int i = 0; i < numOfThreads; i++) {
 			workers.add(new Worker(this));
 		}
 		state = ThreadPoolState.Init;
 	}
 
-    /**
-     * start the thread pool
-     */
+	/**
+	 * start the thread pool
+	 */
 	public void start() {
 		if (state == ThreadPoolState.Init) {
 			for (Worker worker : workers) {
@@ -81,9 +89,9 @@ public class ThreadPool {
 		state = ThreadPoolState.Started;
 	}
 
-    /**
-     * shutdown the thread pool
-     */
+	/**
+	 * shutdown the thread pool
+	 */
 	public void shutdown() throws InterruptedException {
 		for (Worker worker : workers) {
 			worker.shutdown();
@@ -93,33 +101,34 @@ public class ThreadPool {
 		state = ThreadPoolState.Closed;
 	}
 
-    /**
-     * wait for termination
-     * @throws InterruptedException
-     */
+	/**
+	 * wait for termination
+	 * 
+	 * @throws InterruptedException
+	 */
 	public void join() throws InterruptedException {
 		for (Worker worker : workers) {
 			worker.join();
 		}
 	}
 
-    /**
-     * add a task to the pool
-     * @param item
-     */
+	/**
+	 * add a task to the pool
+	 * 
+	 * @param item
+	 */
 	public void add(PTask item) {
 		taskPool.add(item);
 	}
 
-    public int getPoolSize() {
-        return this.numOfThreads;
-    }
+	public int getPoolSize() {
+		return this.numOfThreads;
+	}
 
-	/**** worker ****/
-    /**
-     * Worker class. This class uses a worker strategy to determine how to process
-     * tasks in the pool.
-     */
+	/**
+	 * Worker class. This class uses a worker strategy to determine how to
+	 * process tasks in the pool.
+	 */
 	protected class Worker extends Thread {
 
 		@SuppressWarnings("unused")
@@ -135,6 +144,15 @@ public class ThreadPool {
 
 		@Override
 		public void run() {
+			try {
+				Job.setUserInterface(pool.getUserInterface());
+				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase().getEnvironment());
+			} catch (Exception ex) {
+
+			}
+
+			pool.taskPool.registerThread();
+
 			strategy.execute();
 		}
 
@@ -144,36 +162,66 @@ public class ThreadPool {
 
 	}
 
-    /**
-     * Factory class for worker strategy
-     */
+	/**
+	 * Factory class for worker strategy
+	 */
 	private static class PoolWorkerStrategyFactory {
 		public static PoolWorkerStrategy createStrategy(int threadId, IStructure<PTask> taskPool) {
 			return new SimpleWorker(threadId, taskPool);
-			//return new WorkStealingWorker(threadId, (IWorkStealingStructure<PTask>) taskPool);
 		}
 	}
 
-	/**** static factory methods ****/
 	private static ThreadPool instance = null;
 
+	/**
+	 * initialize thread pool, default initialization
+	 * 
+	 * @return initialized thread pool
+	 * @throws PoolExistsException
+	 */
 	public static ThreadPool initialize() throws PoolExistsException {
 		return ThreadPool.initialize(ThreadPool.getNumOfThreads());
 	}
 
+	/**
+	 * initialize thread pool with number of threads
+	 * 
+	 * @param num
+	 *            of threads
+	 * @return initialized thread pool
+	 * @throws PoolExistsException
+	 */
 	public static ThreadPool initialize(int num) throws PoolExistsException {
 		IStructure<PTask> taskPool = CollectionFactory.createLockFreeStack();
 		return ThreadPool.initialize(taskPool, num);
 	}
 
+	/**
+	 * initialize thread pool with specific task pool
+	 * 
+	 * @param taskPool
+	 *            to be used
+	 * @return initialized thread pool
+	 * @throws PoolExistsException
+	 */
 	public static ThreadPool initialize(IStructure<PTask> taskPool) throws PoolExistsException {
 		return ThreadPool.initialize(taskPool, ThreadPool.getNumOfThreads());
 	}
 
+	/**
+	 * initialize thread pool with specific task pool and number of threads
+	 * 
+	 * @param taskPool
+	 *            to be used
+	 * @param numOfThreads
+	 * @return initialized thread pool
+	 * @throws PoolExistsException
+	 */
 	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads)
 			throws PoolExistsException {
 		if (ThreadPool.instance == null || instance.state != ThreadPoolState.Started) {
 			instance = new ThreadPool(taskPool, numOfThreads);
+			instance.start();
 		} else {
 			return instance;
 		}
@@ -181,6 +229,9 @@ public class ThreadPool {
 		return instance;
 	}
 
+	/**
+	 * hard shutdown of thread pool
+	 */
 	public static synchronized void killPool() {
 		try {
 			ThreadPool.instance.shutdown();
@@ -193,7 +244,30 @@ public class ThreadPool {
 		return Runtime.getRuntime().availableProcessors();
 	}
 
+	/**
+	 * returns the current thread pool
+	 * 
+	 * @return thread pool
+	 */
 	public static ThreadPool getThreadPool() {
 		return instance;
+	}
+
+	/**
+	 * set the user interface for the thread pool
+	 * 
+	 * @param userInterface
+	 */
+	public void setUserInterface(UserInterface userInterface) {
+		this.userInterface = userInterface;
+	}
+
+	/**
+	 * get the user interface of the thread pool
+	 * 
+	 * @return
+	 */
+	public UserInterface getUserInterface() {
+		return userInterface;
 	}
 }
