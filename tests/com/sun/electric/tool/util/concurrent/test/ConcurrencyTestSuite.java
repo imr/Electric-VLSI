@@ -21,19 +21,14 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent;
+package com.sun.electric.tool.util.concurrent.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
-
 @RunWith(Suite.class)
-@Suite.SuiteClasses({
-	ThreadPool_T.class,
-	PForJob_T.class,
-    PReduceJob_T.class,
-    Parallel_T.class
-})
+@Suite.SuiteClasses( { ThreadPool_T.class, PForJob_T.class, PReduceJob_T.class, Parallel_T.class,
+		PWhileJob_T.class, CollectionTests_T.class })
 public class ConcurrencyTestSuite {
 
 }

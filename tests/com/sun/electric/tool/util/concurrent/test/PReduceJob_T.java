@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent;
+package com.sun.electric.tool.util.concurrent.test;
 
 import junit.framework.Assert;
 
@@ -41,21 +41,57 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 public class PReduceJob_T {
 
 	@Test
-	public void testPReduce() throws PoolExistsException, InterruptedException,
-			CloneNotSupportedException {
+	public void testPReduce() throws PoolExistsException, InterruptedException, CloneNotSupportedException {
 		ThreadPool pool = ThreadPool.initialize();
 		int stepW = 1000000;
 		double step = 1.0 / stepW;
-		PReduceJob<Double> pReduceJob = new PReduceJob<Double>(new BlockedRange1D(0, stepW, 100),
-				new PITask(step));
+		PReduceJob<Double> pReduceJob = new PReduceJob<Double>(new BlockedRange1D(0, stepW, 100), new PITask(
+				step));
 		pReduceJob.execute();
 
 		System.out.println("calc pi = " + pReduceJob.getResult());
 		System.out.println("math pi = " + Math.PI);
 
 		pool.shutdown();
+
+		Assert.assertEquals(Math.PI, pReduceJob.getResult(), 0.0001);
+	}
+
+	@Test
+	public void testPerformancePReduce() throws PoolExistsException, InterruptedException {
 		
-		Assert.assertEquals(Math.PI, pReduceJob.getResult(), 0.00001);
+		int stepW = 100000000;
+		double step = 1.0 / stepW;
+
+		ThreadPool pool = ThreadPool.initialize(1);
+
+		long start = System.currentTimeMillis(); 
+		PReduceJob<Double> pReduceJobSer = new PReduceJob<Double>(new BlockedRange1D(0, stepW, 128),
+				new PITask(step));
+
+		pReduceJobSer.execute();
+		
+		long endSer = System.currentTimeMillis() - start;
+
+		pool.shutdown();
+		pool = ThreadPool.initialize();
+		
+		System.out.println(ThreadPool.getThreadPool().getPoolSize());
+
+		start = System.currentTimeMillis();
+		PReduceJob<Double> pReduceJobPar = new PReduceJob<Double>(new BlockedRange1D(0, stepW, 128),
+				new PITask(step));
+
+		pReduceJobPar.execute();
+		long endPar = System.currentTimeMillis() - start;
+
+		pool.shutdown();
+
+		Assert.assertEquals(pReduceJobPar.getResult(), pReduceJobSer.getResult(), 0.000000001);
+		System.out.println("Ser:     " + endSer);
+		System.out.println("Par:     " + endPar);
+		System.out.println("Speedup: " + (double)endSer/(double)endPar); 
+
 	}
 
 	public static class PITask extends PReduceTask<Double> {
@@ -90,7 +126,6 @@ public class PReduceJob_T {
 				double x = step * ((double) i - 0.5);
 				this.pi += 4.0 / (1.0 + x * x);
 			}
-
 		}
 	}
 }

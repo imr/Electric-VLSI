@@ -21,15 +21,19 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent;
+package com.sun.electric.tool.util.concurrent.test;
+
+import org.junit.Ignore;
+import org.junit.Test;
 
 import com.sun.electric.tool.util.CollectionFactory;
+import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
+import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
-import org.junit.Test;
 
 public class ThreadPool_T {
 
@@ -51,6 +55,23 @@ public class ThreadPool_T {
 
 		job.add(new TestTask(-2, job));
 
+		job.execute();
+
+		pool.shutdown();
+		System.out.println("time: " + (System.currentTimeMillis() - start));
+	}
+
+	@Ignore
+	@Test
+	public void testThreadPoolWorkStealing() throws PoolExistsException, InterruptedException {
+		long start = System.currentTimeMillis();
+		IStructure<PTask> taskPool = new WorkStealingStructure<PTask>(0);
+		ThreadPool pool = ThreadPool.initialize(taskPool);
+		
+		Thread.sleep(1000);
+
+		PJob job = new PJob();
+		job.add(new TestTask(-2, job));
 		job.execute();
 
 		pool.shutdown();
