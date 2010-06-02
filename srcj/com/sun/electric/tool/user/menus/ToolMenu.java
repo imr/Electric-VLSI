@@ -45,6 +45,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -55,6 +56,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.EvalJython;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.geometry.btree.EquivalenceClasses;
@@ -291,16 +293,19 @@ public class ToolMenu
 
 		//------------------- Simulation (SPICE)
 
-			// mnemonic keys available: AB      IJK  NO QR   VWXYZ
+			// mnemonic keys available: AB   F  IJKL N  QR   VWXYZ
             new EMenu("Simulation (_Spice)",
 		        new EMenuItem("Write Spice _Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.SPICE, true); }},
 		        new EMenuItem("Write _CDL Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.CDL, true); }},
-		        new EMenuItem("Plot Spice _Listing...") { public void run() {
-                    Simulate.plotSpiceResults(); }},
-		        new EMenuItem("Plot Spice _for This Cell") { public void run() {
-                    Simulate.plotSpiceResultsThisCell(); }},
+		        new EMenuItem("Plot Simulation _Output from Chosen File...") { public void run() {
+                    plotChosen(); }},
+		        new EMenuItem("Plot Simulation Output from _Guessed File") { public void run() {
+                    UserInterface ui = Job.getUserInterface();
+                    Cell cell = ui.needCurrentCell();
+                    if (cell == null) return;
+                    Simulate.plotGuessed(cell, null); }},
 		        new EMenuItem("Set Spice _Model...") { public void run() {
                     Simulation.setSpiceModel(); }},
 		        new EMenuItem("Add M_ultiplier") { public void run() {
@@ -320,7 +325,7 @@ public class ToolMenu
                     makeTemplate(Spice.SPICE_H_TEMPLATE_KEY); }},
 		        new EMenuItem("Set _PSpice Template") { public void run() {
                     makeTemplate(Spice.SPICE_P_TEMPLATE_KEY); }},
-		        new EMenuItem("Set _GnuCap Template") { public void run() {
+		        new EMenuItem("Set GnuCap Template") { public void run() {
                     makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }},
 		        new EMenuItem("Set _SmartSpice Template") { public void run() {
                     makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }},
@@ -333,7 +338,7 @@ public class ToolMenu
 
 		//------------------- Simulation (Verilog)
 
-			// mnemonic keys available:  B  EFGHIJKLMNO QR  U  XYZ
+			// mnemonic keys available:  BCDEF HIJKLMN  QR  U  XYZ
             new EMenu("Simulation (_Verilog)",
 		        new EMenuItem("Write _Verilog Deck...") { public void run() {
                     Simulation.setVerilogStopAtStandardCells(false);
@@ -342,10 +347,13 @@ public class ToolMenu
     		    new EMenuItem("Write Verilog_A Deck...") { public void run() {
     		    	Simulation.setVerilogStopAtStandardCells(false);
     		    	FileMenu.exportCommand(FileType.VERILOGA, true); }},    
-		        new EMenuItem("Plot Verilog VCD _Dump...") { public void run() {
-                    Simulate.plotVerilogResults(); }},
-		        new EMenuItem("Plot Verilog for This _Cell") { public void run() {
-                    Simulate.plotVerilogResultsThisCell(); }},
+		        new EMenuItem("Plot Simulation _Output from Chosen File...") { public void run() {
+                    plotChosen(); }},
+		        new EMenuItem("Plot Simulation Output from _Guessed File") { public void run() {
+                    UserInterface ui = Job.getUserInterface();
+                    Cell cell = ui.needCurrentCell();
+                    if (cell == null) return;
+                    Simulate.plotGuessed(cell, null); }},
                 SEPARATOR,
 		        new EMenuItem("Set Verilog _Template") { public void run() {
                     makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }},
@@ -2494,4 +2502,19 @@ public class ToolMenu
 //        FillGeneratorTool.generateAutoFill(cell, hierarchy, binary, false);
 //    }
 
+	private static void plotChosen() {
+        String fileName = OpenFile.chooseInputFile(null, null);
+        if (fileName == null) return;
+        URL fileURL = TextUtils.makeURLToFile(fileName);
+        String cellName = TextUtils.getFileNameWithoutExtension(fileURL);
+        Library curLib = Library.getCurrent();
+        Cell cell = curLib.findNodeProto(cellName);
+        if (cell == null) {
+            CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCellToAssoc);
+            dialog.setVisible(true);
+            cell = dialog.getSelectedCell();
+            if (cell == null) return;
+        }
+        Simulate.plot(cell, fileURL, null);
+    }
 }

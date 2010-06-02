@@ -66,7 +66,9 @@ import com.sun.electric.tool.io.input.spicenetlist.SpiceSubckt;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.Exec;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -3170,7 +3172,10 @@ public class Spice extends Topology
 //
 //            Simulate.plotSimulationResults(type, cell, fileURL, ww);
             SwingUtilities.invokeLater(new Runnable() { public void run() {
-            	Simulate.plotSpiceResultsThisCell();
+                UserInterface ui = Job.getUserInterface();
+                Cell cell = ui.needCurrentCell();
+                if (cell == null) return;
+            	Simulate.plotGuessed(cell, null);
             }});
         }
     }

@@ -953,7 +953,6 @@ public class ALS extends Engine
 	{
 		// convert the stimuli
 		Stimuli sd = new Stimuli();
-		sd.setDataType(FileType.ALS);
 		sd.setEngine(this);
 		DigitalAnalysis an = new DigitalAnalysis(sd, true);
 		sd.setSeparatorChar('.');

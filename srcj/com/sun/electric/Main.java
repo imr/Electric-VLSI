@@ -513,9 +513,7 @@ public final class Main
             // setting database path for future references
             FileType.setDatabaseGroupPath(User.getWorkingDirectory());
             if (arg.indexOf('.')!=-1 && Simulate.isKnownSimulationFormatExtension(arg.substring(arg.lastIndexOf('.')+1))) {
-                WindowFrame wf = new WindowFrame();
-                WaveformWindow ww = wf.createWaveformWindow(new Stimuli()).getWaveformWindow();
-                Simulate.plotSimulationResults2(FileType.SPICE, null, url, ww);
+                Simulate.plot(null, url, null);
             } else {
                 FileMenu.openLibraryCommand(url);
             }

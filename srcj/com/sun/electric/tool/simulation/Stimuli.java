@@ -55,7 +55,6 @@ public class Stimuli {
 	/** the WaveformWindow associated with this Stimuli */		private WaveformWindow ww;
 	/** the simulation engine associated with this Stimuli */	private Engine engine;
 	/** the cell attached to this Stimuli information */		private Cell cell;
-	/** the type of data in this Stimuli */						private FileType type;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
 	/** the separator character that breaks names */			private char separatorChar;
 	/** the analyses in this Stimuli */							private HashMap<Analysis.AnalysisType,Analysis> analyses;
@@ -156,24 +155,6 @@ public class Stimuli {
 	 * @param sep the separator character for names in this simulation.
 	 */
 	public void setSeparatorChar(char sep) { separatorChar = sep; }
-
-	/**
-	 * Method to set the type of this simulation data.
-	 * Data types are file types, which are unique among the different simulation output formats.
-	 * For example, OpenFile.Type.HSPICEOUT is the output of HSpice, whereas
-	 * OpenFile.Type.SPICEOUT is the output of Spice3/GNUCap.
-	 * @param type the type of this simulation data.
-	 */
-	public void setDataType(FileType type) { this.type = type; }
-
-	/**
-	 * Method to return the type of this simulation data.
-	 * Data types are file types, which are unique among the different simulation output formats.
-	 * For example, OpenFile.Type.HSPICEOUT is the output of HSpice, whereas
-	 * OpenFile.Type.SPICEOUT is the output of Spice3/GNUCap.
-	 * @return the type of this simulation data.
-	 */
-	public FileType getDataType() { return type; }
 
 	/**
 	 * Method to set a URL to the file containing this simulation data.

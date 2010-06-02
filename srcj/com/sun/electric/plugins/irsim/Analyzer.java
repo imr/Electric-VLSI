@@ -261,7 +261,6 @@ public class Analyzer extends Engine
 
 		// convert the stimuli
 		Stimuli sd = new Stimuli();
-		sd.setDataType(FileType.IRSIM);
 		sd.setEngine(this);
 		analysis = new DigitalAnalysis(sd, true);
 		sd.setSeparatorChar('/');
