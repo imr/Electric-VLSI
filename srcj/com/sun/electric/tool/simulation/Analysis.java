@@ -164,8 +164,7 @@ public abstract class Analysis<S extends Signal>
 	 * @param ws the signal to add.
 	 * Instead of a "Signal", use either DigitalSignal or AnalogSignal.
 	 */
-	public void addSignal(S ws)
-	{
+	public void addSignal(S ws) {
 		signals.add(ws);
 		String sigName = ws.getFullName();
 		if (sigName != null) nameSignal(ws, sigName);
@@ -196,12 +195,15 @@ public abstract class Analysis<S extends Signal>
         return signalGroup.get(sigName);
     }
 
+    private Rectangle2D bounds = null;
+
     /**
 	 * Method to compute the time and value bounds of this simulation data.
 	 * @return a Rectangle2D that has time bounds in the X part and
 	 * value bounds in the Y part.
 	 */
 	public Rectangle2D getBounds() {
+        if (bounds!=null) return bounds;
         double minX = Double.MAX_VALUE;
         double maxX = Double.MIN_VALUE;
         double minY = Double.MAX_VALUE;
@@ -212,13 +214,15 @@ public abstract class Analysis<S extends Signal>
                 maxY = Math.max(maxY, 1);
             } else if (sig instanceof ScalarSignal) {
                 ScalarSignal ssig = (ScalarSignal)sig;
-                minY = ssig.getMinValue()==null ? minY : Math.min(minY, ssig.getMinValue().getValue());
-                maxY = ssig.getMaxValue()==null ? maxY : Math.max(maxY, ssig.getMaxValue().getValue());
+                ScalarSample min = ssig.getMinValue();
+                ScalarSample max = ssig.getMaxValue();
+                minY = min==null ? minY : Math.min(minY, min.getValue());
+                maxY = max==null ? maxY : Math.max(maxY, max.getValue());
             }
             minX = Math.min(minX, sig.getMinTime());
             maxX = Math.max(maxX, sig.getMaxTime());
         }
-        return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
+        return bounds = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
 
 	public double getMinTime() { return getBounds().getX(); }

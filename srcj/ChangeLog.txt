@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+BUG: (6/2/10, AM) Adding panel to waveform window takes a long time (Bug #2776)
+FIX: cache bounds in Analysis.java.
+
 BUG: (6/2/10, AM) LT Spice stimuli not reading properly (Bug #2778)
 FIX: Be more permissive in parsing the analysis type.
 
