@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+BUG: (6/2/10, AM) Verilog simulation not working (Bug #2780)
+FIX: Fix DigitalSample.fromOldStyle().
+
 BUG: (6/2/10, AM) IRSIM is still broken (Bug #2679)
 FIX: Check for reinsertions in Analyzer.java
 

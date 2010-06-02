@@ -177,7 +177,7 @@ public class DigitalSample implements Sample, Comparable {
             case Stimuli.LOGIC_LOW:  value = Value.LOW; break;
             case Stimuli.LOGIC_HIGH: value = Value.HIGH; break;
             case Stimuli.LOGIC_X:    value = Value.X; break;
-            case Stimuli.LOGIC_Z:    value = Value.Z; break;
+            case Stimuli.LOGIC_Z:    return getSample(Value.Z, Strength.HIGH_IMPEDANCE);
             default: throw new RuntimeException("unknown value: " + (i & Stimuli.LOGIC));
         }
         switch(i & Stimuli.STRENGTH) {
