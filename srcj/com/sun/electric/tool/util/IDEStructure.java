@@ -52,5 +52,4 @@ public abstract class IDEStructure<T> extends IStructure<T> {
      * otherwise return true.
      */
 	public abstract boolean tryAdd(T item);
-
 }

@@ -24,30 +24,40 @@
 package com.sun.electric.tool.util;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.sun.electric.tool.util.concurrent.datastructures.IWorkStealing;
 
 /**
  * 
- * Common base class for concurrent data structures.
+ * Common base class for concurrent data structures. This class provides also
+ * some useful helpers for concurrent datastructures, such as internal node
+ * objects and a backoff algorithm
  * 
  * @param <T>
  */
-public abstract class IStructure<T> {
+public abstract class IStructure<T> implements IWorkStealing {
 
-    /**
-     * add a object of type T
-     */
+	/**
+	 * add a object of type T
+	 * 
+	 * @throws FullException
+	 */
 	public abstract void add(T item);
 
-    /**
-     * retrieve a object of type T
-     * @return object of type T
-     */
+	/**
+	 * retrieve a object of type T
+	 * 
+	 * @return object of type T
+	 */
 	public abstract T remove();
 
-    /**
-     * true if the data structure is empty (contains no elements); otherwise false
-     * @return
-     */
+	/**
+	 * true if the data structure is empty (contains no elements); otherwise
+	 * false
+	 * 
+	 * @return
+	 */
 	public abstract boolean isEmpty();
 
 	/**
@@ -58,7 +68,7 @@ public abstract class IStructure<T> {
 	 */
 	protected static class Node<T> {
 		public T value;
-		public Node<T> next = null;
+		public AtomicReference<Node<T>> next = new AtomicReference<Node<T>>(null);
 
 		public Node(T value) {
 			this.value = value;
@@ -67,8 +77,8 @@ public abstract class IStructure<T> {
 
 	/**
 	 * 
-	 * Backoff algorithm for wait times
-	 *
+	 * Backoff algorithm for delays
+	 * 
 	 */
 	protected static class Backoff {
 		private final int minDelay, maxDelay;
@@ -87,6 +97,15 @@ public abstract class IStructure<T> {
 			limit = Math.min(maxDelay, 2 * limit);
 			Thread.sleep(delay);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @seecom.sun.electric.tool.util.concurrent.datastructures.IWorkStealing#
+	 * registerThread()
+	 */
+	public void registerThread() {
 	}
 
 }

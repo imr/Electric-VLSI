@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UniqueIDGenerator.java
+ * File: FullException.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -23,27 +23,9 @@
  */
 package com.sun.electric.tool.util;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
- * Thread safe unique id generator
- *
+ * Exception: If a bounded datastructure is full this exception will be thrown
  */
-public class UniqueIDGenerator {
+public class FullException extends Exception {
 
-	private final int start;
-	private AtomicInteger current;
-
-	public UniqueIDGenerator(int start) {
-		this.start = start;
-		this.current = new AtomicInteger(this.start);
-	}
-
-	/**
-	 * Get unique identifier
-	 * @return
-	 */
-	public int getUniqueId() {
-		return this.current.incrementAndGet();
-	}
 }

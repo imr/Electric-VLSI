@@ -24,11 +24,14 @@
 package com.sun.electric.tool.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
-import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
+import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 
 /**
@@ -82,5 +85,20 @@ public class CollectionFactory {
 	 */
 	public static <T> BDEQueue<T> createBoundedDoubleEndedQueue(int capacity) {
 		return new BDEQueue<T>(capacity);
+	}
+
+	/**
+	 * create a new concurrent hash map
+	 */
+	public static <T, K> ConcurrentHashMap<T, K> createConcurrentHashMap() {
+		return new ConcurrentHashMap<T, K>();
+	}
+
+	/**
+	 * create concurrent linked list
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> List<T> createConcurrentLinkedList() {
+		return (List<T>) Collections.synchronizedList(createArrayList());
 	}
 }
