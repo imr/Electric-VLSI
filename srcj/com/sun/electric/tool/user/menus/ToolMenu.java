@@ -2393,8 +2393,17 @@ public class ToolMenu
         String fileName = OpenFile.chooseInputFile(FileType.DB, null);
         if (fileName == null) return;
         EditWindow wnd = EditWindow.needCurrent();
-        if (wnd == null) return;
+        if (wnd == null)
+        {
+            System.out.println("No current cell to import data in '" + fileName + "' to");
+            return;
+        }
         Cell cell = wnd.getCell();
+        if (cell == null)
+        {
+            System.out.println("No current cell to import data in '" + fileName + "' to");
+            return;
+        }
         HashMap<Cell,String> mangledNames = new HashMap<Cell,String>();
         com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames,
         	IOTool.getGDSCellNameLenMax(), IOTool.isGDSOutUpperCase());

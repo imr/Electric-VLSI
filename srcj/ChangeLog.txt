@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+BUG: (6/2/10, GVG) NPE while importing Cadence errors with no current cell (Bug #2781)
+FIX: Detecting the case when no current cell is selected.
+
 BUG: (6/1/10, AM) ALS needs Signal to be able to alter samples after
      they have been added (Bug #2679)
 FIX: Add BTree.remove() and BTree.replace().
