@@ -97,9 +97,10 @@ class InteriorNodeCursor
 
     public static boolean isInteriorNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 2*SIZEOF_INT)!=0; }
     public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
-    public void initBuf(CachedPage cp, boolean isRightMost) { 
+    public void initBuf(CachedPage cp, int parent, boolean isRightMost) { 
         super.setBuf(cp);
         setRightMost(isRightMost);
+        setParent(parent);
     }
     public int  getNumBuckets() { return numbuckets; }
     protected void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 2*SIZEOF_INT); }
@@ -115,6 +116,7 @@ class InteriorNodeCursor
         super.setBuf(ps.getPage(bt.rootpage, false));
         setNumBuckets(1);
         setRightMost(true);
+        setParent(bt.rootpage);
     }
 
     public boolean isLeafNode() { return false; }

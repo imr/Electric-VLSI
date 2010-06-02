@@ -68,11 +68,12 @@ class LeafNodeCursor
         super.setBuf(cp);
         numbuckets = bt.ui.deserializeInt(getBuf(), 5*SIZEOF_INT);
     }
-    public void initBuf(CachedPage cp, boolean isRightMost) {
+    public void initBuf(CachedPage cp, int parent, boolean isRightMost) {
         super.setBuf(cp);
         bt.ui.serializeInt(0, getBuf(), 2*SIZEOF_INT);
         setRightMost(isRightMost);
         setNumBuckets(0);
+        setParent(parent);
     }
     public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 3*SIZEOF_INT); }
     public int  getRightNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 4*SIZEOF_INT); }

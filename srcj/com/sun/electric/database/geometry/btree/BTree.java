@@ -189,7 +189,7 @@ public class BTree
         this.keybuf2 = new byte[uk.getSize()];
         this.sbuf = summary==null ? null : new byte[summary.getSize()];
         this.largestKey = new byte[uk.getSize()];
-        leafNodeCursor.initBuf(ps.getPage(rootpage, false), true);
+        leafNodeCursor.initBuf(ps.getPage(rootpage, false), rootpage, true);
         leafNodeCursor.writeBack();
         this.monbuf = this.summary == null ? null : new byte[this.summary.getSize()];
     }
@@ -448,6 +448,7 @@ public class BTree
                 cur = LeafNodeCursor.isLeafNode(cp) ? leafNodeCursor : interiorNodeCursor;
                 cur.setBuf(cp);
             }
+            assert cheat || pageid==rootpage || cur.getParent()==parentNodeCursor.getPageId();
 
             if ((op==Op.INSERT || op==Op.REPLACE) && cur.isFull()) {
                 assert cur!=parentNodeCursor;
@@ -458,6 +459,7 @@ public class BTree
                 if (pageid == rootpage) {
                     parentNodeCursor.initRoot();
                     parentNodeCursor.setBucketPageId(0, pageid);
+                    cur.setParent(parentNodeCursor.getPageId());
                     idx = 0;
                     old = size;
                     splitting_last_or_root = true;
@@ -490,6 +492,7 @@ public class BTree
                 int newpage = cur.getPageId();
                 if (largestKeyPage==oldpage) largestKeyPage = newpage;
                 parentNodeCursor.setBucketPageId(idx+1, newpage);
+                cur.setParent(parentNodeCursor.getPageId());
                 if (!splitting_last_or_root)
                     parentNodeCursor.setNumValsBelowBucket(idx+1, old-num);
                 if (summary!=null && (!parentNodeCursor.isRightMost() || idx+1<parentNodeCursor.getNumBuckets()-1)) {
