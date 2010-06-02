@@ -270,20 +270,15 @@ public class BTree
         size++;
     }
 
-    /** returns value previously in the tree; will throw an exception if the key is not already in the tree */
-    public V replace(K key, V newval) { return replace(key, null, newval); }
-
     /** 
      *  Returns value previously in the tree; to support one-pass
      *  replacement you must know the value which was previously in the
      *  tree; if that turns out to be incorrect an exception will be
      *  thrown
      */
-    public V replace(K key, V oldval, V newval) {
+    public V replace(K key, V newval) {
         uk.serialize(key, keybuf, 0);
-        if (oldval==null && summary!=null)
-            throw new RuntimeException("in order to replace an item in a BTree with a summary, you must specify the old value");
-        return (V)walk(keybuf, 0, oldval, newval, Op.REPLACE, 0);
+        return (V)walk(keybuf, 0, null, newval, Op.REPLACE, 0);
     }
 
     /** removes key from the tree; throws an exception if key not found; may not be used if there is a summary */

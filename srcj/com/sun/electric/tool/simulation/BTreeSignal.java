@@ -63,7 +63,9 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
         };
     }
 
+    public S    getSample(double time) { return tree.getValFromKey(time); }
     public void addSample(double time, S sample) { tree.insert(time, sample); }
+    public void replaceSample(double time, S sample) { tree.replace(time, sample); }
 
     public Signal.View<S> getExactView() { return exactView; }
 
