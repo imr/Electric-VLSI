@@ -181,6 +181,6 @@ abstract class NodeCursor
 
     public abstract void getSummary(int bucket, byte[] buf, int ofs);
 
-    public boolean isRightMost() { return bt.ui.deserializeInt(getBuf(), 0*SIZEOF_INT)!=0; }
-    protected void setRightMost(boolean r) { bt.ui.serializeInt(r?1:0, getBuf(), 0*SIZEOF_INT); }
+    public boolean isRightMost() { return bt.ui.deserializeInt(getBuf(), 1*SIZEOF_INT)!=0; }
+    protected void setRightMost(boolean r) { bt.ui.serializeInt(r?1:0, getBuf(), 1*SIZEOF_INT); }
 }

@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 /**
  *  Page format:
  *
+ *    int: pageid of parent
  *    int: isRightMost (1 or 0) 
  *    int: 0
  *    int: pageid of left neighbor (not used)
@@ -55,27 +56,27 @@ class LeafNodeCursor
 
     public LeafNodeCursor(BTree<K,V,S> bt) {
         super(bt);
-        this.LEAF_HEADER_SIZE = 5 * SIZEOF_INT;
+        this.LEAF_HEADER_SIZE = 6 * SIZEOF_INT;
         this.LEAF_ENTRY_SIZE  = bt.uk.getSize() + bt.uv.getSize();
         this.LEAF_MAX_BUCKETS = (ps.getPageSize() - LEAF_HEADER_SIZE) / LEAF_ENTRY_SIZE;
     }
 
-    public static boolean isLeafNode(CachedPage cp) { return UnboxedInt.instance.deserializeInt(cp.getBuf(), 1*SIZEOF_INT)==0; }
+    public static boolean isLeafNode(CachedPage cp) { return UnboxedInt.instance.deserializeInt(cp.getBuf(), 2*SIZEOF_INT)==0; }
 
     public void setBuf(CachedPage cp) {
         assert isLeafNode(cp);
         super.setBuf(cp);
-        numbuckets = bt.ui.deserializeInt(getBuf(), 4*SIZEOF_INT);
+        numbuckets = bt.ui.deserializeInt(getBuf(), 5*SIZEOF_INT);
     }
     public void initBuf(CachedPage cp, boolean isRightMost) {
         super.setBuf(cp);
-        bt.ui.serializeInt(0, getBuf(), 1*SIZEOF_INT);
+        bt.ui.serializeInt(0, getBuf(), 2*SIZEOF_INT);
         setRightMost(isRightMost);
         setNumBuckets(0);
     }
-    public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 2*SIZEOF_INT); }
-    public int  getRightNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 3*SIZEOF_INT); }
-    protected void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 4*SIZEOF_INT); }
+    public int  getLeftNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 3*SIZEOF_INT); }
+    public int  getRightNeighborPageId() { return bt.ui.deserializeInt(getBuf(), 4*SIZEOF_INT); }
+    protected void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 5*SIZEOF_INT); }
     public int  getNumBuckets() { return numbuckets; }
     public int  compare(byte[] key, int key_ofs, int keynum) {
         if (keynum<0) return 1;

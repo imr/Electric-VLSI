@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.btree.CachingPageStorage.CachedPage;
 /**
  *  Page format:
  *
+ *    int: pageid of parent
  *    int: isRightMost (1 or 0)
  *    int: number of buckets
  *    int: pageid of first bucket
@@ -70,7 +71,7 @@ class InteriorNodeCursor
     public InteriorNodeCursor(BTree<K,V,S> bt) {
         super(bt);
         this.SIZEOF_SUMMARY       = bt.summary==null ? 0 : bt.summary.getSize();
-        this.INTERIOR_HEADER_SIZE = 2*SIZEOF_INT;
+        this.INTERIOR_HEADER_SIZE = 3*SIZEOF_INT;
         this.INTERIOR_ENTRY_SIZE  = bt.uk.getSize() + SIZEOF_SUMMARY + SIZEOF_INT + SIZEOF_INT;
         this.INTERIOR_MAX_BUCKETS = ((ps.getPageSize()-INTERIOR_HEADER_SIZE-SIZEOF_INT-this.SIZEOF_SUMMARY) / INTERIOR_ENTRY_SIZE);
     }
@@ -94,18 +95,18 @@ class InteriorNodeCursor
         return INTERIOR_HEADER_SIZE + idx*INTERIOR_ENTRY_SIZE - bt.uk.getSize();
     }
 
-    public static boolean isInteriorNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 1*SIZEOF_INT)!=0; }
+    public static boolean isInteriorNode(byte[] buf) { return UnboxedInt.instance.deserializeInt(buf, 2*SIZEOF_INT)!=0; }
     public int getMaxBuckets() { return INTERIOR_MAX_BUCKETS; }
     public void initBuf(CachedPage cp, boolean isRightMost) { 
         super.setBuf(cp);
         setRightMost(isRightMost);
     }
     public int  getNumBuckets() { return numbuckets; }
-    protected void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 1*SIZEOF_INT); }
+    protected void setNumBuckets(int num) { bt.ui.serializeInt(numbuckets = num, getBuf(), 2*SIZEOF_INT); }
 
     public void setBuf(CachedPage cp) {
         super.setBuf(cp);
-        numbuckets = bt.ui.deserializeInt(getBuf(), 1*SIZEOF_INT);
+        numbuckets = bt.ui.deserializeInt(getBuf(), 2*SIZEOF_INT);
     }
 
     /** Initialize a new root node. */
