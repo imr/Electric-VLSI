@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+BUG: (6/2/10, AM) SmartSpice not reading (Bug #2779)
+FIX: ".txt" is now handled by SmartSpiceOut
+
 BUG: (6/2/10, GVG) NPE while importing Cadence errors with no current cell (Bug #2781)
 FIX: Detecting the case when no current cell is selected.
 

@@ -99,7 +99,7 @@ public final class Simulate {
     private static Input<Stimuli> getInputForExtension(String extension) {
         if (extension.indexOf('.')!=-1)
             extension = extension.substring(extension.lastIndexOf('.')+1);
-        if      (extension.equals("txt"))  return new PSpiceOut();
+        if      (extension.equals("txt"))  return new SmartSpiceOut();
         else if (extension.equals("raw"))  return new RawSpiceOut();
         else if (extension.equals("dump")) return new LTSpiceOut();
         else if (extension.equals("spo"))  return new SpiceOut();
