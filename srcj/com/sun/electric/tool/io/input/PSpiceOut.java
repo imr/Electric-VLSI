@@ -44,7 +44,7 @@ import java.util.List;
  *  0.000000000000e+000  -1.326552010141e-003  0.000000000000e+000  7.693014595134e-006  1.152132987045e-003
  *  2.000000000000e-010  -1.327024307102e-003  -6.724173662320e-009  7.738638487353e-006  1.152158598416e-003
  */
-public class PSpiceOut extends Simulate
+public class PSpiceOut extends Input<Stimuli>
 {
 	PSpiceOut() {}
 

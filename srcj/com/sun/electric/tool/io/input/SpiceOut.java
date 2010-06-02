@@ -39,7 +39,7 @@ import java.util.List;
  * Class for reading and displaying waveforms from Spice2 or GNUCap output.
  * These are contained in .spo files.
  */
-public class SpiceOut extends Simulate
+public class SpiceOut extends Input<Stimuli>
 {
 	SpiceOut() {}
 

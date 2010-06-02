@@ -74,7 +74,7 @@ import com.sun.electric.tool.simulation.*;
  *  H10    9601       TR         0         4        8      rdata, r0, r1, r2, r3, r4, c0, c1 (sweep header has 7 numbers)
  *                    AC         0         4        8      rdata, r0, r1, r2, r3, r4, c0, c1 (sweep header has 7 numbers)
  */
-public class HSpiceOut extends Simulate
+public class HSpiceOut extends Input<Stimuli>
 {
 	private static final boolean DEBUGCONDITIONS = false;
 	/** true if tr/ac/sw file is binary */						private boolean isTRACDCBinary;
@@ -981,5 +981,28 @@ public class HSpiceOut extends Simulate
 		return f;
 	}
 
+	/**
+	 * Method to remove the leading "x" character in each dotted part of a string.
+	 * HSpice decides to add "x" in front of every cell name, so the path "me.you"
+	 * appears as "xme.xyou".
+	 * @param name the string from HSpice.
+	 * @return the string without leading "X"s.
+	 */
+	static String removeLeadingX(String name)
+	{
+		// remove all of the "x" characters at the start of every instance name
+		int dotPos = -1;
+		while (name.indexOf('.', dotPos+1) >= 0)
+		{
+			int xPos = dotPos + 1;
+			if (name.length() > xPos && name.charAt(xPos) == 'x')
+			{
+				name = name.substring(0, xPos) + name.substring(xPos+1);
+			}
+			dotPos = name.indexOf('.', xPos);
+			if (dotPos < 0) break;
+		}
+		return name;
+	}
 }
 

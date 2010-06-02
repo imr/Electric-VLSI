@@ -98,7 +98,7 @@ public class EpicOut {
  * Class for reading and displaying waveforms from Epic output using
  * the new on-disk index.
  */
-public static class EpicOutProcess extends Simulate implements Runnable
+public static class EpicOutProcess extends Input<Stimuli> implements Runnable
 {
     private Thread readerProcess;
     private PipedInputStream pis;

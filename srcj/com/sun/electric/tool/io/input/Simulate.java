@@ -50,9 +50,9 @@ import javax.swing.SwingUtilities;
 /**
  * This class reads simulation output files and plots them.
  */
-public abstract class Simulate extends Input<Stimuli>
+public final class Simulate
 {
-	public Simulate() {}
+	private Simulate() {}
 
 	/**
 	 * Method called from the pulldown menus to read Spice output and plot it.
@@ -92,8 +92,8 @@ public abstract class Simulate extends Input<Stimuli>
 		plotSimulationResults(FileType.VERILOGOUT, cell, null, null);
 	}
 
-    private static Simulate getSimulate(FileType type, URL fileURL) {
-        Simulate is = null;
+    private static Input<Stimuli> getSimulate(FileType type, URL fileURL) {
+        Input<Stimuli> is = null;
         if (type == FileType.SPICE) do { // autodetect
                 String extension = fileURL.getPath();
                 if (extension.indexOf('.')!=-1) extension = extension.substring(extension.lastIndexOf('.')+1);
@@ -151,7 +151,7 @@ public abstract class Simulate extends Input<Stimuli>
             cell = dialog.getSelectedCell();
             if (cell == null) return;
         }
-		Simulate is = getSimulate(type, fileURL);
+		Input<Stimuli> is = getSimulate(type, fileURL);
 		if (is == null)
 		{
 			System.out.println("Cannot handle " + type.getName() + " files yet");
@@ -187,7 +187,7 @@ public abstract class Simulate extends Input<Stimuli>
             }
             fileURL = TextUtils.makeURLToFile(file.getPath());
         }
-		Simulate is = getSimulate(type, fileURL);
+		Input<Stimuli> is = getSimulate(type, fileURL);
 		if (is == null)
 		{
 			System.out.println("Cannot handle " + type.getName() + " files yet");
@@ -197,7 +197,7 @@ public abstract class Simulate extends Input<Stimuli>
 	}
 
     public static Stimuli readSimulationResults(FileType type, Cell cell, URL fileURL) {
-        Simulate is = getSimulate(type, fileURL);
+        Input<Stimuli> is = getSimulate(type, fileURL);
         if (is == null)
         {
             System.out.println("Cannot handle " + type.getName() + " files yet");
@@ -222,7 +222,7 @@ public abstract class Simulate extends Input<Stimuli>
 	private static class ReadSimulationOutput extends Thread
 	{
 		private FileType type;
-		private Simulate is;
+		private Input<Stimuli> is;
 		private URL fileURL;
 		private Cell cell;
 		private WaveformWindow ww;
@@ -230,7 +230,7 @@ public abstract class Simulate extends Input<Stimuli>
         private final Environment launcherEnvironment;
         private final UserInterfaceExec userInterface;
 
-		private ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
+		private ReadSimulationOutput(FileType type, Input<Stimuli> is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
 			this.type = type;
 			this.is = is;
@@ -297,29 +297,5 @@ public abstract class Simulate extends Input<Stimuli>
             return FileType.EPIC;
         }
 		return null;
-	}
-
-	/**
-	 * Method to remove the leading "x" character in each dotted part of a string.
-	 * HSpice decides to add "x" in front of every cell name, so the path "me.you"
-	 * appears as "xme.xyou".
-	 * @param name the string from HSpice.
-	 * @return the string without leading "X"s.
-	 */
-	static String removeLeadingX(String name)
-	{
-		// remove all of the "x" characters at the start of every instance name
-		int dotPos = -1;
-		while (name.indexOf('.', dotPos+1) >= 0)
-		{
-			int xPos = dotPos + 1;
-			if (name.length() > xPos && name.charAt(xPos) == 'x')
-			{
-				name = name.substring(0, xPos) + name.substring(xPos+1);
-			}
-			dotPos = name.indexOf('.', xPos);
-			if (dotPos < 0) break;
-		}
-		return name;
 	}
 }

@@ -40,7 +40,7 @@ import java.util.List;
  * Class for reading and displaying waveforms from LTSpice Raw output.
  * These are contained in .raw files.
  */
-public class LTSpiceOut extends Simulate
+public class LTSpiceOut extends Input<Stimuli>
 {
 	private static final boolean DEBUG = false;
 

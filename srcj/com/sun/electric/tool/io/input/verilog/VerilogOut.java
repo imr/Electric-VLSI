@@ -27,12 +27,8 @@ package com.sun.electric.tool.io.input.verilog;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.simulation.DigitalAnalysis;
-import com.sun.electric.tool.simulation.DigitalSignal;
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.io.input.*;
+import com.sun.electric.tool.simulation.*;
 
 import java.io.IOException;
 import java.net.URL;
@@ -45,7 +41,7 @@ import java.util.Map;
  * Class for reading and displaying waveforms from Verilog output.
  * These are contained in .v files.
  */
-public class VerilogOut extends Simulate
+public class VerilogOut extends Input<Stimuli>
 {
 	private static class VerilogStimuli
 	{

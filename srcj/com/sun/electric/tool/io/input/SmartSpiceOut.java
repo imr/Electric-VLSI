@@ -37,7 +37,7 @@ import java.net.URL;
  * Class for reading and displaying waveforms from SmartSpice Raw output.
  * These are contained in .dump files.
  */
-public class SmartSpiceOut extends Simulate
+public class SmartSpiceOut extends Input<Stimuli>
 {
 	SmartSpiceOut() {}
 
