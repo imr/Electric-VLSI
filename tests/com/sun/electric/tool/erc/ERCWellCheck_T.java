@@ -32,7 +32,6 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.sun.electric.plugins.tests.junit.BaseTest;
 import com.sun.electric.tool.erc.wellcheck.Utils;
 import com.sun.electric.tool.erc.wellcheck.WellCon;
 import com.sun.electric.tool.util.CollectionFactory;
@@ -41,7 +40,7 @@ import com.sun.electric.tool.util.CollectionFactory;
  * @author fs239085
  * 
  */
-public class ERCWellCheck_T extends BaseTest {
+public class ERCWellCheck_T  {
 
 	@Test
 	public void testGetStarters() {
