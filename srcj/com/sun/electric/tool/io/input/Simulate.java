@@ -305,27 +305,6 @@ public abstract class Simulate extends Input
 	}
 
 	/**
-	 * Method to get the next line of text from the simulator.
-	 * Returns null at end of file.
-	 */
-	protected String getLineFromSimulator()
-		throws IOException
-	{
-		StringBuffer sb = new StringBuffer();
-		int bytesRead = 0;
-		for(;;)
-		{
-			int ch = lineReader.read();
-			if (ch == -1) return null;
-			bytesRead++;
-			if (ch == '\n' || ch == '\r') break;
-			sb.append((char)ch);
-		}
-		updateProgressDialog(bytesRead);
-		return sb.toString();
-	}
-
-	/**
 	 * Method to remove the leading "x" character in each dotted part of a string.
 	 * HSpice decides to add "x" in front of every cell name, so the path "me.you"
 	 * appears as "xme.xyou".

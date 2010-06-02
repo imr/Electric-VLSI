@@ -76,7 +76,7 @@ public class RawSpiceOut extends Simulate
 		double[][] values = null;
 		for(;;)
 		{
-			String line = getLineFromSimulator();
+			String line = getLineAndUpdateProgress();
 			if (line == null) break;
 
 			// make sure this isn't an HSPICE deck (check first line)
@@ -160,7 +160,7 @@ public class RawSpiceOut extends Simulate
 						postColon = "";
 					} else
 					{
-						line = getLineFromSimulator();
+						line = getLineAndUpdateProgress();
 						if (line == null)
 						{
 							System.out.println("Error: end of file during signal names");
@@ -206,7 +206,7 @@ public class RawSpiceOut extends Simulate
 				{
 					for(int i = -1; i <= numSignals; )
 					{
-						line = getLineFromSimulator();
+						line = getLineAndUpdateProgress();
 						if (line == null)
 						{
 							System.out.println("Error: end of file during data points (read " + j + " out of " + eventCount);

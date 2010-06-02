@@ -232,7 +232,7 @@ public class VerilogOut extends Simulate
 				double curTime = 0.0;
 				for(;;)
 				{
-					String currentLine = getLineFromSimulator();
+					String currentLine = getLineAndUpdateProgress();
 					if (currentLine == null) break;
 					char chr = currentLine.charAt(0);
 					String restOfLine = currentLine.substring(1);
@@ -468,7 +468,7 @@ public class VerilogOut extends Simulate
 		{
 			if (lastLine == null)
 			{
-				lastLine = getLineFromSimulator();
+				lastLine = getLineAndUpdateProgress();
 				if (lastLine == null) break;
 				lineLen = lastLine.length();
 				linePos = 0;

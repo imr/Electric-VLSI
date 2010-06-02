@@ -335,6 +335,27 @@ public class Input
 	}
 
 	/**
+	 * Method to get the next line of text and updates the progress dialog.
+	 * Returns null at end of file.
+	 */
+	protected String getLineAndUpdateProgress()
+		throws IOException
+	{
+		StringBuffer sb = new StringBuffer();
+		int bytesRead = 0;
+		for(;;)
+		{
+			int ch = lineReader.read();
+			if (ch == -1) return null;
+			bytesRead++;
+			if (ch == '\n' || ch == '\r') break;
+			sb.append((char)ch);
+		}
+		updateProgressDialog(bytesRead);
+		return sb.toString();
+	}
+
+	/**
 	 * Method to read a line of text, when the file has been opened in binary mode.
 	 * @return the line (null on EOF).
 	 * @throws IOException
