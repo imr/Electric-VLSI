@@ -92,10 +92,14 @@ public final class Simulate
 		plotSimulationResults(FileType.VERILOGOUT, cell, null, null);
 	}
 
+	public static void reloadSimulationResults(FileType type, Cell cell, URL fileURL, WaveformWindow ww) {
+        plotSimulationResults(type, cell, fileURL, ww);
+    }
+
 	/**
 	 * Method to read simulation output of a given type.
 	 */
-	public static void plotSimulationResults(FileType type, Cell cell, URL fileURL, WaveformWindow ww)
+	private static void plotSimulationResults(FileType type, Cell cell, URL fileURL, WaveformWindow ww)
 	{
 		if (cell != null) { plotSimulationResults2(type, cell, fileURL, ww); return; }
         if (fileURL == null) {

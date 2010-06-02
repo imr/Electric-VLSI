@@ -3731,7 +3731,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// there is no simulation engine (i.e. external Spice, Verilog) reload external data
-		Simulate.plotSimulationResults(sd.getDataType(), sd.getCell(), sd.getFileURL(), this);
+		Simulate.reloadSimulationResults(sd.getDataType(), sd.getCell(), sd.getFileURL(), this);
 	}
 
 	/**
