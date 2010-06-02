@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+BUG: (6/2/10, AM) IRSIM is still broken (Bug #2679)
+FIX: Check for reinsertions in Analyzer.java
+
 BUG: (6/2/10, AM) SmartSpice not reading (Bug #2779)
 FIX: ".txt" is now handled by SmartSpiceOut
 

@@ -2339,7 +2339,8 @@ public class Analyzer extends Engine
 			double [] timeVector = new double[count];
 			int [] stateVector = new int[count];
 			for(int i=0; i<count; i++)
-                nd.sig.addSample(traceTime[i], DigitalSample.fromOldStyle(traceState[i]));
+                if (nd.sig.getSample(traceTime[i])==null)
+                    nd.sig.addSample(traceTime[i], DigitalSample.fromOldStyle(traceState[i]));
 		}
 		ww.repaint();
 	}
