@@ -7,6 +7,9 @@ NOTE: Please place changes under the version that will be released next.
 BUG: (6/2/10, GVG) NPE while importing Cadence errors with no current cell (Bug #2781)
 FIX: Detecting the case when no current cell is selected.
 
+BUG: (6/2/10, AM) Crash reading simulation data (Bug #2775)
+FIX: Check for reinsertions in HSpiceOut.java.
+
 BUG: (6/2/10, AM) The command "Plot Spice for This Cell" no longer
      works (Bug #2773)
 FIX: Total overhaul of Simulate.java.

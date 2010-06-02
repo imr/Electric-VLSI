@@ -759,7 +759,8 @@ public class HSpiceOut extends Input<Stimuli>
                         */
                         signals[k].addSample(time, new ScalarSample(realPart));
 					} else {
-                        signals[k].addSample(time, new ScalarSample(getHSpiceFloat(false)));
+                        if (signals[k].getSample(time)==null)
+                            signals[k].addSample(time, new ScalarSample(getHSpiceFloat(false)));
 					}
 					if (eofReached) {
 						System.out.println("EOF in the middle of the data (at " + k + " out of " + numSignals +")");
