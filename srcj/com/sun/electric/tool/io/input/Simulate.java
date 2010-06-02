@@ -237,7 +237,7 @@ public abstract class Simulate extends Input
 			this.fileURL = fileURL;
 			this.cell = cell;
 			this.ww = ww;
-            sd = new Stimuli();
+            this.sd = null;
             launcherEnvironment = Environment.getThreadEnvironment();
             userInterface = new UserInterfaceExec();
 		}
@@ -251,7 +251,7 @@ public abstract class Simulate extends Input
 
 			try
 			{
-                is.readSimulationOutput(sd, fileURL, cell);
+                sd = is.readSimulationOutput(fileURL, cell);
 				if (sd != null)
 				{
 					sd.setDataType(type);
@@ -273,6 +273,11 @@ public abstract class Simulate extends Input
 	/**
 	 * Method that is overridden by subclasses to actually do the work.
 	 */
+	private Stimuli readSimulationOutput(URL fileURL, Cell cell) throws IOException {
+        Stimuli sd = new Stimuli();
+        readSimulationOutput(sd, fileURL, cell);
+        return sd;
+    }
 	protected abstract void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell) throws IOException;
 
 	public static FileType getSpiceOutputType(String format, Simulation.SpiceEngine engine)
