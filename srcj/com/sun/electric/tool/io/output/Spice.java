@@ -337,7 +337,24 @@ public class Spice extends Topology
                 command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", Matcher.quoteReplacement(filename_noext));
 
                 // set up run probe
-                FileType type = Simulate.getSpiceOutputType(outputFormat, engine);
+                FileType type = null;
+                if (outputFormat.equalsIgnoreCase("Standard")) {
+                    if (engine == Simulation.SpiceEngine.SPICE_ENGINE_H)
+                        type = FileType.HSPICEOUT;
+                    if (engine == Simulation.SpiceEngine.SPICE_ENGINE_3 || engine == Simulation.SpiceEngine.SPICE_ENGINE_P)
+                        type = FileType.PSPICEOUT;
+                    type = FileType.SPICEOUT;
+                } else if (outputFormat.equalsIgnoreCase("Raw"))
+                    type = FileType.RAWSPICEOUT;
+                else if (outputFormat.equalsIgnoreCase("RawSmart"))
+                    type = FileType.RAWSSPICEOUT;
+                else if (outputFormat.equalsIgnoreCase("RawLT"))
+                    type = FileType.RAWLTSPICEOUT;
+                else if (outputFormat.equalsIgnoreCase("Epic"))
+                    type = FileType.EPIC;
+                else
+                    type = null;
+
                 String outFile = rundir + File.separator + filename_noext + "." + type.getFirstExtension();
                 Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
 
