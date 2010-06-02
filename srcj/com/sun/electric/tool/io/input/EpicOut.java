@@ -119,9 +119,11 @@ public static class EpicOutProcess extends Simulate implements Runnable
     /**
      * Method to read an Spice output file.
      */
-    protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
+    protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
         throws IOException
     {
+        Stimuli sd = new Stimuli();
+
         // show progress reading .spo file
         startProgressDialog("EPIC output", fileURL.getFile());
 
@@ -166,6 +168,7 @@ public static class EpicOutProcess extends Simulate implements Runnable
         stdOut.close();
         stdOut = null;
         readerProcess = null;
+        return sd;
     }
 
 

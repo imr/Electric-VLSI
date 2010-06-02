@@ -64,11 +64,13 @@ public class VerilogOut extends Simulate
 	/**
 	 * Method to read an Verilog output file.
 	 */
-	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
+	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
+        Stimuli sd = new Stimuli();
+
 		// open the file
-		if (openTextInput(fileURL)) return;
+		if (openTextInput(fileURL)) return sd;
 
 		// show progress reading .dump file
 		startProgressDialog("Verilog output", fileURL.getFile());
@@ -79,6 +81,8 @@ public class VerilogOut extends Simulate
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
+
+        return sd;
 	}
 
 	private void readVerilogFile(Cell cell, Stimuli sd)

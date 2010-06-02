@@ -107,9 +107,10 @@ public class HSpiceOut extends Simulate
 	 * @param fileURL the URL to one of the output files.
 	 * @param cell the Cell associated with these HSpice output files.
 	 */
-	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
+	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
+        Stimuli sd = new Stimuli();
 		sd.setCell(cell);
 
 		// figure out file names
@@ -153,7 +154,7 @@ public class HSpiceOut extends Simulate
 		addMeasurementData(sd, fileURL);
 
 		// return the simulation data
-//		return sd;
+		return sd;
 	}
 
 	/**

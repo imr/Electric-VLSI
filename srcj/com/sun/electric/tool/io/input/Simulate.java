@@ -273,12 +273,7 @@ public abstract class Simulate extends Input
 	/**
 	 * Method that is overridden by subclasses to actually do the work.
 	 */
-	private Stimuli readSimulationOutput(URL fileURL, Cell cell) throws IOException {
-        Stimuli sd = new Stimuli();
-        readSimulationOutput(sd, fileURL, cell);
-        return sd;
-    }
-	protected abstract void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell) throws IOException;
+	protected abstract Stimuli readSimulationOutput(URL fileURL, Cell cell) throws IOException;
 
 	public static FileType getSpiceOutputType(String format, Simulation.SpiceEngine engine)
 	{

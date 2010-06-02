@@ -65,11 +65,13 @@ public class LTSpiceOut extends Simulate
 	/**
 	 * Method to read an LTSpice output file.
 	 */
-	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
+	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
+        Stimuli sd = new Stimuli();
+
 		// open the file
-		if (openBinaryInput(fileURL)) return;
+		if (openBinaryInput(fileURL)) return sd;
 
 		// show progress reading .raw file
 		startProgressDialog("LTSpice output", fileURL.getFile());
@@ -80,6 +82,7 @@ public class LTSpiceOut extends Simulate
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
+        return sd;
 	}
 
 	private void readRawLTSpiceFile(Cell cell, Stimuli sd)

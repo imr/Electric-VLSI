@@ -44,11 +44,13 @@ public class SmartSpiceOut extends Simulate
 	/**
 	 * Method to read an Smart Spice output file.
 	 */
-	protected void readSimulationOutput(Stimuli sd, URL fileURL, Cell cell)
+	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
+        Stimuli sd = new Stimuli();
+
 		// open the file
-		if (openBinaryInput(fileURL)) return;
+		if (openBinaryInput(fileURL)) return sd;
 
 		// show progress reading .dump file
 		startProgressDialog("SmartSpice output", fileURL.getFile());
@@ -59,6 +61,7 @@ public class SmartSpiceOut extends Simulate
 		// stop progress dialog, close the file
 		stopProgressDialog();
 		closeInput();
+        return sd;
 	}
 
 	private void readRawSmartSpiceFile(Cell cell, Stimuli sd)
