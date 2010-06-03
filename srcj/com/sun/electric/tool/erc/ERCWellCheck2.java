@@ -927,15 +927,6 @@ public class ERCWellCheck2 {
 					transistors.put(num, tmpList);
 				}
 				transistors.get(num).add(trans);
-
-				// Transistor otherTrans = neighborCache.get(num);
-				//
-				// if (otherTrans != null) {
-				// trans.neighbors.add(otherTrans);
-				// otherTrans.neighbors.add(trans);
-				// }
-				//
-				// neighborCache.put(num, trans);
 			}
 		}
 

@@ -199,7 +199,7 @@ public class Utils {
 	}
 
 	public static Set<WellCon> sortWellConList(WellCon base, List<WellCon> pool) {
-		Set<WellCon> result = new TreeSet(new WellConComparator(base));
+		Set<WellCon> result = new TreeSet<WellCon>(new WellConComparator(base));
 
 		for (WellCon con : pool) {
 			result.add(con);
