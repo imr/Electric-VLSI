@@ -31,6 +31,7 @@ public class NetValues {
 	private int index;
 
 	private static int indexValues;
+	public static int numberOfMerges = 0;
 
 	public static void reset() {
 		indexValues = 0;
@@ -52,5 +53,7 @@ public class NetValues {
 		if (this.index == other.index)
 			return;
 		other.index = this.index;
+
+		numberOfMerges++;
 	}
 }

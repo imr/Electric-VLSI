@@ -532,7 +532,15 @@ public class ERCWellCheck2 {
 		wcVisitor = null;
 
 		// make arrays of well contacts clustdered for each processor
+		startTime = System.currentTimeMillis();
+
 		assignWellContacts(numberOfThreads);
+
+		endTime = System.currentTimeMillis();
+
+		System.out.println("   Assign well contacts took: " + TextUtils.getElapsedTime(endTime - startTime));
+
+		startTime = endTime;
 
 		// analyze the contacts
 		NetValues.reset();
@@ -552,6 +560,8 @@ public class ERCWellCheck2 {
 		msg += "took ";
 		System.out.println(msg + TextUtils.getElapsedTime(endTime - startTime));
 		startTime = endTime;
+
+		System.out.println("   Number of merges: " + NetValues.numberOfMerges);
 
 		StrategyParameter parameter = new StrategyParameter(wellCons, wellPrefs, cell, errorLogger);
 
@@ -676,6 +686,17 @@ public class ERCWellCheck2 {
 					wellConLists[i % numberOfThreads].add(wellCons.get(i));
 			} else if (Utils.WORKDISTRIBUTION == WorkDistributionStrategy.bucket) {
 
+				GridDim dim = calculateGridDim(numberOfThreads);
+
+				double sizeCellX = cell.getDefWidth() / (double) dim.xDim;
+				double sizeCellY = cell.getDefHeight() / (double) dim.yDim;
+
+				for (WellCon con : wellCons) {
+					GridDim tmpDim = calculateBucket(con, sizeCellX, sizeCellY);
+					int threadId = tmpDim.xDim + tmpDim.yDim * dim.xDim;
+					wellConLists[threadId].add(con);
+				}
+
 			}
 		}
 
@@ -684,12 +705,27 @@ public class ERCWellCheck2 {
 			wellConIterator[i] = wellConLists[i].iterator();
 	}
 
+	private GridDim calculateBucket(WellCon con, double sizeX, double sizeZ) {
+		GridDim result = new GridDim();
+
+		result.xDim = (int) ((con.getCtr().getX() - cell.getBounds().getMinX()) / sizeX);
+		result.yDim = (int) ((con.getCtr().getY() - cell.getBounds().getMinY()) / sizeZ);
+
+		return result;
+	}
+
 	private GridDim calculateGridDim(int numberOfThreads) {
 		GridDim result = new GridDim();
 
-		int sqrtThreads = (int) Math.sqrt(numberOfThreads);
+		for (int i = (int) Math.sqrt(numberOfThreads); i >= 1; i--) {
+			if ((i * (int) (numberOfThreads / i)) == numberOfThreads) {
+				result.xDim = i;
+				result.yDim = (int) (numberOfThreads / i);
+				return result;
+			}
+		}
 
-		return result;
+		return null;
 	}
 
 	private static class GridDim {

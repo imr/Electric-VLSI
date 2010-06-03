@@ -53,7 +53,7 @@ public class Utils {
 
 	public static final boolean GATHERSTATISTICS = false;
 	public static final boolean INCREMENTALGROWTH = false;
-	public static final WorkDistributionStrategy WORKDISTRIBUTION = WorkDistributionStrategy.cluster;
+	public static final WorkDistributionStrategy WORKDISTRIBUTION = WorkDistributionStrategy.bucket;
 	public static List<WellBoundRecord> wellBoundSearchOrder;
 	public static int numObjSearches;
 
