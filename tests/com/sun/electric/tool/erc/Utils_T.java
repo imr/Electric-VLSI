@@ -23,33 +23,11 @@
  */
 package com.sun.electric.tool.erc;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-
-import junit.framework.Assert;
-
-import org.junit.Test;
-
-import com.sun.electric.tool.erc.wellcheck.Utils;
 
 /**
  * @author fs239085
  * 
  */
 public class Utils_T {
-
-	@Test
-	public void testSafeListRemove() {
-
-		Random rand = new Random(System.currentTimeMillis());
-		List<Integer> list = new LinkedList<Integer>();
-
-		for (int i = 0; i < 10; i++) {
-			list.add(rand.nextInt());
-		}
-		
-		Assert.assertNotNull(Utils.safeListRemove(list, 0));
-	}
 
 }
