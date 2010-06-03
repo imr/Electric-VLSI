@@ -98,9 +98,14 @@ import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.util.CollectionFactory;
+import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
@@ -653,6 +658,7 @@ public class ERCWellCheck2 {
 				Rectangle2D cellBounds = cell.getBounds();
 				Point2D ctr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
 				Point2D[] farPoints = new Point2D[numberOfThreads];
+
 				for (int i = 0; i < numberOfThreads; i++) {
 					double farthest = 0;
 					farPoints[i] = new Point2D.Double(0, 0);
@@ -685,9 +691,10 @@ public class ERCWellCheck2 {
 					wellConLists[threadNum].add(wc);
 				}
 			} else if (Utils.WORKDISTRIBUTION == WorkDistributionStrategy.random) {
-				// old way where well contacts are analyzed in random order
+
 				for (int i = 0; i < wellCons.size(); i++)
 					wellConLists[i % numberOfThreads].add(wellCons.get(i));
+
 			} else if (Utils.WORKDISTRIBUTION == WorkDistributionStrategy.bucket) {
 
 				GridDim dim = calculateGridDim(numberOfThreads);
@@ -695,12 +702,8 @@ public class ERCWellCheck2 {
 				double sizeCellX = cell.getDefWidth() / (double) dim.xDim;
 				double sizeCellY = cell.getDefHeight() / (double) dim.yDim;
 
-				for (WellCon con : wellCons) {
-					GridDim tmpDim = calculateBucket(con, sizeCellX, sizeCellY);
-					int threadId = tmpDim.xDim + tmpDim.yDim * dim.xDim;
-					wellConLists[threadId].add(con);
-				}
-
+				Parallel.For(new BlockedRange1D(0, wellCons.size(), wellCons.size() / numberOfThreads),
+						new WorkDistributionTask(sizeCellX, sizeCellY, dim));
 			}
 		}
 
@@ -709,11 +712,43 @@ public class ERCWellCheck2 {
 			wellConIterator[i] = wellConLists[i].iterator();
 	}
 
-	private GridDim calculateBucket(WellCon con, double sizeX, double sizeZ) {
+	public class WorkDistributionTask extends PForTask {
+
+		private double sizeX;
+		private double sizeY;
+		private GridDim dim;
+
+		public WorkDistributionTask(double sizeX, double sizeY, GridDim dim) {
+			this.sizeX = sizeX;
+			this.sizeY = sizeY;
+			this.dim = dim;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask#execute
+		 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
+		 */
+		@Override
+		public void execute(BlockedRange range) {
+			BlockedRange1D range1D = (BlockedRange1D) range;
+			for (int i = range1D.getStart(); i < range1D.getEnd(); i++) {
+				WellCon con = wellCons.get(i);
+				GridDim tmpDim = calculateBucket(con, sizeX, sizeY);
+				int threadId = tmpDim.xDim + tmpDim.yDim * dim.xDim;
+				CollectionFactory.threadSafeListAdd(con, wellConLists[threadId]);
+			}
+		}
+
+	}
+
+	private GridDim calculateBucket(WellCon con, double sizeX, double sizeY) {
 		GridDim result = new GridDim();
 
 		result.xDim = (int) ((con.getCtr().getX() - cell.getBounds().getMinX()) / sizeX);
-		result.yDim = (int) ((con.getCtr().getY() - cell.getBounds().getMinY()) / sizeZ);
+		result.yDim = (int) ((con.getCtr().getY() - cell.getBounds().getMinY()) / sizeY);
 
 		return result;
 	}

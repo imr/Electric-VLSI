@@ -101,4 +101,29 @@ public class CollectionFactory {
 	public static <T> List<T> createConcurrentLinkedList() {
 		return (List<T>) Collections.synchronizedList(createArrayList());
 	}
+
+	/**
+	 * 
+	 * @param <T>
+	 * @param item
+	 * @param list
+	 */
+	public static <T> void threadSafeListAdd(T item, List<T> list) {
+		synchronized (list) {
+			list.add(item);
+		}
+	}
+
+	public static <T> T threadSafeListGet(int index, List<T> list) {
+		synchronized (list) {
+			return list.get(index);
+		}
+	}
+
+	public static <T> T threadSafeListRemove(int index, List<T> list) {
+		synchronized (list) {
+			return list.remove(index);
+		}
+	}
+
 }
