@@ -513,6 +513,7 @@ public class ERCWellCheck2 {
 
 		hasNCon = false;
 		hasPCon = false;
+		NetValues.numberOfMerges = 0;
 
 		pWellRoot = RTNode.makeTopLevel();
 		nWellRoot = RTNode.makeTopLevel();
@@ -532,15 +533,16 @@ public class ERCWellCheck2 {
 		wcVisitor = null;
 
 		// make arrays of well contacts clustdered for each processor
-		startTime = System.currentTimeMillis();
-
 		assignWellContacts(numberOfThreads);
 
-		endTime = System.currentTimeMillis();
+		if (Job.getDebug()) {
+			endTime = System.currentTimeMillis();
 
-		System.out.println("   Assign well contacts took: " + TextUtils.getElapsedTime(endTime - startTime));
+			System.out.println("   Assign well contacts took: "
+					+ TextUtils.getElapsedTime(endTime - startTime));
 
-		startTime = endTime;
+			startTime = endTime;
+		}
 
 		// analyze the contacts
 		NetValues.reset();
@@ -561,7 +563,9 @@ public class ERCWellCheck2 {
 		System.out.println(msg + TextUtils.getElapsedTime(endTime - startTime));
 		startTime = endTime;
 
-		System.out.println("   Number of merges: " + NetValues.numberOfMerges);
+		if (Job.getDebug()) {
+			System.out.println("   Amount of merges: " + NetValues.numberOfMerges);
+		}
 
 		StrategyParameter parameter = new StrategyParameter(wellCons, wellPrefs, cell, errorLogger);
 
