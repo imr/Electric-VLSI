@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+IMP: (6/3/10, SMR) Added code to ignore hidden node names and reset them
+     in the Properties dialog (Bug #2768).
+
 IMP: (6/3/10, FS) Add a new work distribution to ERCWellCheck2
           - add a 2-dimensional view of threads
           - overlay the current cell with an 2-dimensional grid

@@ -1611,12 +1611,16 @@ public class Highlighter implements DatabaseChangeListener {
 	        		// now see if node is named
 	        		if (ni.isUsernamed())
 	        		{
-	            		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_NAME, textBounds);
-	            		if (style != null)
-	            		{
-		                    // save text area in cache
-		                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, ni, NodeInst.NODE_NAME));
-	            		}
+	                    TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME);
+	                    if (td.getDisplay() == TextDescriptor.Display.SHOWN)
+	                    {
+		            		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_NAME, textBounds);
+		            		if (style != null)
+		            		{
+			                    // save text area in cache
+			                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, ni, NodeInst.NODE_NAME));
+		            		}
+	                    }
 	        		}
 
 	        		// look at all variables on the node

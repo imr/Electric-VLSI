@@ -1797,7 +1797,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public int numDisplayableVariables(boolean multipleStrings) {
         int numVarsOnNode = super.numDisplayableVariables(multipleStrings);
         if (isUsernamed()) {
-            numVarsOnNode++;
+            TextDescriptor td = d.nameDescriptor;
+            if (td.getDisplay() == TextDescriptor.Display.SHOWN)
+            	numVarsOnNode++;
         }
 
         for (Iterator<PortInst> it = getPortInsts(); it.hasNext();) {
@@ -1818,34 +1820,38 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     public int addDisplayableVariables(Rectangle2D rect, Poly[] polys, int start, EditWindow0 wnd, boolean multipleStrings) {
         int numAddedVariables = 0;
-        if (isUsernamed()) {
-            double cX = rect.getCenterX();
-            double cY = rect.getCenterY();
+        if (isUsernamed())
+        {
             TextDescriptor td = d.nameDescriptor;
-            double offX = td.getXOff();
-            double offY = td.getYOff();
-            TextDescriptor.Position pos = td.getPos();
-            Poly.Type style = pos.getPolyType();
+            if (td.getDisplay() == TextDescriptor.Display.SHOWN)
+            {
+                double cX = rect.getCenterX();
+                double cY = rect.getCenterY();
+	            double offX = td.getXOff();
+	            double offY = td.getYOff();
+	            TextDescriptor.Position pos = td.getPos();
+	            Poly.Type style = pos.getPolyType();
 
-            if (offX != 0 || offY != 0) {
-                td = td.withOff(0, 0);
-                style = Poly.rotateType(style, this);
-            }
+	            if (offX != 0 || offY != 0) {
+	                td = td.withOff(0, 0);
+	                style = Poly.rotateType(style, this);
+	            }
 
-            Point2D[] pointList = null;
-            if (style == Poly.Type.TEXTBOX) {
-                pointList = Poly.makePoints(rect);
-            } else {
-                pointList = new Point2D.Double[1];
-                pointList[0] = new Point2D.Double(cX + offX, cY + offY);
+	            Point2D[] pointList = null;
+	            if (style == Poly.Type.TEXTBOX) {
+	                pointList = Poly.makePoints(rect);
+	            } else {
+	                pointList = new Point2D.Double[1];
+	                pointList[0] = new Point2D.Double(cX + offX, cY + offY);
+	            }
+	            polys[start] = new Poly(pointList);
+	            polys[start].setStyle(style);
+	            polys[start].setString(getNameKey().toString());
+	            polys[start].setTextDescriptor(td);
+	            polys[start].setLayer(null);
+	            polys[start].setDisplayedText(new DisplayedText(this, NODE_NAME));
+	            numAddedVariables = 1;
             }
-            polys[start] = new Poly(pointList);
-            polys[start].setStyle(style);
-            polys[start].setString(getNameKey().toString());
-            polys[start].setTextDescriptor(td);
-            polys[start].setLayer(null);
-            polys[start].setDisplayedText(new DisplayedText(this, NODE_NAME));
-            numAddedVariables = 1;
         }
         numAddedVariables += super.addDisplayableVariables(rect, polys, start + numAddedVariables, wnd, multipleStrings);
 

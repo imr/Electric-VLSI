@@ -994,7 +994,11 @@ public class EditMenu {
 			if (User.isTextVisibilityOnNode())
 			{
 				if (ni.isUsernamed())
-					highlighter.addText(ni, curCell, NodeInst.NODE_NAME);
+				{
+                    TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME);
+                    if (td.getDisplay() == TextDescriptor.Display.SHOWN)
+                    	highlighter.addText(ni, curCell, NodeInst.NODE_NAME);
+                }
 				for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
 				{
 					Variable var = vIt.next();

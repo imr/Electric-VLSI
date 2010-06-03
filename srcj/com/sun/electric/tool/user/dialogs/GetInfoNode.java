@@ -1022,6 +1022,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				if (currentName.length() == 0) currentName = null;
 				ni.setName(currentName);
+				TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME);
+				if (td.getDisplay() != TextDescriptor.Display.SHOWN)
+					ni.setTextDescriptor(NodeInst.NODE_NAME, td.withDisplay(TextDescriptor.Display.SHOWN));
 				changed = true;
 			}
 
