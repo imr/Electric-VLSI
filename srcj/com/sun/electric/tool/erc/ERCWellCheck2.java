@@ -91,6 +91,7 @@ import com.sun.electric.tool.erc.wellcheck.ShortCircuitCheck;
 import com.sun.electric.tool.erc.wellcheck.Utils;
 import com.sun.electric.tool.erc.wellcheck.WellCheckAnalysisStrategy;
 import com.sun.electric.tool.erc.wellcheck.WellCon;
+import com.sun.electric.tool.erc.wellcheck.Utils.WorkDistributionStrategy;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EModelessDialog;
@@ -483,35 +484,12 @@ public class ERCWellCheck2 {
 	public class SpreadInThread extends PTask {
 		private int threadIndex;
 
-		// private WellCon startCon;
-		// private List<WellCon> pool;
-		// private List<WellCon> wellCons;
-
-		public SpreadInThread(PJob job, int index, WellCon startCon, List<WellCon> wellCons) {
+		public SpreadInThread(PJob job, int index) {
 			super(job);
-			// this.startCon = startCon;
-			// pool = wellConLists[index];
 			threadIndex = index;
-			// this.wellCons = wellCons;
 		}
 
 		public void execute() {
-			//
-			// System.out.println("Starting improved parallel spread out");
-			// wellConLists[threadIndex].add(startCon);
-			// Set<WellCon> sortedWellCons = Utils.sortWellConList(startCon,
-			// wellCons);
-			// for (WellCon con : sortedWellCons) {
-			// if (!con.equals(startCon)) {
-			// synchronized (con) {
-			// if (!con.getMarked().get()) {
-			// con.getMarked().set(true);
-			// wellConLists[threadIndex].add(con);
-			// }
-			// }
-			// }
-			// }
-
 			spreadSeeds(threadIndex);
 		}
 	}
@@ -556,20 +534,6 @@ public class ERCWellCheck2 {
 		// make arrays of well contacts clustdered for each processor
 		assignWellContacts(numberOfThreads);
 
-		// get new starters
-		WellCon[] starters = Utils.getStarters(numberOfThreads, wellCons);
-
-		// mark starters
-		for (int i = 0; i < starters.length; i++) {
-			starters[i].getMarked().set(true);
-		}
-
-		List<WellCon> wellConsTmp = new LinkedList<WellCon>();
-		for (WellCon con : wellCons) {
-			wellConsTmp.add(con);
-		}
-		List<WellCon> wellConsTmpSync = Collections.synchronizedList(wellConsTmp);
-
 		// analyze the contacts
 		NetValues.reset();
 		if (numberOfThreads <= 1)
@@ -577,7 +541,7 @@ public class ERCWellCheck2 {
 		else {
 			PJob spreadJob = new PJob();
 			for (int i = 0; i < numberOfThreads; i++)
-				spreadJob.add(new SpreadInThread(spreadJob, i, starters[i], wellConsTmpSync));
+				spreadJob.add(new SpreadInThread(spreadJob, i));
 			spreadJob.execute();
 		}
 
@@ -670,7 +634,7 @@ public class ERCWellCheck2 {
 			for (int i = 0; i < numberOfThreads; i++) {
 				wellConLists[i] = new ArrayList<WellCon>();
 			}
-			if (Utils.DISTANTSEEDS) {
+			if (Utils.WORKDISTRIBUTION == WorkDistributionStrategy.cluster) {
 				// the new way: cluster the well contacts together
 				Rectangle2D cellBounds = cell.getBounds();
 				Point2D ctr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
@@ -706,16 +670,31 @@ public class ERCWellCheck2 {
 					}
 					wellConLists[threadNum].add(wc);
 				}
-			} else {
+			} else if (Utils.WORKDISTRIBUTION == WorkDistributionStrategy.random) {
 				// old way where well contacts are analyzed in random order
 				for (int i = 0; i < wellCons.size(); i++)
 					wellConLists[i % numberOfThreads].add(wellCons.get(i));
+			} else if (Utils.WORKDISTRIBUTION == WorkDistributionStrategy.bucket) {
+
 			}
 		}
 
 		// create iterators over the lists
 		for (int i = 0; i < numberOfThreads; i++)
 			wellConIterator[i] = wellConLists[i].iterator();
+	}
+
+	private GridDim calculateGridDim(int numberOfThreads) {
+		GridDim result = new GridDim();
+
+		int sqrtThreads = (int) Math.sqrt(numberOfThreads);
+
+		return result;
+	}
+
+	private static class GridDim {
+		private int xDim;
+		private int yDim;
 	}
 
 	// provide this information in the rtree structure
