@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+BUG (6/3/10, FS) Bug #2770 fixed through the new bucket work distribution 
+
 IMP: (6/3/10, SMR) Added code to ignore hidden node names and reset them
      in the Properties dialog (Bug #2768).
 
