@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00g: ******************************
 
+IMP: (6/3/10, DN) The nameDescriptor of NodeInst can be non-displayble (Bug #2768).
+
 BUG: (6/2/10, AM) Adding panel to waveform window takes a long time (Bug #2776)
 FIX: cache bounds in Analysis.java.
 
@@ -59,7 +61,7 @@ Added extra code to detect the source of the unknown tag
 
 IMP/MAN: (5/27/10, SMR) New EDIF Preference to hide arc or node names (Bug #2768).
 
-IMP: (5/27/10, DN) The nameDescriptor of ArcInst can be non-displayble.
+IMP: (5/27/10, DN) The nameDescriptor of ArcInst can be non-displayble (Bug #2768).
 
 IMP: (5/25/10, DN) Technologies are immutable - new Technology objects are used if technology parameters are changed.
    Can be disablesd by Tecyhnology.IMMUTABLE_TECHS = false;

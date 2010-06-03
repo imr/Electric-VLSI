@@ -264,7 +264,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             throw new IllegalArgumentException("name");
         }
         if (nameDescriptor != null) {
-            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
+            nameDescriptor = nameDescriptor.withoutParam();
         }
         if (orient == null) {
             throw new NullPointerException("orient");
@@ -339,7 +339,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      */
     public ImmutableNodeInst withNameDescriptor(TextDescriptor nameDescriptor) {
         if (nameDescriptor != null) {
-            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
+            nameDescriptor = nameDescriptor.withoutParam();
         }
         if (this.nameDescriptor == nameDescriptor) {
             return this;
@@ -910,7 +910,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         assert !name.isBus() || isIcon && !name.isTempname();
         assert !name.hasDuplicates();
         if (nameDescriptor != null) {
-            assert nameDescriptor.isDisplay() && !nameDescriptor.isParam();
+            assert /*nameDescriptor.isDisplay() &&*/ !nameDescriptor.isParam();
         }
         assert orient != null;
         assert anchor != null;
