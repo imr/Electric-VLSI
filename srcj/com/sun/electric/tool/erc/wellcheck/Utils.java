@@ -47,9 +47,13 @@ import com.sun.electric.tool.erc.wellcheck.WellCon.WellConComparator;
  */
 public class Utils {
 
+	public enum WorkDistributionStrategy {
+		cluster, random, bucket;
+	}
+
 	public static final boolean GATHERSTATISTICS = false;
-	public static final boolean DISTANTSEEDS = false;
 	public static final boolean INCREMENTALGROWTH = false;
+	public static final WorkDistributionStrategy WORKDISTRIBUTION = WorkDistributionStrategy.cluster;
 	public static List<WellBoundRecord> wellBoundSearchOrder;
 	public static int numObjSearches;
 
