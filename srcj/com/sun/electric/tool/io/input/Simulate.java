@@ -101,7 +101,7 @@ public final class Simulate {
             extension = extension.substring(extension.lastIndexOf('.')+1);
         if      (extension.equals("txt"))  return new SmartSpiceOut();
         else if (extension.equals("raw"))  return new RawSpiceOut();
-        else if (extension.equals("dump")) return new RawSpiceOut();
+        else if (extension.equals("dump")) return new VerilogOut();
         else if (extension.equals("spo"))  return new SpiceOut();
         else if (extension.equals("out"))  return new EpicOut.EpicOutProcess();
         else if (extension.equals("vcd"))  return new VerilogOut();

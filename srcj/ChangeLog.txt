@@ -14,6 +14,9 @@ IMP: (6/3/10, FS) Add a new work distribution to ERCWellCheck2
 
 IMP: (6/3/10, DN) The nameDescriptor of NodeInst can be non-displayble (Bug #2768).
 
+BUG: (6/3/10, AM) Verilog simulation not working (Bug #2780)
+FIX: Assign ".dump" extension to VerilogOut per Steve's request.
+
 BUG: (6/2/10, AM) Adding panel to waveform window takes a long time (Bug #2776)
 FIX: cache bounds in Analysis.java.
 
