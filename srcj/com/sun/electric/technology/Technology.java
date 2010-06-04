@@ -1331,7 +1331,7 @@ public class Technology implements Comparable<Technology>, Serializable
      */
 	public Technology withTechParams(Map<TechFactory.Param,Object> paramValues) {
         Map<TechFactory.Param,Object> newParams = checkParamValues(paramValues);
-        if (newParams.equals(paramValues)) return this;
+        if (newParams.equals(this.paramValues)) return this;
         return techFactory.newInstance(generic, newParams);
     }
 
