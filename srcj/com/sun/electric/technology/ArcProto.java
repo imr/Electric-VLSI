@@ -1061,20 +1061,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		return "arc " + describe();
 	}
 
-    void copyState(ArcProto that) {
-        assert getId() == that.getId();
-        setNotUsed(that.isNotUsed());
-        lambdaBaseExtend = that.lambdaBaseExtend;
-        gridBaseExtend = that.gridBaseExtend;
-        minLayerGridExtend = that.minLayerGridExtend;
-        maxLayerGridExtend = that.maxLayerGridExtend;
-        assert layers.length == that.layers.length;
-        for (int i = 0; i < layers.length; i++) {
-            layers[i].copyState(that.layers[i]);
-        }
-        check();
-    }
-
     void dump(PrintWriter out) {
         out.println("ArcProto " + getName() + " " + getFunction());
         out.println("\tisWipable=" + isWipable());

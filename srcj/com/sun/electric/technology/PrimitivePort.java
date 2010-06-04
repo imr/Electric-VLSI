@@ -499,14 +499,6 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 		return "PrimitivePort " + getName();
 	}
 
-    void copyState(PrimitivePort that) {
-        assert getId() == that.getId();
-        left = that.left;
-        right = that.right;
-        top = that.top;
-        bottom = that.bottom;
-    }
-
     void dump(PrintWriter out) {
         double xSize = getParent().getFullRectangle().getWidth();
         double ySize = getParent().getFullRectangle().getHeight();

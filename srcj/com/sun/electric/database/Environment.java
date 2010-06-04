@@ -84,14 +84,10 @@ public class Environment {
     }
 
     public void activate() {
-        techPool.activate();
         setThreadEnvironment(this);
     }
 
     public boolean isActive() {
-        if (!techPool.isActive()) {
-            return false;
-        }
         for (Map.Entry<Setting, Object> e : settingValues.entrySet()) {
             Setting setting = e.getKey();
             Object value = e.getValue();
@@ -130,7 +126,7 @@ public class Environment {
         for (Setting setting : tech.getProjectSettings().getSettings()) {
             newSettingValues.put(setting, setting.getFactoryValue());
         }
-        for (Map.Entry<TechFactory.Param, Object> e : tech.getCurrentState().paramValues.entrySet()) {
+        for (Map.Entry<TechFactory.Param, Object> e : tech.getParamValues().entrySet()) {
             TechFactory.Param param = e.getKey();
             newSettingValues.put(tech.getSetting(param), e.getValue());
         }

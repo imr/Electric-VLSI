@@ -301,8 +301,4 @@ public class PrimitiveNodeGroup {
     Xml.PrimitiveNodeGroup makeXml() {
         return ng;
     }
-
-    void copyState(PrimitiveNodeGroup that) {
-        ng = that.ng;
-    }
 }

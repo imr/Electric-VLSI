@@ -128,9 +128,6 @@ public class Technology implements Comparable<Technology>, Serializable
     /** Skip wiped pins both in electrical and non-electrical mode */
     protected static final boolean ALWAYS_SKIP_WIPED_PINS = false;
 
-    // Change in TechSettings takes effect only after restart
-    public static final boolean IMMUTABLE_TECHS = true;
-
     /** Jelib writes base sizes since this Electric Version */
     public static final Version DISK_VERSION_1 = Version.parseVersion("8.05g");
     /** Jelib writes oversize over standard primitive since this Electric Version */
@@ -211,10 +208,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @return the Poly.Style of this ArcLayer.
 		 */
 		public Poly.Type getStyle() { return style; }
-
-        void copyState(ArcLayer that) {
-            gridExtend = that.gridExtend;
-        }
 
         void dump(PrintWriter out) {
             out.println("\t\tarcLayer layer=" + layer.getName() +
@@ -704,20 +697,6 @@ public class Technology implements Comparable<Technology>, Serializable
         public int getGridMulticutSep1D() { return cutGridSep1D; }
         public int getGridMulticutSep2D() { return cutGridSep2D; }
 
-        void copyState(NodeLayer that) {
-            assert representation == that.representation;
-            assert points.length == that.points.length;
-            System.arraycopy(that.points, 0, points, 0, points.length);
-            lWidth = that.lWidth;
-            rWidth = that.rWidth;
-            extentT = that.extentT;
-            extendB = that.extendB;
-            cutGridSizeX = that.cutGridSizeX;
-            cutGridSizeY = that.cutGridSizeY;
-            cutGridSep1D = that.cutGridSep1D;
-            cutGridSep2D = that.cutGridSep2D;
-        }
-
         void dump(PrintWriter out, EPoint correction, boolean isSerp) {
             out.println("\tlayer=" + getLayerOrPseudoLayer().getName() + " port=" + getPortNum() + " style=" + getStyle().name() + " repr=" + getRepresentation());
             if (getMessage() != null) {
@@ -772,31 +751,11 @@ public class Technology implements Comparable<Technology>, Serializable
         }
 	}
 
-    public class State {
-        public final Map<TechFactory.Param,Object> paramValues;
-
-        private State(Map<TechFactory.Param,Object> paramValues) {
-            this.paramValues = paramValues;
-        }
-
-        public Technology getTechnology() { return Technology.this; }
-
-        public String getTechDesc() { return getTechnology().getTechDesc(); }
-
-        public Technology activate() {
-            if (!IMMUTABLE_TECHS && currentState != this) {
-                if (!currentState.paramValues.equals(this.paramValues)) {
-                    Technology newTech = techFactory.newInstance(generic, paramValues);
-                    copyState(newTech);
-                }
-                currentState = this;
-                cachedRules = factoryRules = null;
-            }
-            return getTechnology();
-        }
+    public Map<TechFactory.Param,Object> getParamValues() {
+        return paramValues;
     }
 
-    protected State newState(Map<TechFactory.Param,Object> paramValues) {
+    protected Map<TechFactory.Param,Object> checkParamValues(Map<TechFactory.Param,Object> paramValues) {
         LinkedHashMap<TechFactory.Param,Object> fixedParamValues = new LinkedHashMap<TechFactory.Param,Object>();
         for (TechFactory.Param param: techFactory.getTechParams()) {
             Object value = paramValues.get(param);
@@ -804,7 +763,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 value = param.factoryValue;
             fixedParamValues.put(param, value);
         }
-        return new State(Collections.unmodifiableMap(fixedParamValues));
+        return Collections.unmodifiableMap(fixedParamValues);
     }
 
     public class SizeCorrector {
@@ -986,7 +945,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Factory rules for the technology. */		        protected XMLRules factoryRules = null;
 	/** Cached rules for the technology. */		            protected XMLRules cachedRules = null;
     /** TechFactory which created this Technology */        protected final TechFactory techFactory;
-    /** Params of this Technology */                        private State currentState;
+    /** Params of this Technology */                        private final Map<TechFactory.Param,Object> paramValues;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
     /** Xml representation of menu palette */               protected Xml.MenuPalette factoryMenuPalette;
 
@@ -1032,7 +991,7 @@ public class Technology implements Comparable<Technology>, Serializable
         for (TechFactory.Param param: techFactory.getTechParams()) {
             assert techParams.get(param).getClass() == param.factoryValue.getClass();
         }
-        currentState = newState(techParams);
+        paramValues = checkParamValues(techParams);
 		//this.scale = 1.0;
 		this.scaleRelevant = true;
 		userBits = 0;
@@ -1236,7 +1195,7 @@ public class Technology implements Comparable<Technology>, Serializable
         for (Setting setting: env.getSettings().keySet())
             changeBatch.add(setting, setting.getValueFromPreferences(prefRoot));
         for (Technology t: env.techPool.values()) {
-            for (Map.Entry<TechFactory.Param,Object> e: t.getCurrentState().paramValues.entrySet()) {
+            for (Map.Entry<TechFactory.Param,Object> e: t.getParamValues().entrySet()) {
                 TechFactory.Param param = e.getKey();
                 changeBatch.add(t.getSetting(param), e.getValue());
             }
@@ -1370,69 +1329,10 @@ public class Technology implements Comparable<Technology>, Serializable
 	/**
 	 * Method to set state of a technology.
      */
-	public Technology.State withState(Map<TechFactory.Param,Object> paramValues) {
-        State newState = newState(paramValues);
-        if (newState.paramValues.equals(currentState.paramValues)) return currentState;
-        if (IMMUTABLE_TECHS)
-            newState = techFactory.newInstance(generic, newState.paramValues).currentState;
-        return newState;
-    }
-
-    public Technology.State getCurrentState() {
-        return currentState;
-    }
-
-    protected void copyState(Technology that) {
-        assert !IMMUTABLE_TECHS;
-        currentState = new State(that.currentState.paramValues);
-        xmlTech = that.xmlTech;
-        factoryMenuPalette = that.factoryMenuPalette;
-        techDesc = that.techDesc;
-        cachedRules = factoryRules = null;
-
-        assert layers.size() == that.layers.size();
-        Iterator<Layer> oldItl = layers.iterator();
-        Iterator<Layer> newItl = that.layers.iterator();
-        for (int i = 0; i < layers.size(); i++) {
-            Layer oldL = oldItl.next();
-            Layer newL = newItl.next();
-            oldL.copyState(newL);
-        }
-        assert !oldItl.hasNext() && !newItl.hasNext();
-
-        assert arcs.size() == that.arcs.size();
-        Iterator<ArcProto> oldIta = arcs.values().iterator();
-        Iterator<ArcProto> newIta = that.arcs.values().iterator();
-        for (int i = 0; i < arcs.size(); i++) {
-            ArcProto oldA = oldIta.next();
-            ArcProto newA = newIta.next();
-            oldA.copyState(newA);
-        }
-        assert !oldIta.hasNext() && !newIta.hasNext();
-
-        assert nodes.size() == that.nodes.size();
-        Iterator<PrimitiveNode> oldItn = nodes.values().iterator();
-        Iterator<PrimitiveNode> newItn = that.nodes.values().iterator();
-        for (int i = 0; i < nodes.size(); i++) {
-            PrimitiveNode oldN = oldItn.next();
-            PrimitiveNode newN = newItn.next();
-//            if (oldN.getPrimitiveNodeGroup() != null) {
-//                assert newN.getPrimitiveNodeGroup() != null;
-//                continue;
-//            }
-            oldN.copyState(newN);
-        }
-        assert !oldItn.hasNext() && !newItn.hasNext();
-
-        assert primitiveNodeGroups.size() == that.primitiveNodeGroups.size();
-        Iterator<PrimitiveNodeGroup> oldItg = primitiveNodeGroups.iterator();
-        Iterator<PrimitiveNodeGroup> newItg = that.primitiveNodeGroups.iterator();
-        for (int i = 0; i < primitiveNodeGroups.size(); i++) {
-            PrimitiveNodeGroup oldG = oldItg.next();
-            PrimitiveNodeGroup newG = newItg.next();
-            oldG.copyState(newG);
-        }
-        assert !oldItg.hasNext() && !newItg.hasNext();
+	public Technology withTechParams(Map<TechFactory.Param,Object> paramValues) {
+        Map<TechFactory.Param,Object> newParams = checkParamValues(paramValues);
+        if (newParams.equals(paramValues)) return this;
+        return techFactory.newInstance(generic, newParams);
     }
 
     protected void setNotUsed(int numPolys) {

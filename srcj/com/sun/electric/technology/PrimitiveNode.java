@@ -2178,38 +2178,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		return "node " + describe(true);
 	}
 
-    void copyState(PrimitiveNode that) {
-        assert getId() == that.getId();
-        userBits = that.userBits;
-        assert specialType == that.specialType;
-        if (specialValues != null) {
-            assert specialValues.length == that.specialValues.length;
-            System.arraycopy(that.specialValues, 0, specialValues, 0, specialValues.length);
-        }
-        System.arraycopy(that.sizeCorrectors, 0, sizeCorrectors, 0, sizeCorrectors.length);
-        offset = that.offset;
-        baseRectangle = that.baseRectangle;
-        fullRectangle = that.fullRectangle;
-        autoGrowth = that.autoGrowth;
-
-        assert layers.length == that.layers.length;
-        for (int i = 0; i < layers.length; i++) {
-            layers[i].copyState(that.layers[i]);
-        }
-        if (electricalLayers != null) {
-            assert electricalLayers.length == that.electricalLayers.length;
-            for (int i = 0; i < electricalLayers.length; i++)
-                electricalLayers[i].copyState(that.electricalLayers[i]);
-        }
-
-        assert primPorts.length == that.primPorts.length;
-        for (int i = 0; i < primPorts.length; i++)
-            primPorts[i].copyState(that.primPorts[i]);
-
-        if (function == Function.NODE)
-            factoryDefaultInst = that.factoryDefaultInst;
-    }
-
     private static final String[] nodeBits = {
         "NODESHRINK", null, null,
         "LOWVTBIT", "HIGHVTBIT", "NATIVEBIT",

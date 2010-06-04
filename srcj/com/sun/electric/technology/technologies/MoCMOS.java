@@ -129,19 +129,6 @@ public class MoCMOS extends Technology
 	/******************** SUPPORT METHODS ********************/
 
     @Override
-    protected void copyState(Technology that) {
-        assert !IMMUTABLE_TECHS;
-        super.copyState(that);
-        MoCMOS mocmos = (MoCMOS)that;
-        paramRuleSet = mocmos.paramRuleSet;
-        paramNumMetalLayers = mocmos.paramNumMetalLayers;
-        paramUseSecondPolysilicon = mocmos.paramUseSecondPolysilicon;
-        paramDisallowStackedVias = mocmos.paramDisallowStackedVias;
-        paramUseAlternativeActivePolyRules = mocmos.paramUseAlternativeActivePolyRules;
-        paramAnalog = mocmos.paramAnalog;
-    }
-
-    @Override
     protected void dumpExtraProjectSettings(PrintWriter out, Map<Setting,Object> settings) {
         printlnSetting(out, settings, getRuleSetSetting());
         printlnSetting(out, settings, getSecondPolysiliconSetting());
@@ -1156,7 +1143,7 @@ public class MoCMOS extends Technology
 /******************** OVERRIDES ********************/
 
     @Override
-    protected State newState(Map<TechFactory.Param,Object> paramValues) {
+    protected Map<TechFactory.Param,Object> checkParamValues(Map<TechFactory.Param,Object> paramValues) {
         LinkedHashMap<TechFactory.Param,Object> fixedParamValues = new LinkedHashMap<TechFactory.Param,Object>();
         for (TechFactory.Param param: techFactory.getTechParams()) {
             Object value = paramValues.get(param);
@@ -1191,7 +1178,7 @@ public class MoCMOS extends Technology
             numMetals = Math.min(Math.max(numMetals, minNumMetals), maxNumMetals);
             fixedParamValues.put(techParamNumMetalLayers, numMetals);
         }
-        return super.newState(fixedParamValues);
+        return super.checkParamValues(fixedParamValues);
     }
 
     /**
