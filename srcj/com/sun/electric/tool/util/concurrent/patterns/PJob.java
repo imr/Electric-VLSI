@@ -32,6 +32,8 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
  */
 public class PJob {
 
+	public static final int SERIAL = -1;
+
 	protected int numOfTasksTotal = 0;
 	protected int numOfTasksFinished = 0;
 	protected ThreadPool pool;
@@ -62,7 +64,7 @@ public class PJob {
 	 */
 	public void execute(boolean block) {
 
-		//pool.start();
+		// pool.start();
 
 		if (block) {
 			this.join();
@@ -88,9 +90,19 @@ public class PJob {
 	 * 
 	 * @param task
 	 */
-	public void add(PTask task) {
+	public synchronized void add(PTask task, int threadID) {
 		numOfTasksTotal++;
 		pool.add(task);
+	}
+
+	/**
+	 * Use this method to add tasks to this job. This will affect that the new
+	 * task is registered by this job.
+	 * 
+	 * @param task
+	 */
+	public synchronized void add(PTask task) {
+		this.add(task, SERIAL);
 	}
 
 }

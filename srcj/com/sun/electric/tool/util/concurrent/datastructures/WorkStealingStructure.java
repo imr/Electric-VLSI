@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.util.concurrent.datastructures;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -89,6 +88,7 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	 * 
 	 * @see com.sun.electric.tool.util.IStructure#remove()
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public T remove() {
 		IDEStructure<T> ownQueue = dataQueues.get(getThreadId());

@@ -108,7 +108,7 @@ public class PForJob_T {
 		matrixMultSer();
 		long endSer = System.currentTimeMillis() - start;
 		System.out.println(endSer);
-		System.out.println((double)endSer / (double)endPar);
+		System.out.println((double) endSer / (double) endPar);
 
 		int nullChecker = 0;
 		for (int i = 0; i < size; i++) {
@@ -120,6 +120,51 @@ public class PForJob_T {
 		}
 
 		Assert.assertTrue(nullChecker < size * size);
+	}
+
+	@Test
+	public void testMatrixMultiplyPerformance() throws PoolExistsException, InterruptedException {
+		Random rand = new Random(System.currentTimeMillis());
+		
+		int sizePerf = 4000;
+
+		matA = new int[sizePerf][sizePerf];
+		matB = new int[sizePerf][sizePerf];
+		matCPar = new Integer[sizePerf][sizePerf];
+		matCSer = new Integer[sizePerf][sizePerf];
+
+		for (int i = 0; i < sizePerf; i++) {
+			for (int j = 0; j < sizePerf; j++) {
+				matA[i][j] = rand.nextInt(100);
+				matB[i][j] = rand.nextInt(100);
+				matCPar[i][j] = 0;
+				matCSer[i][j] = 0;
+			}
+		}
+
+		ThreadPool pool = ThreadPool.initialize(8);
+
+		long start = System.currentTimeMillis();
+		PForJob pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64), new MatrixMultTask());
+		pforjob.execute();
+
+		long endPar = System.currentTimeMillis() - start;
+		System.out.println(endPar);
+		pool.shutdown();
+
+		pool = ThreadPool.initialize(1);
+
+		start = System.currentTimeMillis();
+
+		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64), new MatrixMultTask());
+		pforjob.execute();
+
+		long endSer = System.currentTimeMillis() - start;
+		
+		pool.shutdown();
+		
+		System.out.println(endSer);
+		System.out.println((double) endSer / (double) endPar);
 	}
 
 	private void matrixMultSer() {
@@ -141,7 +186,9 @@ public class PForJob_T {
 			for (int i = tmpRange.getRow().getStart(); i < tmpRange.getRow().getEnd(); i++) {
 				for (int j = tmpRange.getCol().getStart(); j < tmpRange.getCol().getEnd(); j++) {
 					for (int k = 0; k < size; k++) {
-						matCPar[i][j] += matA[i][k] * matB[k][j];
+						synchronized (matCPar[i][j]) {
+							matCPar[i][j] += matA[i][k] * matB[k][j];
+						}
 					}
 				}
 			}

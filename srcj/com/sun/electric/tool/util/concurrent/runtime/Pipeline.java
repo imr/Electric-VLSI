@@ -43,6 +43,7 @@ public class Pipeline {
 		stages = CollectionFactory.createConcurrentLinkedList();
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T, K> void addFilter(Filter<T, K> filter, int n) {
 		Stage<T, K> stage = new Stage<T, K>(n, filter);
 		filter.setStage(stage);
@@ -73,16 +74,19 @@ public class Pipeline {
 			this.filter = filter;
 		}
 
+		@SuppressWarnings("hiding")
 		public <K, R> void setOutputStage(Stage<K, R> stage) {
 			this.outputStage = stage;
 		}
 
+		@SuppressWarnings("unchecked")
 		public void sendToOutput(K output) {
 			Stage<K, ?> os = (Stage<K, ?>) this.outputStage;
 			if (os != null)
 				os.input.add(output);
 		}
 
+		@SuppressWarnings("unchecked")
 		public void start() {
 			for (int i = 0; i < stageSize; i++) {
 				try {
@@ -111,7 +115,6 @@ public class Pipeline {
 			this.stage = stage;
 		}
 
-		@SuppressWarnings( { "unchecked" })
 		protected void sendToOutput(K output) {
 			this.stage.sendToOutput(output);
 		}
@@ -123,7 +126,6 @@ public class Pipeline {
 		 */
 		@Override
 		public Object clone() throws CloneNotSupportedException {
-			// TODO Auto-generated method stub
 			return super.clone();
 		}
 

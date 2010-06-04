@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.util.concurrent.patterns;
 
+import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
+
 /**
  * 
  * Runtime for parallel for
@@ -38,7 +40,7 @@ public class PForJob extends PJob {
 	 */
 	public PForJob(BlockedRange range, PForTask task) {
 		super();
-		this.add(new SplitIntoTasks(this, range, task));
+		this.add(new SplitIntoTasks(this, range, task), PJob.SERIAL);
 	}
 
 	/**
@@ -110,17 +112,40 @@ public class PForJob extends PJob {
 		 */
 		@Override
 		public void execute() {
+			int threadNum = ThreadPool.getThreadPool().getPoolSize();
+			for (int i = 0; i < threadNum; i++) {
+				job.add(new SplitterTask(job, range, task), i);
+			}
+		}
+	}
+
+	public final static class SplitterTask extends PTask {
+		private BlockedRange range;
+		private PForTask task;
+
+		public SplitterTask(PJob job, BlockedRange range, PForTask task) {
+			super(job);
+			this.range = range;
+			this.task = task;
+		}
+
+		/**
+		 * This is the executor method of SplitIntoTasks. New for tasks will be
+		 * created while a new range is available
+		 */
+		@Override
+		public void execute() {
 			BlockedRange tmpRange;
+
 			while ((tmpRange = range.splitBlockedRange()) != null) {
 				try {
 					PForTaskWrapper taskObj = new PForTaskWrapper(job, (PForTask) task.clone(), tmpRange);
-					job.add(taskObj);
+					job.add(taskObj, PJob.SERIAL);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -227,7 +252,7 @@ public class PForJob extends PJob {
 		 * split the current block range into smaller pieces according to step
 		 * width
 		 */
-		public BlockedRange1D splitBlockedRange() {
+		public synchronized BlockedRange1D splitBlockedRange() {
 
 			if (current == null)
 				current = range.start;
@@ -239,6 +264,7 @@ public class PForJob extends PJob {
 			current += range.step;
 			return result;
 		}
+
 	}
 
 	/**
@@ -271,7 +297,7 @@ public class PForJob extends PJob {
 		 * split current 2-dimensional blocked range into smaller pieces
 		 * according to both step widths
 		 */
-		public BlockedRange2D splitBlockedRange() {
+		public synchronized BlockedRange2D splitBlockedRange() {
 
 			if (currentRow == null) {
 				currentRow = row.start;

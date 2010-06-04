@@ -131,7 +131,6 @@ public class ThreadPool {
 	 */
 	protected class Worker extends Thread {
 
-		@SuppressWarnings("unused")
 		private ThreadPool pool;
 		private int threadId;
 		private PoolWorkerStrategy strategy;

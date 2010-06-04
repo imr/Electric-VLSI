@@ -52,7 +52,7 @@ public class PWhileJob<T> extends PJob {
 		int numOfThreads = this.pool.getPoolSize();
 
 		for (int i = 0; i < numOfThreads; i++) {
-			this.add(new WhileTaskWrapper<T>(this, task, items));
+			this.add(new WhileTaskWrapper<T>(this, task, items), i);
 		}
 
 		super.execute();
