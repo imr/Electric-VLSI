@@ -37,7 +37,7 @@ public class LockFreeQueue<T> extends IStructure<T> {
 
 	AtomicReference<Node<T>> head = null;
 	AtomicReference<Node<T>> tail = null;
-	
+
 	/**
 	 * 
 	 */
@@ -55,9 +55,10 @@ public class LockFreeQueue<T> extends IStructure<T> {
 			Node<T> next = last.next.get();
 			if (last == tail.get()) {
 				if (next == null) {
-					last.next = new AtomicReference<Node<T>>(node);
-					tail.compareAndSet(last, node);
-					return;
+					if (last.next.compareAndSet(next, node)) {
+						tail.compareAndSet(last, node);
+						return;
+					}
 				} else {
 					tail.compareAndSet(last, next);
 				}

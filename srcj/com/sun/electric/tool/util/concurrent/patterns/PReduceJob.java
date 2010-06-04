@@ -104,10 +104,4 @@ public class PReduceJob<T> extends PForJob {
 		if (PForTaskWrapper.class.isInstance(task))
 			tasks.add((PReduceTask<T>) ((PForTaskWrapper) task).getTask());
 	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public synchronized void add(PTask task) {
-		this.add(task, PJob.SERIAL);
-	}
 }

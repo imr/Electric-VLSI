@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.util.concurrent.patterns;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
@@ -34,8 +36,8 @@ public class PJob {
 
 	public static final int SERIAL = -1;
 
-	protected int numOfTasksTotal = 0;
-	protected int numOfTasksFinished = 0;
+	protected AtomicInteger numOfTasksTotal = new AtomicInteger(0);
+	protected AtomicInteger numOfTasksFinished = new AtomicInteger(0);
 	protected ThreadPool pool;
 
 	public PJob() {
@@ -47,7 +49,7 @@ public class PJob {
 	 * of this job is finished.
 	 */
 	public synchronized void finishTask() {
-		numOfTasksFinished++;
+		numOfTasksFinished.incrementAndGet();
 	}
 
 	/**
@@ -75,7 +77,7 @@ public class PJob {
 	 * Wait for the job while not finishing.
 	 */
 	public void join() {
-		while (numOfTasksFinished != numOfTasksTotal) {
+		while (numOfTasksFinished.get() != numOfTasksTotal.get()) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
@@ -90,8 +92,8 @@ public class PJob {
 	 * 
 	 * @param task
 	 */
-	public synchronized void add(PTask task, int threadID) {
-		numOfTasksTotal++;
+	public void add(PTask task, int threadID) {
+		numOfTasksTotal.incrementAndGet();
 		pool.add(task);
 	}
 
@@ -101,7 +103,7 @@ public class PJob {
 	 * 
 	 * @param task
 	 */
-	public synchronized void add(PTask task) {
+	public void add(PTask task) {
 		this.add(task, SERIAL);
 	}
 
