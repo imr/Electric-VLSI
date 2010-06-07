@@ -26,11 +26,13 @@ package com.sun.electric.tool.util.concurrent.test;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.sun.electric.tool.util.FullException;
+import com.sun.electric.tool.util.IDEStructure;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
+import com.sun.electric.tool.util.concurrent.datastructures.CircularArray;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
+import com.sun.electric.tool.util.concurrent.datastructures.UnboundedDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 
 /**
@@ -55,6 +57,16 @@ public class CollectionTests_T {
 	}
 
 	@Test
+	public void testCircularArray() {
+		testIStructureCircular(new CircularArray<Integer>(Integer.class, 4));
+	}
+
+	@Test
+	public void testUnboundedDEQueue() {
+		testIDEStructure(new UnboundedDEQueue<Integer>(Integer.class, 4));
+	}
+
+	@Test
 	public void testLockFreeQueueMore() {
 		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 		LockFreeQueue<Integer> intQueue = new LockFreeQueue<Integer>();
@@ -64,6 +76,17 @@ public class CollectionTests_T {
 		// first in - first out
 		for (int i = 0; i < testData.length; i++)
 			Assert.assertEquals(new Integer(testData[i]), intQueue.remove());
+	}
+
+	@Test
+	public void testCircularArrayMore() {
+		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+		CircularArray<Integer> intQueue = new CircularArray<Integer>(Integer.class, 4);
+		for (int i = 0; i < testData.length; i++)
+			intQueue.add(testData[i], i);
+
+		for (int i = 0; i < testData.length; i++)
+			Assert.assertEquals(new Integer(testData[i]), intQueue.get(i));
 	}
 
 	@Test
@@ -109,6 +132,47 @@ public class CollectionTests_T {
 	}
 
 	@Test
+	public void testUnboundedDEQueueMore() {
+		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+		UnboundedDEQueue<Integer> intStack = new UnboundedDEQueue<Integer>(Integer.class, 4);
+		for (int i = 0; i < testData.length; i++)
+			intStack.add(testData[i]);
+
+		// last in - first out
+		for (int i = testData.length - 1; i >= 0; i--)
+			Assert.assertEquals(new Integer(testData[i]), intStack.remove());
+
+		UnboundedDEQueue<Integer> intQueue = new UnboundedDEQueue<Integer>(Integer.class, 4);
+		for (int i = 0; i < testData.length; i++)
+			intQueue.add(testData[i], i);
+
+		// first in - first out
+		for (int i = 0; i < testData.length; i++)
+			Assert.assertEquals(new Integer(testData[i]), intQueue.getFromTop());
+
+		BDEQueue<Integer> dequeue = new BDEQueue<Integer>(10);
+		for (int i = 0; i < testData.length; i++)
+			dequeue.add(testData[i]);
+
+		// test both direction
+		for (int i = 0; i < (testData.length / 2); i++) {
+			Assert.assertEquals(new Integer(testData[i]), dequeue.getFromTop());
+			Assert.assertEquals(new Integer(testData[testData.length - i - 1]), dequeue.remove());
+		}
+
+	}
+
+	@Test
+	public void testUnboundedQueueWithResize() {
+		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+		UnboundedDEQueue<Integer> intStack = new UnboundedDEQueue<Integer>(Integer.class, 4);
+		for (int j = 0; j < 10; j++) {
+			for (int i = 0; i < testData.length; i++)
+				intStack.add(testData[i]);
+		}
+	}
+
+	@Test
 	public void testWorkStealingStructure() {
 		WorkStealingStructure<Integer> wsSt = new WorkStealingStructure<Integer>(1);
 		wsSt.registerThread();
@@ -128,13 +192,13 @@ public class CollectionTests_T {
 		for (int i = testData.length - 1; i >= 0; i--)
 			Assert.assertEquals(new Integer(testData[i]), wsSt.remove());
 	}
-	
+
 	@Test
 	public void testIsEmptyAllStructures() {
 		testIsEmpty(new LockFreeQueue<Integer>());
 		testIsEmpty(new LockFreeStack<Integer>());
 		testIsEmpty(new BDEQueue<Integer>(1));
-		
+
 		WorkStealingStructure<Integer> wsSt = new WorkStealingStructure<Integer>(1);
 		wsSt.registerThread();
 		testIsEmpty(wsSt);
@@ -144,6 +208,17 @@ public class CollectionTests_T {
 		structure.add(10);
 		Assert.assertEquals(new Integer(10), structure.remove());
 		Assert.assertNull(structure.remove());
+	}
+
+	private void testIDEStructure(IDEStructure<Integer> structure) {
+		structure.add(10);
+		Assert.assertEquals(new Integer(10), structure.remove());
+		Assert.assertNull(structure.remove());
+	}
+
+	private void testIStructureCircular(IStructure<Integer> structure) {
+		structure.add(10, 0);
+		Assert.assertEquals(new Integer(10), structure.get(0));
 	}
 
 	private void testIsEmpty(IStructure<Integer> structure) {

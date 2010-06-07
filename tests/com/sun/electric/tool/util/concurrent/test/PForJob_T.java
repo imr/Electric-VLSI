@@ -97,7 +97,8 @@ public class PForJob_T {
 		ThreadPool pool = ThreadPool.initialize();
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask());
+		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10),
+				new MatrixMultTask());
 		pforjob.execute();
 
 		long endPar = System.currentTimeMillis() - start;
@@ -125,7 +126,7 @@ public class PForJob_T {
 	@Test
 	public void testMatrixMultiplyPerformance() throws PoolExistsException, InterruptedException {
 		Random rand = new Random(System.currentTimeMillis());
-		
+
 		int sizePerf = 4000;
 
 		matA = new int[sizePerf][sizePerf];
@@ -145,7 +146,8 @@ public class PForJob_T {
 		ThreadPool pool = ThreadPool.initialize(8);
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64), new MatrixMultTask());
+		PForJob pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
+				new MatrixMultTask());
 		pforjob.execute();
 
 		long endPar = System.currentTimeMillis() - start;
@@ -156,13 +158,14 @@ public class PForJob_T {
 
 		start = System.currentTimeMillis();
 
-		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64), new MatrixMultTask());
+		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
+				new MatrixMultTask());
 		pforjob.execute();
 
 		long endSer = System.currentTimeMillis() - start;
-		
+
 		pool.shutdown();
-		
+
 		System.out.println(endSer);
 		System.out.println((double) endSer / (double) endPar);
 	}
@@ -204,7 +207,7 @@ public class PForJob_T {
 
 		for (int i = 0; i < 10; i += 2) {
 			for (int j = 0; j < 10; j += 2) {
-				BlockedRange2D tmpRange = range.splitBlockedRange();
+				BlockedRange2D tmpRange = (BlockedRange2D) range.splitBlockedRange(1).get(0);
 
 				Assert.assertEquals(i, tmpRange.getRow().getStart());
 				Assert.assertEquals(j, tmpRange.getCol().getStart());
@@ -214,7 +217,7 @@ public class PForJob_T {
 			}
 		}
 
-		Assert.assertNull(range.splitBlockedRange());
+		Assert.assertNull(range.splitBlockedRange(1));
 
 	}
 }

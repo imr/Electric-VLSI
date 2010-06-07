@@ -28,6 +28,7 @@ import org.junit.Test;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
+import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob.PWhileTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
@@ -48,7 +49,7 @@ public class PWhileJob_T {
 			data.add(new Integer(i));
 		}
 
-		PWhileJob<Integer> whileJob = new PWhileJob<Integer>(data, new WhileTestTask());
+		PJob whileJob = new PWhileJob<Integer>(data, new WhileTestTask());
 		whileJob.execute();
 
 		ThreadPool.getThreadPool().shutdown();
