@@ -411,7 +411,7 @@ public class WindowMenu {
         for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
         {
             JMenu menu = (JMenu)menuBarInstance.findMenuItem(visibleLayersMenu.getPath());
-            while (menu.getMenuComponentCount() > InvisibleLayerConfiguration.NumConfigs)
+            while (menu.getMenuComponentCount() > InvisibleLayerConfiguration.NUM_CONFIGS)
             	menu.remove(menu.getMenuComponentCount()-1);
             boolean hasMore = false;
             for (EMenuItem elem : list)

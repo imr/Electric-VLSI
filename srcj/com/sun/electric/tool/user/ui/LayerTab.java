@@ -64,7 +64,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -278,9 +277,10 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		String techName = (String)technology.getSelectedItem();
 		Technology tech = Technology.findTechnology(techName);
 		List<Layer> invis = new ArrayList<Layer>();
-		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-		{
-			Layer layer = lIt.next();
+        int len = layerListModel.size();
+        for (int i=0; i<len; i++)
+        {
+            Layer layer = getSelectedLayer(i);
             if (lv.isVisible(layer)) continue;
 			invis.add(layer);
 		}
@@ -290,6 +290,8 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 
 	private void deleteThisConfiguration()
 	{
+		String techName = (String)technology.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
 		int index = configurationList.getSelectedIndex();
 		if (index < 0)
 		{
@@ -300,7 +302,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		String cName = (String)configurationList.getSelectedValue();
 		if (cName == null) return;
 		if (cName.startsWith("* ")) cName = cName.substring(2);
-		invLayerConfigs.deleteConfiguration(cName);
+		invLayerConfigs.deleteConfiguration(cName, tech);
 		showConfigurations();
 	}
 
@@ -328,21 +330,26 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	{
 		// get a set of all invisible layers in the selected configuration
 		int hardIndex = invLayerConfigs.getConfigurationHardwiredIndex(cName);
-		Technology tech = invLayerConfigs.getConfigurationTechnology(cName);
-		if (tech == null)
+		List<Technology> techs = invLayerConfigs.getConfigurationTechnology(cName);
+		if (techs.size() == 0)
 		{
 			if (hardIndex >= 0)
 				setVisibilityLevel(hardIndex);
 			return;
 		}
-		Set<Layer> invisibleLayers = invLayerConfigs.getConfigurationValue(cName);
+		Map<Technology,List<Layer>> invisibleLayers = invLayerConfigs.getConfigurationValue(cName);
 
-        HashMap<Layer,Boolean> visibilityChange = new HashMap<Layer,Boolean>();
-		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-		{
-			Layer layer = lIt.next();
+		String techName = (String)technology.getSelectedItem();
+		Technology curTech = Technology.findTechnology(techName);
+		List<Layer> curLayers = invisibleLayers.get(curTech);
+		
+        Map<Layer,Boolean> visibilityChange = new HashMap<Layer,Boolean>();
+        int len = layerListModel.size();
+        for (int i=0; i<len; i++)
+        {
+            Layer layer = getSelectedLayer(i);
 			// remember the state of this layer
-            visibilityChange.put(layer, Boolean.valueOf(!invisibleLayers.contains(layer)));
+            visibilityChange.put(layer, Boolean.valueOf(!curLayers.contains(layer)));
 		}
         lv.setVisible(visibilityChange);
 		updateLayersTab();
@@ -351,16 +358,22 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 
 	private void showConfigurations()
 	{
+		String techName = (String)technology.getSelectedItem();
+		Technology curTech = Technology.findTechnology(techName);
 		configurationModel.clear();
 		List<String> configs = invLayerConfigs.getConfigurationNames();
-		for(String key : configs)
+		for(String cName : configs)
 		{
-			if (invLayerConfigs.getConfigurationHardwiredIndex(key) >= 0)
+			int hardIndex = invLayerConfigs.getConfigurationHardwiredIndex(cName);
+			List<Technology> configTechs = invLayerConfigs.getConfigurationTechnology(cName);
+			if (hardIndex < 0 && !configTechs.contains(curTech)) continue;
+			int metalNum = invLayerConfigs.getConfigurationHardwiredIndex(cName);
+			if (metalNum >= 0)
 			{
-				if (invLayerConfigs.getConfigurationTechnology(key) != null)
-					key = "* " + key;
+				if (curTech != null && metalNum > 0 && metalNum > curTech.getNumMetals()) continue;
+				if (configTechs.contains(curTech)) cName = "* " + cName;
 			}
-			configurationModel.addElement(key);
+			configurationModel.addElement(cName);
 		}
 	}
 
@@ -451,6 +464,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		}
 		opacitySlider.setVisible(layerDrawing);
 		resetOpacity.setVisible(layerDrawing);
+		showConfigurations();
 	}
 
 	private String lineName(Layer layer)

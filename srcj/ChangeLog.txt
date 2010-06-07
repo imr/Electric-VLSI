@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/7/10, SMR) Layer Visibility Configurations are now handled in a
+     per-technology fashion (Bug #2758).
+
 IMP: (6/7/10, FS) Add parameter to force directed placement 2
 
 IMP: (6/7/10, FS) New concurrent datastructures, ciruclar array, unbounded
