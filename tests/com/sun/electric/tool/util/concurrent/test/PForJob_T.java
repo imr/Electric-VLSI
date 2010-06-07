@@ -98,7 +98,7 @@ public class PForJob_T {
 
 		long start = System.currentTimeMillis();
 		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10),
-				new MatrixMultTask());
+				new MatrixMultTask(size));
 		pforjob.execute();
 
 		long endPar = System.currentTimeMillis() - start;
@@ -147,7 +147,7 @@ public class PForJob_T {
 
 		long start = System.currentTimeMillis();
 		PForJob pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
-				new MatrixMultTask());
+				new MatrixMultTask(sizePerf));
 		pforjob.execute();
 
 		long endPar = System.currentTimeMillis() - start;
@@ -159,7 +159,7 @@ public class PForJob_T {
 		start = System.currentTimeMillis();
 
 		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
-				new MatrixMultTask());
+				new MatrixMultTask(sizePerf));
 		pforjob.execute();
 
 		long endSer = System.currentTimeMillis() - start;
@@ -182,13 +182,19 @@ public class PForJob_T {
 
 	public static class MatrixMultTask extends PForTask {
 
+		private int size;
+
+		public MatrixMultTask(int n) {
+			this.size = n;
+		}
+
 		@Override
 		public void execute(BlockedRange range) {
 			BlockedRange2D tmpRange = (BlockedRange2D) range;
 
 			for (int i = tmpRange.getRow().getStart(); i < tmpRange.getRow().getEnd(); i++) {
 				for (int j = tmpRange.getCol().getStart(); j < tmpRange.getCol().getEnd(); j++) {
-					for (int k = 0; k < size; k++) {
+					for (int k = 0; k < this.size; k++) {
 						synchronized (matCPar[i][j]) {
 							matCPar[i][j] += matA[i][k] * matB[k][j];
 						}
