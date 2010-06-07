@@ -143,11 +143,10 @@ public class PForJob extends PJob {
 			List<BlockedRange> tmpRange;
 
 			int step = ThreadPool.getThreadPool().getPoolSize();
-			while ((tmpRange = range.splitBlockedRange(step)).size() > 0) {
+			while (((tmpRange = range.splitBlockedRange(step))) != null) {
 				for (BlockedRange tr : tmpRange) {
 					try {
-						PForTaskWrapper taskObj = new PForTaskWrapper(job, (PForTask) task.clone(),
-								tr);
+						PForTaskWrapper taskObj = new PForTaskWrapper(job, (PForTask) task.clone(), tr);
 						job.add(taskObj, PJob.SERIAL);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -263,6 +262,9 @@ public class PForJob extends PJob {
 		 */
 		public synchronized List<BlockedRange> splitBlockedRange(int step) {
 
+			if (current != null && current >= range.end)
+				return null;
+
 			List<BlockedRange> result = CollectionFactory.createArrayList();
 			for (int i = 0; i < step; i++) {
 				if (current == null)
@@ -270,8 +272,8 @@ public class PForJob extends PJob {
 				if (current >= range.end)
 					return result;
 
-				result.add(new BlockedRange1D(current, Math.min(current + range.step,
-						this.range.end), range.step));
+				result.add(new BlockedRange1D(current, Math.min(current + range.step, this.range.end),
+						range.step));
 				current += range.step;
 			}
 			return result;
@@ -292,8 +294,7 @@ public class PForJob extends PJob {
 		private Integer currentCol = null;
 		private Integer currentRow = null;
 
-		public BlockedRange2D(int startRow, int endRow, int stepRow, int startCol, int endCol,
-				int stepCol) {
+		public BlockedRange2D(int startRow, int endRow, int stepRow, int startCol, int endCol, int stepCol) {
 			this.col = new Range(startCol, endCol, stepCol);
 			this.row = new Range(startRow, endRow, stepRow);
 		}
@@ -311,6 +312,10 @@ public class PForJob extends PJob {
 		 * according to both step widths
 		 */
 		public synchronized List<BlockedRange> splitBlockedRange(int step) {
+
+			if (currentRow != null && currentRow >= row.end) {
+				return null;
+			}
 
 			List<BlockedRange> result = CollectionFactory.createArrayList();
 			for (int i = 0; i < step; i++) {
@@ -331,8 +336,8 @@ public class PForJob extends PJob {
 					}
 				}
 
-				result.add(new BlockedRange2D(currentRow, Math.min(currentRow + row.step, row.end),
-						row.step, currentCol, Math.min(currentCol + col.step, col.end), col.step));
+				result.add(new BlockedRange2D(currentRow, Math.min(currentRow + row.step, row.end), row.step,
+						currentCol, Math.min(currentCol + col.step, col.end), col.step));
 
 				currentCol += col.step;
 

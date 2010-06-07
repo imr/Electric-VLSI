@@ -31,8 +31,6 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
  * Parallel job. This job ends if a new further tasks for this job are
  * available.
  * 
- * @author Felix Schmidt
- * 
  */
 public class PJob {
 
@@ -94,7 +92,7 @@ public class PJob {
 	 * 
 	 * @param task
 	 */
-	public void add(PTask task, int threadID) {
+	public synchronized void add(PTask task, int threadID) {
 		numOfTasksTotal.incrementAndGet();
 		pool.add(task);
 	}
@@ -105,8 +103,8 @@ public class PJob {
 	 * 
 	 * @param task
 	 */
-	public void add(PTask task) {
-		this.add(task, SERIAL);
+	public synchronized void add(PTask task) {
+		this.add(task, PJob.SERIAL);
 	}
 
 }

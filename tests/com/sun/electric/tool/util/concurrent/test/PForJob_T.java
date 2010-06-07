@@ -27,6 +27,7 @@ import java.util.Random;
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.electric.tool.util.UniqueIDGenerator;
@@ -97,8 +98,7 @@ public class PForJob_T {
 		ThreadPool pool = ThreadPool.initialize();
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10),
-				new MatrixMultTask(size));
+		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask(size));
 		pforjob.execute();
 
 		long endPar = System.currentTimeMillis() - start;
@@ -127,7 +127,7 @@ public class PForJob_T {
 	public void testMatrixMultiplyPerformance() throws PoolExistsException, InterruptedException {
 		Random rand = new Random(System.currentTimeMillis());
 
-		int sizePerf = 4000;
+		int sizePerf = 600;
 
 		matA = new int[sizePerf][sizePerf];
 		matB = new int[sizePerf][sizePerf];
@@ -158,8 +158,8 @@ public class PForJob_T {
 
 		start = System.currentTimeMillis();
 
-		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
-				new MatrixMultTask(sizePerf));
+		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64), new MatrixMultTask(
+				sizePerf));
 		pforjob.execute();
 
 		long endSer = System.currentTimeMillis() - start;
@@ -223,7 +223,7 @@ public class PForJob_T {
 			}
 		}
 
-		Assert.assertNull(range.splitBlockedRange(1));
+		Assert.assertTrue(range.splitBlockedRange(1).size() == 0);
 
 	}
 }

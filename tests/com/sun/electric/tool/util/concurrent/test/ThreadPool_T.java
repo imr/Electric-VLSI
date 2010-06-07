@@ -53,7 +53,7 @@ public class ThreadPool_T {
 
 		PJob job = new PJob();
 
-		job.add(new TestTask(-2, job));
+		job.add(new TestTask(-2, job), PJob.SERIAL);
 
 		job.execute();
 
@@ -71,7 +71,7 @@ public class ThreadPool_T {
 		Thread.sleep(1000);
 
 		PJob job = new PJob();
-		job.add(new TestTask(-2, job));
+		job.add(new TestTask(-2, job), PJob.SERIAL);
 		job.execute();
 
 		pool.shutdown();
@@ -97,7 +97,7 @@ public class ThreadPool_T {
 		public void execute() {
 
 			PJob job = new PJob();
-			job.add(new TestTask(-2, job));
+			job.add(new TestTask(-2, job),  PJob.SERIAL);
 			job.execute();
 
 		}
@@ -117,7 +117,7 @@ public class ThreadPool_T {
 		public void execute() {
 			System.out.println(this.threadId + ": " + n);
 			if (n + 1 <= 300)
-				job.add(new TestTask(n + 1, job));
+				job.add(new TestTask(n + 1, job), PJob.SERIAL);
 
 			try {
 				Thread.sleep(100);

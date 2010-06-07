@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime;
 
+import java.util.ArrayList;
+
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
@@ -31,7 +33,6 @@ import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.UniqueIDGenerator;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
-import java.util.ArrayList;
 
 /**
  * 
@@ -193,7 +194,7 @@ public class ThreadPool {
 	 * @throws PoolExistsException
 	 */
 	public static ThreadPool initialize(int num) throws PoolExistsException {
-		IStructure<PTask> taskPool = CollectionFactory.createLockFreeStack();
+		IStructure<PTask> taskPool = CollectionFactory.createLockFreeQueue();
 		return ThreadPool.initialize(taskPool, num);
 	}
 
