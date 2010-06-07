@@ -32,6 +32,8 @@ import com.sun.electric.tool.util.IStructure;
  * provide a IStructure interface to the user.
  * 
  * @param <T>
+ * 
+ * @author Felix Schmidt
  */
 public class BDEQueueWrapper<T> extends IStructure<T> {
 

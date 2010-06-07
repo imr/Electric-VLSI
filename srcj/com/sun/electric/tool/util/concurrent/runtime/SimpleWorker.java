@@ -30,6 +30,8 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
  * 
  * Simple thread pool worker
  * 
+ * @author Felix Schmidt
+ * 
  */
 public class SimpleWorker extends PoolWorkerStrategy {
 

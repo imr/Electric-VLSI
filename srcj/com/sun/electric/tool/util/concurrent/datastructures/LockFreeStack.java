@@ -33,6 +33,8 @@ import com.sun.electric.tool.util.IStructure;
  * Thread safe, lock free, concurrent stack
  * 
  * @param <T>
+ * 
+ * @author Felix Schmidt
  */
 public class LockFreeStack<T> extends IStructure<T> {
 

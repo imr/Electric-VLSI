@@ -26,6 +26,8 @@ package com.sun.electric.tool.util.concurrent.exceptions;
 /**
  * 
  * Concurrent Runtime Exception
+ * 
+ * @author Felix Schmidt
  *
  */
 public class PoolExistsException extends Exception {

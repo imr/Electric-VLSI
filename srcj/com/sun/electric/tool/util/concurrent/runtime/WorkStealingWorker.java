@@ -23,11 +23,12 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime;
 
-
 /**
  * 
  * Work stealing thread worker
- *
+ * 
+ * @author Felix Schmidt
+ * 
  */
 public class WorkStealingWorker extends PoolWorkerStrategy {
 

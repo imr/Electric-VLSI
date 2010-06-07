@@ -32,6 +32,8 @@ import com.sun.electric.tool.util.IStructure;
  * Thread safe, lock free, concurrent queue
  * 
  * @param <T>
+ * 
+ * @author Felix Schmidt
  */
 public class LockFreeQueue<T> extends IStructure<T> {
 

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.util.concurrent.datastructures;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  *
  */
 public interface IWorkStealing {

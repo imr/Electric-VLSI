@@ -37,6 +37,8 @@ import java.util.ArrayList;
  * 
  * Magic thread pool
  * 
+ * @author Felix Schmidt
+ * 
  */
 public class ThreadPool {
 

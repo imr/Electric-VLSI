@@ -30,6 +30,8 @@ import com.sun.electric.tool.util.IStructure;
  * While job, do the work parallel while there are elements in the queue
  * 
  * @param <T>
+ * 
+ * @author Felix Schmidt
  */
 public class PWhileJob<T> extends PJob {
 

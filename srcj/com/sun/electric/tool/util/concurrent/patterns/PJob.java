@@ -31,6 +31,8 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
  * Parallel job. This job ends if a new further tasks for this job are
  * available.
  * 
+ * @author Felix Schmidt
+ * 
  */
 public class PJob {
 

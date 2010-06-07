@@ -27,6 +27,8 @@ package com.sun.electric.tool.util.concurrent.patterns;
  * 
  * Base task for task parallel programming
  * 
+ * @author Felix Schmidt
+ * 
  */
 public abstract class PTask implements Cloneable {
 

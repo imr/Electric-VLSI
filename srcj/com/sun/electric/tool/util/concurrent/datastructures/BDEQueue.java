@@ -34,6 +34,8 @@ import com.sun.electric.tool.util.IDEStructure;
  * Bounded double ended queue
  * 
  * @param <T>
+ * 
+ * @author Felix Schmidt
  */
 public class BDEQueue<T> extends IDEStructure<T> {
 

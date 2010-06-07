@@ -30,6 +30,8 @@ import com.sun.electric.tool.util.CollectionFactory;
 /**
  * Parallel Reduce Job. Parallel reduce is a parallel for loop with a result
  * aggregation at the end of the parallel execution.
+ * 
+ * @author Felix Schmidt
  */
 public class PReduceJob<T> extends PForJob {
 

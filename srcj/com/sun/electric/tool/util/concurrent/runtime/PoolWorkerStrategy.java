@@ -27,6 +27,8 @@ package com.sun.electric.tool.util.concurrent.runtime;
  * 
  * Strategy pattern for pool worker
  * 
+ * @author Felix Schmidt
+ * 
  */
 public abstract class PoolWorkerStrategy {
 

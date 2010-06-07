@@ -31,7 +31,7 @@ import com.sun.electric.tool.util.IDEStructure;
 import com.sun.electric.tool.util.IStructure;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStealing {

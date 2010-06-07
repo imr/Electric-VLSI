@@ -46,11 +46,29 @@ public abstract class IStructure<T> implements IWorkStealing {
 	public abstract void add(T item);
 
 	/**
+	 * add a object of type T
+	 * 
+	 * @throws FullException
+	 */
+	public void add(T item, int i) {
+		this.add(item);
+	}
+
+	/**
 	 * retrieve a object of type T
 	 * 
 	 * @return object of type T
 	 */
 	public abstract T remove();
+
+	/**
+	 * retrieve a object of type T
+	 * 
+	 * @return object of type T
+	 */
+	public T get(int i) {
+		throw new UnsupportedOperationException();
+	}
 
 	/**
 	 * true if the data structure is empty (contains no elements); otherwise

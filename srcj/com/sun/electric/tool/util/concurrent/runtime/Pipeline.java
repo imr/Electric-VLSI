@@ -29,7 +29,7 @@ import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class Pipeline {

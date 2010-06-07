@@ -25,6 +25,7 @@ package com.sun.electric.tool.util.concurrent;
 
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob;
+import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
@@ -34,6 +35,8 @@ import com.sun.electric.tool.util.concurrent.patterns.PWhileJob.PWhileTask;
 
 /**
  * This class simplifies the interface for the parallel base patterns
+ * 
+ * @author Felix Schmidt
  */
 public class Parallel {
 
@@ -79,7 +82,7 @@ public class Parallel {
 	 *            while loop body
 	 */
 	public static <T> void While(IStructure<T> data, PWhileTask<T> task) {
-		PWhileJob<T> pWhileJob = new PWhileJob<T>(data, task);
+		PJob pWhileJob = new PWhileJob<T>(data, task);
 		pWhileJob.execute();
 	}
 
