@@ -64,7 +64,7 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 	private static boolean measuring = false; // true if drawing measure line
 	private static List<Highlight> lastHighlights = new ArrayList<Highlight>();
 	private Point2D dbStart; // start of measure in database units
-	private static final boolean CADENCEMODE = true;
+//	private static final boolean CADENCEMODE = false;
 
 	private MeasureListener() {}
 
@@ -104,7 +104,7 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
             if (cell == null) return; // nothing available
 
             Technology tech = cell.getTechnology();
-            if (CADENCEMODE)
+            if (User.isCadenceMeasurementStyle())
             {
     			Point stScreen = wnd.databaseToScreen(start);
     			Point enScreen = wnd.databaseToScreen(end);

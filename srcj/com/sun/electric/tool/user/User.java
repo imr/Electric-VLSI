@@ -2144,7 +2144,25 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryKeepModelessDialogsOnTop() { return cacheKeepModelessDialogsOnTop.getBooleanFactoryValue(); }
 
-	private static Pref cacheWhichDisplayAlgorithm = Pref.makeIntPref("WhichDisplayAlgorithm", tool.prefs, 1);
+    private static Pref cacheCadenceMeasurementStyle = Pref.makeBooleanPref("cacheCadenceMeasurementStyle", tool.prefs, false);
+	/**
+	 * Method to tell whether to use Cadence style in the measurement tool.
+	 * The default is "false".
+	 * @return true to use Cadence style in the measurement tool.
+	 */
+	public static boolean isCadenceMeasurementStyle() { return cacheCadenceMeasurementStyle.getBoolean(); }
+	/**
+	 * Method to set whether to use Cadence style in the measurement tool.
+	 * @param dim true to use Cadence style in the measurement tool.
+	 */
+	public static void setCadenceMeasurementStyle(boolean dim) { cacheCadenceMeasurementStyle.setBoolean(dim); }
+	/**
+	 * Method to tell whether to use Cadence style in the measurement tool, by default.
+	 * @return true to use Cadence style in the measurement tool, by default.
+	 */
+	public static boolean isFactoryCadenceMeasurementStyle() { return cacheCadenceMeasurementStyle.getBooleanFactoryValue(); }
+
+    private static Pref cacheWhichDisplayAlgorithm = Pref.makeIntPref("WhichDisplayAlgorithm", tool.prefs, 1);
 	/**
 	 * Method to tell which display algorithm to use.
 	 * The default is "1" (vector display algorithm).
