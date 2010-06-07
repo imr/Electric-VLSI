@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/7/10, GVG) Measurement tool and new style (Bug #2785)
+Added preference to use Cadence style. Old style by default.
+
 IMP: (6/7/10, SMR) Layer Visibility Configurations are now handled in a
      per-technology fashion (Bug #2758).
 
