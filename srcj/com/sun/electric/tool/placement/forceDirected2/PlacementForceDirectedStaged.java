@@ -30,6 +30,7 @@ package com.sun.electric.tool.placement.forceDirected2;
 
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementParameter;
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.staged.FinalizeWorker;
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.staged.PlacementDTO;
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.staged.StartUpStage;
@@ -65,6 +66,21 @@ public class PlacementForceDirectedStaged extends PlacementFrame {
 	private static int movementCounter = 0;
 	private static Map<PlacementNode, AdditionalNodeData> nodeData;
 
+	public PlacementParameter maxThreadsParam = new PlacementParameter("threads", "Number of threads:", 4);
+	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime", "Runtime (seconds):", 240);
+	
+	/**
+	 * Method to return a list of parameters for this placement algorithm.
+	 * @return a list of parameters for this placement algorithm.
+	 */
+	public List<PlacementParameter> getParameters()
+	{
+		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
+		allParams.add(maxRuntimeParam);
+		allParams.add(maxThreadsParam);
+		return allParams;
+	}
+
 	public static int getGlobalCounter() {
 		return PlacementForceDirectedStaged.globalCounter;
 	}
@@ -99,7 +115,11 @@ public class PlacementForceDirectedStaged extends PlacementFrame {
 	}
 
 	@Override
-	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName) {
+	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
+			String cellName) {
+
+		GlobalVars.numOfThreads = this.maxThreadsParam.getIntValue();
+		GlobalVars.timeout = this.maxRuntimeParam.getIntValue();
 
 		nodeData = new HashMap<PlacementNode, AdditionalNodeData>();
 		globalCounter = 0;
