@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
+import com.sun.electric.tool.util.concurrent.datastructures.UnboundedDEQueue;
 
 /**
  * This class provides factory methods for creating data structures. The
@@ -41,6 +42,8 @@ import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
  * 
  */
 public class CollectionFactory {
+
+	private static final int LOG_CAPACITY = 4;
 
 	/**
 	 * Create a new array list.
@@ -88,6 +91,13 @@ public class CollectionFactory {
 	}
 
 	/**
+	 * Create a new double ended queue (concurrent).
+	 */
+	public static <T> UnboundedDEQueue<T> createUnboundedDoubleEndedQueue(Class<T> clazz) {
+		return new UnboundedDEQueue<T>(clazz, LOG_CAPACITY);
+	}
+
+	/**
 	 * create a new concurrent hash map
 	 */
 	public static <T, K> ConcurrentHashMap<T, K> createConcurrentHashMap() {
@@ -98,7 +108,7 @@ public class CollectionFactory {
 	 * create concurrent linked list
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> List<T> createConcurrentLinkedList() {
+	public static <T> List<T> createConcurrentList() {
 		return (List<T>) Collections.synchronizedList(createArrayList());
 	}
 

@@ -34,7 +34,6 @@ import com.sun.electric.tool.util.IDEStructure;
  */
 public class UnboundedDEQueue<T> extends IDEStructure<T> {
 
-	private final static int LOG_CAPACITY = 4;
 	private volatile CircularArray<T> elements;
 	private volatile int bottom;
 	private AtomicInteger top;

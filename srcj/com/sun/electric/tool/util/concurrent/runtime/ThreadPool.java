@@ -146,14 +146,15 @@ public class ThreadPool {
 
 		@Override
 		public void run() {
+			
+			pool.taskPool.registerThread();
+			
 			try {
 				Job.setUserInterface(pool.getUserInterface());
 				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase().getEnvironment());
 			} catch (Exception ex) {
 
 			}
-
-			pool.taskPool.registerThread();
 
 			strategy.execute();
 		}

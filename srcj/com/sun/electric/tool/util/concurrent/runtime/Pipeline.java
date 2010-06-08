@@ -40,7 +40,7 @@ public class Pipeline {
 	 * 
 	 */
 	public Pipeline() {
-		stages = CollectionFactory.createConcurrentLinkedList();
+		stages = CollectionFactory.createConcurrentList();
 	}
 
 	@SuppressWarnings("unchecked")

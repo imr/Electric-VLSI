@@ -23,25 +23,48 @@
  */
 package com.sun.electric.tool.util.concurrent.datastructures;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IDEStructure;
 import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.patterns.PJob;
 
 /**
+ * This data structure is a wrapper for work stealing. Each worker has a own
+ * data queue. The methods add and remove pick one data queue (own, specific,
+ * random) to retrieve or add a element. This data structure is thread-safe.
+ * 
  * @author Felix Schmidt
  * 
  */
 public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStealing {
 
+	// data queues: each worker has its own worker queue
 	private Map<Long, IDEStructure<T>> dataQueues;
+	// map a operating system thread ID to a data queue
+	private Map<Long, Long> dataQueuesMapping;
+	// free internal ids are used for assigning operating system thread IDs to
+	// data queues
+	private List<Long> freeInternalIds;
+	// each worker gets its own randomizer
 	private Map<Long, Random> rand;
+	private Class<T> clazz;
 
-	public WorkStealingStructure(int numOfThreads) {
+	public WorkStealingStructure(int numOfThreads, Class<T> clazz) {
 		dataQueues = CollectionFactory.createConcurrentHashMap();
+		dataQueuesMapping = CollectionFactory.createConcurrentHashMap();
 		rand = CollectionFactory.createConcurrentHashMap();
+		freeInternalIds = CollectionFactory.createConcurrentList();
+		this.clazz = clazz;
+
+		for (long i = 0; i < numOfThreads; i++) {
+			freeInternalIds.add(i);
+			dataQueues.put(i, CollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
+			rand.put(i, new Random(System.currentTimeMillis()));
+		}
 	}
 
 	/*
@@ -49,20 +72,51 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	 * 
 	 * @see com.sun.electric.tool.util.IStructure#add(java.lang.Object)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public void add(T item) {
-		IDEStructure<T> ownQueue = dataQueues.get(getThreadId());
-		if (ownQueue != null) {
-			ownQueue.add(item);
-		} else {
-			Random myRandomizer = rand.get(getThreadId());
-			if (myRandomizer == null) {
-				myRandomizer = new Random(System.currentTimeMillis());
+		this.add(item, PJob.SERIAL);
+	}
+
+	/**
+	 * Add a item to a data queue <br>
+	 * <b>Algorithm</b><br>
+	 * <ul>
+	 * <li>get operating system thread ID</li>
+	 * <li>get local queue (mapping)</li>
+	 * <li>assign item to own queue if available</li>
+	 * <li>otherwise pick a random data queue</li><br>
+	 * <li>if i != -1, then add item to given data queue</li>
+	 * </ul>
+	 * 
+	 * @param item
+	 *            add this item to one data queue
+	 * @param i
+	 *            if you want to add the item to a data queue of your choice use
+	 *            the number of the data queue [0..numOfThreads], otherwise (-1,
+	 *            PJob.SERIAL) add it to the own data queue or pick a random one
+	 */
+	@Override
+	public void add(T item, int i) {
+
+		Long osThreadId = getThreadId();
+		Long localQueueId = dataQueuesMapping.get(osThreadId);
+
+		if (i == PJob.SERIAL) {
+			if (localQueueId != null) {
+				IDEStructure<T> ownQueue = dataQueues.get(localQueueId);
+				if (ownQueue != null) {
+					ownQueue.add(item);
+					return;
+				}
 			}
-			int foreignQueue = myRandomizer.nextInt(Math.max(dataQueues.size() - 1, 1));
-			((IDEStructure<T>) dataQueues.values().toArray()[foreignQueue]).add(item);
+			Random randomizer = new Random(System.currentTimeMillis());
+			int foreignQueue = randomizer.nextInt(dataQueues.size());
+			dataQueues.get(Long.valueOf(foreignQueue)).add(item);
+
+		} else {
+			dataQueues.get(i).add(item);
 		}
+
 	}
 
 	private Long getThreadId() {
@@ -83,35 +137,53 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Remove a item from one data queue
 	 * 
-	 * @see com.sun.electric.tool.util.IStructure#remove()
+	 * <b>Algorithm</b><br>
+	 * <ul>
+	 * <li>get operating system thread ID</li>
+	 * <li>get local queue (mapping)</li>
+	 * <li>remove item from own queue</li>
+	 * <li>if the item is equal to null pick a random victim queue (iterate over
+	 * all queues)</li>
+	 * <li>return item</li>
+	 * </ul>
+	 * 
+	 * @return a item from one queue, or null, if all queues are empty
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public T remove() {
-		IDEStructure<T> ownQueue = dataQueues.get(getThreadId());
+		Long osThreadId = getThreadId();
+		Long localQueueId = dataQueuesMapping.get(osThreadId);
+
+		if (localQueueId == null) {
+			throw new Error("Thread not registered");
+		}
+
+		T result = null;
+
+		IDEStructure<T> ownQueue = dataQueues.get(localQueueId);
 		if (ownQueue != null) {
-			return ownQueue.remove();
-		} else {
-			Random myRandomizer = rand.get(getThreadId());
-			int foreignQueue = myRandomizer.nextInt(dataQueues.size() - 1);
-			return ((IDEStructure<T>) dataQueues.values().toArray()[foreignQueue]).getFromTop();
+			result = ownQueue.remove();
+		}
+
+		for (int i = 1; result == null && i < dataQueues.size(); i++) {
+			result = dataQueues.get(Long.valueOf(i + localQueueId) % dataQueues.size()).getFromTop();
+		}
+
+		return result;
+	}
+
+	/**
+	 * Add a thread to the data queue mapping
+	 */
+	@Override
+	public synchronized void registerThread() {
+		if (freeInternalIds.size() > 0) {
+			Long myId = freeInternalIds.remove(0);
+			dataQueuesMapping.put(getThreadId(), myId);
 		}
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @seecom.sun.electric.tool.util.concurrent.datastructures.IWorkStealing#
-	 * registerThread()
-	 */
-	public void registerThread() {
-		IDEStructure<T> bdequeue = CollectionFactory.createBoundedDoubleEndedQueue(200);
-		Long threadId = getThreadId();
-		dataQueues.put(threadId, bdequeue);
-		rand.put(threadId, new Random(System.currentTimeMillis()));
-	}
-
 }
