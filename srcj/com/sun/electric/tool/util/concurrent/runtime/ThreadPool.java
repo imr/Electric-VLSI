@@ -140,15 +140,15 @@ public class ThreadPool {
 
 		public Worker(ThreadPool pool) {
 			this.pool = pool;
-			threadId = generator.getUniqueId();
-			strategy = PoolWorkerStrategyFactory.createStrategy(threadId, taskPool);
+			ThreadID.set(generator.getUniqueId());
+			strategy = PoolWorkerStrategyFactory.createStrategy(taskPool);
 		}
 
 		@Override
 		public void run() {
-			
+
 			pool.taskPool.registerThread();
-			
+
 			try {
 				Job.setUserInterface(pool.getUserInterface());
 				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase().getEnvironment());
@@ -169,8 +169,8 @@ public class ThreadPool {
 	 * Factory class for worker strategy
 	 */
 	private static class PoolWorkerStrategyFactory {
-		public static PoolWorkerStrategy createStrategy(int threadId, IStructure<PTask> taskPool) {
-			return new SimpleWorker(threadId, taskPool);
+		public static PoolWorkerStrategy createStrategy(IStructure<PTask> taskPool) {
+			return new SimpleWorker(taskPool);
 		}
 	}
 

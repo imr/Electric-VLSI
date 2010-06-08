@@ -35,12 +35,10 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
  */
 public class SimpleWorker extends PoolWorkerStrategy {
 
-	protected int threadId;
 	protected IStructure<PTask> taskPool = null;
 
-	public SimpleWorker(int threadId, IStructure<PTask> taskPool) {
+	public SimpleWorker(IStructure<PTask> taskPool) {
 		super();
-		this.threadId = threadId;
 		this.taskPool = taskPool;
 		this.abort = false;
 	}
@@ -65,7 +63,7 @@ public class SimpleWorker extends PoolWorkerStrategy {
 			if (task != null) {
 				try {
 					// set the current thread id
-					task.setThreadID(threadId);
+					task.setThreadID(ThreadID.get());
 					// do something before execution
 					task.before();
 					// execute the task

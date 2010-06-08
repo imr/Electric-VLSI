@@ -25,6 +25,8 @@ package com.sun.electric.tool.util.concurrent.patterns;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.sun.electric.tool.util.concurrent.barriers.SimpleTDBarrier;
+import com.sun.electric.tool.util.concurrent.barriers.TDBarrier;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
@@ -39,9 +41,11 @@ public class PJob {
 	protected AtomicInteger numOfTasksTotal = new AtomicInteger(0);
 	protected AtomicInteger numOfTasksFinished = new AtomicInteger(0);
 	protected ThreadPool pool;
+	protected TDBarrier barrier;
 
 	public PJob() {
 		this.pool = ThreadPool.getThreadPool();
+		this.barrier = new SimpleTDBarrier(0);
 	}
 
 	/**
@@ -49,7 +53,7 @@ public class PJob {
 	 * of this job is finished.
 	 */
 	public synchronized void finishTask() {
-		numOfTasksFinished.incrementAndGet();
+		barrier.setActive(true);
 	}
 
 	/**
@@ -77,7 +81,7 @@ public class PJob {
 	 * Wait for the job while not finishing.
 	 */
 	public void join() {
-		while (numOfTasksFinished.get() != numOfTasksTotal.get()) {
+		while (!barrier.isTerminated()) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
@@ -93,7 +97,7 @@ public class PJob {
 	 * @param task
 	 */
 	public synchronized void add(PTask task, int threadID) {
-		numOfTasksTotal.incrementAndGet();
+		barrier.setActive(false);
 		pool.add(task);
 	}
 
