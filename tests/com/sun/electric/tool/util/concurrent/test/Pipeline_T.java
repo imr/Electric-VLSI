@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent.test;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.electric.tool.util.CollectionFactory;
@@ -36,6 +37,7 @@ import com.sun.electric.tool.util.concurrent.runtime.Pipeline.Filter;
  */
 public class Pipeline_T {
 
+	@Ignore
 	@Test
 	public void testPipeline() {
 		IStructure<Integer> testData = CollectionFactory.createLockFreeQueue();

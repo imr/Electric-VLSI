@@ -27,12 +27,14 @@ import java.util.Random;
 
 import junit.framework.Assert;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
+import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.UniqueIDGenerator;
+import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob;
+import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
@@ -155,6 +157,55 @@ public class PForJob_T {
 		pool.shutdown();
 
 		pool = ThreadPool.initialize(1);
+
+		start = System.currentTimeMillis();
+
+		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64), new MatrixMultTask(
+				sizePerf));
+		pforjob.execute();
+
+		long endSer = System.currentTimeMillis() - start;
+
+		pool.shutdown();
+
+		System.out.println(endSer);
+		System.out.println((double) endSer / (double) endPar);
+	}
+	
+	@Test
+	public void testMatrixMultiplyPerformanceWorkStealing() throws PoolExistsException, InterruptedException {
+		Random rand = new Random(System.currentTimeMillis());
+
+		int sizePerf = 600;
+
+		matA = new int[sizePerf][sizePerf];
+		matB = new int[sizePerf][sizePerf];
+		matCPar = new Integer[sizePerf][sizePerf];
+		matCSer = new Integer[sizePerf][sizePerf];
+
+		for (int i = 0; i < sizePerf; i++) {
+			for (int j = 0; j < sizePerf; j++) {
+				matA[i][j] = rand.nextInt(100);
+				matB[i][j] = rand.nextInt(100);
+				matCPar[i][j] = 0;
+				matCSer[i][j] = 0;
+			}
+		}
+
+		IStructure<PTask> taskPool = new WorkStealingStructure<PTask>(8, PTask.class);
+		ThreadPool pool = ThreadPool.initialize(taskPool, 8);
+
+		long start = System.currentTimeMillis();
+		PForJob pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 10, 0, sizePerf, 10),
+				new MatrixMultTask(sizePerf));
+		pforjob.execute();
+
+		long endPar = System.currentTimeMillis() - start;
+		System.out.println(endPar);
+		pool.shutdown();
+
+		taskPool = new WorkStealingStructure<PTask>(1, PTask.class);
+		pool = ThreadPool.initialize(taskPool, 1);
 
 		start = System.currentTimeMillis();
 
