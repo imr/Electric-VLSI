@@ -77,7 +77,8 @@ public class DisplayControlTab extends PreferencePanel
 		makeErrorHighlightingPulsate.setSelected(User.isErrorHighlightingPulsate());
 		shiftWindowToErrors.setSelected(User.isShiftWindowToErrors());
 		keepModelessDialogsOnTop.setSelected(User.isKeepModelessDialogsOnTop());
-		generalPanningDistance.addItem("Small");
+        measurementCadence.setSelected(User.isCadenceMeasurementStyle());
+        generalPanningDistance.addItem("Small");
 		generalPanningDistance.addItem("Medium");
 		generalPanningDistance.addItem("Large");
 		generalPanningDistance.setSelectedIndex(User.getPanningDistance());
@@ -137,7 +138,11 @@ public class DisplayControlTab extends PreferencePanel
 		if (currBoolean != User.isKeepModelessDialogsOnTop())
 			User.setKeepModelessDialogsOnTop(currBoolean);
 
-		int currInt = generalPanningDistance.getSelectedIndex();
+        currBoolean = measurementCadence.isSelected();
+		if (currBoolean != User.isCadenceMeasurementStyle())
+			User.setCadenceMeasurementStyle(currBoolean);
+
+        int currInt = generalPanningDistance.getSelectedIndex();
 		if (currInt != User.getPanningDistance())
 			User.setPanningDistance(currInt);
 
@@ -232,7 +237,9 @@ public class DisplayControlTab extends PreferencePanel
 			User.setShiftWindowToErrors(User.isFactoryShiftWindowToErrors());
 		if (User.isFactoryKeepModelessDialogsOnTop() != User.isKeepModelessDialogsOnTop())
 			User.setKeepModelessDialogsOnTop(User.isFactoryKeepModelessDialogsOnTop());
-		if (User.getFactoryPanningDistance() != User.getPanningDistance())
+        if (User.isFactoryCadenceMeasurementStyle() != User.isCadenceMeasurementStyle())
+			User.setCadenceMeasurementStyle(User.isFactoryCadenceMeasurementStyle());
+        if (User.getFactoryPanningDistance() != User.getPanningDistance())
 			User.setPanningDistance(User.getFactoryPanningDistance());
 		if (User.getFactoryDisplayStyle() != User.getDisplayStyle())
 			User.setDisplayStyle(User.getFactoryDisplayStyle());
@@ -294,6 +301,7 @@ public class DisplayControlTab extends PreferencePanel
         showCellsInNewWindow = new javax.swing.JCheckBox();
         shiftWindowToErrors = new javax.swing.JCheckBox();
         keepModelessDialogsOnTop = new javax.swing.JCheckBox();
+        measurementCadence = new javax.swing.JCheckBox();
 
         setTitle("Edit Options");
         setName(""); // NOI18N
@@ -327,13 +335,13 @@ public class DisplayControlTab extends PreferencePanel
         jLabel1.setText("Panning distance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(jLabel1, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(generalPanningDistance, gridBagConstraints);
@@ -344,7 +352,6 @@ public class DisplayControlTab extends PreferencePanel
         displayAlgorithm.add(pixelDisplay);
         pixelDisplay.setText("Pixel Display Algorithm (old)");
         pixelDisplay.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        pixelDisplay.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -356,7 +363,6 @@ public class DisplayControlTab extends PreferencePanel
         displayAlgorithm.add(vectorDisplay);
         vectorDisplay.setText("Vector Display Algorithm (new)");
         vectorDisplay.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        vectorDisplay.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -393,7 +399,6 @@ public class DisplayControlTab extends PreferencePanel
         displayAlgorithm.add(layerDisplay);
         layerDisplay.setText("Layer Display Algorithm (experimental)");
         layerDisplay.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        layerDisplay.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -412,7 +417,6 @@ public class DisplayControlTab extends PreferencePanel
 
         useNewBlending.setText("Use newer blending algorithm");
         useNewBlending.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        useNewBlending.setMargin(new java.awt.Insets(0, 0, 0, 0));
         useNewBlending.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 useNewBlendingActionPerformed(evt);
@@ -498,7 +502,7 @@ public class DisplayControlTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -507,14 +511,14 @@ public class DisplayControlTab extends PreferencePanel
         jLabel2.setText("Display style:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(displayStyle, gridBagConstraints);
@@ -564,6 +568,15 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(keepModelessDialogsOnTop, gridBagConstraints);
 
+        measurementCadence.setText("Cadence measurement style");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        general.add(measurementCadence, gridBagConstraints);
+
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
         pack();
@@ -611,6 +624,7 @@ public class DisplayControlTab extends PreferencePanel
     private javax.swing.JCheckBox keepModelessDialogsOnTop;
     private javax.swing.JRadioButton layerDisplay;
     private javax.swing.JCheckBox makeErrorHighlightingPulsate;
+    private javax.swing.JCheckBox measurementCadence;
     private javax.swing.JTextField patternScaleLimit;
     private javax.swing.JRadioButton pixelDisplay;
     private javax.swing.JButton resetOpacity;
