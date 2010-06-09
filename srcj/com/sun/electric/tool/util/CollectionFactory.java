@@ -25,6 +25,7 @@ package com.sun.electric.tool.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,6 +61,10 @@ public class CollectionFactory {
 	 */
 	public static <T> HashSet<T> createHashSet() {
 		return new HashSet<T>();
+	}
+
+	public static <T, K> HashMap<T, K> createHashMap() {
+		return new HashMap<T, K>();
 	}
 
 	/**

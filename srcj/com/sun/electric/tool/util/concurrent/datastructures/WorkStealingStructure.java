@@ -152,7 +152,6 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	 * 
 	 * @return a item from one queue, or null, if all queues are empty
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T remove() {
 		Long osThreadId = getThreadId();

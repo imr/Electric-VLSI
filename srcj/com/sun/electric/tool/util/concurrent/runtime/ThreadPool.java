@@ -69,6 +69,9 @@ public class ThreadPool {
 		this.taskPool = taskPool;
 		this.numOfThreads = numOfThreads;
 		this.generator = new UniqueIDGenerator(0);
+		
+		// reset thread id
+		ThreadID.reset();
 
 		workers = CollectionFactory.createArrayList();
 
@@ -135,7 +138,6 @@ public class ThreadPool {
 	protected class Worker extends Thread {
 
 		private ThreadPool pool;
-		private int threadId;
 		private PoolWorkerStrategy strategy;
 
 		public Worker(ThreadPool pool) {
