@@ -28,13 +28,7 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing1;
 
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
-import com.sun.electric.tool.placement.PlacementFrame;
-import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.AreaOverlapMetric;
-import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.BoundingBoxMetric;
-import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.MSTMetric;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -47,15 +41,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
+import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.AreaOverlapMetric;
+import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.BoundingBoxMetric;
+import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.MSTMetric;
+
 
 /** Parallel Placement
  **/
 public class SimulatedAnnealing extends PlacementFrame {
 	
-	/**
-	 * Number of threads.
-	 */
-	private final int NUM_THREADS = 2;
 	/**
 	 * Number of iteration for each thread to do per temperature change.
 	 */
@@ -65,6 +62,18 @@ public class SimulatedAnnealing extends PlacementFrame {
 	 */
 	public final int INNER_LOOP_TOTAL = 800;
 	
+	public PlacementParameter maxThreadsParam = new PlacementParameter("threads", "Number of threads:", 4);
+	
+	/**
+	 * Method to return a list of parameters for this placement algorithm.
+	 * @return a list of parameters for this placement algorithm.
+	 */
+	public List<PlacementParameter> getParameters()
+	{
+		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
+		allParams.add(maxThreadsParam);
+		return allParams;
+	}
 	private Temperature temp;
 	private Random rand = new Random();	
 
@@ -104,15 +113,15 @@ public class SimulatedAnnealing extends PlacementFrame {
 		
 		
 		//step 3: Iteration
-		int numInnerSteps = INNER_LOOP_TOTAL / (NUM_THREADS * STEP_THREAD); //nodesToPlace.size() / 7 + 100; //TODO: Exponential Growth Function
+		int numInnerSteps = INNER_LOOP_TOTAL / (maxThreadsParam.getIntValue() * STEP_THREAD); //nodesToPlace.size() / 7 + 100;
 		System.out.println("Inner Steps = " + numInnerSteps);
 		System.out.println("Running placement, please wait...");
 		//step4: Initialize Thread Pool
-		ExecutorService threadPool = Executors.newFixedThreadPool( NUM_THREADS );	
+		ExecutorService threadPool = Executors.newFixedThreadPool( maxThreadsParam.getIntValue() );	
 		
 		//step5: create workers
 		LinkedList<Callable<Double>> workforce = new LinkedList<Callable<Double>>();
-		for (int i = 0; i < NUM_THREADS; i++) {
+		for (int i = 0; i < maxThreadsParam.getIntValue(); i++) {
 			PlacementThread worker = new PlacementThread(numInnerSteps, nodesToPlace, allNetworks);
 			workforce.add(worker);
 		}			
@@ -146,7 +155,7 @@ public class SimulatedAnnealing extends PlacementFrame {
 				List<Future<Double>> results = null;
 				
 				//reset the incremental state of all threads
-				for(int i = 0; i < NUM_THREADS; i++) {				
+				for(int i = 0; i < maxThreadsParam.getIntValue(); i++) {				
 					( ( PlacementThread ) workforce.get(i) ).reset();
 				}
 				
@@ -163,7 +172,7 @@ public class SimulatedAnnealing extends PlacementFrame {
 					
 					minScore = Double.MAX_VALUE;
 					bestThread = -1;
-					for (int i = 0; i < NUM_THREADS; i++) {
+					for (int i = 0; i < maxThreadsParam.getIntValue(); i++) {
 						//retrieve the score
 						Double threadScore = results.get(i).get();
 						

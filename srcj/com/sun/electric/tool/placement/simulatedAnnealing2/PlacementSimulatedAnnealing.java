@@ -55,8 +55,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 	String algorithmType = "simulated annealing";
 
 	public PlacementParameter numThreadsParam = new PlacementParameter("threads", "Number of threads:", 2);
-
-	public int maxRuntime = 0; // in seconds, 0 means no time limit
+	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime", "Runtime (seconds, 0 means no time limit):", 240);
 
 	public boolean printDebugInformation = false;
 	
@@ -137,6 +136,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 	{
 		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
 		allParams.add(numThreadsParam);
+		allParams.add(maxRuntimeParam);
 		return allParams;
 	}
 
@@ -168,7 +168,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 		this.allNetworks = allNetworks;
 		metric = new BoundingBoxMetric();
 		temperatureStep = 0;
-		iterationsPerTemperatureStep = maxRuntime > 0 ? 100 : getDesiredMoves( nodesToPlace );
+		iterationsPerTemperatureStep = maxRuntimeParam.getIntValue() > 0 ? 100 : getDesiredMoves( nodesToPlace );
 		perturbations_tried = 0;
 		accepts = 0;
 		conflicts = 0;
@@ -203,7 +203,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 		posIndex = new PositionIndex( maxChipLength, this.nodesToPlace );
 		
 		// calculate the starting temperature
-		startingTemperature = getStartingTemperature(nodesToPlace, maxChipLength, maxRuntime);
+		startingTemperature = getStartingTemperature(nodesToPlace, maxChipLength, maxRuntimeParam.getIntValue());
 		temperature = startingTemperature;
 		temperatureSteps = countTemperatureSteps(startingTemperature);
 
@@ -295,7 +295,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 		double startingTemperature = sigma * (-1 / (2 *Math.log(0.3)));
 		
 		// If a maximum runtime is set, only the last temperature steps are done
-		if ( maxRuntime > 0 ) {		
+		if ( maxRuntimeParam.getIntValue() > 0 ) {		
 			double msPerMove = guessMillisecondsPerMove();
 			int desired_moves = getDesiredMoves(nodes);
 			int possibleSteps = Math.max((int)((runtime * 1000) / (msPerMove * desired_moves)), 5);
@@ -423,12 +423,12 @@ public class PlacementSimulatedAnnealing extends PlacementFrame
 			}
 			
 			// adjust how many moves to try before the next temperature decrease
-			if ( maxRuntime > 0 )
+			if ( maxRuntimeParam.getIntValue() > 0 )
 			{
 				// use the observed time from the last step to calculate
 				// how many move to do
 				long elapsedTime = System.currentTimeMillis() - timestampStart;
-				long remainingTime = maxRuntime * 1000 - elapsedTime;
+				long remainingTime = maxRuntimeParam.getIntValue() * 1000 - elapsedTime;
 				long remainingSteps = temperatureSteps - temperatureStep;
 				double allowedTimePerStep = 1e6 * ((double)remainingTime / remainingSteps);
 
