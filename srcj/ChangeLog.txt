@@ -10,7 +10,7 @@ IMP: (6/9/10, FS) Add test infrastructure for parallel placement tests
 
 IMP: (6/8/10, FS) Experimental work stealing for parallel infrastructure
 
-IMP: (6/7/10, GVG) Measurement tool and new style (Bug #2785)
+IMP/MAN: (6/7/10, GVG) Measurement tool and new style (Bug #2785)
 Added preference to use Cadence style. Old style by default.
 
 IMP: (6/7/10, SMR) Layer Visibility Configurations are now handled in a
@@ -18,11 +18,11 @@ IMP: (6/7/10, SMR) Layer Visibility Configurations are now handled in a
 
 IMP: (6/7/10, FS) Add parameter to force directed placement 2
 
-IMP: (6/7/10, FS) New concurrent datastructures, ciruclar array, unbounded
+IMP: (6/7/10, FS) New concurrent data structures, circular array, unbounded
    double ended queue
 
 IMP: (6/3/10, DN) Remove Technology.State class to simplify things.
-   This class is not necessary because Technoplogies are immutable now.
+   This class is not necessary because Technologies are immutable now.
 
 ************************* Version 9.00g: ******************************
 
@@ -36,7 +36,7 @@ IMP: (6/3/10, FS) Add a new work distribution to ERCWellCheck2
           - overlay the current cell with an 2-dimensional grid
           - each thread works on one cell of the grid (bucket)
 
-IMP: (6/3/10, DN) The nameDescriptor of NodeInst can be non-displayble (Bug #2768).
+IMP: (6/3/10, DN) The nameDescriptor of NodeInst can be non-displayable (Bug #2768).
 
 BUG: (6/3/10, AM) Verilog simulation not working (Bug #2780)
 FIX: Assign ".dump" extension to VerilogOut per Steve's request.
@@ -96,10 +96,10 @@ Added extra code to detect the source of the unknown tag
 
 IMP/MAN: (5/27/10, SMR) New EDIF Preference to hide arc or node names (Bug #2768).
 
-IMP: (5/27/10, DN) The nameDescriptor of ArcInst can be non-displayble (Bug #2768).
+IMP: (5/27/10, DN) The nameDescriptor of ArcInst can be non-displayable (Bug #2768).
 
 IMP: (5/25/10, DN) Technologies are immutable - new Technology objects are used if technology parameters are changed.
-   Can be disablesd by Tecyhnology.IMMUTABLE_TECHS = false;
+   Can be disabled by Tecyhnology.IMMUTABLE_TECHS = false;
 
 IMP/MAN: (5/25/10, SMR) New "Display Control" Preference to keep modeless
      dialogs on top (Bug #2767).
