@@ -303,7 +303,6 @@ public class EDIF extends Input<Object>
 	/** the current active cell */				private Cell curCell;
 	/** current Cells in Libraries */			private Map<Library,Cell> currentCells;
 	/** the current page in cell */				private int curCellPage;
-	/** the parameter position in cell */		private int curCellParameterOff;
 	/** the current active instance */			private NodeInst curNode;
 	/** the current active arc */				private ArcInst curArc;
 	/** the current figure group node */		private NodeProto curFigureGroup;
@@ -518,7 +517,6 @@ public class EDIF extends Input<Object>
 		curCell = null;
 		this.currentCells = currentCells;
 		curCellPage = 0;
-		curCellParameterOff = 0;
 		curNode = null;
 		curArc = null;
 		curPort = null;
@@ -2220,7 +2218,6 @@ public class EDIF extends Input<Object>
 
 				curCell = proto;
 				curCellPage = 0;
-				curCellParameterOff = 0;
 				inputLocY = outputLocY = 0;
 			}
 			plannedPorts = new ArrayList<PlannedPort>();
@@ -2838,7 +2835,6 @@ public class EDIF extends Input<Object>
 						ignoreBlock = true;
 				}
 				curCellPage = 0;
-				curCellParameterOff = 0;
 				inputLocY = outputLocY = 0;
 			}
 			plannedPorts = new ArrayList<PlannedPort>();
@@ -4119,10 +4115,8 @@ public class EDIF extends Input<Object>
 			{
 				if (isAcceptedParameter(propertyReference))
 				{
-					curCellParameterOff++;
 					TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).
-						withInherit(true).withParam(true).withOff(0, curCellParameterOff).
-						withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+						withInherit(true).withParam(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
 					Variable param = Variable.newInstance(Variable.newKey("ATTR_" + propertyReference), propertyValue, td);
 					curCell.getCellGroup().addParam(param);
 				}
@@ -4449,7 +4443,7 @@ public class EDIF extends Input<Object>
 			else if (keyStack[keyStackDepth-1] == KANNOTATE || keyStack[keyStackDepth-1] == KSTRING)
 			{
 				boolean thisVisible = false; // textVisible;
-				// supress this if it starts with "["
+				// Suppress this if it starts with "["
 				if (thisVisible && !textString.startsWith("[") && curPoints.size() != 0)
 				{
 					// see if a pre-existing node or arc exists to add text

@@ -3208,6 +3208,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         int numVars = 0;
         double xPosSum = 0;
         double yPosBot = 0;
+        double tallest = 0;
         for (Iterator<Variable> it = getParametersAndVariables(); it.hasNext();) {
             Variable eVar = it.next();
             if (!eVar.isDisplay()) {
@@ -3217,12 +3218,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
             if (eVar.getYOff() < yPosBot) {
                 yPosBot = eVar.getYOff();
             }
+            if (!eVar.getSize().isAbsolute()) tallest = Math.max(tallest, eVar.getSize().getSize());
             numVars++;
         }
         if (numVars == 0) {
             return new Point2D.Double(0, 0);
         }
-        return new Point2D.Double(xPosSum / numVars, yPosBot - 2);
+        if (tallest == 0) tallest = 1;
+        return new Point2D.Double(xPosSum / numVars, yPosBot - tallest);
     }
 
     /**
