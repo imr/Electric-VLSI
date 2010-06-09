@@ -31,6 +31,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.UniqueIDGenerator;
+import com.sun.electric.tool.util.concurrent.debug.LoadBalancing;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 
@@ -57,6 +58,7 @@ public class ThreadPool {
 	private ThreadPoolState state;
 	private UniqueIDGenerator generator;
 	private UserInterface userInterface;
+	private boolean debug;
 
 	/**
 	 * prevent from creating thread pools via constructor
@@ -64,12 +66,13 @@ public class ThreadPool {
 	 * @param taskPool
 	 * @param numOfThreads
 	 */
-	private ThreadPool(IStructure<PTask> taskPool, int numOfThreads) {
+	private ThreadPool(IStructure<PTask> taskPool, int numOfThreads, boolean debug) {
 		state = ThreadPoolState.New;
 		this.taskPool = taskPool;
 		this.numOfThreads = numOfThreads;
 		this.generator = new UniqueIDGenerator(0);
-		
+		this.debug = debug;
+
 		// reset thread id
 		ThreadID.reset();
 
@@ -105,6 +108,12 @@ public class ThreadPool {
 
 		this.join();
 		state = ThreadPoolState.Closed;
+
+		// print statistics in debug mode
+		if (this.debug) {
+			LoadBalancing.getInstance().printStatistics();
+			LoadBalancing.getInstance().reset();
+		}
 	}
 
 	/**
@@ -144,6 +153,9 @@ public class ThreadPool {
 			this.pool = pool;
 			ThreadID.set(generator.getUniqueId());
 			strategy = PoolWorkerStrategyFactory.createStrategy(taskPool);
+			if (pool.debug) {
+				LoadBalancing.getInstance().registerWorker(strategy);
+			}
 		}
 
 		@Override
@@ -153,7 +165,8 @@ public class ThreadPool {
 
 			try {
 				Job.setUserInterface(pool.getUserInterface());
-				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase().getEnvironment());
+				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase()
+						.getEnvironment());
 			} catch (Exception ex) {
 
 			}
@@ -185,7 +198,30 @@ public class ThreadPool {
 	 * @throws PoolExistsException
 	 */
 	public static ThreadPool initialize() throws PoolExistsException {
-		return ThreadPool.initialize(ThreadPool.getNumOfThreads());
+		return ThreadPool.initialize(false);
+	}
+
+	/**
+	 * initialize thread pool, default initialization
+	 * 
+	 * @return initialized thread pool
+	 * @throws PoolExistsException
+	 */
+	public static ThreadPool initialize(boolean debug) throws PoolExistsException {
+		return ThreadPool.initialize(ThreadPool.getNumOfThreads(), debug);
+	}
+
+	/**
+	 * initialize thread pool with number of threads
+	 * 
+	 * @param num
+	 *            of threads
+	 * @return initialized thread pool
+	 * @throws PoolExistsException
+	 */
+	public static ThreadPool initialize(int num, boolean debug) throws PoolExistsException {
+		IStructure<PTask> taskPool = CollectionFactory.createLockFreeQueue();
+		return ThreadPool.initialize(taskPool, num, debug);
 	}
 
 	/**
@@ -198,7 +234,20 @@ public class ThreadPool {
 	 */
 	public static ThreadPool initialize(int num) throws PoolExistsException {
 		IStructure<PTask> taskPool = CollectionFactory.createLockFreeQueue();
-		return ThreadPool.initialize(taskPool, num);
+		return ThreadPool.initialize(taskPool, num, false);
+	}
+
+	/**
+	 * initialize thread pool with specific task pool
+	 * 
+	 * @param taskPool
+	 *            to be used
+	 * @return initialized thread pool
+	 * @throws PoolExistsException
+	 */
+	public static ThreadPool initialize(IStructure<PTask> taskPool, boolean debug)
+			throws PoolExistsException {
+		return ThreadPool.initialize(taskPool, ThreadPool.getNumOfThreads(), debug);
 	}
 
 	/**
@@ -210,7 +259,7 @@ public class ThreadPool {
 	 * @throws PoolExistsException
 	 */
 	public static ThreadPool initialize(IStructure<PTask> taskPool) throws PoolExistsException {
-		return ThreadPool.initialize(taskPool, ThreadPool.getNumOfThreads());
+		return ThreadPool.initialize(taskPool, false);
 	}
 
 	/**
@@ -224,8 +273,22 @@ public class ThreadPool {
 	 */
 	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads)
 			throws PoolExistsException {
+		return ThreadPool.initialize(taskPool, numOfThreads, false);
+	}
+
+	/**
+	 * initialize thread pool with specific task pool and number of threads
+	 * 
+	 * @param taskPool
+	 *            to be used
+	 * @param numOfThreads
+	 * @return initialized thread pool
+	 * @throws PoolExistsException
+	 */
+	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads,
+			boolean debug) throws PoolExistsException {
 		if (ThreadPool.instance == null || instance.state != ThreadPoolState.Started) {
-			instance = new ThreadPool(taskPool, numOfThreads);
+			instance = new ThreadPool(taskPool, numOfThreads, debug);
 			instance.start();
 		} else {
 			return instance;

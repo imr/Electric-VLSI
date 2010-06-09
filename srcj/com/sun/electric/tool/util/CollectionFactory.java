@@ -27,9 +27,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.python.core.util.ConcurrentHashSet;
 
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
@@ -40,6 +44,8 @@ import com.sun.electric.tool.util.concurrent.datastructures.UnboundedDEQueue;
  * This class provides factory methods for creating data structures. The
  * intension is that the generic generation of data structures <T> should be
  * hidden to make the code readable.
+ * 
+ * @author Felix Schmidt
  * 
  */
 public class CollectionFactory {
@@ -110,6 +116,13 @@ public class CollectionFactory {
 	}
 
 	/**
+	 * create a new concurrent hash set
+	 */
+	public static <T> ConcurrentHashSet<T> createConcurrentHashSet() {
+		return new ConcurrentHashSet<T>();
+	}
+
+	/**
 	 * create concurrent linked list
 	 */
 	@SuppressWarnings("unchecked")
@@ -139,6 +152,48 @@ public class CollectionFactory {
 		synchronized (list) {
 			return list.remove(index);
 		}
+	}
+
+	/**
+	 * 
+	 * @param <T>
+	 * @param source
+	 * @return
+	 */
+	public static <T> Set<T> copySet(Set<T> source) {
+		Set<T> result = CollectionFactory.createHashSet();
+
+		doCopySet(source, result);
+
+		return result;
+	}
+
+	/**
+	 * 
+	 * @param <T>
+	 * @param source
+	 * @return
+	 */
+	public static <T> Set<T> copySetToConcurrent(Set<T> source) {
+		Set<T> result = CollectionFactory.createConcurrentHashSet();
+
+		doCopySet(source, result);
+
+		return result;
+	}
+
+	/**
+	 * 
+	 * @param <T>
+	 * @param source
+	 * @param dest
+	 */
+	private static <T> void doCopySet(Set<T> source, Set<T> dest) {
+
+		for (Iterator<T> it = source.iterator(); it.hasNext();) {
+			dest.add(it.next());
+		}
+
 	}
 
 }

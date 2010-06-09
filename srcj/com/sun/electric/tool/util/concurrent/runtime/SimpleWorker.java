@@ -57,6 +57,8 @@ public class SimpleWorker extends PoolWorkerStrategy {
 	 */
 	@Override
 	public void execute() {
+		this.threadId = ThreadID.get();
+		this.executed = 0;
 		while (!abort) {
 			// retrieve a new task
 			PTask task = taskPool.remove();
@@ -71,6 +73,8 @@ public class SimpleWorker extends PoolWorkerStrategy {
 				} finally {
 					// do some clean up work etc. after execution of the task
 					task.after();
+
+					this.executed++;
 				}
 			} else {
 				Thread.yield();
