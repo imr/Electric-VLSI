@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.python.core.util.ConcurrentHashSet;
-
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
@@ -118,8 +116,9 @@ public class CollectionFactory {
 	/**
 	 * create a new concurrent hash set
 	 */
-	public static <T> ConcurrentHashSet<T> createConcurrentHashSet() {
-		return new ConcurrentHashSet<T>();
+	@SuppressWarnings("unchecked")
+	public static <T> Set<T> createConcurrentHashSet() {
+		return (Set<T>) Collections.synchronizedSet(CollectionFactory.createHashSet());
 	}
 
 	/**
