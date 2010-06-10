@@ -654,8 +654,6 @@ public class Highlighter implements DatabaseChangeListener {
 
         List<Highlight> list = highlightList; //getHighlights();
 
-        Color colorH = new Color(User.getColor(User.ColorPrefType.HIGHLIGHT));
-        Color colorM = new Color(User.getColor(User.ColorPrefType.MOUSEOVER_HIGHLIGHT));
         Stroke stroke = Highlight.solidLine;
 
         for (Highlight h : list)
@@ -664,11 +662,20 @@ public class Highlighter implements DatabaseChangeListener {
             if (h.getCell() == wnd.getCell())
             {
                 boolean setConnected = User.isHighlightConnectedObjects();
-                Color color = colorH;
-                if (type == MOUSEOVER_HIGHLIGHTER)
+                Color color;
+                if (type == SELECT_HIGHLIGHTER)
                 {
-                    color = colorM;
+                	// normal highlighter
+                    color = new Color(User.getColor(User.ColorPrefType.HIGHLIGHT));
+                } else if (type == MOUSEOVER_HIGHLIGHTER)
+                {
+                	// mouse-over pre-highlighter
+                    color = new Color(User.getColor(User.ColorPrefType.MOUSEOVER_HIGHLIGHT));
                     setConnected = false;
+                } else
+                {
+                	// measurement highlighter
+                    color = new Color(User.getColor(User.ColorPrefType.MEASUREMENT));
                 }
 				if (h.isError || !errorsOnly)
 					h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color, stroke, setConnected);
@@ -999,7 +1006,7 @@ public class Highlighter implements DatabaseChangeListener {
 	}
 
     /**
-	 * Method to return the only highlight that encompases an object in Cell cell.
+	 * Method to return the only highlight that encompasses an object in Cell cell.
 	 * If there is not one highlighted object, an error is issued.
 	 * @return the highlight that selects an object (null if error).
 	 */
@@ -1028,7 +1035,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * If there is not one highlighted object, an error is issued.
 	 * @return the highlighted object (null if error).
 	 */
-	public ElectricObject getOneElectricObject(Class type)
+	public ElectricObject getOneElectricObject(Class<?> type)
 	{
 		Highlight high = getOneHighlight();
 		if (high == null) return null;
@@ -1052,7 +1059,7 @@ public class Highlighter implements DatabaseChangeListener {
 		return eobj;
 	}
 
-	private String getClassName(Class type)
+	private String getClassName(Class<?> type)
 	{
 		if (type == NodeInst.class) return "Node";
 		if (type == ArcInst.class) return "Arc";
@@ -1425,7 +1432,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param bounds the area of the search (in database units).
 	 * @param wnd the window being examined (null to ignore window scaling).
 	 * @return a list of Highlight objects.
-	 * The list is ordered by importance, so the deault action is to select the first entry.
+	 * The list is ordered by importance, so the default action is to select the first entry.
 	 */
 	public static List<Highlight> findAllInArea(Highlighter highlighter, Cell cell, boolean exclusively, boolean findPort,
 		 boolean findPoint, boolean findSpecial, boolean findText, Rectangle2D bounds, EditWindow wnd)

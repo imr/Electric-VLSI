@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP/MAN: (6/10/10) The Measurement display should have be able to show
+     in a user-specified color instead of using the highlight color (Bug #2787).
+FIX: Added User.ColorPrefType.MEASUREMENT.
+
 IMP: (6/9/10, FS) Extend CollectionFactory (ConcurrentHashSet, copySet methods)
      add debug possibilities to thread pool (load balancing) 
 

@@ -1341,6 +1341,8 @@ public class User extends Listener
         BACKGROUND("Background",                    Color.LIGHT_GRAY),
         /** color of the grid on the display. The default is "black". */
         GRID("Grid",                                Color.BLACK),
+        /** color of the measurement ruler on the display. The default is "white". */
+        MEASUREMENT("Measurement",                  Color.WHITE),
         /** color of the highlight on the display. The default is "white". */
         HIGHLIGHT("Highlight",                      Color.WHITE),
         NODE_HIGHLIGHT("NodeHighlight",             Color.BLUE),
@@ -1420,63 +1422,15 @@ public class User extends Listener
 
 	/**
 	 * Method to get the color of a given special layer on the display.
-	 * BACKGROUND: color of the background on the display. The default is "light gray".
-	 * GRID: color of the grid on the display. The default is "black".
-	 * HIGHLIGHT: color of the highlight on the display. The default is "white".
-	 * MOUSEOVER_HIGHLIGHT: color of the highlight on the display. The default is "white".
-	 * PORT_HIGHLIGHT: color of the port highlight on the display. The default is "yellow".
-	 * TEXT: color of the text on the display. The default is "black".
-	 * INSTANCE: color of the instance outlines on the display. The default is "black".
-	 * ARTWORK: default color of the artwork primitives on the display. The default is "black".
-	 * DOWNINPLACEBORDER: color of the border around cells drawn "down in place". The default is "red".
-	 * WAVE_BACKGROUND: color of the waveform window background. The default is "black".
-	 * WAVE_FOREGROUND: color of the waveform window foreground. This includes lines and text. The default is "white".
-	 * WAVE_STIMULI: color of the traces in waveform windows. Applies only when not a "multistate" display, which uses many colors.
-	 * The default is "red".
-	 * WAVE_OFF_STRENGTH: color of waveform window traces that have "off" strength. The default is "blue".
-	 * WAVE_NODE_STRENGTH: color of waveform window traces that have "node" strength. The default is "green".
-	 * WAVE_GATE_STRENGTH: color of waveform window traces that have "gate" strength. The default is "magenta".
-	 * WAVE_POWER_STRENGTH: color of waveform window traces that have "power" strength. The default is "light gray".
-	 * WAVE_CROSS_LOW: color of cross-probe traces from the waveform window that are "low". These are lines drawn on the
-	 * schematic or layout to correspond with the value in the waveform window. The default is "blue".
-	 * WAVE_CROSS_HIGH: color of cross-probe traces from the waveform window that are "high". These are lines drawn on the
-	 * schematic or layout to correspond with the value in the waveform window. The default is "green".
-	 * WAVE_CROSS_UNDEF: color of cross-probe traces from the waveform window that are "undefined". These are lines drawn on the
-	 * schematic or layout to correspond with the value in the waveform window. The default is "black".
-	 * WAVE_CROSS_FLOAT: color of cross-probe traces from the waveform window that are "floating". These are lines drawn
-	 * on the schematic or layout to correspond with the value in the waveform window. The default is "light gray".
-	 * @param pref special layer in question
-	 * @return color of the special layer
+	 * @param pref the special layer in question.
+	 * @return color of the special layer.
 	 */
 	public static int getColor(ColorPrefType pref) {return UserInterfaceMain.getGraphicsPreferences().getColor(pref).getRGB() & GraphicsPreferences.RGB_MASK;}
 
 	/**
 	 * Method to set the color of a given special layer
-	 * BACKGROUND: color of the background on the display.
-	 * GRID: color of the grid on the display.
-	 * HIGHLIGHT: color of the highlight on the display.
-	 * MOUSEOVER_HIGHLIGHT: color of the highlight on the display.
-	 * PORT_HIGHLIGHT: color of the port highlight on the display.
-	 * TEXT: color of the text on the display.
-	 * INSTANCE: color of the instance outlines on the display.
-	 * DOWNINPLACEBORDER: color of the border around cells drawn "down in place". The default is "red".
-	 * WAVE_BACKGROUND: color of the waveform window background.
-	 * WAVE_FOREGROUND: color of the waveform window foreground. This includes lines and text.
-	 * WAVE_STIMULI: color of the traces in waveform windows. Applies only when not a "multistate" display, which uses many colors.
-	 * WAVE_OFF_STRENGTH: color of waveform window traces that have "off" strength.
-	 * WAVE_NODE_STRENGTH: color of waveform window traces that have "node" strength.
-	 * WAVE_GATE_STRENGTH: color of waveform window traces that have "gate" strength.
-	 * WAVE_POWER_STRENGTH: color of waveform window traces that have "power" strength.
-	 * WAVE_CROSS_LOW: color of cross-probe traces from the waveform window that are "low". These are lines drawn on the
-	 * schematic or layout to correspond with the value in the waveform window.
-	 * WAVE_CROSS_HIGH: color of cross-probe traces from the waveform window that are "high". These are lines drawn on the
-	 * schematic or layout to correspond with the value in the waveform window.
-	 * WAVE_CROSS_UNDEF: color of cross-probe traces from the waveform window that are "undefined". These are lines drawn on the
-	 * schematic or layout to correspond with the value in the waveform window.
-	 * WAVE_CROSS_FLOAT: color of cross-probe traces from the waveform window that are "floating". These are lines drawn
-	 * on the schematic or layout to correspond with the value in the waveform window.
-	 * @param pref
-	 * @param color
+	 * @param pref the special layer to change.
+	 * @param color new color for that special layer.
 	 */
 	public static void setColor(ColorPrefType pref, int color)
 	{
@@ -1485,26 +1439,7 @@ public class User extends Listener
 
 	/**
 	 * Method to reset to the factory color of a given special layer
-	 * BACKGROUND: The default is "light gray".
-	 * GRID: The default is "black".
-	 * HIGHLIGHT: The default is "white".
-	 * MOUSEOVER_HIGHLIGHT: The default is "white".
-	 * PORT_HIGHLIGHT: The default is "yellow".
-	 * TEXT: The default is "black".
-	 * INSTANCE: The default is "black".
-	 * DOWNINPLACEBORDER: The default is "red".
-	 * WAVE_BACKGROUND: The default is "black".
-	 * WAVE_FOREGROUND: The default is "white".
-	 * WAVE_STIMULI: The default is "red".
-	 * WAVE_OFF_STRENGTH: The default is "blue".
-	 * WAVE_NODE_STRENGTH: The default is "green".
-	 * WAVE_GATE_STRENGTH: The default is "magenta".
-	 * WAVE_POWER_STRENGTH: The default is "light gray".
-	 * WAVE_CROSS_LOW: The default is "blue".
-	 * WAVE_CROSS_HIGH: The default is "green".
-	 * WAVE_CROSS_UNDEF: The default is "black".
-	 * WAVE_CROSS_FLOAT: The default is "light gray".
-	 * @param pref
+	 * @param pref the special layer to reset.
 	 */
 	public static void resetFactoryColor(ColorPrefType pref)
 	{

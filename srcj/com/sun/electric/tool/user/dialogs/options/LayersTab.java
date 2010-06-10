@@ -154,6 +154,7 @@ public class LayersTab extends PreferencePanel
 		// add the special layers
         nameTypeSpecialMap.put(User.ColorPrefType.BACKGROUND, "Special: BACKGROUND");
         nameTypeSpecialMap.put(User.ColorPrefType.GRID, "Special: GRID");
+        nameTypeSpecialMap.put(User.ColorPrefType.MEASUREMENT, "Special: MEASUREMENT");
         nameTypeSpecialMap.put(User.ColorPrefType.HIGHLIGHT, "Special: HIGHLIGHT");
         nameTypeSpecialMap.put(User.ColorPrefType.NODE_HIGHLIGHT, "Special: NODE HIGHLIGHT");
         nameTypeSpecialMap.put(User.ColorPrefType.MOUSEOVER_HIGHLIGHT, "Special: MOUSE-OVER HIGHLIGHT");

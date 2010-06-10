@@ -821,10 +821,17 @@ class HighlightMessage extends Highlight
         	}
         }
         Color oldColor = g.getColor();
-        g.setColor(new Color(255-oldColor.getRed(), 255-oldColor.getGreen(), 255-oldColor.getBlue()));
+        int textColorValue = User.getColor(User.ColorPrefType.TEXT);
+        Color foregroundColor = new Color(textColorValue);
+        int textColorRed = (textColorValue >> 16) & 0xFF;
+        int textColorGreen = (textColorValue >> 8) & 0xFF;
+        int textColorBlue = textColorValue & 0xFF;
+        Color backgroundColor = new Color(255-textColorRed, 255-textColorGreen, 255-textColorBlue);
+        g.setColor(backgroundColor);
         g.drawString(msg, location.x+1, location.y+1);
-        g.setColor(oldColor);
+        g.setColor(foregroundColor);
         g.drawString(msg, location.x, location.y);
+        g.setColor(oldColor);
     }
 
     Rectangle2D getHighlightedArea(EditWindow wnd)
