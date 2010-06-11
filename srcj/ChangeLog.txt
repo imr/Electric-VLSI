@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+BUG: (6/11/10, GVG) UnsupportedOperationException while running Placement regression (Bug #2792)
+FIX: Don't call param.makeTempSettingReal if running in regression mode.
+
 IMP: (6/11/2010, FS) Add sleep and wake up to thread pool
 
 IMP/MAN: (6/10/10, AM) Can now view an analog signal as if it were
@@ -24,7 +27,7 @@ IMP: (6/10/10, AM) Fix CachingPageStorage.fsync(int), remove
 
 IMP: (6/10/10, AM) Replace Infrastructure.waitSeconds() with Thread.sleep()
 
-IMP/MAN: (6/10/10) The Measurement display should have be able to show
+IMP/MAN: (6/10/10, SMR) The Measurement display should have be able to show
      in a user-specified color instead of using the highlight color (Bug #2787).
 FIX: Added User.ColorPrefType.MEASUREMENT.
 
