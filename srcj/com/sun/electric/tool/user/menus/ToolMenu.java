@@ -253,10 +253,6 @@ public class ToolMenu
 		        new EMenuItem("_ALS: Simulate Current Cell") { public void run() {
                     Simulation.startSimulation(Simulation.ALS_ENGINE, false, null, null); }},
 
-                	Simulation.hasFLEET() ? SEPARATOR : null,
-
-                	Simulation.hasFLEET() ? Simulation.FLEETMenu() : null,
-
                 SEPARATOR,
 
 		        new EMenuItem("Set Signal _High at Main Time", KeyStroke.getKeyStroke('V', 0)) { public void run() {

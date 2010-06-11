@@ -96,10 +96,6 @@ public class Simulation extends Tool
 	private static Class<?> irsimClass = null;
 	private static Method irsimSimulateMethod;
 
-	private static boolean fleetChecked = false;
-	private static Class<?> fleetClass = null;
-	private static EMenu fleetSimMenu = null;
-
 	/**
 	 * The constructor sets up the Simulation tool.
 	 */
@@ -350,53 +346,6 @@ public class Simulation extends Tool
 			System.out.println("Unable to run the IRSIM simulator");
 			e.printStackTrace(System.out);
 		}
-	}
-
-	/**
-	 * Method to tell whether the FLEET simulator is available.
-	 * This method dynamically figures out whether the FLEET module is present by using reflection.
-	 * @return true if the FLEET simulator is available.
-	 */
-	public static boolean hasFLEET()
-	{
-		if (!fleetChecked)
-		{
-			fleetChecked = true;
-
-			// find the FLEET class
-			try
-			{
-				fleetClass = Class.forName("com.sunlabs.fleetsim.electricPlugin.FleetSimElectricPlugin");
-			} catch (ClassNotFoundException e)
-			{
-				fleetClass = null;
-				return false;
-			}
-
-			// find the necessary methods on the FLEET class
-			try
-			{
-				Method fleetMenuMethod = fleetClass.getMethod("fleetSimMenu", new Class[] {});
-				fleetSimMenu= (EMenu)(fleetMenuMethod.invoke(fleetClass, new Object[]{}));
-			} catch (NoSuchMethodException e)
-			{
-				fleetClass = null;
-				return false;
-			}
-			catch (Exception e) {
-				System.out.println("Unable to get FleetSimMenu");
-				e.printStackTrace(System.out);
-			}
-		}
-
-		// if already initialized, return
-		if (fleetClass == null) return false;
-	 	return true;
-	}
-
-	public static EMenu FLEETMenu()
-	{
-		return fleetSimMenu;
 	}
 
 	/**
