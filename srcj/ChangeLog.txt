@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/10/10, AM) RadixTrie improvements (incomplete).
+
 IMP: (6/10/10, AM) Stub for PageStorageWithDeallocation.
 
 IMP: (6/10/10, AM) Fix CachingPageStorage.fsync(int), remove
