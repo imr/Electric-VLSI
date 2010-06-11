@@ -33,14 +33,4 @@ public class ScalarSignal extends BTreeSignal<ScalarSample> {
         super(analysis, signalName, signalContext, BTreeSignal.getTree(ScalarSample.unboxer));
     }
 
-	public ScalarSample getMinValue() {
-        Pair<Pair<Double,ScalarSample>,Pair<Double,ScalarSample>> pk = getSummaryFromKeys(null, null);
-        if (pk==null) return null;
-        return pk.getKey().getValue();
-    }
-	public ScalarSample getMaxValue() {
-        Pair<Pair<Double,ScalarSample>,Pair<Double,ScalarSample>> pk = getSummaryFromKeys(null, null);
-        if (pk==null) return null;
-        return pk.getValue().getValue();
-    }
 }

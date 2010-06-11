@@ -209,7 +209,7 @@ public class VerilogOut extends Input<Stimuli>
 						{
 							DigitalSignal subSig = new DigitalSignal(an, signalName + "[" + i + "]", currentScope);
 							dataMap.put(subSig, new ArrayList<VerilogStimuli>());
-							sig.addToBussedSignalList(subSig);
+							DigitalAnalysis.addToBussedSignalList(sig, subSig);
 							addSignalToHashMap(subSig, symbol + "[" + i + "]", symbolTable);
 							numSignals++;
 						}
@@ -296,7 +296,7 @@ public class VerilogOut extends Input<Stimuli>
 						if (entry instanceof List) entry = ((List)entry).get(0);
 						DigitalSignal sig = (DigitalSignal)entry;
 						int i = 0;
-						for(Signal anySig : sig.getBussedSignals())
+						for(Signal anySig : DigitalAnalysis.getBussedSignals(sig))
 						{
 							DigitalSignal subSig = (DigitalSignal)anySig;
 							char bit = restOfLine.charAt(i++);
@@ -409,7 +409,7 @@ public class VerilogOut extends Input<Stimuli>
 					for(int i=0; i<width; i++)
 					{
 						DigitalSignal subSig = curArray.get(firstEntry+i);
-						arraySig.addToBussedSignalList(subSig);
+						DigitalAnalysis.addToBussedSignalList(arraySig, subSig);
 					}
 					last = null;
 				}
@@ -423,7 +423,7 @@ public class VerilogOut extends Input<Stimuli>
 			for(int i=0; i<width; i++)
 			{
 				DigitalSignal subSig = curArray.get(firstEntry+i);
-				arraySig.addToBussedSignalList(subSig);
+				DigitalAnalysis.addToBussedSignalList(arraySig, subSig);
 			}
 		}
 	}

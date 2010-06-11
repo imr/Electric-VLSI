@@ -32,63 +32,12 @@ import java.util.List;
  */
 public class DigitalSignal extends BTreeSignal<DigitalSample> {
 
-	/** a list of signals on this bussed signal */					            List<DigitalSignal> bussedSignals;
-	/** the number of busses that reference this signal */			            private int busCount;
-
 	/**
 	 * Constructor for a digital signal.
 	 * @param an the DigitalAnalysis object in which this signal will reside.
 	 */
 	public DigitalSignal(DigitalAnalysis an, String signalName, String signalContext) {
         super(an, signalName, signalContext, BTreeSignal.getTree(DigitalSample.unboxer));
-		an.addSignal(this);
 	}
-
-	public DigitalSample getMinValue() { return getSummaryFromKeys(null, null).getKey().getValue(); }
-	public DigitalSample getMaxValue() { return getSummaryFromKeys(null, null).getValue().getValue(); }
-
-	/**
-	 * Method to return a List of signals on this bus signal.
-	 * Each entry in the List points to another simulation signal that is on this bus.
-	 * @return a List of signals on this bus signal.
-	 */
-	public List<DigitalSignal> getBussedSignals() { return bussedSignals; }
-
-	/**
-	 * Method to request that this bussed signal be cleared of all signals on it.
-	 */
-	public void clearBussedSignalList() {
-		for(DigitalSignal sig : bussedSignals)
-			sig.busCount--;
-		bussedSignals.clear();
-	}
-
-	/**
-	 * Method to add a signal to this bus signal.
-	 * @param ws a single-wire signal to be added to this bus signal.
-	 */
-	public void addToBussedSignalList(DigitalSignal ws) {
-		bussedSignals.add(ws);
-		ws.busCount++;
-	}
-
-	/**
-	 * Method to tell whether this signal is part of a bus.
-	 * @return true if this signal is part of a bus.
-	 */
-	public boolean isInBus() { return busCount != 0; }
-
-	public double getTime(int index) {
-        return getExactView().getTime(index);
-	}
-
-	public int getState(int index) {
-        DigitalSample ds = getExactView().getSample(index);
-        if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
-        if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;
-        if (ds.isLogicX()) return Stimuli.LOGIC_X;
-        if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
-        throw new RuntimeException("ack!");
-    }
 
 }

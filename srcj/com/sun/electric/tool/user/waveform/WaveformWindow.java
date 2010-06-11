@@ -55,6 +55,7 @@ import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
@@ -3227,7 +3228,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				DigitalSignal ds = (DigitalSignal)ws.getSignal();
-				List<DigitalSignal> bussedSignals = ds.getBussedSignals();
+				List<DigitalSignal> bussedSignals = DigitalAnalysis.getBussedSignals(ds);
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
@@ -3318,10 +3319,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		int state = Stimuli.LOGIC_X;
 		for(int i=numEvents-1; i>=0; i--)
 		{
-			double xValue = ds.getTime(i);
+			double xValue = ds.getExactView().getTime(i);
 			if (xValue <= mainXPosition)
 			{
-				state = ds.getState(i) & Stimuli.LOGIC;
+				state = getState(ds, i) & Stimuli.LOGIC;
 				break;
 			}
 		}
@@ -3438,9 +3439,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal ss = ws.getSignal();
-				if (ss instanceof DigitalSignal && ((DigitalSignal)ss).getBussedSignals() != null)
+				if (ss instanceof DigitalSignal && DigitalAnalysis.getBussedSignals(((DigitalSignal)ss)) != null)
 				{
-					List<DigitalSignal> inBus = ((DigitalSignal)ss).getBussedSignals();
+					List<DigitalSignal> inBus = DigitalAnalysis.getBussedSignals(((DigitalSignal)ss));
 					for(int b=0; b<inBus.size(); b++)
 					{
 						DigitalSignal subDS = inBus.get(b);
@@ -3494,8 +3495,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					Signal s = ws.getSignal();
 					if (s == null ||
 						(s instanceof DigitalSignal &&
-						((DigitalSignal)s).getBussedSignals() != null &&
-						((DigitalSignal)s).getBussedSignals().size() == 0))
+                         DigitalAnalysis.getBussedSignals(((DigitalSignal)s)) != null &&
+                         DigitalAnalysis.getBussedSignals(((DigitalSignal)s)).size() == 0))
 					{
 						redoPanel = true;
 						if (wp.getSignalButtons() != null)
@@ -3624,8 +3625,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						DigitalSignal ds = (DigitalSignal)sig;
 						if (j < ds.getExactView().getNumEvents())
 						{
-							if (entries[0] == null) entries[0] = "" + ds.getTime(j);
-							entries[i] = "" + ds.getState(j);
+							if (entries[0] == null) entries[0] = "" + ds.getExactView().getTime(j);
+							entries[i] = "" + getState(ds, j);
 							haveData = true;
 						}
 					}
@@ -5046,7 +5047,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				DigitalSignal sDSig = (DigitalSignal)allSignals.get(i);
 				if (sDSig.getSignalContext() != null) continue;
-				if (sDSig.isInBus()) continue;
+				if (DigitalAnalysis.isInBus(sDSig)) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
 				Panel wp = new Panel(ww, sd.isAnalog());
 				wp.makeSelectedPanel(-1, -1);
@@ -5099,9 +5100,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(int k=i; k<j; k++)
 			{
 				DigitalSignal subSig = signals.get(k);
-				busSig.addToBussedSignalList(subSig);
+				DigitalAnalysis.addToBussedSignalList(busSig, subSig);
 			}
 			i = j - 1;
 		}
 	}
+	static int getState(DigitalSignal dsig, int index) {
+        DigitalSample ds = dsig.getExactView().getSample(index);
+        if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
+        if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;
+        if (ds.isLogicX()) return Stimuli.LOGIC_X;
+        if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
+        throw new RuntimeException("ack!");
+    }
 }
