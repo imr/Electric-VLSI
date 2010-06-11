@@ -134,7 +134,7 @@ public abstract class PowerChannel extends Logger implements CurrentReadable,
         do {
             boolean checkedSetpoint = false;
 
-            //Infrastructure.waitSeconds(0.1f);
+            try { Thread.sleep( (int)(1000 * settleResolution) ); } catch (InterruptedException _) { }
             gotV = readVoltage();
             if (Math.abs(gotV - setVolts) <= voltsErr) {
                 logOther("  " + getName() + ".waitForVoltage(): achieved "

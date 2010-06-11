@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/10/10) Replace Infrastructure.waitSeconds() with Thread.sleep()
+
 IMP/MAN: (6/10/10) The Measurement display should have be able to show
      in a user-specified color instead of using the highlight color (Bug #2787).
 FIX: Added User.ColorPrefType.MEASUREMENT.
