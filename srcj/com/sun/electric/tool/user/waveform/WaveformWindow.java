@@ -1246,11 +1246,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (wf == null) return;
 		String title = "";
 		if (sd.getEngine() != null) title = "Simulation of "; else title = "Waveforms of ";
-		if (sd != null)
-		{
-			if (sd.getEngine() != null) title = " simulation of "; else
-				title = " of ";
-		}
 		wf.setTitle(wf.composeTitle(sd.getCell(), title, 0));
 	}
 
