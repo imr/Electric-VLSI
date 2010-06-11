@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP/MAN: (6/10/10, AM) Can now view an analog signal as if it were
+digital via thresholding (Bug #2789).
+
 BUG: (6/10/10, AM) Analog waveforms missing icons in upper right (Bug #2784)
 FIX: in Stimuli.isAnalog()
 

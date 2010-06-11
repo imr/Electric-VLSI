@@ -53,7 +53,8 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 import com.sun.electric.tool.user.ui.ToolBar.CursorMode;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.tool.user.waveform.*;
+import com.sun.electric.tool.simulation.*;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -336,7 +337,36 @@ public class WindowMenu {
                 new EMenuItem("Move Main X Axis Cursor Slower",
                               Resources.getResource(WaveformWindow.class, "ButtonVCRSlower.gif")) { public void run() {
                                   WaveformWindow.getCurrentWaveformWindow().vcrClickSlower();
-                    }}
+                    }},
+                SEPARATOR,
+                new EMenuItem("Generate Digital Signal from Analog Signal (0.5v Threshhold)") { public void run() {
+                    WindowFrame current = WindowFrame.getCurrentWindowFrame();
+                    WindowContent content = current.getContent();
+                    if (!(content instanceof WaveformWindow)) {
+                        System.out.println("Must select a Waveform window first");
+                        return;
+                    }
+                    WaveformWindow ww = (WaveformWindow)content;
+                    Panel panel = ww.getPanel(0);
+                    Stimuli stim = ww.getSimData();
+                    Signal s1 = panel.getSignals().get(0).getSignal();
+                    Analysis an = new Analysis(stim, Analysis.ANALYSIS_DC, false) { public boolean isAnalog() { return false; } };
+                    Signal derived = new DerivedSignal<DigitalSample,ScalarSample>
+                        (an,
+                         s1.getSignalName(),
+                         s1.getSignalContext(),
+                         new Signal[] { s1 }) {
+                        public boolean isDigital() { return true; }
+                        public RangeSample<DigitalSample> getDerivedRange(RangeSample<ScalarSample>[] s) {
+                            if (s[0]==null) return null;
+                            double min = s[0].getMin().getValue();
+                            double max = s[0].getMax().getValue();
+                            return new RangeSample<DigitalSample>(min <  0.5 ? DigitalSample.LOGIC_0 : DigitalSample.LOGIC_1,
+                                                                  max >= 0.5 ? DigitalSample.LOGIC_1 : DigitalSample.LOGIC_0);
+                        }
+                    };
+                    new WaveSignal(panel, derived);
+                } }
                 ),
 
 		// mnemonic keys available: AB DE GHIJKLMNOPQR  UVWXYZ
