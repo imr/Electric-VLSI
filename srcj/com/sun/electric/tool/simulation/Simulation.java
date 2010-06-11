@@ -119,9 +119,6 @@ public class Simulation extends Tool
 
 	/****************************** CONTROL OF SIMULATION ENGINES ******************************/
 
-	private static final int CONVERT_TO_VHDL	  =  1;
-	private static final int COMPILE_VHDL_FOR_SIM =  4;
-
 	/**
 	 * Method to invoke a simulation engine.
 	 * @param engine the simulation engine to run.
@@ -155,27 +152,30 @@ public class Simulation extends Tool
 			case ALS_ENGINE:
 				// see if the current cell needs to be compiled
 				Cell originalCell = cell;
-				int activities = 0;
+                boolean convert = false;
+                boolean compile = false;
 				if (cell.getView() != View.NETLISTALS)
 				{
 					if (cell.isSchematic() || cell.getView() == View.LAYOUT)
 					{
 						// current cell is Schematic.  See if there is a more recent netlist or VHDL
 						Cell vhdlCell = cell.otherView(View.VHDL);
-						if (vhdlCell != null && vhdlCell.getRevisionDate().after(cell.getRevisionDate())) cell = vhdlCell; else
-							activities |= CONVERT_TO_VHDL | COMPILE_VHDL_FOR_SIM;
+						if (vhdlCell != null && vhdlCell.getRevisionDate().after(cell.getRevisionDate())) cell = vhdlCell; else {
+                            convert = true;
+                            compile = true;
+                        }
 					}
 					if (cell.getView() == View.VHDL)
 					{
 						// current cell is VHDL.  See if there is a more recent netlist
 						Cell netListCell = cell.otherView(View.NETLISTQUISC);
 						if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate())) cell = netListCell; else
-							activities |= COMPILE_VHDL_FOR_SIM;
+                            compile = true;
 					}
 				}
 
 				// now schedule the simulation work
-				new DoALSActivity(cell, activities, originalCell, prevEngine);
+				new ALS.DoALSActivity(cell, convert, compile, originalCell, prevEngine, tool);
 				break;
 
 			case IRSIM_ENGINE:
@@ -185,107 +185,6 @@ public class Simulation extends Tool
 //                else
                     runIRSIM(cell, context, fileName);
 				break;
-		}
-	}
-
-	/**
-	 * Class to do the next silicon-compilation activity in a new thread.
-	 */
-	private static class DoALSActivity extends Job
-	{
-		private Cell cell, originalCell;
-		private int activities;
-		private transient Engine prevEngine;
-		private List<Cell> textCellsToRedraw;
-        private GenerateVHDL.VHDLPreferences vp = new GenerateVHDL.VHDLPreferences(false);
-
-		private DoALSActivity(Cell cell, int activities, Cell originalCell, Engine prevEngine)
-		{
-			super("ALS Simulation", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.cell = cell;
-			this.activities = activities;
-			this.originalCell = originalCell;
-			this.prevEngine = prevEngine;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			Library destLib = cell.getLibrary();
-			textCellsToRedraw = new ArrayList<Cell>();
-			fieldVariableChanged("textCellsToRedraw");
-			if ((activities&CONVERT_TO_VHDL) != 0)
-			{
-				// convert Schematic to VHDL
-				System.out.print("Generating VHDL from '" + cell + "' ...");
-				List<String> vhdlStrings = GenerateVHDL.convertCell(cell, vp);
-				if (vhdlStrings == null)
-				{
-					throw new JobException("No VHDL produced");
-				}
-
-				String cellName = cell.getName() + "{vhdl}";
-				Cell vhdlCell = cell.getLibrary().findNodeProto(cellName);
-				if (vhdlCell == null)
-				{
-					vhdlCell = Cell.makeInstance(cell.getLibrary(), cellName);
-					if (vhdlCell == null) return false;
-				}
-				String [] array = new String[vhdlStrings.size()];
-				for(int i=0; i<vhdlStrings.size(); i++) array[i] = vhdlStrings.get(i);
-				vhdlCell.setTextViewContents(array);
-				textCellsToRedraw.add(vhdlCell);
-				System.out.println(" Done, created " + vhdlCell);
-				cell = vhdlCell;
-				fieldVariableChanged("cell");
-			}
-
-			if ((activities&COMPILE_VHDL_FOR_SIM) != 0)
-			{
-				// compile the VHDL to a netlist
-				System.out.print("Compiling VHDL in " + cell + " ...");
-				CompileVHDL c = new CompileVHDL(cell);
-				if (c.hasErrors())
-				{
-					throw new JobException("ERRORS during compilation, no netlist produced");
-				}
-				List<String> netlistStrings = c.getALSNetlist(destLib);
-				if (netlistStrings == null)
-				{
-					throw new JobException("No netlist produced");
-				}
-
-				// store the ALS netlist
-				String cellName = cell.getName() + "{net.als}";
-				Cell netlistCell = cell.getLibrary().findNodeProto(cellName);
-				if (netlistCell == null)
-				{
-					netlistCell = Cell.makeInstance(cell.getLibrary(), cellName);
-					if (netlistCell == null) return false;
-				}
-				String [] array = new String[netlistStrings.size()];
-				for(int i=0; i<netlistStrings.size(); i++) array[i] = netlistStrings.get(i);
-				netlistCell.setTextViewContents(array);
-				textCellsToRedraw.add(netlistCell);
-				System.out.println(" Done, created " + netlistCell);
-				cell = netlistCell;
-				fieldVariableChanged("cell");
-			}
-			return true;
-		}
-
-		public void terminateOK()
-		{
-			for(Cell cell : textCellsToRedraw) {
-				TextWindow.updateText(cell);
-			}
-			if (prevEngine != null)
-			{
-				ALS.restartSimulation(cell, originalCell, (ALS)prevEngine);
-			} else
-			{
-				ALS.simulateNetlist(cell, originalCell);
-			}
 		}
 	}
 

@@ -55,6 +55,60 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.lib.LibFile;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.ToolSettings;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.output.GenerateVHDL;
+import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.simulation.als.ALS;
+import com.sun.electric.tool.user.CompileVHDL;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.menus.EMenu;
+import com.sun.electric.tool.user.ui.TextWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
+
+import java.awt.Color;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.geom.Rectangle2D;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+
 /**
  * Class to control the ALS Simulator.
  */
@@ -2239,6 +2293,109 @@ public class ALS extends Engine
 					instBuf[j] = Character.toUpperCase(chr);
 					++j;
 					++count;
+			}
+		}
+	}
+
+	/**
+	 * Class to do the next silicon-compilation activity in a new thread.
+	 */
+	public static class DoALSActivity extends Job
+	{
+		private Cell cell, originalCell;
+        private boolean convert;
+        private boolean compile;
+		private transient Engine prevEngine;
+		private List<Cell> textCellsToRedraw;
+        private GenerateVHDL.VHDLPreferences vp = new GenerateVHDL.VHDLPreferences(false);
+
+		public DoALSActivity(Cell cell, boolean convert, boolean compile, Cell originalCell, Engine prevEngine, Simulation tool)
+		{
+			super("ALS Simulation", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+            this.convert = convert;
+            this.compile = compile;
+			this.originalCell = originalCell;
+			this.prevEngine = prevEngine;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			Library destLib = cell.getLibrary();
+			textCellsToRedraw = new ArrayList<Cell>();
+			fieldVariableChanged("textCellsToRedraw");
+			if (convert)
+			{
+				// convert Schematic to VHDL
+				System.out.print("Generating VHDL from '" + cell + "' ...");
+				List<String> vhdlStrings = GenerateVHDL.convertCell(cell, vp);
+				if (vhdlStrings == null)
+				{
+					throw new JobException("No VHDL produced");
+				}
+
+				String cellName = cell.getName() + "{vhdl}";
+				Cell vhdlCell = cell.getLibrary().findNodeProto(cellName);
+				if (vhdlCell == null)
+				{
+					vhdlCell = Cell.makeInstance(cell.getLibrary(), cellName);
+					if (vhdlCell == null) return false;
+				}
+				String [] array = new String[vhdlStrings.size()];
+				for(int i=0; i<vhdlStrings.size(); i++) array[i] = vhdlStrings.get(i);
+				vhdlCell.setTextViewContents(array);
+				textCellsToRedraw.add(vhdlCell);
+				System.out.println(" Done, created " + vhdlCell);
+				cell = vhdlCell;
+				fieldVariableChanged("cell");
+			}
+
+            if (compile)
+			{
+				// compile the VHDL to a netlist
+				System.out.print("Compiling VHDL in " + cell + " ...");
+				CompileVHDL c = new CompileVHDL(cell);
+				if (c.hasErrors())
+				{
+					throw new JobException("ERRORS during compilation, no netlist produced");
+				}
+				List<String> netlistStrings = c.getALSNetlist(destLib);
+				if (netlistStrings == null)
+				{
+					throw new JobException("No netlist produced");
+				}
+
+				// store the ALS netlist
+				String cellName = cell.getName() + "{net.als}";
+				Cell netlistCell = cell.getLibrary().findNodeProto(cellName);
+				if (netlistCell == null)
+				{
+					netlistCell = Cell.makeInstance(cell.getLibrary(), cellName);
+					if (netlistCell == null) return false;
+				}
+				String [] array = new String[netlistStrings.size()];
+				for(int i=0; i<netlistStrings.size(); i++) array[i] = netlistStrings.get(i);
+				netlistCell.setTextViewContents(array);
+				textCellsToRedraw.add(netlistCell);
+				System.out.println(" Done, created " + netlistCell);
+				cell = netlistCell;
+				fieldVariableChanged("cell");
+			}
+			return true;
+		}
+
+		public void terminateOK()
+		{
+			for(Cell cell : textCellsToRedraw) {
+				TextWindow.updateText(cell);
+			}
+			if (prevEngine != null)
+			{
+				ALS.restartSimulation(cell, originalCell, (ALS)prevEngine);
+			} else
+			{
+				ALS.simulateNetlist(cell, originalCell);
 			}
 		}
 	}
