@@ -162,7 +162,7 @@ public abstract class Analysis<S extends Signal>
 	 * Method to add a new signal to this Simulation Data object.
 	 * Signals can be either digital or analog.
 	 * @param ws the signal to add.
-	 * Instead of a "Signal", use either DigitalSignal or AnalogSignal.
+	 * Instead of a "Signal", use either Signal<DigitalSample> or AnalogSignal.
 	 */
 	public void addSignal(S ws) {
 		signals.add(ws);
@@ -209,7 +209,7 @@ public abstract class Analysis<S extends Signal>
         double minY = Double.MAX_VALUE;
         double maxY = Double.MIN_VALUE;
         for(Signal sig : signals) {
-            if (sig instanceof DigitalSignal) {
+            if (sig .isDigital()) {
                 minY = Math.min(minY, 0);
                 maxY = Math.max(maxY, 1);
             } else if (sig instanceof ScalarSignal) {

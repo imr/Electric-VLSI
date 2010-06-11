@@ -190,6 +190,10 @@ public class DigitalSample implements Sample, Comparable {
         return getSample(value, strength);
     }
 
+    public static Signal<DigitalSample> createSignal(DigitalAnalysis an, String signalName, String signalContext) {
+        return new BTreeSignal<DigitalSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer)) {
+            public boolean isDigital() { return true; }
+        };
+    }
+
 }
-
-

@@ -127,4 +127,9 @@ public abstract class Signal<SS extends Sample> {
 	public abstract SS     getMinValue();
 	public abstract SS     getMaxValue();
 
+    public boolean isDigital() { return false; }
+    public void    addSample(double time, SS sample) {
+        throw new RuntimeException(getClass().getName()+" does not support adding new samples");
+    }
+
 }

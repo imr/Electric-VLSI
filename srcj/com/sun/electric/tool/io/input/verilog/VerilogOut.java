@@ -91,8 +91,8 @@ public class VerilogOut extends Input<Stimuli>
 		int curLevel = 0;
 		int numSignals = 0;
 		Map<String,Object> symbolTable = new HashMap<String,Object>();
-		Map<DigitalSignal,List<VerilogStimuli>> dataMap = new HashMap<DigitalSignal,List<VerilogStimuli>>();
-		List<DigitalSignal> curArray = null;
+		Map<Signal<DigitalSample>,List<VerilogStimuli>> dataMap = new HashMap<Signal<DigitalSample>,List<VerilogStimuli>>();
+		List<Signal<DigitalSample>> curArray = null;
 		for(;;)
 		{
 			String keyword = getNextKeyword();
@@ -124,14 +124,14 @@ public class VerilogOut extends Input<Stimuli>
 				{
 					// scan for arrays
 					cleanUpScope(curArray, an);
-					curArray = new ArrayList<DigitalSignal>();
+					curArray = new ArrayList<Signal<DigitalSample>>();
 
 					String scopeName = getNextKeyword();
 					if (scopeName == null) break;
 					if (currentScope.length() > 0) currentScope += ".";
 					currentScope += scopeName;
 					curLevel++;
-					curArray = new ArrayList<DigitalSignal>();
+					curArray = new ArrayList<Signal<DigitalSample>>();
 				}
 				parseToEnd();
 				continue;
@@ -147,7 +147,7 @@ public class VerilogOut extends Input<Stimuli>
 
 				// scan for arrays
 				cleanUpScope(curArray, an);
-				curArray = new ArrayList<DigitalSignal>();
+				curArray = new ArrayList<Signal<DigitalSample>>();
 
 				int dotPos = currentScope.lastIndexOf('.');
 				if (dotPos >= 0)
@@ -191,9 +191,9 @@ public class VerilogOut extends Input<Stimuli>
 					}
 					numSignals++;
 
-					DigitalSignal sig =  width > 1
-                        ? new DigitalSignal(an, signalName + "[0:" + (width-1) + "]", null)
-                        : new DigitalSignal(an, signalName + index, currentScope);
+					Signal<DigitalSample> sig =  width > 1
+                        ? DigitalSample.createSignal(an, signalName + "[0:" + (width-1) + "]", null)
+                        : DigitalSample.createSignal(an, signalName + index, currentScope);
 					dataMap.put(sig, new ArrayList<VerilogStimuli>());
 
 					if (index.length() > 0 && width == 1)
@@ -207,7 +207,7 @@ public class VerilogOut extends Input<Stimuli>
 						an.buildBussedSignalList(sig);
 						for(int i=0; i<width; i++)
 						{
-							DigitalSignal subSig = new DigitalSignal(an, signalName + "[" + i + "]", currentScope);
+							Signal<DigitalSample> subSig = DigitalSample.createSignal(an, signalName + "[" + i + "]", currentScope);
 							dataMap.put(subSig, new ArrayList<VerilogStimuli>());
 							DigitalAnalysis.addToBussedSignalList(sig, subSig);
 							addSignalToHashMap(subSig, symbol + "[" + i + "]", symbolTable);
@@ -246,7 +246,7 @@ public class VerilogOut extends Input<Stimuli>
 							continue;
 						}
 						if (entry instanceof List) entry = ((List)entry).get(0);
-						DigitalSignal sig = (DigitalSignal)entry;
+						Signal<DigitalSample> sig = (Signal<DigitalSample>)entry;
 
 						// insert the stimuli
 						int state = 0;
@@ -294,11 +294,11 @@ public class VerilogOut extends Input<Stimuli>
 							continue;
 						}
 						if (entry instanceof List) entry = ((List)entry).get(0);
-						DigitalSignal sig = (DigitalSignal)entry;
+						Signal<DigitalSample> sig = (Signal<DigitalSample>)entry;
 						int i = 0;
 						for(Signal anySig : DigitalAnalysis.getBussedSignals(sig))
 						{
-							DigitalSignal subSig = (DigitalSignal)anySig;
+							Signal<DigitalSample> subSig = (Signal<DigitalSample>)anySig;
 							char bit = restOfLine.charAt(i++);
 							int state = 0;
 							switch (bit)
@@ -325,13 +325,13 @@ public class VerilogOut extends Input<Stimuli>
 		// convert the stimuli
 		for(Object entry : symbolTable.values())
 		{
-			List<DigitalSignal> fullList = null;
+			List<Signal<DigitalSample>> fullList = null;
 			if (entry instanceof List)
 			{
 				fullList = (List)entry;
 				entry = fullList.get(0);
 			}
-			DigitalSignal sig = (DigitalSignal)entry;
+			Signal<DigitalSample> sig = (Signal<DigitalSample>)entry;
 			List<VerilogStimuli> listForSig = dataMap.get(sig);
 			int numStimuli = listForSig.size();
 			if (numStimuli == 0) continue;
@@ -340,7 +340,7 @@ public class VerilogOut extends Input<Stimuli>
                 sig.addSample(vs.time, DigitalSample.fromOldStyle(vs.state));
             /*
 			if (fullList != null)
-				for(DigitalSignal oSig : fullList) {
+				for(Signal<DigitalSample> oSig : fullList) {
                     if (oSig.getTimeVector() == null) oSig.setTimeVector(sig.getTimeVector());
                     if (oSig.getStateVector() == null) oSig.setStateVector(sig.getStateVector());
                 }
@@ -376,7 +376,7 @@ public class VerilogOut extends Input<Stimuli>
         */
 	}
 
-	private void cleanUpScope(List<DigitalSignal> curArray, DigitalAnalysis an)
+	private void cleanUpScope(List<Signal<DigitalSample>> curArray, DigitalAnalysis an)
 	{
 		if (curArray == null) return;
 
@@ -388,7 +388,7 @@ public class VerilogOut extends Input<Stimuli>
 		int numSignalsInArray = curArray.size();
 		for(int j=0; j<numSignalsInArray; j++)
 		{
-			DigitalSignal sig = curArray.get(j);
+			Signal<DigitalSample> sig = curArray.get(j);
 			int squarePos = sig.getSignalName().indexOf('[');
 			if (squarePos < 0) continue;
 			String purename = sig.getSignalName().substring(0, squarePos);
@@ -403,12 +403,12 @@ public class VerilogOut extends Input<Stimuli>
 			{
 				if (last.equals(purename)) lastIndex = index; else
 				{
-					DigitalSignal arraySig = new DigitalSignal(an, last + "[" + firstIndex + ":" + lastIndex + "]", scope);
+					Signal<DigitalSample> arraySig = DigitalSample.createSignal(an, last + "[" + firstIndex + ":" + lastIndex + "]", scope);
 					an.buildBussedSignalList(arraySig);
 					int width = j - firstEntry;
 					for(int i=0; i<width; i++)
 					{
-						DigitalSignal subSig = curArray.get(firstEntry+i);
+						Signal<DigitalSample> subSig = curArray.get(firstEntry+i);
 						DigitalAnalysis.addToBussedSignalList(arraySig, subSig);
 					}
 					last = null;
@@ -417,24 +417,24 @@ public class VerilogOut extends Input<Stimuli>
 		}
 		if (last != null)
 		{
-			DigitalSignal arraySig = new DigitalSignal(an, last + "[" + firstIndex + ":" + lastIndex + "]", scope);
+			Signal<DigitalSample> arraySig = DigitalSample.createSignal(an, last + "[" + firstIndex + ":" + lastIndex + "]", scope);
 			an.buildBussedSignalList(arraySig);
 			int width = numSignalsInArray - firstEntry;
 			for(int i=0; i<width; i++)
 			{
-				DigitalSignal subSig = curArray.get(firstEntry+i);
+				Signal<DigitalSample> subSig = curArray.get(firstEntry+i);
 				DigitalAnalysis.addToBussedSignalList(arraySig, subSig);
 			}
 		}
 	}
 
-	private void addSignalToHashMap(DigitalSignal sig, String symbol, Map<String,Object> symbolTable)
+	private void addSignalToHashMap(Signal<DigitalSample> sig, String symbol, Map<String,Object> symbolTable)
 	{
 		Object entry = symbolTable.get(symbol);
 		if (entry == null)
 		{
 			symbolTable.put(symbol, sig);
-		} else if (entry instanceof DigitalSignal)
+		} else if (entry instanceof Signal && ((Signal)entry).isDigital())
 		{
 			List<Object> manySigs = new ArrayList<Object>();
 			manySigs.add(entry);

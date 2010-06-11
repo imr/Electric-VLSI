@@ -27,7 +27,7 @@ import com.sun.electric.database.geometry.btree.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import com.sun.electric.tool.simulation.*;
 
-abstract class BTreeSignal<S extends Sample & Comparable> extends Signal<S> {
+abstract class BTreeSignal<S extends Sample & Comparable> extends MutableSignal<S> {
 
     private Signal.View<S> exactView = null;
     private final BTree<Double,S,Pair<Pair<Double,S>,Pair<Double,S>>> tree;

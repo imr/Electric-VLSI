@@ -31,7 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
-import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
@@ -239,7 +239,7 @@ public class ALS extends Engine
 	static class Node
 	{
 		Connect       cellPtr;
-		DigitalSignal sig;
+		Signal<DigitalSample> sig;
 		private int   num;
 		int           sumState;
 		int           sumStrength;
@@ -1037,7 +1037,7 @@ public class ALS extends Engine
 		for(ALSExport e : cr.exList)
 		{
 			if (e.nodePtr.sig != null) continue;
-			DigitalSignal sig = new DigitalSignal(an, (String)e.nodeName, context);
+			Signal<DigitalSample> sig = DigitalSample.createSignal(an, (String)e.nodeName, context);
 			e.nodePtr.sig = sig;
             sig.addSample(0, DigitalSample.LOGIC_0);
             sig.addSample(DEFTIMERANGE, DigitalSample.LOGIC_0);

@@ -25,7 +25,8 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.extract.ExtractedPBucket;
 import com.sun.electric.tool.extract.RCPBucket;
 import com.sun.electric.tool.extract.TransistorPBucket;
-import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.DigitalSample;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 
 import java.io.File;
@@ -56,7 +57,7 @@ public class Sim
 		/** high logic threshold for node, normalized units */	float          vHigh;
 		/** low to high transition time in DELTA's */			short          tpLH;
 		/** high to low transition time in DELTA's */			short          tpHL;
-		/** signal in the waveform window (if displayed) */		DigitalSignal  sig;
+		/** signal in the waveform window (if displayed) */		Signal<DigitalSample>  sig;
 		/** combines time, nindex, cap, and event */			private Object c;
 		/** combines cause, punts, and tranT */					private Object t;
 		/** combines thev, next, and tranN */					private Object n;

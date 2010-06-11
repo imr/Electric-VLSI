@@ -26,10 +26,12 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
-import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.ScalarSignal;
+import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -118,8 +120,8 @@ public class Analyzer extends Engine
 	{
 		/** index of command */						int           command;
 		/** parameters to the command */			String []     parameters;
-		/** actual signals named in command */		List<DigitalSignal> sigs;
-		/** negated signals named in command */		List<DigitalSignal> sigsNegated;
+		/** actual signals named in command */		List<Signal<DigitalSample>> sigs;
+		/** negated signals named in command */		List<Signal<DigitalSample>> sigsNegated;
 		/** duration of step, where appropriate */	double        value;
 		/** next in list of vectors */				SimVector     next;
 	}
@@ -133,7 +135,7 @@ public class Analyzer extends Engine
 
 	private static class Sequence
 	{
-		/** signal to control */					DigitalSignal  sig;
+		/** signal to control */					Signal<DigitalSample>  sig;
 		/** array of values */						String  []     values;
 	}
 
@@ -173,7 +175,7 @@ public class Analyzer extends Engine
 	/** the context for the cell being simulated */	private VarContext     context;
 	/** the name of the file being simulated */		private String         fileName;
 	/** the name of the last vector file read */	private String         vectorFileName;
-	/** mapping from signals to nodes */			private HashMap<DigitalSignal,Sim.Node> nodeMap;
+	/** mapping from signals to nodes */			private HashMap<Signal<DigitalSample>,Sim.Node> nodeMap;
 
 	/************************** ELECTRIC INTERFACE **************************/
 
@@ -265,17 +267,17 @@ public class Analyzer extends Engine
 		analysis = new DigitalAnalysis(sd, true);
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
-		nodeMap = new HashMap<DigitalSignal,Sim.Node>();
+		nodeMap = new HashMap<Signal<DigitalSample>,Sim.Node>();
 		for(Sim.Node n : theSim.getNodeList())
 		{
 			if (n.nName.equalsIgnoreCase("vdd") || n.nName.equalsIgnoreCase("gnd")) continue;
 
 			// make a signal for it
 			int slashPos = n.nName.lastIndexOf('/');
-			DigitalSignal sig =
+			Signal<DigitalSample> sig =
                 slashPos >= 0
-                ? new DigitalSignal(analysis, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
-                : new DigitalSignal(analysis, n.nName, null);
+                ? DigitalSample.createSignal(analysis, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
+                : DigitalSample.createSignal(analysis, n.nName, null);
 			n.sig = sig;
 			nodeMap.put(sig, n);
 
@@ -382,8 +384,8 @@ public class Analyzer extends Engine
 		{
 			SimVector excl = new SimVector();
 			excl.command = VECTOREXCL;
-			excl.sigs = new ArrayList<DigitalSignal>();
-			excl.sigs.add((DigitalSignal)sig);
+			excl.sigs = new ArrayList<Signal<DigitalSample>>();
+			excl.sigs.add((Signal<DigitalSample>)sig);
 			issueCommand(excl);
 
 			excl.command = VECTORQUESTION;
@@ -676,7 +678,7 @@ public class Analyzer extends Engine
 							wp.closePanel();
 						}
 					}
-					List<DigitalSignal> sigs = new ArrayList<DigitalSignal>();
+					List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
 					getTargetNodes(targ, 1, sigs, null);
 					for(Signal sig : sigs)
 					{
@@ -691,10 +693,10 @@ public class Analyzer extends Engine
 				if (command == VECTORVECTOR)
 				{
 					// find this vector name in the list of vectors
-					DigitalSignal busSig = null;
+					Signal<DigitalSample> busSig = null;
 					for(Signal aSig : analysis.getBussedSignals())
 					{
-						DigitalSignal sig = (DigitalSignal)aSig;
+						Signal<DigitalSample> sig = (Signal<DigitalSample>)aSig;
 						if (sig.getSignalName().equals(targ[1]))
 						{
 							busSig = sig;
@@ -704,12 +706,12 @@ public class Analyzer extends Engine
 					}
 					if (busSig == null)
 					{
-						busSig = new DigitalSignal(analysis, targ[1], null);
+						busSig = DigitalSample.createSignal(analysis, targ[1], null);
 						analysis.buildBussedSignalList(busSig);
 					}
-					List<DigitalSignal> sigs = new ArrayList<DigitalSignal>();
+					List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
 					getTargetNodes(targ, 2, sigs, null);
-					for(DigitalSignal sig : sigs)
+					for(Signal<DigitalSample> sig : sigs)
 					{
 						DigitalAnalysis.addToBussedSignalList(busSig, sig);
 					}
@@ -902,9 +904,9 @@ public class Analyzer extends Engine
 			case VECTORT:
 			case VECTORPATH:
 			case VECTORSTOP:
-				newsv.sigs = new ArrayList<DigitalSignal>();
+				newsv.sigs = new ArrayList<Signal<DigitalSample>>();
 				newsv.sigsNegated = null;
-				if (command == VECTORT) newsv.sigsNegated = new ArrayList<DigitalSignal>();
+				if (command == VECTORT) newsv.sigsNegated = new ArrayList<Signal<DigitalSample>>();
 				getTargetNodes(params, 0, newsv.sigs, newsv.sigsNegated);
 
 				if (command == VECTORL || command == VECTORH || command == VECTORX)
@@ -1076,7 +1078,7 @@ public class Analyzer extends Engine
 		return cleared;
 	}
 
-	private void getTargetNodes(String [] params, int low, List<DigitalSignal> normalList, List<DigitalSignal> negatedList)
+	private void getTargetNodes(String [] params, int low, List<Signal<DigitalSample>> normalList, List<Signal<DigitalSample>> negatedList)
 	{
 		int size = params.length - low;
 		for(int i=0; i<size; i++)
@@ -1090,7 +1092,7 @@ public class Analyzer extends Engine
 			}
 			if (name.indexOf('*') >= 0)
 			{
-				for(DigitalSignal sig : analysis.getSignals())
+				for(Signal<DigitalSample> sig : analysis.getSignals())
 				{
 					if (strMatch(name, sig.getFullName()))
 					{
@@ -1101,7 +1103,7 @@ public class Analyzer extends Engine
 			} else
 			{
 				// no wildcards: just find the name
-				DigitalSignal sig = this.findName(name);
+				Signal<DigitalSample> sig = this.findName(name);
 				if (sig == null)
 				{
 					System.out.println("Cannot find node named '" + name + "'");
@@ -1681,14 +1683,14 @@ public class Analyzer extends Engine
 	 */
 	private void doSet(SimVector sv)
 	{
-		DigitalSignal sig = findName(sv.parameters[0]);
+		Signal<DigitalSample> sig = findName(sv.parameters[0]);
 		if (sig == null)
 		{
 			System.out.println("Cannot find signal: " + sv.parameters[0]);
 			return;
 		}
 
-		List<DigitalSignal> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+		List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
 		if (sigsOnBus == null)
 		{
 			System.out.println("Signal: " + sv.parameters[0] + " is not a bus");
@@ -1885,7 +1887,7 @@ public class Analyzer extends Engine
 			cCount = TextUtils.atoi(sv.parameters[2]);
 		}
 
-		DigitalSignal sig = findName(sv.parameters[0]);
+		Signal<DigitalSample> sig = findName(sv.parameters[0]);
 		if (sig == null)
 		{
 			System.out.println("UNTIL statement cannot find signal: " + sv.parameters[0]);
@@ -1913,7 +1915,7 @@ public class Analyzer extends Engine
 			nodes[0] = n;
 		} else
 		{
-			List<DigitalSignal> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+			List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
 			for(int i=0; i<sigsOnBus.size(); i++)
 			{
@@ -1970,7 +1972,7 @@ public class Analyzer extends Engine
 			value = new StringBuffer(sv.parameters[1]);
 		}
 
-		DigitalSignal sig = findName(sv.parameters[0]);
+		Signal<DigitalSample> sig = findName(sv.parameters[0]);
 		if (sig == null)
 		{
 			System.out.println("ASSERT statement cannot find signal: " + sv.parameters[0]);
@@ -1991,7 +1993,7 @@ public class Analyzer extends Engine
 			nodes = nodeList;
 		} else
 		{
-			List<DigitalSignal> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+			List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
 			for(int i=0; i<sigsOnBus.size(); i++)
 			{
@@ -2023,7 +2025,7 @@ public class Analyzer extends Engine
 
 	private void doAssertWhen(SimVector sv)
 	{
-		DigitalSignal sig = findName(sv.parameters[0]);
+		Signal<DigitalSample> sig = findName(sv.parameters[0]);
 		if (sig == null)
 		{
 			System.out.println("ASSERTWHEN statement cannot find signal: " + sv.parameters[0]);
@@ -2123,13 +2125,13 @@ public class Analyzer extends Engine
 		String temp = " @ " + Sim.deltaToNS(theSim.curDelta) + "ns ";
 		System.out.println(temp);
 		column = temp.length();
-		for(DigitalSignal sig : analysis.getBussedSignals())
+		for(Signal<DigitalSample> sig : analysis.getBussedSignals())
 		{
 			Sim.Node b = nodeMap.get(sig);
 			if ((b.nFlags & which) == 0) continue;
-			List<DigitalSignal> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+			List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
 			boolean found = false;
-			for(DigitalSignal bSig : sigsOnBus)
+			for(Signal<DigitalSample> bSig : sigsOnBus)
 			{
 				Sim.Node bN = nodeMap.get(bSig);
 				if (bN.getTime() == theSim.curDelta)
@@ -2339,8 +2341,8 @@ public class Analyzer extends Engine
 			double [] timeVector = new double[count];
 			int [] stateVector = new int[count];
 			for(int i=0; i<count; i++)
-                if (nd.sig.getSample(traceTime[i])==null)
-                    nd.sig.addSample(traceTime[i], DigitalSample.fromOldStyle(traceState[i]));
+                if (((MutableSignal)nd.sig).getSample(traceTime[i])==null)
+                    ((MutableSignal)nd.sig).addSample(traceTime[i], DigitalSample.fromOldStyle(traceState[i]));
 		}
 		ww.repaint();
 	}
@@ -2595,12 +2597,12 @@ public class Analyzer extends Engine
 	 */
 	private void setVecNodes(int flag)
 	{
-		for(DigitalSignal sig : analysis.getBussedSignals())
+		for(Signal<DigitalSample> sig : analysis.getBussedSignals())
 		{
 			Sim.Node b = nodeMap.get(sig);
 			if ((b.nFlags & flag) != 0)
 			{
-				List<DigitalSignal> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+				List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
 				for(Signal bSig : sigsOnBus)
 				{
 					Sim.Node bN = nodeMap.get(bSig);
@@ -2637,9 +2639,9 @@ public class Analyzer extends Engine
 		return 0;
 	}
 
-	private DigitalSignal findName(String name)
+	private Signal<DigitalSample> findName(String name)
 	{
-		for(DigitalSignal sig : analysis.getSignals())
+		for(Signal<DigitalSample> sig : analysis.getSignals())
 		{
 			if (sig.getFullName().equals(name)) return sig;
 		}
@@ -2649,9 +2651,9 @@ public class Analyzer extends Engine
 	/**
 	 * display bit vector.
 	 */
-	private void dVec(DigitalSignal sig)
+	private void dVec(Signal<DigitalSample> sig)
 	{
-		List<DigitalSignal> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+		List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
 		int i = sig.getSignalName().length() + 2 + sigsOnBus.size();
 		if (column + i >= MAXCOL)
 		{
@@ -2698,7 +2700,7 @@ public class Analyzer extends Engine
 				setIn(n, v.charAt(0));
 			} else
 			{
-				List<DigitalSignal> sigsOnBus = DigitalAnalysis.getBussedSignals(cs.sig);
+				List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(cs.sig);
 				for(int i=0; i<sigsOnBus.size(); i++)
 				{
 					Sim.Node n = nodeMap.get(sigsOnBus.get(i));
@@ -2722,7 +2724,7 @@ public class Analyzer extends Engine
 			return;
 		}
 
-		DigitalSignal sig = findName(args[0]);
+		Signal<DigitalSample> sig = findName(args[0]);
 		if (sig == null)
 		{
 			System.out.println(args[0] + ": No such node or vector");

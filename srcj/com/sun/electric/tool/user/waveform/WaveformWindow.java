@@ -54,7 +54,7 @@ import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.Signal;
@@ -3227,14 +3227,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (wp.isHidden()) continue;
 			for(WaveSignal ws : wp.getSignals())
 			{
-				DigitalSignal ds = (DigitalSignal)ws.getSignal();
-				List<DigitalSignal> bussedSignals = DigitalAnalysis.getBussedSignals(ds);
+				Signal<DigitalSample> ds = (Signal<DigitalSample>)ws.getSignal();
+				List<Signal<DigitalSample>> bussedSignals = DigitalAnalysis.getBussedSignals(ds);
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
 					for(Signal subSig : bussedSignals)
 					{
-						DigitalSignal subDS = (DigitalSignal)subSig;
+						Signal<DigitalSample> subDS = (Signal<DigitalSample>)subSig;
 						putValueOnTrace(subDS, cell, netValues, netlist);
 					}
 				} else
@@ -3308,7 +3308,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		return Color.RED;
 	}
 
-	private void putValueOnTrace(DigitalSignal ds, Cell cell, Map<Network,Integer> netValues, Netlist netlist)
+	private void putValueOnTrace(Signal<DigitalSample> ds, Cell cell, Map<Network,Integer> netValues, Netlist netlist)
 	{
 		// set simulation value on the network in the associated layout/schematic window
 		Network net = findNetwork(netlist, ds.getSignalName());
@@ -3439,20 +3439,20 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal ss = ws.getSignal();
-				if (ss instanceof DigitalSignal && DigitalAnalysis.getBussedSignals(((DigitalSignal)ss)) != null)
+				if (ss .isDigital() && DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)ss)) != null)
 				{
-					List<DigitalSignal> inBus = DigitalAnalysis.getBussedSignals(((DigitalSignal)ss));
+					List<Signal<DigitalSample>> inBus = DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)ss));
 					for(int b=0; b<inBus.size(); b++)
 					{
-						DigitalSignal subDS = inBus.get(b);
+						Signal<DigitalSample> subDS = inBus.get(b);
 						String oldSigName = subDS.getFullName();
-						DigitalSignal newBus = null;
+						Signal<DigitalSample> newBus = null;
                         /*
 						for(Signal newSs :  an.getSignals() )
 						{
 							String newSigName = newSs.getFullName();
 							if (!newSigName.equals(oldSigName)) continue;
-							newBus = (DigitalSignal)newSs;
+							newBus = (Signal<DigitalSample>)newSs;
 							break;
 						}
                         */
@@ -3494,9 +3494,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					Signal s = ws.getSignal();
 					if (s == null ||
-						(s instanceof DigitalSignal &&
-                         DigitalAnalysis.getBussedSignals(((DigitalSignal)s)) != null &&
-                         DigitalAnalysis.getBussedSignals(((DigitalSignal)s)).size() == 0))
+						(s .isDigital() &&
+                         DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)s)) != null &&
+                         DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)s)).size() == 0))
 					{
 						redoPanel = true;
 						if (wp.getSignalButtons() != null)
@@ -3620,9 +3620,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							entries[i] = "" + v;
 							haveData = true;
 						}
-					} else if (sig instanceof DigitalSignal)
+					} else if (sig .isDigital())
 					{
-						DigitalSignal ds = (DigitalSignal)sig;
+						Signal<DigitalSample> ds = (Signal<DigitalSample>)sig;
 						if (j < ds.getExactView().getNumEvents())
 						{
 							if (entries[0] == null) entries[0] = "" + ds.getExactView().getTime(j);
@@ -4245,7 +4245,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             double maxY = Double.MIN_VALUE;
 			for(WaveSignal ws : wp.getSignals()) {
                 Signal sig = ws.getSignal();
-                if (sig instanceof DigitalSignal) {
+                if (sig .isDigital()) {
                     minY = Math.min(minY, 0);
                     maxY = Math.max(maxY, 1);
                 } else if (sig instanceof ScalarSignal) {
@@ -4723,7 +4723,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 
 				// digital signals are always added in new panels
-				if (sSig instanceof DigitalSignal) panel = null;
+				if (sSig .isDigital()) panel = null;
 				if (panel != null)
 				{
 					// overlay this signal onto an existing panel
@@ -5045,7 +5045,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			makeBussedSignals((DigitalAnalysis)an);
 			for(int i=0; i<allSignals.size(); i++)
 			{
-				DigitalSignal sDSig = (DigitalSignal)allSignals.get(i);
+				Signal<DigitalSample> sDSig = (Signal<DigitalSample>)allSignals.get(i);
 				if (sDSig.getSignalContext() != null) continue;
 				if (DigitalAnalysis.isInBus(sDSig)) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
@@ -5062,7 +5062,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private static void makeBussedSignals(DigitalAnalysis an)
 	{
-		List<DigitalSignal> signals = an.getSignals();
+		List<Signal<DigitalSample>> signals = an.getSignals();
 		for(int i=0; i<signals.size(); i++)
 		{
 			Signal sSig = signals.get(i);
@@ -5095,17 +5095,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (numSignals <= 1) continue;
 
 			// found a bus of signals: create the bus for it
-			DigitalSignal busSig = new DigitalSignal(an, prefix, sSig.getSignalContext());
+			Signal<DigitalSample> busSig = DigitalSample.createSignal(an, prefix, sSig.getSignalContext());
 			an.buildBussedSignalList(busSig);
 			for(int k=i; k<j; k++)
 			{
-				DigitalSignal subSig = signals.get(k);
+				Signal<DigitalSample> subSig = signals.get(k);
 				DigitalAnalysis.addToBussedSignalList(busSig, subSig);
 			}
 			i = j - 1;
 		}
 	}
-	static int getState(DigitalSignal dsig, int index) {
+	static int getState(Signal<DigitalSample> dsig, int index) {
         DigitalSample ds = dsig.getExactView().getSample(index);
         if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
         if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;

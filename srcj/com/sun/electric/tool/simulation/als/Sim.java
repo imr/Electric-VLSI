@@ -27,10 +27,11 @@
 package com.sun.electric.tool.simulation.als;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.als.ALS.Load;
 import com.sun.electric.tool.simulation.als.ALS.Stat;
@@ -161,10 +162,10 @@ public class Sim
 	 */
 	private void fillDisplayArrays()
 	{
-		HashSet<DigitalSignal> sigsChanged = new HashSet<DigitalSignal>();
+		HashSet<Signal<DigitalSample>> sigsChanged = new HashSet<Signal<DigitalSample>>();
 		for(ALS.Node node : tracking.keySet())
 		{
-			DigitalSignal sig = node.sig;
+			Signal<DigitalSample> sig = node.sig;
 			List<ALS.Trak> trakHeads = tracking.get(node);
 			int count = trakHeads.size();
 			double [] timeVector = new double[count+1];
@@ -172,10 +173,10 @@ public class Sim
 			timeVector[0] = 0;
 			stateVector[0] = Stimuli.LOGIC_LOW | Stimuli.OFF_STRENGTH;
 			for(ALS.Trak trakHead : trakHeads) {
-                if (sig.getSample(trakHead.time)==null)
-                    sig.addSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state&Stimuli.LOGIC));
+                if (((MutableSignal)sig).getSample(trakHead.time)==null)
+                    ((MutableSignal)sig).addSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state&Stimuli.LOGIC));
                 else
-                    sig.replaceSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state&Stimuli.LOGIC));
+                    ((MutableSignal)sig).replaceSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state&Stimuli.LOGIC));
             }
 			sigsChanged.add(sig);
 		}
@@ -186,7 +187,7 @@ public class Sim
 		double [] timeVector = new double[1];
 		timeVector[0] = 0;
 		for(Signal s : als.an.getSignals()) {
-			DigitalSignal sig = (DigitalSignal)s;
+			Signal<DigitalSample> sig = (Signal<DigitalSample>)s;
 			if (sigsChanged.contains(sig)) continue;
 		}
 		
