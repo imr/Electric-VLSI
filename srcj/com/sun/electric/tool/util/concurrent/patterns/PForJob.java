@@ -172,6 +172,7 @@ public class PForJob extends PJob {
 			super(job);
 			this.task = task;
 			this.range = range;
+			task.job = job;
 		}
 
 		/*
@@ -186,6 +187,26 @@ public class PForJob extends PJob {
 
 		public PForTask getTask() {
 			return task;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#before()
+		 */
+		@Override
+		public void before() {
+			task.before();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#after()
+		 */
+		@Override
+		public void after() {
+			task.after();
 		}
 
 	}
@@ -262,15 +283,12 @@ public class PForJob extends PJob {
 		 */
 		public synchronized List<BlockedRange> splitBlockedRange(int step) {
 
-			if (current != null && current >= range.end)
-				return null;
+			if (current != null && current >= range.end) return null;
 
 			List<BlockedRange> result = CollectionFactory.createArrayList();
 			for (int i = 0; i < step; i++) {
-				if (current == null)
-					current = range.start;
-				if (current >= range.end)
-					return result;
+				if (current == null) current = range.start;
+				if (current >= range.end) return result;
 
 				result.add(new BlockedRange1D(current, Math.min(current + range.step, this.range.end),
 						range.step));

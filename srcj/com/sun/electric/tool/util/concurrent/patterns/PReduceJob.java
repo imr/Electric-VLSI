@@ -23,9 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent.patterns;
 
-import java.util.List;
-
-import com.sun.electric.tool.util.CollectionFactory;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Parallel Reduce Job. Parallel reduce is a parallel for loop with a result
@@ -36,41 +34,11 @@ import com.sun.electric.tool.util.CollectionFactory;
 public class PReduceJob<T> extends PForJob {
 
 	// TODO use concurrent data structure
-	private List<PReduceTask<T>> tasks = CollectionFactory.createArrayList();
+	private AtomicReference<PReduceTask<T>> mainTask = new AtomicReference<PReduceTask<T>>(null);
 	private T result;
 
 	public PReduceJob(BlockedRange range, PReduceTask<T> task) {
 		super(range, task);
-	}
-
-	@Override
-	public void execute() {
-		long start = System.currentTimeMillis();
-		super.execute();
-
-		// TODO debug
-		System.out.println("par part: " + (System.currentTimeMillis() - start));
-
-		result = null;
-		PReduceTask<T> oldTask = null;
-
-		start = System.currentTimeMillis();
-		// TODO parallize it
-		if (tasks.size() > 0) {
-			if (tasks.size() == 1) {
-				result = tasks.get(0).reduce(null);
-			} else {
-				for (PReduceTask<T> task : tasks) {
-					if (oldTask != null && task != null) {
-						result = task.reduce(oldTask);
-					}
-					oldTask = task;
-				}
-			}
-		}
-
-		// TODO debug
-		System.out.println("red part: " + (System.currentTimeMillis() - start));
 	}
 
 	/**
@@ -97,13 +65,21 @@ public class PReduceJob<T> extends PForJob {
 		 */
 		public abstract T reduce(PReduceTask<T> other);
 
-	}
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#after()
+		 */
+		@Override
+		public void after() {
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public synchronized void add(PTask task, int threadID) {
-		super.add(task, threadID);
-		if (PForTaskWrapper.class.isInstance(task))
-			tasks.add((PReduceTask<T>) ((PForTaskWrapper) task).getTask());
+			PReduceJob<T> rjob = (PReduceJob<T>) job;
+
+			if (!rjob.mainTask.compareAndSet(null, this)) {
+				rjob.result = rjob.mainTask.get().reduce(this);
+			}
+
+			super.after();
+		}
 	}
 }

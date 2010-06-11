@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.UniqueIDGenerator;
@@ -48,8 +49,8 @@ public class ThreadPool {
 	 * states of the thread pool. This is very similar to states of processes or
 	 * tasks.
 	 */
-	private enum ThreadPoolState {
-		New, Init, Started, Closed;
+	public enum ThreadPoolState {
+		New, Init, Started, Closed, Sleeps;
 	}
 
 	private IStructure<PTask> taskPool = null;
@@ -127,6 +128,24 @@ public class ThreadPool {
 		}
 	}
 
+	public void sleep() {
+		if (state == ThreadPoolState.Started) {
+			for (Worker worker : workers) {
+				worker.sleep();
+			}
+			this.state = ThreadPoolState.Sleeps;
+		}
+	}
+
+	public void weakUp() {
+		if (this.state == ThreadPoolState.Sleeps) {
+			for (Worker worker : workers) {
+				worker.weakUp();
+			}
+			this.state = ThreadPoolState.Started;
+		}
+	}
+
 	/**
 	 * add a task to the pool
 	 * 
@@ -165,8 +184,7 @@ public class ThreadPool {
 
 			try {
 				Job.setUserInterface(pool.getUserInterface());
-				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase()
-						.getEnvironment());
+				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase().getEnvironment());
 			} catch (Exception ex) {
 
 			}
@@ -176,6 +194,23 @@ public class ThreadPool {
 
 		public void shutdown() {
 			strategy.shutdown();
+		}
+
+		/**
+		 * Danger: Could cause deadlocks
+		 */
+		public void sleep() {
+			strategy.pleaseWait();
+		}
+
+		/**
+		 * Danger: Could cause deadlocks
+		 */
+		public void weakUp() {
+			strategy.pleaseWakeUp();
+			synchronized (strategy) {
+				strategy.notifyAll();
+			}
 		}
 
 	}
@@ -245,8 +280,7 @@ public class ThreadPool {
 	 * @return initialized thread pool
 	 * @throws PoolExistsException
 	 */
-	public static ThreadPool initialize(IStructure<PTask> taskPool, boolean debug)
-			throws PoolExistsException {
+	public static ThreadPool initialize(IStructure<PTask> taskPool, boolean debug) throws PoolExistsException {
 		return ThreadPool.initialize(taskPool, ThreadPool.getNumOfThreads(), debug);
 	}
 
@@ -303,8 +337,7 @@ public class ThreadPool {
 	public static synchronized void killPool() {
 		try {
 			ThreadPool.instance.shutdown();
-		} catch (InterruptedException e) {
-		}
+		} catch (InterruptedException e) {}
 		ThreadPool.instance = null;
 	}
 
@@ -337,5 +370,9 @@ public class ThreadPool {
 	 */
 	public UserInterface getUserInterface() {
 		return userInterface;
+	}
+
+	public ThreadPoolState getState() {
+		return state;
 	}
 }

@@ -510,12 +510,6 @@ public class ERCWellCheck2 {
 				numberOfThreads = maxProc;
 		}
 
-		try {
-			ThreadPool.initialize(numberOfThreads);
-		} catch (PoolExistsException e) {
-			e.printStackTrace();
-		}
-
 		hasNCon = false;
 		hasPCon = false;
 		NetValues.numberOfMerges = 0;
@@ -536,6 +530,14 @@ public class ERCWellCheck2 {
 
 		wcVisitor.clear();
 		wcVisitor = null;
+		
+		try {
+			ThreadPool.initialize(numberOfThreads);
+		} catch (PoolExistsException e) {
+			e.printStackTrace();
+		}
+		
+		startTime = System.currentTimeMillis();
 
 		// make arrays of well contacts clustdered for each processor
 		assignWellContacts(numberOfThreads);
@@ -567,6 +569,14 @@ public class ERCWellCheck2 {
 		msg += "took ";
 		System.out.println(msg + TextUtils.getElapsedTime(endTime - startTime));
 		startTime = endTime;
+		
+		try {
+			ThreadPool.getThreadPool().shutdown();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		startTime = endTime;
 
 		if (Job.getDebug()) {
 			System.out.println("   Amount of merges: " + NetValues.numberOfMerges);
@@ -595,11 +605,7 @@ public class ERCWellCheck2 {
 		errorLogger.termLogging(true);
 		int errorCount = errorLogger.getNumErrors();
 
-		try {
-			ThreadPool.getThreadPool().shutdown();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		
 
 		return errorCount;
 	}

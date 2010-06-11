@@ -60,6 +60,8 @@ public class SimpleWorker extends PoolWorkerStrategy {
 		this.threadId = ThreadID.get();
 		this.executed = 0;
 		while (!abort) {
+			this.checkForWait();
+
 			// retrieve a new task
 			PTask task = taskPool.remove();
 			if (task != null) {

@@ -484,6 +484,15 @@ public class ERCWellCheck {
 
 		// make arrays of well contacts clustdered for each processor
 		assignWellContacts(numberOfThreads);
+		
+		if (Job.getDebug()) {
+			endTime = System.currentTimeMillis();
+
+			System.out.println("   Assign well contacts took: "
+					+ TextUtils.getElapsedTime(endTime - startTime));
+
+			startTime = endTime;
+		}
 
 		// analyze the contacts
 		NetValues.reset();
