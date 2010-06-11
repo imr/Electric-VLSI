@@ -32,35 +32,35 @@ import java.awt.geom.Rectangle2D;
  * for the source signals over that same range.  So, for example, a
  * convolution cannot be represented using this class.
  */
-public abstract class DerivedSignal<SS extends Sample> extends Signal<SS> {
+public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> extends Signal<SNew> {
 
-    private final Signal<SS>[] sources;
+    private final Signal<SOld>[] sources;
 
     public DerivedSignal(Analysis analysis, String signalName, String signalContext,
-                         Signal<SS>[] sources) {
+                         Signal<SOld>[] sources) {
         super(analysis, signalName, signalContext);
         this.sources = sources;
     }
 
-    public Signal.View<RangeSample<SS>> getRasterView(double t0, double t1, int numPixels) {
-        View<RangeSample<SS>>[] views = new View[sources.length];
+    public Signal.View<RangeSample<SNew>> getRasterView(double t0, double t1, int numPixels) {
+        View<RangeSample<SOld>>[] views = new View[sources.length];
         for(int i=0; i<views.length; i++)
             views[i] = sources[i].getRasterView(t0, t1, numPixels);
         return new DerivedSignalRasterView(views);
     }
-    private class DerivedSignalRasterView implements View<RangeSample<SS>> {
-        private View<RangeSample<SS>>[] views;
-        private RangeSample<SS>[]       scratch;
-        public DerivedSignalRasterView(View<RangeSample<SS>>[] views) {
+    private class DerivedSignalRasterView implements View<RangeSample<SNew>> {
+        private View<RangeSample<SOld>>[] views;
+        private RangeSample<SOld>[]       scratch;
+        public DerivedSignalRasterView(View<RangeSample<SOld>>[] views) {
             this.views = views;
             scratch = new RangeSample[views.length];
         }
         public int             getNumEvents() { return views[0].getNumEvents(); }
         public double          getTime(int event) { return views[0].getTime(event); }
-        public RangeSample<SS> getSample(int event) {
+        public RangeSample<SNew> getSample(int event) {
             for(int i=0; i<scratch.length; i++)
                 scratch[i] = views[i].getSample(event);
-            RangeSample<SS> ret = getDerivedRange(scratch);
+            RangeSample<SNew> ret = getDerivedRange(scratch);
             for(int i=0; i<scratch.length; i++) scratch[i] = null;
             return ret;
         }
@@ -68,31 +68,54 @@ public abstract class DerivedSignal<SS extends Sample> extends Signal<SS> {
         public int             getTimeDenominator() { throw new RuntimeException("not implemented"); }
     }
 
-    public Signal.View<SS> getExactView() {
-        throw new RuntimeException("Exact views of DerivedSignal's are not supported");
-        /*
-        View<SS>[] views = new View<SS>[sources.length];
-        for(int i=0; i<views.length; i++)
-            views[i] = sources[i].getExactView();
-        return new DerivedSignalExactView(views);
-        */
+	public double getMinTime() {
+        double min = Double.MIN_VALUE;
+        for(int i=0; i<sources.length; i++)
+            min = Math.max(min, sources[i].getMinTime());
+        return min;
     }
-    /*
-    private class DerivedSignalExactView implements View<SS> {
-        private View<SS>[] views;
-        public DerivedSignalExactView(View<SS>[] views) { this.views = views; }
-        public int             getNumEvents() { }
-        public double          getTime(int event) { }
-        public RangeSample<SS> getSample(int event) { }
+	public double getMaxTime() {
+        double max = Double.MAX_VALUE;
+        for(int i=0; i<sources.length; i++)
+            max = Math.min(max, sources[i].getMaxTime());
+        return max;
+    }
+	public SNew getMinValue() {
+        RangeSample<SOld>[] scratch = new RangeSample[sources.length];
+        for(int i=0; i<scratch.length; i++)
+            scratch[i] = new RangeSample<SOld>(sources[i].getMinValue(),sources[i].getMaxValue());
+        RangeSample<SNew> ret = getDerivedRange(scratch);
+        return ret.getMin();
+    }
+	public SNew getMaxValue() {
+        RangeSample<SOld>[] scratch = new RangeSample[sources.length];
+        for(int i=0; i<scratch.length; i++)
+            scratch[i] = new RangeSample<SOld>(sources[i].getMinValue(),sources[i].getMaxValue());
+        RangeSample<SNew> ret = getDerivedRange(scratch);
+        return ret.getMax();
+    }
+
+    public Signal.View<SNew> getExactView() {
+        if (sources.length==1)
+            return new DerivedSignalExactView(sources[0].getExactView());
+        throw new RuntimeException("Exact views of DerivedSignal's with >1 source are not supported");
+    }
+
+    private class DerivedSignalExactView implements View<SNew> {
+        private View<SOld> view;
+        public DerivedSignalExactView(View<SOld> view) { this.view = view; }
+        public int               getNumEvents() { return view.getNumEvents(); }
+        public double            getTime(int event) { return view.getTime(event); }
+        public SNew getSample(int event) {
+            SOld old = view.getSample(event);
+            return getDerivedRange(new RangeSample[] { new RangeSample<SOld>(old, old) }).getMin() /* FIXME: arbitrary */;
+        }
         public int             getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }
         public int             getTimeDenominator() { throw new RuntimeException("not implemented"); }
         public int             getEventWithMinValue() { throw new RuntimeException("not implemented"); }
         public int             getEventWithMaxValue() { throw new RuntimeException("not implemented"); }
     }
-    */
 
-    //abstract SS              getDerivedSample(SS[] sourceSamples);
-
-    protected abstract RangeSample<SS> getDerivedRange(RangeSample<SS>[] sourceRanges);
+    protected abstract RangeSample<SNew> getDerivedRange(RangeSample<SOld>[] sourceRanges);
 
 }
