@@ -32,7 +32,6 @@ import java.util.List;
  */
 public class DigitalSignal extends BTreeSignal<DigitalSample> {
 
-	/** the DigitalAnalysis object in which this DigitalSignal resides. */		private DigitalAnalysis an;
 	/** a list of signals on this bussed signal */					            List<DigitalSignal> bussedSignals;
 	/** the number of busses that reference this signal */			            private int busCount;
 
@@ -42,7 +41,6 @@ public class DigitalSignal extends BTreeSignal<DigitalSample> {
 	 */
 	public DigitalSignal(DigitalAnalysis an, String signalName, String signalContext) {
         super(an, signalName, signalContext, BTreeSignal.getTree(DigitalSample.unboxer));
-		this.an = an;
 		an.addSignal(this);
 	}
 
