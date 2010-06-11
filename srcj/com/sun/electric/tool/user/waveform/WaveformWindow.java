@@ -46,7 +46,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicOut.EpicAnalysis;
-import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.io.input.SimulationData;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.ncc.NccCrossProbing;
@@ -3727,7 +3727,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// there is no simulation engine (i.e. external Spice, Verilog) reload external data
-		Simulate.plot(sd.getCell(), sd.getFileURL(), this);
+		SimulationData.plot(sd.getCell(), sd.getFileURL(), this);
 	}
 
 	/**

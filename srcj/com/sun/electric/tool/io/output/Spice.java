@@ -60,7 +60,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.io.input.SimulationData;
 import com.sun.electric.tool.io.input.spicenetlist.SpiceNetlistReader;
 import com.sun.electric.tool.io.input.spicenetlist.SpiceSubckt;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
@@ -3170,12 +3170,12 @@ public class Spice extends Topology
 //			// create a new waveform window
 //            WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
 //
-//            Simulate.plotSimulationResults(type, cell, fileURL, ww);
+//            SimulationData.plotSimulationResults(type, cell, fileURL, ww);
             SwingUtilities.invokeLater(new Runnable() { public void run() {
                 UserInterface ui = Job.getUserInterface();
                 Cell cell = ui.needCurrentCell();
                 if (cell == null) return;
-            	Simulate.plotGuessed(cell, null);
+            	SimulationData.plotGuessed(cell, null);
             }});
         }
     }

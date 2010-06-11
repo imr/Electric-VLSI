@@ -44,7 +44,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.UserInterfaceInitial;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.io.input.SimulationData;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -512,8 +512,8 @@ public final class Main
             User.setWorkingDirectory(TextUtils.getFilePath(url));
             // setting database path for future references
             FileType.setDatabaseGroupPath(User.getWorkingDirectory());
-            if (arg.indexOf('.')!=-1 && Simulate.isKnownSimulationFormatExtension(arg.substring(arg.lastIndexOf('.')+1))) {
-                Simulate.plot(null, url, null);
+            if (arg.indexOf('.')!=-1 && SimulationData.isKnownSimulationFormatExtension(arg.substring(arg.lastIndexOf('.')+1))) {
+                SimulationData.plot(null, url, null);
             } else {
                 FileMenu.openLibraryCommand(url);
             }

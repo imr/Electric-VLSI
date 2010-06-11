@@ -91,7 +91,7 @@ import com.sun.electric.tool.generator.layout.fill.StitchFillJob;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LibraryFiles;
-import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.io.input.SimulationData;
 import com.sun.electric.tool.io.output.GenerateVHDL;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
@@ -302,7 +302,7 @@ public class ToolMenu
                     UserInterface ui = Job.getUserInterface();
                     Cell cell = ui.needCurrentCell();
                     if (cell == null) return;
-                    Simulate.plotGuessed(cell, null); }},
+                    SimulationData.plotGuessed(cell, null); }},
 		        new EMenuItem("Set Spice _Model...") { public void run() {
                     Simulation.setSpiceModel(); }},
 		        new EMenuItem("Add M_ultiplier") { public void run() {
@@ -350,7 +350,7 @@ public class ToolMenu
                     UserInterface ui = Job.getUserInterface();
                     Cell cell = ui.needCurrentCell();
                     if (cell == null) return;
-                    Simulate.plotGuessed(cell, null); }},
+                    SimulationData.plotGuessed(cell, null); }},
                 SEPARATOR,
 		        new EMenuItem("Set Verilog _Template") { public void run() {
                     makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }},
@@ -2512,6 +2512,6 @@ public class ToolMenu
             cell = dialog.getSelectedCell();
             if (cell == null) return;
         }
-        Simulate.plot(cell, fileURL, null);
+        SimulationData.plot(cell, fileURL, null);
     }
 }
