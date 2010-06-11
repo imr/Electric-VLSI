@@ -341,14 +341,7 @@ public class Stimuli {
 	 * Method to tell whether this simulation data is analog or digital.
 	 * @return true if this simulation data is analog.
 	 */
-	public boolean isAnalog()
-	{
-		for(Analysis an : analysisList)
-		{
-			if (an.isAnalog()) return true;
-		}
-		return false;
-	}
+	public boolean isAnalog() { return true; }
 
 	/**
 	 * Method to convert a strength to an index value.

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+BUG: (6/10/10, AM) Analog waveforms missing icons in upper right (Bug #2784)
+FIX: in Stimuli.isAnalog()
+
 BUG: (6/10/10, AM) Title of Waveform window is strange (Bug #2783)
 FIX: in WaveformWindow.setTitle().
 
