@@ -866,7 +866,7 @@ public class ALS extends Engine
 		an = getCircuit(cell);
 		ww = oldWW;
 
-		Simulation.showSimulationData(an.getStimuli(), ww);
+		WaveformWindow.showSimulationData(an.getStimuli(), ww);
 
 		// make a waveform window
 		if (ww == null)

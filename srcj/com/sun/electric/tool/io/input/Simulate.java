@@ -150,7 +150,7 @@ public final class Simulate {
                 final Stimuli sdx = sd;
                 SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
-                            Simulation.showSimulationData(sdx, ReadSimulationOutput.this.ww);
+                            WaveformWindow.showSimulationData(sdx, ReadSimulationOutput.this.ww);
                         }});
 			} catch (IOException e) {
 				System.out.println("End of file reached while reading " + fileURL);
