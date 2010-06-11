@@ -80,8 +80,7 @@ import javax.swing.JTextField;
 /**
  * This is the Simulation Interface tool.
  */
-public class Simulation extends Tool
-{
+public class Simulation extends Tool {
 	/** the Simulation tool. */							private static Simulation tool = new Simulation();
 
 	/** key of Variable holding rise time. */			public static final Variable.Key RISE_DELAY_KEY = Variable.newKey("SIM_rise_delay");
@@ -92,29 +91,10 @@ public class Simulation extends Tool
 	/** constant for ALS simulation */					public static final int ALS_ENGINE = 0;
 	/** constant for IRSIM simulation */				public static final int IRSIM_ENGINE = 1;
 
-	private static boolean irsimChecked = false;
-	private static Class<?> irsimClass = null;
-	private static Method irsimSimulateMethod;
+	private Simulation() { super("simulation"); }
 
-	/**
-	 * The constructor sets up the Simulation tool.
-	 */
-	private Simulation()
-	{
-		super("simulation");
-	}
+	public void init() { }
 
-	/**
-	 * Method to initialize the Simulation tool.
-	 */
-	public void init()
-	{
-	}
-
-	/**
-	 * Method to retrieve the singleton associated with the Simulation tool.
-	 * @return the Simulation tool.
-	 */
 	public static Simulation getSimulationTool() { return tool; }
 
 	/****************************** CONTROL OF SIMULATION ENGINES ******************************/
@@ -126,8 +106,7 @@ public class Simulation extends Tool
 	 * @param prevCell the previous cell being simulated (null for a new simulation).
 	 * @param prevEngine the previous simulation engine running (null for a new simulation).
 	 */
-	public static void startSimulation(int engine, boolean forceDeck, Cell prevCell, Engine prevEngine)
-	{
+	public static void startSimulation(int engine, boolean forceDeck, Cell prevCell, Engine prevEngine) {
 		Cell cell = null;
 		VarContext context = null;
 		String fileName = null;
@@ -179,71 +158,12 @@ public class Simulation extends Tool
 				break;
 
 			case IRSIM_ENGINE:
-				if (!hasIRSIM()) return;
+				if (!IRSIM.hasIRSIM()) return;
 //                if (!cell.isSchematic()) // not valid cell
 //                    System.out.println("Can't run IRSIM on a non-schematic cell: " + cell);
 //                else
-                    runIRSIM(cell, context, fileName);
+                IRSIM.runIRSIM(cell, context, fileName);
 				break;
-		}
-	}
-
-	/**
-	 * Method to tell whether the IRSIM simulator is available.
-	 * IRSIM is packaged separately because it is from Stanford University.
-	 * This method dynamically figures out whether the IRSIM module is present by using reflection.
-	 * @return true if the IRSIM simulator is available.
-	 */
-	public static boolean hasIRSIM()
-	{
-		if (!irsimChecked)
-		{
-			irsimChecked = true;
-
-			// find the IRSIM class
-			try
-			{
-				irsimClass = Class.forName("com.sun.electric.plugins.irsim.Analyzer");
-			} catch (ClassNotFoundException e)
-			{
-				irsimClass = null;
-				return false;
-			}
-
-			// find the necessary methods on the IRSIM class
-			try
-			{
-				irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class, VarContext.class, String.class});
-			} catch (NoSuchMethodException e)
-			{
-				irsimClass = null;
-				return false;
-			}
-		}
-
-		// if already initialized, return
-		if (irsimClass == null) return false;
-	 	return true;
-	}
-
-	/**
-	 * Method to run the IRSIM simulator on a given cell, context or file.
-	 * Uses reflection to find the IRSIM simulator (if it exists).
-	 * @param cell the Cell to simulate.
-	 * @param context the context to the cell to simulate.
-	 * @param fileName the name of the file with the netlist.  If this is null, simulate the cell.
-	 * If this is not null, ignore the cell and simulate the file.
-	 */
-	public static void runIRSIM(Cell cell, VarContext context, String fileName)
-	{
-		try
-		{
-			irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName});
-			return;
-		} catch (Exception e)
-		{
-			System.out.println("Unable to run the IRSIM simulator");
-			e.printStackTrace(System.out);
 		}
 	}
 

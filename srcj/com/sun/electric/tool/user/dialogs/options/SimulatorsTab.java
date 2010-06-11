@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.IRSIM;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.Frame;
@@ -82,7 +83,7 @@ public class SimulatorsTab extends PreferencePanel
 		simModel.addItem("RC");
 		simModel.addItem("Linear");
 		simModel.setSelectedItem(Simulation.getIRSIMStepModel());
-		if (!Simulation.hasIRSIM())
+		if (!IRSIM.hasIRSIM())
 		{
 			debugEv.setEnabled(false);
 			debugDC.setEnabled(false);

@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.tool.simulation.IRSIM;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
@@ -241,14 +242,14 @@ public class ToolMenu
 
 			// mnemonic keys available:  B       JK  N PQ      XYZ
             new EMenu("Simulation (Built-in)",
-                Simulation.hasIRSIM() ? new EMenuItem("IRSI_M: Simulate Current Cell") { public void run() {
+                IRSIM.hasIRSIM() ? new EMenuItem("IRSI_M: Simulate Current Cell") { public void run() {
 				    Simulation.startSimulation(Simulation.IRSIM_ENGINE, false, null, null); }} : null,
-			    Simulation.hasIRSIM() ? new EMenuItem("IRSIM: _Write Deck...") { public void run() {
+			    IRSIM.hasIRSIM() ? new EMenuItem("IRSIM: _Write Deck...") { public void run() {
 				    FileMenu.exportCommand(FileType.IRSIM, true); }} : null,
-			    Simulation.hasIRSIM() ? new EMenuItem("_IRSIM: Simulate Deck...") { public void run() {
+			    IRSIM.hasIRSIM() ? new EMenuItem("_IRSIM: Simulate Deck...") { public void run() {
 				    Simulation.startSimulation(Simulation.IRSIM_ENGINE, true, null, null); }} : null,
 
-                Simulation.hasIRSIM() ? SEPARATOR : null,
+                IRSIM.hasIRSIM() ? SEPARATOR : null,
 
 		        new EMenuItem("_ALS: Simulate Current Cell") { public void run() {
                     Simulation.startSimulation(Simulation.ALS_ENGINE, false, null, null); }},
@@ -387,7 +388,7 @@ public class ToolMenu
 		        new EMenuItem("Write _PAL Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.PAL, true); }},
                 SEPARATOR,
-                !Simulation.hasIRSIM() ? new EMenuItem("Write _IRSIM Deck...") { public void run() {
+                !IRSIM.hasIRSIM() ? new EMenuItem("Write _IRSIM Deck...") { public void run() {
 				    FileMenu.exportCommand(FileType.IRSIM, true); }} : null,
 		        new EMenuItem("Write _ESIM/RNL Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.ESIM, true); }},
