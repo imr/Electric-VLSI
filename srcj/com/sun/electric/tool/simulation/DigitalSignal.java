@@ -33,7 +33,7 @@ import java.util.List;
 public class DigitalSignal extends BTreeSignal<DigitalSample> {
 
 	/** the DigitalAnalysis object in which this DigitalSignal resides. */		private DigitalAnalysis an;
-	/** a list of signals on this bussed signal */					            private List<DigitalSignal> bussedSignals;
+	/** a list of signals on this bussed signal */					            List<DigitalSignal> bussedSignals;
 	/** the number of busses that reference this signal */			            private int busCount;
 
 	/**
@@ -48,15 +48,6 @@ public class DigitalSignal extends BTreeSignal<DigitalSample> {
 
 	public DigitalSample getMinValue() { return getSummaryFromKeys(null, null).getKey().getValue(); }
 	public DigitalSample getMaxValue() { return getSummaryFromKeys(null, null).getValue().getValue(); }
-
-	/**
-	 * Method to request that this signal be a bus.
-	 * Builds the necessary data structures to hold bus information.
-	 */
-	public void buildBussedSignalList() {
-		bussedSignals = new ArrayList<DigitalSignal>();
-		an.getBussedSignals().add(this);
-	}
 
 	/**
 	 * Method to return a List of signals on this bus signal.

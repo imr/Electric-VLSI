@@ -705,7 +705,7 @@ public class Analyzer extends Engine
 					if (busSig == null)
 					{
 						busSig = new DigitalSignal(analysis, targ[1], null);
-						busSig.buildBussedSignalList();
+						analysis.buildBussedSignalList(busSig);
 					}
 					List<DigitalSignal> sigs = new ArrayList<DigitalSignal>();
 					getTargetNodes(targ, 2, sigs, null);

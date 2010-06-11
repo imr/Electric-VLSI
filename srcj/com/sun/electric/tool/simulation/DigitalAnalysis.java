@@ -54,4 +54,13 @@ public class DigitalAnalysis extends Analysis<DigitalSignal> {
 	 */
 	public List<DigitalSignal> getBussedSignals() { return allBussedSignals; }
 
+	/**
+	 * Method to request that this signal be a bus.
+	 * Builds the necessary data structures to hold bus information.
+	 */
+	public void buildBussedSignalList(DigitalSignal ds) {
+		ds.bussedSignals = new ArrayList<DigitalSignal>();
+		getBussedSignals().add(ds);
+	}
+
 }

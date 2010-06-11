@@ -204,7 +204,7 @@ public class VerilogOut extends Input<Stimuli>
 					if (width > 1)
 					{
 						// create fake signals for the individual entries
-						sig.buildBussedSignalList();
+						an.buildBussedSignalList(sig);
 						for(int i=0; i<width; i++)
 						{
 							DigitalSignal subSig = new DigitalSignal(an, signalName + "[" + i + "]", currentScope);
@@ -404,7 +404,7 @@ public class VerilogOut extends Input<Stimuli>
 				if (last.equals(purename)) lastIndex = index; else
 				{
 					DigitalSignal arraySig = new DigitalSignal(an, last + "[" + firstIndex + ":" + lastIndex + "]", scope);
-					arraySig.buildBussedSignalList();
+					an.buildBussedSignalList(arraySig);
 					int width = j - firstEntry;
 					for(int i=0; i<width; i++)
 					{
@@ -418,7 +418,7 @@ public class VerilogOut extends Input<Stimuli>
 		if (last != null)
 		{
 			DigitalSignal arraySig = new DigitalSignal(an, last + "[" + firstIndex + ":" + lastIndex + "]", scope);
-			arraySig.buildBussedSignalList();
+			an.buildBussedSignalList(arraySig);
 			int width = numSignalsInArray - firstEntry;
 			for(int i=0; i<width; i++)
 			{

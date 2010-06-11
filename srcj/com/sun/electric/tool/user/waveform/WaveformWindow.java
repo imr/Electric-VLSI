@@ -5095,7 +5095,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			// found a bus of signals: create the bus for it
 			DigitalSignal busSig = new DigitalSignal(an, prefix, sSig.getSignalContext());
-			busSig.buildBussedSignalList();
+			an.buildBussedSignalList(busSig);
 			for(int k=i; k<j; k++)
 			{
 				DigitalSignal subSig = signals.get(k);
