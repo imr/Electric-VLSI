@@ -296,6 +296,13 @@ public class BTree
         return ret;
     }
 
+    /** removes (key,val) from the tree; throws an exception if key not found or get(key)!=val */
+    public V removeRange(K key1, K key2) {
+        if (summary!=null && !(summary instanceof InvertibleOperation))
+            throw new RuntimeException("BTrees with non-InvertibleOperation summaries are insert-only");
+        throw new RuntimeException("not implemented");
+    }
+
     /** remove all entries */
     public void clear() {
         size = 0;
@@ -588,6 +595,8 @@ public class BTree
                 }
             } else {
                 switch(op) {
+                    case REPLACE:
+                        break;
                     case REMOVE:
                         if (idx < interiorNodeCursor.getNumBuckets()-1) {
                             interiorNodeCursor.setNumValsBelowBucket(idx, interiorNodeCursor.getNumValsBelowBucket(idx)-1);
@@ -618,7 +627,8 @@ public class BTree
             if (summary!=null && slot < parentNodeCursor.getNumBuckets()-1) {
                 switch(op) {
                     case REMOVE:
-                    case REPLACE: // (actually we can do better for REPLACE with an InvertibleOperation)
+                        // TO DO: we can do much better for REPLACE with an InvertibleOperation
+                    case REPLACE:
                         cur.getSummary(monbuf, 0);
                         parentNodeCursor.setSummary(slot, monbuf, 0);
                         parentNodeCursor.writeBack();
@@ -637,6 +647,10 @@ public class BTree
         }
         return return_val;
     }
+
+
+
+    // Performance Statistics //////////////////////////////////////////////////////////////////////////////
 
     static long insertionFastPath = 0;
     static long insertionSlowPath = 0;
