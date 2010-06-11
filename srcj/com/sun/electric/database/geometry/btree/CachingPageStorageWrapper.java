@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: BTree.java
+ * File: CachingPageStorageWrapper.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -74,7 +74,7 @@ public class CachingPageStorageWrapper extends CachingPageStorage {
      *  act as a "buffer manager" for classes that do not want to
      *  manage their own byte[] pools.
      *
-     *  @param cacheSize the maximum number of non-evicted PAGES in
+     *  @param cacheSize the maximum number of NON-EVICTED pages in
      *  the cache.  Note that the total number of pages (evicted and
      *  non-evicted) may exceed this number; this class simply ensures
      *  that once a page is evicted its reference to the page is
@@ -87,6 +87,8 @@ public class CachingPageStorageWrapper extends CachingPageStorage {
      */
     public CachingPageStorageWrapper(PageStorage ps, int cacheSize, boolean asyncFlush) {
         super(ps.getPageSize());
+        if (ps instanceof CachingPageStorage)
+            throw new RuntimeException("attempt to wrap a CachingPageStorageWrapper around a CachingPageStorage");
         this.ps = ps;
         this.cacheSize = cacheSize;
         this.cache = new LinkedHashMap<Integer,CachedPageImpl>(cacheSize+3, 0.75f, true);
@@ -113,6 +115,7 @@ public class CachingPageStorageWrapper extends CachingPageStorage {
                 if (page!=null) { readBytes = false; break; }
                 page = allCachedPages.get(pageid);
                 if (page!=null) { readBytes = false; doWait = true; break; }
+                // FIXME: need to evict pages if we're about to exceed the cache size
                 page = new CachedPageImpl(pageid, new byte[ps.getPageSize()]);
                 doNotify = true;
             } while(false);
@@ -162,6 +165,7 @@ public class CachingPageStorageWrapper extends CachingPageStorage {
         // to try multiple times.
         while(true) {
             CachedPageImpl cp = null;
+            // FIMXE: ought to evict non-dirty pages first, since they cost less
             synchronized(CachingPageStorageWrapper.this) {
                 if (cache.size() <= this.cacheSize) return;
                 cp = cache.entrySet().iterator().next().getValue();
@@ -171,8 +175,14 @@ public class CachingPageStorageWrapper extends CachingPageStorage {
         }
     }
 
-    public void fsync(int pageid) { ps.fsync(pageid); }
-    public void fsync() { ps.fsync(); }
+    public void fsync(int pageid) {
+        CachedPageImpl page = null;
+        synchronized(CachingPageStorageWrapper.this) {
+            page = allCachedPages.get(pageid);
+        }
+        if (page!=null) page.flush();
+        ps.fsync(pageid);
+    }
 
     /** A page which is currently in the cache. */
     public class CachedPageImpl extends CachedPage {

@@ -92,11 +92,6 @@ public class FilePageStorage extends PageStorage {
     }
 
     public void fsync(int pageid) {
-        // FIXME: ugly
-        fsync();
-    }
-
-    public void fsync() {
         // do nothing because we currently make no guarantees about when things hit the disk
     }
 

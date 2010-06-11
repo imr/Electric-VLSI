@@ -61,7 +61,6 @@ public class OverflowPageStorage extends PageStorage {
         return ps2.createPage();
     }
     public void fsync(int pageid) { if (overflowed) ps2.fsync(pageid); else ps1.fsync(pageid); }
-    public void fsync() { if (overflowed) ps2.fsync(); else ps1.fsync(); }
     public void writePage(int pageid, byte[] buf, int ofs) {
         if (overflowed) ps2.writePage(pageid, buf, ofs);
         else            ps1.writePage(pageid, buf, ofs);

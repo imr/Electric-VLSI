@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/10/10) Fix CachingPageStorage.fsync(int), remove
+     PageStorage.fsync()
+
 IMP: (6/10/10) Replace Infrastructure.waitSeconds() with Thread.sleep()
 
 IMP/MAN: (6/10/10) The Measurement display should have be able to show
