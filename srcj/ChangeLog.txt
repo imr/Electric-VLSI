@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/12/10, AM) Add and document "Display / Display Control / Dock
+     messages window to each edit window" preference (off by default).
+
 IMP: (6/12/10, AM) Allow more than one instance of MessagesWindow.
 
 BUG: (6/11/10, GVG) UnsupportedOperationException while running Placement regression (Bug #2792)

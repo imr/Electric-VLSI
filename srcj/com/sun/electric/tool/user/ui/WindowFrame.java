@@ -404,14 +404,24 @@ public class WindowFrame extends Observable
 		// put them together into the split pane
 		js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		sideBarOnLeft = !User.isSideBarOnRight();
+
+        JComponent panel = content.getPanel();
+        if (User.isDockMessagesWindow()) {
+            JSplitPane js2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+            js2.setTopComponent(panel);
+            js2.setBottomComponent(new MessagesWindow().getContent());
+            js2.setDividerLocation(js2.getMaximumDividerLocation());
+            panel = js2;
+        }
+
 		if (sideBarOnLeft)
 		{
 			js.setLeftComponent(sideBar);
-			js.setRightComponent(content.getPanel());
+			js.setRightComponent(panel);
 			js.setDividerLocation(200);
 		} else
 		{
-			js.setLeftComponent(content.getPanel());
+			js.setLeftComponent(panel);
 			js.setRightComponent(sideBar);
 			js.setDividerLocation(sz.width - 200);
 		}

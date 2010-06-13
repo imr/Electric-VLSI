@@ -78,6 +78,7 @@ public class DisplayControlTab extends PreferencePanel
 		shiftWindowToErrors.setSelected(User.isShiftWindowToErrors());
 		keepModelessDialogsOnTop.setSelected(User.isKeepModelessDialogsOnTop());
         measurementCadence.setSelected(User.isCadenceMeasurementStyle());
+        dockMessages.setSelected(User.isDockMessagesWindow());
         generalPanningDistance.addItem("Small");
 		generalPanningDistance.addItem("Medium");
 		generalPanningDistance.addItem("Large");
@@ -141,6 +142,10 @@ public class DisplayControlTab extends PreferencePanel
         currBoolean = measurementCadence.isSelected();
 		if (currBoolean != User.isCadenceMeasurementStyle())
 			User.setCadenceMeasurementStyle(currBoolean);
+
+        currBoolean = dockMessages.isSelected();
+		if (currBoolean != User.isDockMessagesWindow())
+			User.setDockMessagesWindow(currBoolean);
 
         int currInt = generalPanningDistance.getSelectedIndex();
 		if (currInt != User.getPanningDistance())
@@ -302,6 +307,7 @@ public class DisplayControlTab extends PreferencePanel
         shiftWindowToErrors = new javax.swing.JCheckBox();
         keepModelessDialogsOnTop = new javax.swing.JCheckBox();
         measurementCadence = new javax.swing.JCheckBox();
+        dockMessages = new javax.swing.JCheckBox();
 
         setTitle("Edit Options");
         setName(""); // NOI18N
@@ -335,13 +341,13 @@ public class DisplayControlTab extends PreferencePanel
         jLabel1.setText("Panning distance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(jLabel1, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(generalPanningDistance, gridBagConstraints);
@@ -502,7 +508,7 @@ public class DisplayControlTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -511,14 +517,14 @@ public class DisplayControlTab extends PreferencePanel
         jLabel2.setText("Display style:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(displayStyle, gridBagConstraints);
@@ -577,6 +583,21 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(measurementCadence, gridBagConstraints);
 
+        dockMessages.setText("Dock messages window to each edit window");
+        dockMessages.setToolTipText("If checked, the messages window will appear as a new pane below each edit pane.  If unchecked there will be only one messages window and it will be free-floating.");
+        dockMessages.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dockMessagesActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        general.add(dockMessages, gridBagConstraints);
+
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
         pack();
@@ -601,12 +622,17 @@ public class DisplayControlTab extends PreferencePanel
 		dispose();
 	}//GEN-LAST:event_closeDialog
 
+    private void dockMessagesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dockMessagesActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_dockMessagesActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel alphaBlendingLimitLabel;
     private javax.swing.JTextField alphaBlendingOvercolorLimit;
     private javax.swing.JCheckBox dimUpperWhenDownInPlace;
     private javax.swing.ButtonGroup displayAlgorithm;
     private javax.swing.JComboBox displayStyle;
+    private javax.swing.JCheckBox dockMessages;
     private javax.swing.JPanel general;
     private javax.swing.JTextField generalGreekCellLimit;
     private javax.swing.JTextField generalGreekLimit;
