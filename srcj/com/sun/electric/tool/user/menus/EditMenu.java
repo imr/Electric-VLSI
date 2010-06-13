@@ -912,8 +912,8 @@ public class EditMenu {
 	public static void selectAllCommand()
 	{
         // is this the messages window?
-        MessagesWindow mw = TopLevel.getMessagesWindow();
-        if (mw.isFocusOwner())
+        MessagesWindow mw = MessagesWindow.getFocusOwner();
+        if (mw != null)
         {
         	mw.selectAll();
         	return;
@@ -1732,7 +1732,7 @@ public class EditMenu {
 
 	public static void describeTechnologyCommand()
     {
-        int pageWidth = TopLevel.getMessagesWindow().getMessagesCharWidth();
+        int pageWidth = MessagesWindow.getMinMessagesCharWidth();
         Technology tech = Technology.getCurrent();
         System.out.println("Technology " + tech.getTechName());
         System.out.println("    Full name: " + tech.getTechDesc());

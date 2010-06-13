@@ -603,11 +603,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         else {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    MessagesWindow messagesWindow = TopLevel.getMessagesWindow();
-                    if (messagesWindow != null)
-                        appendString(s);
-                    else
-                        stdout.print(s);
+                    MessagesWindow.appendString(s);
                 }
             });
         }
@@ -670,12 +666,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             printWriter.print(str);
             printWriter.flush();
         }
-        MessagesWindow mw = TopLevel.getMessagesWindow();
-        if (mw != null)
-            TopLevel.getMessagesWindow().appendString(str);
-        else
-            // Error before the message window is available. Sending error to std error output
-            System.err.println(str);
+        MessagesWindow.appendString(str);
     }
 
     /**

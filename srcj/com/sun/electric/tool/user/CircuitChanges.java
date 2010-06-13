@@ -423,11 +423,10 @@ public class CircuitChanges
 	public static void deleteSelected()
 	{
         // is this the messages window?
-        MessagesWindow mw = TopLevel.getMessagesWindow();
-        if (mw.isFocusOwner())
-        {
-        	mw.clear(false);
-        	return;
+        MessagesWindow mw = MessagesWindow.getFocusOwner();
+        if (mw != null) {
+            mw.clear(false);
+            return;
         }
 
         // see what type of window is selected

@@ -77,7 +77,6 @@ public class TopLevel extends JFrame
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop = null;
 	/** The main frame (if MDI). */							private static TopLevel topLevel = null;
 	/** The size of the screen. */							private static Dimension scrnSize;
-	/** The messagesWindow window. */						private static MessagesWindow messagesWindow;
     /** The rate of double-clicks. */						private static int doubleClickDelay;
 	/** The cursor being displayed. */						private static Cursor cursor;
     /** If busy cursor is overriding the normal cursor */	private static boolean busyCursorOn = false;
@@ -206,7 +205,7 @@ public class TopLevel extends JFrame
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
             topLevel.setVisible(true);
 		}
-        messagesWindow = new MessagesWindow();
+        MessagesWindow.init();
     }
 
 	/**
@@ -365,13 +364,6 @@ public class TopLevel extends JFrame
 	 * @return true if Electric is in MDI mode.
 	 */
 	public static boolean isMDIMode() { return (mode == UserInterfaceMain.Mode.MDI); }
-
-	/**
-	 * Method to return messagesWindow window.
-	 * The messagesWindow window runs along the bottom.
-	 * @return the messagesWindow window.
-	 */
-	public static MessagesWindow getMessagesWindow() { return messagesWindow; }
 
     /**
 	 * Method to return status bar associated with this TopLevel.

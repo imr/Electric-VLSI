@@ -122,8 +122,8 @@ public class Clipboard //implements ClipboardOwner
         TextUtils.setTextOnClipboard(null);
 
         // is this the messages window?
-        MessagesWindow mw = TopLevel.getMessagesWindow();
-        if (mw.isFocusOwner())
+        MessagesWindow mw = MessagesWindow.getFocusOwner();
+        if (mw != null)
         {
         	mw.copyText(false, false);
         	return;
@@ -185,8 +185,8 @@ public class Clipboard //implements ClipboardOwner
 	public static void cut()
 	{
         // is this the messages window?
-        MessagesWindow mw = TopLevel.getMessagesWindow();
-        if (mw.isFocusOwner())
+        MessagesWindow mw = MessagesWindow.getFocusOwner();
+        if (mw != null)
         {
         	mw.copyText(false, true);
         	return;
@@ -250,8 +250,8 @@ public class Clipboard //implements ClipboardOwner
 	public static void paste()
 	{
         // is this the messages window?
-        MessagesWindow mw = TopLevel.getMessagesWindow();
-        if (mw.isFocusOwner())
+        MessagesWindow mw = MessagesWindow.getFocusOwner();
+        if (mw != null)
         {
         	mw.pasteText();
         	return;

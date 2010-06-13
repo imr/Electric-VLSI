@@ -372,13 +372,13 @@ public class WindowMenu {
 		// mnemonic keys available: AB DE GHIJKLMNOPQR  UVWXYZ
             new EMenu("_Messages Window",
                 new EMenuItem("_Tile with Edit Window") { public void run() {
-                	TopLevel.getMessagesWindow().tileWithEdit(); }},
+                    MessagesWindow.tileWithEdit(); }},
                 new EMenuItem("_Save Messages...") { public void run() {
                     MessagesStream.getMessagesStream().save(); }},
                 new EMenuItem("_Clear") { public void run() {
-                    TopLevel.getMessagesWindow().clear(true); }},
+                    MessagesWindow.clearAll(); }},
                 new EMenuItem("Set F_ont...") { public void run() {
-                    TopLevel.getMessagesWindow().selectFont(); }}),
+                    MessagesWindow.selectFont(); }}),
 
             MenuCommands.makeExtraMenu("j3d.ui.J3DMenu"),
 
@@ -530,8 +530,12 @@ public class WindowMenu {
         {
             if (window != null)
                 window.requestFocus();
-            else // message window. This could be done by creating another interface
-                TopLevel.getMessagesWindow().requestFocus();
+            else
+                for(MessagesWindow mw : MessagesWindow.getMessagesWindows()) {
+                    // message window. This could be done by creating another interface
+                    mw.requestFocus();
+                    break;
+                }
         }
     }
 
@@ -890,9 +894,10 @@ public class WindowMenu {
 		Rectangle [] areas = TopLevel.getWindowAreas();
 
         // remove the messages window
-        MessagesWindow mw = TopLevel.getMessagesWindow();
-        Rectangle mb = mw.getMessagesLocation();
-        removeOccludingRectangle(areas, mb);
+        for (MessagesWindow mw : MessagesWindow.getMessagesWindows()) {
+            Rectangle mb = mw.getMessagesLocation();
+            if (mb!=null) removeOccludingRectangle(areas, mb);
+        }
         return areas;
     }
 
@@ -1067,11 +1072,13 @@ public class WindowMenu {
 		Dimension sz = tl.getSize();
 		User.setDefaultWindowSize(sz);
 
-		// remember messages information
-        MessagesWindow mw = TopLevel.getMessagesWindow();
-		Rectangle rect = mw.getMessagesLocation();
-		User.setDefaultMessagesPos(new Point(rect.x, rect.y));
-		User.setDefaultMessagesSize(new Dimension(rect.width, rect.height));
+		// remember messages information; arbitrarily use only the first window if there exist more than one
+        for (MessagesWindow mw : MessagesWindow.getMessagesWindows()) {
+            Rectangle rect = mw.getMessagesLocation();
+            User.setDefaultMessagesPos(new Point(rect.x, rect.y));
+            User.setDefaultMessagesSize(new Dimension(rect.width, rect.height));
+            break;
+        }
     }
 
     /**
