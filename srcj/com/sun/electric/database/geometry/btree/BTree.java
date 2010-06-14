@@ -624,6 +624,7 @@ public class BTree
         while(cur.getParent() != cur.getPageId()) {
             parentNodeCursor.setBuf(ps.getPage(cur.getParent(), true));
             int slot = parentNodeCursor.getSlotByChildPageId(cur.getPageId());
+            assert slot!=-1;
             if (summary!=null && slot < parentNodeCursor.getNumBuckets()-1) {
                 switch(op) {
                     case REMOVE:
