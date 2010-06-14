@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/14/10, FS) Adding common metrics for all placement tools and calculate 
+     Bounding Box and Minimum Steiner Tree after a placement (only debug mode) 
+
 BUG: (6/14/10, AM) Reading HSpice output throws an exception (Bug #2793)
 FIX: Remember to update parent pointers after splitting a node.
 
