@@ -23,6 +23,15 @@
  */
 package com.sun.electric.tool.placement;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
@@ -48,21 +57,16 @@ import com.sun.electric.database.variable.Variable.Key;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.placement.forceDirected1.PlacementForceDirectedTeam5;
 import com.sun.electric.tool.placement.forceDirected2.PlacementForceDirectedStaged;
 import com.sun.electric.tool.placement.genetic1.g1.GeneticPlacement;
 import com.sun.electric.tool.placement.genetic2.PlacementGenetic;
+import com.sun.electric.tool.placement.metrics.AbstractMetric;
+import com.sun.electric.tool.placement.metrics.BBMetric;
+import com.sun.electric.tool.placement.metrics.MSTMetric;
 import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing;
 import com.sun.electric.tool.placement.simulatedAnnealing2.PlacementSimulatedAnnealing;
-
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Class to define a framework for Placement algorithms. To make Placement
@@ -154,7 +158,7 @@ public abstract class PlacementFrame {
 		this.numOfThreads = threads;
 		this.runtime = runtime;
 	}
-	
+
 	/**
 	 * Class to define a parameter for a placement algorithm.
 	 */
@@ -809,6 +813,7 @@ public abstract class PlacementFrame {
 		// do the placement from the shadow objects
 		Cell newCell = doPlacement(cell.getLibrary(), cell.noLibDescribe(), nodesToPlace, allNetworks,
 				exportsToPlace, iconToPlace);
+
 		return newCell;
 	}
 
@@ -839,6 +844,14 @@ public abstract class PlacementFrame {
 
 		// do the real work of placement
 		runPlacement(nodesToPlace, allNetworks, cellName);
+
+		if (Job.getDebug()) {
+			AbstractMetric bmetric = new BBMetric(nodesToPlace, allNetworks);
+			System.out.println("### BBMetric: " + bmetric.toString());
+			
+			AbstractMetric mstMetric = new MSTMetric(nodesToPlace, allNetworks);
+			System.out.println("### MSTMetric: " + mstMetric.toString());
+		}
 
 		// create a new cell for the placement results
 		Cell newCell = Cell.makeInstance(lib, cellName); // newCellName
