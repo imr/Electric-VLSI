@@ -40,77 +40,87 @@ import java.util.List;
  * We have implemented a parallel genetic algorithm using a UnifiedPopulation
  * and multiple Evolver threads working on it.
  * 
- * We save only changes in our DeltaIndividuals, which saves CPU time and memory.
+ * We save only changes in our DeltaIndividuals, which saves CPU time and
+ * memory.
  * 
  * Please note: We had to make some methods inside PlacementFrame public:
- * PlacementPort.getPlacementNode()
- * PlacementPort.getRotatedOffX()
- * PlacementPort.getRotatedOffY()
- * PlacementNode.getPlacementX()
+ * PlacementPort.getPlacementNode() PlacementPort.getRotatedOffX()
+ * PlacementPort.getRotatedOffY() PlacementNode.getPlacementX()
  * PlacementNode.getPlacementY()
+ * 
  * @see GeneticPlacer
  * @see UnifiedPopulation
  * @see DeltaIndividual
  * @see Evolver
  * @see SimulatedAnnealing
  */
-public class PlacementGenetic extends PlacementFrame
-{
+public class PlacementGenetic extends PlacementFrame {
 	GeneticPlacer placer = null;
-	
+
 	// maximum runtime of the placement algorithm in seconds
 	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime", "Runtime (seconds):", 240);
 	// number of threads
 	public PlacementParameter maxThreadsParam = new PlacementParameter("threads", "Number of threads:", 4);
 	// if false: NO system.out.println statements
 	public boolean printDebugInformation = true;
-	
+
 	// information for the benchmark framework
 	String teamName = "team 4";
 	String studentName1 = "Benedikt Mueller";
 	String studentName2 = "Richard Fallert";
 	String algorithmType = "genetic";
-	
-//	public void setBenchmarkValues(int runtime, int threads, boolean debug) {
-//		maxRuntime = runtime;
-//		numThreads = threads;
-//		printDebugInformation = debug;
-//	}
-	
-	public String getAlgorithmName() { return "Genetic-2"; }
+
+	// public void setBenchmarkValues(int runtime, int threads, boolean debug) {
+	// maxRuntime = runtime;
+	// numThreads = threads;
+	// printDebugInformation = debug;
+	// }
+
+	public String getAlgorithmName() {
+		return "Genetic-2";
+	}
 
 	/**
 	 * Method to return a list of parameters for this placement algorithm.
+	 * 
 	 * @return a list of parameters for this placement algorithm.
 	 */
-	public List<PlacementParameter> getParameters()
-	{
+	public List<PlacementParameter> getParameters() {
 		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
 		allParams.add(maxRuntimeParam);
 		allParams.add(maxThreadsParam);
 		return allParams;
 	}
-	
-	public UnifiedPopulation getPopulation()
-	{
-		if(placer != null) return placer.getPopulation();
-		else return null;
+
+	public UnifiedPopulation getPopulation() {
+		if (placer != null)
+			return placer.getPopulation();
+		else
+			return null;
 	}
-	
-	public PlacementGenetic()
-	{	
-	}
-	
+
+	public PlacementGenetic() {}
+
 	/**
 	 * Method to run the genetic algorithm to find a good placement.
-	 * @param nodesToPlace a list of all nodes that are to be placed.
-	 * @param allNetworks a list of all networks that connect the nodes.
-	 * @param cellName the name of the cell being placed.
+	 * 
+	 * @param nodesToPlace
+	 *            a list of all nodes that are to be placed.
+	 * @param allNetworks
+	 *            a list of all networks that connect the nodes.
+	 * @param cellName
+	 *            the name of the cell being placed.
 	 */
-	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName)
-	{
-		placer = new GeneticPlacer(nodesToPlace, allNetworks, maxRuntimeParam.getIntValue(),
-			maxThreadsParam.getIntValue(), printDebugInformation);
+	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
+			String cellName) {
+		if (USE_GUIPARAMETER) {
+			this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
+		} else {
+			this.setParamterValues(this.maxThreadsParam.getTempIntValue(), this.maxRuntimeParam
+					.getTempIntValue());
+		}
+
+		placer = new GeneticPlacer(nodesToPlace, allNetworks, runtime, numOfThreads, printDebugInformation);
 		placer.runPlacement(nodesToPlace, allNetworks);
-	}	
+	}
 }

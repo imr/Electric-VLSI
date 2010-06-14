@@ -62,10 +62,8 @@ import com.sun.electric.tool.placement.genetic1.PopulationCreation;
  */
 public class GeneticPlacement extends PlacementFrame {
 
-	public PlacementParameter maxThreadsParam = new PlacementParameter("threads",
-			"Number of threads:", 4);
-	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime",
-			"Runtime (seconds):", 240);
+	public PlacementParameter maxThreadsParam = new PlacementParameter("threads", "Number of threads:", 4);
+	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime", "Runtime (seconds):", 240);
 
 	/**
 	 * Method to return a list of parameters for this placement algorithm.
@@ -105,7 +103,7 @@ public class GeneticPlacement extends PlacementFrame {
 
 	public final static double PlacementWidthRatio = 1.2;
 
-	public void setBenchmarkValues(int runtime, int threads, boolean debug) {
+	public void setParamterValues(int threads, int runtime, boolean debug) {
 		maxRuntime = runtime;
 		numThreads = threads;
 		printDebugInformation = debug;
@@ -205,8 +203,7 @@ public class GeneticPlacement extends PlacementFrame {
 		maxRuntime = 30;
 		numThreads = Runtime.getRuntime().availableProcessors();
 
-		popCreator = new PopulationCreationRandomWithPlaceHolder2(new Random(System
-				.currentTimeMillis()));
+		popCreator = new PopulationCreationRandomWithPlaceHolder2(new Random(System.currentTimeMillis()));
 		// popCreator = new PopulationOptimizedCreation();
 
 		rt = Runtime.getRuntime();
@@ -216,8 +213,8 @@ public class GeneticPlacement extends PlacementFrame {
 			Calendar now = Calendar.getInstance();
 			PROGRESS_LOG_FILENAME = PROGRESS_LOG_FILENAME.concat(now.get(Calendar.YEAR)
 					+ now.get(Calendar.MONTH) + now.get(Calendar.DAY_OF_MONTH) + "_"
-					+ now.get(Calendar.HOUR_OF_DAY) + now.get(Calendar.MINUTE)
-					+ now.get(Calendar.SECOND) + ".log");
+					+ now.get(Calendar.HOUR_OF_DAY) + now.get(Calendar.MINUTE) + now.get(Calendar.SECOND)
+					+ ".log");
 
 			PROGRESS_LOG_FILE = new File(PROGRESS_LOG_FILENAME);
 			try {
@@ -261,7 +258,13 @@ public class GeneticPlacement extends PlacementFrame {
 	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
 			String cellName) {
 
-		setBenchmarkValues(maxRuntimeParam.getIntValue(), maxThreadsParam.getIntValue(), false);
+		if (USE_GUIPARAMETER) {
+			this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue(),
+					false);
+		} else {
+			this.setParamterValues(this.maxThreadsParam.getTempIntValue(), this.maxRuntimeParam
+					.getTempIntValue(), false);
+		}
 
 		if (beenRun)
 			System.out
@@ -270,13 +273,12 @@ public class GeneticPlacement extends PlacementFrame {
 
 		init();
 
-		if (GeneticPlacement.IS_LOGGING_ENABLED)
-			System.out.println("nodes :" + nodesToPlace.size());
+		if (GeneticPlacement.IS_LOGGING_ENABLED) System.out.println("nodes :" + nodesToPlace.size());
 
 		if (GeneticPlacement.IS_LOGGING_ENABLED)
-			logger.log(LOG_LEVEL, "cell:" + cellName + " nodes:" + nodesToPlace.size()
-					+ " threads:" + NBR_OF_THREADS + " population per thread:"
-					+ POPULATION_SIZE_PER_THREAD_START + "epoch:" + current_epoch_length);
+			logger.log(LOG_LEVEL, "cell:" + cellName + " nodes:" + nodesToPlace.size() + " threads:"
+					+ NBR_OF_THREADS + " population per thread:" + POPULATION_SIZE_PER_THREAD_START
+					+ "epoch:" + current_epoch_length);
 
 		if (GeneticPlacement.IS_LOGGING_ENABLED)
 			logger.log(LOG_LEVEL, "start wrapping placement nodes in proxies");
@@ -297,19 +299,16 @@ public class GeneticPlacement extends PlacementFrame {
 
 		GeneticPlacement.allNetworks = allNetworks;
 
-		if (GeneticPlacement.IS_LOGGING_ENABLED)
-			logger.log(LOG_LEVEL, "start population creation");
+		if (GeneticPlacement.IS_LOGGING_ENABLED) logger.log(LOG_LEVEL, "start population creation");
 		spawnInitalPopulation(nodeProxies);
 
-		if (GeneticPlacement.IS_LOGGING_ENABLED)
-			logger.log(LOG_LEVEL, "done population creation");
+		if (GeneticPlacement.IS_LOGGING_ENABLED) logger.log(LOG_LEVEL, "done population creation");
 
 		assert (population.chromosomes.size() % NBR_OF_THREADS == 0);
 
 		subPopulations.clear();
 
-		if (GeneticPlacement.IS_LOGGING_ENABLED)
-			logger.log(LOG_LEVEL, "start partitioning population");
+		if (GeneticPlacement.IS_LOGGING_ENABLED) logger.log(LOG_LEVEL, "start partitioning population");
 		// Initially partition population and distribute to the threads/cpus
 		{
 			while (!population.chromosomes.isEmpty()) {
@@ -326,22 +325,19 @@ public class GeneticPlacement extends PlacementFrame {
 		assert (subPopulations.size() == NBR_OF_THREADS);
 		assert (population.chromosomes.size() == 0);
 
-		ArrayList<SubPopulationProcessing> tasks = new ArrayList<SubPopulationProcessing>(
-				NBR_OF_THREADS);
+		ArrayList<SubPopulationProcessing> tasks = new ArrayList<SubPopulationProcessing>(NBR_OF_THREADS);
 
-		if (GeneticPlacement.IS_LOGGING_ENABLED)
-			logger.log(LOG_LEVEL, "done partitioning population");
+		if (GeneticPlacement.IS_LOGGING_ENABLED) logger.log(LOG_LEVEL, "done partitioning population");
 
-		if (GeneticPlacement.IS_LOGGING_ENABLED)
-			logger.log(LOG_LEVEL, "start parallel processing loop");
+		if (GeneticPlacement.IS_LOGGING_ENABLED) logger.log(LOG_LEVEL, "start parallel processing loop");
 
 		// create worker threads
 		for (int i = 0; i < NBR_OF_THREADS; i++) {
 			// TODO: nbrOfGeneration has to be a multiple of EPOCH_LENGTH
 			// TODO: does task have to be cleaned manually?
 			tasks.add(new SubPopulationProcessing(current_epoch_length, randomGenerator.nextLong(),
-					placementWidth, nodeProxies, allNetworks, subPopulations.get(0).chromosomes
-							.get(0).Index2GenePositionInChromosome.length));
+					placementWidth, nodeProxies, allNetworks,
+					subPopulations.get(0).chromosomes.get(0).Index2GenePositionInChromosome.length));
 		}
 
 		PopulationMutation2.resetMutationRates();
@@ -390,12 +386,11 @@ public class GeneticPlacement extends PlacementFrame {
 
 			// return best result of the global population
 			if (GeneticPlacement.IS_LOGGING_ENABLED)
-				System.out.println("Best fitness value: " + fittestSolution.fitness
-						+ " improvement rate: " + improvementRate);
+				System.out.println("Best fitness value: " + fittestSolution.fitness + " improvement rate: "
+						+ improvementRate);
 		}
 
-		if (GeneticPlacement.IS_LOGGING_ENABLED)
-			logger.log(LOG_LEVEL, "done parallel processing loop");
+		if (GeneticPlacement.IS_LOGGING_ENABLED) logger.log(LOG_LEVEL, "done parallel processing loop");
 
 		// TODO: apply placement of fittest solution
 
@@ -412,10 +407,8 @@ public class GeneticPlacement extends PlacementFrame {
 		if (fittestSolution != null) {
 			// apply gene placement to referenced placement nodes
 			for (int i = 0; i < nodesToPlace.size(); i++) {
-				nodesToPlace.get(i).setPlacement(fittestSolution.GeneXPos[i],
-						fittestSolution.GeneYPos[i]);
-				nodesToPlace.get(i).setOrientation(
-						Orientation.fromAngle(fittestSolution.GeneRotation[i]));
+				nodesToPlace.get(i).setPlacement(fittestSolution.GeneXPos[i], fittestSolution.GeneYPos[i]);
+				nodesToPlace.get(i).setOrientation(Orientation.fromAngle(fittestSolution.GeneRotation[i]));
 			}
 		}
 
@@ -450,8 +443,7 @@ public class GeneticPlacement extends PlacementFrame {
 
 		// remember fittest solution so far
 		for (Population subp : subPopulations) {
-			if (subp.chromosomes.get(0).fitness.doubleValue() < fittestSolution.fitness
-					.doubleValue())
+			if (subp.chromosomes.get(0).fitness.doubleValue() < fittestSolution.fitness.doubleValue())
 				fittestSolution = subp.chromosomes.get(0);
 		}
 
@@ -470,8 +462,7 @@ public class GeneticPlacement extends PlacementFrame {
 			if (nbrOfExchangeIndividuals * numThreads > .25 * subPopSize)
 				nbrOfExchangeIndividuals = (int) ((.25 * subPopSize) / numThreads);
 
-			if (nbrOfExchangeIndividuals < 1)
-				nbrOfExchangeIndividuals = 1;
+			if (nbrOfExchangeIndividuals < 1) nbrOfExchangeIndividuals = 1;
 
 			// now exchange the calculated numbers
 			for (Population subp1 : subPopulations) {
@@ -526,27 +517,28 @@ public class GeneticPlacement extends PlacementFrame {
 			// if improvementRate = 1 don't touch a thing
 			// probably just the first evaluation :)
 			if (improvementRate < 1) {
-				if (!isMemoryBarrierReached
-						&& improvementRate > PopulationMutation2.MUTATION_RATE_INCREASE)
+				if (!isMemoryBarrierReached && improvementRate > PopulationMutation2.MUTATION_RATE_INCREASE)
 					PopulationMutation2.increaseMutationRate();
-				else if (improvementRate < PopulationMutation2.MUTATION_RATE_LOWER)
-					PopulationMutation2.lowerMutationRate();
+				else
+					if (improvementRate < PopulationMutation2.MUTATION_RATE_LOWER)
+						PopulationMutation2.lowerMutationRate();
 
 				// adapt population size based on progress
 				if (!isMemoryBarrierReached && improvementRate < POPULATION_SIZE_PER_THREAD_RAISE
 						&& current_population_size_per_thread < POPULATION_SIZE_PER_THREAD_MAX) {
 					current_population_size_per_thread += POPULATION_SIZE_PER_THREAD_STEP;
-				} else if (improvementRate > POPULATION_SIZE_PER_THREAD_LOWER
-						&& current_population_size_per_thread > POPULATION_SIZE_PER_THREAD_MIN)
-					current_population_size_per_thread -= POPULATION_SIZE_PER_THREAD_STEP;
+				} else
+					if (improvementRate > POPULATION_SIZE_PER_THREAD_LOWER
+							&& current_population_size_per_thread > POPULATION_SIZE_PER_THREAD_MIN)
+						current_population_size_per_thread -= POPULATION_SIZE_PER_THREAD_STEP;
 
 				// adapt epoch length based on progress
 				if (!isMemoryBarrierReached && improvementRate < EPOCH_LENGTH_RAISE
 						&& current_epoch_length < EPOCH_LENGTH_MAX) {
 					current_epoch_length += EPOCH_LENGTH_STEP;
-				} else if (improvementRate > EPOCH_LENGTH_LOWER
-						&& current_epoch_length > EPOCH_LENGTH_MIN)
-					current_epoch_length -= EPOCH_LENGTH_STEP;
+				} else
+					if (improvementRate > EPOCH_LENGTH_LOWER && current_epoch_length > EPOCH_LENGTH_MIN)
+						current_epoch_length -= EPOCH_LENGTH_STEP;
 			}
 
 			// in debug print information
@@ -575,8 +567,7 @@ public class GeneticPlacement extends PlacementFrame {
 			population = popCreator.generatePopulation(nodeProxies, allNetworks,
 					POPULATION_SIZE_PER_THREAD_START * NBR_OF_THREADS);
 
-			assert (population.chromosomes.size() == POPULATION_SIZE_PER_THREAD_START
-					* NBR_OF_THREADS);
+			assert (population.chromosomes.size() == POPULATION_SIZE_PER_THREAD_START * NBR_OF_THREADS);
 		}
 	}
 
@@ -593,8 +584,7 @@ public class GeneticPlacement extends PlacementFrame {
 			for (Chromosome c : sp1.chromosomes)
 				for (int ii = i + 1; ii < subPopulations.size(); ii++) {
 					sp2 = subPopulations.get(ii);
-					if (sp1 != sp2 && sp2.chromosomes.contains(c))
-						return false;
+					if (sp1 != sp2 && sp2.chromosomes.contains(c)) return false;
 				}
 		}
 
@@ -646,18 +636,16 @@ public class GeneticPlacement extends PlacementFrame {
 	void logProgress(int population_size) {
 
 		GeneticPlacement.PROGRESS_LOGGER
-				.println((System.currentTimeMillis() - GeneticPlacement.START_TIME) / 1000 + ";"
-						+ "main" + ";" + generation + ";" + fittestSolution.fitness + ";"
-						+ population_size + ";"
+				.println((System.currentTimeMillis() - GeneticPlacement.START_TIME) / 1000 + ";" + "main"
+						+ ";" + generation + ";" + fittestSolution.fitness + ";" + population_size + ";"
 						+ GeneticPlacement.current_population_size_per_thread + ";"
 						+ PopulationMutation2.chromosomeAlterPaddingRate + ";"
 						+ PopulationMutation2.genePaddingChangeRate_current + ";"
 						+ PopulationMutation2.chrosomeMaxPaddingChangeStep + ";"
 						+ PopulationMutation2.chromosomeMoveRate + ";"
 						+ PopulationMutation2.geneMoveRate_current + ";"
-						+ PopulationMutation2.geneMoveDistance + ";"
-						+ PopulationMutation2.chromosomeSwapRate + ";"
-						+ PopulationMutation2.geneSwapRate_current + ";"
+						+ PopulationMutation2.geneMoveDistance + ";" + PopulationMutation2.chromosomeSwapRate
+						+ ";" + PopulationMutation2.geneSwapRate_current + ";"
 						+ PopulationMutation2.chromsomeRotationRate + ";" + improvementRate);
 
 	}
