@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+BUG: (6/14/10, AM) Reading HSpice output throws an exception (Bug #2793)
+FIX: Remember to update parent pointers after splitting a node.
+
 BUG: (6/14/10, AM) HSpice reader attempts to re-insert value that
      already exists (Bug #2749)
 FIX: Check to see if the value has already been inserted.

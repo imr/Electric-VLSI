@@ -199,4 +199,15 @@ class InteriorNodeCursor
                                 getBuf(), INTERIOR_HEADER_SIZE+SIZEOF_INT+INTERIOR_ENTRY_SIZE*i,
                                 buf, ofs);
     }
+
+    public int split(byte[] key, int key_ofs, int splitPoint) {
+        // XXX: this is not terribly efficient
+        int ret = super.split(key, key_ofs, splitPoint);
+        for(int i=0; i<getNumBuckets(); i++) {
+            CachedPage cp = ps.getPage(getBucketPageId(i), true);
+            bt.ui.serializeInt(getPageId(), cp.getBuf(), 0*SIZEOF_INT);
+            cp.setDirty();
+        }
+        return ret;
+    }
 }
