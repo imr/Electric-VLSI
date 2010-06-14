@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+BUG: (6/14/10, AM) HSpice reader attempts to re-insert value that
+     already exists (Bug #2749)
+FIX: Check to see if the value has already been inserted.
+
 IMP: (6/12/10, AM) Add and document "Display / Display Control / Dock
      messages window to each edit window" preference (off by default).
 

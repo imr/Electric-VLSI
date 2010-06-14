@@ -757,7 +757,8 @@ public class HSpiceOut extends Input<Stimuli>
                         /*
                         signals[k].addSample(time, new ComplexSample(realPart, imagPart));
                         */
-                        signals[k].addSample(time, new ScalarSample(realPart));
+                        if (signals[k].getSample(time)==null)
+                            signals[k].addSample(time, new ScalarSample(realPart));
 					} else {
                         if (signals[k].getSample(time)==null)
                             signals[k].addSample(time, new ScalarSample(getHSpiceFloat(false)));
