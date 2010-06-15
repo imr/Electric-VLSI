@@ -25,12 +25,14 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IDEStructure;
 import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
+import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
 
 /**
  * This data structure is a wrapper for work stealing. Each worker has a own
@@ -43,27 +45,27 @@ import com.sun.electric.tool.util.concurrent.patterns.PJob;
 public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStealing {
 
 	// data queues: each worker has its own worker queue
-	private Map<Long, IDEStructure<T>> dataQueues;
+	protected Map<Long, IDEStructure<T>> dataQueues;
 	// map a operating system thread ID to a data queue
-	private Map<Long, Long> dataQueuesMapping;
+	protected Map<Long, Long> dataQueuesMapping;
 	// free internal ids are used for assigning operating system thread IDs to
 	// data queues
 	private List<Long> freeInternalIds;
-	// each worker gets its own randomizer
-	private Map<Long, Random> rand;
 	private Class<T> clazz;
+	private MultiThreadedRandomizer randomizer;
+	private StealTracker stealTracker;
 
 	public WorkStealingStructure(int numOfThreads, Class<T> clazz) {
 		dataQueues = CollectionFactory.createConcurrentHashMap();
 		dataQueuesMapping = CollectionFactory.createConcurrentHashMap();
-		rand = CollectionFactory.createConcurrentHashMap();
 		freeInternalIds = CollectionFactory.createConcurrentList();
 		this.clazz = clazz;
+		this.randomizer = new MultiThreadedRandomizer(numOfThreads);
+		stealTracker = StealTracker.getInstance();
 
 		for (long i = 0; i < numOfThreads; i++) {
 			freeInternalIds.add(i);
 			dataQueues.put(i, CollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
-			rand.put(i, new Random(System.currentTimeMillis()));
 		}
 	}
 
@@ -109,8 +111,7 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 					return;
 				}
 			}
-			Random randomizer = new Random(System.currentTimeMillis());
-			int foreignQueue = randomizer.nextInt(dataQueues.size());
+			int foreignQueue = randomizer.getRandomizer().nextInt(dataQueues.size());
 			dataQueues.get(Long.valueOf(foreignQueue)).add(item);
 
 		} else {
@@ -119,7 +120,7 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 
 	}
 
-	private Long getThreadId() {
+	protected Long getThreadId() {
 		return Thread.currentThread().getId();
 	}
 
@@ -170,6 +171,11 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 
 		for (int i = 1; result == null && i < dataQueues.size(); i++) {
 			result = dataQueues.get(Long.valueOf(i + localQueueId) % dataQueues.size()).getFromTop();
+			if (result == null) {
+				int foreigner = randomizer.getRandomizer().nextInt(dataQueues.size());
+				result = dataQueues.get(Long.valueOf(foreigner)).getFromTop();
+			}
+			if (result != null && Job.getDebug()) stealTracker.countSteal();
 		}
 
 		return result;

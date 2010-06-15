@@ -23,10 +23,10 @@
  */
 package com.sun.electric.tool.util.concurrent.debug;
 
-import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.runtime.PoolWorkerStrategy;
 
@@ -70,23 +70,25 @@ public class LoadBalancing implements IDebug {
 			sum += it.next().getExecutedCounter();
 		}
 
+		double mean = (double) sum / (double) workersLocalCopy.size();
+		double var = 0.0;
+
 		for (Iterator<PoolWorkerStrategy> it = workersLocalCopy.iterator(); it.hasNext();) {
 			PoolWorkerStrategy worker = it.next();
 			System.out.print(worker);
 			System.out.print(" - ");
-			System.out.println(getPercentageString((double) worker.getExecutedCounter()
-					/ (double) sum));
+			System.out.println(TextUtils.getPercentageString((double) worker.getExecutedCounter() / (double) sum));
+			var += Math.pow((double) worker.getExecutedCounter() - mean, 2);
 		}
-	}
+		
+		var /= (double)workersLocalCopy.size();
 
-	private String getPercentageString(double value) {
-		StringBuilder builder = new StringBuilder();
+		System.out.print("mean value");
+		System.out.print(" - ");
+		System.out.println(TextUtils.getPercentageString(mean / (double) sum));
 
-		DecimalFormat df2 = new DecimalFormat("##0.00");
-
-		builder.append(df2.format(value * 100.0));
-		builder.append("%");
-
-		return builder.toString();
+		System.out.print("variance");
+		System.out.print(" - ");
+		System.out.println(var);
 	}
 }
