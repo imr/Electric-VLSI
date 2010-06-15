@@ -950,6 +950,22 @@ public class TextUtils {
         buf.append(seconds + " secs");
         return buf.toString();
     }
+    
+    /**
+     * Method to describe a percentage value as a String
+     * @param value which should be described as a percentage string
+     * @return percentage string
+     */
+    public static String getPercentageString(double value) {
+    	StringBuilder builder = new StringBuilder();
+    	
+    	DecimalFormat df2 = new DecimalFormat("##0.00");
+
+		builder.append(df2.format(value * 100.0));
+		builder.append("%");
+    	
+    	return builder.toString();
+    }
 
     /**
      * Method to find a string inside of another string.
