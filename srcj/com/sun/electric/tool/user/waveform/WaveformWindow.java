@@ -3909,7 +3909,27 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	private static Map<CellId,String> savedSignalOrder = new HashMap<CellId,String>();
 
 	/**
-	 * Method to save the signal ordering on the cell.
+	 * Method to save the signal ordering on the cell.<BR>
+	 *
+	 * Saved signals are stored in the Preferences as a single string.
+	 * The string is located in com.sun.electric.database.hierarchy.<LibraryName>
+	 * in a Preference named SavedSignalsForCell<CellName>.<BR>
+	 *
+	 * The format of the string is as follows:
+	 * Each panel in the waveform window is terminated by "\n", so for example two panels would look like this:<BR>
+	 *   <PanelInfo> \n <PanelInfo> \n<BR>
+	 * Each PanelInfo section starts with information about the analysis in that panel,
+	 * and then lists the signals in that panel.  The format is:<BR>
+	 *    \t [<AnalysisName>] [(<HorizontalSignal>)] <SignalList><BR>
+	 * Where <SignalList> is one or more of this:<BR>
+	 *    \t <SignalName> { <Red> , <Green> , <Blue> }<BR>
+	 *
+	 * Example:<BR>
+	 *    \t\t1:net_198 {255,0,0}\n<BR>
+	 * This has just one \n in it so it defines a single panel.
+	 * The first \t introduces the analysis type which is blank, meaning that it is
+	 * a Transient analysis and has Time as the horizontal axis.
+	 * There is just one signal listed (1:net_198) and its color is red (255,0,0).
 	 */
 	public void saveSignalOrder()
 	{
