@@ -64,8 +64,8 @@ public class UniformGrid
 		this.top = top;
 		this.bottom = bottom;
 		this.cellW = cellW;
-		w = (int)Math.ceil((right-left)/cellW);
-		h = (int)Math.ceil((top-bottom)/cellW);
+		w = Math.max((int)Math.ceil((right-left)/cellW), 1);
+		h = Math.max((int)Math.ceil((top-bottom)/cellW), 1);
 		
 		// System.out.println("Grid size w: " + w + " h: " + h);
 		grid = new LinkedList[w][h];
