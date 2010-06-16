@@ -27,7 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -178,7 +178,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (openTextInput(mtURL)) return;
 		System.out.println("Reading HSpice measurements '" + mtURL.getFile() + "'");
 
-		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_MEAS, false);
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_MEAS, false);
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;
@@ -248,9 +248,9 @@ public class HSpiceOut extends Input<Stimuli>
 
 		// convert this to a list of Measurements
 		List<Double> argMeas = measurementData.get(measurementNames.get(0));
-		an.buildCommonTime(argMeas.size());
+        double[] time = new double[argMeas.size()];
 		for (int i = 0; i < argMeas.size(); i++)
-			an.setCommonTime(i, argMeas.get(i).doubleValue());
+            time[i] = argMeas.get(i).doubleValue();
 		List<Signal<ScalarSample>> measData = new ArrayList<Signal<ScalarSample>>();
 		for(String mName : measurementNames)
 		{
@@ -260,7 +260,7 @@ public class HSpiceOut extends Input<Stimuli>
 
 			// special case with the "alter#" name...remove the "#"
 			if (mName.equals("alter#")) mName = "alter";
-			Signal<ScalarSample> as = an.addSignal(mName, null, values);
+			Signal<ScalarSample> as = ScalarSample.createSignal(an, mName, null, time, values);
 			measData.add(as);
 		}
 
@@ -428,7 +428,7 @@ public class HSpiceOut extends Input<Stimuli>
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		AnalogAnalysis an = new AnalogAnalysis(sd, analysisType, false);
+		Analysis an = new Analysis(sd, analysisType, false);
 		startProgressDialog("HSpice " + analysisType.toString() + " analysis", fileURL.getFile());
 		System.out.println("Reading HSpice " + analysisType.toString() + " analysis '" + fileURL.getFile() + "'");
 

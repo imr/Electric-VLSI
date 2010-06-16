@@ -37,7 +37,7 @@ import java.util.List;
  * It includes the labels and values.
  * It can handle digital, analog, and many variations (intervals, sweeps).
  */
-public abstract class Analysis<S extends Signal>
+public class Analysis<S extends Signal>
 {
 	public static class AnalysisType
 	{
@@ -89,8 +89,10 @@ public abstract class Analysis<S extends Signal>
 		this.sd = sd;
 		this.type = type;
 		this.extrapolateToRight = extrapolateToRight;
+        this.isAnalog = true;
 		sd.addAnalysis(this);
 	}
+    private boolean isAnalog;
 
 	/**
 	 * Free allocated resources before closing.
@@ -232,7 +234,8 @@ public abstract class Analysis<S extends Signal>
 	 * Method to tell whether this simulation data is analog or digital.
 	 * @return true if this simulation data is analog.
 	 */
-	public abstract boolean isAnalog();
+	public boolean isAnalog() { return isAnalog; }
+
 
 	/**
 	 * Method to quickly return the signal that corresponds to a given Network name.

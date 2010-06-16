@@ -30,7 +30,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
@@ -1392,7 +1392,7 @@ public class Panel extends JPanel
 		for(WaveSignal ws : waveSignals.values()) {
 			if (ws.getSignal() .isAnalog()) {
 				Signal<ScalarSample> as = (Signal<ScalarSample>)ws.getSignal();
-//				AnalogAnalysis an = as.getAnalysis();
+//				Analysis an = as.getAnalysis();
 				for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
                     pw.println();
 					Signal wave = as;
@@ -2191,7 +2191,7 @@ public class Panel extends JPanel
 			Signal<ScalarSample> as = (Signal<ScalarSample>)ws.getSignal();
             double[] result = new double[3];
             /*
-            AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
+            Analysis an = (Analysis)as.getAnalysis();
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
@@ -2226,7 +2226,7 @@ public class Panel extends JPanel
             double[] result = new double[3];
             double[] lastResult = new double[3];
             /*
-            AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
+            Analysis an = (Analysis)as.getAnalysis();
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;

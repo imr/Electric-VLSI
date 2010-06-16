@@ -27,9 +27,9 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
-
+import com.sun.electric.tool.simulation.ScalarSample;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -179,26 +179,21 @@ public class SpiceOut extends Input<Stimuli>
 			return;
 		}
 
-		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS, false);
 		sd.setCell(cell);
 
 		// convert lists to arrays
 		int numEvents = allNumbers.size();
-		an.buildCommonTime(numEvents);
+        double[] time = new double[numEvents];
 		for(int i=0; i<numEvents; i++)
-		{
-			List<Double> row = allNumbers.get(i);
-			an.setCommonTime(i, row.get(0).doubleValue());
-		}
-		for(int j=0; j<mostSignals; j++)
-		{
+			time[i] = allNumbers.get(i).get(0).doubleValue();
+        for(int j=0; j<mostSignals; j++) {
 			double[] values = new double[numEvents];
-			for(int i=0; i<numEvents; i++)
-			{
+			for(int i=0; i<numEvents; i++) {
 				List<Double> row = allNumbers.get(i);
 				values[i] = row.get(j+1).doubleValue();
 			}
-			an.addSignal("Signal " + (j+1), null, values);
+			ScalarSample.createSignal(an, "Signal " + (j+1), null, time, values);
 		}
 	}
 

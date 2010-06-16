@@ -61,7 +61,7 @@ import java.util.regex.Pattern;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
@@ -1051,7 +1051,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
  * EpicSignals don't store signalContex strings, EpicAnalysis don't have signalNames hash map.
  * Elements of Context are EpicTreeNodes. They partially implements interface javax.swing.tree.TreeNode .
  */
-public static class EpicAnalysis extends AnalogAnalysis {
+public static class EpicAnalysis extends Analysis {
     
     /** Separator in Epic signal names. */              static final char separator = '.';
     
@@ -1082,7 +1082,7 @@ public static class EpicAnalysis extends AnalogAnalysis {
      * @param sd Stimuli.
      */
     EpicAnalysis(Stimuli sd) {
-        super(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
+        super(sd, Analysis.ANALYSIS_TRANS, false);
         signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
     }
     
@@ -1219,8 +1219,9 @@ public static class EpicAnalysis extends AnalogAnalysis {
      * This methods overrides Analysis.nameSignal.
      * It doesn't use Analisys.signalNames to use less memory.
      */
-    @Override
-        public void nameSignal(Signal<ScalarSample> ws, String sigName) {}
+
+    //public void nameSignal(Signal<ScalarSample> ws, String sigName) {}
+    public boolean isAnalog() { return true; }
     
     /**
      * Finds signal index of Signal<ScalarSample> with given full name.

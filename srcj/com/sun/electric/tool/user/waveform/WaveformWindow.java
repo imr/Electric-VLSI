@@ -51,7 +51,7 @@ import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.ncc.NccCrossProbing;
 import com.sun.electric.tool.ncc.result.NccResult;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSample;
@@ -1830,11 +1830,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	private void resetSweeps()
 	{
 		sweepSignals = new ArrayList<SweepSignal>();
+        /*
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
-			if (!(an instanceof AnalogAnalysis)) continue;
-			AnalogAnalysis aa = (AnalogAnalysis)an;
+			if (!(an instanceof Analysis)) continue;
+			Analysis aa = (Analysis)an;
 			int maxNum = aa.getNumSweeps();
 			if (maxNum <= 1) continue;
 			for (int i = 0; i < maxNum; i++)
@@ -1843,6 +1844,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				new SweepSignal(obj, this, an);
 			}
 		}
+        */
 	}
 
 	public int addSweep(SweepSignal ss)
@@ -1866,14 +1868,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to check whether this particular sweep is included.
 	 * @return true if the sweep is included
 	 */
-	public boolean isSweepSignalIncluded(AnalogAnalysis an, int index)
+	public boolean isSweepSignalIncluded(Analysis an, int index)
 	{
+        /*
 		Object sweep = an.getSweep(index);
 		for (SweepSignal ss : sweepSignals)
 		{
 			if (ss.getObject() == sweep)
 				return ss.isIncluded();
 		}
+        */
 		return true; // in case no sweep, always true
 	}
 

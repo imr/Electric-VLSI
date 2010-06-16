@@ -27,8 +27,9 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.ScalarSample;
 
 import java.io.IOException;
 import java.net.URL;
@@ -75,7 +76,7 @@ public class PSpiceOut extends Input<Stimuli>
 		throws IOException
 	{
 		boolean first = true;
-		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
+		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS, false);
 		sd.setCell(cell);
 		List<String> signalNames = new ArrayList<String>();
 		List<Double> [] values = null;
@@ -158,17 +159,15 @@ public class PSpiceOut extends Input<Stimuli>
 			return;
 		}
 		int numEvents = values[0].size();
-		an.buildCommonTime(numEvents);
+        double[] time = new double[numEvents];
 		for(int i=0; i<numEvents; i++)
-		{
-			an.setCommonTime(i, values[0].get(i).doubleValue());
-		}
+            time[i] = values[0].get(i).doubleValue();
 		for(int j=1; j<numSignals; j++)
 		{
 			double[] doubleValues = new double[numEvents];
 			for(int i=0; i<numEvents; i++)
 				doubleValues[i] = values[j].get(i).doubleValue();
-			an.addSignal(signalNames.get(j), null, doubleValues);
+			ScalarSample.createSignal(an, signalNames.get(j), null, time, doubleValues);
 		}
 	}
 

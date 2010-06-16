@@ -85,10 +85,18 @@ public class ScalarSample implements Sample, Comparable {
             public boolean isDigital() { return false; }
             public boolean isAnalog() { return true; }
         };
-        if (an instanceof AnalogAnalysis)
+        if (an instanceof Analysis)
             an.addSignal(ret);
         return ret;
     }
+
+	public static Signal<ScalarSample> createSignal(Analysis an, String signalName, String signalContext, double[] time, double[] values) {
+        if (values.length==0) throw new RuntimeException("attempt to create an empty signal");
+        Signal<ScalarSample> as = ScalarSample.createSignal(an, signalName, signalContext);
+        for(int i=0; i<time.length; i++)
+            as.addSample(time[i], new ScalarSample(values[i]));
+		return as;
+	}
 }
 
 

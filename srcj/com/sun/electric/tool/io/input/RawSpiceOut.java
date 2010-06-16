@@ -27,11 +27,11 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Stimuli;
 
@@ -57,12 +57,12 @@ public class RawSpiceOut extends Input<Stimuli> {
 	/**
 	 * Class for handling swept signals.
 	 */
-	private static class SweepAnalysisLT extends AnalogAnalysis
+	private static class SweepAnalysisLT extends Analysis
 	{
 		double [][] commonTime; // sweep, signal
 		List<List<double[]>> theSweeps = new ArrayList<List<double[]>>(); // sweep, event, signal
 
-		private SweepAnalysisLT(Stimuli sd, AnalogAnalysis.AnalysisType type)
+		private SweepAnalysisLT(Stimuli sd, Analysis.AnalysisType type)
 		{
 			super(sd, type, false);
 		}
@@ -99,14 +99,15 @@ public class RawSpiceOut extends Input<Stimuli> {
 		int signalCount = -1;
 		String[] signalNames = null;
 		int rowCount = -1;
-		AnalogAnalysis.AnalysisType aType = AnalogAnalysis.ANALYSIS_TRANS;
+		Analysis.AnalysisType aType = Analysis.ANALYSIS_TRANS;
         boolean isLTSpice = false;
 		boolean first = true;
 
 		sd.setCell(cell);
-		AnalogAnalysis an = null;
+		Analysis an = null;
 
 		double[][] values = null;
+        double[] time = null;
 		for(;;) {
 			String line = getLineFromBinary();
 			if (line == null) break;
@@ -150,12 +151,12 @@ public class RawSpiceOut extends Input<Stimuli> {
 
                     // start reading a new analysis
                     if (restOfLine.startsWith("Transient Analysis")) {
-                        an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
+                        an = new Analysis(sd, Analysis.ANALYSIS_TRANS, false);
                     } else if (restOfLine.startsWith("DC ")) {
-                        an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_DC, false);
+                        an = new Analysis(sd, Analysis.ANALYSIS_DC, false);
                     } else if (restOfLine.startsWith("AC ")) {
-                        an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_AC, false);
-                        aType = AnalogAnalysis.ANALYSIS_AC;
+                        an = new Analysis(sd, Analysis.ANALYSIS_AC, false);
+                        aType = Analysis.ANALYSIS_AC;
                     } else {
                         System.out.println("ERROR: Unknown analysis: " + restOfLine);
                         return;
@@ -183,7 +184,7 @@ public class RawSpiceOut extends Input<Stimuli> {
 			if (keyWord.equals("No. Points"))
                 {
                     rowCount = TextUtils.atoi(restOfLine);
-                    an.buildCommonTime(rowCount);
+                    time = new double[rowCount];
                     continue;
                 }
 
@@ -219,7 +220,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                         pos = Math.min(spacePos, tabPos);
                         name = name.substring(0, pos);
                         if (i == 0) {
-                            if (!name.equals("time") && an.getAnalysisType() == AnalogAnalysis.ANALYSIS_TRANS)
+                            if (!name.equals("time") && an.getAnalysisType() == Analysis.ANALYSIS_TRANS)
                                 System.out.println("Warning: the first variable should be time, is '" + name + "'");
                         } else {
                             signalNames[i-1] = name;
@@ -258,7 +259,9 @@ public class RawSpiceOut extends Input<Stimuli> {
                                         System.out.println("Warning: event " + j + " has wrong event number: " + lineNumber);
                                 } else {
                                     double val = TextUtils.atof(field);
-                                    if (i == 0) an.setCommonTime(j, val); else
+                                    if (i == 0)
+                                        time[j] = val;
+                                    else
                                         values[i-1][j] = val;
                                 }
                                 i++;
@@ -267,7 +270,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                         }
                     }
                     for (int i = 0; i < signalCount; i++)
-                        an.addSignal(signalNames[i], null, values[i]);
+                        ScalarSample.createSignal(an, signalNames[i], null, time, values[i]);
                     continue;
                 }
                 if (keyWord.equals("Binary")) {
@@ -282,7 +285,7 @@ public class RawSpiceOut extends Input<Stimuli> {
 
                     // read the data
                     for(int j=0; j<rowCount; j++) {
-                        an.setCommonTime(j, dataInputStream.readDouble());
+                        time[j] = dataInputStream.readDouble();
                         for(int i=0; i<signalCount; i++)
                             values[i][j] = dataInputStream.readDouble();
                     }
@@ -346,12 +349,12 @@ public class RawSpiceOut extends Input<Stimuli> {
 
                         // read all of the data in the RAW file
                         values = new double[signalCount][rowCount];
-                        double [] timeValues = new double[rowCount];
+                        time = new double[rowCount];
                         for(int j=0; j<rowCount; j++)
                             {
-                                double time = getNextDouble();
-                                if (DEBUG) System.out.println("TIME AT "+j+" IS "+time);
-                                timeValues[j] = Math.abs(time);
+                                double t = getNextDouble();
+                                if (DEBUG) System.out.println("TIME AT "+j+" IS "+t);
+                                time[j] = Math.abs(t);
                                 for(int i=0; i<signalCount; i++)
                                     {
                                         double value = 0;
@@ -369,13 +372,14 @@ public class RawSpiceOut extends Input<Stimuli> {
                         int sweepCount = 0;
                         for(int j=1; j<=rowCount; j++)
                             {
-                                if (j == rowCount || timeValues[j] < timeValues[j-1])
+                                if (j == rowCount || time[j] < time[j-1])
                                     {
                                         int sl = j - sweepStart;
                                         sweepLengths.add(new Integer(sl));
                                         sweepStart = j;
                                         sweepCount++;
-                                        lan.addSweep(Integer.toString(sweepCount));
+                                        // XXX
+                                        //lan.addSweep(Integer.toString(sweepCount));
                                     }
                             }
                         if (DEBUG) System.out.println("FOUND " + sweepCount + " SWEEPS");
@@ -388,7 +392,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                                 int sweepLength = sweepLengths.get(s).intValue();
                                 lan.commonTime[s] = new double[sweepLength];
                                 for (int j = 0; j < sweepLength; j++)
-                                    lan.commonTime[s][j] = timeValues[j + offset];
+                                    lan.commonTime[s][j] = time[j + offset];
 
                                 List<double[]> allTheData = new ArrayList<double[]>();
                                 for(int i=0; i<signalCount; i++)
@@ -414,7 +418,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                                         name = name.substring(lastDotPos + 1);
                                     }
                                 double minTime = 0, maxTime = 0, minValues = 0, maxValues = 0;
-                                lan.addSignal(signalNames[i], context, minTime, maxTime, minValues, maxValues);
+                                ScalarSample.createSignal(lan, signalNames[i], context, time, values[i]);
                             }
                         return;
                     }

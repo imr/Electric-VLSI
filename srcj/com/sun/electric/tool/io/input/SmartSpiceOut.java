@@ -27,9 +27,9 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
-
+import com.sun.electric.tool.simulation.ScalarSample;
 import java.io.IOException;
 import java.net.URL;
 
@@ -71,8 +71,9 @@ public class SmartSpiceOut extends Input<Stimuli>
 		int signalCount = -1;
 		String[] signalNames = null;
 		int rowCount = -1;
-		AnalogAnalysis an = null;
+		Analysis an = null;
 		double[][] values = null;
+        double[] time = null;
 		for(;;)
 		{
 			String line = getLineFromBinary();
@@ -119,7 +120,7 @@ public class SmartSpiceOut extends Input<Stimuli>
 					System.out.println("Missing variable count in file");
 					return;
 				}
-				an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
+				an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS, false);
 				sd.setCell(cell);
 				signalNames = new String[signalCount];
 				values = new double[signalCount][rowCount];
@@ -167,7 +168,7 @@ public class SmartSpiceOut extends Input<Stimuli>
 					System.out.println("Missing point count in file");
 					return;
 				}
-				an.buildCommonTime(rowCount);
+                time = new double[rowCount];
 
 				// read the data
 				for(int j=0; j<rowCount; j++)
@@ -180,8 +181,7 @@ public class SmartSpiceOut extends Input<Stimuli>
 					}
 					int spacePos = line.indexOf(' ');
 					if (spacePos >= 0) line = line.substring(spacePos+1);
-					double time = TextUtils.atof(line.trim());
-					an.setCommonTime(j, time);
+                    time[j] = TextUtils.atof(line.trim());
 
 					for(int i=0; i<signalCount; i++)
 					{
@@ -204,15 +204,14 @@ public class SmartSpiceOut extends Input<Stimuli>
 					System.out.println("Missing point count in file");
 					return;
 				}
-				an.buildCommonTime(rowCount);
+                time = new double[rowCount];
 
 				// read the data
 				for(int j=0; j<rowCount; j++)
 				{
 					long lval = dataInputStream.readLong();
 					lval = Long.reverseBytes(lval);
-					double time = Double.longBitsToDouble(lval);
-					an.setCommonTime(j, time);
+                    time[j] = Double.longBitsToDouble(lval);
 					for(int i=0; i<signalCount; i++)
 					{
 						double value = 0;
@@ -241,7 +240,7 @@ public class SmartSpiceOut extends Input<Stimuli>
 				context = name.substring(0, lastDotPos);
 				name = name.substring(lastDotPos + 1);
 			}
-			an.addSignal(signalNames[i], context, values[i]);
+			ScalarSample.createSignal(an, signalNames[i], context, time, values[i]);
 		}
 	}
 }
