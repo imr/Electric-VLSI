@@ -754,14 +754,14 @@ public class HSpiceOut extends Input<Stimuli>
 					if (isComplex) {
 						float realPart = getHSpiceFloat(false);
 						float imagPart = getHSpiceFloat(false);
-                        /*
-                        signals[k].addSample(time, new ComplexSample(realPart, imagPart));
-                        */
+                        //signals[k].addSample(time, new ComplexSample(realPart, imagPart));
+                        double val = Math.hypot(imagPart, realPart);
                         if (signals[k].getSample(time)==null)
-                            signals[k].addSample(time, new ScalarSample(realPart));
+                            signals[k].addSample(time, new ScalarSample(val));
 					} else {
+                        double val = getHSpiceFloat(false);
                         if (signals[k].getSample(time)==null)
-                            signals[k].addSample(time, new ScalarSample(getHSpiceFloat(false)));
+                            signals[k].addSample(time, new ScalarSample(val));
 					}
 					if (eofReached) {
 						System.out.println("EOF in the middle of the data (at " + k + " out of " + numSignals +")");

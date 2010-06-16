@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+BUG: (6/15/10, AM) Various complex-valued simulation data were being
+     plotted incorrectly.
+FIX: Remember to do a Math.hypot() to compute the amplitude.
+
 IMP: (6/15/10, FS) Adding steal tracker debug to concurrent package
      Add additional test cases for parallel infrastructure  
 
