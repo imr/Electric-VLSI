@@ -47,7 +47,7 @@ import com.sun.electric.tool.project.DeleteCellJob;
 import com.sun.electric.tool.project.HistoryDialog;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.project.UpdateJob;
-import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.CellChangeJobs;
@@ -890,7 +890,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				{
 					Signal sSig = (Signal)getCurrentlySelectedObject(i);
 					String sigName = sSig.getFullName();
-					if (sSig instanceof AnalogSignal)
+					if (sSig .isAnalog())
 					{
 						if (sSig.getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
 							if (sSig.getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
@@ -974,9 +974,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 //			{
 //				Signal sSig = (Signal)getCurrentlySelectedObject(i);
 //				String sigName = sSig.getFullName();
-//				if (sSig instanceof AnalogSignal)
+//				if (sSig .isAnalog())
 //				{
-//					AnalogSignal as = (AnalogSignal)sSig;
+//					Signal<ScalarSample> as = (Signal<ScalarSample>)sSig;
 //					if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
 //						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
 //							if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else

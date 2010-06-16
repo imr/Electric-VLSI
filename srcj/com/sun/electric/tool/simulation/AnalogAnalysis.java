@@ -31,10 +31,10 @@ import java.io.*;
 /**
  * Analysis which contains analog signals
  */
-public class AnalogAnalysis extends Analysis<AnalogSignal> {
+public class AnalogAnalysis extends Analysis<Signal<ScalarSample>> {
 	/** all sweeps in this Analysis */							private List<Object> sweeps;
 	/** the common time array (if there is common time) */		private double [] commonTime;
-	/** the common time array (if there is common time) */		private HashMap<AnalogSignal,Signal[]> waveformCache = new HashMap<AnalogSignal,Signal[]>();
+	/** the common time array (if there is common time) */		private HashMap<Signal<ScalarSample>,Signal[]> waveformCache = new HashMap<Signal<ScalarSample>,Signal[]>();
 
 	/**
 	 * Constructor for a collection of analog simulation data.
@@ -124,26 +124,26 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	public double [] getCommonTimeArray() { return commonTime; }
 
 	/**
-	 * Create new AnalogSignal with specified name.
+	 * Create new Signal<ScalarSample> with specified name.
 	 * Signal obtains waveform constructed from common time and specified values.
 	 * @param signalName signal name.
 	 * @param signalContext a common prefix for the signal name.
 	 * @param values specified values
-	 * @return new AnalogSignal of this AnalogAnalysis
+	 * @return new Signal<ScalarSample> of this AnalogAnalysis
 	 */
-	public AnalogSignal addSignal(String signalName, String signalContext, double[] values)
+	public Signal<ScalarSample> addSignal(String signalName, String signalContext, double[] values)
 	{
         if (values.length==0) throw new RuntimeException("attempt to create an empty signal");
-        AnalogSignal as = new AnalogSignal(this, signalName, signalContext);
+        Signal<ScalarSample> as = ScalarSample.createSignal(this, signalName, signalContext);
         for(int i=0; i<commonTime.length; i++)
             as.addSample(commonTime[i], new ScalarSample(values[i]));
         waveformCache.put(as, new Signal[] { as });
 		return as;
 	}
 
-    public AnalogSignal addSignal(String signalName, String signalContext, double minTime, double maxTime, 
+    public Signal<ScalarSample> addSignal(String signalName, String signalContext, double minTime, double maxTime, 
                                   double minValue, double maxValue) {
-        AnalogSignal as = new AnalogSignal(this, signalName, signalContext);
+        Signal<ScalarSample> as = ScalarSample.createSignal(this, signalName, signalContext);
         waveformCache.put(as, new Signal[] { as });
 		return as;
     }
@@ -154,7 +154,7 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	 * @param sweep sweep index
 	 * @return the waveform of this signal in specified sweep.
 	 */
-	public Signal getWaveform(AnalogSignal signal, int sweep)
+	public Signal getWaveform(Signal<ScalarSample> signal, int sweep)
 	{
 		Signal[] waveforms = waveformCache.get(signal);
 		if (waveforms == null)
@@ -166,7 +166,7 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 		return waveforms[sweep];
 	}
 
-	protected Signal[] loadWaveforms(AnalogSignal signal)
+	protected Signal[] loadWaveforms(Signal<ScalarSample> signal)
 	{
 		throw new UnsupportedOperationException();
 	}

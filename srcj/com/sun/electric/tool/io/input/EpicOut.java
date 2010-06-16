@@ -29,7 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.UserInterfaceExec;
-import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSignal;
@@ -63,7 +63,7 @@ import java.util.regex.Pattern;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
-import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -238,7 +238,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         an.setVoltageResolution(stdOut.readDouble());
         an.setCurrentResolution(stdOut.readDouble());
         an.setMaxTime(stdOut.readDouble());
-        List<AnalogSignal> signals = an.getSignals();
+        List<Signal<ScalarSample>> signals = an.getSignals();
         assert numSignals == signals.size();
         an.waveStarts = new int[numSignals];
         an.waveLengths = new int[numSignals];
@@ -887,13 +887,13 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         /** Packed waveform. */                 byte[] waveform = new byte[512];
         /** Count of bytes used in waveform. */ int len;
 
-        ScalarSignal signal;
+        Signal<ScalarSample> signal;
         int sigNum;
         int count = 0;
 
         public EpicReaderSignal(int sigNum, String name, String context) {
             this.sigNum = sigNum;
-            this.signal = new AnalogSignal(epicAnalysis, name, context);
+            this.signal = ScalarSample.createSignal(epicAnalysis, name, context);
         }
 
         public Signal getBWaveform() {
@@ -1072,7 +1072,7 @@ public static class EpicAnalysis extends AnalogAnalysis {
     /** Current resolution of integer current unit. */  private double currentResolution;
     /** Simulation time. */                             private double maxTime;
     
-    /** Unmodifieable view of signals list. */          private List<AnalogSignal> signalsUnmodifiable;
+    /** Unmodifieable view of signals list. */          private List<Signal<ScalarSample>> signalsUnmodifiable;
     /** a set of voltage signals. */                    private BitSet voltageSignals = new BitSet(); 
     /** Top-most context. */                            private Context rootContext;
     /** Hash of all contexts. */                        private Context[] contextHash = new Context[1];
@@ -1152,8 +1152,8 @@ public static class EpicAnalysis extends AnalogAnalysis {
 	 * Returns null if none can be found.
 	 */
     @Override
-        public AnalogSignal findSignalForNetworkQuickly(String netName) {
-        AnalogSignal old = super.findSignalForNetworkQuickly(netName);
+        public Signal<ScalarSample> findSignalForNetworkQuickly(String netName) {
+        Signal<ScalarSample> old = super.findSignalForNetworkQuickly(netName);
         
         String lookupName = TextUtils.canonicString(netName);
         int index = searchName(lookupName);
@@ -1161,13 +1161,13 @@ public static class EpicAnalysis extends AnalogAnalysis {
             assert old == null;
             return null;
         }
-        AnalogSignal sig = signalsUnmodifiable.get(index);
+        Signal<ScalarSample> sig = signalsUnmodifiable.get(index);
         return sig;
     }
 
-    public List<AnalogSignal> getSignalsFromExtractedNet(Signal ws) {
-        ArrayList<AnalogSignal> ret = new ArrayList<AnalogSignal>();
-        ret.add((AnalogSignal)ws);
+    public List<Signal<ScalarSample>> getSignalsFromExtractedNet(Signal ws) {
+        ArrayList<Signal<ScalarSample>> ret = new ArrayList<Signal<ScalarSample>>();
+        ret.add((Signal<ScalarSample>)ws);
         return ret;
     }
 
@@ -1190,7 +1190,7 @@ public static class EpicAnalysis extends AnalogAnalysis {
      * @param treePath specified TreePath.
      * @return EpicSignal or null.
      */
-    public static AnalogSignal getSignal(TreePath treePath) {
+    public static Signal<ScalarSample> getSignal(TreePath treePath) {
         Object[] path = treePath.getPath();
         int i = 0;
         while (i < path.length && !(path[i] instanceof EpicRootTreeNode))
@@ -1203,7 +1203,7 @@ public static class EpicAnalysis extends AnalogAnalysis {
             EpicTreeNode tn = (EpicTreeNode)path[i];
             index += tn.nodeOffset;
             if (tn.isLeaf())
-                return (AnalogSignal)an.signalsUnmodifiable.get(index);
+                return (Signal<ScalarSample>)an.signalsUnmodifiable.get(index);
         }
         return null;
     }
@@ -1214,19 +1214,19 @@ public static class EpicAnalysis extends AnalogAnalysis {
 	 * @return a List of signals.
 	 */
     @Override
-        public List<AnalogSignal> getSignals() { return signalsUnmodifiable; }
+        public List<Signal<ScalarSample>> getSignals() { return signalsUnmodifiable; }
 
     /**
      * This methods overrides Analysis.nameSignal.
      * It doesn't use Analisys.signalNames to use less memory.
      */
     @Override
-        public void nameSignal(AnalogSignal ws, String sigName) {}
+        public void nameSignal(Signal<ScalarSample> ws, String sigName) {}
     
     /**
-     * Finds signal index of AnalogSignal with given full name.
+     * Finds signal index of Signal<ScalarSample> with given full name.
      * @param name full name.
-     * @return signal index of AnalogSignal in unmodifiable list of signals or -1.
+     * @return signal index of Signal<ScalarSample> in unmodifiable list of signals or -1.
      */
     int searchName(String name) {
         Context context = rootContext;
@@ -1276,8 +1276,8 @@ public static class EpicAnalysis extends AnalogAnalysis {
     }
     
     /**
-     * Method to get Fake context of AnalogSignal.
-     * @param byte physical type of AnalogSignal.
+     * Method to get Fake context of Signal<ScalarSample>.
+     * @param byte physical type of Signal<ScalarSample>.
      * @return Fake context.
      */ 
     static Context getContext(byte type) {
@@ -1347,7 +1347,7 @@ public static class EpicAnalysis extends AnalogAnalysis {
     HashMap<Integer, Signal> loadWaveformCache =
         new HashMap<Integer, Signal>();
 
-    protected Signal[] loadWaveforms(AnalogSignal signal) { return new Signal[] { signal }; }
+    protected Signal[] loadWaveforms(Signal<ScalarSample> signal) { return new Signal[] { signal }; }
 
     
 
@@ -1566,7 +1566,7 @@ public static class EpicAnalysis extends AnalogAnalysis {
         
         /**
          * Searches an EpicTreeNode in this context where signal with specified flat offset lives.
-         * @param offset flat offset of AnalogSignal.
+         * @param offset flat offset of Signal<ScalarSample>.
          * @return index of EpicTreeNode in this Context or -1.
          */
         private int localSearch(int offset) {

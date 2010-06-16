@@ -52,7 +52,7 @@ import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.ncc.NccCrossProbing;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
-import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
@@ -2384,10 +2384,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				wp = makeNewPanel();
 				boolean isAnalog = false;
-				if (sSig instanceof AnalogSignal) isAnalog = true;
+				if (sSig .isAnalog()) isAnalog = true;
 				if (isAnalog)
 				{
-					AnalogSignal as = (AnalogSignal)sSig;
+					Signal<ScalarSample> as = (Signal<ScalarSample>)sSig;
 					double lowValue = as.getMinValue().getValue();
 					double highValue = as.getMaxValue().getValue();
 					double range = highValue - lowValue;
@@ -3570,9 +3570,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				for(WaveSignal ws : wp.getSignals())
 				{
 					Signal sig = ws.getSignal();
-					if (sig instanceof AnalogSignal)
+					if (sig .isAnalog())
 					{
-						AnalogSignal as = (AnalogSignal)sig;
+						Signal<ScalarSample> as = (Signal<ScalarSample>)sig;
                         addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
 					} else
 					{
@@ -3609,7 +3609,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					entries[i] = "";
 					Signal sig = dumpSignals.get(i-1);
-					if (sig instanceof AnalogSignal)
+					if (sig .isAnalog())
 					{
 						Signal waveform = dumpWaveforms.get(i - 1);
 						if (j < waveform.getExactView().getNumEvents())
@@ -4078,10 +4078,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void addSignal(Signal sig)
 	{
-		if (sig instanceof AnalogSignal)
+		if (sig .isAnalog())
 		{
 			// add analog signal on top of current panel
-			AnalogSignal as = (AnalogSignal)sig;
+			Signal<ScalarSample> as = (Signal<ScalarSample>)sig;
 			boolean found = false;
 			for(Panel wp : wavePanels)
 			{
@@ -4747,7 +4747,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (panel != null)
 				{
 					// overlay this signal onto an existing panel
-					AnalogSignal as = (AnalogSignal)sSig;
+					Signal<ScalarSample> as = (Signal<ScalarSample>)sSig;
 					if (panel.wrongPanelType(as))
 					{
 						dtde.dropComplete(true);

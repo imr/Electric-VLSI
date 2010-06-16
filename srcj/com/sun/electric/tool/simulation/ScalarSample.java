@@ -79,6 +79,16 @@ public class ScalarSample implements Sample, Comparable {
         }
     };
 
+    public static Signal<ScalarSample> createSignal(Analysis an, String signalName, String signalContext) {
+        Signal<ScalarSample> ret =
+            new BTreeSignal<ScalarSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer)) {
+            public boolean isDigital() { return false; }
+            public boolean isAnalog() { return true; }
+        };
+        if (an instanceof AnalogAnalysis)
+            an.addSignal(ret);
+        return ret;
+    }
 }
 
 

@@ -28,7 +28,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
-import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
@@ -252,7 +252,7 @@ public class HSpiceOut extends Input<Stimuli>
 		an.buildCommonTime(argMeas.size());
 		for (int i = 0; i < argMeas.size(); i++)
 			an.setCommonTime(i, argMeas.get(i).doubleValue());
-		List<AnalogSignal> measData = new ArrayList<AnalogSignal>();
+		List<Signal<ScalarSample>> measData = new ArrayList<Signal<ScalarSample>>();
 		for(String mName : measurementNames)
 		{
 			List<Double> mData = measurementData.get(mName);
@@ -261,7 +261,7 @@ public class HSpiceOut extends Input<Stimuli>
 
 			// special case with the "alter#" name...remove the "#"
 			if (mName.equals("alter#")) mName = "alter";
-			AnalogSignal as = an.addSignal(mName, null, values);
+			Signal<ScalarSample> as = an.addSignal(mName, null, values);
 			measData.add(as);
 		}
 
@@ -708,7 +708,7 @@ public class HSpiceOut extends Input<Stimuli>
 				constantPrefix = null;
 		}
 
-        AnalogSignal[] signals = new AnalogSignal[numSignals];
+        Signal<ScalarSample>[] signals = new Signal[numSignals];
 		for(int k=0; k<numSignals; k++) {
 			String name = signalNames[k];
 			if (constantPrefix != null &&
@@ -721,7 +721,7 @@ public class HSpiceOut extends Input<Stimuli>
 				context = name.substring(0, lastDotPos);
 				name = name.substring(lastDotPos+1);
 			}
-			signals[k] = new AnalogSignal(an, name, context);
+			signals[k] = ScalarSample.createSignal(an, name, context);
 		}
 
 		// setup the simulation information
@@ -751,17 +751,18 @@ public class HSpiceOut extends Input<Stimuli>
 				if (eofReached) break;
 				// get a row of numbers
 				for(int k=0; k<numSignals; k++) {
+                    MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[k];
 					if (isComplex) {
 						float realPart = getHSpiceFloat(false);
 						float imagPart = getHSpiceFloat(false);
                         //signals[k].addSample(time, new ComplexSample(realPart, imagPart));
                         double val = Math.hypot(imagPart, realPart);
-                        if (signals[k].getSample(time)==null)
-                            signals[k].addSample(time, new ScalarSample(val));
+                        if (signal.getSample(time)==null)
+                            signal.addSample(time, new ScalarSample(val));
 					} else {
                         double val = getHSpiceFloat(false);
-                        if (signals[k].getSample(time)==null)
-                            signals[k].addSample(time, new ScalarSample(val));
+                        if (signal.getSample(time)==null)
+                            signal.addSample(time, new ScalarSample(val));
 					}
 					if (eofReached) {
 						System.out.println("EOF in the middle of the data (at " + k + " out of " + numSignals +")");

@@ -31,7 +31,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
-import com.sun.electric.tool.simulation.AnalogSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSample;
@@ -777,9 +777,9 @@ public class Panel extends JPanel
 	 */
 	public void fitToSignal(Signal sSig)
 	{
-		if (sSig instanceof AnalogSignal)
+		if (sSig .isAnalog())
 		{
-			AnalogSignal as = (AnalogSignal)sSig;
+			Signal<ScalarSample> as = (Signal<ScalarSample>)sSig;
 			double lowValue = as.getMinValue()==null ? 0 : as.getMinValue().getValue();
 			double highValue = as.getMaxValue()==null ? 1 : as.getMaxValue().getValue();
 			double range = highValue - lowValue;
@@ -1390,8 +1390,8 @@ public class Panel extends JPanel
 
 	void dumpDataCSV(PrintWriter pw) {
 		for(WaveSignal ws : waveSignals.values()) {
-			if (ws.getSignal() instanceof AnalogSignal) {
-				AnalogSignal as = (AnalogSignal)ws.getSignal();
+			if (ws.getSignal() .isAnalog()) {
+				Signal<ScalarSample> as = (Signal<ScalarSample>)ws.getSignal();
 //				AnalogAnalysis an = as.getAnalysis();
 				for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
                     pw.println();
@@ -1415,8 +1415,8 @@ public class Panel extends JPanel
         int linetype = 1;
 		for(WaveSignal ws : waveSignals.values()) {
             boolean used = false;
-			if (ws.getSignal() instanceof AnalogSignal) {
-				AnalogSignal as = (AnalogSignal)ws.getSignal();
+			if (ws.getSignal() .isAnalog()) {
+				Signal<ScalarSample> as = (Signal<ScalarSample>)ws.getSignal();
 				for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
                     if (!first) pw.print(sep);
                     pw.print(" \'-\' with lines ");
@@ -1435,8 +1435,8 @@ public class Panel extends JPanel
             if (used) linetype++;
         }
 		for(WaveSignal ws : waveSignals.values()) {
-			if (ws.getSignal() instanceof AnalogSignal) {
-				AnalogSignal as = (AnalogSignal)ws.getSignal();
+			if (ws.getSignal() .isAnalog()) {
+				Signal<ScalarSample> as = (Signal<ScalarSample>)ws.getSignal();
 				for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
                     pw.println();
 					Signal wave = as;//as.getWaveform(s);
@@ -2185,10 +2185,10 @@ public class Panel extends JPanel
 		// snap to any waveform points
 		for(WaveSignal ws : waveSignals.values())
 		{
-			if (!(ws.getSignal() instanceof AnalogSignal)) continue;
+			if (!(ws.getSignal() .isAnalog())) continue;
 
 			// draw analog trace
-			AnalogSignal as = (AnalogSignal)ws.getSignal();
+			Signal<ScalarSample> as = (Signal<ScalarSample>)ws.getSignal();
             double[] result = new double[3];
             /*
             AnalogAnalysis an = (AnalogAnalysis)as.getAnalysis();
@@ -2219,10 +2219,10 @@ public class Panel extends JPanel
 		Point2D snap = new Point2D.Double(pt.x, pt.y);
 		for(WaveSignal ws : waveSignals.values())
 		{
-			if (!(ws.getSignal() instanceof AnalogSignal)) continue;
+			if (!(ws.getSignal() .isAnalog())) continue;
 
 			// draw analog trace
-			AnalogSignal as = (AnalogSignal)ws.getSignal();
+			Signal<ScalarSample> as = (Signal<ScalarSample>)ws.getSignal();
             double[] result = new double[3];
             double[] lastResult = new double[3];
             /*

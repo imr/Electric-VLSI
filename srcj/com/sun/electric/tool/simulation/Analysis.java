@@ -162,7 +162,7 @@ public abstract class Analysis<S extends Signal>
 	 * Method to add a new signal to this Simulation Data object.
 	 * Signals can be either digital or analog.
 	 * @param ws the signal to add.
-	 * Instead of a "Signal", use either Signal<DigitalSample> or AnalogSignal.
+	 * Instead of a "Signal", use either Signal<DigitalSample> or Signal<ScalarSample>.
 	 */
 	public void addSignal(S ws) {
 		signals.add(ws);
