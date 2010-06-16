@@ -21,7 +21,9 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent.debug;
+package com.sun.electric.tool.util.concurrent.datastructures;
+
+import com.sun.electric.tool.util.concurrent.debug.IDebug;
 
 /**
  * @author fs239085
