@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/15/10, FS) Adding steal tracker debug to concurrent package
+     Add additional test cases for parallel infrastructure  
+
 IMP: (6/14/10, FS) Adding common metrics for all placement tools and calculate 
      Bounding Box and Minimum Steiner Tree after a placement (only debug mode) 
 
