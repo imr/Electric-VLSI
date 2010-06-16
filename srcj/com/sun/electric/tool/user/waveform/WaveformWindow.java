@@ -4966,20 +4966,26 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					start = tabPos+1;
 					if (openPos >= 0) tabPos = openPos;
 					String analysisName = signalName.substring(1, tabPos);
+                    /*
 					Analysis.AnalysisType analysisType = Analysis.AnalysisType.findAnalysisType(analysisName);
 					if (analysisType == null) continue;
 					an = sd.findAnalysis(analysisType);
 					if (an == null) continue;
+                    */
 					if (openPos >= 0)
 					{
 						int closePos = signalName.indexOf(')');
 						String sigName = signalName.substring(openPos+1, closePos);
+                        /*
 						xAxisSignal = an.findSignalForNetwork(sigName);
+                        */
 						wantUnlockedTime = true;
 					}
 				}
 				if (onlyType == null) onlyType = an.getAnalysisType();
+                /*
 				if (an.getAnalysisType() != onlyType) wantUnlockedTime = true;
+                */
 				Panel wp = null;
 				boolean firstSignal = true;
 
