@@ -59,23 +59,23 @@ public class PReduceJob_T {
 
 	@Test
 	public void testPerformancePReduce() throws PoolExistsException, InterruptedException {
-		
+
 		int stepW = 100000000;
 		double step = 1.0 / stepW;
 
 		ThreadPool pool = ThreadPool.initialize(1);
 
-		long start = System.currentTimeMillis(); 
+		long start = System.currentTimeMillis();
 		PReduceJob<Double> pReduceJobSer = new PReduceJob<Double>(new BlockedRange1D(0, stepW, 128),
 				new PITask(step));
 
 		pReduceJobSer.execute();
-		
+
 		long endSer = System.currentTimeMillis() - start;
 
 		pool.shutdown();
 		pool = ThreadPool.initialize(8);
-		
+
 		System.out.println(ThreadPool.getThreadPool().getPoolSize());
 
 		start = System.currentTimeMillis();
@@ -90,7 +90,7 @@ public class PReduceJob_T {
 		Assert.assertEquals(pReduceJobPar.getResult(), pReduceJobSer.getResult(), 0.000000001);
 		System.out.println("Ser:     " + endSer);
 		System.out.println("Par:     " + endPar);
-		System.out.println("Speedup: " + (double)endSer/(double)endPar); 
+		System.out.println("Speedup: " + (double) endSer / (double) endPar);
 
 	}
 
@@ -106,7 +106,11 @@ public class PReduceJob_T {
 		@Override
 		public synchronized Double reduce(PReduceTask<Double> other) {
 			PITask task = (PITask) other;
-			this.pi += task.pi;
+
+			if (!this.equals(task)) {
+				this.pi += task.pi;
+			}
+
 			return this.pi * step;
 		}
 

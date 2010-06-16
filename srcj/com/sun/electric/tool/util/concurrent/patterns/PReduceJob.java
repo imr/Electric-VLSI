@@ -75,9 +75,8 @@ public class PReduceJob<T> extends PForJob {
 
 			PReduceJob<T> rjob = (PReduceJob<T>) job;
 
-			if (!rjob.mainTask.compareAndSet(null, this)) {
-				rjob.result = rjob.mainTask.get().reduce(this);
-			}
+			rjob.mainTask.compareAndSet(null, this);
+			rjob.result = rjob.mainTask.get().reduce(this);
 
 			super.after();
 		}

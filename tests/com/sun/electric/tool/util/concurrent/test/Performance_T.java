@@ -63,15 +63,22 @@ public class Performance_T {
 
 		long start = System.currentTimeMillis();
 
-		for (int i = 0; i < size; i++) {
-			sersum += data[i];
-		}
+		sersum = calcSum();
 
 		long ser = System.currentTimeMillis() - start;
 
-		ThreadPool.initialize(new WorkStealingStructure<PTask>(1, PTask.class), 1);
+		start = System.currentTimeMillis();
+
+		int sersum2 = 0;
+		for (int i = 0; i < size; i++) {
+			sersum2 += data[i];
+		}
+
+		long ser2 = System.currentTimeMillis() - start;
 
 		System.out.println("parallel ...");
+
+		ThreadPool.initialize(new WorkStealingStructure<PTask>(8, PTask.class), 8);
 
 		start = System.currentTimeMillis();
 
@@ -80,14 +87,23 @@ public class Performance_T {
 
 		long par = System.currentTimeMillis() - start;
 
-		System.out.println("sersum " + sersum + " time: " + ser);
-		System.out.println("parsum " + parsum + " time: " + par);
-		System.out.println("speedup: " + ((double)ser/(double)par));
-
 		ThreadPool.getThreadPool().shutdown();
 
 		Assert.assertEquals(sersum, parsum);
 
+		System.out.println("sersum " + sersum + " time: " + ser);
+		System.out.println("sersum2 " + sersum2 + " time: " + ser2);
+		System.out.println("parsum " + parsum + " time: " + par);
+		System.out.println("speedup: " + ((double) ser / (double) par));
+
+	}
+
+	private int calcSum() {
+		int sum = 0;
+		for (int i = 0; i < size; i++) {
+			sum += data[i];
+		}
+		return sum;
 	}
 
 	public class SumTask extends PReduceTask<Integer> {
@@ -103,9 +119,12 @@ public class Performance_T {
 		 * PReduceTask)
 		 */
 		@Override
-		public Integer reduce(PReduceTask other) {
+		public synchronized Integer reduce(PReduceTask<Integer> other) {
 			SumTask tmpOther = (SumTask) other;
-			localSum += tmpOther.localSum;
+			if (!this.equals(tmpOther)) {
+				localSum += tmpOther.localSum;
+			}
+
 			return localSum;
 		}
 
