@@ -46,6 +46,7 @@ import com.sun.electric.tool.io.output.GenerateVHDL;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.als.ALS;
+import com.sun.electric.tool.simulation.irsim.*;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;

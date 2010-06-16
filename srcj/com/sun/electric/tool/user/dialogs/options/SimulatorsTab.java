@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.simulation.IRSIM;
+import com.sun.electric.tool.simulation.irsim.IRSIM;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.Frame;
