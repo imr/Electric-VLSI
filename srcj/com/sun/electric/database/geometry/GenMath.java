@@ -1927,5 +1927,59 @@ public class GenMath
         (1 << 29) - 3,
         (1 << 30) - 35,
         (1 << 31) - 1
-    };    
-}
+    };
+ 
+    /**
+     * Calculate the variance of a given, equal distributed array of doubles.
+     * @param values
+     * @param mean
+     * @return variance
+     */
+    public static double varianceEqualDistribution(double[] values, double mean) {
+    	double var = 0.0;
+    	
+    	for(int i = 0; i < values.length; i++) {
+    		var += Math.pow((double) values[i] - mean, 2.0);
+    	}
+    	
+    	return var / (double)values.length;
+    }
+    
+    /**
+     * Calculate the variance of a given, equal distributed array of doubles.
+     * @param values
+     * @param mean
+     * @return variance
+     */
+    public static double varianceEqualDistribution(double[] values) {
+    	double mean = GenMath.meanEqualDistribution(values);
+    	return varianceEqualDistribution(values, mean);
+    }
+    
+    /**
+     * Calculate the mean of a given, equal distributed array of doubles.
+     * @param values
+     * @param mean
+     * @return variance
+     */
+    public static double meanEqualDistribution(double[] values) {
+    	double mean = 0.0;
+    	
+    	for(int i = 0; i < values.length; i++) {
+    		mean += values[i];
+    	}
+    	
+    	return mean / (double)values.length;
+    }
+    
+    /**
+     * Calculate the standard deviation of a given, equal distributed array of doubles.
+     * @param values
+     * @param mean
+     * @return variance
+     */
+    public static double standardDeviation(double[] values) {
+    	double var = GenMath.varianceEqualDistribution(values);
+    	return Math.sqrt(var);
+    }
+ }

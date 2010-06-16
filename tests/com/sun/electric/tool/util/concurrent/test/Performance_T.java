@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
+import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
@@ -45,8 +46,8 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
  */
 public class Performance_T {
 
-	private int[] data;
-	private static final int size = 500000000;
+	private double[] data;
+	private static final int size = 1000000000 / 2;
 
 	@Test
 	public void testSum() throws InterruptedException, PoolExistsException {
@@ -54,10 +55,10 @@ public class Performance_T {
 		System.out.println("init ...");
 
 		Random rand = new Random(System.currentTimeMillis());
-		data = new int[size];
+		data = new double[size];
 		Integer sersum = 0;
 		for (int i = 0; i < size; i++) {
-			data[i] = rand.nextInt();
+			data[i] = rand.nextDouble();
 		}
 
 		System.out.println("serial ...");
@@ -79,12 +80,11 @@ public class Performance_T {
 
 		System.out.println("parallel ...");
 
-		ThreadPool.initialize(new WorkStealingStructure<PTask>(8, PTask.class), 8);
+		ThreadPool.initialize(new WorkStealingStructure<PTask>(8, PTask.class), 8, true);
 
 		start = System.currentTimeMillis();
 
-		Integer parsum = Parallel.Reduce(new BlockedRange1D(0, size, size
-				/ ThreadPool.getThreadPool().getPoolSize()), new SumTask());
+		Integer parsum = Parallel.Reduce(new BlockedRange1D(0, size, size / 8), new SumTask());
 
 		long par = System.currentTimeMillis() - start;
 
@@ -96,6 +96,8 @@ public class Performance_T {
 		System.out.println("sersum2 " + sersum2 + " time: " + ser2);
 		System.out.println("parsum " + parsum + " time: " + par);
 		System.out.println("speedup: " + ((double) ser / (double) par));
+		
+		StealTracker.getInstance().printStatistics();
 
 	}
 	

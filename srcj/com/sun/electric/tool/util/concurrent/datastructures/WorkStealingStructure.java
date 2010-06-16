@@ -33,6 +33,7 @@ import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
  * This data structure is a wrapper for work stealing. Each worker has a own
@@ -175,7 +176,7 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 				int foreigner = randomizer.getRandomizer().nextInt(dataQueues.size());
 				result = dataQueues.get(Long.valueOf(foreigner)).getFromTop();
 			}
-			if (result != null && Job.getDebug()) stealTracker.countSteal();
+			if (result != null && ThreadPool.getThreadPool().getDebug()) stealTracker.countSteal();
 		}
 
 		return result;

@@ -26,6 +26,7 @@ package com.sun.electric.tool.util.concurrent.debug;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.runtime.PoolWorkerStrategy;
@@ -71,24 +72,27 @@ public class LoadBalancing implements IDebug {
 		}
 
 		double mean = (double) sum / (double) workersLocalCopy.size();
-		double var = 0.0;
+		double varField[] = new double[workersLocalCopy.size()];
 
+		int i = 0;
 		for (Iterator<PoolWorkerStrategy> it = workersLocalCopy.iterator(); it.hasNext();) {
 			PoolWorkerStrategy worker = it.next();
 			System.out.print(worker);
 			System.out.print(" - ");
-			System.out.println(TextUtils.getPercentageString((double) worker.getExecutedCounter() / (double) sum));
-			var += Math.pow((double) worker.getExecutedCounter() - mean, 2);
+			varField[i] = (double) worker.getExecutedCounter() / (double) sum;
+			System.out.println(TextUtils.getPercentageString(varField[i]));
+			i++;
 		}
 		
-		var /= (double)workersLocalCopy.size();
+		//double var = GenMath.varianceEqualDistribution(varField);
+		double dev = GenMath.standardDeviation(varField);
 
 		System.out.print("mean value");
 		System.out.print(" - ");
 		System.out.println(TextUtils.getPercentageString(mean / (double) sum));
 
-		System.out.print("variance");
+		System.out.print("deviation");
 		System.out.print(" - ");
-		System.out.println(var);
+		System.out.println(TextUtils.getPercentageString(dev));
 	}
 }

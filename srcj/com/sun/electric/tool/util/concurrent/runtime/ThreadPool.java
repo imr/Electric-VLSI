@@ -375,4 +375,8 @@ public class ThreadPool {
 	public ThreadPoolState getState() {
 		return state;
 	}
+	
+	public boolean getDebug() {
+		return this.debug;
+	}
 }
