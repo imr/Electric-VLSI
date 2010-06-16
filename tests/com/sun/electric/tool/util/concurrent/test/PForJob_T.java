@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent.test;
 
+import java.io.IOException;
 import java.util.Random;
 
 import junit.framework.Assert;
@@ -117,8 +118,7 @@ public class PForJob_T {
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
 				Assert.assertEquals(matCPar[i][j], matCSer[i][j]);
-				if (matCPar[i][j] == 0)
-					nullChecker++;
+				if (matCPar[i][j] == 0) nullChecker++;
 			}
 		}
 
@@ -171,7 +171,7 @@ public class PForJob_T {
 		System.out.println(endSer);
 		System.out.println((double) endSer / (double) endPar);
 	}
-	
+
 	@Test
 	public void testMatrixMultiplyPerformanceWorkStealing() throws PoolExistsException, InterruptedException {
 		Random rand = new Random(System.currentTimeMillis());
@@ -276,5 +276,35 @@ public class PForJob_T {
 
 		Assert.assertTrue(range.splitBlockedRange(1).size() == 0);
 
+	}
+
+	public static void main(String[] args) throws PoolExistsException, InterruptedException, IOException {
+		Random rand = new Random(System.currentTimeMillis());
+
+		System.in.read();
+
+		size = 1000;
+
+		matA = new int[size][size];
+		matB = new int[size][size];
+		matCPar = new Integer[size][size];
+
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				matA[i][j] = rand.nextInt(100);
+				matB[i][j] = rand.nextInt(100);
+				matCPar[i][j] = 0;
+			}
+		}
+
+		ThreadPool pool = ThreadPool.initialize(new WorkStealingStructure<PTask>(8, PTask.class), 8);
+
+		long start = System.currentTimeMillis();
+		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask(size));
+		pforjob.execute();
+
+		long endPar = System.currentTimeMillis() - start;
+		System.out.println(endPar);
+		pool.shutdown();
 	}
 }

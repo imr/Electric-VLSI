@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent.test;
 
+import java.io.IOException;
 import java.util.Random;
 
 import junit.framework.Assert;
@@ -96,6 +97,16 @@ public class Performance_T {
 		System.out.println("parsum " + parsum + " time: " + par);
 		System.out.println("speedup: " + ((double) ser / (double) par));
 
+	}
+	
+	public static void main(String[] args) throws InterruptedException, PoolExistsException, IOException {
+		
+		Performance_T test = new Performance_T();
+		
+		System.in.read();
+		
+		test.testSum();
+		
 	}
 
 	private int calcSum() {
