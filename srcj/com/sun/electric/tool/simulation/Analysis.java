@@ -212,10 +212,9 @@ public abstract class Analysis<S extends Signal>
             if (sig .isDigital()) {
                 minY = Math.min(minY, 0);
                 maxY = Math.max(maxY, 1);
-            } else if (sig instanceof ScalarSignal) {
-                ScalarSignal ssig = (ScalarSignal)sig;
-                ScalarSample min = ssig.getMinValue();
-                ScalarSample max = ssig.getMaxValue();
+            } else if (sig.isAnalog()) {
+                ScalarSample min = ((Signal<ScalarSample>)sig).getMinValue();
+                ScalarSample max = ((Signal<ScalarSample>)sig).getMaxValue();
                 minY = min==null ? minY : Math.min(minY, min.getValue());
                 maxY = max==null ? maxY : Math.max(maxY, max.getValue());
             }

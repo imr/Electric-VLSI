@@ -60,7 +60,6 @@ import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.ScalarSample;
-import com.sun.electric.tool.simulation.ScalarSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
@@ -4265,13 +4264,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             double maxY = Double.MIN_VALUE;
 			for(WaveSignal ws : wp.getSignals()) {
                 Signal sig = ws.getSignal();
-                if (sig .isDigital()) {
+                if (sig.isDigital()) {
                     minY = Math.min(minY, 0);
                     maxY = Math.max(maxY, 1);
-                } else if (sig instanceof ScalarSignal) {
-                    ScalarSignal ssig = (ScalarSignal)sig;
-                    minY = ssig.getMinValue()==null ? minY : Math.min(minY, ssig.getMinValue().getValue());
-                    maxY = ssig.getMaxValue()==null ? maxY : Math.max(maxY, ssig.getMaxValue().getValue());
+                } else if (sig.isAnalog()) {
+                    minY = sig.getMinValue()==null ? minY : Math.min(minY, ((Signal<ScalarSample>)sig).getMinValue().getValue());
+                    maxY = sig.getMaxValue()==null ? maxY : Math.max(maxY, ((Signal<ScalarSample>)sig).getMaxValue().getValue());
                 }
                 minX = Math.min(minX, sig.getMinTime());
                 maxX = Math.max(maxX, sig.getMaxTime());

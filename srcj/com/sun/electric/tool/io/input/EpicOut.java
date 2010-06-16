@@ -32,7 +32,6 @@ import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.ScalarSignal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.user.ActivityLogger;
 
