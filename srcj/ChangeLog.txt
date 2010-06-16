@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/16/10, FS) Modeling the load balancing of work stealing as a uniform distribution.
+     (only debug mode)
+
 BUG: (6/16/10, FS) Use a 1x1 grid as smallest in placement tool: Genetic-2 (Bug #2797)
 
 IMP: (6/15/10, AM) Remove AnalogAnalysis.
