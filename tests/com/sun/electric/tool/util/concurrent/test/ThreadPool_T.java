@@ -23,17 +23,22 @@
  */
 package com.sun.electric.tool.util.concurrent.test;
 
-import org.junit.Ignore;
+import junit.framework.Assert;
+
 import org.junit.Test;
 
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
+import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadPool.ThreadPoolState;
 
 public class ThreadPool_T {
 
@@ -53,7 +58,7 @@ public class ThreadPool_T {
 
 		PJob job = new PJob();
 
-		job.add(new TestTask(-2, job), PJob.SERIAL);
+		job.add(new TestTask(1700, job), PJob.SERIAL);
 
 		job.execute();
 
@@ -63,6 +68,7 @@ public class ThreadPool_T {
 
 	@Test
 	public void testThreadPoolWorkStealing() throws PoolExistsException, InterruptedException {
+		Job.setDebug(true);
 		long start = System.currentTimeMillis();
 		IStructure<PTask> taskPool = new WorkStealingStructure<PTask>(2, PTask.class);
 		ThreadPool pool = ThreadPool.initialize(taskPool, 2);
@@ -70,11 +76,58 @@ public class ThreadPool_T {
 		Thread.sleep(1000);
 
 		PJob job = new PJob();
-		job.add(new TestTask(-2, job), PJob.SERIAL);
+		job.add(new TestTask(1700, job), PJob.SERIAL);
 		job.execute();
 
 		pool.shutdown();
 		System.out.println("time: " + (System.currentTimeMillis() - start));
+		
+		StealTracker.getInstance().printStatistics();
+	}
+
+	@Test
+	public void testSleepAndWakeUp() throws PoolExistsException, InterruptedException {
+
+		ThreadPool pool = ThreadPool.initialize();
+		pool.start();
+
+		long startTime = System.currentTimeMillis();
+
+		PJob job = new PJob();
+		job.add(new TestTask(0, job), PJob.SERIAL);
+		job.execute(false);
+
+		Thread.sleep(20000);
+		
+		Assert.assertEquals(ThreadPoolState.Started, pool.getState());
+
+		pool.sleep();
+		
+		Assert.assertEquals(ThreadPoolState.Sleeps, pool.getState());
+
+		Thread.sleep(10000);
+		
+		Assert.assertEquals(ThreadPoolState.Sleeps, pool.getState());
+
+		pool.weakUp();
+		
+		Assert.assertEquals(ThreadPoolState.Started, pool.getState());
+
+		Thread.sleep(20000);
+		
+		Assert.assertEquals(ThreadPoolState.Started, pool.getState());
+
+		long endTime = System.currentTimeMillis();
+
+		pool.shutdown();
+
+		long total = endTime - startTime;
+
+		System.out.println("test took: " + TextUtils.getElapsedTime(total));
+		
+		Assert.assertTrue(total > 50000);
+		Assert.assertTrue(total < 51000);
+
 	}
 
 	public static class CreateParallelJobs extends PTask {
@@ -115,8 +168,7 @@ public class ThreadPool_T {
 		@Override
 		public void execute() {
 			System.out.println(this.threadId + ": " + n);
-			if (n + 1 <= 300)
-				job.add(new TestTask(n + 1, job), PJob.SERIAL);
+			if (n + 1 <= 2000) job.add(new TestTask(n + 1, job), PJob.SERIAL);
 
 			try {
 				Thread.sleep(100);

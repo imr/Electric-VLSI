@@ -74,7 +74,7 @@ public class PReduceJob_T {
 		long endSer = System.currentTimeMillis() - start;
 
 		pool.shutdown();
-		pool = ThreadPool.initialize();
+		pool = ThreadPool.initialize(8);
 		
 		System.out.println(ThreadPool.getThreadPool().getPoolSize());
 
@@ -104,7 +104,7 @@ public class PReduceJob_T {
 		}
 
 		@Override
-		public Double reduce(PReduceTask<Double> other) {
+		public synchronized Double reduce(PReduceTask<Double> other) {
 			PITask task = (PITask) other;
 			this.pi += task.pi;
 			return this.pi * step;

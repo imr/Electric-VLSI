@@ -69,7 +69,7 @@ public class Performance_T {
 
 		long ser = System.currentTimeMillis() - start;
 
-		ThreadPool.initialize(new WorkStealingStructure<PTask>(8, PTask.class), 8);
+		ThreadPool.initialize(new WorkStealingStructure<PTask>(1, PTask.class), 1);
 
 		System.out.println("parallel ...");
 
