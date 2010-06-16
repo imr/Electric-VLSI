@@ -70,7 +70,7 @@ import com.sun.electric.tool.project.DeleteCellJob;
 import com.sun.electric.tool.project.HistoryDialog;
 import com.sun.electric.tool.project.LibraryDialog;
 import com.sun.electric.tool.project.UpdateJob;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -1411,15 +1411,15 @@ public class FileMenu {
 
         // special case for spice
         if (type == FileType.SPICE &&
-			!Simulation.getSpiceRunChoice().equals(Simulation.spiceRunChoiceDontRun))
+			!SimulationTool.getSpiceRunChoice().equals(SimulationTool.spiceRunChoiceDontRun))
         {
             // check if user specified working dir
-            if (Simulation.getSpiceUseRunDir())
-                filePath = Simulation.getSpiceRunDir() + File.separator + filePath;
+            if (SimulationTool.getSpiceUseRunDir())
+                filePath = SimulationTool.getSpiceRunDir() + File.separator + filePath;
             else
                 filePath = User.getWorkingDirectory() + File.separator + filePath;
             // check for automatic overwrite
-            if (User.isShowFileSelectionForNetlists() && !Simulation.getSpiceOutputOverwrite()) {
+            if (User.isShowFileSelectionForNetlists() && !SimulationTool.getSpiceOutputOverwrite()) {
                 String saveDir = User.getWorkingDirectory();
                 filePath = OpenFile.chooseOutputFile(type, null, filePath);
                 User.setWorkingDirectory(saveDir);

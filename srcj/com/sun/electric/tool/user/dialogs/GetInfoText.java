@@ -37,7 +37,7 @@ import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.output.Verilog;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -607,7 +607,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 				for (int i=0; i<textArray.length; i++)
 				{
 					String str = textArray[i];
-					if (Simulation.getPreserveVerilogFormating() && // Pref set
+					if (SimulationTool.getPreserveVerilogFormating() && // Pref set
 					   cti.td.getPos() == TextDescriptor.Position.RIGHT && // Left justified text
 					   (cti.varKey == Verilog.VERILOG_PARAMETER_KEY || 
 						cti.varKey == Verilog.VERILOG_CODE_KEY ||
@@ -915,7 +915,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 			ArrayList<String> textList = new ArrayList<String>();
 			for (int i=0; i<textArray.length; i++) {
 				String str = textArray[i];
-				if (Simulation.getPreserveVerilogFormating() && // Pref set
+				if (SimulationTool.getPreserveVerilogFormating() && // Pref set
 					cti.td.getPos() == TextDescriptor.Position.RIGHT && // Left justified text
 					(cti.varKey == Verilog.VERILOG_PARAMETER_KEY || 
 				 	cti.varKey == Verilog.VERILOG_CODE_KEY ||

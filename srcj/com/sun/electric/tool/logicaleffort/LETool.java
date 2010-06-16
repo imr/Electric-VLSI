@@ -44,7 +44,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -408,8 +408,8 @@ public class LETool extends Tool {
     }
 
     protected static Variable getMFactor(Nodable no) {
-        Variable var = no.getVar(Simulation.M_FACTOR_KEY);
-        if (var == null) var = no.getParameter(Simulation.M_FACTOR_KEY);
+        Variable var = no.getVar(SimulationTool.M_FACTOR_KEY);
+        if (var == null) var = no.getParameter(SimulationTool.M_FACTOR_KEY);
         return var;
     }
 

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.irsim.IRSIM;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -65,24 +65,24 @@ public class SimulatorsTab extends PreferencePanel
 	public void init()
 	{
 		// for all simulators
-		resimulateEachChange.setSelected(Simulation.isBuiltInResimulateEach());
-		autoAdvanceTime.setSelected(Simulation.isBuiltInAutoAdvance());
-		multistateDisplay.setSelected(Simulation.isWaveformDisplayMultiState());
+		resimulateEachChange.setSelected(SimulationTool.isBuiltInResimulateEach());
+		autoAdvanceTime.setSelected(SimulationTool.isBuiltInAutoAdvance());
+		multistateDisplay.setSelected(SimulationTool.isWaveformDisplayMultiState());
 
 		// for IRSIM
-		showCommands.setSelected(Simulation.isIRSIMShowsCommands());
-        delayedX.setSelected(Simulation.isIRSIMDelayedX());
-		int initialDebugging = Simulation.getIRSIMDebugging();
+		showCommands.setSelected(SimulationTool.isIRSIMShowsCommands());
+        delayedX.setSelected(SimulationTool.isIRSIMDelayedX());
+		int initialDebugging = SimulationTool.getIRSIMDebugging();
 		if ((initialDebugging&DEBUG_EV) != 0) debugEv.setSelected(true);
 		if ((initialDebugging&DEBUG_DC) != 0) debugDC.setSelected(true);
 		if ((initialDebugging&DEBUG_TAU) != 0) debugTau.setSelected(true);
 		if ((initialDebugging&DEBUG_TAUP) != 0) debugTauP.setSelected(true);
 		if ((initialDebugging&DEBUG_SPK) != 0) debugSpk.setSelected(true);
 		if ((initialDebugging&DEBUG_TW) != 0) debugTW.setSelected(true);
-		parameterFile.setText(Simulation.getIRSIMParameterFile());
+		parameterFile.setText(SimulationTool.getIRSIMParameterFile());
 		simModel.addItem("RC");
 		simModel.addItem("Linear");
-		simModel.setSelectedItem(Simulation.getIRSIMStepModel());
+		simModel.setSelectedItem(SimulationTool.getIRSIMStepModel());
 		if (!IRSIM.hasIRSIM())
 		{
 			debugEv.setEnabled(false);
@@ -107,24 +107,24 @@ public class SimulatorsTab extends PreferencePanel
 	public void term()
 	{
 		boolean currBoolean = resimulateEachChange.isSelected();
-		if (currBoolean != Simulation.isBuiltInResimulateEach())
-			Simulation.setBuiltInResimulateEach(currBoolean);
+		if (currBoolean != SimulationTool.isBuiltInResimulateEach())
+			SimulationTool.setBuiltInResimulateEach(currBoolean);
 
 		currBoolean = autoAdvanceTime.isSelected();
-		if (currBoolean != Simulation.isBuiltInAutoAdvance())
-			Simulation.setBuiltInAutoAdvance(currBoolean);
+		if (currBoolean != SimulationTool.isBuiltInAutoAdvance())
+			SimulationTool.setBuiltInAutoAdvance(currBoolean);
 
 		currBoolean = multistateDisplay.isSelected();
-		if (currBoolean != Simulation.isWaveformDisplayMultiState())
-			Simulation.setWaveformDisplayMultiState(currBoolean);
+		if (currBoolean != SimulationTool.isWaveformDisplayMultiState())
+			SimulationTool.setWaveformDisplayMultiState(currBoolean);
 		
 		currBoolean = showCommands.isSelected();
-		if (currBoolean != Simulation.isIRSIMShowsCommands())
-			Simulation.setIRSIMShowsCommands(currBoolean);
+		if (currBoolean != SimulationTool.isIRSIMShowsCommands())
+			SimulationTool.setIRSIMShowsCommands(currBoolean);
 
         currBoolean = delayedX.isSelected();
-        if (currBoolean != Simulation.isIRSIMDelayedX())
-            Simulation.setIRSIMDelayedX(currBoolean);
+        if (currBoolean != SimulationTool.isIRSIMDelayedX())
+            SimulationTool.setIRSIMDelayedX(currBoolean);
 
 		int currInt = 0;
 		if (debugEv.isSelected()) currInt |= DEBUG_EV;
@@ -133,16 +133,16 @@ public class SimulatorsTab extends PreferencePanel
 		if (debugTauP.isSelected()) currInt |= DEBUG_TAUP;
 		if (debugSpk.isSelected()) currInt |= DEBUG_SPK;
 		if (debugTW.isSelected()) currInt |= DEBUG_TW;
-		if (currInt != Simulation.getIRSIMDebugging())
-			Simulation.setIRSIMDebugging(currInt);
+		if (currInt != SimulationTool.getIRSIMDebugging())
+			SimulationTool.setIRSIMDebugging(currInt);
 
 		String currString = parameterFile.getText();
-		if (!currString.equals(Simulation.getIRSIMParameterFile()))
-			Simulation.setIRSIMParameterFile(currString);
+		if (!currString.equals(SimulationTool.getIRSIMParameterFile()))
+			SimulationTool.setIRSIMParameterFile(currString);
 
 		currString = (String)simModel.getSelectedItem();
-		if (!currString.equals(Simulation.getIRSIMStepModel()))
-			Simulation.setIRSIMStepModel(currString);
+		if (!currString.equals(SimulationTool.getIRSIMStepModel()))
+			SimulationTool.setIRSIMStepModel(currString);
 	}
 
 	/**
@@ -150,24 +150,24 @@ public class SimulatorsTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		if (Simulation.isFactoryBuiltInResimulateEach() != Simulation.isBuiltInResimulateEach())
-			Simulation.setBuiltInResimulateEach(Simulation.isFactoryBuiltInResimulateEach());
-		if (Simulation.isFactoryBuiltInAutoAdvance() != Simulation.isBuiltInAutoAdvance())
-			Simulation.setBuiltInAutoAdvance(Simulation.isFactoryBuiltInAutoAdvance());
-		if (Simulation.isFactoryWaveformDisplayMultiState() != Simulation.isWaveformDisplayMultiState())
-			Simulation.setWaveformDisplayMultiState(Simulation.isFactoryWaveformDisplayMultiState());
+		if (SimulationTool.isFactoryBuiltInResimulateEach() != SimulationTool.isBuiltInResimulateEach())
+			SimulationTool.setBuiltInResimulateEach(SimulationTool.isFactoryBuiltInResimulateEach());
+		if (SimulationTool.isFactoryBuiltInAutoAdvance() != SimulationTool.isBuiltInAutoAdvance())
+			SimulationTool.setBuiltInAutoAdvance(SimulationTool.isFactoryBuiltInAutoAdvance());
+		if (SimulationTool.isFactoryWaveformDisplayMultiState() != SimulationTool.isWaveformDisplayMultiState())
+			SimulationTool.setWaveformDisplayMultiState(SimulationTool.isFactoryWaveformDisplayMultiState());
 
 		// for IRSIM
-		if (!Simulation.getFactoryIRSIMParameterFile().equals(Simulation.getIRSIMParameterFile()))
-			Simulation.setIRSIMParameterFile(Simulation.getFactoryIRSIMParameterFile());
-		if (!Simulation.getFactoryIRSIMStepModel().equals(Simulation.getIRSIMStepModel()))
-			Simulation.setIRSIMStepModel(Simulation.getFactoryIRSIMStepModel());
-		if (Simulation.getFactoryIRSIMDebugging() != Simulation.getIRSIMDebugging())
-			Simulation.setIRSIMDebugging(Simulation.getFactoryIRSIMDebugging());
-		if (Simulation.isFactoryIRSIMShowsCommands() != Simulation.isIRSIMShowsCommands())
-			Simulation.setIRSIMShowsCommands(Simulation.isFactoryIRSIMShowsCommands());
-		if (Simulation.isFactoryIRSIMDelayedX() != Simulation.isIRSIMDelayedX())
-			Simulation.setIRSIMDelayedX(Simulation.isFactoryIRSIMDelayedX());
+		if (!SimulationTool.getFactoryIRSIMParameterFile().equals(SimulationTool.getIRSIMParameterFile()))
+			SimulationTool.setIRSIMParameterFile(SimulationTool.getFactoryIRSIMParameterFile());
+		if (!SimulationTool.getFactoryIRSIMStepModel().equals(SimulationTool.getIRSIMStepModel()))
+			SimulationTool.setIRSIMStepModel(SimulationTool.getFactoryIRSIMStepModel());
+		if (SimulationTool.getFactoryIRSIMDebugging() != SimulationTool.getIRSIMDebugging())
+			SimulationTool.setIRSIMDebugging(SimulationTool.getFactoryIRSIMDebugging());
+		if (SimulationTool.isFactoryIRSIMShowsCommands() != SimulationTool.isIRSIMShowsCommands())
+			SimulationTool.setIRSIMShowsCommands(SimulationTool.isFactoryIRSIMShowsCommands());
+		if (SimulationTool.isFactoryIRSIMDelayedX() != SimulationTool.isIRSIMDelayedX())
+			SimulationTool.setIRSIMDelayedX(SimulationTool.isFactoryIRSIMDelayedX());
 	}
 
 	/** This method is called from within the constructor to

@@ -20,7 +20,7 @@ package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 
 import java.util.Iterator;
 
@@ -371,7 +371,7 @@ public class NewRStep extends Eval
 				{
 					if (r.finall == Sim.X)
 					{
-                        if (Simulation.isIRSIMDelayedX()) {
+                        if (SimulationTool.isIRSIMDelayedX()) {
                             // When fighting, instead of using the dominant time constant,
                             // use a value proportional to the difference in pull up and pull down
                             // strengths
@@ -974,7 +974,7 @@ public class NewRStep extends Eval
 		r.cD = n.nCap;
 		if (dom == Sim.X)			// assume X nodes are charged high
 		{
-            if (Simulation.isIRSIMDelayedX()) {
+            if (SimulationTool.isIRSIMDelayedX()) {
                 // X nodes are charged to X through Rup and Rdown fighting
                 r.cA = n.nCap;
             } else

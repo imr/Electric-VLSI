@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.event.ActionEvent;
@@ -66,26 +66,26 @@ public class FastHenryTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		fhUseSingleFrequency.setSelected(Simulation.isFastHenryUseSingleFrequency());
+		fhUseSingleFrequency.setSelected(SimulationTool.isFastHenryUseSingleFrequency());
 		fhUseSingleFrequency.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { updateWhatIsEnabled(); }
 		});
 
-		fhFrequencyStart.setText(TextUtils.formatDouble(Simulation.getFastHenryStartFrequency()));
-		fhFrequencyEnd.setText(TextUtils.formatDouble(Simulation.getFastHenryEndFrequency()));
-		fhRunsPerDecade.setText(Integer.toString(Simulation.getFastHenryRunsPerDecade()));
-		fhMakeMultipole.setSelected(Simulation.isFastHenryMultiPole());
+		fhFrequencyStart.setText(TextUtils.formatDouble(SimulationTool.getFastHenryStartFrequency()));
+		fhFrequencyEnd.setText(TextUtils.formatDouble(SimulationTool.getFastHenryEndFrequency()));
+		fhRunsPerDecade.setText(Integer.toString(SimulationTool.getFastHenryRunsPerDecade()));
+		fhMakeMultipole.setSelected(SimulationTool.isFastHenryMultiPole());
 		fhMakeMultipole.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { updateWhatIsEnabled(); }
 		});
 
-		fhNumberOfPoles.setText(Integer.toString(Simulation.getFastHenryNumPoles()));
-		fhDefaultThickness.setText(TextUtils.formatDistance(Simulation.getFastHenryDefThickness()));
-		fhDefaultWidthSubs.setText(Integer.toString(Simulation.getFastHenryWidthSubdivisions()));
-		fhDefaultHeightSubs.setText(Integer.toString(Simulation.getFastHenryHeightSubdivisions()));
-		fhMaxSegmentLength.setText(TextUtils.formatDistance(Simulation.getFastHenryMaxSegLength()));
+		fhNumberOfPoles.setText(Integer.toString(SimulationTool.getFastHenryNumPoles()));
+		fhDefaultThickness.setText(TextUtils.formatDistance(SimulationTool.getFastHenryDefThickness()));
+		fhDefaultWidthSubs.setText(Integer.toString(SimulationTool.getFastHenryWidthSubdivisions()));
+		fhDefaultHeightSubs.setText(Integer.toString(SimulationTool.getFastHenryHeightSubdivisions()));
+		fhMaxSegmentLength.setText(TextUtils.formatDistance(SimulationTool.getFastHenryMaxSegLength()));
 
 		updateWhatIsEnabled();
 	}
@@ -107,44 +107,44 @@ public class FastHenryTab extends PreferencePanel
 	public void term()
 	{
 		boolean currBoolean = fhUseSingleFrequency.isSelected();
-		if (currBoolean != Simulation.isFastHenryUseSingleFrequency())
-			Simulation.setFastHenryUseSingleFrequency(currBoolean);
+		if (currBoolean != SimulationTool.isFastHenryUseSingleFrequency())
+			SimulationTool.setFastHenryUseSingleFrequency(currBoolean);
 
 		double currDouble = TextUtils.atof(fhFrequencyStart.getText());
-		if (currDouble != Simulation.getFastHenryStartFrequency())
-			Simulation.setFastHenryStartFrequency(currDouble);
+		if (currDouble != SimulationTool.getFastHenryStartFrequency())
+			SimulationTool.setFastHenryStartFrequency(currDouble);
 
 		currDouble = TextUtils.atof(fhFrequencyEnd.getText());
-		if (currDouble != Simulation.getFastHenryEndFrequency())
-			Simulation.setFastHenryEndFrequency(currDouble);
+		if (currDouble != SimulationTool.getFastHenryEndFrequency())
+			SimulationTool.setFastHenryEndFrequency(currDouble);
 
 		int currInt = TextUtils.atoi(fhRunsPerDecade.getText());
-		if (currInt != Simulation.getFastHenryRunsPerDecade())
-			Simulation.setFastHenryRunsPerDecade(currInt);
+		if (currInt != SimulationTool.getFastHenryRunsPerDecade())
+			SimulationTool.setFastHenryRunsPerDecade(currInt);
 
 		currBoolean = fhMakeMultipole.isSelected();
-		if (currBoolean != Simulation.isFastHenryMultiPole())
-			Simulation.setFastHenryMultiPole(currBoolean);
+		if (currBoolean != SimulationTool.isFastHenryMultiPole())
+			SimulationTool.setFastHenryMultiPole(currBoolean);
 
 		currInt = TextUtils.atoi(fhNumberOfPoles.getText());
-		if (currInt != Simulation.getFastHenryNumPoles())
-			Simulation.setFastHenryNumPoles(currInt);
+		if (currInt != SimulationTool.getFastHenryNumPoles())
+			SimulationTool.setFastHenryNumPoles(currInt);
 
 		currDouble = TextUtils.atofDistance(fhDefaultThickness.getText());
-		if (currDouble != Simulation.getFastHenryDefThickness())
-			Simulation.setFastHenryDefThickness(currDouble);
+		if (currDouble != SimulationTool.getFastHenryDefThickness())
+			SimulationTool.setFastHenryDefThickness(currDouble);
 
 		currInt = TextUtils.atoi(fhDefaultWidthSubs.getText());
-		if (currInt != Simulation.getFastHenryWidthSubdivisions())
-			Simulation.setFastHenryWidthSubdivisions(currInt);
+		if (currInt != SimulationTool.getFastHenryWidthSubdivisions())
+			SimulationTool.setFastHenryWidthSubdivisions(currInt);
 
 		currInt = TextUtils.atoi(fhDefaultHeightSubs.getText());
-		if (currInt != Simulation.getFastHenryHeightSubdivisions())
-			Simulation.setFastHenryHeightSubdivisions(currInt);
+		if (currInt != SimulationTool.getFastHenryHeightSubdivisions())
+			SimulationTool.setFastHenryHeightSubdivisions(currInt);
 
 		currDouble = TextUtils.atofDistance(fhMaxSegmentLength.getText());
-		if (currDouble != Simulation.getFastHenryMaxSegLength())
-			Simulation.setFastHenryMaxSegLength(currDouble);
+		if (currDouble != SimulationTool.getFastHenryMaxSegLength())
+			SimulationTool.setFastHenryMaxSegLength(currDouble);
 	}
 
 	/**
@@ -152,29 +152,29 @@ public class FastHenryTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		if (Simulation.isFactoryFastHenryUseSingleFrequency() != Simulation.isFastHenryUseSingleFrequency())
-			Simulation.setFastHenryUseSingleFrequency(Simulation.isFactoryFastHenryUseSingleFrequency());
-		if (Simulation.getFactoryFastHenryDefThickness() != Simulation.getFastHenryDefThickness())
-			Simulation.setFastHenryDefThickness(Simulation.getFactoryFastHenryDefThickness());
+		if (SimulationTool.isFactoryFastHenryUseSingleFrequency() != SimulationTool.isFastHenryUseSingleFrequency())
+			SimulationTool.setFastHenryUseSingleFrequency(SimulationTool.isFactoryFastHenryUseSingleFrequency());
+		if (SimulationTool.getFactoryFastHenryDefThickness() != SimulationTool.getFastHenryDefThickness())
+			SimulationTool.setFastHenryDefThickness(SimulationTool.getFactoryFastHenryDefThickness());
 
-		if (Simulation.getFactoryFastHenryStartFrequency() != Simulation.getFastHenryStartFrequency())
-			Simulation.setFastHenryStartFrequency(Simulation.getFactoryFastHenryStartFrequency());
-		if (Simulation.getFactoryFastHenryEndFrequency() != Simulation.getFastHenryEndFrequency())
-			Simulation.setFastHenryEndFrequency(Simulation.getFactoryFastHenryEndFrequency());
-		if (Simulation.getFactoryFastHenryRunsPerDecade() != Simulation.getFastHenryRunsPerDecade())
-			Simulation.setFastHenryRunsPerDecade(Simulation.getFactoryFastHenryRunsPerDecade());
+		if (SimulationTool.getFactoryFastHenryStartFrequency() != SimulationTool.getFastHenryStartFrequency())
+			SimulationTool.setFastHenryStartFrequency(SimulationTool.getFactoryFastHenryStartFrequency());
+		if (SimulationTool.getFactoryFastHenryEndFrequency() != SimulationTool.getFastHenryEndFrequency())
+			SimulationTool.setFastHenryEndFrequency(SimulationTool.getFactoryFastHenryEndFrequency());
+		if (SimulationTool.getFactoryFastHenryRunsPerDecade() != SimulationTool.getFastHenryRunsPerDecade())
+			SimulationTool.setFastHenryRunsPerDecade(SimulationTool.getFactoryFastHenryRunsPerDecade());
 
-		if (Simulation.getFactoryFastHenryWidthSubdivisions() != Simulation.getFastHenryWidthSubdivisions())
-			Simulation.setFastHenryWidthSubdivisions(Simulation.getFactoryFastHenryWidthSubdivisions());
-		if (Simulation.getFactoryFastHenryHeightSubdivisions() != Simulation.getFastHenryHeightSubdivisions())
-			Simulation.setFastHenryHeightSubdivisions(Simulation.getFactoryFastHenryHeightSubdivisions());
-		if (Simulation.getFactoryFastHenryMaxSegLength() != Simulation.getFastHenryMaxSegLength())
-			Simulation.setFastHenryMaxSegLength(Simulation.getFactoryFastHenryMaxSegLength());
+		if (SimulationTool.getFactoryFastHenryWidthSubdivisions() != SimulationTool.getFastHenryWidthSubdivisions())
+			SimulationTool.setFastHenryWidthSubdivisions(SimulationTool.getFactoryFastHenryWidthSubdivisions());
+		if (SimulationTool.getFactoryFastHenryHeightSubdivisions() != SimulationTool.getFastHenryHeightSubdivisions())
+			SimulationTool.setFastHenryHeightSubdivisions(SimulationTool.getFactoryFastHenryHeightSubdivisions());
+		if (SimulationTool.getFactoryFastHenryMaxSegLength() != SimulationTool.getFastHenryMaxSegLength())
+			SimulationTool.setFastHenryMaxSegLength(SimulationTool.getFactoryFastHenryMaxSegLength());
 
-		if (Simulation.isFactoryFastHenryMultiPole() != Simulation.isFastHenryMultiPole())
-			Simulation.setFastHenryMultiPole(Simulation.isFactoryFastHenryMultiPole());
-		if (Simulation.getFactoryFastHenryNumPoles() != Simulation.getFastHenryNumPoles())
-			Simulation.setFastHenryNumPoles(Simulation.getFactoryFastHenryNumPoles());
+		if (SimulationTool.isFactoryFastHenryMultiPole() != SimulationTool.isFastHenryMultiPole())
+			SimulationTool.setFastHenryMultiPole(SimulationTool.isFactoryFastHenryMultiPole());
+		if (SimulationTool.getFactoryFastHenryNumPoles() != SimulationTool.getFastHenryNumPoles())
+			SimulationTool.setFastHenryNumPoles(SimulationTool.getFactoryFastHenryNumPoles());
 	}
 
 	/** This method is called from within the constructor to

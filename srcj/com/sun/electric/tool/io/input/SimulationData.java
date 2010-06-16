@@ -34,7 +34,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.verilog.VerilogOut;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.tool.simulation.Stimuli;

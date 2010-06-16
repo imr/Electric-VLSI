@@ -61,7 +61,7 @@ public class Stimuli {
 	/** the list of analyses in this Stimuli */					private List<Analysis> analysisList;
 	/** control points when signals are selected */				private HashMap<Signal,Double[]> controlPointMap;
 
-    /** Cached version of net delimiter**/                      private String delim = Simulation.getSpiceExtractedNetDelimiter();
+    /** Cached version of net delimiter**/                      private String delim = SimulationTool.getSpiceExtractedNetDelimiter();
 
     /**
 	 * Constructor to build a new Simulation Data object.

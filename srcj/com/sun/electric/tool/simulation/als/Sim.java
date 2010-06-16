@@ -30,7 +30,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.als.ALS.Load;
@@ -122,7 +122,7 @@ public class Sim
 		}
 
 		// now run the simulation
-		boolean update = Simulation.isBuiltInResimulateEach();
+		boolean update = SimulationTool.isBuiltInResimulateEach();
 		if (force) update = true;
 		if (update)
 		{

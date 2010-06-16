@@ -171,7 +171,7 @@ public abstract class Analysis<S extends Signal>
 	}
 
     private static String getBaseNameFromExtractedNet(String signalFullName, String delim) {
-//        String delim = Simulation.getSpiceExtractedNetDelimiter();
+//        String delim = SimulationTool.getSpiceExtractedNetDelimiter();
         int hashPos = signalFullName.indexOf(delim);
         if (hashPos > 0)
         {

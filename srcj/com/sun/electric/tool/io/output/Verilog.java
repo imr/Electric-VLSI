@@ -54,7 +54,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.io.input.verilog.VerilogData;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.dialogs.BusParameters;
 
 import java.util.ArrayList;
@@ -97,14 +97,14 @@ public class Verilog extends Topology
 	public static class VerilogPreferences extends OutputPreferences
     {
         // Verilog Settings
-		public boolean useTrireg = Simulation.getVerilogUseTrireg();
-		public boolean useAssign = Simulation.getVerilogUseAssign();
+		public boolean useTrireg = SimulationTool.getVerilogUseTrireg();
+		public boolean useAssign = SimulationTool.getVerilogUseAssign();
 		public boolean useVerilogA = false;
         // Verilog factory Prefs
-		public boolean stopAtStandardCells = Simulation.getFactoryVerilogStopAtStandardCells();
-        public boolean netlistNonstandardCells = Simulation.getFactoryVerilogNetlistNonstandardCells();
-        public boolean parameterizeModuleNames = Simulation.getFactoryVerilogParameterizeModuleNames();
-		public boolean writeModuleForEachIcon = Simulation.isFactoryVerilogWriteModuleForEachIcon();
+		public boolean stopAtStandardCells = SimulationTool.getFactoryVerilogStopAtStandardCells();
+        public boolean netlistNonstandardCells = SimulationTool.getFactoryVerilogNetlistNonstandardCells();
+        public boolean parameterizeModuleNames = SimulationTool.getFactoryVerilogParameterizeModuleNames();
+		public boolean writeModuleForEachIcon = SimulationTool.isFactoryVerilogWriteModuleForEachIcon();
         public Map<Cell,String> modelFiles = Collections.emptyMap();
 
         // Verilog ouput preferences need VerilogInputPreferences in case of doc cells with Verilog code
@@ -122,10 +122,10 @@ public class Verilog extends Topology
 		private void fillPrefs()
         {
             // Verilog current Prefs
-			stopAtStandardCells = Simulation.getVerilogStopAtStandardCells();
-            netlistNonstandardCells = Simulation.getVerilogNetlistNonstandardCells();
-            parameterizeModuleNames = Simulation.getVerilogParameterizeModuleNames();
-			writeModuleForEachIcon = Simulation.isVerilogWriteModuleForEachIcon();
+			stopAtStandardCells = SimulationTool.getVerilogStopAtStandardCells();
+            netlistNonstandardCells = SimulationTool.getVerilogNetlistNonstandardCells();
+            parameterizeModuleNames = SimulationTool.getVerilogParameterizeModuleNames();
+			writeModuleForEachIcon = SimulationTool.isVerilogWriteModuleForEachIcon();
             modelFiles = CellModelPrefs.verilogModelPrefs.getUnfilteredFileNames(EDatabase.clientDatabase());
 		}
 
@@ -301,7 +301,7 @@ public class Verilog extends Topology
 	protected void done()
 	{
     	// Remove this call that auto-overrides the new user visible preference
-		// Simulation.setVerilogStopAtStandardCells(false);
+		// SimulationTool.setVerilogStopAtStandardCells(false);
 	}
 
 	protected boolean skipCellAndSubcells(Cell cell) {
@@ -1074,14 +1074,14 @@ public class Verilog extends Topology
 					implicitPorts = 2;
 					nodeName = "tranif1";
 					if (nodeType == PrimitiveNode.Function.TRANMOSCN) nodeName = "NCNFET";
-					Variable varWeakNode = ((NodeInst)no).getVar(Simulation.WEAK_NODE_KEY);
+					Variable varWeakNode = ((NodeInst)no).getVar(SimulationTool.WEAK_NODE_KEY);
 					if (varWeakNode != null) nodeName = "rtranif1";
 				} else if (nodeType.isPTypeTransistor())
 				{
 					implicitPorts = 2;
 					nodeName = "tranif0";
 					if (nodeType == PrimitiveNode.Function.TRAPMOSCN) nodeName = "PCNFET";
-					Variable varWeakNode = ((NodeInst)no).getVar(Simulation.WEAK_NODE_KEY);
+					Variable varWeakNode = ((NodeInst)no).getVar(SimulationTool.WEAK_NODE_KEY);
 					if (varWeakNode != null) nodeName = "rtranif0";
 				} else if (nodeType == PrimitiveNode.Function.GATEAND)
 				{

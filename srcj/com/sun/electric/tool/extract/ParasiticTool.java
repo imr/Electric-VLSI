@@ -50,7 +50,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
@@ -590,7 +590,7 @@ public class ParasiticTool extends Tool {
             // get mfactor from instance we pushed into
             Nodable ni = getContext().getNodable();
             if (ni == null) return;
-            Variable mvar = ni.getVar(Simulation.M_FACTOR_KEY);
+            Variable mvar = ni.getVar(SimulationTool.M_FACTOR_KEY);
             if (mvar == null) return;
             Object mval = getContext().evalVar(mvar, null);
             if (mval == null) return;

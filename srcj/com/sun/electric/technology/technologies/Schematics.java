@@ -57,7 +57,7 @@ import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.User;
 import static com.sun.electric.database.text.ArrayIterator.i2i;
 
@@ -2858,7 +2858,7 @@ public class Schematics extends Technology
 
 
             Object mFactorObj = null;
-            var = ni.getVar(Simulation.M_FACTOR_KEY);
+            var = ni.getVar(SimulationTool.M_FACTOR_KEY);
             if (var != null) {
                 if (context != null) {
                     mFactorObj = context.evalVar(var, ni);

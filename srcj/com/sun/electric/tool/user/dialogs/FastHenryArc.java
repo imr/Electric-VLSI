@@ -30,7 +30,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.output.FastHenry;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -148,17 +148,17 @@ public class FastHenryArc extends EDialog
 		String thickness = "";
 		if (fhai.getThickness() >= 0) thickness = TextUtils.formatDistance(initialThickness = fhai.getThickness());
 		fhaThickness.setText(thickness);
-	    fhaDefaultThickness.setText("default=" + TextUtils.formatDistance(Simulation.getFastHenryDefThickness()));
+	    fhaDefaultThickness.setText("default=" + TextUtils.formatDistance(SimulationTool.getFastHenryDefThickness()));
 
 		String widthSubdivisions = "";
 		if (fhai.getWidthSubdivisions() >= 0) widthSubdivisions = Integer.toString(initialWidthSubdivs = fhai.getWidthSubdivisions());
 		fhaWidthSubdivs.setText(widthSubdivisions);
-	    fhaDefaultWidthSubdivs.setText("default=" + Integer.toString(Simulation.getFastHenryWidthSubdivisions()));
+	    fhaDefaultWidthSubdivs.setText("default=" + Integer.toString(SimulationTool.getFastHenryWidthSubdivisions()));
 
 		String heightSubdivisions = "";
 		if (fhai.getHeightSubdivisions() >= 0) heightSubdivisions = Integer.toString(initialHeightSubdivs = fhai.getHeightSubdivisions());
 		fhaHeightSubdivs.setText(heightSubdivisions);
-	    fhaDefaultHeightSubdivs.setText("default=" + Integer.toString(Simulation.getFastHenryHeightSubdivisions()));
+	    fhaDefaultHeightSubdivs.setText("default=" + Integer.toString(SimulationTool.getFastHenryHeightSubdivisions()));
 
 		fhaHeadXY.setText("Head at:   X=" + TextUtils.formatDistance(ai.getHeadLocation().getX()) +
 			"   Y=" + TextUtils.formatDistance(ai.getHeadLocation().getY()) + "   Z=");

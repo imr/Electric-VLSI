@@ -27,7 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -79,48 +79,48 @@ public class SpiceTab extends PreferencePanel
 	public void init()
 	{
 		// the top section: writing spice decks
-		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_2);
-		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_3);
-		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_H);
-		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_P);
-		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_G);
-		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_S);
-		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA);
-		spiceEnginePopup.setSelectedItem(Simulation.getSpiceEngine());
+		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_2);
+		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_3);
+		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_H);
+		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_P);
+		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_G);
+		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_S);
+		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_H_ASSURA);
+		spiceEnginePopup.setSelectedItem(SimulationTool.getSpiceEngine());
 
 		spiceLevelPopup.addItem("1");
 		spiceLevelPopup.addItem("2");
 		spiceLevelPopup.addItem("3");
-		spiceLevelPopup.setSelectedItem(Simulation.getSpiceLevel());
+		spiceLevelPopup.setSelectedItem(SimulationTool.getSpiceLevel());
 
 		spiceResistorShorting.addItem("None");
 		spiceResistorShorting.addItem("Normal only");
 		spiceResistorShorting.addItem("Normal and Poly");
-		spiceResistorShorting.setSelectedIndex(Simulation.getSpiceShortResistors());
+		spiceResistorShorting.setSelectedIndex(SimulationTool.getSpiceShortResistors());
 
-		spiceParasitics.addItem(Simulation.SpiceParasitics.SIMPLE);
-		spiceParasitics.addItem(Simulation.SpiceParasitics.RC_CONSERVATIVE);
-//		spiceParasitics.addItem(Simulation.SpiceParasitics.RC_PROXIMITY);
-		spiceParasitics.setSelectedItem(Simulation.getSpiceParasiticsLevel());
+		spiceParasitics.addItem(SimulationTool.SpiceParasitics.SIMPLE);
+		spiceParasitics.addItem(SimulationTool.SpiceParasitics.RC_CONSERVATIVE);
+//		spiceParasitics.addItem(SimulationTool.SpiceParasitics.RC_PROXIMITY);
+		spiceParasitics.setSelectedItem(SimulationTool.getSpiceParasiticsLevel());
 
 		spiceGlobalTreatment.addItem("No special treatment");
 		spiceGlobalTreatment.addItem("Use .GLOBAL block");
 		spiceGlobalTreatment.addItem("Create .SUBCKT ports");
-		spiceGlobalTreatment.setSelectedIndex(Simulation.getSpiceGlobalTreatment().getCode());
+		spiceGlobalTreatment.setSelectedIndex(SimulationTool.getSpiceGlobalTreatment().getCode());
 
 		String [] libFiles = LibFile.getSpicePartsLibraries();
 		for(int i=0; i<libFiles.length; i++)
 			spicePrimitivesetPopup.addItem(libFiles[i]);
-		spicePrimitivesetPopup.setSelectedItem(Simulation.getSpicePartsLibrary());
+		spicePrimitivesetPopup.setSelectedItem(SimulationTool.getSpicePartsLibrary());
 
-		spiceWritePwrGndSubcircuit.setSelected(Simulation.isSpiceWritePwrGndInTopCell());
-        spiceUseCellParameters.setSelected(Simulation.isSpiceUseCellParameters());
-		spiceWriteTransSizesInLambda.setSelected(Simulation.isSpiceWriteTransSizeInLambda());
-		spiceWriteSubcktTopCell.setSelected(Simulation.isSpiceWriteSubcktTopCell());
-		spiceWriteEndStatement.setSelected(Simulation.isSpiceWriteFinalDotEnd());
+		spiceWritePwrGndSubcircuit.setSelected(SimulationTool.isSpiceWritePwrGndInTopCell());
+        spiceUseCellParameters.setSelected(SimulationTool.isSpiceUseCellParameters());
+		spiceWriteTransSizesInLambda.setSelected(SimulationTool.isSpiceWriteTransSizeInLambda());
+		spiceWriteSubcktTopCell.setSelected(SimulationTool.isSpiceWriteSubcktTopCell());
+		spiceWriteEndStatement.setSelected(SimulationTool.isSpiceWriteFinalDotEnd());
 
 		// bottom of the top section: header and trailer cards
-		String spiceHeaderCardInitial = Simulation.getSpiceHeaderCardInfo();
+		String spiceHeaderCardInitial = SimulationTool.getSpiceHeaderCardInfo();
 		boolean noHeader = false;
 		if (spiceHeaderCardInitial.startsWith(Spice.SPICE_NOEXTENSION_PREFIX))
 		{
@@ -139,7 +139,7 @@ public class SpiceTab extends PreferencePanel
 		}
 		if (noHeader)
 			spiceNoHeaderCards.setSelected(true);
-		String spiceTrailerCardInitial = Simulation.getSpiceTrailerCardInfo();
+		String spiceTrailerCardInitial = SimulationTool.getSpiceTrailerCardInfo();
 		boolean noTrailer = false;
 		if (spiceTrailerCardInitial.startsWith(Spice.SPICE_NOEXTENSION_PREFIX))
 		{
@@ -168,18 +168,18 @@ public class SpiceTab extends PreferencePanel
 		});
 
 		// the middle section: running Spice
-		useDir.setText(Simulation.getSpiceRunDir());
-		useDirCheckBox.setSelected(Simulation.getSpiceUseRunDir());
-		overwriteOutputFile.setSelected(Simulation.getSpiceOutputOverwrite());
-		spiceRunProbe.setSelected(Simulation.getSpiceRunProbe());
-		spiceRunProgram.setText(Simulation.getSpiceRunProgram());
-		spiceRunProgramArgs.setText(Simulation.getSpiceRunProgramArgs());
+		useDir.setText(SimulationTool.getSpiceRunDir());
+		useDirCheckBox.setSelected(SimulationTool.getSpiceUseRunDir());
+		overwriteOutputFile.setSelected(SimulationTool.getSpiceOutputOverwrite());
+		spiceRunProbe.setSelected(SimulationTool.getSpiceRunProbe());
+		spiceRunProgram.setText(SimulationTool.getSpiceRunProgram());
+		spiceRunProgramArgs.setText(SimulationTool.getSpiceRunProgramArgs());
 
-		String [] runChoices = Simulation.getSpiceRunChoiceValues();
+		String [] runChoices = SimulationTool.getSpiceRunChoiceValues();
 		for (int i=0; i<runChoices.length; i++) {
 			spiceRunPopup.addItem(runChoices[i]);
 		}
-		spiceRunPopup.setSelectedItem(Simulation.getSpiceRunChoice());
+		spiceRunPopup.setSelectedItem(SimulationTool.getSpiceRunChoice());
 		if (spiceRunPopup.getSelectedIndex() == 0) setSpiceRunOptionsEnabled(false);
 		else setSpiceRunOptionsEnabled(true);
 
@@ -189,10 +189,10 @@ public class SpiceTab extends PreferencePanel
 		spiceOutputFormatPopup.addItem(SpiceOutFormat.RawSmart);
 		spiceOutputFormatPopup.addItem(SpiceOutFormat.RawLT);
 		spiceOutputFormatPopup.addItem(SpiceOutFormat.Epic);
-		spiceOutputFormatPopup.setSelectedItem(SpiceOutFormat.valueOf(Simulation.getSpiceOutputFormat()));
+		spiceOutputFormatPopup.setSelectedItem(SpiceOutFormat.valueOf(SimulationTool.getSpiceOutputFormat()));
 
-		epicText.setText(String.valueOf(Simulation.getSpiceEpicMemorySize()));
-		spiceNetworkDelimiter.setText(Simulation.getSpiceExtractedNetDelimiter());
+		epicText.setText(String.valueOf(SimulationTool.getSpiceEpicMemorySize()));
+		spiceNetworkDelimiter.setText(SimulationTool.getSpiceExtractedNetDelimiter());
 	}
 
 	private void spiceBrowseTrailerFileActionPerformed()
@@ -218,38 +218,38 @@ public class SpiceTab extends PreferencePanel
 	public void term()
 	{
 		// the top section: writing spice deck
-		Simulation.SpiceEngine engine = (Simulation.SpiceEngine)spiceEnginePopup.getSelectedItem();
-		if (Simulation.getSpiceEngine() != engine) Simulation.setSpiceEngine(engine);
+		SimulationTool.SpiceEngine engine = (SimulationTool.SpiceEngine)spiceEnginePopup.getSelectedItem();
+		if (SimulationTool.getSpiceEngine() != engine) SimulationTool.setSpiceEngine(engine);
 
 		String stringNow = (String)spiceLevelPopup.getSelectedItem();
-		if (!Simulation.getSpiceLevel().equals(stringNow)) Simulation.setSpiceLevel(stringNow);
+		if (!SimulationTool.getSpiceLevel().equals(stringNow)) SimulationTool.setSpiceLevel(stringNow);
 
 		int sr = spiceResistorShorting.getSelectedIndex();
-		if (sr != Simulation.getSpiceShortResistors()) Simulation.setSpiceShortResistors(sr);
+		if (sr != SimulationTool.getSpiceShortResistors()) SimulationTool.setSpiceShortResistors(sr);
 
-		Simulation.SpiceParasitics sp = (Simulation.SpiceParasitics)spiceParasitics.getSelectedItem();
-		if (Simulation.getSpiceParasiticsLevel() != sp) Simulation.setSpiceParasiticsLevel(sp);
+		SimulationTool.SpiceParasitics sp = (SimulationTool.SpiceParasitics)spiceParasitics.getSelectedItem();
+		if (SimulationTool.getSpiceParasiticsLevel() != sp) SimulationTool.setSpiceParasiticsLevel(sp);
 
-		Simulation.SpiceGlobal signal = Simulation.SpiceGlobal.find(spiceGlobalTreatment.getSelectedIndex());
-		if (Simulation.getSpiceGlobalTreatment() != signal) Simulation.setSpiceGlobalTreatment(signal);
+		SimulationTool.SpiceGlobal signal = SimulationTool.SpiceGlobal.find(spiceGlobalTreatment.getSelectedIndex());
+		if (SimulationTool.getSpiceGlobalTreatment() != signal) SimulationTool.setSpiceGlobalTreatment(signal);
 
 		stringNow = (String)spicePrimitivesetPopup.getSelectedItem();
-		if (!Simulation.getSpicePartsLibrary().equals(stringNow)) Simulation.setSpicePartsLibrary(stringNow);
+		if (!SimulationTool.getSpicePartsLibrary().equals(stringNow)) SimulationTool.setSpicePartsLibrary(stringNow);
 
 		boolean booleanNow = spiceWritePwrGndSubcircuit.isSelected();
-		if (Simulation.isSpiceWritePwrGndInTopCell() != booleanNow) Simulation.setSpiceWritePwrGndInTopCell(booleanNow);
+		if (SimulationTool.isSpiceWritePwrGndInTopCell() != booleanNow) SimulationTool.setSpiceWritePwrGndInTopCell(booleanNow);
 
         booleanNow = spiceUseCellParameters.isSelected();
-		if (Simulation.isSpiceUseCellParameters() != booleanNow) Simulation.setSpiceUseCellParameters(booleanNow);
+		if (SimulationTool.isSpiceUseCellParameters() != booleanNow) SimulationTool.setSpiceUseCellParameters(booleanNow);
 
 		booleanNow = spiceWriteTransSizesInLambda.isSelected();
-		if (Simulation.isSpiceWriteTransSizeInLambda() != booleanNow) Simulation.setSpiceWriteTransSizeInLambda(booleanNow);
+		if (SimulationTool.isSpiceWriteTransSizeInLambda() != booleanNow) SimulationTool.setSpiceWriteTransSizeInLambda(booleanNow);
 
 		booleanNow = spiceWriteSubcktTopCell.isSelected();
-		if (Simulation.isSpiceWriteSubcktTopCell() != booleanNow) Simulation.setSpiceWriteSubcktTopCell(booleanNow);
+		if (SimulationTool.isSpiceWriteSubcktTopCell() != booleanNow) SimulationTool.setSpiceWriteSubcktTopCell(booleanNow);
 
 		booleanNow = spiceWriteEndStatement.isSelected();
-		if (Simulation.isSpiceWriteFinalDotEnd() != booleanNow) Simulation.setSpiceWriteFinalDotEnd(booleanNow);
+		if (SimulationTool.isSpiceWriteFinalDotEnd() != booleanNow) SimulationTool.setSpiceWriteFinalDotEnd(booleanNow);
 
 		// bottom of the top section: header and trailer cards
 		String header = Spice.SPICE_NOEXTENSION_PREFIX;
@@ -263,7 +263,7 @@ public class SpiceTab extends PreferencePanel
 		{
 			header = spiceHeaderCardFile.getText();
 		}
-		if (!Simulation.getSpiceHeaderCardInfo().equals(header)) Simulation.setSpiceHeaderCardInfo(header);
+		if (!SimulationTool.getSpiceHeaderCardInfo().equals(header)) SimulationTool.setSpiceHeaderCardInfo(header);
 
 		String trailer = Spice.SPICE_NOEXTENSION_PREFIX;
 		if (spiceTrailerCardExtension.getText().length() > 0)
@@ -276,39 +276,39 @@ public class SpiceTab extends PreferencePanel
 		{
 			trailer = spiceTrailerCardFile.getText();
 		}
-		if (!Simulation.getSpiceTrailerCardInfo().equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
+		if (!SimulationTool.getSpiceTrailerCardInfo().equals(trailer)) SimulationTool.setSpiceTrailerCardInfo(trailer);
 
 		// the middle section: spice run options
 		stringNow = (String)spiceRunPopup.getSelectedItem();
-		if (!Simulation.getSpiceRunChoice().equals(stringNow)) Simulation.setSpiceRunChoice(stringNow);
+		if (!SimulationTool.getSpiceRunChoice().equals(stringNow)) SimulationTool.setSpiceRunChoice(stringNow);
 
 		stringNow = useDir.getText();
-		if (!Simulation.getSpiceRunDir().equals(stringNow)) Simulation.setSpiceRunDir(stringNow);
+		if (!SimulationTool.getSpiceRunDir().equals(stringNow)) SimulationTool.setSpiceRunDir(stringNow);
 
 		booleanNow = useDirCheckBox.isSelected();
-		if (Simulation.getSpiceUseRunDir() != booleanNow) Simulation.setSpiceUseRunDir(booleanNow);
+		if (SimulationTool.getSpiceUseRunDir() != booleanNow) SimulationTool.setSpiceUseRunDir(booleanNow);
 
 		booleanNow = overwriteOutputFile.isSelected();
-		if (Simulation.getSpiceOutputOverwrite() != booleanNow) Simulation.setSpiceOutputOverwrite(booleanNow);
+		if (SimulationTool.getSpiceOutputOverwrite() != booleanNow) SimulationTool.setSpiceOutputOverwrite(booleanNow);
 
 		booleanNow = spiceRunProbe.isSelected();
-		if (Simulation.getSpiceRunProbe() != booleanNow) Simulation.setSpiceRunProbe(booleanNow);
+		if (SimulationTool.getSpiceRunProbe() != booleanNow) SimulationTool.setSpiceRunProbe(booleanNow);
 
 		stringNow = spiceRunProgram.getText();
-		if (!Simulation.getSpiceRunProgram().equals(stringNow)) Simulation.setSpiceRunProgram(stringNow);
+		if (!SimulationTool.getSpiceRunProgram().equals(stringNow)) SimulationTool.setSpiceRunProgram(stringNow);
 
 		stringNow = spiceRunProgramArgs.getText();
-		if (!Simulation.getSpiceRunProgramArgs().equals(stringNow)) Simulation.setSpiceRunProgramArgs(stringNow);
+		if (!SimulationTool.getSpiceRunProgramArgs().equals(stringNow)) SimulationTool.setSpiceRunProgramArgs(stringNow);
 
 		// the bottom section: reading spice output
 		SpiceOutFormat formatVal = (SpiceOutFormat)spiceOutputFormatPopup.getSelectedItem();
-		if (!Simulation.getSpiceOutputFormat().equals(formatVal)) Simulation.setSpiceOutputFormat(formatVal.name());
+		if (!SimulationTool.getSpiceOutputFormat().equals(formatVal)) SimulationTool.setSpiceOutputFormat(formatVal.name());
 
 		if (formatVal == SpiceOutFormat.Epic)
-			Simulation.setSpiceEpicMemorySize(TextUtils.atoi(epicText.getText()));
+			SimulationTool.setSpiceEpicMemorySize(TextUtils.atoi(epicText.getText()));
 
 		stringNow = spiceNetworkDelimiter.getText();
-		if (!Simulation.getSpiceExtractedNetDelimiter().equals(stringNow)) Simulation.setSpiceExtractedNetDelimiter(stringNow);
+		if (!SimulationTool.getSpiceExtractedNetDelimiter().equals(stringNow)) SimulationTool.setSpiceExtractedNetDelimiter(stringNow);
 	}
 
 	/**
@@ -317,58 +317,58 @@ public class SpiceTab extends PreferencePanel
 	public void reset()
 	{
 		// the top section: writing spice deck
-		if (!Simulation.getFactorySpiceEngine().equals(Simulation.getSpiceEngine()))
-			Simulation.setSpiceEngine(Simulation.getFactorySpiceEngine());
-		if (!Simulation.getFactorySpiceLevel().equals(Simulation.getSpiceLevel()))
-			Simulation.setSpiceLevel(Simulation.getFactorySpiceLevel());
-		if (Simulation.getFactorySpiceShortResistors() != Simulation.getSpiceShortResistors())
-			Simulation.setSpiceShortResistors(Simulation.getFactorySpiceShortResistors());
-		if (!Simulation.getFactorySpiceParasiticsLevel().equals(Simulation.getSpiceParasiticsLevel()))
-			Simulation.setSpiceParasiticsLevel(Simulation.getFactorySpiceParasiticsLevel());
-		if (Simulation.getFactorySpiceGlobalTreatment() != Simulation.getSpiceGlobalTreatment())
-			Simulation.setSpiceGlobalTreatment(Simulation.getFactorySpiceGlobalTreatment());
-		if (!Simulation.getFactorySpicePartsLibrary().equals(Simulation.getSpicePartsLibrary()))
-			Simulation.setSpicePartsLibrary(Simulation.getFactorySpicePartsLibrary());
+		if (!SimulationTool.getFactorySpiceEngine().equals(SimulationTool.getSpiceEngine()))
+			SimulationTool.setSpiceEngine(SimulationTool.getFactorySpiceEngine());
+		if (!SimulationTool.getFactorySpiceLevel().equals(SimulationTool.getSpiceLevel()))
+			SimulationTool.setSpiceLevel(SimulationTool.getFactorySpiceLevel());
+		if (SimulationTool.getFactorySpiceShortResistors() != SimulationTool.getSpiceShortResistors())
+			SimulationTool.setSpiceShortResistors(SimulationTool.getFactorySpiceShortResistors());
+		if (!SimulationTool.getFactorySpiceParasiticsLevel().equals(SimulationTool.getSpiceParasiticsLevel()))
+			SimulationTool.setSpiceParasiticsLevel(SimulationTool.getFactorySpiceParasiticsLevel());
+		if (SimulationTool.getFactorySpiceGlobalTreatment() != SimulationTool.getSpiceGlobalTreatment())
+			SimulationTool.setSpiceGlobalTreatment(SimulationTool.getFactorySpiceGlobalTreatment());
+		if (!SimulationTool.getFactorySpicePartsLibrary().equals(SimulationTool.getSpicePartsLibrary()))
+			SimulationTool.setSpicePartsLibrary(SimulationTool.getFactorySpicePartsLibrary());
 
-        if (Simulation.isFactorySpiceWritePwrGndInTopCell() != Simulation.isSpiceWritePwrGndInTopCell())
-			Simulation.setSpiceWritePwrGndInTopCell(Simulation.isFactorySpiceWritePwrGndInTopCell());
-        if (Simulation.isFactorySpiceUseCellParameters() != Simulation.isSpiceUseCellParameters())
-			Simulation.setSpiceUseCellParameters(Simulation.isFactorySpiceUseCellParameters());
-		if (Simulation.isFactorySpiceWriteTransSizeInLambda() != Simulation.isSpiceWriteTransSizeInLambda())
-			Simulation.setSpiceWriteTransSizeInLambda(Simulation.isFactorySpiceWriteTransSizeInLambda());
-		if (Simulation.isFactorySpiceWriteSubcktTopCell() != Simulation.isSpiceWriteSubcktTopCell())
-			Simulation.setSpiceWriteSubcktTopCell(Simulation.isFactorySpiceWriteSubcktTopCell());
-		if (Simulation.isFactorySpiceWriteFinalDotEnd() != Simulation.isSpiceWriteFinalDotEnd())
-			Simulation.setSpiceWriteFinalDotEnd(Simulation.isFactorySpiceWriteFinalDotEnd());
+        if (SimulationTool.isFactorySpiceWritePwrGndInTopCell() != SimulationTool.isSpiceWritePwrGndInTopCell())
+			SimulationTool.setSpiceWritePwrGndInTopCell(SimulationTool.isFactorySpiceWritePwrGndInTopCell());
+        if (SimulationTool.isFactorySpiceUseCellParameters() != SimulationTool.isSpiceUseCellParameters())
+			SimulationTool.setSpiceUseCellParameters(SimulationTool.isFactorySpiceUseCellParameters());
+		if (SimulationTool.isFactorySpiceWriteTransSizeInLambda() != SimulationTool.isSpiceWriteTransSizeInLambda())
+			SimulationTool.setSpiceWriteTransSizeInLambda(SimulationTool.isFactorySpiceWriteTransSizeInLambda());
+		if (SimulationTool.isFactorySpiceWriteSubcktTopCell() != SimulationTool.isSpiceWriteSubcktTopCell())
+			SimulationTool.setSpiceWriteSubcktTopCell(SimulationTool.isFactorySpiceWriteSubcktTopCell());
+		if (SimulationTool.isFactorySpiceWriteFinalDotEnd() != SimulationTool.isSpiceWriteFinalDotEnd())
+			SimulationTool.setSpiceWriteFinalDotEnd(SimulationTool.isFactorySpiceWriteFinalDotEnd());
 
-		if (!Simulation.getFactorySpiceHeaderCardInfo().equals(Simulation.getSpiceHeaderCardInfo()))
-			Simulation.setSpiceHeaderCardInfo(Simulation.getFactorySpiceHeaderCardInfo());
-		if (!Simulation.getFactorySpiceTrailerCardInfo().equals(Simulation.getSpiceTrailerCardInfo()))
-			Simulation.setSpiceTrailerCardInfo(Simulation.getFactorySpiceTrailerCardInfo());
+		if (!SimulationTool.getFactorySpiceHeaderCardInfo().equals(SimulationTool.getSpiceHeaderCardInfo()))
+			SimulationTool.setSpiceHeaderCardInfo(SimulationTool.getFactorySpiceHeaderCardInfo());
+		if (!SimulationTool.getFactorySpiceTrailerCardInfo().equals(SimulationTool.getSpiceTrailerCardInfo()))
+			SimulationTool.setSpiceTrailerCardInfo(SimulationTool.getFactorySpiceTrailerCardInfo());
 
 		// the middle section: running spice
-		if (!Simulation.getFactorySpiceRunChoice().equals(Simulation.getSpiceRunChoice()))
-			Simulation.setSpiceRunChoice(Simulation.getFactorySpiceRunChoice());
-		if (!Simulation.getFactorySpiceRunProgram().equals(Simulation.getSpiceRunProgram()))
-			Simulation.setSpiceRunProgram(Simulation.getFactorySpiceRunProgram());
-		if (!Simulation.getFactorySpiceRunProgramArgs().equals(Simulation.getSpiceRunProgramArgs()))
-			Simulation.setSpiceRunProgramArgs(Simulation.getFactorySpiceRunProgramArgs());
-		if (Simulation.getFactorySpiceUseRunDir() != Simulation.getSpiceUseRunDir())
-			Simulation.setSpiceUseRunDir(Simulation.getFactorySpiceUseRunDir());
-		if (!Simulation.getFactorySpiceRunDir().equals(Simulation.getSpiceRunDir()))
-			Simulation.setSpiceRunDir(Simulation.getFactorySpiceRunDir());
-		if (Simulation.getFactorySpiceOutputOverwrite() != Simulation.getSpiceOutputOverwrite())
-			Simulation.setSpiceOutputOverwrite(Simulation.getFactorySpiceOutputOverwrite());
-		if (Simulation.getFactorySpiceRunProbe() != Simulation.getSpiceRunProbe())
-			Simulation.setSpiceRunProbe(Simulation.getFactorySpiceRunProbe());
+		if (!SimulationTool.getFactorySpiceRunChoice().equals(SimulationTool.getSpiceRunChoice()))
+			SimulationTool.setSpiceRunChoice(SimulationTool.getFactorySpiceRunChoice());
+		if (!SimulationTool.getFactorySpiceRunProgram().equals(SimulationTool.getSpiceRunProgram()))
+			SimulationTool.setSpiceRunProgram(SimulationTool.getFactorySpiceRunProgram());
+		if (!SimulationTool.getFactorySpiceRunProgramArgs().equals(SimulationTool.getSpiceRunProgramArgs()))
+			SimulationTool.setSpiceRunProgramArgs(SimulationTool.getFactorySpiceRunProgramArgs());
+		if (SimulationTool.getFactorySpiceUseRunDir() != SimulationTool.getSpiceUseRunDir())
+			SimulationTool.setSpiceUseRunDir(SimulationTool.getFactorySpiceUseRunDir());
+		if (!SimulationTool.getFactorySpiceRunDir().equals(SimulationTool.getSpiceRunDir()))
+			SimulationTool.setSpiceRunDir(SimulationTool.getFactorySpiceRunDir());
+		if (SimulationTool.getFactorySpiceOutputOverwrite() != SimulationTool.getSpiceOutputOverwrite())
+			SimulationTool.setSpiceOutputOverwrite(SimulationTool.getFactorySpiceOutputOverwrite());
+		if (SimulationTool.getFactorySpiceRunProbe() != SimulationTool.getSpiceRunProbe())
+			SimulationTool.setSpiceRunProbe(SimulationTool.getFactorySpiceRunProbe());
 
 		// the bottom section: reading spice output
-		if (!Simulation.getFactorySpiceOutputFormat().equals(Simulation.getSpiceOutputFormat()))
-			Simulation.setSpiceOutputFormat(Simulation.getFactorySpiceOutputFormat());
-		if (Simulation.getFactorySpiceEpicMemorySize() != Simulation.getSpiceEpicMemorySize())
-			Simulation.setSpiceEpicMemorySize(Simulation.getFactorySpiceEpicMemorySize());
-		if (Simulation.getFactorySpiceExtractedNetDelimiter() != Simulation.getSpiceExtractedNetDelimiter())
-			Simulation.setSpiceExtractedNetDelimiter(Simulation.getFactorySpiceExtractedNetDelimiter());
+		if (!SimulationTool.getFactorySpiceOutputFormat().equals(SimulationTool.getSpiceOutputFormat()))
+			SimulationTool.setSpiceOutputFormat(SimulationTool.getFactorySpiceOutputFormat());
+		if (SimulationTool.getFactorySpiceEpicMemorySize() != SimulationTool.getSpiceEpicMemorySize())
+			SimulationTool.setSpiceEpicMemorySize(SimulationTool.getFactorySpiceEpicMemorySize());
+		if (SimulationTool.getFactorySpiceExtractedNetDelimiter() != SimulationTool.getSpiceExtractedNetDelimiter())
+			SimulationTool.setSpiceExtractedNetDelimiter(SimulationTool.getFactorySpiceExtractedNetDelimiter());
 	}
 
 	// enable or disable the spice run options

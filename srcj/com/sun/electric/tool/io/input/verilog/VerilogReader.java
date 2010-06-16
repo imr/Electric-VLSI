@@ -44,7 +44,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.placement.Placement;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.ViewChanges;
 
@@ -74,7 +74,7 @@ public class VerilogReader extends Input<Object>
 
 	public static class VerilogPreferences extends InputPreferences
     {
-		public boolean runPlacement = Simulation.getFactoryVerilogRunPlacementTool();
+		public boolean runPlacement = SimulationTool.getFactoryVerilogRunPlacementTool();
         Placement.PlacementPreferences placementPrefs;
         IconParameters iconParameters = IconParameters.makeInstance(true);
 
@@ -82,7 +82,7 @@ public class VerilogReader extends Input<Object>
         {
             super(factory);
             if (!factory)
-                runPlacement = Simulation.getVerilogRunPlacementTool();
+                runPlacement = SimulationTool.getVerilogRunPlacementTool();
             // need to cache placement preference here even though it might not be used later
             placementPrefs = new Placement.PlacementPreferences(factory);
             placementPrefs.getOptionsFromPreferences();

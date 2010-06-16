@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Simulation.java
+ * File: SimulationTool.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -81,8 +81,8 @@ import javax.swing.JTextField;
 /**
  * This is the Simulation Interface tool.
  */
-public class Simulation extends Tool {
-	/** the Simulation tool. */							private static Simulation tool = new Simulation();
+public class SimulationTool extends Tool {
+	/** the Simulation tool. */							private static SimulationTool tool = new SimulationTool();
 
 	/** key of Variable holding rise time. */			public static final Variable.Key RISE_DELAY_KEY = Variable.newKey("SIM_rise_delay");
 	/** key of Variable holding fall time. */			public static final Variable.Key FALL_DELAY_KEY = Variable.newKey("SIM_fall_delay");
@@ -92,11 +92,11 @@ public class Simulation extends Tool {
 	/** constant for ALS simulation */					public static final int ALS_ENGINE = 0;
 	/** constant for IRSIM simulation */				public static final int IRSIM_ENGINE = 1;
 
-	private Simulation() { super("simulation"); }
+	private SimulationTool() { super("simulation"); }
 
 	public void init() { }
 
-	public static Simulation getSimulationTool() { return tool; }
+	public static SimulationTool getSimulationTool() { return tool; }
 
 	/****************************** CONTROL OF SIMULATION ENGINES ******************************/
 
@@ -1110,14 +1110,14 @@ public class Simulation extends Tool {
 	 * this is needed to tell the deck generator which variation to target.
 	 * @return which SPICE engine is being used.
 	 * These constants are available: <BR>
-	 * Simulation.SPICE_ENGINE_2 for Spice 2.<BR>
-	 * Simulation.SPICE_ENGINE_3 for Spice 3.<BR>
-	 * Simulation.SPICE_ENGINE_H for HSpice.<BR>
-	 * Simulation.SPICE_ENGINE_P for PSpice.<BR>
-	 * Simulation.SPICE_ENGINE_G for GNUCap.<BR>
-	 * Simulation.SPICE_ENGINE_S for Smart Spice.<BR>
-	 * Simulation.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
-	 * Where Simulation.SPICE_ENGINE_3 is the default.
+	 * SimulationTool.SPICE_ENGINE_2 for Spice 2.<BR>
+	 * SimulationTool.SPICE_ENGINE_3 for Spice 3.<BR>
+	 * SimulationTool.SPICE_ENGINE_H for HSpice.<BR>
+	 * SimulationTool.SPICE_ENGINE_P for PSpice.<BR>
+	 * SimulationTool.SPICE_ENGINE_G for GNUCap.<BR>
+	 * SimulationTool.SPICE_ENGINE_S for Smart Spice.<BR>
+	 * SimulationTool.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
+	 * Where SimulationTool.SPICE_ENGINE_3 is the default.
 	 */
 	public static SpiceEngine getSpiceEngine()
 	{
@@ -1134,13 +1134,13 @@ public class Simulation extends Tool {
 	 * this is needed to tell the deck generator which variation to target.
 	 * @param engine which SPICE engine is being used.
 	 * These constants are available: <BR>
-	 * Simulation.SpiceEngine.SPICE_ENGINE_2 for Spice 2.<BR>
-	 * Simulation.SpiceEngine.SPICE_ENGINE_3 for Spice 3. (the default)<BR>
-	 * Simulation.SpiceEngine.SPICE_ENGINE_H for HSpice.<BR>
-	 * Simulation.SpiceEngine.SPICE_ENGINE_P for PSpice.<BR>
-	 * Simulation.SpiceEngine.SPICE_ENGINE_G for GNUCap.<BR>
-	 * Simulation.SpiceEngine.SPICE_ENGINE_S for Smart Spice.<BR>
-	 * Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA for HSpice for Assura.
+	 * SimulationTool.SpiceEngine.SPICE_ENGINE_2 for Spice 2.<BR>
+	 * SimulationTool.SpiceEngine.SPICE_ENGINE_3 for Spice 3. (the default)<BR>
+	 * SimulationTool.SpiceEngine.SPICE_ENGINE_H for HSpice.<BR>
+	 * SimulationTool.SpiceEngine.SPICE_ENGINE_P for PSpice.<BR>
+	 * SimulationTool.SpiceEngine.SPICE_ENGINE_G for GNUCap.<BR>
+	 * SimulationTool.SpiceEngine.SPICE_ENGINE_S for Smart Spice.<BR>
+	 * SimulationTool.SpiceEngine.SPICE_ENGINE_H_ASSURA for HSpice for Assura.
 	 */
 	public static void setSpiceEngine(SpiceEngine engine) { cacheSpiceEngine.setInt(engine.code()); }
 	/**
@@ -1149,13 +1149,13 @@ public class Simulation extends Tool {
 	 * this is needed to tell the deck generator which variation to target.
 	 * @return which SPICE engine is being used, by default.
 	 * These constants are available: <BR>
-	 * Simulation.SPICE_ENGINE_2 for Spice 2.<BR>
-	 * Simulation.SPICE_ENGINE_3 for Spice 3.<BR>
-	 * Simulation.SPICE_ENGINE_H for HSpice.<BR>
-	 * Simulation.SPICE_ENGINE_P for PSpice.<BR>
-	 * Simulation.SPICE_ENGINE_G for GNUCap.<BR>
-	 * Simulation.SPICE_ENGINE_S for Smart Spice.<BR>
-	 * Simulation.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
+	 * SimulationTool.SPICE_ENGINE_2 for Spice 2.<BR>
+	 * SimulationTool.SPICE_ENGINE_3 for Spice 3.<BR>
+	 * SimulationTool.SPICE_ENGINE_H for HSpice.<BR>
+	 * SimulationTool.SPICE_ENGINE_P for PSpice.<BR>
+	 * SimulationTool.SPICE_ENGINE_G for GNUCap.<BR>
+	 * SimulationTool.SPICE_ENGINE_S for Smart Spice.<BR>
+	 * SimulationTool.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
 	 */
 	public static SpiceEngine getFactorySpiceEngine()
 	{
@@ -1535,7 +1535,7 @@ public class Simulation extends Tool {
         public int getCode() {return code;}
         public static SpiceGlobal find(int c)
         {
-            for (SpiceGlobal s : Simulation.SpiceGlobal.values())
+            for (SpiceGlobal s : SimulationTool.SpiceGlobal.values())
             {
                 if (s.code == c)
                     return s;
@@ -1559,7 +1559,7 @@ public class Simulation extends Tool {
 	 * SPICEGLOBALSUSESUBCKTPORTS: place globals as .SUBCKT parameters<BR>
 	 * @return how to treat globals in Spice output.
 	 */
-	public static Simulation.SpiceGlobal getSpiceGlobalTreatment() { return SpiceGlobal.find(cacheGlobalTreatment.getInt()); }
+	public static SimulationTool.SpiceGlobal getSpiceGlobalTreatment() { return SpiceGlobal.find(cacheGlobalTreatment.getInt()); }
 	/**
 	 * Method to set how to treat globals in Spice output.
 	 * Globals are signals such as power and ground.  The values can be:<BR>
@@ -1568,7 +1568,7 @@ public class Simulation extends Tool {
 	 * SPICEGLOBALSUSESUBCKTPORTS: place globals as .SUBCKT parameters<BR>
 	 * @param g how to treat globals in Spice output.
 	 */
-	public static void setSpiceGlobalTreatment(Simulation.SpiceGlobal g) { cacheGlobalTreatment.setInt(g.getCode()); }
+	public static void setSpiceGlobalTreatment(SimulationTool.SpiceGlobal g) { cacheGlobalTreatment.setInt(g.getCode()); }
 	/**
 	 * Method to tell how to treat globals in Spice output, by default.
 	 * Globals are signals such as power and ground.  The values can be:<BR>
@@ -1577,7 +1577,7 @@ public class Simulation extends Tool {
 	 * SPICEGLOBALSUSESUBCKTPORTS: place globals as .SUBCKT parameters<BR>
 	 * @return how to treat globals in Spice output, by default.
 	 */
-	public static Simulation.SpiceGlobal getFactorySpiceGlobalTreatment() { return SpiceGlobal.find(cacheGlobalTreatment.getIntFactoryValue()); }
+	public static SimulationTool.SpiceGlobal getFactorySpiceGlobalTreatment() { return SpiceGlobal.find(cacheGlobalTreatment.getIntFactoryValue()); }
 
     private static Pref cacheSpiceWritePwrGndInTopCell = Pref.makeBooleanPref("cacheSpiceWritePwrGndInTopCell", tool.prefs, true);
 	/**

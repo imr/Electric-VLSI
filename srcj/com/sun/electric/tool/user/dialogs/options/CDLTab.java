@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import javax.swing.JPanel;
@@ -57,10 +57,10 @@ public class CDLTab extends PreferencePanel
 	 */
 	public void init()
 	{
-        cdlIncludeFile.setText(Simulation.getCDLIncludeFile());
-		cdlLibraryName.setText(Simulation.getCDLLibName());
-		cdlLibraryPath.setText(Simulation.getCDLLibPath());
-		cdlConvertBrackets.setSelected(Simulation.isCDLConvertBrackets());
+        cdlIncludeFile.setText(SimulationTool.getCDLIncludeFile());
+		cdlLibraryName.setText(SimulationTool.getCDLLibName());
+		cdlLibraryPath.setText(SimulationTool.getCDLLibPath());
+		cdlConvertBrackets.setSelected(SimulationTool.isCDLConvertBrackets());
 	}
 
 	/**
@@ -70,16 +70,16 @@ public class CDLTab extends PreferencePanel
 	public void term()
 	{
 		String nameNow = cdlLibraryName.getText();
-		if (!nameNow.equals(Simulation.getCDLLibName())) Simulation.setCDLLibName(nameNow);
+		if (!nameNow.equals(SimulationTool.getCDLLibName())) SimulationTool.setCDLLibName(nameNow);
 
 		nameNow = cdlLibraryPath.getText();
-		if (!nameNow.equals(Simulation.getCDLLibPath())) Simulation.setCDLLibPath(nameNow);
+		if (!nameNow.equals(SimulationTool.getCDLLibPath())) SimulationTool.setCDLLibPath(nameNow);
 
         nameNow = cdlIncludeFile.getText();
-        if (!nameNow.equals(Simulation.getCDLIncludeFile())) Simulation.setCDLIncludeFile(nameNow);
+        if (!nameNow.equals(SimulationTool.getCDLIncludeFile())) SimulationTool.setCDLIncludeFile(nameNow);
 
 		boolean convertNow = cdlConvertBrackets.isSelected();
-		if (convertNow != Simulation.isCDLConvertBrackets()) Simulation.setCDLConvertBrackets(convertNow);
+		if (convertNow != SimulationTool.isCDLConvertBrackets()) SimulationTool.setCDLConvertBrackets(convertNow);
 	}
 
 	/**
@@ -87,14 +87,14 @@ public class CDLTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		if (!Simulation.getFactoryCDLIncludeFile().equals(Simulation.getCDLIncludeFile()))
-			Simulation.setCDLIncludeFile(Simulation.getFactoryCDLIncludeFile());
-		if (!Simulation.getFactoryCDLLibName().equals(Simulation.getCDLLibName()))
-			Simulation.setCDLLibName(Simulation.getFactoryCDLLibName());
-		if (!Simulation.getFactoryCDLLibPath().equals(Simulation.getCDLLibPath()))
-			Simulation.setCDLLibPath(Simulation.getFactoryCDLLibPath());
-		if (Simulation.isFactoryCDLConvertBrackets() != Simulation.isCDLConvertBrackets())
-			Simulation.setCDLConvertBrackets(Simulation.isFactoryCDLConvertBrackets());
+		if (!SimulationTool.getFactoryCDLIncludeFile().equals(SimulationTool.getCDLIncludeFile()))
+			SimulationTool.setCDLIncludeFile(SimulationTool.getFactoryCDLIncludeFile());
+		if (!SimulationTool.getFactoryCDLLibName().equals(SimulationTool.getCDLLibName()))
+			SimulationTool.setCDLLibName(SimulationTool.getFactoryCDLLibName());
+		if (!SimulationTool.getFactoryCDLLibPath().equals(SimulationTool.getCDLLibPath()))
+			SimulationTool.setCDLLibPath(SimulationTool.getFactoryCDLLibPath());
+		if (SimulationTool.isFactoryCDLConvertBrackets() != SimulationTool.isCDLConvertBrackets())
+			SimulationTool.setCDLConvertBrackets(SimulationTool.isFactoryCDLConvertBrackets());
 	}
 
 	/** This method is called from within the constructor to

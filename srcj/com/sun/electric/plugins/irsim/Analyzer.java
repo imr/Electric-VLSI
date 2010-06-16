@@ -32,7 +32,7 @@ import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSignal;
 import com.sun.electric.tool.simulation.MutableSignal;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.waveform.Panel;
@@ -312,7 +312,7 @@ public class Analyzer extends Engine
 			parameters[0] = sig.getFullName().replace('.', '/');
 			newVector(VECTORH, parameters, ww.getMainXPositionCursor(), false);
 		}
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 			playVectors();
 	}
 
@@ -334,7 +334,7 @@ public class Analyzer extends Engine
 			parameters[0] = sig.getFullName().replace('.', '/');
 			newVector(VECTORL, parameters, ww.getMainXPositionCursor(), false);
 		}
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 			playVectors();
 	}
 
@@ -364,7 +364,7 @@ public class Analyzer extends Engine
 			parameters[0] = sig.getFullName().replace('.', '/');
 			newVector(VECTORX, parameters, ww.getMainXPositionCursor(), false);
 		}
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 			playVectors();
 	}
 
@@ -425,7 +425,7 @@ public class Analyzer extends Engine
 			lastSV = sv;
 		}
 		lastVector = lastSV;
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 			playVectors();
 	}
 
@@ -458,7 +458,7 @@ public class Analyzer extends Engine
 		}
 
 		// resimulate if requested
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 			playVectors();
 		return true;
 	}
@@ -477,7 +477,7 @@ public class Analyzer extends Engine
 			}
 		}
 
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 			clearAllVectors();
 	}
 
@@ -548,7 +548,7 @@ public class Analyzer extends Engine
 		updateWindow(theSim.curDelta);
 
 		// update main cursor location if requested
-		if (Simulation.isBuiltInAutoAdvance())
+		if (SimulationTool.isBuiltInAutoAdvance())
 			ww.setMainXPositionCursor(curTime + 10.0/1000000000.0);
 	}
 
@@ -759,7 +759,7 @@ public class Analyzer extends Engine
 
 	private void issueCommand(SimVector sv)
 	{
-		if (Simulation.isIRSIMShowsCommands())
+		if (SimulationTool.isIRSIMShowsCommands())
 		{
 			System.out.print("> " + commandName(sv.command));
 			if (sv.parameters != null)

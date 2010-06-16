@@ -41,7 +41,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.User;
 
 import java.io.BufferedReader;
@@ -547,11 +547,11 @@ public class Tegas extends Topology
 		if (no.isCellInstance()) return "";
 		NodeInst ni = (NodeInst)no;
 
-		Variable var = ni.getVar(Simulation.RISE_DELAY_KEY);
+		Variable var = ni.getVar(SimulationTool.RISE_DELAY_KEY);
 		String str1 = "/1,";
 		if (var != null) str1 = "/" + var.getPureValue(-1) + ",";
 
-		var = ni.getVar(Simulation.FALL_DELAY_KEY);
+		var = ni.getVar(SimulationTool.FALL_DELAY_KEY);
 		String str2 = "/1,";
 		if (var != null) str2 = "/" + var.getPureValue(-1) + ",";
 		return str1 + str2;

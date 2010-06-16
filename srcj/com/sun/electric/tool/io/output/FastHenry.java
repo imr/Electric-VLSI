@@ -38,7 +38,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -140,13 +140,13 @@ public class FastHenry extends Output
 
 	public static class FastHenryPreferences extends OutputPreferences
     {
-		int widthSubdivisions = Simulation.getFactoryFastHenryWidthSubdivisions();
-		int heightSubdivisions = Simulation.getFactoryFastHenryHeightSubdivisions();
-		double defThickness = Simulation.getFactoryFastHenryDefThickness();
-		boolean useSingleFrequency = Simulation.isFactoryFastHenryUseSingleFrequency();
-		double startFrequency = Simulation.getFactoryFastHenryStartFrequency();
-		double endFrequency = Simulation.getFactoryFastHenryEndFrequency();
-		int runsPerDecade = Simulation.getFactoryFastHenryRunsPerDecade();
+		int widthSubdivisions = SimulationTool.getFactoryFastHenryWidthSubdivisions();
+		int heightSubdivisions = SimulationTool.getFactoryFastHenryHeightSubdivisions();
+		double defThickness = SimulationTool.getFactoryFastHenryDefThickness();
+		boolean useSingleFrequency = SimulationTool.isFactoryFastHenryUseSingleFrequency();
+		double startFrequency = SimulationTool.getFactoryFastHenryStartFrequency();
+		double endFrequency = SimulationTool.getFactoryFastHenryEndFrequency();
+		int runsPerDecade = SimulationTool.getFactoryFastHenryRunsPerDecade();
 
         public FastHenryPreferences(boolean factory) {
             super(factory);
@@ -156,13 +156,13 @@ public class FastHenry extends Output
 
 		private void fillPrefs()
         {
-			widthSubdivisions = Simulation.getFastHenryWidthSubdivisions();
-			heightSubdivisions = Simulation.getFastHenryHeightSubdivisions();
-			defThickness = Simulation.getFastHenryDefThickness();
-			useSingleFrequency = Simulation.isFastHenryUseSingleFrequency();
-			startFrequency = Simulation.getFastHenryStartFrequency();
-			endFrequency = Simulation.getFastHenryEndFrequency();
-			runsPerDecade = Simulation.getFastHenryRunsPerDecade();
+			widthSubdivisions = SimulationTool.getFastHenryWidthSubdivisions();
+			heightSubdivisions = SimulationTool.getFastHenryHeightSubdivisions();
+			defThickness = SimulationTool.getFastHenryDefThickness();
+			useSingleFrequency = SimulationTool.isFastHenryUseSingleFrequency();
+			startFrequency = SimulationTool.getFastHenryStartFrequency();
+			endFrequency = SimulationTool.getFastHenryEndFrequency();
+			runsPerDecade = SimulationTool.getFastHenryRunsPerDecade();
 		}
 
         public Output doOutput(Cell cell, VarContext context, String filePath)

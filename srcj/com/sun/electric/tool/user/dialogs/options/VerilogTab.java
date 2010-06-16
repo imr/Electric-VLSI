@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 
 import javax.swing.JPanel;
@@ -34,8 +34,8 @@ import javax.swing.JPanel;
  */
 public class VerilogTab extends PreferencePanel
 {
-    private Setting verilogUseAssignSetting = Simulation.getVerilogUseAssignSetting();
-    private Setting verilogUseTriregSetting = Simulation.getVerilogUseTriregSetting();
+    private Setting verilogUseAssignSetting = SimulationTool.getVerilogUseAssignSetting();
+    private Setting verilogUseTriregSetting = SimulationTool.getVerilogUseTriregSetting();
     
 	/** Creates new form VerilogTab */
 	public VerilogTab(PreferencesFrame parent, boolean modal)
@@ -60,12 +60,12 @@ public class VerilogTab extends PreferencePanel
 	public void init()
 	{
 		// user preferences
-		stopAtStandardCells.setSelected(Simulation.getVerilogStopAtStandardCells());
-        netlistNonstandardCells.setSelected(Simulation.getVerilogNetlistNonstandardCells());
-        preserveVerilogFormatting.setSelected(Simulation.getPreserveVerilogFormating());
-		parameterizeModuleNames.setSelected(Simulation.getVerilogParameterizeModuleNames());
-        runPlacement.setSelected(Simulation.getVerilogRunPlacementTool());
-        writeModuleForEachIcon.setSelected(Simulation.isVerilogWriteModuleForEachIcon());
+		stopAtStandardCells.setSelected(SimulationTool.getVerilogStopAtStandardCells());
+        netlistNonstandardCells.setSelected(SimulationTool.getVerilogNetlistNonstandardCells());
+        preserveVerilogFormatting.setSelected(SimulationTool.getPreserveVerilogFormating());
+		parameterizeModuleNames.setSelected(SimulationTool.getVerilogParameterizeModuleNames());
+        runPlacement.setSelected(SimulationTool.getVerilogRunPlacementTool());
+        writeModuleForEachIcon.setSelected(SimulationTool.isVerilogWriteModuleForEachIcon());
 
         // project preferences
 		verUseAssign.setSelected(getBoolean(verilogUseAssignSetting));
@@ -79,12 +79,12 @@ public class VerilogTab extends PreferencePanel
 	public void term()
 	{
 		// user preferences
-		Simulation.setVerilogStopAtStandardCells(stopAtStandardCells.isSelected());
-        Simulation.setVerilogNetlistNonstandardCells(netlistNonstandardCells.isSelected());
-        Simulation.setPreserveVerilogFormating(preserveVerilogFormatting.isSelected());
-		Simulation.setVerilogParameterizeModuleNames(parameterizeModuleNames.isSelected());
-		Simulation.setVerilogRunPlacementTool(runPlacement.isSelected());
-		Simulation.setVerilogWriteModuleForEachIcon(writeModuleForEachIcon.isSelected());
+		SimulationTool.setVerilogStopAtStandardCells(stopAtStandardCells.isSelected());
+        SimulationTool.setVerilogNetlistNonstandardCells(netlistNonstandardCells.isSelected());
+        SimulationTool.setPreserveVerilogFormating(preserveVerilogFormatting.isSelected());
+		SimulationTool.setVerilogParameterizeModuleNames(parameterizeModuleNames.isSelected());
+		SimulationTool.setVerilogRunPlacementTool(runPlacement.isSelected());
+		SimulationTool.setVerilogWriteModuleForEachIcon(writeModuleForEachIcon.isSelected());
 
 		// project preferences
         setBoolean(verilogUseAssignSetting, verUseAssign.isSelected());
@@ -97,18 +97,18 @@ public class VerilogTab extends PreferencePanel
 	public void reset()
 	{
 		// user preferences
-		if (Simulation.getFactoryVerilogStopAtStandardCells() != Simulation.getVerilogStopAtStandardCells())
-			Simulation.setVerilogStopAtStandardCells(Simulation.getFactoryVerilogStopAtStandardCells());
-        if (Simulation.getFactoryVerilogNetlistNonstandardCells() != Simulation.getVerilogNetlistNonstandardCells())
-            Simulation.setVerilogNetlistNonstandardCells(Simulation.getFactoryVerilogNetlistNonstandardCells());
-        if (Simulation.getFactoryPreserveVerilogFormating() != Simulation.getPreserveVerilogFormating())
-			Simulation.setPreserveVerilogFormating(Simulation.getFactoryPreserveVerilogFormating());
-		if (Simulation.getFactoryVerilogParameterizeModuleNames() != Simulation.getVerilogParameterizeModuleNames())
-			Simulation.setVerilogParameterizeModuleNames(Simulation.getFactoryVerilogParameterizeModuleNames());
-		if (Simulation.getFactoryVerilogRunPlacementTool() != Simulation.getVerilogRunPlacementTool())
-			Simulation.setVerilogRunPlacementTool(Simulation.getFactoryVerilogRunPlacementTool());
-		if (Simulation.isFactoryVerilogWriteModuleForEachIcon() != Simulation.isVerilogWriteModuleForEachIcon())
-			Simulation.setVerilogWriteModuleForEachIcon(Simulation.isFactoryVerilogWriteModuleForEachIcon());
+		if (SimulationTool.getFactoryVerilogStopAtStandardCells() != SimulationTool.getVerilogStopAtStandardCells())
+			SimulationTool.setVerilogStopAtStandardCells(SimulationTool.getFactoryVerilogStopAtStandardCells());
+        if (SimulationTool.getFactoryVerilogNetlistNonstandardCells() != SimulationTool.getVerilogNetlistNonstandardCells())
+            SimulationTool.setVerilogNetlistNonstandardCells(SimulationTool.getFactoryVerilogNetlistNonstandardCells());
+        if (SimulationTool.getFactoryPreserveVerilogFormating() != SimulationTool.getPreserveVerilogFormating())
+			SimulationTool.setPreserveVerilogFormating(SimulationTool.getFactoryPreserveVerilogFormating());
+		if (SimulationTool.getFactoryVerilogParameterizeModuleNames() != SimulationTool.getVerilogParameterizeModuleNames())
+			SimulationTool.setVerilogParameterizeModuleNames(SimulationTool.getFactoryVerilogParameterizeModuleNames());
+		if (SimulationTool.getFactoryVerilogRunPlacementTool() != SimulationTool.getVerilogRunPlacementTool())
+			SimulationTool.setVerilogRunPlacementTool(SimulationTool.getFactoryVerilogRunPlacementTool());
+		if (SimulationTool.isFactoryVerilogWriteModuleForEachIcon() != SimulationTool.isVerilogWriteModuleForEachIcon())
+			SimulationTool.setVerilogWriteModuleForEachIcon(SimulationTool.isFactoryVerilogWriteModuleForEachIcon());
     }
 
 	/** This method is called from within the constructor to

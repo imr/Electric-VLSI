@@ -49,7 +49,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
@@ -616,7 +616,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			{
 				JPopupMenu cellMenu = new JPopupMenu("Spice");
 
-				String currentSpiceLib = Simulation.getSpicePartsLibrary();
+				String currentSpiceLib = SimulationTool.getSpicePartsLibrary();
 				Library spiceLib = Library.findLibrary(currentSpiceLib);
 				if (spiceLib == null)
 				{

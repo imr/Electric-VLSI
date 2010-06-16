@@ -39,7 +39,7 @@ import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.RangeSample;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
@@ -1690,7 +1690,7 @@ public class Panel extends JPanel
 				{
 					double xValue = ds.getExactView().getTime(i);
 					int x = convertXDataToScreen(xValue);
-					if (Simulation.isWaveformDisplayMultiState() && g != null)
+					if (SimulationTool.isWaveformDisplayMultiState() && g != null)
 					{
 						if (waveWindow.getPrintingMode() == 2) g.setColor(Color.BLACK); else
 						{
@@ -1720,7 +1720,7 @@ public class Panel extends JPanel
 							lowy = (hei-10) / 3 + 5;   highy = hei - (hei-10) / 3 - 5;
 							break;
 					}
-					if (g != null && !Simulation.isWaveformDisplayMultiState()) g.setColor(Color.RED);
+					if (g != null && !SimulationTool.isWaveformDisplayMultiState()) g.setColor(Color.RED);
 					if (i != 0)
 					{
 						if (state != lastState)
@@ -1728,7 +1728,7 @@ public class Panel extends JPanel
 							if (processALine(g, x, Math.min(lowy, lastLowy), x, Math.max(lowy, lastLowy), bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
 						}
 					}
-					if (g != null && !Simulation.isWaveformDisplayMultiState())
+					if (g != null && !SimulationTool.isWaveformDisplayMultiState())
 					{
 						if (lastState == Stimuli.LOGIC_Z) g.setColor(Color.GREEN);
 					}
@@ -1743,7 +1743,7 @@ public class Panel extends JPanel
 					{
 						if (i >= numEvents-1)
 						{
-							if (g != null && !Simulation.isWaveformDisplayMultiState())
+							if (g != null && !SimulationTool.isWaveformDisplayMultiState())
 							{
 								if (state == Stimuli.LOGIC_Z) g.setColor(Color.GREEN); else g.setColor(Color.RED);
 							}

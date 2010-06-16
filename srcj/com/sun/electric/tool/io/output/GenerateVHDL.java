@@ -47,7 +47,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.CompileVHDL;
 
 import java.util.HashMap;
@@ -899,13 +899,13 @@ public class GenerateVHDL extends Topology
 			} else if (k.isNTypeTransistor())
 			{
 				primName = "nMOStran";
-				Variable var = no.getVar(Simulation.WEAK_NODE_KEY);
+				Variable var = no.getVar(SimulationTool.WEAK_NODE_KEY);
 				if (var != null) primName = "nMOStranWeak";
 				special = BLOCKMOSTRAN;
 			} else if (k.isPTypeTransistor())
 			{
 				primName = "PMOStran";
-				Variable var = no.getVar(Simulation.WEAK_NODE_KEY);
+				Variable var = no.getVar(SimulationTool.WEAK_NODE_KEY);
 				if (var != null) primName = "PMOStranWeak";
 				special = BLOCKMOSTRAN;
 			} else if (k == PrimitiveNode.Function.TRANPN || k == PrimitiveNode.Function.TRA4NPN)

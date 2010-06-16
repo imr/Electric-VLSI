@@ -41,7 +41,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -677,7 +677,7 @@ public class Silos extends Topology
 	 */
 	private String getRiseTime(NodeInst ni)
 	{
-		Variable var = ni.getVar(Simulation.RISE_DELAY_KEY);
+		Variable var = ni.getVar(SimulationTool.RISE_DELAY_KEY);
 		if (var != null) return var.describe(-1);
 		return "";
 	}
@@ -693,7 +693,7 @@ public class Silos extends Topology
 	 */
 	private String getFallTime(NodeInst ni)
 	{
-		Variable var = ni.getVar(Simulation.FALL_DELAY_KEY);
+		Variable var = ni.getVar(SimulationTool.FALL_DELAY_KEY);
 		if (var != null) return var.describe(-1);
 		return "";
 	}

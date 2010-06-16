@@ -31,7 +31,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.io.output.Topology.CellNetInfo;
 import com.sun.electric.tool.io.output.Topology.CellSignal;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -112,7 +112,7 @@ class SpiceSegmentedNets
 	{
 		Network net = cni.getNetList().getNetwork(pi);
 		CellSignal cs = cni.getCellSignal(net);
-		if (sp.parasiticsLevel == Simulation.SpiceParasitics.SIMPLE || (!sp.parasiticsExtractPowerGround &&
+		if (sp.parasiticsLevel == SimulationTool.SpiceParasitics.SIMPLE || (!sp.parasiticsExtractPowerGround &&
 			isPowerGround(pi))) return cs.getName();
 
 		Integer i = netCounters.get(net);
@@ -178,7 +178,7 @@ class SpiceSegmentedNets
 	// if no parasitics, this is just the CellSignal name.
 	public String getNetName(PortInst pi)
 	{
-		if (sp.parasiticsLevel == Simulation.SpiceParasitics.SIMPLE || (isPowerGround(pi) &&
+		if (sp.parasiticsLevel == SimulationTool.SpiceParasitics.SIMPLE || (isPowerGround(pi) &&
 			!sp.parasiticsExtractPowerGround))
 		{
 			CellSignal cs = cni.getCellSignal(cni.getNetList().getNetwork(pi));
@@ -203,7 +203,7 @@ class SpiceSegmentedNets
 	{
 		// short out if both conns are power/ground
 		if (isPowerGround(ai.getHeadPortInst()) && isPowerGround(ai.getTailPortInst()) &&
-			!Simulation.isParasiticsExtractPowerGround())
+			!SimulationTool.isParasiticsExtractPowerGround())
 		{
 			shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
 			return;
@@ -233,7 +233,7 @@ class SpiceSegmentedNets
 		return new TreeSet<NetInfo>(segmentedNets.values());
 	}
 
-	public Simulation.SpiceParasitics getParasiticsLevel()
+	public SimulationTool.SpiceParasitics getParasiticsLevel()
 	{
 		return sp.parasiticsLevel;
 	}

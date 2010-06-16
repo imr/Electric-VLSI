@@ -35,7 +35,7 @@ import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.waveform.Panel;
@@ -491,7 +491,7 @@ public class ALS extends Engine
 		stimuliList = getStimuliToSave();
 
 		// restart everything
-		Simulation.startSimulation(Simulation.ALS_ENGINE, false, an.getStimuli().getCell(), this);
+		SimulationTool.startSimulation(SimulationTool.ALS_ENGINE, false, an.getStimuli().getCell(), this);
 	}
 
 	/**
@@ -673,7 +673,7 @@ public class ALS extends Engine
 				}
 			}
 		}
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 		{
 			theSim.initializeSimulator(true);
 		}
@@ -740,7 +740,7 @@ public class ALS extends Engine
 			System.out.println("There are no selected control points to remove");
 			return false;
 		}
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 		{
 			theSim.initializeSimulator(true);
 		}
@@ -762,7 +762,7 @@ public class ALS extends Engine
                 sig.clearControlPoints();
 			}
 		}
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 		{
 			theSim.initializeSimulator(true);
 		}
@@ -915,10 +915,10 @@ public class ALS extends Engine
 //				", strength = " + Stimuli.describeStrength(strength) + ", time = " + time);
 		}
 
-		if (Simulation.isBuiltInResimulateEach())
+		if (SimulationTool.isBuiltInResimulateEach())
 		{
 			double endTime = theSim.initializeSimulator(true);
-			if (Simulation.isBuiltInAutoAdvance()) ww.setMainXPositionCursor(endTime);
+			if (SimulationTool.isBuiltInAutoAdvance()) ww.setMainXPositionCursor(endTime);
 		}
 	}
 
@@ -2309,7 +2309,7 @@ public class ALS extends Engine
 		private List<Cell> textCellsToRedraw;
         private GenerateVHDL.VHDLPreferences vp = new GenerateVHDL.VHDLPreferences(false);
 
-		public DoALSActivity(Cell cell, boolean convert, boolean compile, Cell originalCell, Engine prevEngine, Simulation tool)
+		public DoALSActivity(Cell cell, boolean convert, boolean compile, Cell originalCell, Engine prevEngine, SimulationTool tool)
 		{
 			super("ALS Simulation", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;

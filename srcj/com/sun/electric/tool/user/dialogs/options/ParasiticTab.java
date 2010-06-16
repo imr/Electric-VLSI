@@ -27,7 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.extract.ParasiticTool;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 
@@ -85,17 +85,17 @@ public class ParasiticTab extends PreferencePanel {
 	public void init()
 	{
 		// user preferences
-		verboseNaming.setSelected(Simulation.isParasiticsUseVerboseNaming());
-		backannotateLayout.setSelected(Simulation.isParasiticsBackAnnotateLayout());
-		extractPowerGround.setSelected(Simulation.isParasiticsExtractPowerGround());
+		verboseNaming.setSelected(SimulationTool.isParasiticsUseVerboseNaming());
+		backannotateLayout.setSelected(SimulationTool.isParasiticsBackAnnotateLayout());
+		extractPowerGround.setSelected(SimulationTool.isParasiticsExtractPowerGround());
 		extractPowerGround.setEnabled(false);
-        useExemptedNetsFile.setSelected(Simulation.isParasiticsUseExemptedNetsFile());
+        useExemptedNetsFile.setSelected(SimulationTool.isParasiticsUseExemptedNetsFile());
         ignoreExemptedNets.setEnabled(useExemptedNetsFile.isSelected());
         extractExemptedNets.setEnabled(useExemptedNetsFile.isSelected());
-        ignoreExemptedNets.setSelected(Simulation.isParasiticsIgnoreExemptedNets());
-        extractExemptedNets.setSelected(!Simulation.isParasiticsIgnoreExemptedNets());
-        extractR.setSelected(Simulation.isParasiticsExtractsR());
-        extractC.setSelected(Simulation.isParasiticsExtractsC());
+        ignoreExemptedNets.setSelected(SimulationTool.isParasiticsIgnoreExemptedNets());
+        extractExemptedNets.setSelected(!SimulationTool.isParasiticsIgnoreExemptedNets());
+        extractR.setSelected(SimulationTool.isParasiticsExtractsR());
+        extractC.setSelected(SimulationTool.isParasiticsExtractsC());
 
         // the parasitics panel (not visible)
 		maxDistValue.setText(TextUtils.formatDistance(ParasiticTool.getMaxDistance()));
@@ -146,21 +146,21 @@ public class ParasiticTab extends PreferencePanel {
 		ParasiticTool.setMaxDistance(TextUtils.atofDistance(maxDistValue.getText()));
 
 		boolean b = verboseNaming.isSelected();
-		if (b != Simulation.isParasiticsUseVerboseNaming()) Simulation.setParasiticsUseVerboseNaming(b);
+		if (b != SimulationTool.isParasiticsUseVerboseNaming()) SimulationTool.setParasiticsUseVerboseNaming(b);
 		b = backannotateLayout.isSelected();
-		if (b != Simulation.isParasiticsBackAnnotateLayout()) Simulation.setParasiticsBackAnnotateLayout(b);
+		if (b != SimulationTool.isParasiticsBackAnnotateLayout()) SimulationTool.setParasiticsBackAnnotateLayout(b);
 		b = extractPowerGround.isSelected();
-		if (b != Simulation.isParasiticsExtractPowerGround()) Simulation.setParasiticsExtractPowerGround(b);
+		if (b != SimulationTool.isParasiticsExtractPowerGround()) SimulationTool.setParasiticsExtractPowerGround(b);
         b = useExemptedNetsFile.isSelected();
-        if (b != Simulation.isParasiticsUseExemptedNetsFile()) Simulation.setParasiticsUseExemptedNetsFile(b);
+        if (b != SimulationTool.isParasiticsUseExemptedNetsFile()) SimulationTool.setParasiticsUseExemptedNetsFile(b);
         b = ignoreExemptedNets.isSelected();
-            Simulation.setParasiticsIgnoreExemptedNets(b);
+            SimulationTool.setParasiticsIgnoreExemptedNets(b);
         b = extractR.isSelected();
-        if (b != Simulation.isParasiticsExtractsR())
-            Simulation.setParasiticsExtractsR(b);
+        if (b != SimulationTool.isParasiticsExtractsR())
+            SimulationTool.setParasiticsExtractsR(b);
         b = extractC.isSelected();
-        if (b != Simulation.isParasiticsExtractsC())
-            Simulation.setParasiticsExtractsC(b);
+        if (b != SimulationTool.isParasiticsExtractsC())
+            SimulationTool.setParasiticsExtractsC(b);
     }
 
 	/**
@@ -169,20 +169,20 @@ public class ParasiticTab extends PreferencePanel {
 	public void reset()
 	{
 		// user preferences
-		if (Simulation.isFactoryParasiticsUseVerboseNaming() != Simulation.isParasiticsUseVerboseNaming())
-			Simulation.setParasiticsUseVerboseNaming(Simulation.isFactoryParasiticsUseVerboseNaming());
-		if (Simulation.isFactoryParasiticsBackAnnotateLayout() != Simulation.isParasiticsBackAnnotateLayout())
-			Simulation.setParasiticsBackAnnotateLayout(Simulation.isFactoryParasiticsBackAnnotateLayout());
-		if (Simulation.isFactoryParasiticsExtractPowerGround() != Simulation.isParasiticsExtractPowerGround())
-			Simulation.setParasiticsExtractPowerGround(Simulation.isFactoryParasiticsExtractPowerGround());
-		if (Simulation.isFactoryParasiticsUseExemptedNetsFile() != Simulation.isParasiticsUseExemptedNetsFile())
-			Simulation.setParasiticsUseExemptedNetsFile(Simulation.isFactoryParasiticsUseExemptedNetsFile());
-		if (Simulation.isFactoryParasiticsIgnoreExemptedNets() != Simulation.isParasiticsIgnoreExemptedNets())
-			Simulation.setParasiticsIgnoreExemptedNets(Simulation.isFactoryParasiticsIgnoreExemptedNets());
-		if (Simulation.isFactoryParasiticsExtractsR() != Simulation.isParasiticsExtractsR())
-			Simulation.setParasiticsExtractsR(Simulation.isFactoryParasiticsExtractsR());
-		if (Simulation.isFactoryParasiticsExtractsC() != Simulation.isParasiticsExtractsC())
-			Simulation.setParasiticsExtractsC(Simulation.isFactoryParasiticsExtractsC());
+		if (SimulationTool.isFactoryParasiticsUseVerboseNaming() != SimulationTool.isParasiticsUseVerboseNaming())
+			SimulationTool.setParasiticsUseVerboseNaming(SimulationTool.isFactoryParasiticsUseVerboseNaming());
+		if (SimulationTool.isFactoryParasiticsBackAnnotateLayout() != SimulationTool.isParasiticsBackAnnotateLayout())
+			SimulationTool.setParasiticsBackAnnotateLayout(SimulationTool.isFactoryParasiticsBackAnnotateLayout());
+		if (SimulationTool.isFactoryParasiticsExtractPowerGround() != SimulationTool.isParasiticsExtractPowerGround())
+			SimulationTool.setParasiticsExtractPowerGround(SimulationTool.isFactoryParasiticsExtractPowerGround());
+		if (SimulationTool.isFactoryParasiticsUseExemptedNetsFile() != SimulationTool.isParasiticsUseExemptedNetsFile())
+			SimulationTool.setParasiticsUseExemptedNetsFile(SimulationTool.isFactoryParasiticsUseExemptedNetsFile());
+		if (SimulationTool.isFactoryParasiticsIgnoreExemptedNets() != SimulationTool.isParasiticsIgnoreExemptedNets())
+			SimulationTool.setParasiticsIgnoreExemptedNets(SimulationTool.isFactoryParasiticsIgnoreExemptedNets());
+		if (SimulationTool.isFactoryParasiticsExtractsR() != SimulationTool.isParasiticsExtractsR())
+			SimulationTool.setParasiticsExtractsR(SimulationTool.isFactoryParasiticsExtractsR());
+		if (SimulationTool.isFactoryParasiticsExtractsC() != SimulationTool.isParasiticsExtractsC())
+			SimulationTool.setParasiticsExtractsC(SimulationTool.isFactoryParasiticsExtractsC());
 		if (ParasiticTool.getFactoryMaxDistance() != ParasiticTool.getMaxDistance())
 			ParasiticTool.setMaxDistance(ParasiticTool.getFactoryMaxDistance());
 	}

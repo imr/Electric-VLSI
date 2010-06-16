@@ -58,7 +58,7 @@ import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.ScalarSignal;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -2222,7 +2222,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 		}
 
-        String delim = Simulation.getSpiceExtractedNetDelimiter();
+        String delim = SimulationTool.getSpiceExtractedNetDelimiter();
         // make a list of signal names with "#" in them
 		Set<String> sharpSet = new HashSet<String>();
 		for(Signal sSig : signals)
@@ -2476,7 +2476,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public static String getSpiceNetName(Network net)
 	{
-		return Spice.getSafeNetName(net.getName(), Simulation.getSpiceEngine());
+		return Spice.getSafeNetName(net.getName(), SimulationTool.getSpiceEngine());
 	}
 
 	/**

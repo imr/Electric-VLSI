@@ -44,7 +44,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.output.Topology.CellNetInfo;
 import com.sun.electric.tool.io.output.Topology.CellSignal;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.User;
 
 import java.util.ArrayList;
@@ -82,7 +82,7 @@ public class SpiceRCSimple extends SpiceParasiticsGeneral
 	{
 		// first create a set of segmentedNets for the Cell
         boolean verboseSegmentNames = localPrefs.parasiticsUseVerboseNaming;
-        Simulation.SpiceParasitics spLevel = localPrefs.parasiticsLevel;
+        SimulationTool.SpiceParasitics spLevel = localPrefs.parasiticsLevel;
         SpiceSegmentedNets segmentedNets = new SpiceSegmentedNets(cell, verboseSegmentNames, cni, localPrefs);
         segmentedParasiticInfo.add(segmentedNets);
         curSegmentedNets = segmentedNets;

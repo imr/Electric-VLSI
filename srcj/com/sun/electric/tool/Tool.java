@@ -37,7 +37,7 @@ import com.sun.electric.tool.placement.Placement;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.sc.SilComp;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.extract.Extract;
 import com.sun.electric.tool.extract.ParasiticTool;
@@ -140,7 +140,7 @@ public class Tool implements Comparable
         Project.getProjectTool().init();
         Routing.getRoutingTool().init();
         SilComp.getSilCompTool().init();
-        Simulation.getSimulationTool().init();
+        SimulationTool.getSimulationTool().init();
         LayerCoverageTool.getLayerCoverageTool().init();
         GateLayGenSettings.tool.init();
         FillGeneratorTool.getTool().init();
