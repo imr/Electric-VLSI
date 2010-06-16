@@ -28,8 +28,8 @@ import org.junit.Test;
 
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
-import com.sun.electric.tool.util.concurrent.runtime.Pipeline;
-import com.sun.electric.tool.util.concurrent.runtime.Pipeline.Filter;
+import com.sun.electric.tool.util.concurrent.patterns.Pipeline;
+import com.sun.electric.tool.util.concurrent.patterns.Pipeline.Filter;
 
 /**
  * @author fs239085

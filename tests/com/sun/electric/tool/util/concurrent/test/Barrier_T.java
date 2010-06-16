@@ -25,14 +25,7 @@ package com.sun.electric.tool.util.concurrent.test;
 
 import junit.framework.Assert;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.sun.electric.tool.util.concurrent.barriers.Barrier;
-import com.sun.electric.tool.util.concurrent.barriers.SenseBarrier;
-import com.sun.electric.tool.util.concurrent.barriers.SimpleBarrier;
-import com.sun.electric.tool.util.concurrent.barriers.StaticTreeBarrier;
-import com.sun.electric.tool.util.concurrent.barriers.TreeBarrier;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 
 /**
@@ -42,31 +35,6 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 public class Barrier_T {
 
 	private static final int TEST_NUM = 10;
-
-	@Ignore
-	@Test
-	public void testSimpleBarrier() throws InterruptedException {
-		this.testBarrier(new SimpleBarrier(10), 10);
-	}
-
-	@Test
-	public void testTreeBarrier() throws InterruptedException {
-		this.testBarrier(new TreeBarrier(9, 2), 9);
-	}
-
-	@Ignore
-	@Test
-	public void testSenseBarrier() throws InterruptedException {
-		this.testBarrier(new SenseBarrier(4), 4);
-	}
-	
-	@Ignore
-	@Test
-	public void testStaticTreeBarrier() throws InterruptedException {
-
-		this.testBarrier(new StaticTreeBarrier(16, 8), 16);
-
-	}
 
 	private void testBarrier(Barrier barrier, int n) throws InterruptedException {
 

@@ -33,7 +33,6 @@ import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
-import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
