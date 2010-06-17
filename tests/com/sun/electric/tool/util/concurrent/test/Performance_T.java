@@ -37,6 +37,7 @@ import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
@@ -48,6 +49,9 @@ public class Performance_T {
 
 	private double[] data;
 	private static final int size = 1000000000 / 2;
+	private float[][] matA;
+	private float[][] matB;
+	private static final int matSize = 20000;
 
 	@Test
 	public void testSum() throws InterruptedException, PoolExistsException {
@@ -80,7 +84,7 @@ public class Performance_T {
 
 		System.out.println("parallel ...");
 
-		ThreadPool.initialize(new WorkStealingStructure<PTask>(8, PTask.class), 8, true);
+		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(8), 8, true);
 
 		start = System.currentTimeMillis();
 
@@ -96,19 +100,53 @@ public class Performance_T {
 		System.out.println("sersum2 " + sersum2 + " time: " + ser2);
 		System.out.println("parsum " + parsum + " time: " + par);
 		System.out.println("speedup: " + ((double) ser / (double) par));
-		
+
 		StealTracker.getInstance().printStatistics();
 
 	}
-	
+
+	@Test
+	public void testMatrixTranspose() throws PoolExistsException, InterruptedException {
+		System.out.println("init ...");
+		matA = TestHelper.createMatrix(matSize, matSize);
+
+		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(1), 1, true);
+
+		System.out.println("serial ...");
+		long start = System.currentTimeMillis();
+
+		Parallel.For(new BlockedRange1D(0, matSize, 256), new TransposeMatrix());
+
+		long ser = System.currentTimeMillis() - start;
+
+		ThreadPool.getThreadPool().shutdown();
+
+		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(8), 8, true);
+
+		System.out.println("parallel ...");
+		start = System.currentTimeMillis();
+
+		Parallel.For(new BlockedRange1D(0, matSize, 256), new TransposeMatrix());
+
+		long par = System.currentTimeMillis() - start;
+
+		ThreadPool.getThreadPool().shutdown();
+
+		System.out.println(" ser time   : " + ser);
+		System.out.println(" par time   : " + par);
+		System.out.println(" speedup: " + ((double) ser / (double) par));
+
+		StealTracker.getInstance().printStatistics();
+	}
+
 	public static void main(String[] args) throws InterruptedException, PoolExistsException, IOException {
-		
+
 		Performance_T test = new Performance_T();
-		
+
 		System.in.read();
-		
+
 		test.testSum();
-		
+
 	}
 
 	private int calcSum() {
@@ -117,6 +155,31 @@ public class Performance_T {
 			sum += data[i];
 		}
 		return sum;
+	}
+
+	public class TransposeMatrix extends PForTask {
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask#execute
+		 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
+		 */
+		@Override
+		public void execute(BlockedRange range) {
+
+			BlockedRange1D tmpRange = (BlockedRange1D) range;
+			for (int i = tmpRange.getStart(); i < tmpRange.getEnd(); i++) {
+				for (int j = 0; j < i - 1; j++) {
+					float tmp = matA[j][i];
+					matA[j][i] = matA[i][j];
+					matA[i][j] = tmp;
+				}
+			}
+
+		}
+
 	}
 
 	public class SumTask extends PReduceTask<Integer> {

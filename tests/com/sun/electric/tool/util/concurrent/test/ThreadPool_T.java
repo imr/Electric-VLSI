@@ -70,7 +70,7 @@ public class ThreadPool_T {
 	public void testThreadPoolWorkStealing() throws PoolExistsException, InterruptedException {
 		Job.setDebug(true);
 		long start = System.currentTimeMillis();
-		IStructure<PTask> taskPool = new WorkStealingStructure<PTask>(2, PTask.class);
+		IStructure<PTask> taskPool = WorkStealingStructure.createForThreadPool(2);
 		ThreadPool pool = ThreadPool.initialize(taskPool, 2);
 
 		Thread.sleep(1000);

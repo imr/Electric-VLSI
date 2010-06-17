@@ -24,12 +24,12 @@
 package com.sun.electric.tool.util.concurrent.datastructures;
 
 import com.sun.electric.tool.util.IDEStructure;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 
 /**
  * @author fs239085
  * 
  */
-@Deprecated
 public class WorkSharingStructure<T> extends WorkStealingStructure<T> {
 
 	/**
@@ -61,20 +61,21 @@ public class WorkSharingStructure<T> extends WorkStealingStructure<T> {
 
 			if (result == null) {
 				int size = dataQueues.size();
-//				if (randomizer.getRandomizer().nextInt(size + 1) == size) {
-//					int victim = randomizer.getRandomizer().nextInt(dataQueues.size());
-//					Long min = (victim <= ThreadID.get()) ? victim : localQueueId;
-//					Long max = (victim <= ThreadID.get()) ? localQueueId : victim;
-//					balance(dataQueues.get(min), dataQueues.get(max));
-//				}
+				if (randomizer.getRandomizer().nextInt(size + 1) == size) {
+					int victim = randomizer.getRandomizer().nextInt(dataQueues.size());
+					Long min = (victim <= ThreadID.get()) ? victim : localQueueId;
+					Long max = (victim <= ThreadID.get()) ? localQueueId : victim;
+					balance(dataQueues.get(min), dataQueues.get(max));
+				}
 			}
 		}
 
 		return result;
 	}
 
+	@SuppressWarnings("unused")
 	private void balance(IDEStructure<T> q0, IDEStructure<T> q1) {
-
+		
 	}
 
 

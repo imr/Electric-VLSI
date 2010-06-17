@@ -183,8 +183,7 @@ public class ThreadPool {
 
 			try {
 				Job.setUserInterface(pool.getUserInterface());
-				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase()
-						.getEnvironment());
+				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase().getEnvironment());
 			} catch (Exception ex) {
 
 			}
@@ -282,8 +281,7 @@ public class ThreadPool {
 	 * @return initialized thread pool
 	 * @throws PoolExistsException
 	 */
-	public static ThreadPool initialize(IStructure<PTask> taskPool, boolean debug)
-			throws PoolExistsException {
+	public static ThreadPool initialize(IStructure<PTask> taskPool, boolean debug) throws PoolExistsException {
 		return ThreadPool.initialize(taskPool, ThreadPool.getNumOfThreads(), debug);
 	}
 
@@ -340,8 +338,7 @@ public class ThreadPool {
 	public static synchronized void killPool() {
 		try {
 			ThreadPool.instance.shutdown();
-		} catch (InterruptedException e) {
-		}
+		} catch (InterruptedException e) {}
 		ThreadPool.instance = null;
 	}
 

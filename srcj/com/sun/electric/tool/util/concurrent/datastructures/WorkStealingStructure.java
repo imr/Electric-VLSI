@@ -53,7 +53,7 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	// data queues
 	private List<Long> freeInternalIds;
 	private Class<T> clazz;
-	private MultiThreadedRandomizer randomizer;
+	protected MultiThreadedRandomizer randomizer;
 	private StealTracker stealTracker;
 
 	public WorkStealingStructure(int numOfThreads, Class<T> clazz) {

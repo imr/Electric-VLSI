@@ -26,6 +26,11 @@ package com.sun.electric.tool.util.concurrent.runtime;
 import java.util.Random;
 
 /**
+ * In multi-threaded environment it is important for randomizations that each
+ * thread has its own randomizer. Each randomizer has its own start seed. So
+ * best distribution is possible. This class provides a multi-threaded
+ * randomizer. Each thread gets its own.
+ * 
  * @author fs239085
  * 
  */
@@ -34,9 +39,14 @@ public class MultiThreadedRandomizer {
 	private int numOfCores;
 	private Random[] randomizers;
 
+	/**
+	 * Constructor
+	 * 
+	 * @param numOfCores
+	 */
 	public MultiThreadedRandomizer(int numOfCores) {
 		this.numOfCores = numOfCores;
-		
+
 		randomizers = new Random[this.numOfCores];
 
 		Random rand = new Random(System.currentTimeMillis());
@@ -45,12 +55,25 @@ public class MultiThreadedRandomizer {
 		}
 	}
 
+	/**
+	 * This function returns a randomizer, which is according to the current
+	 * thread. If there is no randomizer available return a new.
+	 * 
+	 * @return a assigned randomizer or a new one if no available
+	 */
 	public Random getRandomizer() {
 		int threadId = ThreadID.get();
 		if (threadId < 0 || threadId <= numOfCores) return new Random(System.currentTimeMillis());
 		return randomizers[ThreadID.get()];
 	}
 
+	/**
+	 * Get the randomizer for thread n
+	 * 
+	 * @param n
+	 *            thread number (range> 0 <= n < numberOfThreads)
+	 * @return randomizer for thread n
+	 */
 	public Random getRandomizer(int n) {
 		return randomizers[n];
 	}

@@ -91,7 +91,7 @@ public class Scheduling_T {
 		System.out.println("==============================================");
 		System.out.println("==                Stealing                  ==");
 
-		structure = new WorkStealingStructure<PTask>(numOfThreads, PTask.class);
+		structure = WorkStealingStructure.createForThreadPool(numOfThreads);
 		long stealing = this.runMatrixMultiplication(structure);
 		System.out.println("steals: " + StealTracker.getInstance().getStealCounter());
 

@@ -84,19 +84,10 @@ public class PForJob_T {
 	public void testMatrixMultiply() throws PoolExistsException, InterruptedException {
 		Random rand = new Random(System.currentTimeMillis());
 
-		matA = new int[size][size];
-		matB = new int[size][size];
-		matCPar = new Integer[size][size];
-		matCSer = new Integer[size][size];
-
-		for (int i = 0; i < size; i++) {
-			for (int j = 0; j < size; j++) {
-				matA[i][j] = rand.nextInt(100);
-				matB[i][j] = rand.nextInt(100);
-				matCPar[i][j] = 0;
-				matCSer[i][j] = 0;
-			}
-		}
+		matA = TestHelper.createMatrix(size, size, 100);
+		matB = TestHelper.createMatrix(size, size, 100);
+		matCPar = TestHelper.createMatrixInteger(size, size, 100);
+		matCSer = TestHelper.createMatrixInteger(size, size, 100);
 
 		ThreadPool pool = ThreadPool.initialize();
 
@@ -131,19 +122,10 @@ public class PForJob_T {
 
 		int sizePerf = 600;
 
-		matA = new int[sizePerf][sizePerf];
-		matB = new int[sizePerf][sizePerf];
-		matCPar = new Integer[sizePerf][sizePerf];
-		matCSer = new Integer[sizePerf][sizePerf];
-
-		for (int i = 0; i < sizePerf; i++) {
-			for (int j = 0; j < sizePerf; j++) {
-				matA[i][j] = rand.nextInt(100);
-				matB[i][j] = rand.nextInt(100);
-				matCPar[i][j] = 0;
-				matCSer[i][j] = 0;
-			}
-		}
+		matA = TestHelper.createMatrix(sizePerf, sizePerf, 100);
+		matB = TestHelper.createMatrix(sizePerf, sizePerf, 100);
+		matCPar = TestHelper.createMatrixInteger(sizePerf, sizePerf, 100);
+		matCSer = TestHelper.createMatrixInteger(sizePerf, sizePerf, 100);
 
 		ThreadPool pool = ThreadPool.initialize(8);
 
@@ -178,21 +160,12 @@ public class PForJob_T {
 
 		int sizePerf = 600;
 
-		matA = new int[sizePerf][sizePerf];
-		matB = new int[sizePerf][sizePerf];
-		matCPar = new Integer[sizePerf][sizePerf];
-		matCSer = new Integer[sizePerf][sizePerf];
+		matA = TestHelper.createMatrix(sizePerf, sizePerf, 100);
+		matB = TestHelper.createMatrix(sizePerf, sizePerf, 100);
+		matCPar = TestHelper.createMatrixInteger(sizePerf, sizePerf, 100);
+		matCSer = TestHelper.createMatrixInteger(sizePerf, sizePerf, 100);
 
-		for (int i = 0; i < sizePerf; i++) {
-			for (int j = 0; j < sizePerf; j++) {
-				matA[i][j] = rand.nextInt(100);
-				matB[i][j] = rand.nextInt(100);
-				matCPar[i][j] = 0;
-				matCSer[i][j] = 0;
-			}
-		}
-
-		IStructure<PTask> taskPool = new WorkStealingStructure<PTask>(8, PTask.class);
+		IStructure<PTask> taskPool = WorkStealingStructure.createForThreadPool(8);
 		ThreadPool pool = ThreadPool.initialize(taskPool, 8);
 
 		long start = System.currentTimeMillis();
@@ -204,7 +177,7 @@ public class PForJob_T {
 		System.out.println(endPar);
 		pool.shutdown();
 
-		taskPool = new WorkStealingStructure<PTask>(1, PTask.class);
+		taskPool = WorkStealingStructure.createForThreadPool(1);
 		pool = ThreadPool.initialize(taskPool, 1);
 
 		start = System.currentTimeMillis();
@@ -297,7 +270,7 @@ public class PForJob_T {
 			}
 		}
 
-		ThreadPool pool = ThreadPool.initialize(new WorkStealingStructure<PTask>(8, PTask.class), 8);
+		ThreadPool pool = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(8), 8);
 
 		long start = System.currentTimeMillis();
 		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask(size));
