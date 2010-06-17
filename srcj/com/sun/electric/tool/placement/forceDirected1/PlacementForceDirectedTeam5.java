@@ -28,13 +28,6 @@
  */
 package com.sun.electric.tool.placement.forceDirected1;
 
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
-import com.sun.electric.tool.placement.PlacementFrame;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementParameter;
-import com.sun.electric.tool.placement.forceDirected1.metric.BBMetric;
-import com.sun.electric.tool.placement.forceDirected1.metrics.PAMetric;
-
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +40,12 @@ import java.util.Random;
 import java.util.Map.Entry;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
+import com.sun.electric.tool.placement.PlacementFrame;
+import com.sun.electric.tool.placement.forceDirected1.metric.BBMetric;
+import com.sun.electric.tool.placement.forceDirected1.metrics.PAMetric;
 
 public class PlacementForceDirectedTeam5 extends PlacementFrame {
 	// ------ Parameters from the standalone Placementframe -------------
@@ -801,7 +800,7 @@ public class PlacementForceDirectedTeam5 extends PlacementFrame {
 	private long timeoutLevel; // timeout for current phase
 
 	private void initTimeout(int phase) {
-		int maxRuntime = numOfThreads;
+		int maxRuntime = runtime;
 		switch (phase) {
 		case 0: // swapNodes
 			timeoutStart = System.currentTimeMillis();
