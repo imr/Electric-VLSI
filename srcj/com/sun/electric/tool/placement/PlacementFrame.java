@@ -115,6 +115,8 @@ public abstract class PlacementFrame {
 	protected int numOfThreads;
 	protected int runtime;
 
+	private boolean specialDebugFlag = false;
+
 	/**
 	 * Method to return a list of all Placement algorithms.
 	 * 
@@ -847,7 +849,7 @@ public abstract class PlacementFrame {
 		// do the real work of placement
 		runPlacement(nodesToPlace, allNetworks, cellName);
 
-		if (Job.getDebug()) {
+		if (Job.getDebug() && specialDebugFlag) {
 			AbstractMetric bmetric = new BBMetric(nodesToPlace, allNetworks);
 			System.out.println("### BBMetric: " + bmetric.toString());
 
