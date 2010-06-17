@@ -107,6 +107,9 @@ public class GeneticPlacement extends PlacementFrame {
 		maxRuntime = runtime;
 		numThreads = threads;
 		printDebugInformation = debug;
+
+		this.numOfThreads = threads;
+		this.runtime = runtime;
 	}
 
 	public static Random getRandomGenerator() {

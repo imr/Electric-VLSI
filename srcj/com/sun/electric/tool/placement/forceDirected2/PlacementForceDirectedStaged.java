@@ -118,6 +118,9 @@ public class PlacementForceDirectedStaged extends PlacementFrame {
 	public void setParamterValues(int threads, int runtime) {
 		GlobalVars.numOfThreads = threads;
 		GlobalVars.timeout = runtime;
+		
+		this.numOfThreads = threads;
+		this.runtime = runtime;
 	}
 
 	@Override
