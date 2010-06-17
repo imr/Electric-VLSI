@@ -47,6 +47,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  *
@@ -298,9 +300,33 @@ public class SCRunBase {
         return timing;
     }
 
+    private static Pattern cellsize1 = Pattern.compile(".*?_([0-9.]+)x");
+    private static Pattern cellsize2 = Pattern.compile(".*?_x([0-9.]+)");
+
+    public static double getCellSize(String cellname) {
+        String s = null;
+        Matcher m1 = cellsize1.matcher(cellname);
+        if (m1.matches()) {
+            s = m1.group(1);
+        } else {
+            Matcher m2 = cellsize2.matcher(cellname);
+            if (m2.matches()) {
+                s = m2.group(1);
+            }
+        }
+        if (s != null) {
+            try {
+                return Double.valueOf(s);
+            } catch (NumberFormatException e) {
+                return 1.0;
+            }
+        }
+        return 1.0;
+    }
+
     public static SCTiming getSetupFromScript(String [] script, SCSettings settings) {
         EvalJavaBsh bsh = new EvalJavaBsh();
-        bsh.doEvalLine("import com.sun.electric.plugins.sctiming.*;");
+        bsh.doEvalLine("import com.sun.electric.tool.simulation.sctiming.*;");
         SCTiming timing = new SCTiming();
         timing.setSettings(settings);
 

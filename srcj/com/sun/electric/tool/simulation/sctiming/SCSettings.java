@@ -91,6 +91,7 @@ public class SCSettings {
     double timeUnit = 1e-9;
 
     boolean simpleSequentialCharacterization = false;
+    boolean scaleLoadCellSweepWithXSize = false;
 
     /**
      * Set the simulator (typically hspice). If the simulator is not on your
@@ -261,6 +262,16 @@ public class SCSettings {
      */
     public void setLoadSweepForSetupHoldMinTime(String sweep) {
         loadCellSweepForSetupHoldMinTime = sweep;
+    }
+
+    /**
+     * Set true to scale the load parameters by the XSize of the gate.
+     * The XSize must be encoded into the name of the cell, such as
+     * inv_12x
+     * @param b true to scale by XSize, false (default) otherwise
+     */
+    public void scaleLoadSweepWithXSize(boolean b) {
+        scaleLoadCellSweepWithXSize = b;
     }
 
     /**

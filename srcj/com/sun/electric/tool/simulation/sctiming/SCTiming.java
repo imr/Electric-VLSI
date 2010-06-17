@@ -54,8 +54,11 @@ public class SCTiming {
         String param;
         String[] sweep;
         SweepParam(String param, String sweep) {
+            this(param, sweep, 1.0);
+        }
+        SweepParam(String param, String sweep, double scale) {
             this.param = param;
-            this.sweep = sweep.trim().split("\\s+");
+            this.sweep = scaleSweep(sweep, scale);
         }
     }
 
@@ -65,6 +68,7 @@ public class SCTiming {
     private String topCellNameLiberty = null;
     public String outputDir = ".";
     private String topCellParams = "";
+    private double scaleLoadSweep = 1.0;
 
     public SCSettings settings;
 
@@ -335,6 +339,10 @@ public class SCTiming {
         }
 
         settings.checkSettings(sequentialTest);
+        if (settings.scaleLoadCellSweepWithXSize) {
+            scaleLoadSweep = SCRunBase.getCellSize(topCellName);
+            System.out.println("Scale for "+topCellName+" is "+scaleLoadSweep);
+        }
 
         msg.println("--------------------------------------------------------");
         msg.println("Characterization:");
@@ -523,7 +531,7 @@ public class SCTiming {
         if (arc.getOutputLoadSweep() != null) outputLoads = arc.getOutputLoadSweep();
         if (arc.getInputBufferSweep() != null) inputBuffers = arc.getInputBufferSweep();
         sweeps.add(new SweepParam(inbufStr, inputBuffers));
-        sweeps.add(new SweepParam(outloadStr, outputLoads));
+        sweeps.add(new SweepParam(outloadStr, outputLoads, scaleLoadSweep));
 
         // simulation
         writeCommentHeader("Transient statement");
@@ -610,7 +618,7 @@ public class SCTiming {
         if (arc.getOutputLoadSweep() != null) loadStrSweep = arc.getOutputLoadSweep();
 
         String [] bufStrs = bufStrSweep.trim().split("\\s+");
-        String [] loadStrs = loadStrSweep.trim().split("\\s+");
+        String [] loadStrs = scaleSweep(loadStrSweep, scaleLoadSweep);
         String [] clkStrs = settings.clkBufferCellSweep.trim().split("\\s+");
 
         err(bufStrs.length == 0, "Buffer cell strength values empty");
@@ -1248,7 +1256,7 @@ public class SCTiming {
         }
 
         String [] bufStrs = bufStrSweep.trim().split("\\s+");
-        String [] loadStrs = loadStrSweep.trim().split("\\s+");
+        String [] loadStrs = scaleSweep(loadStrSweep, scaleLoadSweep);
         String [] loadStrsSetupHold = loadStrSweepSetupHold.trim().split("\\s+");
         String [] clkStrs = clkStrSweep.trim().split("\\s+");
 
@@ -1859,6 +1867,7 @@ public class SCTiming {
             msg.println("   "+new Date(System.currentTimeMillis()));
             msg.println();
         }
+        msg.flush();
         OutputStream outlog = null;
         try {
             outlog = new BufferedOutputStream(new FileOutputStream(new File(outputDir, outputFileName+".out")));
@@ -2273,6 +2282,21 @@ public class SCTiming {
             //System.out.println("SCTiming: Error: "+msg);
             throw new SCTimingException(msg);
         }
+    }
+
+    private static String [] scaleSweep(String sweep, double scale) {
+        String temp[] = sweep.trim().split("\\s+");
+        for (int i=0; i<temp.length; i++) {
+            String s = temp[i];
+            try {
+                double d = Double.parseDouble(s);
+                d *= scale;
+                temp[i] = String.valueOf(d);
+            } catch (NumberFormatException e) {
+                System.out.println("Cannot convert "+s+" to a number in sweep param");
+            }
+        }
+        return temp;
     }
 
     /* *******************************************************
