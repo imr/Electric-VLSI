@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP: (6/16/10, AM) Add LatticeOperation (lub/glb), and use that
+     instead of min/max to compute summaries.  Complex numbers and
+     vectors (aka "buses") don't have a meaningful comparison
+     operation, but they do have lubs and glbs.
+
 IMP: (6/16/10, AM) Add Sample.lub() and Sample.glb().
 
 IMP: (6/16/10, FS) Modeling the load balancing of work stealing as a uniform distribution.

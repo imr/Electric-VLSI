@@ -27,10 +27,10 @@ import com.sun.electric.database.geometry.btree.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import com.sun.electric.tool.simulation.*;
 
-abstract class BTreeSignal<S extends Sample & Comparable> extends MutableSignal<S> {
+abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
 
     private Signal.View<S> exactView = null;
-    private final BTree<Double,S,Pair<Pair<Double,S>,Pair<Double,S>>> tree;
+    private final BTree<Double,S,Pair<S,S>> tree;
     private Signal.View<S> pa = null;
     private double tmin;
     private double tmax;
@@ -41,7 +41,7 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends MutableSignal<
     public static int numLookups = 0;
 
     public BTreeSignal(Analysis analysis, String signalName, String signalContext,
-                       BTree<Double,S,Pair<Pair<Double,S>,Pair<Double,S>>> tree
+                       BTree<Double,S,Pair<S,S>> tree
                        ) {
         super(analysis, signalName, signalContext);
         if (tree==null) throw new RuntimeException();
@@ -76,17 +76,17 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends MutableSignal<
 	public double getMinTime()  { return tree.size()==0 ? 0 : getExactView().getTime(0); }
 	public double getMaxTime()  { return tree.size()==0 ? 0 : getExactView().getTime(getExactView().getNumEvents()-1); }
 	public S getMinValue() {
-        Pair<Pair<Double,S>,Pair<Double,S>> pk = getSummaryFromKeys(null, null);
+        Pair<S,S> pk = getSummaryFromKeys(null, null);
         if (pk==null) return null;
-        return pk.getKey().getValue();
+        return pk.getKey();
     }
 	public S getMaxValue() {
-        Pair<Pair<Double,S>,Pair<Double,S>> pk = getSummaryFromKeys(null, null);
+        Pair<S,S> pk = getSummaryFromKeys(null, null);
         if (pk==null) return null;
-        return pk.getValue().getValue();
+        return pk.getValue();
     }
 
-    protected Pair<Pair<Double,S>,Pair<Double,S>> getSummaryFromKeys(Double t1, Double t2) {
+    protected Pair<S,S> getSummaryFromKeys(Double t1, Double t2) {
         return tree.getSummaryFromKeys(t1, t2);
     }
 
@@ -101,12 +101,12 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends MutableSignal<
         public int getNumEvents() { return numRegions; }
         public double getTime(int index) { return t0+(((t1-t0)*index)/numRegions); }
         public RangeSample<S> getSample(int index) {
-            Pair<Pair<Double,S>,Pair<Double,S>> highlow =
+            Pair<S,S> highlow =
                 tree.getSummaryFromKeys(getTime(index), getTime(index+1));
             return highlow==null
                 ? null
-                : new RangeSample<S>(highlow.getKey().getValue(),
-                                     highlow.getValue().getValue());
+                : new RangeSample<S>(highlow.getKey(),
+                                     highlow.getValue());
         }
         public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
         public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
@@ -116,26 +116,57 @@ abstract class BTreeSignal<S extends Sample & Comparable> extends MutableSignal<
     // Page Storage //////////////////////////////////////////////////////////////////////////////
 
     private static CachingPageStorage ps = null;
-    static <SS extends Sample & Comparable>
-        BTree<Double,SS,Pair<Pair<Double,SS>,Pair<Double,SS>>> getTree(UnboxedComparable<SS> unboxer) {
+    static <SS extends Sample>
+        BTree<Double,SS,Pair<SS,SS>>
+        getTree(Unboxed<SS> unboxer, LatticeOperation<SS> latticeOp) {
         if (ps==null)
             try {
                 long highWaterMarkInBytes = 50 * 1024 * 1024;
                 PageStorage fps = FilePageStorage.create();
                 PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
                 ps = new CachingPageStorageWrapper(ops, 16 * 1024, false);
-                //ps = new MemoryPageStorage(256);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        return new BTree<Double,SS,Pair<Pair<Double,SS>,Pair<Double,SS>>>
-            (ps, UnboxedHalfDouble.instance, unboxer, new Summary<SS>(UnboxedHalfDouble.instance, unboxer));
+        return new BTree<Double,SS,Pair<SS,SS>>
+            (ps, UnboxedHalfDouble.instance, unboxer,
+             new Summary<SS>(UnboxedHalfDouble.instance, unboxer, latticeOp));
     }
 
-    private static class Summary<SS extends Sample & Comparable>
-        extends MinMaxOperation<Double,SS>
-        implements BTree.Summary<Double,SS,Pair<Pair<Double,SS>,Pair<Double,SS>>> {
-        public Summary(Unboxed<Double> uk, UnboxedComparable<SS> uv) { super(uk, uv); }
+    private static class Summary<SS extends Sample>
+        extends UnboxedPair<SS,SS>
+        implements BTree.Summary<Double,SS,Pair<SS,SS>>,
+        AssociativeCommutativeOperation<Pair<SS,SS>> {
+        private final LatticeOperation<SS> latticeOp;
+        private final Unboxed<Double> uk;
+        private final Unboxed<SS> uv;
+
+        public Summary(Unboxed<Double> uk, Unboxed<SS> uv, LatticeOperation<SS> latticeOp) {
+            super(uv,uv);
+            this.uk = uk;
+            this.uv = uv;
+            this.latticeOp = latticeOp;
+        }
+        public void call(byte[] buf_arg, int ofs_arg,
+                         byte[] buf_result, int ofs_result) {
+            System.arraycopy(buf_arg, ofs_arg+uk.getSize(),
+                             buf_result, ofs_result,
+                             uv.getSize());
+            System.arraycopy(buf_arg, ofs_arg+uk.getSize(),
+                             buf_result, ofs_result+uv.getSize(),
+                             uv.getSize());
+        }
+        
+        public void multiply(byte[] buf1, int ofs1,
+                             byte[] buf2, int ofs2,
+                             byte[] buf_dest, int ofs_dest) {
+            latticeOp.glb(buf1, ofs1,
+                          buf2, ofs2,
+                          buf_dest, ofs_dest);
+            latticeOp.lub(buf1, ofs1+uv.getSize(),
+                          buf2, ofs2+uv.getSize(),
+                          buf_dest, ofs_dest+uv.getSize());
+        }
     };
 
 }

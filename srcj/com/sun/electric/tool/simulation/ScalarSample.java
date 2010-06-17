@@ -66,14 +66,14 @@ public class ScalarSample implements Sample, Comparable {
         return value == Double.NEGATIVE_INFINITY;
     }
 
-    public Sample lub(Sample s) {
-        if (!(s instanceof ScalarSample)) throw new RuntimeException("tried to call ScalarSample.lub("+s.getClass().getName()+")");
-        return value > ((ScalarSample)s).value ? this : s;
-    }
-
     public Sample glb(Sample s) {
         if (!(s instanceof ScalarSample)) throw new RuntimeException("tried to call ScalarSample.glb("+s.getClass().getName()+")");
         return value < ((ScalarSample)s).value ? this : s;
+    }
+
+    public Sample lub(Sample s) {
+        if (!(s instanceof ScalarSample)) throw new RuntimeException("tried to call ScalarSample.lub("+s.getClass().getName()+")");
+        return value > ((ScalarSample)s).value ? this : s;
     }
 
     public static final UnboxedComparable<ScalarSample> unboxer = new UnboxedComparable<ScalarSample>() {
@@ -89,18 +89,34 @@ public class ScalarSample implements Sample, Comparable {
         }
     };
 
+    private static final LatticeOperation<ScalarSample> latticeOp =
+        new LatticeOperation<ScalarSample>(unboxer) {
+        public void glb(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs) {
+            if (UnboxedHalfDouble.instance.compare(buf1, ofs1, buf2, ofs2) < 0)
+                System.arraycopy(buf1, ofs1, dest, dest_ofs, unboxer.getSize());
+            else
+                System.arraycopy(buf2, ofs2, dest, dest_ofs, unboxer.getSize());
+        }
+        public void lub(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs) {
+            if (UnboxedHalfDouble.instance.compare(buf1, ofs1, buf2, ofs2) < 0)
+                System.arraycopy(buf2, ofs2, dest, dest_ofs, unboxer.getSize());
+            else
+                System.arraycopy(buf1, ofs1, dest, dest_ofs, unboxer.getSize());
+        }
+    };
+
     public static Signal<ScalarSample> createSignal(Analysis an, String signalName, String signalContext) {
         Signal<ScalarSample> ret =
-            new BTreeSignal<ScalarSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer)) {
+            new BTreeSignal<ScalarSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
             public boolean isDigital() { return false; }
             public boolean isAnalog() { return true; }
         };
-        if (an instanceof Analysis)
-            an.addSignal(ret);
+        an.addSignal(ret);
         return ret;
     }
 
-	public static Signal<ScalarSample> createSignal(Analysis an, String signalName, String signalContext, double[] time, double[] values) {
+	public static Signal<ScalarSample> createSignal(Analysis an, String signalName, String signalContext,
+                                                    double[] time, double[] values) {
         if (values.length==0) throw new RuntimeException("attempt to create an empty signal");
         Signal<ScalarSample> as = ScalarSample.createSignal(an, signalName, signalContext);
         for(int i=0; i<time.length; i++)

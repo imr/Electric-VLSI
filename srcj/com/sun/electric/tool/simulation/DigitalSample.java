@@ -34,7 +34,7 @@ import java.io.*;
  *  only ever one instance of DigitalSample with any given
  *  value/strength, so == can be used for equality tests.
  */
-public class DigitalSample implements Sample, Comparable {
+public class DigitalSample implements Sample {
 
     // no need for more than one instance of each...
     public static final DigitalSample LOGIC_0;
@@ -105,7 +105,6 @@ public class DigitalSample implements Sample, Comparable {
 
     public boolean equals(Object o) { return this==o; }
     public int hashCode() { return getByteRepresentation() & 0xff; }
-    public int compareTo(Object o) { return (getByteRepresentation() & 0xff) - (((DigitalSample)o).getByteRepresentation() & 0xff); }
 
     public Sample lub(Sample s) {
         if (!(s instanceof DigitalSample)) throw new RuntimeException("tried to call DigitalSample.lub("+s.getClass().getName()+")");
@@ -131,12 +130,28 @@ public class DigitalSample implements Sample, Comparable {
     private byte getByteRepresentation() { return (byte)(((value.v+1) << 3) | strength.v); }
     private static DigitalSample fromByteRepresentation(byte b) { return cache[(b >> 3) & 3][b & 7]; }
 
-    public static final UnboxedComparable<DigitalSample> unboxer = new UnboxedComparable<DigitalSample>() {
+    public static final Unboxed<DigitalSample> unboxer = new Unboxed<DigitalSample>() {
         public int getSize() { return 1; }
         public DigitalSample deserialize(byte[] buf, int ofs) { return fromByteRepresentation(buf[ofs]); }
         public void serialize(DigitalSample v, byte[] buf, int ofs) { buf[ofs] = v.getByteRepresentation(); }
-        public int compare(byte[] buf1, int ofs1, byte[] buf2, int ofs2) { return (buf1[ofs1]&0xff)-(buf2[ofs2]&0xff); }
     };
+
+    private static final LatticeOperation<DigitalSample> latticeOp =
+        new LatticeOperation<DigitalSample>(unboxer) {
+        public void lub(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs) {
+            if (((buf1[ofs1]&0xff)-(buf2[ofs2]&0xff)) < 0)
+                System.arraycopy(buf2, ofs2, dest, dest_ofs, unboxer.getSize());
+            else
+                System.arraycopy(buf1, ofs1, dest, dest_ofs, unboxer.getSize());
+        }
+        public void glb(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs) {
+            if (((buf1[ofs1]&0xff)-(buf2[ofs2]&0xff)) < 0)
+                System.arraycopy(buf1, ofs1, dest, dest_ofs, unboxer.getSize());
+            else
+                System.arraycopy(buf2, ofs2, dest, dest_ofs, unboxer.getSize());
+        }
+    };
+
 
     // Backward-Compatibility //////////////////////////////////////////////////////////////////////////////
 
@@ -206,7 +221,7 @@ public class DigitalSample implements Sample, Comparable {
     }
 
     public static Signal<DigitalSample> createSignal(DigitalAnalysis an, String signalName, String signalContext) {
-        return new BTreeSignal<DigitalSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer)) {
+        return new BTreeSignal<DigitalSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
             public boolean isDigital() { return true; }
         };
     }
