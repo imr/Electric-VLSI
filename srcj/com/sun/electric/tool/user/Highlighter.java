@@ -52,6 +52,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.Router;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -2085,12 +2086,13 @@ public class Highlighter implements DatabaseChangeListener {
 		if (!ni.isCellInstance())
 		{
 			// special case for MOS transistors: examine the gate/active tabs
-            // special case for RESIST in layout  (fun == PrimitiveNode.Function.RESIST and PrimitiveNode.POLYGONAL
+            // special case for RESIST in layout
 			PrimitiveNode.Function fun = np.getFunction();
+			Technology tech = np.getTechnology();
 			if (fun.isFET() ||
-                (!ni.isCellInstance() && fun.isResistor() && ((PrimitiveNode)np).getSpecialType() == PrimitiveNode.POLYGONAL))
+				(fun.isResistor() && tech != Schematics.tech()))
+//                (!ni.isCellInstance() && fun.isResistor() && ((PrimitiveNode)np).getSpecialType() == PrimitiveNode.POLYGONAL))
 			{
-				Technology tech = np.getTechnology();
 				double bestDist = Double.MAX_VALUE;
 				Poly [] polys = tech.getShapeOfNode(ni);
 				for(int box=0; box<polys.length; box++)
@@ -2123,7 +2125,6 @@ public class Highlighter implements DatabaseChangeListener {
 			// special case for 1-polygon primitives: check precise distance to cursor
 			if (((PrimitiveNode)np).isEdgeSelect())
 			{
-				Technology tech = np.getTechnology();
 				double bestDist = Double.MAX_VALUE;
 				Poly [] polys = tech.getShapeOfNode(ni);
 				for(int box=0; box<polys.length; box++)
@@ -2144,26 +2145,9 @@ public class Highlighter implements DatabaseChangeListener {
 				}
 				return bestDist;
 			}
-//
-//			// get the bounds of the node in a polygon
-//			SizeOffset so = ni.getSizeOffset();
-//			double lX = ni.getAnchorCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-//			double hX = ni.getAnchorCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-//			double lY = ni.getAnchorCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-//			double hY = ni.getAnchorCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-//			nodePoly = new Poly((lX + hX) / 2, (lY + hY) / 2, hX-lX, hY-lY);
-//		} else
-//		{
-//			// cell instance
-//			Cell subCell = (Cell)np;
-//			Rectangle2D instBounds = subCell.getBounds();
-//			nodePoly = new Poly(ni.getAnchorCenterX() + instBounds.getCenterX(),
-//				ni.getAnchorCenterY() + instBounds.getCenterY(), instBounds.getWidth(), instBounds.getHeight());
 		}
 
         Poly nodePoly = ni.getBaseShape();
-//		AffineTransform pureTrans = ni.rotateOut();
-//		nodePoly.transform(pureTrans);
 		nodePoly.setStyle(Poly.Type.FILLED);
 		double dist = nodePoly.polyDistance(bounds);
 		return dist;

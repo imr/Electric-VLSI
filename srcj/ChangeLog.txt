@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+BUG: (6/17/10, SMR) Cannot select ports on layout resistors (Bug #2761).
+FIX: Generalized code in Highlighter.distToNode() to handle all layout resistors.
+
 BUG: (6/17/10, SMR) Interactive resizing grid-aligns too much when dragging an edge (Bug #2795).
 FIX: In SizeListener.getNewNodeSize() set grid direction if edge-dragging.
 
