@@ -620,6 +620,18 @@ public class SizeListener
 		int oldy = evt.getY();
 		Point2D pt = wnd.screenToDatabase(oldx, oldy);
 
+		// determine the amount of growth of the node
+		double growthRatioX = 1, growthRatioY = 1;
+		Point2D closest = (closestCorner != null ? closestCorner : closestEdge);
+		Point2D farthest = (farthestCorner != null ? farthestCorner : farthestEdge);
+
+		// grid-align the growth amount
+		long x = Math.round((pt.getX()-closest.getX()) / User.getAlignmentToGrid().getWidth());
+        double newX = x * User.getAlignmentToGrid().getWidth() + closest.getX();
+        long y = Math.round((pt.getY()-closest.getY()) / User.getAlignmentToGrid().getHeight());
+        double newY = y * User.getAlignmentToGrid().getHeight() + closest.getY();
+        pt.setLocation(newX, newY);
+
 		AffineTransform transIn = selNode.transformIn();
 		transIn.transform(pt, pt);
 
@@ -636,19 +648,15 @@ public class SizeListener
 		if ((evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
 			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) == 0) square = true;
 
-		// determine the amount of growth of the node
-		double growthRatioX = 1, growthRatioY = 1;
-		Point2D closest = (closestCorner != null ? closestCorner : closestEdge);
-		Point2D farthest = (farthestCorner != null ? farthestCorner : farthestEdge);
-		if (closest != null && farthest != null)
+        if (closest != null && farthest != null)
 		{
 			if (centerBased)
 			{
 				double ptToCenterX = Math.abs(pt.getX());
 				double closestToCenterX = Math.abs(closest.getX());
-				double ptToCenterY = Math.abs(pt.getY());
+                double ptToCenterY = Math.abs(pt.getY());
 				double closestToCenterY = Math.abs(closest.getY());
-				if (closestToCenterX != 0) growthRatioX = ptToCenterX / closestToCenterX;
+                if (closestToCenterX != 0) growthRatioX = ptToCenterX / closestToCenterX;
 				if (closestToCenterY != 0) growthRatioY = ptToCenterY / closestToCenterY;
 			} else
 			{
@@ -660,7 +668,7 @@ public class SizeListener
 				if (closestToFarthestY != 0) growthRatioY = ptToFarthestY / closestToFarthestY;
 			}
 		}
-		int direction = -1; // both X and Y
+//		int direction = -1; // both X and Y
 		if (singleAxis)
 		{
 			// constrain to single-axis stretching
@@ -677,25 +685,14 @@ public class SizeListener
 			if (grx > gry)
 			{
 				growthRatioY = 1;
-				direction = 0; // Y
+//				direction = 0; // Y
 			} else
 			{
 				growthRatioX = 1;
-				direction = 1; // X
+//				direction = 1; // X
 			}
 		}
-		if (closestCorner == null)
-		{
-			// edge being dragged: grid-align in only one direction
-			if (Math.abs(closestEdge.getX()-farthestEdge.getX()) >
-				Math.abs(closestEdge.getY()-farthestEdge.getY()))
-			{
-				direction = 0; // Y
-			} else
-			{
-				direction = 1; // X
-			}
-		}
+
 		if (square)
 		{
 			if (Math.abs(growthRatioX) > Math.abs(growthRatioY))
@@ -712,7 +709,7 @@ public class SizeListener
 		Point2D newSize = new Point2D.Double(Math.abs(newXSize), Math.abs(newYSize));
 
 		// grid align the new node size
-		EditWindow.gridAlignSize(newSize, direction);
+//		EditWindow.gridAlignSize(newSize, direction);
 
 		// determine the new center point
 		if (!centerBased)
