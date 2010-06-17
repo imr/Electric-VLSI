@@ -4923,19 +4923,24 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	}
 
 	/**
-	 * Method to display simulation data in a waveform window.
+	 * Method to display simulation data in an existing waveform window; ignores preferences.
 	 * @param sd the simulation data to display.
 	 * @param ww the waveform window to load.
 	 * If null, create a new waveform window.
 	 */
-	public static void showSimulationData(Stimuli sd, WaveformWindow ww)
-	{
+	public static void refreshSimulationData(Stimuli sd, WaveformWindow ww) {
 		// if the window already exists, update the data
-		if (ww != null)
-		{
-			ww.setSimData(sd);
-			return;
-		}
+        ww.setSimData(sd);
+    }
+
+	/**
+	 * Method to display simulation data in a new waveform window.
+	 * @param sd the simulation data to display.
+	 * @param ww the waveform window to load.
+	 * If null, create a new waveform window.
+	 */
+    public static void showSimulationDataInNewWindow(Stimuli sd) {
+        WaveformWindow ww = null;
 		Iterator<Analysis> anIt = sd.getAnalyses();
 		if (!anIt.hasNext())
 		{
@@ -4974,15 +4979,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					an = sd.findAnalysis(analysisType);
 					if (an == null) continue;
                     */
+                        /*
 					if (openPos >= 0)
 					{
 						int closePos = signalName.indexOf(')');
 						String sigName = signalName.substring(openPos+1, closePos);
-                        /*
 						xAxisSignal = an.findSignalForNetwork(sigName);
-                        */
 						wantUnlockedTime = true;
 					}
+                        */
 				}
 				if (onlyType == null) onlyType = an.getAnalysisType();
                 /*

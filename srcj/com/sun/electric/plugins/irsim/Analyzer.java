@@ -211,7 +211,7 @@ public class Analyzer extends Engine
 				System.out.println("Loading netlist for file " + analyzer.fileName + "...");
 			analyzer.loadCircuit();
 			Stimuli sd = analyzer.analysis.getStimuli();
-			WaveformWindow.showSimulationData(sd, null);
+			WaveformWindow.showSimulationDataInNewWindow(sd);
 
 			// make a waveform window
 			analyzer.ww = sd.getWaveformWindow();
@@ -511,7 +511,7 @@ public class Analyzer extends Engine
 
 		// Load network
 		loadCircuit();
-		WaveformWindow.showSimulationData(analysis.getStimuli(), ww);
+		WaveformWindow.refreshSimulationData(analysis.getStimuli(), ww);
 
 		if (vectorFileName != null) loadVectorFile();
 		init();

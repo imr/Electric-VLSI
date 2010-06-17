@@ -92,7 +92,6 @@ public final class SimulationData {
      * If ww is null, a waveform window will be created.
 	 */
 	public static void plot(Cell cell, URL url, WaveformWindow ww) {
-        if (ww==null) ww = new WindowFrame().createWaveformWindow(new Stimuli()).getWaveformWindow();
         new ReadSimulationOutput(cell, url, ww).start();
     }
 
@@ -150,7 +149,10 @@ public final class SimulationData {
                 final Stimuli sdx = sd;
                 SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
-                            WaveformWindow.showSimulationData(sdx, ReadSimulationOutput.this.ww);
+                            if (ww==null)
+                                WaveformWindow.showSimulationDataInNewWindow(sdx);
+                            else
+                                WaveformWindow.refreshSimulationData(sdx, ReadSimulationOutput.this.ww);
                         }});
 			} catch (IOException e) {
 				System.out.println("End of file reached while reading " + fileURL);
