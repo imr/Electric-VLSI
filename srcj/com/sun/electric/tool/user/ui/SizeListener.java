@@ -684,6 +684,18 @@ public class SizeListener
 				direction = 1; // X
 			}
 		}
+		if (closestCorner == null)
+		{
+			// edge being dragged: grid-align in only one direction
+			if (Math.abs(closestEdge.getX()-farthestEdge.getX()) >
+				Math.abs(closestEdge.getY()-farthestEdge.getY()))
+			{
+				direction = 0; // Y
+			} else
+			{
+				direction = 1; // X
+			}
+		}
 		if (square)
 		{
 			if (Math.abs(growthRatioX) > Math.abs(growthRatioY))

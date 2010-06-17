@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+BUG: (6/17/10, SMR) Interactive resizing grid-aligns too much when dragging an edge (Bug #2795).
+FIX: In SizeListener.getNewNodeSize() set grid direction if edge-dragging.
+
 IMP: (6/16/10, AM) Add BusSample.
 
 IMP: (6/16/10, AM) Add LatticeOperation (lub/glb), and use that
