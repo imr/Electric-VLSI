@@ -66,6 +66,16 @@ public class ScalarSample implements Sample, Comparable {
         return value == Double.NEGATIVE_INFINITY;
     }
 
+    public Sample lub(Sample s) {
+        if (!(s instanceof ScalarSample)) throw new RuntimeException("tried to call ScalarSample.lub("+s.getClass().getName()+")");
+        return value > ((ScalarSample)s).value ? this : s;
+    }
+
+    public Sample glb(Sample s) {
+        if (!(s instanceof ScalarSample)) throw new RuntimeException("tried to call ScalarSample.glb("+s.getClass().getName()+")");
+        return value < ((ScalarSample)s).value ? this : s;
+    }
+
     public static final UnboxedComparable<ScalarSample> unboxer = new UnboxedComparable<ScalarSample>() {
         public int getSize() { return UnboxedHalfDouble.instance.getSize(); }
         public ScalarSample deserialize(byte[] buf, int ofs) {

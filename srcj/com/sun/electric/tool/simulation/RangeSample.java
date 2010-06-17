@@ -52,6 +52,26 @@ public class RangeSample<S extends Sample> implements Sample {
     public boolean isLogicX() { return false; }
     public boolean isLogicZ() { return false; }
 
+    /** 
+     *  There's a question here as to what the order on Ranges should
+     *  be; logically the lub is the union of the ranges and the glb
+     *  is the intersection, but that's not likely to be very useful
+     *  in practice.
+     */
+    public Sample lub(Sample s) {
+        throw new RuntimeException("not implemented");
+    }
+
+    /** 
+     *  There's a question here as to what the order on Ranges should
+     *  be; logically the lub is the union of the ranges and the glb
+     *  is the intersection, but that's not likely to be very useful
+     *  in practice.
+     */
+    public Sample glb(Sample s) {
+        throw new RuntimeException("not implemented");
+    }
+
 }
 
 

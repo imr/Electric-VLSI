@@ -74,14 +74,13 @@ public class DigitalSample implements Sample, Comparable {
     }
 
     /** 
-     *  Possible signal values; sort order is low-to-high-to-unknown,
-     *  with high-impedence between low and high.
+     *  Possible signal values.
      */
     public static enum Value {
-        LOW(-1),
-        Z(0),
         HIGH(1),
-        X(2);
+        X(0),
+        LOW(-1),
+        Z(-1);
         private final int v;
         private Value(int v) { this.v = v; }
     }
@@ -107,6 +106,22 @@ public class DigitalSample implements Sample, Comparable {
     public boolean equals(Object o) { return this==o; }
     public int hashCode() { return getByteRepresentation() & 0xff; }
     public int compareTo(Object o) { return (getByteRepresentation() & 0xff) - (((DigitalSample)o).getByteRepresentation() & 0xff); }
+
+    public Sample lub(Sample s) {
+        if (!(s instanceof DigitalSample)) throw new RuntimeException("tried to call DigitalSample.lub("+s.getClass().getName()+")");
+        DigitalSample ds = (DigitalSample)s;
+        if (ds.value.v >= value.v && ds.strength.v >= strength.v) return ds;
+        if (ds.value.v <= value.v && ds.strength.v <= strength.v) return this;
+        return cache[Math.max(ds.value.v, value.v)+1][Math.max(ds.strength.v, strength.v)+1];
+    }
+
+    public Sample glb(Sample s) {
+        if (!(s instanceof DigitalSample)) throw new RuntimeException("tried to call DigitalSample.glb("+s.getClass().getName()+")");
+        DigitalSample ds = (DigitalSample)s;
+        if (ds.value.v >= value.v && ds.strength.v >= strength.v) return this;
+        if (ds.value.v <= value.v && ds.strength.v <= strength.v) return ds;
+        return cache[Math.min(ds.value.v, value.v)+1][Math.min(ds.strength.v, strength.v)+1];
+    }
 
     public boolean isLogic0() { return value==Value.LOW; }
     public boolean isLogic1() { return value==Value.HIGH; }

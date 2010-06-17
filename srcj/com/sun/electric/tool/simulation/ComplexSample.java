@@ -54,6 +54,22 @@ public class ComplexSample implements Sample {
     public boolean isLogicX() { return false; }
     public boolean isLogicZ() { return false; }
 
+    public Sample lub(Sample s) {
+        if (!(s instanceof ComplexSample)) throw new RuntimeException("tried to call ComplexSample.lub("+s.getClass().getName()+")");
+        ComplexSample cs = (ComplexSample)s;
+        if (cs.real >= real && cs.imag >= imag) return cs;
+        if (cs.real <= real && cs.imag <= imag) return this;
+        return new ComplexSample(Math.max(real, cs.real), Math.max(imag, cs.imag));
+    }
+
+    public Sample glb(Sample s) {
+        if (!(s instanceof ComplexSample)) throw new RuntimeException("tried to call ComplexSample.glb("+s.getClass().getName()+")");
+        ComplexSample cs = (ComplexSample)s;
+        if (cs.real >= real && cs.imag >= imag) return this;
+        if (cs.real <= real && cs.imag <= imag) return cs;
+        return new ComplexSample(Math.min(real, cs.real), Math.min(imag, cs.imag));
+    }
+
 }
 
 

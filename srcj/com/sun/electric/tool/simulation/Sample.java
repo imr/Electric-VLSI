@@ -36,6 +36,22 @@ public interface Sample extends Serializable {
     /** returns true iff this sample is "Z" (unconnected) */
     public boolean isLogicZ();
 
+    /**
+     *  Return the least upper bound of this and s.  This is sort of
+     *  like max(this,s) except that the result might be greater than
+     *  either s or this if the class in question is a partial order
+     *  rather than a linear order.
+     */
+    public Sample lub(Sample s);
+
+    /**
+     *  Return the greatest lower bound of this and s.  This is sort of
+     *  like min(this,s) except that the result might be less than
+     *  either s or this if the class in question is a partial order
+     *  rather than a linear order.
+     */
+    public Sample glb(Sample s);
+
 }
 
 
