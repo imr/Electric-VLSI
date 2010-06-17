@@ -23,14 +23,13 @@
  */
 package com.sun.electric.tool.util.concurrent.datastructures;
 
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.IDEStructure;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 
 /**
  * @author fs239085
  * 
  */
+@Deprecated
 public class WorkSharingStructure<T> extends WorkStealingStructure<T> {
 
 	/**

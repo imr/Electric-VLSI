@@ -41,7 +41,7 @@ public class LockFreeQueue<T> extends IStructure<T> {
 	AtomicReference<Node<T>> tail = null;
 
 	/**
-	 * 
+	 * Constructor
 	 */
 	public LockFreeQueue() {
 		Node<T> dummy = new Node<T>(null);

@@ -76,6 +76,7 @@ public class SimpleWorker extends PoolWorkerStrategy {
 					// do some clean up work etc. after execution of the task
 					task.after();
 
+					// Debug
 					this.executed++;
 				}
 			} else {

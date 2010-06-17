@@ -24,6 +24,9 @@
 package com.sun.electric.tool.util.concurrent.runtime;
 
 /**
+ * This class provides unique thread IDs for each thread. A thread gets a thread
+ * ID assigned when get or set is called within the thread.
+ * 
  * @author fs239085
  * 
  */
@@ -45,14 +48,29 @@ public class ThreadID {
 
 	private static ThreadLocalID threadID = new ThreadLocalID();
 
+	/**
+	 * Get the thread ID of the current thread. The thead-id matching is done by
+	 * a thread local variable.
+	 * 
+	 * @return
+	 */
 	public static int get() {
 		return threadID.get();
 	}
 
+	/**
+	 * Set the thread ID to a given value
+	 * 
+	 * @param index
+	 */
 	public static void set(int index) {
 		threadID.set(index);
 	}
 
+	/**
+	 * reset the all thread IDs. Call this before you start a new thread pool to
+	 * make sure, that the thread IDs starts at 0
+	 */
 	public static void reset() {
 		ThreadID.threadID = new ThreadLocalID();
 		nextID = 0;

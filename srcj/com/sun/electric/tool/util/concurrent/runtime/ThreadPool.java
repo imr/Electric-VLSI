@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.UniqueIDGenerator;
@@ -184,11 +183,14 @@ public class ThreadPool {
 
 			try {
 				Job.setUserInterface(pool.getUserInterface());
-				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase().getEnvironment());
+				Environment.setThreadEnvironment(Job.getUserInterface().getDatabase()
+						.getEnvironment());
 			} catch (Exception ex) {
 
 			}
 
+			// execute worker strategy (all process of a worker is defined in a
+			// strategy)
 			strategy.execute();
 		}
 
@@ -280,7 +282,8 @@ public class ThreadPool {
 	 * @return initialized thread pool
 	 * @throws PoolExistsException
 	 */
-	public static ThreadPool initialize(IStructure<PTask> taskPool, boolean debug) throws PoolExistsException {
+	public static ThreadPool initialize(IStructure<PTask> taskPool, boolean debug)
+			throws PoolExistsException {
 		return ThreadPool.initialize(taskPool, ThreadPool.getNumOfThreads(), debug);
 	}
 
@@ -337,7 +340,8 @@ public class ThreadPool {
 	public static synchronized void killPool() {
 		try {
 			ThreadPool.instance.shutdown();
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+		}
 		ThreadPool.instance = null;
 	}
 
@@ -372,10 +376,20 @@ public class ThreadPool {
 		return userInterface;
 	}
 
+	/**
+	 * Get current state of the thread pool
+	 * 
+	 * @return
+	 */
 	public ThreadPoolState getState() {
 		return state;
 	}
-	
+
+	/**
+	 * Get true if the current thread pool runs in debug mode, otherwise false
+	 * 
+	 * @return
+	 */
 	public boolean getDebug() {
 		return this.debug;
 	}

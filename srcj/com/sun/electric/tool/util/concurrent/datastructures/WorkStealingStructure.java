@@ -26,12 +26,12 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IDEStructure;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
+import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
@@ -171,12 +171,14 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 		}
 
 		for (int i = 1; result == null && i < dataQueues.size(); i++) {
-			result = dataQueues.get(Long.valueOf(i + localQueueId) % dataQueues.size()).getFromTop();
+			result = dataQueues.get(Long.valueOf(i + localQueueId) % dataQueues.size())
+					.getFromTop();
 			if (result == null) {
 				int foreigner = randomizer.getRandomizer().nextInt(dataQueues.size());
 				result = dataQueues.get(Long.valueOf(foreigner)).getFromTop();
 			}
-			if (result != null && ThreadPool.getThreadPool().getDebug()) stealTracker.countSteal();
+			if (result != null && ThreadPool.getThreadPool().getDebug())
+				stealTracker.countSteal();
 		}
 
 		return result;
@@ -191,5 +193,15 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 			Long myId = freeInternalIds.remove(0);
 			dataQueuesMapping.put(getThreadId(), myId);
 		}
+	}
+
+	/**
+	 * Factory method for creating a WorkStealingStructure for the ThreadPool
+	 * 
+	 * @param numOfThreads
+	 * @return initialized WorkStealingStructure
+	 */
+	public static WorkStealingStructure<PTask> createForThreadPool(int numOfThreads) {
+		return new WorkStealingStructure<PTask>(numOfThreads, PTask.class);
 	}
 }
