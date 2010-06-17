@@ -50,6 +50,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -428,7 +429,7 @@ public class PaletteFrame implements MouseListener
 			if (evt.getSource() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)evt.getSource();
-				lastX = evt.getX();   lastY = evt.getY();
+				getCoords(evt);
 				wnd.showDraggedBox(toDraw, lastX, lastY, extraRotation/10);
 			}
 		}
@@ -438,8 +439,31 @@ public class PaletteFrame implements MouseListener
 			if (evt.getSource() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)evt.getSource();
-				lastX = evt.getX();   lastY = evt.getY();
+				getCoords(evt);
 				wnd.showDraggedBox(toDraw, lastX, lastY, extraRotation/10);
+			}
+		}
+
+		private void getCoords(MouseEvent evt)
+		{
+			EditWindow wnd = (EditWindow)evt.getSource();
+			lastX = evt.getX();   lastY = evt.getY();
+
+			// control key forces the new cell to be on one of the axes
+			if (evt.isControlDown())
+			{
+				Point2D drawnLoc = wnd.screenToDatabase(lastX, lastY);
+				if (Math.abs(drawnLoc.getX()) > Math.abs(drawnLoc.getY()))
+				{
+					Point newPt = wnd.databaseToScreen(drawnLoc.getX(), 0);
+					lastX = newPt.x;
+					lastY = newPt.y;
+				} else
+				{
+					Point newPt = wnd.databaseToScreen(0, drawnLoc.getY());
+					lastX = newPt.x;
+					lastY = newPt.y;
+				}
 			}
 		}
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+IMP/MAN: (6/17/10, SMR) When placing an instance of a cell, holding Control
+     forces the instance to be on one of the axes (Bug #2437).
+
 BUG: (6/17/10, SMR) Cannot select ports on layout resistors (Bug #2761).
 FIX: Generalized code in Highlighter.distToNode() to handle all layout resistors.
 
