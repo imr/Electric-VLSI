@@ -26,6 +26,8 @@ package com.sun.electric.tool.placement;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -848,9 +850,30 @@ public abstract class PlacementFrame {
 		if (Job.getDebug()) {
 			AbstractMetric bmetric = new BBMetric(nodesToPlace, allNetworks);
 			System.out.println("### BBMetric: " + bmetric.toString());
-			
+
 			AbstractMetric mstMetric = new MSTMetric(nodesToPlace, allNetworks);
 			System.out.println("### MSTMetric: " + mstMetric.toString());
+
+			FileOutputStream out; // declare a file output object
+			PrintStream p; // declare a print stream object
+
+			try {
+				// Create a new file output stream
+				// connected to "myfile.txt"
+				out = new FileOutputStream("/home/fs239085/work/" + this.getAlgorithmName() + "-" + cellName
+						+ "-" + this.runtime + "-" + this.numOfThreads + ".txt");
+
+				// Connect print stream to the output stream
+				p = new PrintStream(out);
+
+				p.println(bmetric.toString());
+				p.println(mstMetric.toString());
+
+				p.close();
+			} catch (Exception e) {
+				System.err.println("Error writing to file");
+			}
+
 		}
 
 		// create a new cell for the placement results
