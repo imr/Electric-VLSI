@@ -43,6 +43,10 @@ public abstract class PoolWorkerStrategy {
 	 */
 	public abstract void execute();
 
+	public void trigger() {
+
+	}
+
 	/**
 	 * shutdown the current worker
 	 */

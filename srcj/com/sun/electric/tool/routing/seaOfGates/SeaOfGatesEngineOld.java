@@ -51,6 +51,10 @@ public class SeaOfGatesEngineOld extends SeaOfGatesEngine {
 	@Override
 	protected void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes,
 			RouteBatches[] routeBatches, Environment env, EditingPreferences ep) {
+		
+		if (Job.getDebug())
+			System.out.println("Do routing parallel with raw threads");
+		
 		// create threads and other threading data structures
 		RouteInThread[] threads = new RouteInThread[numberOfThreads];
 		for (int i = 0; i < numberOfThreads; i++)

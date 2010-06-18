@@ -60,7 +60,6 @@ public class SimpleTDBarrier implements TDBarrier {
 		} else {
 			count.getAndIncrement();
 		}
-
 	}
 
 	/*

@@ -35,7 +35,7 @@ import com.sun.electric.tool.util.IDEStructure;
 public class UnboundedDEQueue<T> extends IDEStructure<T> {
 
 	private volatile CircularArray<T> elements;
-	private volatile int bottom;
+	private AtomicInteger bottom;
 	private AtomicInteger top;
 
 	/**
@@ -44,7 +44,7 @@ public class UnboundedDEQueue<T> extends IDEStructure<T> {
 	public UnboundedDEQueue(Class<T> clazz, int LOG_CAPACITY) {
 		elements = new CircularArray<T>(clazz, LOG_CAPACITY);
 		top = new AtomicInteger(0);
-		bottom = 0;
+		bottom = new AtomicInteger(0);
 	}
 
 	/*
@@ -58,7 +58,7 @@ public class UnboundedDEQueue<T> extends IDEStructure<T> {
 	public T getFromTop() {
 		int oldTop = top.get();
 		int newTop = oldTop + 1;
-		int oldBottom = bottom;
+		int oldBottom = bottom.get();
 		int size = oldBottom - oldTop;
 		if (size <= 0) {
 			return null;
@@ -78,16 +78,19 @@ public class UnboundedDEQueue<T> extends IDEStructure<T> {
 	 */
 	@Override
 	public void add(T item) {
-		int oldBottom = bottom;
-		int oldTop = top.get();
-		CircularArray<T> currentElements = elements;
-		int size = oldBottom - top.get();
-		if (size >= currentElements.getCapacity() - 1) {
-			currentElements = currentElements.resize(oldBottom, oldTop);
-			elements = currentElements;
+		while (true) {
+			int oldBottom = bottom.get();
+			int oldTop = top.get();
+			CircularArray<T> currentElements = elements;
+			int size = oldBottom - top.get();
+			if (size >= currentElements.getCapacity() - 1) {
+				currentElements = currentElements.resize(oldBottom, oldTop);
+				elements = currentElements;
+			}
+			elements.add(item, oldBottom);
+			if (bottom.compareAndSet(oldBottom, oldBottom + 1))
+				break;
 		}
-		elements.add(item, oldBottom);
-		bottom = oldBottom + 1;
 	}
 
 	/*
@@ -99,22 +102,22 @@ public class UnboundedDEQueue<T> extends IDEStructure<T> {
 	 */
 	@Override
 	public T remove() {
-		bottom--;
+		bottom.decrementAndGet();
 		int oldTop = top.get();
 		int newTop = oldTop + 1;
-		int size = bottom - oldTop;
+		int size = bottom.get() - oldTop;
 		if (size < 0) {
-			bottom = oldTop;
+			bottom.set(oldTop);
 			return null;
 		}
-		T item = elements.get(bottom);
+		T item = elements.get(bottom.get());
 		if (size > 0) {
 			return item;
 		}
 		if (!top.compareAndSet(oldTop, newTop)) {
 			item = null;
 		}
-		bottom = oldTop + 1;
+		bottom.set(oldTop + 1);
 		return item;
 	}
 
@@ -127,7 +130,7 @@ public class UnboundedDEQueue<T> extends IDEStructure<T> {
 	 */
 	@Override
 	public boolean isEmpty() {
-		return (bottom <= top.get());
+		return (bottom.get() <= top.get());
 	}
 
 	/*

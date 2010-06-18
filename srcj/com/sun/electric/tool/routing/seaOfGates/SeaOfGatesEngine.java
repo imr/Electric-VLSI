@@ -173,9 +173,9 @@ public abstract class SeaOfGatesEngine {
 	/** true if this is the first failure of a route (for debugging) */
 	private boolean firstFailure;
 	/** true to run to/from and from/to routing in parallel */
-	private boolean parallelDij;
+	protected boolean parallelDij;
 	/** for logging errors */
-	private ErrorLogger errorLogger;
+	protected ErrorLogger errorLogger;
 
 	/**
 	 * Class to hold a "batch" of routes, all on the same network.
@@ -200,19 +200,21 @@ public abstract class SeaOfGatesEngine {
 		/** Set true to abort this wavefront's search. */
 		private boolean abort;
 		/** The starting and ending ports of the wavefront. */
-		private PortInst from, to;
+		PortInst from;
+		private PortInst to;
 		/** The starting X/Y coordinates of the wavefront. */
 		private double fromX, fromY;
 		/** The starting metal layer of the wavefront. */
 		private int fromZ;
 		/** The ending X/Y coordinates of the wavefront. */
-		private double toX, toY;
+		double toX;
+		private double toY;
 		/** The ending metal layer of the wavefront. */
 		private int toZ;
 		/** debugging state */
 		private final boolean debug;
 		/** Search vertices found while propagating the wavefront. */
-		private Map<Integer, Set<Integer>>[] searchVertexPlanes;
+		Map<Integer, Set<Integer>>[] searchVertexPlanes;
 		/** Gridless search vertices found while propagating wavefront. */
 		private Map<Double, Set<Double>>[] searchVertexPlanesDBL;
 		/** minimum spacing between this metal and itself. */
@@ -1326,7 +1328,7 @@ public abstract class SeaOfGatesEngine {
 	 *            the list of SearchVertices in the route.
 	 * @return the length of the route.
 	 */
-	private double getVertexLength(List<SearchVertex> vertices) {
+	protected double getVertexLength(List<SearchVertex> vertices) {
 		if (vertices == null) return Double.MAX_VALUE;
 		if (vertices.size() == 0) return Double.MAX_VALUE;
 		double sum = 0;
@@ -1472,7 +1474,7 @@ public abstract class SeaOfGatesEngine {
 		nr.cleanSearchMemory();
 	}
 
-	private void doTwoWayDijkstra(NeededRoute nr) {
+	protected void doTwoWayDijkstra(NeededRoute nr) {
 		SearchVertex result = null;
 		int numSearchVertices = 0;
 		while (result == null) {
@@ -1503,7 +1505,7 @@ public abstract class SeaOfGatesEngine {
 		nr.winningWF.vertices = realVertices;
 	}
 
-	private class DijkstraInThread extends Thread {
+	class DijkstraInThread extends Thread {
 		private Wavefront wf;
 		private Wavefront otherWf;
 		private Semaphore whenDone;
@@ -2888,7 +2890,7 @@ public abstract class SeaOfGatesEngine {
 	/**
 	 * Class to define a vertex in the Dijkstra search.
 	 */
-	private class SearchVertex implements Comparable {
+	protected class SearchVertex implements Comparable<SearchVertex> {
 		/** the coordinate of the search vertex. */
 		private double xv, yv;
 		/** the layer of the search vertex. */
@@ -2962,14 +2964,13 @@ public abstract class SeaOfGatesEngine {
 		/**
 		 * Method to sort SearchVertex objects by their cost.
 		 */
-		public int compareTo(Object svo) {
-			SearchVertex sv = (SearchVertex) svo;
-			int diff = cost - sv.cost;
+		public int compareTo(SearchVertex svo) {
+			int diff = cost - svo.cost;
 			if (diff != 0) return diff;
 			if (w != null) {
 				double thisDist = Math.abs(xv - w.toX) + Math.abs(yv - w.toY) + Math.abs(zv - w.toZ);
-				double otherDist = Math.abs(sv.xv - w.toX) + Math.abs(sv.yv - w.toY)
-						+ Math.abs(sv.zv - w.toZ);
+				double otherDist = Math.abs(svo.xv - w.toX) + Math.abs(svo.yv - w.toY)
+						+ Math.abs(svo.zv - w.toZ);
 				if (thisDist < otherDist) return -1;
 				if (thisDist > otherDist) return 1;
 			}

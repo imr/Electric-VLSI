@@ -81,13 +81,7 @@ public class PJob {
 	 * Wait for the job while not finishing.
 	 */
 	public void join() {
-		while (!barrier.isTerminated()) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+		while (!barrier.isTerminated());
 	}
 
 	/**

@@ -52,6 +52,10 @@ public class ThreadPool {
 		New, Init, Started, Closed, Sleeps;
 	}
 
+	public enum ThreadPoolType {
+		simplePool, synchronizedPool
+	}
+
 	private IStructure<PTask> taskPool = null;
 	private int numOfThreads = 0;
 	private ArrayList<Worker> workers = null;
@@ -59,6 +63,7 @@ public class ThreadPool {
 	private UniqueIDGenerator generator;
 	private UserInterface userInterface;
 	private boolean debug;
+	private ThreadPoolType type;
 
 	/**
 	 * prevent from creating thread pools via constructor
@@ -66,12 +71,13 @@ public class ThreadPool {
 	 * @param taskPool
 	 * @param numOfThreads
 	 */
-	private ThreadPool(IStructure<PTask> taskPool, int numOfThreads, boolean debug) {
+	private ThreadPool(IStructure<PTask> taskPool, int numOfThreads, boolean debug, ThreadPoolType type) {
 		state = ThreadPoolState.New;
 		this.taskPool = taskPool;
 		this.numOfThreads = numOfThreads;
 		this.generator = new UniqueIDGenerator(0);
 		this.debug = debug;
+		this.type = type;
 
 		// reset thread id
 		ThreadID.reset();
@@ -104,6 +110,7 @@ public class ThreadPool {
 	public void shutdown() throws InterruptedException {
 		for (Worker worker : workers) {
 			worker.shutdown();
+			worker.strategy.trigger();
 		}
 
 		this.join();
@@ -145,6 +152,12 @@ public class ThreadPool {
 		}
 	}
 
+	public void trigger() {
+		for (Worker worker : workers) {
+			worker.strategy.trigger();
+		}
+	}
+
 	/**
 	 * add a task to the pool
 	 * 
@@ -170,7 +183,7 @@ public class ThreadPool {
 		public Worker(ThreadPool pool) {
 			this.pool = pool;
 			ThreadID.set(generator.getUniqueId());
-			strategy = PoolWorkerStrategyFactory.createStrategy(taskPool);
+			strategy = PoolWorkerStrategyFactory.createStrategy(taskPool, type);
 			if (pool.debug) {
 				LoadBalancing.getInstance().registerWorker(strategy);
 			}
@@ -220,8 +233,11 @@ public class ThreadPool {
 	 * Factory class for worker strategy
 	 */
 	private static class PoolWorkerStrategyFactory {
-		public static PoolWorkerStrategy createStrategy(IStructure<PTask> taskPool) {
-			return new SimpleWorker(taskPool);
+		public static PoolWorkerStrategy createStrategy(IStructure<PTask> taskPool, ThreadPoolType type) {
+			if (type == ThreadPoolType.synchronizedPool)
+				return new SynchronizedWorker(taskPool);
+			else
+				return new SimpleWorker(taskPool);
 		}
 	}
 
@@ -311,6 +327,11 @@ public class ThreadPool {
 		return ThreadPool.initialize(taskPool, numOfThreads, false);
 	}
 
+	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads,
+			boolean debug) throws PoolExistsException {
+		return initialize(taskPool, numOfThreads, debug, ThreadPoolType.simplePool);
+	}
+
 	/**
 	 * initialize thread pool with specific task pool and number of threads
 	 * 
@@ -321,9 +342,9 @@ public class ThreadPool {
 	 * @throws PoolExistsException
 	 */
 	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads,
-			boolean debug) throws PoolExistsException {
+			boolean debug, ThreadPoolType type) throws PoolExistsException {
 		if (ThreadPool.instance == null || instance.state != ThreadPoolState.Started) {
-			instance = new ThreadPool(taskPool, numOfThreads, debug);
+			instance = new ThreadPool(taskPool, numOfThreads, debug, type);
 			instance.start();
 		} else {
 			return instance;

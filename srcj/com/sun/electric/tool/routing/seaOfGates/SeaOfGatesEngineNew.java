@@ -31,6 +31,12 @@ import java.util.concurrent.Semaphore;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
+import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
+import com.sun.electric.tool.util.concurrent.patterns.PJob;
+import com.sun.electric.tool.util.concurrent.patterns.PTask;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadPool.ThreadPoolType;
 
 /**
  * @author fs239085
@@ -51,10 +57,21 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 	@Override
 	protected void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes,
 			RouteBatches[] routeBatches, Environment env, EditingPreferences ep) {
-		// create threads and other threading data structures
-		RouteInThread[] threads = new RouteInThread[numberOfThreads];
-		for (int i = 0; i < numberOfThreads; i++)
-			threads[i] = new RouteInThread("Route #" + (i + 1), env, ep);
+
+		if (Job.getDebug())
+			System.out.println("Do routing parallel with new parallel Infrastructure");
+
+		try {
+			ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
+					numberOfThreads, true, ThreadPoolType.synchronizedPool);
+			// ThreadPool.initialize(numberOfThreads, true);
+		} catch (PoolExistsException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		PJob seaOfGatesJob = new PJob();
+		seaOfGatesJob.execute(false);
+
 		NeededRoute[] routesToDo = new NeededRoute[numberOfThreads];
 		int[] routeIndices = new int[numberOfThreads];
 		Semaphore outSem = new Semaphore(0);
@@ -80,16 +97,20 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 						break;
 					}
 				}
-				if (isBlocked) continue;
+				if (isBlocked)
+					continue;
 
 				// this route can be done: start it
 				blocked.add(nr.routeBounds);
 				routesToDo[threadAssign] = nr;
 				routeIndices[threadAssign] = i;
-				threads[threadAssign].startRoute(nr, outSem);
+				seaOfGatesJob.add(new RouteInTask(seaOfGatesJob, nr, ep, outSem), threadAssign);
 				threadAssign++;
-				if (threadAssign >= numberOfThreads) break;
+				if (threadAssign >= numberOfThreads)
+					break;
 			}
+
+			ThreadPool.getThreadPool().trigger();
 
 			String routes = "";
 			for (int i = 0; i < threadAssign; i++) {
@@ -97,14 +118,16 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 				if (routeBatches[routesToDo[i].batchNumber].segsInBatch > 1)
 					routeName += "(" + routesToDo[i].routeInBatch + "/"
 							+ routeBatches[routesToDo[i].batchNumber].segsInBatch + ")";
-				if (routes.length() > 0) routes += ", ";
+				if (routes.length() > 0)
+					routes += ", ";
 				routes += routeName;
 			}
 			System.out.println("Parallel routing " + routes + "...");
 			Job.getUserInterface().setProgressNote(routes);
 
 			// now wait for routing threads to finish
-			outSem.acquireUninterruptibly(threadAssign);
+			// outSem.acquireUninterruptibly(threadAssign);
+			seaOfGatesJob.join();
 
 			// all done, now handle the results
 			for (int i = 0; i < threadAssign; i++) {
@@ -117,42 +140,36 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			Job.getUserInterface().setProgressValue(routesDone * 100 / totalRoutes);
 		}
 
-		// terminate the threads
-		for (int i = 0; i < numberOfThreads; i++)
-			threads[i].startRoute(null, null);
+		seaOfGatesJob.join();
+		try {
+			ThreadPool.getThreadPool().shutdown();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
-	
-	private class RouteInThread extends Thread {
-		private Semaphore inSem = new Semaphore(0);
+
+	private class RouteInTask extends PTask {
 		private NeededRoute nr;
+		private EditingPreferences ed;
 		private Semaphore whenDone;
-		private Environment env;
-		private EditingPreferences ep;
 
-		public RouteInThread(String name, Environment env, EditingPreferences ep) {
-			super(name);
-			this.env = env;
-			this.ep = ep;
-			start();
-		}
-
-		public void startRoute(NeededRoute nr, Semaphore whenDone) {
+		public RouteInTask(PJob job, NeededRoute nr, EditingPreferences ed, Semaphore outSem) {
+			super(job);
 			this.nr = nr;
-			this.whenDone = whenDone;
-			inSem.release();
+			this.ed = ed;
+			this.whenDone = outSem;
 		}
 
-		public void run() {
-			Environment.setThreadEnvironment(env);
-			EditingPreferences.setThreadEditingPreferences(ep);
-			for (;;) {
-				inSem.acquireUninterruptibly();
-				if (nr == null) return;
-				findPath(nr, env, ep);
-				whenDone.release();
-			}
+		public void execute() {
+
+			EditingPreferences.setThreadEditingPreferences(ed);
+
+			if (nr == null)
+				return;
+			findPath(nr, Environment.getThreadEnvironment(), ed);
+			whenDone.release();
 		}
 	}
-
 }

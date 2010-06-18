@@ -66,7 +66,9 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 
 		for (long i = 0; i < numOfThreads; i++) {
 			freeInternalIds.add(i);
-			dataQueues.put(i, CollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
+			// dataQueues.put(i,
+			// CollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
+			dataQueues.put(i, new DEListWrapper<T>());
 		}
 	}
 
@@ -114,9 +116,8 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 			}
 			int foreignQueue = randomizer.getRandomizer().nextInt(dataQueues.size());
 			dataQueues.get(Long.valueOf(foreignQueue)).add(item);
-
 		} else {
-			dataQueues.get(i).add(item);
+			dataQueues.get(Long.valueOf(i)).add(item);
 		}
 
 	}
@@ -171,8 +172,7 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 		}
 
 		for (int i = 1; result == null && i < dataQueues.size(); i++) {
-			result = dataQueues.get(Long.valueOf(i + localQueueId) % dataQueues.size())
-					.getFromTop();
+			result = dataQueues.get(Long.valueOf(i + localQueueId) % dataQueues.size()).getFromTop();
 			if (result == null) {
 				int foreigner = randomizer.getRandomizer().nextInt(dataQueues.size());
 				result = dataQueues.get(Long.valueOf(foreigner)).getFromTop();

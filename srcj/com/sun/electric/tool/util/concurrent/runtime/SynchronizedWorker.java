@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime;
 
+import java.util.concurrent.Semaphore;
+
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 
@@ -33,14 +35,20 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
  * @author Felix Schmidt
  * 
  */
-public class SimpleWorker extends PoolWorkerStrategy {
+public class SynchronizedWorker extends PoolWorkerStrategy {
 
 	protected IStructure<PTask> taskPool = null;
+	protected Semaphore sem;
 
-	public SimpleWorker(IStructure<PTask> taskPool) {
+	public SynchronizedWorker(IStructure<PTask> taskPool) {
 		super();
 		this.taskPool = taskPool;
 		this.abort = false;
+		sem = new Semaphore(0);
+	}
+
+	public void trigger() {
+		sem.release();
 	}
 
 	/**
@@ -62,6 +70,8 @@ public class SimpleWorker extends PoolWorkerStrategy {
 		while (!abort) {
 			this.checkForWait();
 
+			sem.acquireUninterruptibly();
+
 			// retrieve a new task
 			PTask task = taskPool.remove();
 			if (task != null) {
@@ -78,7 +88,7 @@ public class SimpleWorker extends PoolWorkerStrategy {
 					task.after();
 
 					// Debug
-					
+
 				}
 			} else {
 				Thread.yield();
