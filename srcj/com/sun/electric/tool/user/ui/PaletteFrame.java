@@ -367,7 +367,8 @@ public class PaletteFrame implements MouseListener
 					"Cannot create node: this window has no cell in it");
 				return;
 			}
-			Point2D where = wnd.screenToDatabase(evt.getX(), evt.getY());
+			getCoords(evt);
+			Point2D where = wnd.screenToDatabase(lastX, lastY);
 			EditWindow.gridAlign(where);
 
 			// schedule the node to be created
