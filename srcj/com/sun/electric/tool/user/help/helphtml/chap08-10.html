@@ -820,9 +820,10 @@ Example:<BR>
     &nbsp;&nbsp;&nbsp;&lt;/primitiveNodeGroup&gt;
 </FONT></CODE>
 <P>
-<H4>Design Rules</H4>
+<H4>Foundry</H4>
 <P>
-Design rules appear in a &lt;Foundry&gt; section, usually at the end of the XML file.
+The Foundry section has design rules and GDS layers.
+The section is usually found at the end of the XML file.
 This section starts with:<BR>
 <CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;Foundry name="<I>foundryname</I>"&gt;</FONT></CODE><BR>
 where <I>foundryname</I> is the name of the integrated-circuit manufacturer whose rules are enclosed.
@@ -895,5 +896,18 @@ Example:<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nodeName="N-Transistor" when="ALL" type="SURROUND" value="5"/&gt;</FONT></CODE><BR>
 </LI>
 </UL>
-
+In addition to design-rules, the GDS layer assignments are also found in the Foundry section.
+Each GDS layer line has this format:<BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;layerGds layer="XXXX" gds="YYYY"/&gt;</FONT></CODE><BR>
+Where XXXX is the layer name and YYYY is the GDS information for that layer.
+The GDS information can include multiple layer numbers, for example "21,49,98".
+GDS layers can have type information if separated by a slash, for example layer 14 type 141 is "21/141".
+GDS layers can be used for Pins (export locations) and Text (export names) by appending a "p" or "t" to the layer number,
+for example "21,49p,74/2t".
+Example:<BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;layerGds layer="Metal-1" gds="49,80p,80t"/&gt;</FONT></CODE><BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;layerGds layer="Metal-2" gds="41/40,141p"/&gt;</FONT></CODE><BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;layerGds layer="Metal-3" gds="98"/&gt;</FONT></CODE><BR>
+Defines Metal-1 to be on GDS layer 49, or 80 for pins or text; defines Metal-2 to be on GDS layer 41, type 40 or on layer 141 for pins;
+and defines Metal-3 to be on GDS layer 98.
 <!-- TRAILER -->
