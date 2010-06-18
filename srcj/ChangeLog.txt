@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 9.00i: ******************************
+
 ************************* Version 9.00h: ******************************
 
 IMP: (6/18/10, FS) Refactored SeaOfGatesRouter to have the possibility to
