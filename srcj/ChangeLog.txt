@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/18/10, SMR) Layer visibility tab crashes (Bug #2802).
+FIX: In LayerTab.setInvisibleLayerConfiguration() handle unset technologies.
+
 IMP: (6/18/10, FS) Experimental version of SeaOfGatesRouter: New parallel
      infrastructure
 

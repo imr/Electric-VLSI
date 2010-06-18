@@ -329,20 +329,18 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	public void setInvisibleLayerConfiguration(String cName)
 	{
 		// get a set of all invisible layers in the selected configuration
-		int hardIndex = invLayerConfigs.getConfigurationHardwiredIndex(cName);
-		List<Technology> techs = invLayerConfigs.getConfigurationTechnology(cName);
-		if (techs.size() == 0)
+		Map<Technology,List<Layer>> invisibleLayers = invLayerConfigs.getConfigurationValue(cName);
+		String techName = (String)technology.getSelectedItem();
+		Technology curTech = Technology.findTechnology(techName);
+		List<Layer> curLayers = invisibleLayers.get(curTech);
+		if (curLayers == null)
 		{
+			int hardIndex = invLayerConfigs.getConfigurationHardwiredIndex(cName);
 			if (hardIndex >= 0)
 				setVisibilityLevel(hardIndex);
 			return;
 		}
-		Map<Technology,List<Layer>> invisibleLayers = invLayerConfigs.getConfigurationValue(cName);
 
-		String techName = (String)technology.getSelectedItem();
-		Technology curTech = Technology.findTechnology(techName);
-		List<Layer> curLayers = invisibleLayers.get(curTech);
-		
         Map<Layer,Boolean> visibilityChange = new HashMap<Layer,Boolean>();
         int len = layerListModel.size();
         for (int i=0; i<len; i++)
