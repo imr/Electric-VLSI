@@ -95,13 +95,20 @@ import com.sun.electric.tool.routing.experimentalSimple.RoutingFrameSimple;
  */
 public class RoutingFrame
 {
+	private static final boolean DEBUGROUTES = false;
+
 	/**
 	 * Static list of all Routing algorithms.
 	 * When you create a new algorithm, add it to the following list.
 	 */
 	private static RoutingFrame [] routingAlgorithms = {
 		new RoutingFrameSimple(),
-		new RoutingFrameSeaOfGates()
+		new RoutingFrameSeaOfGates(),
+//		new AStarRoutingFrame(),
+//		new com.sun.electric.tool.routing.team02LeeMoore.RoutingFrameLeeMoore(),
+//		new AStarRouter(),
+//		new com.sun.electric.tool.routing.team04LeeMoore.RoutingFrameLeeMoore(),
+//		new yana()
 	};
 
 	/**
@@ -983,6 +990,29 @@ public class RoutingFrame
 			List<RoutePoint> contacts = rs.routedPoints;
 			List<RouteWire> wires = rs.routedWires;
 			if (contacts.size() == 0 && wires.size() == 0) continue;
+
+// display route
+if (DEBUGROUTES)
+{
+	System.out.println("++++ ROUTING SEGMENT: ++++");
+	Map<RoutePoint,String> numberContacts = new HashMap<RoutePoint,String>();
+	int num = 1;
+	for(RoutePoint rp : contacts)
+	{
+		RoutingContact rc = rp.getContact();
+		String contactName = "CONTACT-" + (num++);
+		System.out.println(contactName + " IS " + rc.getName() + " AT (" + rp.loc.getX() + "," + rp.loc.getY() + ")");
+		numberContacts.put(rp, contactName);
+	}
+	for(RouteWire rw : wires)
+	{
+		String start = numberContacts.get(rw.start);
+		String end = numberContacts.get(rw.end);
+		if (rw.start.getContact() == RoutingContact.STARTPOINT) start = "STARTING-POINT";
+		if (rw.end.getContact() == RoutingContact.FINISHPOINT) end = "ENDING-POINT";
+		System.out.println("WIRE " + rw.layer.getName() + " RUNS FROM " + start + " TO " + end);
+	}
+}
 
 			// create the contacts
 			Map<RoutePoint,PortInst> builtContacts = new HashMap<RoutePoint,PortInst>();
