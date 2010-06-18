@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+BUG: (6/18/10, FS) Use 1 evaluation step per minimum in placement tool
+     Genetic-2 (Bug #2801) 
+
 BUG: (6/16/10, AM) Simulation input file reads correctly but looks
      wrong (Bug #2796)
 FIX: Correct the erroneous indexing in HSpiceOut.java.
