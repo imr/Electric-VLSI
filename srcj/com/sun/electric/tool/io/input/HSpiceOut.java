@@ -750,7 +750,7 @@ public class HSpiceOut extends Input<Stimuli>
 				if (eofReached) break;
 				// get a row of numbers
 				for(int k=0; k<numSignals; k++) {
-                    MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[k];
+                    MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[(k + numnoi) % numSignals];
 					if (isComplex) {
 						float realPart = getHSpiceFloat(false);
 						float imagPart = getHSpiceFloat(false);

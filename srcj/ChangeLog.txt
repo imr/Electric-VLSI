@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00h: ******************************
 
+BUG: (6/16/10, AM) Simulation input file reads correctly but looks
+     wrong (Bug #2796)
+FIX: Correct the erroneous indexing in HSpiceOut.java.
+
 BUG: (6/16/10, AM) The waveform window comes up with no signals but it
      should have remembered the last ones (Bug #2798).
 FIX: Fix longstanding confusion between
