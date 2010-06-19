@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/19/10, AM) Electric throws UnsupportedOperationException when
+     run with EmptyPreferencesFactory.
+FIX: Do not attempt to set the working directory when running in batch
+     mode.
+
 IMP: (6/19/10, AM) Finish support for ComplexSample.
 
 BUG: (6/18/10, SMR) Control-key axis-gridding of placed instances fails

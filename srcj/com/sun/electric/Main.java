@@ -509,7 +509,7 @@ public final class Main
             }
 			URL url = TextUtils.makeURLToFile(arg);
             if (url == null) continue;
-            User.setWorkingDirectory(TextUtils.getFilePath(url));
+            if (!isBatch()) User.setWorkingDirectory(TextUtils.getFilePath(url));
             // setting database path for future references
             FileType.setDatabaseGroupPath(User.getWorkingDirectory());
             if (arg.indexOf('.')!=-1 && SimulationData.isKnownSimulationFormatExtension(arg.substring(arg.lastIndexOf('.')+1))) {
