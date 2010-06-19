@@ -58,6 +58,10 @@ public class ScalarSample implements Sample, Comparable {
         return Double.compare(value, ss.value);
     }
 
+    public String toString() {
+        return Double.toString(value);
+    }
+
     public boolean isLogicX() {
         return value == Double.POSITIVE_INFINITY;
     }
@@ -89,7 +93,7 @@ public class ScalarSample implements Sample, Comparable {
         }
     };
 
-    private static final LatticeOperation<ScalarSample> latticeOp =
+    static final LatticeOperation<ScalarSample> latticeOp =
         new LatticeOperation<ScalarSample>(unboxer) {
         public void glb(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs) {
             if (UnboxedHalfDouble.instance.compare(buf1, ofs1, buf2, ofs2) < 0)
