@@ -47,7 +47,6 @@ import com.sun.electric.tool.project.DeleteCellJob;
 import com.sun.electric.tool.project.HistoryDialog;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.project.UpdateJob;
-import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.CellChangeJobs;
@@ -976,7 +975,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 //				String sigName = sSig.getFullName();
 //				if (sSig .isAnalog())
 //				{
-//					Signal<ScalarSample> as = (Signal<ScalarSample>)sSig;
+//					Signal as = (Signal)sSig;
 //					if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
 //						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
 //							if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else

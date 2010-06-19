@@ -52,6 +52,7 @@ import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.ncc.NccCrossProbing;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.Sample;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSample;
@@ -59,7 +60,6 @@ import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SimulationTool;
-import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
@@ -2380,32 +2380,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		boolean added = false;
-		for(Signal sSig : found)
-		{
+		for(Signal sSig : found) {
 			// add the signal
-			if (newPanel)
-			{
+			if (newPanel) {
 				wp = makeNewPanel();
-				boolean isAnalog = false;
-				if (sSig .isAnalog()) isAnalog = true;
-				if (isAnalog)
-				{
-					Signal<ScalarSample> as = (Signal<ScalarSample>)sSig;
-					double lowValue = as.getMinValue().getValue();
-					double highValue = as.getMaxValue().getValue();
-					double range = highValue - lowValue;
-					if (range == 0) range = 2;
-					double rangeExtra = range / 10;
-					wp.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
-					wp.makeSelectedPanel(-1, -1);
-					newPanel = false;
-				}
+                wp.fitToSignal(sSig);
+                newPanel = false;
 				if (!xAxisLocked)
-				{
 					wp.setXAxisRange(sSig.getMinTime(), sSig.getMaxTime());
-				}
-			} else
-			{
+			} else {
 				// make sure the analysis type is correct
 				if (wp.wrongPanelType(sSig)) break;
 			}
@@ -3571,17 +3554,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
 				if (signalInX != null) addSignalSweep(signalInX, -1, dumpSignals, dumpSweeps, dumpWaveforms);
 				for(WaveSignal ws : wp.getSignals())
-				{
-					Signal sig = ws.getSignal();
-					if (sig .isAnalog())
-					{
-						Signal<ScalarSample> as = (Signal<ScalarSample>)sig;
-                        addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
-					} else
-					{
-						addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
-					}
-				}
+                    addSignalSweep(ws.getSignal(), -1, dumpSignals, dumpSweeps, dumpWaveforms);
 			}
 			int numEntries = dumpSignals.size() + 1;
 			String [] entries = new String[numEntries];
@@ -3612,24 +3585,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					entries[i] = "";
 					Signal sig = dumpSignals.get(i-1);
-					if (sig .isAnalog())
-					{
-						Signal waveform = dumpWaveforms.get(i - 1);
-						if (j < waveform.getExactView().getNumEvents())
-						{
-                            double t = waveform.getExactView().getTime(j);
-                            double v = ((ScalarSample)waveform.getExactView().getSample(j)).getValue();
+                    if (j < sig.getExactView().getNumEvents()) {
+                        Sample sample = sig.getExactView().getSample(j);
+                        if (sample == null) {
+                        } else if (sample instanceof ScalarSample) {
+                            double t = sig.getExactView().getTime(j);
+                            double v = ((ScalarSample)sample).getValue();
 							if (entries[0] == null) entries[0] = "" + t;
 							entries[i] = "" + v;
 							haveData = true;
-						}
-					} else if (sig .isDigital())
-					{
-						Signal<DigitalSample> ds = (Signal<DigitalSample>)sig;
-						if (j < ds.getExactView().getNumEvents())
-						{
-							if (entries[0] == null) entries[0] = "" + ds.getExactView().getTime(j);
-							entries[i] = "" + getState(ds, j);
+						} else if (sample instanceof DigitalSample) {
+							if (entries[0] == null) entries[0] = "" + sig.getExactView().getTime(j);
+							entries[i] = "" + getState((Signal<DigitalSample>)sig, j);
 							haveData = true;
 						}
 					}
@@ -4084,7 +4051,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (sig .isAnalog())
 		{
 			// add analog signal on top of current panel
-			Signal<ScalarSample> as = (Signal<ScalarSample>)sig;
+			Signal as = (Signal)sig;
 			boolean found = false;
 			for(Panel wp : wavePanels)
 			{
@@ -4102,13 +4069,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				// create a new panel for the signal
 				Panel wp = makeNewPanel();
-                double lowValue = as.getMinValue()==null ? 0 : as.getMinValue().getValue();
-                double highValue = as.getMaxValue()==null ? 1 : as.getMaxValue().getValue();
-                double range = highValue - lowValue;
-                if (range == 0) range = 2;
-                double rangeExtra = range / 10;
-                wp.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
-                wp.makeSelectedPanel(-1, -1);
+                Signal sSig = as;
+                wp.fitToSignal(as);
                 if (!xAxisLocked)
                     wp.setXAxisRange(as.getMinTime(), as.getMaxTime());
                 WaveSignal.addSignalToPanel(sig, wp, null);
@@ -4267,16 +4229,20 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             double minY = Double.MAX_VALUE;
             double maxY = Double.MIN_VALUE;
 			for(WaveSignal ws : wp.getSignals()) {
-                Signal sig = ws.getSignal();
-                if (sig.isDigital()) {
+                Signal sSig = ws.getSignal();
+                Sample minval = sSig.getMinValue();
+                Sample maxval = sSig.getMaxValue();
+                if (minval!=null && maxval != null && minval instanceof ScalarSample && maxval instanceof ScalarSample) {
+                    double lowValue = ((ScalarSample)minval).getValue();
+                    double highValue = ((ScalarSample)maxval).getValue();
+                    minY = Math.min(minY, lowValue);
+                    maxY = Math.max(maxY, highValue);
+				} else if (minval!=null && maxval != null && minval instanceof DigitalSample && maxval instanceof DigitalSample) {
                     minY = Math.min(minY, 0);
                     maxY = Math.max(maxY, 1);
-                } else if (sig.isAnalog()) {
-                    minY = sig.getMinValue()==null ? minY : Math.min(minY, ((Signal<ScalarSample>)sig).getMinValue().getValue());
-                    maxY = sig.getMaxValue()==null ? maxY : Math.max(maxY, ((Signal<ScalarSample>)sig).getMaxValue().getValue());
                 }
-                minX = Math.min(minX, sig.getMinTime());
-                maxX = Math.max(maxX, sig.getMaxTime());
+                minX = Math.min(minX, sSig.getMinTime());
+                maxX = Math.max(maxX, sSig.getMaxTime());
             }
 			Rectangle2D yBounds = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 			boolean repaint = false;
@@ -4749,8 +4715,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (panel != null)
 				{
 					// overlay this signal onto an existing panel
-					Signal<ScalarSample> as = (Signal<ScalarSample>)sSig;
-					if (panel.wrongPanelType(as))
+					if (panel.wrongPanelType(sSig))
 					{
 						dtde.dropComplete(true);
 						return;
