@@ -30,17 +30,19 @@ import com.sun.electric.database.geometry.btree.unboxed.*;
  *  An implementation of Sample for complex data.  Holds 
  *  two doubles internally: real and imaginary.
  */
-public class ComplexSample implements Sample {
+public class ComplexSample extends ScalarSample implements Sample {
 
     private double real;
     private double imag;
 
-    public ComplexSample() { this(0,0); }
-    public ComplexSample(double real, double imag) { this.real = real; this.imag = imag; }
+    public ComplexSample(double real, double imag) {
+        super(Math.atan2(imag, real));
+        this.real = real;
+        this.imag = imag;
+    }
 
     public double getReal() { return real; }
     public double getImag() { return imag; }
-    public double getAmplitude() { return Math.atan2(getImag(), getReal()); }
 
     public boolean equals(Object o) {
         if (o==null || !(o instanceof ComplexSample)) return false;
@@ -105,7 +107,7 @@ public class ComplexSample implements Sample {
         }
     };
 
-    public static Signal<ComplexSample> createSignal(Analysis an, String signalName, String signalContext) {
+    public static Signal<ComplexSample> createComplexSignal(Analysis an, String signalName, String signalContext) {
         Signal<ComplexSample> ret =
             new BTreeSignal<ComplexSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
             public boolean isDigital() { return false; }

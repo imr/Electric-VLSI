@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+IMP: (6/19/10, AM) Finish support for ComplexSample.
+
 BUG: (6/18/10, SMR) Control-key axis-gridding of placed instances fails
      if mouse moving at release (Bug #2437).
 FIX: Do gridding on button release.

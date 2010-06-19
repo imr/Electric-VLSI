@@ -707,7 +707,8 @@ public class HSpiceOut extends Input<Stimuli>
 				constantPrefix = null;
 		}
 
-        Signal<ScalarSample>[] signals = new Signal[numSignals];
+		boolean isComplex = analysisType == Analysis.ANALYSIS_AC;
+        Signal[] signals = new Signal[numSignals];
 		for(int k=0; k<numSignals; k++) {
 			String name = signalNames[k];
 			if (constantPrefix != null &&
@@ -720,11 +721,13 @@ public class HSpiceOut extends Input<Stimuli>
 				context = name.substring(0, lastDotPos);
 				name = name.substring(lastDotPos+1);
 			}
-			signals[k] = ScalarSample.createSignal(an, name, context);
+			signals[k] =
+                isComplex
+                ? ComplexSample.createComplexSignal(an, name, context)
+                : ScalarSample.createSignal(an, name, context);
 		}
 
 		// setup the simulation information
-		boolean isComplex = analysisType == Analysis.ANALYSIS_AC;
 		int sweepCounter = sweepcnt;
 		for(;;) {
 			// get sweep info
@@ -750,15 +753,14 @@ public class HSpiceOut extends Input<Stimuli>
 				if (eofReached) break;
 				// get a row of numbers
 				for(int k=0; k<numSignals; k++) {
-                    MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[(k + numnoi) % numSignals];
 					if (isComplex) {
+                        MutableSignal<ComplexSample> signal = (MutableSignal<ComplexSample>)signals[(k + numnoi) % numSignals];
 						float realPart = getHSpiceFloat(false);
 						float imagPart = getHSpiceFloat(false);
-                        //signals[k].addSample(time, new ComplexSample(realPart, imagPart));
-                        double val = Math.hypot(imagPart, realPart);
                         if (signal.getSample(time)==null)
-                            signal.addSample(time, new ScalarSample(val));
+                            signal.addSample(time, new ComplexSample(realPart, imagPart));
 					} else {
+                        MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[(k + numnoi) % numSignals];
                         double val = getHSpiceFloat(false);
                         if (signal.getSample(time)==null)
                             signal.addSample(time, new ScalarSample(val));
