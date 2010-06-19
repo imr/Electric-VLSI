@@ -44,14 +44,18 @@ public class HsimModel extends NanosimModel {
    */
   public void setNodeVoltage(String node, double value) {
       if (assuraRCXNetlist) {
-	node = node.replaceAll("\\.", "/");
+          node = node.replaceAll("\\.", "/");
       } else if (starRCXTNetlist) {
           if (node.startsWith("x")) node = node.substring(1);
           node = node.replaceAll("\\.x?", "/");
       }
       node = node.replaceAll("\\[","?");
       node = node.replaceAll("\\]","?");
-    issueCommand("fv "+node+" "+value);
+      String cmd = "fv "+node+" "+value;
+      issueCommand(cmd);
+      String result = getLastCommandOutput().toString();
+      if (!result.startsWith("HSIM >"))
+          throw new RuntimeException("command \""+cmd+"\" gave the following error: " + result);
   }
 
   /**
@@ -67,7 +71,11 @@ public class HsimModel extends NanosimModel {
       }
       node = node.replaceAll("\\[","?");
       node = node.replaceAll("\\]","?");
-    issueCommand("rv "+node+"");
+      String cmd = "rv "+node+"";
+      issueCommand(cmd);
+      String result = getLastCommandOutput().toString();
+      if (!result.startsWith("HSIM >"))
+          throw new RuntimeException("command \""+cmd+"\" gave the following error: " + result);
   }
 
 
@@ -340,19 +348,6 @@ public class HsimModel extends NanosimModel {
           cmd.append(nodex);
           issueCommand(cmd.toString());
           String result = getLastCommandOutput().toString();
-      
-          /*
-            
-            String [] results = result.toString().trim().split("\n");
-            
-            int i = results.length;
-            for (i=0;i<results.length;i++){
-            System.out.println("Results: "+i);
-            System.out.println(results[i]);
-            }
-
-          */
-
           if (!result.startsWith("Node "+node)) {
               System.out.println("Error on getInfoNode: for node "+node+"; result:\n  "+result);
               error=true;
