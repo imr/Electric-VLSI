@@ -124,7 +124,8 @@ public class ScalarSample implements Sample, Comparable {
         if (values.length==0) throw new RuntimeException("attempt to create an empty signal");
         Signal<ScalarSample> as = ScalarSample.createSignal(an, signalName, signalContext);
         for(int i=0; i<time.length; i++)
-            as.addSample(time[i], new ScalarSample(values[i]));
+            if (((MutableSignal)as).getSample(time[i])==null)
+                as.addSample(time[i], new ScalarSample(values[i]));
 		return as;
 	}
 }

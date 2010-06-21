@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/21/10, AM) LTSpice import throws an exception
+FIX: Be more forgiving of bogus data supplied to ScalarSample.createSignal()
+
 BUG: (6/21/10, AM) RawSpiceOut reader complains "Unknown analysis:
 constants" (Bug #2811)
 FIX: Kludge around ridiculous text/binary nonsense in Input.java.
