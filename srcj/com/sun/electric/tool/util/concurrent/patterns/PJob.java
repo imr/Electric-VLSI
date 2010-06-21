@@ -44,7 +44,11 @@ public class PJob {
 	protected TDBarrier barrier;
 
 	public PJob() {
-		this.pool = ThreadPool.getThreadPool();
+		this(ThreadPool.getThreadPool());
+	}
+
+	public PJob(ThreadPool pool) {
+		this.pool = pool;
 		this.barrier = new SimpleTDBarrier(0);
 	}
 
@@ -103,6 +107,10 @@ public class PJob {
 	 */
 	public synchronized void add(PTask task) {
 		this.add(task, PJob.SERIAL);
+	}
+
+	public ThreadPool getThreadPool() {
+		return this.pool;
 	}
 
 }

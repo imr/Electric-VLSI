@@ -26,7 +26,6 @@ package com.sun.electric.tool.routing.seaOfGates;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
@@ -47,6 +46,8 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadPool.ThreadPoolType;
  */
 public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 
+	private ThreadPool[] pools;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -62,17 +63,16 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			Environment env, EditingPreferences ep) {
 
 		try {
-			ThreadPool.initialize(WorkStealingStructure.createForThreadPool(2), 2, true);
-			// ThreadPool.initialize(2, true);
-		} catch (PoolExistsException e1) {
-		}
+			// ThreadPool.initialize(WorkStealingStructure.createForThreadPool(2),
+			// 2, true);
+			ThreadPool.initialize(2, true);
+		} catch (PoolExistsException e1) {}
 
 		super.doRouting(allRoutes, routeBatches, job, env, ep);
 
 		try {
 			ThreadPool.getThreadPool().shutdown();
-		} catch (InterruptedException e) {
-		}
+		} catch (InterruptedException e) {}
 	}
 
 	/*
@@ -93,12 +93,20 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			System.out.println("Do routing parallel with new parallel Infrastructure");
 
 		try {
-			ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
-					numberOfThreads, true, ThreadPoolType.synchronizedPool);
-			// ThreadPool.initialize(numberOfThreads, true);
-		} catch (PoolExistsException e1) {
-		}
-		PJob seaOfGatesJob = new PJob();
+
+			if (parallelDij) {
+				pools = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
+						numberOfThreads, ThreadPoolType.synchronizedPool, WorkStealingStructure
+								.createForThreadPool(numberOfThreads), numberOfThreads,
+						ThreadPoolType.simplePool, false);
+			} else {
+				ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
+						numberOfThreads, true, ThreadPoolType.synchronizedPool);
+				// ThreadPool.initialize(numberOfThreads, true);
+			}
+		} catch (PoolExistsException e1) {}
+		PJob seaOfGatesJob = new PJob(pools[0]);
+		// non-blocking execute
 		seaOfGatesJob.execute(false);
 
 		NeededRoute[] routesToDo = new NeededRoute[numberOfThreads];
@@ -138,7 +146,7 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 					break;
 			}
 
-			ThreadPool.getThreadPool().trigger();
+			pools[0].trigger();
 
 			String routes = "";
 			for (int i = 0; i < threadAssign; i++) {
@@ -170,9 +178,13 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 
 		seaOfGatesJob.join();
 		try {
-			ThreadPool.getThreadPool().shutdown();
-		} catch (InterruptedException e) {
-		}
+			if (pools != null) {
+				pools[0].shutdown();
+				pools[1].shutdown();
+			} else {
+				ThreadPool.getThreadPool().shutdown();
+			}
+		} catch (InterruptedException e) {}
 
 	}
 
@@ -194,10 +206,10 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 		public void execute() {
 
 			EditingPreferences.setThreadEditingPreferences(ed);
-
 			if (nr == null)
 				return;
 			findPath(nr, Environment.getThreadEnvironment(), ed);
+
 		}
 	}
 
@@ -213,8 +225,7 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 	protected void findPath(NeededRoute nr, Environment env, EditingPreferences ep) {
 		// special case when route is null length
 		Wavefront d1 = nr.dir1;
-		if (DBMath.areEquals(d1.toX, d1.fromX) && DBMath.areEquals(d1.toY, d1.fromY)
-				&& d1.toZ == d1.fromZ) {
+		if (DBMath.areEquals(d1.toX, d1.fromX) && DBMath.areEquals(d1.toY, d1.fromY) && d1.toZ == d1.fromZ) {
 			nr.winningWF = d1;
 			nr.winningWF.vertices = new ArrayList<SearchVertex>();
 			SearchVertex sv = new SearchVertex(d1.toX, d1.toY, d1.toZ, 0, null, 0, nr.winningWF);
@@ -223,7 +234,11 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			return;
 		}
 
-		PJob dijkstraJob = new PJob();
+		PJob dijkstraJob;
+		if (pools.length == 2)
+			dijkstraJob = new PJob(pools[1]);
+		else
+			dijkstraJob = new PJob();
 
 		if (parallelDij) {
 			dijkstraJob.add(new DijkstraInTask(dijkstraJob, nr.dir1, nr.dir2, ep));
@@ -247,13 +262,12 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			if (wf == null)
 				wf = nr.dir1;
 			if (wf.vertices == null) {
-				errorMsg = "Search too complex (exceeds complexity limit of "
-						+ nr.prefs.complexityLimit + " steps)";
+				errorMsg = "Search too complex (exceeds complexity limit of " + nr.prefs.complexityLimit
+						+ " steps)";
 			} else {
-				errorMsg = "Failed to route from port " + wf.from.getPortProto().getName()
-						+ " of node " + wf.from.getNodeInst().describe(false) + " to port "
-						+ wf.to.getPortProto().getName() + " of node "
-						+ wf.to.getNodeInst().describe(false);
+				errorMsg = "Failed to route from port " + wf.from.getPortProto().getName() + " of node "
+						+ wf.from.getNodeInst().describe(false) + " to port "
+						+ wf.to.getPortProto().getName() + " of node " + wf.to.getNodeInst().describe(false);
 			}
 			System.out.println("ERROR: " + errorMsg);
 			List<EPoint> lineList = new ArrayList<EPoint>();

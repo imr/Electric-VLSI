@@ -48,6 +48,11 @@ public class PForJob extends PJob {
 		this.add(new SplitIntoTasks(this, range, task), PJob.SERIAL);
 	}
 
+	public PForJob(BlockedRange range, PForTask task, ThreadPool pool) {
+		super(pool);
+		this.add(new SplitIntoTasks(this, range, task), PJob.SERIAL);
+	}
+
 	/**
 	 * 
 	 * Base task for parallel for
@@ -117,7 +122,7 @@ public class PForJob extends PJob {
 		 */
 		@Override
 		public void execute() {
-			int threadNum = ThreadPool.getThreadPool().getPoolSize();
+			int threadNum = job.getThreadPool().getPoolSize();
 			for (int i = 0; i < threadNum; i++) {
 				job.add(new SplitterTask(job, range, task, i, threadNum), i);
 			}
@@ -142,12 +147,11 @@ public class PForJob extends PJob {
 		public void execute() {
 			List<BlockedRange> tmpRange;
 
-			int step = ThreadPool.getThreadPool().getPoolSize();
+			int step = job.getThreadPool().getPoolSize();
 			while (((tmpRange = range.splitBlockedRange(step))) != null) {
 				for (BlockedRange tr : tmpRange) {
 					try {
-						PForTaskWrapper taskObj = new PForTaskWrapper(job, (PForTask) task.clone(),
-								tr);
+						PForTaskWrapper taskObj = new PForTaskWrapper(job, (PForTask) task.clone(), tr);
 						job.add(taskObj, PJob.SERIAL);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -296,8 +300,8 @@ public class PForJob extends PJob {
 				if (current >= range.end)
 					return result;
 
-				result.add(new BlockedRange1D(current, Math.min(current + range.step,
-						this.range.end), range.step));
+				result.add(new BlockedRange1D(current, Math.min(current + range.step, this.range.end),
+						range.step));
 				current += range.step;
 			}
 			return result;
@@ -313,8 +317,8 @@ public class PForJob extends PJob {
 		public BlockedRange createInstance(int number, int total) {
 			int size = this.range.end - this.range.start;
 			int split = size / total;
-			BlockedRange1D result = new BlockedRange1D(number * split,
-					(number + 1 == total) ? this.range.end : (number + 1) * split, this.range.step);
+			BlockedRange1D result = new BlockedRange1D(number * split, (number + 1 == total) ? this.range.end
+					: (number + 1) * split, this.range.step);
 			return result;
 		}
 	}
@@ -332,8 +336,7 @@ public class PForJob extends PJob {
 		private Integer currentCol = null;
 		private Integer currentRow = null;
 
-		public BlockedRange2D(int startRow, int endRow, int stepRow, int startCol, int endCol,
-				int stepCol) {
+		public BlockedRange2D(int startRow, int endRow, int stepRow, int startCol, int endCol, int stepCol) {
 			this.col = new Range(startCol, endCol, stepCol);
 			this.row = new Range(startRow, endRow, stepRow);
 		}
@@ -375,8 +378,8 @@ public class PForJob extends PJob {
 					}
 				}
 
-				result.add(new BlockedRange2D(currentRow, Math.min(currentRow + row.step, row.end),
-						row.step, currentCol, Math.min(currentCol + col.step, col.end), col.step));
+				result.add(new BlockedRange2D(currentRow, Math.min(currentRow + row.step, row.end), row.step,
+						currentCol, Math.min(currentCol + col.step, col.end), col.step));
 
 				currentCol += col.step;
 
@@ -394,9 +397,8 @@ public class PForJob extends PJob {
 		public BlockedRange createInstance(int number, int total) {
 			int size = this.row.end - this.row.start;
 			int split = size / total;
-			BlockedRange2D result = new BlockedRange2D(number * split,
-					(number + 1 == total) ? this.row.end : (number + 1) * split, this.row.step,
-					this.col.start, this.col.end, this.col.step);
+			BlockedRange2D result = new BlockedRange2D(number * split, (number + 1 == total) ? this.row.end
+					: (number + 1) * split, this.row.step, this.col.start, this.col.end, this.col.step);
 			return result;
 		}
 	}

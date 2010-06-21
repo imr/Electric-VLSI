@@ -169,7 +169,7 @@ public abstract class SeaOfGatesEngine {
 	/** minimum spacing between the centers of two vias. */
 	private double[] viaSurround;
 	/** the total length of wires routed */
-	private double totalWireLength;
+	protected double totalWireLength;
 	/** true if this is the first failure of a route (for debugging) */
 	protected boolean firstFailure;
 	/** true to run to/from and from/to routing in parallel */
@@ -270,17 +270,21 @@ public abstract class SeaOfGatesEngine {
 		public boolean getVertex(double x, double y, int z) {
 			if (FULLGRAIN) {
 				Map<Double, Set<Double>> plane = searchVertexPlanesDBL[z];
-				if (plane == null) return false;
+				if (plane == null)
+					return false;
 				Set<Double> row = plane.get(new Double(y));
-				if (row == null) return false;
+				if (row == null)
+					return false;
 				boolean found = row.contains(new Double(x));
 				return found;
 			}
 
 			Map<Integer, Set<Integer>> plane = searchVertexPlanes[z];
-			if (plane == null) return false;
+			if (plane == null)
+				return false;
 			Set<Integer> row = plane.get(new Integer((int) (y * GRANULARITY)));
-			if (row == null) return false;
+			if (row == null)
+				return false;
 			boolean found = row.contains(new Integer((int) (x * GRANULARITY)));
 			return found;
 		}
@@ -340,8 +344,10 @@ public abstract class SeaOfGatesEngine {
 		 */
 		public double getSpacingRule(int layer, double width, double length) {
 			// use default width if none specified
-			if (width < 0) width = metalArcs[layer].getDefaultLambdaBaseWidth();
-			if (length < 0) length = 50;
+			if (width < 0)
+				width = metalArcs[layer].getDefaultLambdaBaseWidth();
+			if (length < 0)
+				length = 50;
 
 			// convert these to the next largest integers
 			Double wid = new Double(upToGrain(width));
@@ -359,7 +365,8 @@ public abstract class SeaOfGatesEngine {
 				Layer lay = metalLayers[layer];
 				DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, width, length);
 				double v = 0;
-				if (rule != null) v = rule.getValue(0);
+				if (rule != null)
+					v = rule.getValue(0);
 				value = new Double(v);
 				widMap.put(len, value);
 			}
@@ -454,7 +461,8 @@ public abstract class SeaOfGatesEngine {
 	 */
 	public int routeIt(Job job, Cell cell, List<ArcInst> arcsToRoute, SeaOfGates.SeaOfGatesOptions prefs) {
 		// initialize information about the technology
-		if (initializeDesignRules(cell, prefs)) return 0;
+		if (initializeDesignRules(cell, prefs))
+			return 0;
 
 		// user-interface initialization
 		long startTime = System.currentTimeMillis();
@@ -496,7 +504,8 @@ public abstract class SeaOfGatesEngine {
 			Set<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 			Set<NodeInst> nodesToDelete = new HashSet<NodeInst>();
 			Map<Network, ArcInst[]> arcMap = null;
-			if (cell.getView() != View.SCHEMATIC) arcMap = netList.getArcInstsByNetwork();
+			if (cell.getView() != View.SCHEMATIC)
+				arcMap = netList.getArcInstsByNetwork();
 			List<Connection> netEnds = Routing.findNetEnds(net, arcMap, arcsToDelete, nodesToDelete, netList,
 					true);
 			List<PortInst> orderedPorts = makeOrderedPorts(net, netEnds);
@@ -514,14 +523,16 @@ public abstract class SeaOfGatesEngine {
 			double minWidth = getMinWidth(orderedPorts, prefs);
 			int netID = -1;
 			Integer netIDI = netIDs.get(ai);
-			if (netIDI != null) netID = netIDI.intValue() - 1;
+			if (netIDI != null)
+				netID = netIDI.intValue() - 1;
 
 			// find a path between the ends of the network
 			int batchNumber = 1;
 			for (int i = 0; i < orderedPorts.size() - 1; i++) {
 				PortInst fromPi = orderedPorts.get(i);
 				PortInst toPi = orderedPorts.get(i + 1);
-				if (inValidPort(fromPi) || inValidPort(toPi)) continue;
+				if (inValidPort(fromPi) || inValidPort(toPi))
+					continue;
 
 				// get information about one end of the path
 				ArcProto fromArc = null;
@@ -586,23 +597,21 @@ public abstract class SeaOfGatesEngine {
 				if (toLoc.getX() < fromLoc.getX()) {
 					toX = upToGrain(toLoc.getX());
 					fromX = downToGrain(fromLoc.getX());
-				} else
-					if (toLoc.getX() > fromLoc.getX()) {
-						toX = downToGrain(toLoc.getX());
-						fromX = upToGrain(fromLoc.getX());
-					} else {
-						toX = fromX = upToGrain(fromLoc.getX());
-					}
+				} else if (toLoc.getX() > fromLoc.getX()) {
+					toX = downToGrain(toLoc.getX());
+					fromX = upToGrain(fromLoc.getX());
+				} else {
+					toX = fromX = upToGrain(fromLoc.getX());
+				}
 				if (toLoc.getY() < fromLoc.getY()) {
 					toY = upToGrain(toLoc.getY());
 					fromY = downToGrain(fromLoc.getY());
-				} else
-					if (toLoc.getY() > fromLoc.getY()) {
-						toY = downToGrain(toLoc.getY());
-						fromY = upToGrain(fromLoc.getY());
-					} else {
-						toY = fromY = upToGrain(fromLoc.getY());
-					}
+				} else if (toLoc.getY() > fromLoc.getY()) {
+					toY = downToGrain(toLoc.getY());
+					fromY = upToGrain(fromLoc.getY());
+				} else {
+					toY = fromY = upToGrain(fromLoc.getY());
+				}
 				int fromZ = fromArc.getFunction().getLevel() - 1;
 				int toZ = toArc.getFunction().getLevel() - 1;
 
@@ -614,7 +623,8 @@ public abstract class SeaOfGatesEngine {
 				DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, metalArcs[fromZ]
 						.getDefaultLambdaBaseWidth(), -1);
 				double surround = 0;
-				if (rule != null) surround = rule.getValue(0);
+				if (rule != null)
+					surround = rule.getValue(0);
 				SOGBound block = getMetalBlockage(netID, fromZ, metalSpacing, metalSpacing, surround, fromX,
 						fromY);
 				if (block != null) {
@@ -654,7 +664,8 @@ public abstract class SeaOfGatesEngine {
 				rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, metalArcs[toZ]
 						.getDefaultLambdaBaseWidth(), -1);
 				surround = 0;
-				if (rule != null) surround = rule.getValue(0);
+				if (rule != null)
+					surround = rule.getValue(0);
 				block = getMetalBlockage(netID, toZ, metalSpacing, metalSpacing, surround, toX, toY);
 				if (block != null) {
 					// see if gridding caused the blockage
@@ -700,31 +711,34 @@ public abstract class SeaOfGatesEngine {
 		firstFailure = true;
 		totalWireLength = 0;
 		int numberOfProcessors = Runtime.getRuntime().availableProcessors();
-		if (numberOfProcessors <= 1) parallelDij = false;
+		if (numberOfProcessors <= 1)
+			parallelDij = false;
 		int numberOfThreads = numberOfProcessors;
-		if (parallelDij) numberOfThreads /= 2;
-		if (!parallel) numberOfThreads = 1;
-		if (numberOfThreads == 1) parallel = false;
+		if (parallelDij)
+			numberOfThreads /= 2;
+		if (!parallel)
+			numberOfThreads = 1;
+		if (numberOfThreads == 1)
+			parallel = false;
 
 		// show what is being done
 		System.out.println("Sea-of-gates router finding " + allRoutes.size() + " paths on " + numBatches
 				+ " networks");
 		if (parallel || parallelDij) {
 			String message = "NOTE: System has " + numberOfProcessors + " processors so";
-			if (parallel) message += " routing " + numberOfThreads + " paths in parallel";
+			if (parallel)
+				message += " routing " + numberOfThreads + " paths in parallel";
 			if (parallelDij) {
-				if (parallel) message += " and";
+				if (parallel)
+					message += " and";
 				message += " routing both directions of each path in parallel";
 			}
 			System.out.println(message);
 		}
 		Environment env = Environment.getThreadEnvironment();
 		EditingPreferences ep = cell.getEditingPreferences();
-		if (numberOfThreads > 1) {
-			doRoutingParallel(numberOfThreads, allRoutes, routeBatches, env, ep);
-		} else {
-			doRouting(allRoutes, routeBatches, job, env, ep);
-		}
+
+		startRouting(numberOfThreads, allRoutes, routeBatches, env, ep, job);
 
 		// finally analyze the results and remove unrouted arcs
 		int numRoutedSegments = 0;
@@ -739,11 +753,13 @@ public abstract class SeaOfGatesEngine {
 		}
 		int numFailedRoutes = 0;
 		for (int b = 0; b < numBatches; b++) {
-			if (routeBatches[b] == null) continue;
+			if (routeBatches[b] == null)
+				continue;
 			if (routeBatches[b].numUnrouted == 0) {
 				// routed: remove the unrouted arcs
 				for (ArcInst aiKill : routeBatches[b].unroutedArcs)
-					if (aiKill.isLinked()) aiKill.kill();
+					if (aiKill.isLinked())
+						aiKill.kill();
 				cell.killNodes(routeBatches[b].unroutedNodes);
 			} else {
 				numFailedRoutes++;
@@ -756,8 +772,8 @@ public abstract class SeaOfGatesEngine {
 						PortInst pi = orderedPorts.get(i);
 						if (aiKill.getHeadPortInst() == pi)
 							headPort = i;
-						else
-							if (aiKill.getTailPortInst() == pi) tailPort = i;
+						else if (aiKill.getTailPortInst() == pi)
+							tailPort = i;
 					}
 					if (headPort >= 0 && tailPort >= 0) {
 						boolean allRouted = true;
@@ -767,11 +783,15 @@ public abstract class SeaOfGatesEngine {
 							tailPort = swap;
 						}
 						for (NeededRoute nr : allRoutes) {
-							if (nr.batchNumber != b) continue;
-							if (nr.routeInBatch - 1 < headPort || nr.routeInBatch - 1 >= tailPort) continue;
-							if (nr.winningWF == null || nr.winningWF.vertices == null) allRouted = false;
+							if (nr.batchNumber != b)
+								continue;
+							if (nr.routeInBatch - 1 < headPort || nr.routeInBatch - 1 >= tailPort)
+								continue;
+							if (nr.winningWF == null || nr.winningWF.vertices == null)
+								allRouted = false;
 						}
-						if (allRouted && aiKill.isLinked()) aiKill.kill();
+						if (allRouted && aiKill.isLinked())
+							aiKill.kill();
 					}
 				}
 			}
@@ -784,7 +804,8 @@ public abstract class SeaOfGatesEngine {
 		System.out.println("Routed " + numRoutedSegments + " out of " + totalRoutes
 				+ " segments; total length of routed wires is " + TextUtils.formatDistance(totalWireLength)
 				+ "; took " + TextUtils.getElapsedTime(stopTime - startTime));
-		if (numFailedRoutes > 0) System.out.println("NOTE: " + numFailedRoutes + " nets were not routed");
+		if (numFailedRoutes > 0)
+			System.out.println("NOTE: " + numFailedRoutes + " nets were not routed");
 		return numRoutedSegments;
 	}
 
@@ -820,12 +841,24 @@ public abstract class SeaOfGatesEngine {
 			findPath(nr, env, ep);
 
 			// if the routing was good, place the results
-			if (nr.winningWF != null && nr.winningWF.vertices != null) createRoute(nr);
+			if (nr.winningWF != null && nr.winningWF.vertices != null)
+				createRoute(nr);
 		}
 	}
 
 	protected abstract void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes,
 			RouteBatches[] routeBatches, Environment env, EditingPreferences ep);
+
+	protected void startRouting(int numberOfThreads, List<NeededRoute> allRoutes,
+			RouteBatches[] routeBatches, Environment env, EditingPreferences ep, Job job) {
+
+		if (numberOfThreads > 1) {
+			doRoutingParallel(numberOfThreads, allRoutes, routeBatches, env, ep);
+		} else {
+			doRouting(allRoutes, routeBatches, job, env, ep);
+		}
+
+	}
 
 	/**
 	 * Method to initialize technology information, including design rules.
@@ -847,10 +880,13 @@ public abstract class SeaOfGatesEngine {
 			metalVias[i] = new MetalVias();
 		for (Iterator<Layer> it = tech.getLayers(); it.hasNext();) {
 			Layer lay = it.next();
-			if (!lay.getFunction().isMetal()) continue;
-			if (lay.isPseudoLayer()) continue;
+			if (!lay.getFunction().isMetal())
+				continue;
+			if (lay.isPseudoLayer())
+				continue;
 			int layerIndex = lay.getFunction().getLevel() - 1;
-			if (layerIndex < numMetalLayers) metalLayers[layerIndex] = lay;
+			if (layerIndex < numMetalLayers)
+				metalLayers[layerIndex] = lay;
 		}
 		boolean hasFavorites = false;
 		for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext();) {
@@ -859,18 +895,22 @@ public abstract class SeaOfGatesEngine {
 				if (ap.getLayer(0) == metalLayers[i]) {
 					metalArcs[i] = ap;
 					favorArcs[i] = prefs.isPrevented(ap);
-					if (favorArcs[i]) hasFavorites = true;
+					if (favorArcs[i])
+						hasFavorites = true;
 					preventArcs[i] = prefs.isPrevented(ap);
 					break;
 				}
 			}
 		}
-		if (!hasFavorites) for (int i = 0; i < numMetalLayers; i++)
-			favorArcs[i] = true;
+		if (!hasFavorites)
+			for (int i = 0; i < numMetalLayers; i++)
+				favorArcs[i] = true;
 		for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();) {
 			PrimitiveNode np = it.next();
-			if (np.isNotUsed()) continue;
-			if (!np.getFunction().isContact()) continue;
+			if (np.isNotUsed())
+				continue;
+			if (!np.getFunction().isContact())
+				continue;
 			ArcProto[] conns = np.getPort(0).getConnections();
 			for (int i = 0; i < numMetalLayers - 1; i++) {
 				if ((conns[0] == metalArcs[i] && conns[1] == metalArcs[i + 1])
@@ -888,24 +928,24 @@ public abstract class SeaOfGatesEngine {
 						Layer.Function lFun = conLayer.getFunction();
 						if (lFun.isMetal()) {
 							Rectangle2D conRect = conPoly.getBounds2D();
-							if (conRect.getWidth() != conRect.getHeight()) square = false;
-							if (conRect.getCenterX() != 0 || conRect.getCenterY() != 0) offCenter = true;
-						} else
-							if (lFun.isContact()) {
-								viaLayers[i] = conLayer;
-							}
+							if (conRect.getWidth() != conRect.getHeight())
+								square = false;
+							if (conRect.getCenterX() != 0 || conRect.getCenterY() != 0)
+								offCenter = true;
+						} else if (lFun.isContact()) {
+							viaLayers[i] = conLayer;
+						}
 					}
 					if (offCenter) {
 						// off center: test in all 4 rotations
 						metalVias[i].addVia(np, 90);
 						metalVias[i].addVia(np, 180);
 						metalVias[i].addVia(np, 270);
-					} else
-						if (!square) {
-							// centered but not square: test in 90-degree
-							// rotation
-							metalVias[i].addVia(np, 90);
-						}
+					} else if (!square) {
+						// centered but not square: test in 90-degree
+						// rotation
+						metalVias[i].addVia(np, 90);
+					}
 					break;
 				}
 			}
@@ -944,12 +984,14 @@ public abstract class SeaOfGatesEngine {
 			double spacing = 2;
 			double arcWidth = metalArcs[i].getDefaultLambdaBaseWidth();
 			DRCTemplate ruleSpacing = DRC.getSpacingRule(lay, null, lay, null, false, -1, arcWidth, 50);
-			if (ruleSpacing != null) spacing = ruleSpacing.getValue(0);
+			if (ruleSpacing != null)
+				spacing = ruleSpacing.getValue(0);
 
 			// determine cut size
 			double width = 0;
 			DRCTemplate ruleWidth = DRC.getMinValue(lay, DRCTemplate.DRCRuleType.NODSIZ);
-			if (ruleWidth != null) width = ruleWidth.getValue(0);
+			if (ruleWidth != null)
+				width = ruleWidth.getValue(0);
 
 			// extend to the size of the largest cut
 			List<MetalVia> nps = metalVias[i].getVias();
@@ -975,9 +1017,11 @@ public abstract class SeaOfGatesEngine {
 		double minWidth = 0;
 		for (PortInst pi : orderedPorts) {
 			double widestAtPort = getWidestMetalArcOnPort(pi);
-			if (widestAtPort > minWidth) minWidth = widestAtPort;
+			if (widestAtPort > minWidth)
+				minWidth = widestAtPort;
 		}
-		if (minWidth > prefs.maxArcWidth) minWidth = prefs.maxArcWidth;
+		if (minWidth > prefs.maxArcWidth)
+			minWidth = prefs.maxArcWidth;
 		return minWidth;
 	}
 
@@ -995,9 +1039,11 @@ public abstract class SeaOfGatesEngine {
 		for (Iterator<Connection> it = pi.getConnections(); it.hasNext();) {
 			Connection c = it.next();
 			ArcInst ai = c.getArc();
-			if (!ai.getProto().getFunction().isMetal()) continue;
+			if (!ai.getProto().getFunction().isMetal())
+				continue;
 			double newWidth = ai.getLambdaBaseWidth();
-			if (newWidth > width) width = newWidth;
+			if (newWidth > width)
+				width = newWidth;
 		}
 
 		// now recurse down the hierarchy
@@ -1006,7 +1052,8 @@ public abstract class SeaOfGatesEngine {
 			Export export = (Export) pi.getPortProto();
 			PortInst exportedInst = export.getOriginalPort();
 			double width2 = getWidestMetalArcOnPort(exportedInst);
-			if (width2 > width) width = width2;
+			if (width2 > width)
+				width = width2;
 		}
 		return width;
 	}
@@ -1016,9 +1063,12 @@ public abstract class SeaOfGatesEngine {
 		boolean valid = false;
 		for (int j = 0; j < conns.length; j++) {
 			ArcProto ap = conns[j];
-			if (ap.getTechnology() != tech) continue;
-			if (!ap.getFunction().isMetal()) continue;
-			if (preventArcs[conns[j].getFunction().getLevel() - 1]) continue;
+			if (ap.getTechnology() != tech)
+				continue;
+			if (!ap.getFunction().isMetal())
+				continue;
+			if (preventArcs[conns[j].getFunction().getLevel() - 1])
+				continue;
 			valid = true;
 			break;
 		}
@@ -1043,7 +1093,8 @@ public abstract class SeaOfGatesEngine {
 	private void addBlockagesAtPorts(List<ArcInst> arcsToRoute, SeaOfGates.SeaOfGatesOptions prefs) {
 		Netlist netList = cell.getNetlist();
 		Map<Network, ArcInst[]> arcMap = null;
-		if (cell.getView() != View.SCHEMATIC) arcMap = netList.getArcInstsByNetwork();
+		if (cell.getView() != View.SCHEMATIC)
+			arcMap = netList.getArcInstsByNetwork();
 
 		for (ArcInst ai : arcsToRoute) {
 			int netID = -1;
@@ -1059,7 +1110,8 @@ public abstract class SeaOfGatesEngine {
 			List<Connection> netEnds = Routing.findNetEnds(net, arcMap, arcsToDelete, nodesToDelete, netList,
 					true);
 			List<PortInst> orderedPorts = makeOrderedPorts(net, netEnds);
-			if (orderedPorts == null) continue;
+			if (orderedPorts == null)
+				continue;
 
 			// determine the minimum width of arcs on this net
 			double minWidth = getMinWidth(orderedPorts, prefs);
@@ -1070,8 +1122,10 @@ public abstract class SeaOfGatesEngine {
 				ArcProto[] poss = pi.getPortProto().getBasePort().getConnections();
 				int lowMetal = -1, highMetal = -1;
 				for (int i = 0; i < poss.length; i++) {
-					if (poss[i].getTechnology() != tech) continue;
-					if (!poss[i].getFunction().isMetal()) continue;
+					if (poss[i].getTechnology() != tech)
+						continue;
+					if (!poss[i].getFunction().isMetal())
+						continue;
 					int level = poss[i].getFunction().getLevel();
 					if (lowMetal < 0)
 						lowMetal = highMetal = level;
@@ -1080,11 +1134,13 @@ public abstract class SeaOfGatesEngine {
 						highMetal = Math.max(highMetal, level);
 					}
 				}
-				if (lowMetal < 0) continue;
+				if (lowMetal < 0)
+					continue;
 
 				// reserve space on layers above and below
 				for (int via = lowMetal - 2; via < highMetal; via++) {
-					if (via < 0 || via >= numMetalLayers - 1) continue;
+					if (via < 0 || via >= numMetalLayers - 1)
+						continue;
 					MetalVia mv = metalVias[via].getVias().get(0);
 					PrimitiveNode np = mv.via;
 					SizeOffset so = np.getProtoSizeOffset();
@@ -1098,7 +1154,8 @@ public abstract class SeaOfGatesEngine {
 					for (int i = 0; i < polys.length; i++) {
 						PolyBase viaPoly = polys[i];
 						Layer layer = viaPoly.getLayer();
-						if (!layer.getFunction().isMetal()) continue;
+						if (!layer.getFunction().isMetal())
+							continue;
 						Rectangle2D viaBounds = viaPoly.getBounds2D();
 						Rectangle2D bounds = new Rectangle2D.Double(viaBounds.getMinX()
 								+ polyBounds.getCenterX(), viaBounds.getMinY() + polyBounds.getCenterY(),
@@ -1128,11 +1185,13 @@ public abstract class SeaOfGatesEngine {
 			if (!pi.getNodeInst().isCellInstance()
 					&& ((PrimitiveNode) pi.getNodeInst().getProto()).getTechnology() == Generic.tech())
 				continue;
-			if (portEndList.contains(pi)) continue;
+			if (portEndList.contains(pi))
+				continue;
 			portEndList.add(pi);
 		}
 		int count = portEndList.size();
-		if (count == 0) return null;
+		if (count == 0)
+			return null;
 		if (count == 1) {
 			System.out.println("Error: Network " + net.describe(false) + " has only one end");
 			return null;
@@ -1167,7 +1226,8 @@ public abstract class SeaOfGatesEngine {
 			boolean foundsome = false;
 			double closestDist1 = Double.MAX_VALUE, closestDist2 = Double.MAX_VALUE;
 			for (int i = 0; i < count; i++) {
-				if (portEnds[i] == null) continue;
+				if (portEnds[i] == null)
+					continue;
 				PolyBase poly = portEnds[i].getPoly();
 				PolyBase poly1 = orderedPorts.get(0).getPoly();
 				double dist1 = poly.getCenter().distance(poly1.getCenter());
@@ -1184,7 +1244,8 @@ public abstract class SeaOfGatesEngine {
 					foundsome = true;
 				}
 			}
-			if (!foundsome) break;
+			if (!foundsome)
+				break;
 			if (closestDist1 < closestDist2) {
 				orderedPorts.add(0, portEnds[closest1]);
 				portEnds[closest1] = null;
@@ -1221,14 +1282,13 @@ public abstract class SeaOfGatesEngine {
 							.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, nr.netID);
 					makeArcInst(type, width, ni.getOnlyPortInst(), wf.to, nr.netID);
 					lastPort = ni.getOnlyPortInst();
-				} else
-					if (v1.getY() == v2.getY()) {
-						// first line is horizontal: run a vertical bit
-						NodeInst ni = makeNodeInst(np, new EPoint(toPoly.getCenterX(), v1.getY()), np
-								.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, nr.netID);
-						makeArcInst(type, width, ni.getOnlyPortInst(), wf.to, nr.netID);
-						lastPort = ni.getOnlyPortInst();
-					}
+				} else if (v1.getY() == v2.getY()) {
+					// first line is horizontal: run a vertical bit
+					NodeInst ni = makeNodeInst(np, new EPoint(toPoly.getCenterX(), v1.getY()), np
+							.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, nr.netID);
+					makeArcInst(type, width, ni.getOnlyPortInst(), wf.to, nr.netID);
+					lastPort = ni.getOnlyPortInst();
+				}
 			}
 		}
 		for (int i = 0; i < wf.vertices.size(); i++) {
@@ -1258,7 +1318,8 @@ public abstract class SeaOfGatesEngine {
 				sv = svNext;
 				i++;
 			}
-			if (madeContacts && i != wf.vertices.size() - 1) continue;
+			if (madeContacts && i != wf.vertices.size() - 1)
+				continue;
 
 			PrimitiveNode np = metalArcs[sv.getZ()].findPinProto();
 			PortInst pi = null;
@@ -1279,16 +1340,14 @@ public abstract class SeaOfGatesEngine {
 									.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, nr.netID);
 							makeArcInst(type, width, ni.getOnlyPortInst(), wf.from, nr.netID);
 							pi = ni.getOnlyPortInst();
-						} else
-							if (v1.getY() == v2.getY()) {
-								// last line is horizontal: run a vertical bit
-								PrimitiveNode pNp = metalArcs[wf.fromZ].findPinProto();
-								NodeInst ni = makeNodeInst(pNp, new EPoint(fromPoly.getCenterX(), v1.getY()),
-										np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell,
-										nr.netID);
-								makeArcInst(type, width, ni.getOnlyPortInst(), wf.from, nr.netID);
-								pi = ni.getOnlyPortInst();
-							}
+						} else if (v1.getY() == v2.getY()) {
+							// last line is horizontal: run a vertical bit
+							PrimitiveNode pNp = metalArcs[wf.fromZ].findPinProto();
+							NodeInst ni = makeNodeInst(pNp, new EPoint(fromPoly.getCenterX(), v1.getY()), np
+									.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, nr.netID);
+							makeArcInst(type, width, ni.getOnlyPortInst(), wf.from, nr.netID);
+							pi = ni.getOnlyPortInst();
+						}
 					}
 				}
 			} else {
@@ -1315,10 +1374,14 @@ public abstract class SeaOfGatesEngine {
 				lowX = highX = sv.getX();
 				lowY = highY = sv.getY();
 			} else {
-				if (sv.getX() < lowX) lowX = sv.getX();
-				if (sv.getX() > highX) highX = sv.getX();
-				if (sv.getY() < lowY) lowY = sv.getY();
-				if (sv.getY() > highY) highY = sv.getY();
+				if (sv.getX() < lowX)
+					lowX = sv.getX();
+				if (sv.getX() > highX)
+					highX = sv.getX();
+				if (sv.getY() < lowY)
+					lowY = sv.getY();
+				if (sv.getY() > highY)
+					highY = sv.getY();
 			}
 		}
 	}
@@ -1331,8 +1394,10 @@ public abstract class SeaOfGatesEngine {
 	 * @return the length of the route.
 	 */
 	protected double getVertexLength(List<SearchVertex> vertices) {
-		if (vertices == null) return Double.MAX_VALUE;
-		if (vertices.size() == 0) return Double.MAX_VALUE;
+		if (vertices == null)
+			return Double.MAX_VALUE;
+		if (vertices.size() == 0)
+			return Double.MAX_VALUE;
 		double sum = 0;
 		SearchVertex last = null;
 		for (SearchVertex sv : vertices) {
@@ -1371,7 +1436,8 @@ public abstract class SeaOfGatesEngine {
 			Poly[] nodeInstPolyList = tech.getShapeOfNode(ni, true, false, null);
 			for (int i = 0; i < nodeInstPolyList.length; i++) {
 				PolyBase poly = nodeInstPolyList[i];
-				if (poly.getPort() == null) continue;
+				if (poly.getPort() == null)
+					continue;
 				poly.transform(trans);
 				addLayer(poly, GenMath.MATID, netID, false);
 			}
@@ -1446,11 +1512,13 @@ public abstract class SeaOfGatesEngine {
 		// analyze the winning wavefront
 		Wavefront wf = nr.winningWF;
 		double verLength = Double.MAX_VALUE;
-		if (wf != null) verLength = getVertexLength(wf.vertices);
+		if (wf != null)
+			verLength = getVertexLength(wf.vertices);
 		if (verLength == Double.MAX_VALUE) {
 			// failed to route
 			String errorMsg;
-			if (wf == null) wf = nr.dir1;
+			if (wf == null)
+				wf = nr.dir1;
 			if (wf.vertices == null) {
 				errorMsg = "Search too complex (exceeds complexity limit of " + nr.prefs.complexityLimit
 						+ " steps)";
@@ -1482,7 +1550,8 @@ public abstract class SeaOfGatesEngine {
 		while (result == null) {
 			// stop if the search is too complex
 			numSearchVertices++;
-			if (numSearchVertices > nr.prefs.complexityLimit) return;
+			if (numSearchVertices > nr.prefs.complexityLimit)
+				return;
 
 			SearchVertex resultA = advanceWavefront(nr.dir1);
 			SearchVertex resultB = advanceWavefront(nr.dir2);
@@ -1544,7 +1613,8 @@ public abstract class SeaOfGatesEngine {
 				}
 			}
 			if (result != svAborted && result != svExhausted && result != svLimited) {
-				if (DEBUGLOOPS) System.out.println("    Wavefront " + wf.name + " first completion");
+				if (DEBUGLOOPS)
+					System.out.println("    Wavefront " + wf.name + " first completion");
 				wf.vertices = getOptimizedList(result);
 				wf.nr.winningWF = wf;
 				otherWf.abort = true;
@@ -1553,11 +1623,10 @@ public abstract class SeaOfGatesEngine {
 					String status = "completed";
 					if (result == svAborted)
 						status = "aborted";
-					else
-						if (result == svExhausted)
-							status = "exhausted";
-						else
-							if (result == svLimited) status = "limited";
+					else if (result == svExhausted)
+						status = "exhausted";
+					else if (result == svLimited)
+						status = "limited";
 					System.out.println("    Wavefront " + wf.name + " " + status);
 				}
 			}
@@ -1567,7 +1636,8 @@ public abstract class SeaOfGatesEngine {
 
 	SearchVertex advanceWavefront(Wavefront wf) {
 		// get the lowest cost point
-		if (wf.active.size() == 0) return svExhausted;
+		if (wf.active.size() == 0)
+			return svExhausted;
 		SearchVertex svCurrent = wf.active.first();
 		wf.active.remove(svCurrent);
 		double curX = svCurrent.getX();
@@ -1588,28 +1658,32 @@ public abstract class SeaOfGatesEngine {
 				dx = -GRAINSIZE;
 				if (FULLGRAIN) {
 					double intermediate = upToGrainAlways(curX + dx);
-					if (intermediate != curX + dx) dx = intermediate - curX;
+					if (intermediate != curX + dx)
+						dx = intermediate - curX;
 				}
 				break;
 			case 1:
 				dx = GRAINSIZE;
 				if (FULLGRAIN) {
 					double intermediate = downToGrainAlways(curX + dx);
-					if (intermediate != curX + dx) dx = intermediate - curX;
+					if (intermediate != curX + dx)
+						dx = intermediate - curX;
 				}
 				break;
 			case 2:
 				dy = -GRAINSIZE;
 				if (FULLGRAIN) {
 					double intermediate = upToGrainAlways(curY + dy);
-					if (intermediate != curY + dy) dy = intermediate - curY;
+					if (intermediate != curY + dy)
+						dy = intermediate - curY;
 				}
 				break;
 			case 3:
 				dy = GRAINSIZE;
 				if (FULLGRAIN) {
 					double intermediate = downToGrainAlways(curY + dy);
-					if (intermediate != curY + dy) dy = intermediate - curY;
+					if (intermediate != curY + dy)
+						dy = intermediate - curY;
 				}
 				break;
 			case 4:
@@ -1625,26 +1699,32 @@ public abstract class SeaOfGatesEngine {
 			if (dz == 0) {
 				boolean goFarther = false;
 				if (dx != 0) {
-					if ((wf.toX - curX) * dx > 0) goFarther = true;
+					if ((wf.toX - curX) * dx > 0)
+						goFarther = true;
 				} else {
-					if ((wf.toY - curY) * dy > 0) goFarther = true;
+					if ((wf.toY - curY) * dy > 0)
+						goFarther = true;
 				}
 				if (goFarther) {
 					double jumpSize = getJumpSize(curX, curY, curZ, dx, dy, wf);
 					if (dx > 0) {
-						if (jumpSize <= 0) stuck = true;
+						if (jumpSize <= 0)
+							stuck = true;
 						dx = jumpSize;
 					}
 					if (dx < 0) {
-						if (jumpSize >= 0) stuck = true;
+						if (jumpSize >= 0)
+							stuck = true;
 						dx = jumpSize;
 					}
 					if (dy > 0) {
-						if (jumpSize <= 0) stuck = true;
+						if (jumpSize <= 0)
+							stuck = true;
 						dy = jumpSize;
 					}
 					if (dy < 0) {
-						if (jumpSize >= 0) stuck = true;
+						if (jumpSize >= 0)
+							stuck = true;
 						dy = jumpSize;
 					}
 				}
@@ -1676,7 +1756,8 @@ public abstract class SeaOfGatesEngine {
 				}
 			}
 			if (stuck) {
-				if (wf.debug) System.out.print(":CannotMove");
+				if (wf.debug)
+					System.out.print(":CannotMove");
 				continue;
 			}
 
@@ -1684,7 +1765,8 @@ public abstract class SeaOfGatesEngine {
 				nX = wf.nr.minimumSearchBoundX;
 				dx = nX - curX;
 				if (dx == 0) {
-					if (wf.debug) System.out.print(":OutOfBounds");
+					if (wf.debug)
+						System.out.print(":OutOfBounds");
 					continue;
 				}
 			}
@@ -1692,7 +1774,8 @@ public abstract class SeaOfGatesEngine {
 				nX = wf.nr.maximumSearchBoundX;
 				dx = nX - curX;
 				if (dx == 0) {
-					if (wf.debug) System.out.print(":OutOfBounds");
+					if (wf.debug)
+						System.out.print(":OutOfBounds");
 					continue;
 				}
 			}
@@ -1700,7 +1783,8 @@ public abstract class SeaOfGatesEngine {
 				nY = wf.nr.minimumSearchBoundY;
 				dy = nY - curY;
 				if (dy == 0) {
-					if (wf.debug) System.out.print(":OutOfBounds");
+					if (wf.debug)
+						System.out.print(":OutOfBounds");
 					continue;
 				}
 			}
@@ -1708,22 +1792,26 @@ public abstract class SeaOfGatesEngine {
 				nY = wf.nr.maximumSearchBoundY;
 				dy = nY - curY;
 				if (dy == 0) {
-					if (wf.debug) System.out.print(":OutOfBounds");
+					if (wf.debug)
+						System.out.print(":OutOfBounds");
 					continue;
 				}
 			}
 			if (nZ < 0 || nZ >= numMetalLayers) {
-				if (wf.debug) System.out.print(":OutOfBounds");
+				if (wf.debug)
+					System.out.print(":OutOfBounds");
 				continue;
 			}
 			if (preventArcs[nZ]) {
-				if (wf.debug) System.out.print(":IllegalArc");
+				if (wf.debug)
+					System.out.print(":IllegalArc");
 				continue;
 			}
 
 			// see if the adjacent point has already been visited
 			if (wf.getVertex(nX, nY, nZ)) {
-				if (wf.debug) System.out.print(":AlreadyVisited");
+				if (wf.debug)
+					System.out.print(":AlreadyVisited");
 				continue;
 			}
 
@@ -1741,18 +1829,18 @@ public abstract class SeaOfGatesEngine {
 					double halfWid = metalSpacing + Math.abs(dx) / 2;
 					double halfHei = metalSpacing + Math.abs(dy) / 2;
 					while (prevPath != null && prevPath.last != null) {
-						if (prevPath.zv != nZ || prevPath.last.zv != nZ) break;
+						if (prevPath.zv != nZ || prevPath.last.zv != nZ)
+							break;
 						if (prevPath.xv == prevPath.last.xv && dx == 0) {
 							checkY = (prevPath.last.yv + nY) / 2;
 							halfHei = metalSpacing + Math.abs(prevPath.last.yv - nY) / 2;
 							prevPath = prevPath.last;
+						} else if (prevPath.yv == prevPath.last.yv && dy == 0) {
+							checkX = (prevPath.last.xv + nX) / 2;
+							halfWid = metalSpacing + Math.abs(prevPath.last.xv - nX) / 2;
+							prevPath = prevPath.last;
 						} else
-							if (prevPath.yv == prevPath.last.yv && dy == 0) {
-								checkX = (prevPath.last.xv + nX) / 2;
-								halfWid = metalSpacing + Math.abs(prevPath.last.xv - nX) / 2;
-								prevPath = prevPath.last;
-							} else
-								break;
+							break;
 					}
 					SOGBound sb = getMetalBlockageAndNotch(wf, nZ, halfWid, halfHei, checkX, checkY, prevPath);
 					if (sb == null) {
@@ -1764,28 +1852,29 @@ public abstract class SeaOfGatesEngine {
 					if (i == 0) {
 						// moved left too far...try a bit to the right
 						double newNX = downToGrainAlways(nX + GRAINSIZE);
-						if (newNX >= curX) break;
+						if (newNX >= curX)
+							break;
 						dx = newNX - curX;
-					} else
-						if (i == 1) {
-							// moved right too far...try a bit to the left
-							double newNX = upToGrainAlways(nX - GRAINSIZE);
-							if (newNX <= curX) break;
-							dx = newNX - curX;
-						} else
-							if (i == 2) {
-								// moved down too far...try a bit up
-								double newNY = downToGrainAlways(nY + GRAINSIZE);
-								if (newNY >= curY) break;
-								double newDY = newNY - curY;
-								dy = newDY;
-							} else
-								if (i == 3) {
-									// moved up too far...try a bit down
-									double newNY = upToGrainAlways(nY - GRAINSIZE);
-									if (newNY <= curY) break;
-									dy = newNY - curY;
-								}
+					} else if (i == 1) {
+						// moved right too far...try a bit to the left
+						double newNX = upToGrainAlways(nX - GRAINSIZE);
+						if (newNX <= curX)
+							break;
+						dx = newNX - curX;
+					} else if (i == 2) {
+						// moved down too far...try a bit up
+						double newNY = downToGrainAlways(nY + GRAINSIZE);
+						if (newNY >= curY)
+							break;
+						double newDY = newNY - curY;
+						dy = newDY;
+					} else if (i == 3) {
+						// moved up too far...try a bit down
+						double newNY = upToGrainAlways(nY - GRAINSIZE);
+						if (newNY <= curY)
+							break;
+						dy = newNY - curY;
+					}
 
 					// if (!getVertex(nX, nY, nZ)) setVertex(nX, nY, nZ);
 					nX = curX + dx;
@@ -1826,18 +1915,21 @@ public abstract class SeaOfGatesEngine {
 							orient);
 					Poly[] conPolys = tech.getShapeOfNode(dummyNi);
 					AffineTransform trans = null;
-					if (orient != Orientation.IDENT) trans = dummyNi.rotateOut();
+					if (orient != Orientation.IDENT)
+						trans = dummyNi.rotateOut();
 
 					// count the number of cuts and make an array for the data
 					int cutCount = 0;
 					for (int p = 0; p < conPolys.length; p++)
-						if (conPolys[p].getLayer().getFunction().isContact()) cutCount++;
+						if (conPolys[p].getLayer().getFunction().isContact())
+							cutCount++;
 					Point2D[] curCuts = new Point2D[cutCount];
 					cutCount = 0;
 					boolean failed = false;
 					for (int p = 0; p < conPolys.length; p++) {
 						Poly conPoly = conPolys[p];
-						if (trans != null) conPoly.transform(trans);
+						if (trans != null)
+							conPoly.transform(trans);
 						Layer conLayer = conPoly.getLayer();
 						Layer.Function lFun = conLayer.getFunction();
 						if (lFun.isMetal()) {
@@ -1850,53 +1942,57 @@ public abstract class SeaOfGatesEngine {
 								failed = true;
 								break;
 							}
-						} else
-							if (lFun.isContact()) {
-								// make sure vias don't get too close
-								Rectangle2D conRect = conPoly.getBounds2D();
-								double conCX = conRect.getCenterX();
-								double conCY = conRect.getCenterY();
-								double surround = viaSurround[lowMetal];
-								if (getViaBlockage(wf.nr.netID, conLayer, surround, surround, conCX, conCY) != null) {
-									failed = true;
-									break;
-								}
-								curCuts[cutCount++] = new Point2D.Double(conCX, conCY);
-
-								// look at all previous cuts in this path
-								for (SearchVertex sv = svCurrent; sv != null; sv = sv.last) {
-									SearchVertex lastSv = sv.last;
-									if (lastSv == null) break;
-									if (Math.min(sv.getZ(), lastSv.getZ()) == lowMetal
-											&& Math.max(sv.getZ(), lastSv.getZ()) == highMetal) {
-										// make sure the cut isn't too close
-										Point2D[] svCuts;
-										if (sv.getCutLayer() == lowMetal)
-											svCuts = sv.getCuts();
-										else
-											svCuts = lastSv.getCuts();
-										if (svCuts != null) {
-											for (Point2D cutPt : svCuts) {
-												if (Math.abs(cutPt.getX() - conCX) >= surround
-														|| Math.abs(cutPt.getY() - conCY) >= surround)
-													continue;
-												failed = true;
-												break;
-											}
-										}
-										if (failed) break;
-									}
-								}
-								if (failed) break;
+						} else if (lFun.isContact()) {
+							// make sure vias don't get too close
+							Rectangle2D conRect = conPoly.getBounds2D();
+							double conCX = conRect.getCenterX();
+							double conCY = conRect.getCenterY();
+							double surround = viaSurround[lowMetal];
+							if (getViaBlockage(wf.nr.netID, conLayer, surround, surround, conCX, conCY) != null) {
+								failed = true;
+								break;
 							}
+							curCuts[cutCount++] = new Point2D.Double(conCX, conCY);
+
+							// look at all previous cuts in this path
+							for (SearchVertex sv = svCurrent; sv != null; sv = sv.last) {
+								SearchVertex lastSv = sv.last;
+								if (lastSv == null)
+									break;
+								if (Math.min(sv.getZ(), lastSv.getZ()) == lowMetal
+										&& Math.max(sv.getZ(), lastSv.getZ()) == highMetal) {
+									// make sure the cut isn't too close
+									Point2D[] svCuts;
+									if (sv.getCutLayer() == lowMetal)
+										svCuts = sv.getCuts();
+									else
+										svCuts = lastSv.getCuts();
+									if (svCuts != null) {
+										for (Point2D cutPt : svCuts) {
+											if (Math.abs(cutPt.getX() - conCX) >= surround
+													|| Math.abs(cutPt.getY() - conCY) >= surround)
+												continue;
+											failed = true;
+											break;
+										}
+									}
+									if (failed)
+										break;
+								}
+							}
+							if (failed)
+								break;
+						}
 					}
-					if (failed) continue;
+					if (failed)
+						continue;
 					whichContact = contactNo;
 					cuts = curCuts;
 					break;
 				}
 				if (whichContact < 0) {
-					if (wf.debug) System.out.print(":Blocked");
+					if (wf.debug)
+						System.out.print(":Blocked");
 					continue;
 				}
 			}
@@ -1908,7 +2004,8 @@ public abstract class SeaOfGatesEngine {
 			// stop if we found the destination
 			boolean foundDest = DBMath.areEquals(nX, wf.toX) && DBMath.areEquals(nY, wf.toY);
 			if (foundDest && nZ == wf.toZ) {
-				if (wf.debug) System.out.print(":FoundDestination");
+				if (wf.debug)
+					System.out.print(":FoundDestination");
 				return svNext;
 			}
 
@@ -1917,8 +2014,8 @@ public abstract class SeaOfGatesEngine {
 			if (dx != 0) {
 				if (wf.toX == curX)
 					svNext.cost += COSTWRONGDIRECTION / 2;
-				else
-					if ((wf.toX - curX) * dx < 0) svNext.cost += COSTWRONGDIRECTION;
+				else if ((wf.toX - curX) * dx < 0)
+					svNext.cost += COSTWRONGDIRECTION;
 				if ((nZ % 2) == 0) {
 					int c = COSTALTERNATINGMETAL * (int) Math.abs(dx) / (int) cellBounds.getWidth();
 					svNext.cost += c;
@@ -1927,8 +2024,8 @@ public abstract class SeaOfGatesEngine {
 			if (dy != 0) {
 				if (wf.toY == curY)
 					svNext.cost += COSTWRONGDIRECTION / 2;
-				else
-					if ((wf.toY - curY) * dy < 0) svNext.cost += COSTWRONGDIRECTION;
+				else if ((wf.toY - curY) * dy < 0)
+					svNext.cost += COSTWRONGDIRECTION;
 				if ((nZ % 2) != 0) {
 					int c = COSTALTERNATINGMETAL * (int) Math.abs(dy) / (int) cellBounds.getHeight();
 					svNext.cost += c;
@@ -1937,8 +2034,8 @@ public abstract class SeaOfGatesEngine {
 			if (dz != 0) {
 				if (wf.toZ == curZ)
 					svNext.cost += COSTLAYERCHANGE;
-				else
-					if ((wf.toZ - curZ) * dz < 0) svNext.cost += COSTLAYERCHANGE * COSTWRONGDIRECTION;
+				else if ((wf.toZ - curZ) * dz < 0)
+					svNext.cost += COSTLAYERCHANGE * COSTWRONGDIRECTION;
 			} else {
 				// not changing layers: compute penalty for unused tracks on
 				// either side of run
@@ -1952,14 +2049,17 @@ public abstract class SeaOfGatesEngine {
 				if (svCurrent.last != null) {
 					boolean xTurn = svCurrent.getX() != svCurrent.last.getX();
 					boolean yTurn = svCurrent.getY() != svCurrent.last.getY();
-					if (xTurn != (dx != 0) || yTurn != (dy != 0)) svNext.cost += COSTTURNING;
+					if (xTurn != (dx != 0) || yTurn != (dy != 0))
+						svNext.cost += COSTTURNING;
 				}
 			}
 			if (!favorArcs[nZ])
 				svNext.cost += (COSTLAYERCHANGE * COSTUNFAVORED) * Math.abs(dz) + COSTUNFAVORED
 						* Math.abs(dx + dy);
-			if (downToGrainAlways(nX) != nX && nX != wf.toX) svNext.cost += COSTOFFGRID;
-			if (downToGrainAlways(nY) != nY && nY != wf.toY) svNext.cost += COSTOFFGRID;
+			if (downToGrainAlways(nX) != nX && nX != wf.toX)
+				svNext.cost += COSTOFFGRID;
+			if (downToGrainAlways(nY) != nY && nY != wf.toY)
+				svNext.cost += COSTOFFGRID;
 
 			// add this vertex into the data structures
 			wf.setVertex(nX, nY, nZ);
@@ -1989,9 +2089,11 @@ public abstract class SeaOfGatesEngine {
 						}
 						lessDX += inc;
 						if (inc < 0) {
-							if (lessDX < 1) break;
+							if (lessDX < 1)
+								break;
 						} else {
-							if (lessDX > -1) break;
+							if (lessDX > -1)
+								break;
 						}
 						if (countDown++ >= 10) {
 							countDown = 0;
@@ -2017,9 +2119,11 @@ public abstract class SeaOfGatesEngine {
 						}
 						lessDY += inc;
 						if (inc < 0) {
-							if (lessDY < 1) break;
+							if (lessDY < 1)
+								break;
 						} else {
-							if (lessDY > -1) break;
+							if (lessDY > -1)
+								break;
 						}
 						if (countDown++ >= 10) {
 							countDown = 0;
@@ -2029,7 +2133,8 @@ public abstract class SeaOfGatesEngine {
 				}
 			}
 		}
-		if (wf.debug) System.out.println();
+		if (wf.debug)
+			System.out.println();
 		return null;
 	}
 
@@ -2061,9 +2166,11 @@ public abstract class SeaOfGatesEngine {
 					lastVertex = thread;
 					thread = thread.last;
 					while (thread != null) {
-						if (lastVertex.getZ() != thread.getZ()) break;
+						if (lastVertex.getZ() != thread.getZ())
+							break;
 						if ((thread.getX() - lastVertex.getX() != 0 && dx == 0)
-								|| (thread.getY() - lastVertex.getY() != 0 && dy == 0)) break;
+								|| (thread.getY() - lastVertex.getY() != 0 && dy == 0))
+							break;
 						lastVertex = thread;
 						thread = thread.last;
 					}
@@ -2083,14 +2190,12 @@ public abstract class SeaOfGatesEngine {
 		double lY = curY - metalSpacing, hY = curY + metalSpacing;
 		if (dx > 0)
 			hX = jumpBound.getMaxX() + metalSpacing;
-		else
-			if (dx < 0)
-				lX = jumpBound.getMinX() - metalSpacing;
-			else
-				if (dy > 0)
-					hY = jumpBound.getMaxY() + metalSpacing;
-				else
-					if (dy < 0) lY = jumpBound.getMinY() - metalSpacing;
+		else if (dx < 0)
+			lX = jumpBound.getMinX() - metalSpacing;
+		else if (dy > 0)
+			hY = jumpBound.getMaxY() + metalSpacing;
+		else if (dy < 0)
+			lY = jumpBound.getMinY() - metalSpacing;
 
 		RTNode rtree = metalTrees.get(metalLayers[curZ]);
 		if (rtree != null) {
@@ -2098,38 +2203,52 @@ public abstract class SeaOfGatesEngine {
 			Rectangle2D searchArea = new Rectangle2D.Double(lX, lY, hX - lX, hY - lY);
 			for (RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext();) {
 				SOGBound sBound = (SOGBound) sea.next();
-				if (Math.abs(sBound.getNetID()) == wf.nr.netID) continue;
+				if (Math.abs(sBound.getNetID()) == wf.nr.netID)
+					continue;
 				Rectangle2D bound = sBound.getBounds();
 				if (bound.getMinX() >= hX || bound.getMaxX() <= lX || bound.getMinY() >= hY
-						|| bound.getMaxY() <= lY) continue;
-				if (dx > 0 && bound.getMinX() < hX) hX = bound.getMinX();
-				if (dx < 0 && bound.getMaxX() > lX) lX = bound.getMaxX();
-				if (dy > 0 && bound.getMinY() < hY) hY = bound.getMinY();
-				if (dy < 0 && bound.getMaxY() > lY) lY = bound.getMaxY();
+						|| bound.getMaxY() <= lY)
+					continue;
+				if (dx > 0 && bound.getMinX() < hX)
+					hX = bound.getMinX();
+				if (dx < 0 && bound.getMaxX() > lX)
+					lX = bound.getMaxX();
+				if (dy > 0 && bound.getMinY() < hY)
+					hY = bound.getMinY();
+				if (dy < 0 && bound.getMaxY() > lY)
+					lY = bound.getMaxY();
 			}
 		}
 		if (dx > 0) {
 			dx = downToGrain(hX - metalSpacing) - curX;
-			if (curX + dx > wf.toX && curY == wf.toY && curZ == wf.toZ) dx = wf.toX - curX;
-			if (curX + dx != wf.toX && FULLGRAIN) dx = downToGrainAlways(hX - metalSpacing) - curX;
+			if (curX + dx > wf.toX && curY == wf.toY && curZ == wf.toZ)
+				dx = wf.toX - curX;
+			if (curX + dx != wf.toX && FULLGRAIN)
+				dx = downToGrainAlways(hX - metalSpacing) - curX;
 			return dx;
 		}
 		if (dx < 0) {
 			dx = upToGrain(lX + metalSpacing) - curX;
-			if (curX + dx < wf.toX && curY == wf.toY && curZ == wf.toZ) dx = wf.toX - curX;
-			if (curX + dx != wf.toX && FULLGRAIN) dx = upToGrainAlways(lX + metalSpacing) - curX;
+			if (curX + dx < wf.toX && curY == wf.toY && curZ == wf.toZ)
+				dx = wf.toX - curX;
+			if (curX + dx != wf.toX && FULLGRAIN)
+				dx = upToGrainAlways(lX + metalSpacing) - curX;
 			return dx;
 		}
 		if (dy > 0) {
 			dy = downToGrain(hY - metalSpacing) - curY;
-			if (curX == wf.toX && curY + dy > wf.toY && curZ == wf.toZ) dy = wf.toY - curY;
-			if (curY + dy != wf.toY && FULLGRAIN) dy = downToGrainAlways(hY - metalSpacing) - curY;
+			if (curX == wf.toX && curY + dy > wf.toY && curZ == wf.toZ)
+				dy = wf.toY - curY;
+			if (curY + dy != wf.toY && FULLGRAIN)
+				dy = downToGrainAlways(hY - metalSpacing) - curY;
 			return dy;
 		}
 		if (dy < 0) {
 			dy = upToGrain(lY + metalSpacing) - curY;
-			if (curX == wf.toX && curY + dy < wf.toY && curZ == wf.toZ) dy = wf.toY - curY;
-			if (curY + dy != wf.toY && FULLGRAIN) dy = upToGrainAlways(lY + metalSpacing) - curY;
+			if (curX == wf.toX && curY + dy < wf.toY && curZ == wf.toZ)
+				dy = wf.toY - curY;
+			if (curY + dy != wf.toY && FULLGRAIN)
+				dy = upToGrainAlways(lY + metalSpacing) - curY;
 			return dy;
 		}
 		return 0;
@@ -2143,7 +2262,8 @@ public abstract class SeaOfGatesEngine {
 	 * @return the granularized value.
 	 */
 	private double upToGrain(double v) {
-		if (FULLGRAIN) return v;
+		if (FULLGRAIN)
+			return v;
 		return upToGrainAlways(v);
 	}
 
@@ -2166,7 +2286,8 @@ public abstract class SeaOfGatesEngine {
 	 * @return the granularized value.
 	 */
 	private double downToGrain(double v) {
-		if (FULLGRAIN) return v;
+		if (FULLGRAIN)
+			return v;
 		return downToGrainAlways(v);
 	}
 
@@ -2274,7 +2395,8 @@ public abstract class SeaOfGatesEngine {
 		// get the R-Tree data for the metal layer
 		Layer layer = metalLayers[metNo];
 		RTNode rtree = metalTrees.get(layer);
-		if (rtree == null) return null;
+		if (rtree == null)
+			return null;
 
 		// determine the size and width/length of this piece of metal
 		int netID = wf.nr.netID;
@@ -2301,7 +2423,8 @@ public abstract class SeaOfGatesEngine {
 			for (int ind = 1; ind < svList.size(); ind++) {
 				SearchVertex sv = svList.get(ind);
 				SearchVertex lastSv = svList.get(ind - 1);
-				if (sv.getZ() != metNo && lastSv.getZ() != metNo) continue;
+				if (sv.getZ() != metNo && lastSv.getZ() != metNo)
+					continue;
 				if (sv.getZ() != lastSv.getZ()) {
 					// changed layers: compute via rectangles
 					List<MetalVia> nps = metalVias[Math.min(sv.getZ(), lastSv.getZ())].getVias();
@@ -2317,15 +2440,19 @@ public abstract class SeaOfGatesEngine {
 					NodeInst ni = NodeInst.makeDummyInstance(np, new EPoint(sv.getX(), sv.getY()), wid, hei,
 							orient);
 					AffineTransform trans = null;
-					if (orient != Orientation.IDENT) trans = ni.rotateOut();
+					if (orient != Orientation.IDENT)
+						trans = ni.rotateOut();
 					Poly[] polys = np.getTechnology().getShapeOfNode(ni);
 					for (int i = 0; i < polys.length; i++) {
 						Poly poly = polys[i];
-						if (poly.getLayer() != layer) continue;
-						if (trans != null) poly.transform(trans);
+						if (poly.getLayer() != layer)
+							continue;
+						if (trans != null)
+							poly.transform(trans);
 						Rectangle2D bound = poly.getBounds2D();
 						if (bound.getMaxX() <= lX || bound.getMinX() >= hX || bound.getMaxY() <= lY
-								|| bound.getMinY() >= hY) continue;
+								|| bound.getMinY() >= hY)
+							continue;
 						recsOnPath.add(bound);
 					}
 					continue;
@@ -2343,7 +2470,8 @@ public abstract class SeaOfGatesEngine {
 						width / 2, Poly.Type.FILLED);
 				Rectangle2D bound = poly.getBounds2D();
 				if (bound.getMaxX() <= lX || bound.getMinX() >= hX || bound.getMaxY() <= lY
-						|| bound.getMinY() >= hY) continue;
+						|| bound.getMinY() >= hY)
+					continue;
 				recsOnPath.add(bound);
 			}
 		}
@@ -2354,7 +2482,8 @@ public abstract class SeaOfGatesEngine {
 
 			// eliminate if out of worst surround
 			if (bound.getMaxX() <= lX || bound.getMinX() >= hX || bound.getMaxY() <= lY
-					|| bound.getMinY() >= hY) continue;
+					|| bound.getMinY() >= hY)
+				continue;
 
 			// see if it is within design-rule distance
 			double drWid = Math.max(Math.min(bound.getWidth(), bound.getHeight()), metWid);
@@ -2365,7 +2494,8 @@ public abstract class SeaOfGatesEngine {
 			if (DBMath.isLessThanOrEqualTo(bound.getMaxX(), lXAllow)
 					|| DBMath.isGreaterThanOrEqualTo(bound.getMinX(), hXAllow)
 					|| DBMath.isLessThanOrEqualTo(bound.getMaxY(), lYAllow)
-					|| DBMath.isGreaterThanOrEqualTo(bound.getMinY(), hYAllow)) continue;
+					|| DBMath.isGreaterThanOrEqualTo(bound.getMinY(), hYAllow))
+				continue;
 
 			// too close for DRC: allow if on the same net
 			if (Math.abs(sBound.getNetID()) == netID) {
@@ -2382,7 +2512,8 @@ public abstract class SeaOfGatesEngine {
 				PolyBase poly = ((SOGPoly) sBound).getPoly();
 				Rectangle2D drcArea = new Rectangle2D.Double(lXAllow, lYAllow, hXAllow - lXAllow, hYAllow
 						- lYAllow);
-				if (!poly.contains(drcArea)) continue;
+				if (!poly.contains(drcArea))
+					continue;
 			}
 
 			// DRC error found: return the offending geometry
@@ -2396,7 +2527,8 @@ public abstract class SeaOfGatesEngine {
 			for (int ind = 1; ind < svList.size(); ind++) {
 				SearchVertex sv = svList.get(ind);
 				SearchVertex lastSv = svList.get(ind - 1);
-				if (sv.getZ() != metNo && lastSv.getZ() != metNo) continue;
+				if (sv.getZ() != metNo && lastSv.getZ() != metNo)
+					continue;
 				if (sv.getZ() != lastSv.getZ()) {
 					// changed layers: analyze the contact for notches
 					List<MetalVia> nps = metalVias[Math.min(sv.getZ(), lastSv.getZ())].getVias();
@@ -2412,17 +2544,22 @@ public abstract class SeaOfGatesEngine {
 					NodeInst ni = NodeInst.makeDummyInstance(np, new EPoint(sv.getX(), sv.getY()), wid, hei,
 							orient);
 					AffineTransform trans = null;
-					if (orient != Orientation.IDENT) trans = ni.rotateOut();
+					if (orient != Orientation.IDENT)
+						trans = ni.rotateOut();
 					Poly[] polys = np.getTechnology().getShapeOfNode(ni);
 					for (int i = 0; i < polys.length; i++) {
 						Poly poly = polys[i];
-						if (poly.getLayer() != layer) continue;
-						if (trans != null) poly.transform(trans);
+						if (poly.getLayer() != layer)
+							continue;
+						if (trans != null)
+							poly.transform(trans);
 						Rectangle2D bound = poly.getBounds2D();
 						if (bound.getMaxX() <= lX || bound.getMinX() >= hX || bound.getMaxY() <= lY
-								|| bound.getMinY() >= hY) continue;
+								|| bound.getMinY() >= hY)
+							continue;
 						SOGBound sBound = new SOGBound(bound, netID);
-						if (foundANotch(rtree, metBound, bound, netID, recsOnPath, spacing)) return sBound;
+						if (foundANotch(rtree, metBound, bound, netID, recsOnPath, spacing))
+							return sBound;
 					}
 					continue;
 				}
@@ -2439,9 +2576,11 @@ public abstract class SeaOfGatesEngine {
 						width / 2, Poly.Type.FILLED);
 				Rectangle2D bound = poly.getBounds2D();
 				if (bound.getMaxX() <= lX || bound.getMinX() >= hX || bound.getMaxY() <= lY
-						|| bound.getMinY() >= hY) continue;
+						|| bound.getMinY() >= hY)
+					continue;
 				SOGBound sBound = new SOGBound(bound, netID);
-				if (foundANotch(rtree, metBound, bound, netID, recsOnPath, spacing)) return sBound;
+				if (foundANotch(rtree, metBound, bound, netID, recsOnPath, spacing))
+					return sBound;
 			}
 		}
 		return null;
@@ -2465,24 +2604,30 @@ public abstract class SeaOfGatesEngine {
 		boolean vOverlap = metBound.getMinY() <= bound.getMaxY() && metBound.getMaxY() >= bound.getMinY();
 
 		// if they overlap in both, they touch and it is not a notch
-		if (hOverlap && vOverlap) return false;
+		if (hOverlap && vOverlap)
+			return false;
 
 		// if they overlap horizontally then they line-up vertically
 		if (hOverlap) {
 			double ptY;
 			if (metBound.getCenterY() > bound.getCenterY()) {
-				if (metBound.getMinY() - bound.getMaxY() > dist) return false;
+				if (metBound.getMinY() - bound.getMaxY() > dist)
+					return false;
 				ptY = (metBound.getMinY() + bound.getMaxY()) / 2;
 			} else {
-				if (bound.getMinY() - metBound.getMaxY() > dist) return false;
+				if (bound.getMinY() - metBound.getMaxY() > dist)
+					return false;
 				ptY = (metBound.getMaxY() + bound.getMinY()) / 2;
 			}
 			double pt1X = Math.max(metBound.getMinX(), bound.getMinX());
 			double pt2X = Math.min(metBound.getMaxX(), bound.getMaxX());
 			double pt3X = (pt1X + pt2X) / 2;
-			if (!pointInRTree(rtree, pt1X, ptY, netID, recsOnPath)) return true;
-			if (!pointInRTree(rtree, pt2X, ptY, netID, recsOnPath)) return true;
-			if (!pointInRTree(rtree, pt3X, ptY, netID, recsOnPath)) return true;
+			if (!pointInRTree(rtree, pt1X, ptY, netID, recsOnPath))
+				return true;
+			if (!pointInRTree(rtree, pt2X, ptY, netID, recsOnPath))
+				return true;
+			if (!pointInRTree(rtree, pt3X, ptY, netID, recsOnPath))
+				return true;
 			return false;
 		}
 
@@ -2490,18 +2635,23 @@ public abstract class SeaOfGatesEngine {
 		if (vOverlap) {
 			double ptX;
 			if (metBound.getCenterX() > bound.getCenterX()) {
-				if (metBound.getMinX() - bound.getMaxX() > dist) return false;
+				if (metBound.getMinX() - bound.getMaxX() > dist)
+					return false;
 				ptX = (metBound.getMinX() + bound.getMaxX()) / 2;
 			} else {
-				if (bound.getMinX() - metBound.getMaxX() > dist) return false;
+				if (bound.getMinX() - metBound.getMaxX() > dist)
+					return false;
 				ptX = (metBound.getMaxX() + bound.getMinX()) / 2;
 			}
 			double pt1Y = Math.max(metBound.getMinY(), bound.getMinY());
 			double pt2Y = Math.min(metBound.getMaxY(), bound.getMaxY());
 			double pt3Y = (pt1Y + pt2Y) / 2;
-			if (!pointInRTree(rtree, ptX, pt1Y, netID, recsOnPath)) return true;
-			if (!pointInRTree(rtree, ptX, pt2Y, netID, recsOnPath)) return true;
-			if (!pointInRTree(rtree, ptX, pt3Y, netID, recsOnPath)) return true;
+			if (!pointInRTree(rtree, ptX, pt1Y, netID, recsOnPath))
+				return true;
+			if (!pointInRTree(rtree, ptX, pt2Y, netID, recsOnPath))
+				return true;
+			if (!pointInRTree(rtree, ptX, pt3Y, netID, recsOnPath))
+				return true;
 			return false;
 		}
 
@@ -2514,8 +2664,10 @@ public abstract class SeaOfGatesEngine {
 			double pt2Y = metBound.getMinY();
 			if (Math.sqrt((pt1X - pt2X) * (pt1X - pt2X) + (pt1Y - pt2Y) * (pt1Y - pt2Y)) > dist)
 				return false;
-			if (pointInRTree(rtree, pt1X, pt1Y, netID, recsOnPath)) return false;
-			if (pointInRTree(rtree, pt2X, pt2Y, netID, recsOnPath)) return false;
+			if (pointInRTree(rtree, pt1X, pt1Y, netID, recsOnPath))
+				return false;
+			if (pointInRTree(rtree, pt2X, pt2Y, netID, recsOnPath))
+				return false;
 			return true;
 		}
 		if (metBound.getMaxX() < bound.getMinX() && metBound.getMinY() > bound.getMaxY()) {
@@ -2526,8 +2678,10 @@ public abstract class SeaOfGatesEngine {
 			double pt2Y = metBound.getMinY();
 			if (Math.sqrt((pt1X - pt2X) * (pt1X - pt2X) + (pt1Y - pt2Y) * (pt1Y - pt2Y)) > dist)
 				return false;
-			if (pointInRTree(rtree, pt1X, pt1Y, netID, recsOnPath)) return false;
-			if (pointInRTree(rtree, pt2X, pt2Y, netID, recsOnPath)) return false;
+			if (pointInRTree(rtree, pt1X, pt1Y, netID, recsOnPath))
+				return false;
+			if (pointInRTree(rtree, pt2X, pt2Y, netID, recsOnPath))
+				return false;
 			return true;
 		}
 		if (metBound.getMaxX() < bound.getMinX() && metBound.getMaxY() < bound.getMinY()) {
@@ -2538,8 +2692,10 @@ public abstract class SeaOfGatesEngine {
 			double pt2Y = metBound.getMaxY();
 			if (Math.sqrt((pt1X - pt2X) * (pt1X - pt2X) + (pt1Y - pt2Y) * (pt1Y - pt2Y)) > dist)
 				return false;
-			if (pointInRTree(rtree, pt1X, pt1Y, netID, recsOnPath)) return false;
-			if (pointInRTree(rtree, pt2X, pt2Y, netID, recsOnPath)) return false;
+			if (pointInRTree(rtree, pt1X, pt1Y, netID, recsOnPath))
+				return false;
+			if (pointInRTree(rtree, pt2X, pt2Y, netID, recsOnPath))
+				return false;
 			return true;
 		}
 		if (metBound.getMinX() > bound.getMaxX() && metBound.getMaxY() < bound.getMinY()) {
@@ -2550,8 +2706,10 @@ public abstract class SeaOfGatesEngine {
 			double pt2Y = metBound.getMaxY();
 			if (Math.sqrt((pt1X - pt2X) * (pt1X - pt2X) + (pt1Y - pt2Y) * (pt1Y - pt2Y)) > dist)
 				return false;
-			if (pointInRTree(rtree, pt1X, pt1Y, netID, recsOnPath)) return false;
-			if (pointInRTree(rtree, pt2X, pt2Y, netID, recsOnPath)) return false;
+			if (pointInRTree(rtree, pt1X, pt1Y, netID, recsOnPath))
+				return false;
+			if (pointInRTree(rtree, pt2X, pt2Y, netID, recsOnPath))
+				return false;
 			return true;
 		}
 		return false;
@@ -2561,9 +2719,11 @@ public abstract class SeaOfGatesEngine {
 		Rectangle2D searchArea = new Rectangle2D.Double(x, y, 0, 0);
 		for (RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext();) {
 			SOGBound sBound = (SOGBound) sea.next();
-			if (sBound.netID != netID) continue;
+			if (sBound.netID != netID)
+				continue;
 			if (sBound.bound.getMinX() > x || sBound.bound.getMaxX() < x || sBound.bound.getMinY() > y
-					|| sBound.bound.getMaxY() < y) continue;
+					|| sBound.bound.getMaxY() < y)
+				continue;
 			return true;
 		}
 
@@ -2603,7 +2763,8 @@ public abstract class SeaOfGatesEngine {
 		// get the R-Tree data for the metal layer
 		Layer layer = metalLayers[metNo];
 		RTNode rtree = metalTrees.get(layer);
-		if (rtree == null) return null;
+		if (rtree == null)
+			return null;
 
 		// compute the area to search
 		double lX = x - halfWidth - surround, hX = x + halfWidth + surround;
@@ -2617,15 +2778,18 @@ public abstract class SeaOfGatesEngine {
 			if (DBMath.isLessThanOrEqualTo(bound.getMaxX(), lX)
 					|| DBMath.isGreaterThanOrEqualTo(bound.getMinX(), hX)
 					|| DBMath.isLessThanOrEqualTo(bound.getMaxY(), lY)
-					|| DBMath.isGreaterThanOrEqualTo(bound.getMinY(), hY)) continue;
+					|| DBMath.isGreaterThanOrEqualTo(bound.getMinY(), hY))
+				continue;
 
 			// ignore if on the same net
-			if (Math.abs(sBound.getNetID()) == netID) continue;
+			if (Math.abs(sBound.getNetID()) == netID)
+				continue;
 
 			// if this is a polygon, do closer examination
 			if (sBound instanceof SOGPoly) {
 				PolyBase poly = ((SOGPoly) sBound).getPoly();
-				if (!poly.contains(searchArea)) continue;
+				if (!poly.contains(searchArea))
+					continue;
 			}
 			return sBound;
 		}
@@ -2654,7 +2818,8 @@ public abstract class SeaOfGatesEngine {
 	private SOGVia getViaBlockage(int netID, Layer layer, double halfWidth, double halfHeight, double x,
 			double y) {
 		RTNode rtree = viaTrees.get(layer);
-		if (rtree == null) return null;
+		if (rtree == null)
+			return null;
 
 		// see if there is anything in that area
 		Rectangle2D searchArea = new Rectangle2D.Double(x - halfWidth, y - halfHeight, halfWidth * 2,
@@ -2662,7 +2827,8 @@ public abstract class SeaOfGatesEngine {
 		for (RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext();) {
 			SOGVia sLoc = (SOGVia) sea.next();
 			if (sLoc.getNetID() == netID) {
-				if (sLoc.loc.getX() == x && sLoc.loc.getY() == y) continue;
+				if (sLoc.loc.getX() == x && sLoc.loc.getY() == y)
+					continue;
 			}
 			return sLoc;
 		}
@@ -2694,7 +2860,8 @@ public abstract class SeaOfGatesEngine {
 				ArcInst ai = it.next();
 				int netID = -1;
 				Network net = nl.getNetwork(ai, 0);
-				if (net != null) netID = info.getNetID(net);
+				if (net != null)
+					netID = info.getNetID(net);
 				Technology tech = ai.getProto().getTechnology();
 				PolyBase[] polys = tech.getShapeOfArc(ai);
 				for (int i = 0; i < polys.length; i++)
@@ -2723,13 +2890,15 @@ public abstract class SeaOfGatesEngine {
 				Technology tech = pNp.getTechnology();
 				Poly[] nodeInstPolyList = tech.getShapeOfNode(ni, true, false, null);
 				boolean canPlacePseudo = info.isRootCell();
-				if (!ni.hasExports()) canPlacePseudo = false;
+				if (!ni.hasExports())
+					canPlacePseudo = false;
 				for (int i = 0; i < nodeInstPolyList.length; i++) {
 					PolyBase poly = nodeInstPolyList[i];
 					int netID = -1;
 					if (poly.getPort() != null) {
 						Network net = nl.getNetwork(no, poly.getPort(), 0);
-						if (net != null) netID = info.getNetID(net);
+						if (net != null)
+							netID = info.getNetID(net);
 					}
 					addLayer(poly, nodeTrans, netID, canPlacePseudo);
 				}
@@ -2753,12 +2922,14 @@ public abstract class SeaOfGatesEngine {
 	 *            nonpseudo and stored). False to ignore pseudo-layers.
 	 */
 	private void addLayer(PolyBase poly, AffineTransform trans, int netID, boolean canPlacePseudo) {
-		if (!canPlacePseudo && poly.isPseudoLayer()) return;
+		if (!canPlacePseudo && poly.isPseudoLayer())
+			return;
 		Layer layer = poly.getLayer();
 		if (canPlacePseudo)
 			layer = layer.getNonPseudoLayer();
 		else {
-			if (layer.isPseudoLayer()) return;
+			if (layer.isPseudoLayer())
+				return;
 		}
 		Layer.Function fun = layer.getFunction();
 		if (fun.isMetal()) {
@@ -2769,12 +2940,11 @@ public abstract class SeaOfGatesEngine {
 			} else {
 				addRectangle(bounds, layer, netID);
 			}
-		} else
-			if (fun.isContact()) {
-				Rectangle2D bounds = poly.getBounds2D();
-				DBMath.transformRect(bounds, trans);
-				addVia(new EPoint(bounds.getCenterX(), bounds.getCenterY()), layer, netID);
-			}
+		} else if (fun.isContact()) {
+			Rectangle2D bounds = poly.getBounds2D();
+			DBMath.transformRect(bounds, trans);
+			addVia(new EPoint(bounds.getCenterX(), bounds.getCenterY()), layer, netID);
+		}
 	}
 
 	/**
@@ -2794,7 +2964,8 @@ public abstract class SeaOfGatesEngine {
 			metalTrees.put(layer, root);
 		}
 		RTNode newRoot = RTNode.linkGeom(null, root, new SOGBound(ERectangle.fromLambda(bounds), netID));
-		if (newRoot != root) metalTrees.put(layer, newRoot);
+		if (newRoot != root)
+			metalTrees.put(layer, newRoot);
 	}
 
 	/**
@@ -2815,7 +2986,8 @@ public abstract class SeaOfGatesEngine {
 		}
 		Rectangle2D bounds = poly.getBounds2D();
 		RTNode newRoot = RTNode.linkGeom(null, root, new SOGPoly(ERectangle.fromLambda(bounds), netID, poly));
-		if (newRoot != root) metalTrees.put(layer, newRoot);
+		if (newRoot != root)
+			metalTrees.put(layer, newRoot);
 	}
 
 	/**
@@ -2835,7 +3007,8 @@ public abstract class SeaOfGatesEngine {
 			viaTrees.put(layer, root);
 		}
 		RTNode newRoot = RTNode.linkGeom(null, root, new SOGVia(loc, netID));
-		if (newRoot != root) viaTrees.put(layer, newRoot);
+		if (newRoot != root)
+			viaTrees.put(layer, newRoot);
 	}
 
 	/**
@@ -2881,8 +3054,10 @@ public abstract class SeaOfGatesEngine {
 			PrimitiveNode pn2 = mv2.via;
 			double sz1 = pn1.getDefWidth() * pn1.getDefHeight();
 			double sz2 = pn2.getDefWidth() * pn2.getDefHeight();
-			if (sz1 < sz2) return -1;
-			if (sz1 > sz2) return 1;
+			if (sz1 < sz2)
+				return -1;
+			if (sz1 > sz2)
+				return 1;
 			return 0;
 		}
 	}
@@ -2968,13 +3143,16 @@ public abstract class SeaOfGatesEngine {
 		 */
 		public int compareTo(SearchVertex svo) {
 			int diff = cost - svo.cost;
-			if (diff != 0) return diff;
+			if (diff != 0)
+				return diff;
 			if (w != null) {
 				double thisDist = Math.abs(xv - w.toX) + Math.abs(yv - w.toY) + Math.abs(zv - w.toZ);
 				double otherDist = Math.abs(svo.xv - w.toX) + Math.abs(svo.yv - w.toY)
 						+ Math.abs(svo.zv - w.toZ);
-				if (thisDist < otherDist) return -1;
-				if (thisDist > otherDist) return 1;
+				if (thisDist < otherDist)
+					return -1;
+				if (thisDist > otherDist)
+					return 1;
 			}
 			return 0;
 		}
@@ -3058,7 +3236,8 @@ public abstract class SeaOfGatesEngine {
 			offset -= (numMetalLayers - 2) / 2.0;
 			offset /= numMetalLayers + 2;
 			Map<Integer, Set<Integer>> plane = planes[i];
-			if (plane == null) continue;
+			if (plane == null)
+				continue;
 			for (Integer y : plane.keySet()) {
 				double yv = y.doubleValue();
 				Set<Integer> row = plane.get(y);

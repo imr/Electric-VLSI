@@ -26,6 +26,9 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 import java.util.List;
 import java.util.Map;
 
+import bsh.This;
+
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IDEStructure;
 import com.sun.electric.tool.util.IStructure;
@@ -55,8 +58,13 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	private Class<T> clazz;
 	protected MultiThreadedRandomizer randomizer;
 	private StealTracker stealTracker;
+	private boolean debug;
 
 	public WorkStealingStructure(int numOfThreads, Class<T> clazz) {
+		this(numOfThreads, clazz, false);
+	}
+
+	public WorkStealingStructure(int numOfThreads, Class<T> clazz, boolean debug) {
 		dataQueues = CollectionFactory.createConcurrentHashMap();
 		dataQueuesMapping = CollectionFactory.createConcurrentHashMap();
 		freeInternalIds = CollectionFactory.createConcurrentList();
@@ -70,6 +78,8 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 			// CollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
 			dataQueues.put(i, new DEListWrapper<T>());
 		}
+
+		this.debug = debug;
 	}
 
 	/*
@@ -127,6 +137,7 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	}
 
 	/*
+	 * 
 	 * (non-Javadoc)
 	 * 
 	 * @see com.sun.electric.tool.util.IStructure#isEmpty()
@@ -177,7 +188,8 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 				int foreigner = randomizer.getRandomizer().nextInt(dataQueues.size());
 				result = dataQueues.get(Long.valueOf(foreigner)).getFromTop();
 			}
-			if (result != null && ThreadPool.getThreadPool().getDebug())
+			// TODO fschmidt
+			if (result != null && this.debug)
 				stealTracker.countSteal();
 		}
 
@@ -202,6 +214,6 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	 * @return initialized WorkStealingStructure
 	 */
 	public static WorkStealingStructure<PTask> createForThreadPool(int numOfThreads) {
-		return new WorkStealingStructure<PTask>(numOfThreads, PTask.class);
+		return new WorkStealingStructure<PTask>(numOfThreads, PTask.class, Job.getDebug());
 	}
 }

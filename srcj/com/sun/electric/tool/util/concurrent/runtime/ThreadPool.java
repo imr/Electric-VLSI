@@ -353,6 +353,22 @@ public class ThreadPool {
 		return instance;
 	}
 
+	public static synchronized ThreadPool[] initialize(IStructure<PTask> taskPool1, int numOfThreads1,
+			ThreadPoolType type1, IStructure<PTask> taskPool2, int numOfThreads2, ThreadPoolType type2,
+			boolean debug) {
+
+		ThreadPool[] result = new ThreadPool[2];
+
+		result[0] = new ThreadPool(taskPool1, numOfThreads1, debug, type1);
+		result[1] = new ThreadPool(taskPool2, numOfThreads2, debug, type2);
+
+		result[0].start();
+		result[1].start();
+
+		return result;
+
+	}
+
 	/**
 	 * hard shutdown of thread pool
 	 */

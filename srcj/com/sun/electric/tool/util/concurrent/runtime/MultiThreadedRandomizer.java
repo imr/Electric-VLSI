@@ -63,7 +63,7 @@ public class MultiThreadedRandomizer {
 	 */
 	public Random getRandomizer() {
 		int threadId = ThreadID.get();
-		if (threadId < 0 || threadId <= numOfCores) return new Random(System.currentTimeMillis());
+		if (threadId < 0 || threadId >= numOfCores) return new Random(System.currentTimeMillis());
 		return randomizers[ThreadID.get()];
 	}
 
