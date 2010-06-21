@@ -57,7 +57,13 @@ public final class SimulationData {
 	private SimulationData() {}
 
     private static final String[] known_extensions = new String[]
-        { "raw", "dump", "spo", "out", "tr0", "ac0", "txt", "vcd" };
+        { "raw", "dump", "spo", "tr0", "ac0", "vcd",
+          
+          // it's important that "out" and "txt" appear last because
+          // they sometimes are present yet do not contain simulation
+          // data (although in such situations the user should not
+          // be using "plot from guessed" anyways)
+          "out", "txt" };
 
     public static boolean isKnownSimulationFormatExtension(String extension) {
         return getInputForExtension(extension)!=null;
