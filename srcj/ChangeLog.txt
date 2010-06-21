@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+IMP: (6/21/10, FS) First fully draft of SeaOfGates router with new parallel 
+     infrastructure. Added a two way thread pool: Use this thread pool if you 
+     want to do two different jobs in parallel, where one job starts the other
+     one. 
+
 BUG: (6/21/10, AM) LTSpice import throws an exception
 FIX: Be more forgiving of bogus data supplied to ScalarSample.createSignal()
 
