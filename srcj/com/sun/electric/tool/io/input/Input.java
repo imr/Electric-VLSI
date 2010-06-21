@@ -379,6 +379,28 @@ public class Input<ResultType>
 		return sb.toString();
 	}
 
+	/**
+	 * Method to read a line of text, when the file has been opened in binary mode.
+	 * @return the line (null on EOF).
+	 * @throws IOException
+	 */
+	protected String getLineAndUpdateProgressBinary()
+		throws IOException
+	{
+		StringBuffer sb = new StringBuffer();
+        int bytesRead = 0;
+		for(;;)
+		{
+			int c = dataInputStream.read();
+			if (c == -1) return null;
+            bytesRead++;
+			if (c == '\n' || c == '\r') break;
+			sb.append((char)c);
+		}
+		updateProgressDialog(bytesRead);
+		return sb.toString();
+	}
+
 	private String lineBuffer;
 	private int	lineBufferPosition;
 

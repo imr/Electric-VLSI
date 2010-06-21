@@ -158,8 +158,8 @@ public class RawSpiceOut extends Input<Stimuli> {
                         an = new Analysis(sd, Analysis.ANALYSIS_AC, false);
                         aType = Analysis.ANALYSIS_AC;
                     } else {
-                        System.out.println("ERROR: Unknown analysis: " + restOfLine);
-                        return;
+                        System.out.println("Warning: unknown analysis: " + restOfLine);
+                        an = new Analysis(sd, Analysis.ANALYSIS_TRANS, false);
                     }
                     continue;
                 }
@@ -201,7 +201,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                             line = restOfLine;
                             restOfLine = "";
                         } else {
-                            line = getLineAndUpdateProgress();
+                            line = getLineAndUpdateProgressBinary();
                             if (line == null) {
                                 System.out.println("Error: end of file during signal names");
                                 return;
@@ -239,7 +239,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                     }
                     for(int j=0; j<rowCount; j++) {
                         for(int i = -1; i <= signalCount; ) {
-                            line = getLineAndUpdateProgress();
+                            line = getLineAndUpdateProgressBinary();
                             if (line == null) {
                                 System.out.println("Error: end of file during data points (read " + j + " out of " + rowCount);
                                 return;
