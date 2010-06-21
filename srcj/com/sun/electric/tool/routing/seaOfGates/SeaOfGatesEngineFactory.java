@@ -24,7 +24,7 @@
 package com.sun.electric.tool.routing.seaOfGates;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class SeaOfGatesEngineFactory {

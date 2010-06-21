@@ -35,7 +35,7 @@ import com.sun.electric.tool.erc.ERCWellCheck2.Transistor;
 import com.sun.electric.tool.util.CollectionFactory;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class OnRailCheck implements WellCheckAnalysisStrategy {

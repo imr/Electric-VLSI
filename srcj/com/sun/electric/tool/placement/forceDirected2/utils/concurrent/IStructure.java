@@ -43,7 +43,7 @@ public abstract class IStructure<T> {
 	/**
 	 * Internal class. This class holds the elements of the datastructure
 	 * 
-	 * @author fschmidt
+	 * @author Felix Schmidt
 	 * 
 	 * @param <T>
 	 */

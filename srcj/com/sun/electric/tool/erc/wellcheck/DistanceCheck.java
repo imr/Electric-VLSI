@@ -35,7 +35,7 @@ import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
 import com.sun.electric.tool.erc.ERCWellCheck2.WellNet;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class DistanceCheck implements WellCheckAnalysisStrategy {

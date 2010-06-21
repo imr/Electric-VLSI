@@ -24,7 +24,7 @@
 package com.sun.electric.tool.util.concurrent.debug;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  *
  */
 public interface IDebug {

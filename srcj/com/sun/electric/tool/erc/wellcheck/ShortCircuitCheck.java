@@ -34,7 +34,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class ShortCircuitCheck implements WellCheckAnalysisStrategy {

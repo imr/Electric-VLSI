@@ -29,7 +29,7 @@ import com.sun.electric.tool.util.concurrent.barriers.Barrier;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class Barrier_T {

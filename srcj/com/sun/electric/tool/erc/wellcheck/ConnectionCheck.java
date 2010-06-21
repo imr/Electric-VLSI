@@ -30,7 +30,7 @@ import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
 import com.sun.electric.tool.erc.ERCWellCheck2.WellType;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class ConnectionCheck implements WellCheckAnalysisStrategy {

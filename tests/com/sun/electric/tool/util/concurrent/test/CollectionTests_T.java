@@ -36,7 +36,7 @@ import com.sun.electric.tool.util.concurrent.datastructures.UnboundedDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class CollectionTests_T {

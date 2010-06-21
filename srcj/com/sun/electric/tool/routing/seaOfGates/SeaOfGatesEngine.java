@@ -109,9 +109,9 @@ public abstract class SeaOfGatesEngine {
 	/** True to display each step in the search. */
 	private static final boolean DEBUGSTEPS = false;
 	/** True to display the first routing failure. */
-	private static final boolean DEBUGFAILURE = false;
+	protected static final boolean DEBUGFAILURE = false;
 	/** True to debug "infinite" loops. */
-	private static final boolean DEBUGLOOPS = false;
+	static final boolean DEBUGLOOPS = false;
 	/** true to use full, gridless routing */
 	private static final boolean FULLGRAIN = true;
 
@@ -134,12 +134,12 @@ public abstract class SeaOfGatesEngine {
 	/** Cost of having coordinates that are off-grid. */
 	private static final int COSTOFFGRID = 15;
 
-	private SearchVertex svAborted = new SearchVertex(0, 0, 0, 0, null, 0, null);
-	private SearchVertex svExhausted = new SearchVertex(0, 0, 0, 0, null, 0, null);
-	private SearchVertex svLimited = new SearchVertex(0, 0, 0, 0, null, 0, null);
+	protected SearchVertex svAborted = new SearchVertex(0, 0, 0, 0, null, 0, null);
+	protected SearchVertex svExhausted = new SearchVertex(0, 0, 0, 0, null, 0, null);
+	protected SearchVertex svLimited = new SearchVertex(0, 0, 0, 0, null, 0, null);
 
 	/** Cell in which routing occurs. */
-	private Cell cell;
+	protected Cell cell;
 	/** Cell size. */
 	private Rectangle2D cellBounds;
 	/** Technology to use for routing. */
@@ -171,7 +171,7 @@ public abstract class SeaOfGatesEngine {
 	/** the total length of wires routed */
 	private double totalWireLength;
 	/** true if this is the first failure of a route (for debugging) */
-	private boolean firstFailure;
+	protected boolean firstFailure;
 	/** true to run to/from and from/to routing in parallel */
 	protected boolean parallelDij;
 	/** for logging errors */
@@ -190,27 +190,28 @@ public abstract class SeaOfGatesEngine {
 
 	protected class Wavefront {
 		/** The route that this is part of. */
-		private NeededRoute nr;
+		NeededRoute nr;
 		/** Wavefront name (for debugging). */
-		private String name;
+		String name;
 		/** List of active search vertices while running wavefront. */
 		private TreeSet<SearchVertex> active;
 		/** Resulting list of vertices found for this wavefront. */
 		List<SearchVertex> vertices;
 		/** Set true to abort this wavefront's search. */
-		private boolean abort;
+		boolean abort;
 		/** The starting and ending ports of the wavefront. */
 		PortInst from;
-		private PortInst to;
+		PortInst to;
 		/** The starting X/Y coordinates of the wavefront. */
-		private double fromX, fromY;
+		double fromX;
+		double fromY;
 		/** The starting metal layer of the wavefront. */
-		private int fromZ;
+		int fromZ;
 		/** The ending X/Y coordinates of the wavefront. */
 		double toX;
-		private double toY;
+		double toY;
 		/** The ending metal layer of the wavefront. */
-		private int toZ;
+		int toZ;
 		/** debugging state */
 		private final boolean debug;
 		/** Search vertices found while propagating the wavefront. */
@@ -220,6 +221,7 @@ public abstract class SeaOfGatesEngine {
 		/** minimum spacing between this metal and itself. */
 		private Map<Double, Map<Double, Double>>[] layerSurround;
 
+		@SuppressWarnings("unchecked")
 		Wavefront(NeededRoute nr, PortInst from, double fromX, double fromY, int fromZ, PortInst to,
 				double toX, double toY, int toZ, String name, boolean debug) {
 			this.nr = nr;
@@ -796,7 +798,7 @@ public abstract class SeaOfGatesEngine {
 	 * @param job
 	 *            the job that invoked this routing.
 	 */
-	private void doRouting(List<NeededRoute> allRoutes, RouteBatches[] routeBatches, Job job,
+	protected void doRouting(List<NeededRoute> allRoutes, RouteBatches[] routeBatches, Job job,
 			Environment env, EditingPreferences ep) {
 		int totalRoutes = allRoutes.size();
 		for (int r = 0; r < totalRoutes; r++) {
@@ -1563,7 +1565,7 @@ public abstract class SeaOfGatesEngine {
 		}
 	}
 
-	private SearchVertex advanceWavefront(Wavefront wf) {
+	SearchVertex advanceWavefront(Wavefront wf) {
 		// get the lowest cost point
 		if (wf.active.size() == 0) return svExhausted;
 		SearchVertex svCurrent = wf.active.first();
@@ -2040,7 +2042,7 @@ public abstract class SeaOfGatesEngine {
 	 * @return a List of SearchVertex objects optimized to consolidate runs in
 	 *         the X or Y axes.
 	 */
-	private List<SearchVertex> getOptimizedList(SearchVertex initialThread) {
+	List<SearchVertex> getOptimizedList(SearchVertex initialThread) {
 		List<SearchVertex> realVertices = new ArrayList<SearchVertex>();
 		SearchVertex thread = initialThread;
 		if (thread != null) {
@@ -3049,7 +3051,7 @@ public abstract class SeaOfGatesEngine {
 	// }
 	// }
 
-	private void showSearchVertices(Map<Integer, Set<Integer>>[] planes, boolean horiz) {
+	protected void showSearchVertices(Map<Integer, Set<Integer>>[] planes, boolean horiz) {
 		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
 		for (int i = 0; i < numMetalLayers; i++) {
 			double offset = i;

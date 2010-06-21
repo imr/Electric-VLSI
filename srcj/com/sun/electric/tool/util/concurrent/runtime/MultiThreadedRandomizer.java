@@ -31,7 +31,7 @@ import java.util.Random;
  * best distribution is possible. This class provides a multi-threaded
  * randomizer. Each thread gets its own.
  * 
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class MultiThreadedRandomizer {

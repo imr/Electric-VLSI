@@ -26,7 +26,7 @@ package com.sun.electric.tool.util.concurrent.test;
 import java.util.Random;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class TestHelper {

@@ -46,7 +46,7 @@ public class CheckboardingField {
 
 	/**
 	 * 
-	 * @author fschmidt
+	 * @author Felix Schmidt
 	 * 
 	 */
 	private class FieldBoardingDTO {

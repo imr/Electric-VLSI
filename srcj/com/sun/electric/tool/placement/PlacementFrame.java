@@ -862,7 +862,7 @@ public abstract class PlacementFrame {
 			try {
 				// Create a new file output stream
 				// connected to "myfile.txt"
-				out = new FileOutputStream("/home/fs239085/work/" + this.getAlgorithmName() + "-" + cellName
+				out = new FileOutputStream("/home/Felix Schmidt/work/" + this.getAlgorithmName() + "-" + cellName
 						+ "-" + this.runtime + "-" + this.numOfThreads + ".txt");
 
 				// Connect print stream to the output stream

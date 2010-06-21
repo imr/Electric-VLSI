@@ -82,8 +82,6 @@ public class PForJob_T {
 
 	@Test
 	public void testMatrixMultiply() throws PoolExistsException, InterruptedException {
-		Random rand = new Random(System.currentTimeMillis());
-
 		matA = TestHelper.createMatrix(size, size, 100);
 		matB = TestHelper.createMatrix(size, size, 100);
 		matCPar = TestHelper.createMatrixInteger(size, size, 100);
@@ -92,7 +90,8 @@ public class PForJob_T {
 		ThreadPool pool = ThreadPool.initialize();
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask(size));
+		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10),
+				new MatrixMultTask(size));
 		pforjob.execute();
 
 		long endPar = System.currentTimeMillis() - start;
@@ -109,7 +108,8 @@ public class PForJob_T {
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
 				Assert.assertEquals(matCPar[i][j], matCSer[i][j]);
-				if (matCPar[i][j] == 0) nullChecker++;
+				if (matCPar[i][j] == 0)
+					nullChecker++;
 			}
 		}
 
@@ -118,8 +118,6 @@ public class PForJob_T {
 
 	@Test
 	public void testMatrixMultiplyPerformance() throws PoolExistsException, InterruptedException {
-		Random rand = new Random(System.currentTimeMillis());
-
 		int sizePerf = 600;
 
 		matA = TestHelper.createMatrix(sizePerf, sizePerf, 100);
@@ -142,8 +140,8 @@ public class PForJob_T {
 
 		start = System.currentTimeMillis();
 
-		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64), new MatrixMultTask(
-				sizePerf));
+		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
+				new MatrixMultTask(sizePerf));
 		pforjob.execute();
 
 		long endSer = System.currentTimeMillis() - start;
@@ -155,9 +153,8 @@ public class PForJob_T {
 	}
 
 	@Test
-	public void testMatrixMultiplyPerformanceWorkStealing() throws PoolExistsException, InterruptedException {
-		Random rand = new Random(System.currentTimeMillis());
-
+	public void testMatrixMultiplyPerformanceWorkStealing() throws PoolExistsException,
+			InterruptedException {
 		int sizePerf = 600;
 
 		matA = TestHelper.createMatrix(sizePerf, sizePerf, 100);
@@ -182,8 +179,8 @@ public class PForJob_T {
 
 		start = System.currentTimeMillis();
 
-		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64), new MatrixMultTask(
-				sizePerf));
+		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
+				new MatrixMultTask(sizePerf));
 		pforjob.execute();
 
 		long endSer = System.currentTimeMillis() - start;
@@ -233,17 +230,26 @@ public class PForJob_T {
 	@Test
 	public void testBlockRange2D() {
 
-		BlockedRange2D range = new BlockedRange2D(0, 10, 2, 0, 10, 2);
+		int sizeX = 11;
+		int sizeY = 11;
+		BlockedRange2D range = new BlockedRange2D(0, sizeX, 2, 0, sizeY, 2);
 
-		for (int i = 0; i < 10; i += 2) {
-			for (int j = 0; j < 10; j += 2) {
+		for (int i = 0; i < sizeX; i += 2) {
+			for (int j = 0; j < sizeY; j += 2) {
 				BlockedRange2D tmpRange = (BlockedRange2D) range.splitBlockedRange(1).get(0);
 
 				Assert.assertEquals(i, tmpRange.getRow().getStart());
 				Assert.assertEquals(j, tmpRange.getCol().getStart());
+				if (i + 2 <= sizeX)
+					Assert.assertEquals(i + 2, tmpRange.getRow().getEnd());
+				else
+					Assert.assertEquals(sizeX, tmpRange.getRow().getEnd());
 
-				Assert.assertEquals(i + 2, tmpRange.getRow().getEnd());
-				Assert.assertEquals(j + 2, tmpRange.getCol().getEnd());
+				if (j + 2 <= sizeY)
+					Assert.assertEquals(j + 2, tmpRange.getCol().getEnd());
+				else
+					Assert.assertEquals(sizeY, tmpRange.getCol().getEnd());
+
 			}
 		}
 
@@ -251,7 +257,26 @@ public class PForJob_T {
 
 	}
 
-	public static void main(String[] args) throws PoolExistsException, InterruptedException, IOException {
+	@Test
+	public void testBlockRange1D() {
+
+		int[] testValues = { 2, 5, 7, 10, 13, 100 };
+
+		for (int i = 0; i < testValues.length; i++) {
+			BlockedRange1D range = new BlockedRange1D(0, testValues[i], 2);
+			BlockedRange1D range1 = (BlockedRange1D) range.createInstance(0, 2);
+			BlockedRange1D range2 = (BlockedRange1D) range.createInstance(1, 2);
+
+			Assert.assertEquals(0, range1.getStart());
+			Assert.assertEquals(testValues[i] / 2, range2.getStart());
+			Assert.assertEquals(testValues[i] / 2, range1.getEnd());
+			Assert.assertEquals(testValues[i], range2.getEnd());
+		}
+
+	}
+
+	public static void main(String[] args) throws PoolExistsException, InterruptedException,
+			IOException {
 		Random rand = new Random(System.currentTimeMillis());
 
 		System.in.read();
@@ -273,7 +298,8 @@ public class PForJob_T {
 		ThreadPool pool = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(8), 8);
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask(size));
+		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10),
+				new MatrixMultTask(size));
 		pforjob.execute();
 
 		long endPar = System.currentTimeMillis() - start;

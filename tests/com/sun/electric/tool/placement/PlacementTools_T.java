@@ -26,7 +26,7 @@ package com.sun.electric.tool.placement;
 import org.junit.Test;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class PlacementTools_T {

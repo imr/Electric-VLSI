@@ -42,7 +42,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class Scheduling_T {

@@ -29,7 +29,7 @@ import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class LockFreeSkipList<T> extends IStructure<T> {

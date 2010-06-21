@@ -26,7 +26,7 @@ package com.sun.electric.tool.util.concurrent.barriers;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class SimpleTDBarrier implements TDBarrier {

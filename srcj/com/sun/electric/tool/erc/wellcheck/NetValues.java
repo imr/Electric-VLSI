@@ -24,7 +24,7 @@
 package com.sun.electric.tool.erc.wellcheck;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class NetValues {

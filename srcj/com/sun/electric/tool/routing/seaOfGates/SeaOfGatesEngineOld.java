@@ -33,7 +33,7 @@ import com.sun.electric.database.Environment;
 import com.sun.electric.tool.Job;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class SeaOfGatesEngineOld extends SeaOfGatesEngine {

@@ -27,7 +27,7 @@ import com.sun.electric.tool.util.IDEStructure;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class WorkSharingStructure<T> extends WorkStealingStructure<T> {

@@ -25,7 +25,7 @@ package com.sun.electric.tool.erc;
 
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class Utils_T {

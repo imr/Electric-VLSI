@@ -32,7 +32,7 @@ import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.runtime.PoolWorkerStrategy;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class LoadBalancing implements IDebug {

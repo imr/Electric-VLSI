@@ -42,7 +42,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class Performance_T {

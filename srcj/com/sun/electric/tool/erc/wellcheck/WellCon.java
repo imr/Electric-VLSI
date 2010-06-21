@@ -32,7 +32,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNode.Function;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class WellCon {

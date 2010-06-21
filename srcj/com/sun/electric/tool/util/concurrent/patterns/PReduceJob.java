@@ -52,7 +52,7 @@ public class PReduceJob<T> extends PForJob {
 
 	/**
 	 * 
-	 * @author fs239085
+	 * @author Felix Schmidt
 	 */
 	public abstract static class PReduceTask<T> extends PForTask implements Cloneable {
 

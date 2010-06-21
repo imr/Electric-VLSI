@@ -37,7 +37,7 @@ import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
 import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class DRCCheck implements WellCheckAnalysisStrategy {

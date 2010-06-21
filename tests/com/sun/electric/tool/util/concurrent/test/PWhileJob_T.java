@@ -34,7 +34,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PWhileJob.PWhileTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class PWhileJob_T {

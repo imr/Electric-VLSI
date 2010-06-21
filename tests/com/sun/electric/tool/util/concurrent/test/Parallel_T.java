@@ -40,7 +40,7 @@ import com.sun.electric.tool.util.concurrent.test.PReduceJob_T.PITask;
 import com.sun.electric.tool.util.concurrent.test.PWhileJob_T.WhileTestTask;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class Parallel_T {

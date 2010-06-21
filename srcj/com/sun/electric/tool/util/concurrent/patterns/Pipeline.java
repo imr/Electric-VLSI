@@ -100,7 +100,7 @@ public class Pipeline {
 
 	/**
 	 * 
-	 * @author fs239085
+	 * @author Felix Schmidt
 	 * 
 	 * @param <T>
 	 *            input type

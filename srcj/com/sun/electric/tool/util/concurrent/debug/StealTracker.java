@@ -25,7 +25,7 @@ package com.sun.electric.tool.util.concurrent.debug;
 
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class StealTracker implements IDebug {

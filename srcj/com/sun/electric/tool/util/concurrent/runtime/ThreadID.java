@@ -27,7 +27,7 @@ package com.sun.electric.tool.util.concurrent.runtime;
  * This class provides unique thread IDs for each thread. A thread gets a thread
  * ID assigned when get or set is called within the thread.
  * 
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class ThreadID {

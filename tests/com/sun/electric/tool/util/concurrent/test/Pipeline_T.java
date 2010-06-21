@@ -32,7 +32,7 @@ import com.sun.electric.tool.util.concurrent.patterns.Pipeline;
 import com.sun.electric.tool.util.concurrent.patterns.Pipeline.Filter;
 
 /**
- * @author fs239085
+ * @author Felix Schmidt
  * 
  */
 public class Pipeline_T {
