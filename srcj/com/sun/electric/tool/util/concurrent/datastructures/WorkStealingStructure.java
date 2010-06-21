@@ -26,8 +26,6 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 import java.util.List;
 import java.util.Map;
 
-import bsh.This;
-
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IDEStructure;
@@ -36,7 +34,6 @@ import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
  * This data structure is a wrapper for work stealing. Each worker has a own
