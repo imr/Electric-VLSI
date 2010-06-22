@@ -30,7 +30,14 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
 
 /**
  * 
- * Simple thread pool worker
+ * Synchronized thread pool worker
+ * 
+ * Some algorithms requires that the calculation of different steps should run
+ * step-by-step in parallel. This worker implements the PRAM aspect that in one
+ * time unit one instruction could be executed in parallel. This worker uses a
+ * bigger grain size. N (#threads) tasks could be implemented in parallel. After
+ * the parallel execution is a barrier which could be release by a timer or the
+ * client application (ThreadPool.getThreadPool().trigger()).
  * 
  * @author Felix Schmidt
  * 
