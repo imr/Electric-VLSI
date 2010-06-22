@@ -170,7 +170,7 @@ public class Performance_T {
 		public void execute(BlockedRange range) {
 
 			BlockedRange1D tmpRange = (BlockedRange1D) range;
-			for (int i = tmpRange.getStart(); i < tmpRange.getEnd(); i++) {
+			for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
 				for (int j = 0; j < i - 1; j++) {
 					float tmp = matA[j][i];
 					matA[j][i] = matA[i][j];
@@ -214,7 +214,7 @@ public class Performance_T {
 		@Override
 		public void execute(BlockedRange range) {
 			BlockedRange1D tmpRange = (BlockedRange1D) range;
-			for (int i = tmpRange.getStart(); i < tmpRange.getEnd(); i++) {
+			for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
 				localSum += data[i];
 			}
 		}

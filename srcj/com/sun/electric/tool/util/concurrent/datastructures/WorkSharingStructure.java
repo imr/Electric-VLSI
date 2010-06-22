@@ -30,6 +30,7 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
  * @author Felix Schmidt
  * 
  */
+@Deprecated
 public class WorkSharingStructure<T> extends WorkStealingStructure<T> {
 
 	/**
@@ -39,13 +40,17 @@ public class WorkSharingStructure<T> extends WorkStealingStructure<T> {
 	public WorkSharingStructure(int numOfThreads, Class<T> clazz) {
 		super(numOfThreads, clazz);
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure#remove()
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure
+	 * #remove()
 	 */
 	@Override
 	public T remove() {
-		
+
 		Long osThreadId = getThreadId();
 		Long localQueueId = dataQueuesMapping.get(osThreadId);
 
@@ -73,10 +78,8 @@ public class WorkSharingStructure<T> extends WorkStealingStructure<T> {
 		return result;
 	}
 
-	@SuppressWarnings("unused")
 	private void balance(IDEStructure<T> q0, IDEStructure<T> q1) {
-		
-	}
 
+	}
 
 }

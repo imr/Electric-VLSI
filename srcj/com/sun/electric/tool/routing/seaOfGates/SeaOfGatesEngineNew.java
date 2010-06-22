@@ -31,12 +31,20 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.SeaOfGates.SeaOfGatesOptions;
+import com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngine.NeededRoute;
+import com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngine.RouteBatches;
+import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool.ThreadPoolType;
 
@@ -95,17 +103,24 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 		try {
 
 			if (parallelDij) {
+
+				numberOfThreads = 4;
 				pools = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
 						numberOfThreads, ThreadPoolType.synchronizedPool, WorkStealingStructure
-								.createForThreadPool(numberOfThreads), numberOfThreads,
-						ThreadPoolType.simplePool, false);
+								.createForThreadPool(4), 4, ThreadPoolType.simplePool, false);
 			} else {
 				ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
 						numberOfThreads, true, ThreadPoolType.synchronizedPool);
 				// ThreadPool.initialize(numberOfThreads, true);
 			}
 		} catch (PoolExistsException e1) {}
-		PJob seaOfGatesJob = new PJob(pools[0]);
+
+		PJob seaOfGatesJob;
+		if (pools != null) {
+			seaOfGatesJob = new PJob(pools[0]);
+		} else {
+			seaOfGatesJob = new PJob();
+		}
 		// non-blocking execute
 		seaOfGatesJob.execute(false);
 
@@ -146,7 +161,11 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 					break;
 			}
 
-			pools[0].trigger();
+			if (pools != null) {
+				pools[0].trigger();
+			} else {
+				ThreadPool.getThreadPool().trigger();
+			}
 
 			String routes = "";
 			for (int i = 0; i < threadAssign; i++) {
@@ -335,6 +354,72 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 				}
 			}
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngine#makeListOfRoutes
+	 * (int, int,
+	 * com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngine.RouteBatches[],
+	 * java.util.List, java.util.List,
+	 * com.sun.electric.tool.routing.SeaOfGates.SeaOfGatesOptions)
+	 */
+	@Override
+	protected void makeListOfRoutes(int numBatches, RouteBatches[] routeBatches, List<NeededRoute> allRoutes,
+			List<ArcInst> arcsToRoute, SeaOfGatesOptions prefs, EditingPreferences ep) {
+
+		try {
+			ThreadPool.initialize(WorkStealingStructure.createForThreadPool(8));
+		} catch (PoolExistsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		Parallel.For(new BlockedRange1D(0, numBatches, numBatches / 8), new ParallelListOfRoutes(
+				routeBatches, allRoutes, arcsToRoute, prefs, ep));
+
+		try {
+			ThreadPool.getThreadPool().shutdown();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public class ParallelListOfRoutes extends PForTask {
+
+		private RouteBatches[] routeBatches;
+		private List<NeededRoute> allRoutes;
+		private List<ArcInst> arcsToRoute;
+		private SeaOfGatesOptions prefs;
+		private EditingPreferences ep;
+
+		public ParallelListOfRoutes(RouteBatches[] routeBatches, List<NeededRoute> allRoutes,
+				List<ArcInst> arcsToRoute, SeaOfGatesOptions prefs, EditingPreferences ep) {
+			this.routeBatches = routeBatches;
+			this.allRoutes = allRoutes;
+			this.arcsToRoute = arcsToRoute;
+			this.prefs = prefs;
+			this.ep = ep;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask#execute
+		 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
+		 */
+		@Override
+		public void execute(BlockedRange range) {
+			EditingPreferences.setThreadEditingPreferences(ep);
+			BlockedRange1D tmpRange = (BlockedRange1D) range;
+			doMakeListOfRoutes(tmpRange.start(), tmpRange.end(), routeBatches, allRoutes, arcsToRoute, prefs);
+
+		}
+
 	}
 
 }

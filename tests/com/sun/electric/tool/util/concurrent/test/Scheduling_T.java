@@ -124,8 +124,8 @@ public class Scheduling_T {
 		public void execute(BlockedRange range) {
 			BlockedRange2D tmpRange = (BlockedRange2D) range;
 
-			for (int i = tmpRange.getRow().getStart(); i < tmpRange.getRow().getEnd(); i++) {
-				for (int j = tmpRange.getCol().getStart(); j < tmpRange.getCol().getEnd(); j++) {
+			for (int i = tmpRange.row().start(); i < tmpRange.row().end(); i++) {
+				for (int j = tmpRange.col().start(); j < tmpRange.col().end(); j++) {
 					for (int k = 0; k < this.size; k++) {
 						synchronized (matCPar[i][j]) {
 							matCPar[i][j] += matA[i][k] * matB[k][j];

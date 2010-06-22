@@ -134,6 +134,9 @@ public class ThreadPool {
 		}
 	}
 
+	/**
+	 * Set thread pool to state sleep. Constraint: current State = started
+	 */
 	public void sleep() {
 		if (state == ThreadPoolState.Started) {
 			for (Worker worker : workers) {
@@ -143,6 +146,9 @@ public class ThreadPool {
 		}
 	}
 
+	/**
+	 * Wake up the thread pool. Constraint: current State = sleeps
+	 */
 	public void weakUp() {
 		if (this.state == ThreadPoolState.Sleeps) {
 			for (Worker worker : workers) {
@@ -152,6 +158,9 @@ public class ThreadPool {
 		}
 	}
 
+	/**
+	 * trigger workers (used for the synchronization)
+	 */
 	public void trigger() {
 		for (Worker worker : workers) {
 			worker.strategy.trigger();
@@ -167,6 +176,10 @@ public class ThreadPool {
 		taskPool.add(item);
 	}
 
+	/**
+	 * 
+	 * @return the current thread pool size (#threads)
+	 */
 	public int getPoolSize() {
 		return this.numOfThreads;
 	}
@@ -206,6 +219,9 @@ public class ThreadPool {
 			strategy.execute();
 		}
 
+		/**
+		 * shutdown the current worker
+		 */
 		public void shutdown() {
 			strategy.shutdown();
 		}
@@ -327,6 +343,15 @@ public class ThreadPool {
 		return ThreadPool.initialize(taskPool, numOfThreads, false);
 	}
 
+	/**
+	 * initialize thread pool with specific task pool and number of threads
+	 * 
+	 * @param taskPool
+	 * @param numOfThreads
+	 * @param debug
+	 * @return
+	 * @throws PoolExistsException
+	 */
 	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads,
 			boolean debug) throws PoolExistsException {
 		return initialize(taskPool, numOfThreads, debug, ThreadPoolType.simplePool);
@@ -353,6 +378,18 @@ public class ThreadPool {
 		return instance;
 	}
 
+	/**
+	 * create a double thread pool (two thread pool side by side)
+	 * 
+	 * @param taskPool1
+	 * @param numOfThreads1
+	 * @param type1
+	 * @param taskPool2
+	 * @param numOfThreads2
+	 * @param type2
+	 * @param debug
+	 * @return
+	 */
 	public static synchronized ThreadPool[] initialize(IStructure<PTask> taskPool1, int numOfThreads1,
 			ThreadPoolType type1, IStructure<PTask> taskPool2, int numOfThreads2, ThreadPoolType type2,
 			boolean debug) {
@@ -378,7 +415,7 @@ public class ThreadPool {
 		} catch (InterruptedException e) {}
 		ThreadPool.instance = null;
 	}
-
+	
 	private static int getNumOfThreads() {
 		return Runtime.getRuntime().availableProcessors();
 	}

@@ -62,6 +62,7 @@ public class SynchronizedWorker extends PoolWorkerStrategy {
 	 * This function iterates while the flag abort is false. <br>
 	 * <b>Algorithm:</b>
 	 * <ul>
+	 * <li>wait for trigger</li>
 	 * <li>pick one task from thread pool's task queue</li>
 	 * <li>if task not equal to null, then set threadId and do some
 	 * initialization work on the task object</li>

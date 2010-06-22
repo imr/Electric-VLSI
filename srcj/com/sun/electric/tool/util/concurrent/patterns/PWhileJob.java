@@ -123,6 +123,22 @@ public class PWhileJob<T> extends PJob {
 			}
 			return;
 		}
+		
+		/* (non-Javadoc)
+		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#after()
+		 */
+		@Override
+		public void after() {
+			this.task.after();
+		}
+		
+		/* (non-Javadoc)
+		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#before()
+		 */
+		@Override
+		public void before() {
+			this.task.before();
+		}
 	}
 
 }

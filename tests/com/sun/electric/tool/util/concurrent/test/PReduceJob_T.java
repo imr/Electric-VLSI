@@ -126,7 +126,7 @@ public class PReduceJob_T {
 			BlockedRange1D tmpRange = (BlockedRange1D) range;
 			this.pi = 0.0;
 
-			for (int i = tmpRange.getStart(); i < tmpRange.getEnd(); i++) {
+			for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
 				double x = step * ((double) i - 0.5);
 				this.pi += 4.0 / (1.0 + x * x);
 			}

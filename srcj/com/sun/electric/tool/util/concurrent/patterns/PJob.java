@@ -23,10 +23,9 @@
  */
 package com.sun.electric.tool.util.concurrent.patterns;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.sun.electric.tool.util.concurrent.barriers.SimpleTDBarrier;
 import com.sun.electric.tool.util.concurrent.barriers.TDBarrier;
+import com.sun.electric.tool.util.concurrent.exceptions.PoolNotInitializedException;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
@@ -37,9 +36,6 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 public class PJob {
 
 	public static final int SERIAL = -1;
-
-	protected AtomicInteger numOfTasksTotal = new AtomicInteger(0);
-	protected AtomicInteger numOfTasksFinished = new AtomicInteger(0);
 	protected ThreadPool pool;
 	protected TDBarrier barrier;
 
@@ -95,8 +91,12 @@ public class PJob {
 	 * @param task
 	 */
 	public synchronized void add(PTask task, int threadID) {
-		barrier.setActive(false);
-		pool.add(task);
+		if (pool != null) {
+			barrier.setActive(false);
+			pool.add(task);
+		} else {
+			throw new PoolNotInitializedException();
+		}
 	}
 
 	/**

@@ -71,8 +71,7 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 
 		for (long i = 0; i < numOfThreads; i++) {
 			freeInternalIds.add(i);
-			// dataQueues.put(i,
-			// CollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
+			// dataQueues.put(i, CollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
 			dataQueues.put(i, new DEListWrapper<T>());
 		}
 
@@ -185,7 +184,6 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 				int foreigner = randomizer.getRandomizer().nextInt(dataQueues.size());
 				result = dataQueues.get(Long.valueOf(foreigner)).getFromTop();
 			}
-			// TODO fschmidt
 			if (result != null && this.debug)
 				stealTracker.countSteal();
 		}

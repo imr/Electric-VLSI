@@ -740,7 +740,7 @@ public class ERCWellCheck2 {
 		@Override
 		public void execute(BlockedRange range) {
 			BlockedRange1D range1D = (BlockedRange1D) range;
-			for (int i = range1D.getStart(); i < range1D.getEnd(); i++) {
+			for (int i = range1D.start(); i < range1D.end(); i++) {
 				WellCon con = wellCons.get(i);
 				GridDim tmpDim = calculateBucket(con, sizeX, sizeY);
 				int threadId = tmpDim.xDim + tmpDim.yDim * dim.xDim;

@@ -25,6 +25,8 @@ package com.sun.electric.tool.util.concurrent.runtime;
 
 import java.util.Random;
 
+// FIXME this randomizer is not workable at all with two thread pools
+
 /**
  * In multi-threaded environment it is important for randomizations that each
  * thread has its own randomizer. Each randomizer has its own start seed. So
@@ -63,7 +65,8 @@ public class MultiThreadedRandomizer {
 	 */
 	public Random getRandomizer() {
 		int threadId = ThreadID.get();
-		if (threadId < 0 || threadId >= numOfCores) return new Random(System.currentTimeMillis());
+		if (threadId < 0 || threadId >= numOfCores)
+			return new Random(System.currentTimeMillis());
 		return randomizers[ThreadID.get()];
 	}
 

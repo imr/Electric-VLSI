@@ -32,11 +32,13 @@ import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
  * @author Felix Schmidt
  * 
  */
+@Deprecated
 public class LockFreeSkipList<T> extends IStructure<T> {
 
 	private static final int MAX_LEVEL = 4;
 	private MultiThreadedRandomizer randomizer;
 	private final Node<T> head = new Node<T>(Integer.MAX_VALUE);
+	@SuppressWarnings("unused")
 	private final Node<T> tail = new Node<T>(Integer.MAX_VALUE);
 
 	public LockFreeSkipList() {
@@ -138,7 +140,6 @@ public class LockFreeSkipList<T> extends IStructure<T> {
 	 */
 	@Override
 	public boolean isEmpty() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -149,14 +150,15 @@ public class LockFreeSkipList<T> extends IStructure<T> {
 	 */
 	@Override
 	public T remove() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public static final class Node<T> {
+		@SuppressWarnings("unused")
 		private final T value;
 		private final int key;
 		private final AtomicMarkableReference<Node<T>>[] next;
+		@SuppressWarnings("unused")
 		private int topLevel;
 
 		/**

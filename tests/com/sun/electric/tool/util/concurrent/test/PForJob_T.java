@@ -66,7 +66,7 @@ public class PForJob_T {
 
 			BlockedRange1D tmpRange = (BlockedRange1D) range;
 
-			for (int i = tmpRange.getStart(); i < tmpRange.getEnd(); i++) {
+			for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
 				System.out.println("task: " + id + ", " + i);
 			}
 
@@ -213,8 +213,8 @@ public class PForJob_T {
 		public void execute(BlockedRange range) {
 			BlockedRange2D tmpRange = (BlockedRange2D) range;
 
-			for (int i = tmpRange.getRow().getStart(); i < tmpRange.getRow().getEnd(); i++) {
-				for (int j = tmpRange.getCol().getStart(); j < tmpRange.getCol().getEnd(); j++) {
+			for (int i = tmpRange.row().start(); i < tmpRange.row().end(); i++) {
+				for (int j = tmpRange.col().start(); j < tmpRange.col().end(); j++) {
 					for (int k = 0; k < this.size; k++) {
 						synchronized (matCPar[i][j]) {
 							matCPar[i][j] += matA[i][k] * matB[k][j];
@@ -238,17 +238,17 @@ public class PForJob_T {
 			for (int j = 0; j < sizeY; j += 2) {
 				BlockedRange2D tmpRange = (BlockedRange2D) range.splitBlockedRange(1).get(0);
 
-				Assert.assertEquals(i, tmpRange.getRow().getStart());
-				Assert.assertEquals(j, tmpRange.getCol().getStart());
+				Assert.assertEquals(i, tmpRange.row().start());
+				Assert.assertEquals(j, tmpRange.col().start());
 				if (i + 2 <= sizeX)
-					Assert.assertEquals(i + 2, tmpRange.getRow().getEnd());
+					Assert.assertEquals(i + 2, tmpRange.row().end());
 				else
-					Assert.assertEquals(sizeX, tmpRange.getRow().getEnd());
+					Assert.assertEquals(sizeX, tmpRange.row().end());
 
 				if (j + 2 <= sizeY)
-					Assert.assertEquals(j + 2, tmpRange.getCol().getEnd());
+					Assert.assertEquals(j + 2, tmpRange.col().end());
 				else
-					Assert.assertEquals(sizeY, tmpRange.getCol().getEnd());
+					Assert.assertEquals(sizeY, tmpRange.col().end());
 
 			}
 		}
@@ -267,10 +267,10 @@ public class PForJob_T {
 			BlockedRange1D range1 = (BlockedRange1D) range.createInstance(0, 2);
 			BlockedRange1D range2 = (BlockedRange1D) range.createInstance(1, 2);
 
-			Assert.assertEquals(0, range1.getStart());
-			Assert.assertEquals(testValues[i] / 2, range2.getStart());
-			Assert.assertEquals(testValues[i] / 2, range1.getEnd());
-			Assert.assertEquals(testValues[i], range2.getEnd());
+			Assert.assertEquals(0, range1.start());
+			Assert.assertEquals(testValues[i] / 2, range2.start());
+			Assert.assertEquals(testValues[i] / 2, range1.end());
+			Assert.assertEquals(testValues[i], range2.end());
 		}
 
 	}

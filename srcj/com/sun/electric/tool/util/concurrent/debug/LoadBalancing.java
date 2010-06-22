@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.runtime.PoolWorkerStrategy;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
 
 /**
  * @author Felix Schmidt
@@ -40,17 +39,9 @@ public class LoadBalancing implements IDebug {
 
 	private static LoadBalancing instance = new LoadBalancing();
 	private Set<PoolWorkerStrategy> workers;
-	private ThreadPool pool;
 
 	private LoadBalancing() {
-		this(ThreadPool.getThreadPool());
-	}
-
-	private LoadBalancing(ThreadPool pool) {
-
 		workers = CollectionFactory.createConcurrentHashSet();
-		this.pool = pool;
-
 	}
 
 	public static LoadBalancing getInstance() {

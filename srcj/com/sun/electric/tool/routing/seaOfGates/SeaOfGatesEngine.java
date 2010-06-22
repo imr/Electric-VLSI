@@ -464,8 +464,11 @@ public abstract class SeaOfGatesEngine {
 		if (initializeDesignRules(cell, prefs))
 			return 0;
 
+		EditingPreferences ep = cell.getEditingPreferences();
+
 		// user-interface initialization
 		long startTime = System.currentTimeMillis();
+		long debugTime = startTime;
 		Job.getUserInterface().startProgressDialog("Routing " + arcsToRoute.size() + " nets", null);
 		Job.getUserInterface().setProgressNote("Building blockage information...");
 
@@ -492,218 +495,11 @@ public abstract class SeaOfGatesEngine {
 		List<NeededRoute> allRoutes = new ArrayList<NeededRoute>();
 		int numBatches = arcsToRoute.size();
 		RouteBatches[] routeBatches = new RouteBatches[numBatches];
-		for (int b = 0; b < numBatches; b++) {
-			// get list of PortInsts that comprise this net
-			ArcInst ai = arcsToRoute.get(b);
-			Netlist netList = cell.getNetlist();
-			Network net = netList.getNetwork(ai, 0);
-			if (net == null) {
-				System.out.println("Arc " + ai.describe(false) + " has no network!");
-				continue;
-			}
-			Set<ArcInst> arcsToDelete = new HashSet<ArcInst>();
-			Set<NodeInst> nodesToDelete = new HashSet<NodeInst>();
-			Map<Network, ArcInst[]> arcMap = null;
-			if (cell.getView() != View.SCHEMATIC)
-				arcMap = netList.getArcInstsByNetwork();
-			List<Connection> netEnds = Routing.findNetEnds(net, arcMap, arcsToDelete, nodesToDelete, netList,
-					true);
-			List<PortInst> orderedPorts = makeOrderedPorts(net, netEnds);
-			if (orderedPorts == null) {
-				System.out.println("No valid connection points found on the network.");
-				continue;
-			}
-			routeBatches[b] = new RouteBatches();
-			routeBatches[b].unroutedArcs = arcsToDelete;
-			routeBatches[b].unroutedNodes = nodesToDelete;
-			routeBatches[b].orderedPorts = orderedPorts;
-			routeBatches[b].segsInBatch = 0;
 
-			// determine the minimum width of arcs on this net
-			double minWidth = getMinWidth(orderedPorts, prefs);
-			int netID = -1;
-			Integer netIDI = netIDs.get(ai);
-			if (netIDI != null)
-				netID = netIDI.intValue() - 1;
+		this.makeListOfRoutes(numBatches, routeBatches, allRoutes, arcsToRoute, prefs, ep);
 
-			// find a path between the ends of the network
-			int batchNumber = 1;
-			for (int i = 0; i < orderedPorts.size() - 1; i++) {
-				PortInst fromPi = orderedPorts.get(i);
-				PortInst toPi = orderedPorts.get(i + 1);
-				if (inValidPort(fromPi) || inValidPort(toPi))
-					continue;
-
-				// get information about one end of the path
-				ArcProto fromArc = null;
-				ArcProto[] fromArcs = fromPi.getPortProto().getBasePort().getConnections();
-				for (int j = 0; j < fromArcs.length; j++)
-					if (fromArcs[j].getFunction().isMetal()) {
-						fromArc = fromArcs[j];
-						break;
-					}
-				if (fromArc == null) {
-					String errorMsg = "Cannot connect port " + fromPi.getPortProto().getName() + " of node "
-							+ fromPi.getNodeInst().describe(false) + " because it has no metal connection";
-					System.out.println("ERROR: " + errorMsg);
-					List<PolyBase> polyList = new ArrayList<PolyBase>();
-					polyList.add(fromPi.getPoly());
-					errorLogger.logMessage(errorMsg, polyList, cell, 0, true);
-					continue;
-				}
-
-				// get information about the other end of the path
-				ArcProto toArc = null;
-				ArcProto[] toArcs = toPi.getPortProto().getBasePort().getConnections();
-				for (int j = 0; j < toArcs.length; j++)
-					if (toArcs[j].getFunction().isMetal()) {
-						toArc = toArcs[j];
-						break;
-					}
-				if (toArc == null) {
-					String errorMsg = "Cannot connect port " + toPi.getPortProto().getName() + " of node "
-							+ toPi.getNodeInst().describe(false) + " because it has no metal connection";
-					System.out.println("ERROR: " + errorMsg);
-					List<PolyBase> polyList = new ArrayList<PolyBase>();
-					polyList.add(toPi.getPoly());
-					errorLogger.logMessage(errorMsg, polyList, cell, 0, true);
-					continue;
-				}
-
-				if (fromArc.getTechnology() != tech || toArc.getTechnology() != tech) {
-					String errorMsg = "Route from port " + fromPi.getPortProto().getName() + " of node "
-							+ fromPi.getNodeInst().describe(false) + " on arc " + fromArc.describe()
-							+ " cannot connect to port " + toPi.getPortProto().getName() + " of node "
-							+ toPi.getNodeInst().describe(false) + " on arc " + toArc.describe()
-							+ " because they have different technologies";
-					System.out.println("ERROR: " + errorMsg);
-					List<PolyBase> polyList = new ArrayList<PolyBase>();
-					PolyBase fromPoly = fromPi.getPoly();
-					PolyBase toPoly = toPi.getPoly();
-					polyList.add(fromPoly);
-					polyList.add(toPoly);
-					List<EPoint> lineList = new ArrayList<EPoint>();
-					lineList.add(new EPoint(toPoly.getCenterX(), toPoly.getCenterY()));
-					lineList.add(new EPoint(fromPoly.getCenterX(), fromPoly.getCenterY()));
-					errorLogger.logMessageWithLines(errorMsg, polyList, lineList, cell, 0, true);
-					continue;
-				}
-
-				// determine the coordinates of the route
-				EPoint fromLoc = fromPi.getPoly().getCenter();
-				EPoint toLoc = toPi.getPoly().getCenter();
-				double fromX = fromLoc.getX(), fromY = fromLoc.getY();
-				double toX = toLoc.getX(), toY = toLoc.getY();
-				if (toLoc.getX() < fromLoc.getX()) {
-					toX = upToGrain(toLoc.getX());
-					fromX = downToGrain(fromLoc.getX());
-				} else if (toLoc.getX() > fromLoc.getX()) {
-					toX = downToGrain(toLoc.getX());
-					fromX = upToGrain(fromLoc.getX());
-				} else {
-					toX = fromX = upToGrain(fromLoc.getX());
-				}
-				if (toLoc.getY() < fromLoc.getY()) {
-					toY = upToGrain(toLoc.getY());
-					fromY = downToGrain(fromLoc.getY());
-				} else if (toLoc.getY() > fromLoc.getY()) {
-					toY = downToGrain(toLoc.getY());
-					fromY = upToGrain(fromLoc.getY());
-				} else {
-					toY = fromY = upToGrain(fromLoc.getY());
-				}
-				int fromZ = fromArc.getFunction().getLevel() - 1;
-				int toZ = toArc.getFunction().getLevel() - 1;
-
-				// see if access is blocked
-				double metalSpacing = Math.max(metalArcs[fromZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
-
-				// determine "from" surround
-				Layer lay = metalLayers[fromZ];
-				DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, metalArcs[fromZ]
-						.getDefaultLambdaBaseWidth(), -1);
-				double surround = 0;
-				if (rule != null)
-					surround = rule.getValue(0);
-				SOGBound block = getMetalBlockage(netID, fromZ, metalSpacing, metalSpacing, surround, fromX,
-						fromY);
-				if (block != null) {
-					// see if gridding caused the blockage
-					fromX = fromLoc.getX();
-					fromY = fromLoc.getY();
-					block = getMetalBlockage(netID, fromZ, metalSpacing, metalSpacing, surround, fromX, fromY);
-					if (block != null) {
-						String errorMsg = "Cannot Route to port " + fromPi.getPortProto().getName()
-								+ " of node " + fromPi.getNodeInst().describe(false) + " at ("
-								+ TextUtils.formatDistance(fromX) + "," + TextUtils.formatDistance(fromY)
-								+ ") because it is blocked on layer " + metalLayers[fromZ].getName()
-								+ " [needs " + TextUtils.formatDistance(metalSpacing + surround)
-								+ " all around, blockage is "
-								+ TextUtils.formatDistance(block.bound.getMinX()) + "<=X<="
-								+ TextUtils.formatDistance(block.bound.getMaxX()) + " and "
-								+ TextUtils.formatDistance(block.bound.getMinY()) + "<=Y<="
-								+ TextUtils.formatDistance(block.bound.getMaxY()) + "]";
-						System.out.println(errorMsg);
-						List<PolyBase> polyList = new ArrayList<PolyBase>();
-						polyList.add(new PolyBase(fromX, fromY, (metalSpacing + surround) * 2,
-								(metalSpacing + surround) * 2));
-						polyList.add(new PolyBase(block.bound));
-						List<EPoint> lineList = new ArrayList<EPoint>();
-						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
-						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
-						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
-						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
-						errorLogger.logMessageWithLines(errorMsg, polyList, lineList, cell, 0, true);
-						continue;
-					}
-				}
-				metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
-
-				// determine "to" surround
-				lay = metalLayers[toZ];
-				rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, metalArcs[toZ]
-						.getDefaultLambdaBaseWidth(), -1);
-				surround = 0;
-				if (rule != null)
-					surround = rule.getValue(0);
-				block = getMetalBlockage(netID, toZ, metalSpacing, metalSpacing, surround, toX, toY);
-				if (block != null) {
-					// see if gridding caused the blockage
-					toX = toLoc.getX();
-					toY = toLoc.getY();
-					block = getMetalBlockage(netID, toZ, metalSpacing, metalSpacing, surround, toX, toY);
-					if (block != null) {
-						String errorMsg = "Cannot route to port " + toPi.getPortProto().getName()
-								+ " of node " + toPi.getNodeInst().describe(false) + " at ("
-								+ TextUtils.formatDistance(toX) + "," + TextUtils.formatDistance(toY)
-								+ ") because it is blocked on layer " + metalLayers[toZ].getName()
-								+ " [needs " + TextUtils.formatDistance(metalSpacing + surround)
-								+ " all around, blockage is "
-								+ TextUtils.formatDistance(block.bound.getMinX()) + "<=X<="
-								+ TextUtils.formatDistance(block.bound.getMaxX()) + " and "
-								+ TextUtils.formatDistance(block.bound.getMinY()) + "<=Y<="
-								+ TextUtils.formatDistance(block.bound.getMaxY()) + "]";
-						System.out.println("ERROR: " + errorMsg);
-						List<PolyBase> polyList = new ArrayList<PolyBase>();
-						polyList.add(new PolyBase(toX, toY, (metalSpacing + surround) * 2,
-								(metalSpacing + surround) * 2));
-						polyList.add(new PolyBase(block.bound));
-						List<EPoint> lineList = new ArrayList<EPoint>();
-						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
-						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
-						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
-						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
-						errorLogger.logMessageWithLines(errorMsg, polyList, lineList, cell, 0, true);
-						continue;
-					}
-				}
-				NeededRoute nr = new NeededRoute(net.getName(), fromPi, fromX, fromY, fromZ, toPi, toX, toY,
-						toZ, netID, minWidth, b, batchNumber++, prefs);
-				routeBatches[b].segsInBatch++;
-				allRoutes.add(nr);
-			}
-		}
-
+		long endDebug = System.currentTimeMillis();
+		System.out.println("### debug time (initialize): " + TextUtils.getElapsedTime(endDebug - debugTime));
 		// now do the actual routing
 		boolean parallel = prefs.useParallelRoutes;
 		parallelDij = prefs.useParallelFromToRoutes;
@@ -736,7 +532,6 @@ public abstract class SeaOfGatesEngine {
 			System.out.println(message);
 		}
 		Environment env = Environment.getThreadEnvironment();
-		EditingPreferences ep = cell.getEditingPreferences();
 
 		startRouting(numberOfThreads, allRoutes, routeBatches, env, ep, job);
 
@@ -1011,6 +806,228 @@ public abstract class SeaOfGatesEngine {
 			viaSurround[i] = spacing + width;
 		}
 		return false;
+	}
+
+	protected void makeListOfRoutes(int numBatches, RouteBatches[] routeBatches, List<NeededRoute> allRoutes,
+			List<ArcInst> arcsToRoute, SeaOfGates.SeaOfGatesOptions prefs, EditingPreferences ep) {
+
+		this.doMakeListOfRoutes(0, numBatches, routeBatches, allRoutes, arcsToRoute, prefs);
+
+	}
+
+	protected void doMakeListOfRoutes(int start, int end, RouteBatches[] routeBatches,
+			List<NeededRoute> allRoutes, List<ArcInst> arcsToRoute, SeaOfGates.SeaOfGatesOptions prefs) {
+		for (int b = start; b < end; b++) {
+			// get list of PortInsts that comprise this net
+			ArcInst ai = arcsToRoute.get(b);
+			Netlist netList = cell.getNetlist();
+			Network net = netList.getNetwork(ai, 0);
+			if (net == null) {
+				System.out.println("Arc " + ai.describe(false) + " has no network!");
+				continue;
+			}
+			Set<ArcInst> arcsToDelete = new HashSet<ArcInst>();
+			Set<NodeInst> nodesToDelete = new HashSet<NodeInst>();
+			Map<Network, ArcInst[]> arcMap = null;
+			if (cell.getView() != View.SCHEMATIC)
+				arcMap = netList.getArcInstsByNetwork();
+			List<Connection> netEnds = Routing.findNetEnds(net, arcMap, arcsToDelete, nodesToDelete, netList,
+					true);
+			List<PortInst> orderedPorts = makeOrderedPorts(net, netEnds);
+			if (orderedPorts == null) {
+				System.out.println("No valid connection points found on the network.");
+				continue;
+			}
+			routeBatches[b] = new RouteBatches();
+			routeBatches[b].unroutedArcs = arcsToDelete;
+			routeBatches[b].unroutedNodes = nodesToDelete;
+			routeBatches[b].orderedPorts = orderedPorts;
+			routeBatches[b].segsInBatch = 0;
+
+			// determine the minimum width of arcs on this net
+			double minWidth = getMinWidth(orderedPorts, prefs);
+			int netID = -1;
+			Integer netIDI = netIDs.get(ai);
+			if (netIDI != null)
+				netID = netIDI.intValue() - 1;
+
+			// find a path between the ends of the network
+			int batchNumber = 1;
+			for (int i = 0; i < orderedPorts.size() - 1; i++) {
+				PortInst fromPi = orderedPorts.get(i);
+				PortInst toPi = orderedPorts.get(i + 1);
+				if (inValidPort(fromPi) || inValidPort(toPi))
+					continue;
+
+				// get information about one end of the path
+				ArcProto fromArc = null;
+				ArcProto[] fromArcs = fromPi.getPortProto().getBasePort().getConnections();
+				for (int j = 0; j < fromArcs.length; j++)
+					if (fromArcs[j].getFunction().isMetal()) {
+						fromArc = fromArcs[j];
+						break;
+					}
+				if (fromArc == null) {
+					String errorMsg = "Cannot connect port " + fromPi.getPortProto().getName() + " of node "
+							+ fromPi.getNodeInst().describe(false) + " because it has no metal connection";
+					System.out.println("ERROR: " + errorMsg);
+					List<PolyBase> polyList = new ArrayList<PolyBase>();
+					polyList.add(fromPi.getPoly());
+					errorLogger.logMessage(errorMsg, polyList, cell, 0, true);
+					continue;
+				}
+
+				// get information about the other end of the path
+				ArcProto toArc = null;
+				ArcProto[] toArcs = toPi.getPortProto().getBasePort().getConnections();
+				for (int j = 0; j < toArcs.length; j++)
+					if (toArcs[j].getFunction().isMetal()) {
+						toArc = toArcs[j];
+						break;
+					}
+				if (toArc == null) {
+					String errorMsg = "Cannot connect port " + toPi.getPortProto().getName() + " of node "
+							+ toPi.getNodeInst().describe(false) + " because it has no metal connection";
+					System.out.println("ERROR: " + errorMsg);
+					List<PolyBase> polyList = new ArrayList<PolyBase>();
+					polyList.add(toPi.getPoly());
+					errorLogger.logMessage(errorMsg, polyList, cell, 0, true);
+					continue;
+				}
+
+				if (fromArc.getTechnology() != tech || toArc.getTechnology() != tech) {
+					String errorMsg = "Route from port " + fromPi.getPortProto().getName() + " of node "
+							+ fromPi.getNodeInst().describe(false) + " on arc " + fromArc.describe()
+							+ " cannot connect to port " + toPi.getPortProto().getName() + " of node "
+							+ toPi.getNodeInst().describe(false) + " on arc " + toArc.describe()
+							+ " because they have different technologies";
+					System.out.println("ERROR: " + errorMsg);
+					List<PolyBase> polyList = new ArrayList<PolyBase>();
+					PolyBase fromPoly = fromPi.getPoly();
+					PolyBase toPoly = toPi.getPoly();
+					polyList.add(fromPoly);
+					polyList.add(toPoly);
+					List<EPoint> lineList = new ArrayList<EPoint>();
+					lineList.add(new EPoint(toPoly.getCenterX(), toPoly.getCenterY()));
+					lineList.add(new EPoint(fromPoly.getCenterX(), fromPoly.getCenterY()));
+					errorLogger.logMessageWithLines(errorMsg, polyList, lineList, cell, 0, true);
+					continue;
+				}
+
+				// determine the coordinates of the route
+				EPoint fromLoc = fromPi.getPoly().getCenter();
+				EPoint toLoc = toPi.getPoly().getCenter();
+				double fromX = fromLoc.getX(), fromY = fromLoc.getY();
+				double toX = toLoc.getX(), toY = toLoc.getY();
+				if (toLoc.getX() < fromLoc.getX()) {
+					toX = upToGrain(toLoc.getX());
+					fromX = downToGrain(fromLoc.getX());
+				} else if (toLoc.getX() > fromLoc.getX()) {
+					toX = downToGrain(toLoc.getX());
+					fromX = upToGrain(fromLoc.getX());
+				} else {
+					toX = fromX = upToGrain(fromLoc.getX());
+				}
+				if (toLoc.getY() < fromLoc.getY()) {
+					toY = upToGrain(toLoc.getY());
+					fromY = downToGrain(fromLoc.getY());
+				} else if (toLoc.getY() > fromLoc.getY()) {
+					toY = downToGrain(toLoc.getY());
+					fromY = upToGrain(fromLoc.getY());
+				} else {
+					toY = fromY = upToGrain(fromLoc.getY());
+				}
+				int fromZ = fromArc.getFunction().getLevel() - 1;
+				int toZ = toArc.getFunction().getLevel() - 1;
+
+				// see if access is blocked
+				double metalSpacing = Math.max(metalArcs[fromZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
+
+				// determine "from" surround
+				Layer lay = metalLayers[fromZ];
+				DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, metalArcs[fromZ]
+						.getDefaultLambdaBaseWidth(), -1);
+				double surround = 0;
+				if (rule != null)
+					surround = rule.getValue(0);
+				SOGBound block = getMetalBlockage(netID, fromZ, metalSpacing, metalSpacing, surround, fromX,
+						fromY);
+				if (block != null) {
+					// see if gridding caused the blockage
+					fromX = fromLoc.getX();
+					fromY = fromLoc.getY();
+					block = getMetalBlockage(netID, fromZ, metalSpacing, metalSpacing, surround, fromX, fromY);
+					if (block != null) {
+						String errorMsg = "Cannot Route to port " + fromPi.getPortProto().getName()
+								+ " of node " + fromPi.getNodeInst().describe(false) + " at ("
+								+ TextUtils.formatDistance(fromX) + "," + TextUtils.formatDistance(fromY)
+								+ ") because it is blocked on layer " + metalLayers[fromZ].getName()
+								+ " [needs " + TextUtils.formatDistance(metalSpacing + surround)
+								+ " all around, blockage is "
+								+ TextUtils.formatDistance(block.bound.getMinX()) + "<=X<="
+								+ TextUtils.formatDistance(block.bound.getMaxX()) + " and "
+								+ TextUtils.formatDistance(block.bound.getMinY()) + "<=Y<="
+								+ TextUtils.formatDistance(block.bound.getMaxY()) + "]";
+						System.out.println(errorMsg);
+						List<PolyBase> polyList = new ArrayList<PolyBase>();
+						polyList.add(new PolyBase(fromX, fromY, (metalSpacing + surround) * 2,
+								(metalSpacing + surround) * 2));
+						polyList.add(new PolyBase(block.bound));
+						List<EPoint> lineList = new ArrayList<EPoint>();
+						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
+						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
+						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
+						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
+						errorLogger.logMessageWithLines(errorMsg, polyList, lineList, cell, 0, true);
+						continue;
+					}
+				}
+				metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
+
+				// determine "to" surround
+				lay = metalLayers[toZ];
+				rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, metalArcs[toZ]
+						.getDefaultLambdaBaseWidth(), -1);
+				surround = 0;
+				if (rule != null)
+					surround = rule.getValue(0);
+				block = getMetalBlockage(netID, toZ, metalSpacing, metalSpacing, surround, toX, toY);
+				if (block != null) {
+					// see if gridding caused the blockage
+					toX = toLoc.getX();
+					toY = toLoc.getY();
+					block = getMetalBlockage(netID, toZ, metalSpacing, metalSpacing, surround, toX, toY);
+					if (block != null) {
+						String errorMsg = "Cannot route to port " + toPi.getPortProto().getName()
+								+ " of node " + toPi.getNodeInst().describe(false) + " at ("
+								+ TextUtils.formatDistance(toX) + "," + TextUtils.formatDistance(toY)
+								+ ") because it is blocked on layer " + metalLayers[toZ].getName()
+								+ " [needs " + TextUtils.formatDistance(metalSpacing + surround)
+								+ " all around, blockage is "
+								+ TextUtils.formatDistance(block.bound.getMinX()) + "<=X<="
+								+ TextUtils.formatDistance(block.bound.getMaxX()) + " and "
+								+ TextUtils.formatDistance(block.bound.getMinY()) + "<=Y<="
+								+ TextUtils.formatDistance(block.bound.getMaxY()) + "]";
+						System.out.println("ERROR: " + errorMsg);
+						List<PolyBase> polyList = new ArrayList<PolyBase>();
+						polyList.add(new PolyBase(toX, toY, (metalSpacing + surround) * 2,
+								(metalSpacing + surround) * 2));
+						polyList.add(new PolyBase(block.bound));
+						List<EPoint> lineList = new ArrayList<EPoint>();
+						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMinY()));
+						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMaxY()));
+						lineList.add(new EPoint(block.bound.getMinX(), block.bound.getMaxY()));
+						lineList.add(new EPoint(block.bound.getMaxX(), block.bound.getMinY()));
+						errorLogger.logMessageWithLines(errorMsg, polyList, lineList, cell, 0, true);
+						continue;
+					}
+				}
+				NeededRoute nr = new NeededRoute(net.getName(), fromPi, fromX, fromY, fromZ, toPi, toX, toY,
+						toZ, netID, minWidth, b, batchNumber++, prefs);
+				routeBatches[b].segsInBatch++;
+				allRoutes.add(nr);
+			}
+		}
 	}
 
 	private double getMinWidth(List<PortInst> orderedPorts, SeaOfGates.SeaOfGatesOptions prefs) {

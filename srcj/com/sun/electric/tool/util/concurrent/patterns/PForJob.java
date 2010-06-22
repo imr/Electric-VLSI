@@ -233,15 +233,15 @@ public class PForJob extends PJob {
 			this.step = step;
 		}
 
-		public int getStart() {
+		public int start() {
 			return start;
 		}
 
-		public int getEnd() {
+		public int end() {
 			return end;
 		}
 
-		public int getStep() {
+		public int step() {
 			return step;
 		}
 
@@ -272,15 +272,15 @@ public class PForJob extends PJob {
 			this.range = new Range(start, end, step);
 		}
 
-		public int getStart() {
+		public int start() {
 			return range.start;
 		}
 
-		public int getEnd() {
+		public int end() {
 			return range.end;
 		}
 
-		public int getStep() {
+		public int step() {
 			return range.end;
 		}
 
@@ -341,11 +341,11 @@ public class PForJob extends PJob {
 			this.row = new Range(startRow, endRow, stepRow);
 		}
 
-		public Range getCol() {
+		public Range col() {
 			return col;
 		}
 
-		public Range getRow() {
+		public Range row() {
 			return row;
 		}
 
