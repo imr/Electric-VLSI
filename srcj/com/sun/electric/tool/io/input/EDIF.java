@@ -221,7 +221,6 @@ public class EDIF extends Input<Object>
 		/** the basic electric node */	private NodeProto node;
 		/** default text height */		private double textHeight;
 		/** default justification */	private TextDescriptor.Position justification;
-		/** layer is visible */			private boolean visible;
 	}
 
 	// Edif viewtypes ...
@@ -337,7 +336,6 @@ public class EDIF extends Input<Object>
 	/** Text string */							private String textString;
 	/** the current default text height */		private double textHeight;
 	/** the current text justificaton */		private TextDescriptor.Position textJustification;
-	/** is stringdisplay visible */				private boolean textVisible;
 	/** origin x and y */						private List<Point2D> saveTextPoints;
 	/** the height of text */					private double saveTextHeight;
 	/** justification of the text */			private TextDescriptor.Position saveTextJustification;
@@ -539,7 +537,6 @@ public class EDIF extends Input<Object>
 		// text inits
 		textHeight = 0;
 		textJustification = TextDescriptor.Position.DOWNRIGHT;
-		textVisible = true;
 		freeSavedPointList();
 
 		sheetXPos = sheetYPos = -1;
@@ -919,7 +916,6 @@ public class EDIF extends Input<Object>
 				curFigureGroup = nt.node;
 				textHeight = nt.textHeight;
 				textJustification = nt.justification;
-				textVisible = nt.visible;
 
 				// allow new definitions
 				curActiveFigure = nt;
@@ -935,7 +931,6 @@ public class EDIF extends Input<Object>
 		curFigureGroup = nt.node;
 		textHeight = nt.textHeight = 0;
 		textJustification = nt.justification = TextDescriptor.Position.DOWNRIGHT;
-		textVisible = nt.visible = true;
 
 		// allow new definitions
 		curActiveFigure = nt;
@@ -1330,7 +1325,6 @@ public class EDIF extends Input<Object>
 			{
 				// now locate a portproto
 				NodeInst ni = (NodeInst)geom;
-//				if (offpageNodes != null && offpageNodes.contains(ni)) continue;
 				for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 				{
 					PortInst pi = it.next();
@@ -1743,6 +1737,9 @@ public class EDIF extends Input<Object>
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + name + ">");
 			errorCount++;
 		}
+		TextDescriptor td = plp.createdPort.getTextDescriptor(Export.EXPORT_NAME);
+		td = td.withPos(TextDescriptor.Position.UP);
+		plp.createdPort.setTextDescriptor(Export.EXPORT_NAME, td);
 
 		// when creating an export on a schematic, copy characteristics from the icon
 		if (curCell.getView() == View.SCHEMATIC)
@@ -2210,7 +2207,6 @@ public class EDIF extends Input<Object>
 					// allocate the cell
 					proto = createCell(null, cellName, view.getAbbreviation());
 					if (proto == null) throw new IOException("Error creating cell");
-//					if (view == View.SCHEMATIC) proto.newVar(User.FRAME_SIZE, "d");		// NOT NOW PLEASE!
 				} else
 				{
 					if (activeView == VSCHEMATIC) ignoreBlock = true;
@@ -2369,7 +2365,6 @@ public class EDIF extends Input<Object>
 			nt.replace = getToken((char)0);
 			nt.textHeight = 0;
 			nt.justification = TextDescriptor.Position.DOWNRIGHT;
-			nt.visible = true;
 		}
 	}
 
@@ -2378,13 +2373,6 @@ public class EDIF extends Input<Object>
 		private KeyFalse() { super("false"); }
 		protected void push()
 		{
-			// check previous keyword
-			if (keyStackDepth > 1 && keyStack[keyStackDepth-1] == KVISIBLE)
-			{
-				textVisible = false;
-				if (curActiveFigure != null)
-					curActiveFigure.visible = false;
-			}
             propertyValue = new Boolean(false);
         }
 	}
@@ -2403,7 +2391,6 @@ public class EDIF extends Input<Object>
 		protected void pop()
 		{
 			curActiveFigure = null;
-			textVisible = true;
 			textJustification = TextDescriptor.Position.DOWNRIGHT;
 			textHeight = 0;
 			if (curGeometryType == GPORTIMPLEMENTATION)
@@ -2502,12 +2489,6 @@ public class EDIF extends Input<Object>
 							errorCount++;
 							break;
 						}
-
-//						if (cellRefProto instanceof Cell)
-//						{
-//							if (((Cell)cellRefProto).isWantExpanded())
-//								ni.setExpanded(true);
-//						}
 
 						// update the current position
 						if ((width + 2) > sheetOffset)
@@ -2632,11 +2613,6 @@ public class EDIF extends Input<Object>
 								freePointList();
 								return;
 							}
-//							if (cellRefProto instanceof Cell)
-//							{
-//								if (((Cell)cellRefProto).isWantExpanded())
-//									ni.setExpanded(true);
-//							}
 							if (curGeometryType == GPORTIMPLEMENTATION && lX == 0 && lY == 0)
 							{
 								// inside a PortImplementation: determine an appropriate port name
@@ -2762,7 +2738,7 @@ public class EDIF extends Input<Object>
 							}
 						}
 						TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(true).
-							withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+							withDispPart(TextDescriptor.DispPos.NAMEVALUE).withPos(TextDescriptor.Position.DOWN);
 						Cell parent = (Cell)curNode.getProto();
 						for(Iterator<Variable> it = parent.getParameters(); it.hasNext(); )
 						{
@@ -2990,9 +2966,6 @@ public class EDIF extends Input<Object>
 				// adjust the name of the current INSTANCE/NET/PORT(/VALUE)
 				if (keyStack[keyStackDepth-1] == KINSTANCEREF)
 				{
-//					String baseName = "[" + memberXVal + "]";
-//					if (memberYVal != -1) baseName = "[" + memberXVal + "," + memberYVal + "]";
-//					instanceReference = baseName;
 					instanceReference = getMemberName(instanceReference, memberXVal, memberYVal);
 				} else if (keyStack[keyStackDepth-1] == KPORTREF)
 				{
@@ -3038,7 +3011,6 @@ public class EDIF extends Input<Object>
 				// init the point lists
 				freePointList();
 				curOrientation = OR0;
-				textVisible = true;
 				textJustification = TextDescriptor.Position.DOWNRIGHT;
 				textHeight = 0;
 				textString = objectName;
@@ -3057,7 +3029,6 @@ public class EDIF extends Input<Object>
 			saveTextJustification = textJustification;
 			textJustification = TextDescriptor.Position.DOWNRIGHT;
 			curOrientation = OR0;
-			textVisible = true;
 		}
 	}
 
@@ -3159,10 +3130,6 @@ public class EDIF extends Input<Object>
 								break;
 							}
 						}
-//					} else
-//					{
-//						System.out.println("Error, line " + lineReader.getLineNumber() +
-//							", unable to connect export " + exportName + " to circuitry in cell " + curCell.describe(false));
 					}
 				}
 			}
@@ -3621,17 +3588,6 @@ public class EDIF extends Input<Object>
 							": net " + netName + " joins portlists with different length (" + lastPortlist.size() +
 							" and "+curPortlist.size() + ") in cell " + curCell.describe(false);
 						System.out.println(errorMsg);
-					} else
-					{
-						for(int i=0; i<lastPortlist.size(); i++)
-						{
-							Network net1 = lastPortlist.get(i);
-							Network net2 = curPortlist.get(i);
-							if (net1 != net2)
-							{
-//System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+" NEED TO CONNECT IN CELL "+curCell.describe(false));
-							}
-						}
 					}
 				}
 				lastPortlist = curPortlist;
@@ -3973,25 +3929,6 @@ public class EDIF extends Input<Object>
 						ap = Schematics.tech().bus_arc;
 				}
 			}
-
-//			// if inside a portList, add to the bus definition
-//			if (keyStack[keyStackDepth-1] == KPORTLIST && curPortlist != null)
-//			{
-//				// TODO finish
-//				Netlist nl = curCell.getNetlist();
-//				Network net;
-//				if (no != null)
-//				{
-//System.out.println("FOUND NODABLE "+no.getName()+" (PARENT="+no.getParent().describe(false)+"), PORT "+pp.getName()+
-//	"(PARENT="+pp.getParent().describe(false)+")");
-//					Export ppO = ((Export)pp).getEquivalentPort((Cell)no.getProto());
-//					net = nl.getNetwork(no, ppO, 0);
-//System.out.println("  WHICH IS NET "+net);
-//				} else
-//					net = nl.getNetwork(ni.findPortInstFromProto(pp));
-//				curPortlist.add(net);
-//				return;
-//			}
 
 			// now connect if we have from node and port
 			if (fNi != null && fPp != null)
@@ -4386,7 +4323,6 @@ public class EDIF extends Input<Object>
 			// init the point lists
 			freePointList();
 			curOrientation = OR0;
-			textVisible = true;
 			textJustification = TextDescriptor.Position.DOWNRIGHT;
 			textHeight = 0;
 
@@ -4436,75 +4372,72 @@ public class EDIF extends Input<Object>
 				saveTextJustification = textJustification;
 				textJustification = TextDescriptor.Position.DOWNRIGHT;
 				curOrientation = OR0;
-				textVisible = true;
 			}
 
-			// output the data for annotate (display graphics) and string (on properties)
-			else if (keyStack[keyStackDepth-1] == KANNOTATE || keyStack[keyStackDepth-1] == KSTRING)
-			{
-				boolean thisVisible = false; // textVisible;
-				// Suppress this if it starts with "["
-				if (thisVisible && !textString.startsWith("[") && curPoints.size() != 0)
-				{
-					// see if a pre-existing node or arc exists to add text
-					ArcInst ai = null;
-					NodeInst ni = null;
-					String key = propertyReference;
-					Point2D p0 = curPoints.get(0);
-					double xOff = 0, yOff = 0;
-					if (propertyReference.length() > 0 && curNode != null)
-					{
-						ni = curNode;
-						xOff = p0.getX() - ni.getAnchorCenterX();
-						yOff = p0.getY() - ni.getAnchorCenterY();
-					}
-					else if (propertyReference.length() > 0 && curArc != null)
-					{
-						ai = curArc;
-						xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
-						yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
-					} else
-					{
-						// create the node instance
-						double xPos = p0.getX();
-						double yPos = p0.getY();
-						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-						ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell);
-						key = Artwork.ART_MESSAGE.getName(); // "EDIF_annotate";
-					}
-					if (ni != null || ai != null)
-					{
-						Variable.Key varKey = Variable.newKey(key);
-						// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
-						double relSize = convertTextSize(textHeight);
-						if (ni != null)
-						{
-							TextDescriptor td = TextDescriptor.getNodeTextDescriptor();
-							// now set the position, relative to the center of the current object
-							xOff = p0.getX() - ni.getAnchorCenterX();
-							yOff = p0.getY() - ni.getAnchorCenterY();
-							td = td.withDisplay(true).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
-							ni.newVar(varKey, textString, td);
-						} else
-						{
-							TextDescriptor td = TextDescriptor.getArcTextDescriptor();
-							// now set the position, relative to the center of the current object
-							xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
-							yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
-							td = td.withDisplay(true).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
-							ai.newVar(varKey, textString, td);
-						}
-					} else
-					{
-						System.out.println("Error, line " + lineReader.getLineNumber() + ": nothing to attach text to");
-						errorCount++;
-					}
-				}
-			}
+//			// output the data for annotate (display graphics) and string (on properties)
+//			else if (keyStack[keyStackDepth-1] == KANNOTATE || keyStack[keyStackDepth-1] == KSTRING)
+//			{
+//				// Suppress this if it starts with "["
+//				if (!textString.startsWith("[") && curPoints.size() != 0)
+//				{
+//					// see if a pre-existing node or arc exists to add text
+//					ArcInst ai = null;
+//					NodeInst ni = null;
+//					String key = propertyReference;
+//					Point2D p0 = curPoints.get(0);
+//					double xOff = 0, yOff = 0;
+//					if (propertyReference.length() > 0 && curNode != null)
+//					{
+//						ni = curNode;
+//						xOff = p0.getX() - ni.getAnchorCenterX();
+//						yOff = p0.getY() - ni.getAnchorCenterY();
+//					}
+//					else if (propertyReference.length() > 0 && curArc != null)
+//					{
+//						ai = curArc;
+//						xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
+//						yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
+//					} else
+//					{
+//						// create the node instance
+//						double xPos = p0.getX();
+//						double yPos = p0.getY();
+//						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
+//						ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell);
+//						key = Artwork.ART_MESSAGE.getName(); // "EDIF_annotate";
+//					}
+//					if (ni != null || ai != null)
+//					{
+//						Variable.Key varKey = Variable.newKey(key);
+//						// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
+//						double relSize = convertTextSize(textHeight);
+//						if (ni != null)
+//						{
+//							TextDescriptor td = TextDescriptor.getNodeTextDescriptor();
+//							// now set the position, relative to the center of the current object
+//							xOff = p0.getX() - ni.getAnchorCenterX();
+//							yOff = p0.getY() - ni.getAnchorCenterY();
+//							td = td.withDisplay(true).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
+//							ni.newVar(varKey, textString, td);
+//						} else
+//						{
+//							TextDescriptor td = TextDescriptor.getArcTextDescriptor();
+//							// now set the position, relative to the center of the current object
+//							xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
+//							yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
+//							td = td.withDisplay(true).withRelSize(relSize).withPos(textJustification).withOff(xOff, yOff);
+//							ai.newVar(varKey, textString, td);
+//						}
+//					} else
+//					{
+//						System.out.println("Error, line " + lineReader.getLineNumber() + ": nothing to attach text to");
+//						errorCount++;
+//					}
+//				}
+//			}
 
 			// clean up DISPLAY attributes
 			freePointList();
-			textVisible = true;
 			textJustification = TextDescriptor.Position.DOWNRIGHT;
 			textHeight = 0;
 		}
@@ -4538,13 +4471,6 @@ public class EDIF extends Input<Object>
 		private KeyTrue() { super("true"); }
 		protected void push()
 		{
-			// check previous keyword
-			if (keyStackDepth > 1 && keyStack[keyStackDepth-1] == KVISIBLE)
-			{
-				textVisible = true;
-				if (curActiveFigure != null)
-					curActiveFigure.visible = true;
-			}
             propertyValue = new Boolean(true);
         }
 	}
@@ -4555,13 +4481,7 @@ public class EDIF extends Input<Object>
 		protected void push()
 			throws IOException
 		{
-			String type = getToken((char)0);
-			if (keyStack[keyStackDepth-1] == KSCALE && type.equalsIgnoreCase("DISTANCE"))
-			{
-				// just make the scale be so that the specified number of database units becomes 1 lambda
-//				localPrefs.inputScale = 1;
-//				localPrefs.inputScale *= localPrefs.inputScale;
-			}
+			getToken((char)0);
 		}
 	}
 
