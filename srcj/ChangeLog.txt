@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/21/10, AM) PSpice not reading (Bug #2812)
+FIX: Assign "*.txt" to PSpiceOut.
+
 BUG: (6/21/10, AM) I want to favor HSpice so that it reads the TR0/PA0
      file, even in the presence of the other files (Bug #2815)
 FIX: Change priority order in SimulationData.java.
