@@ -57,8 +57,14 @@ public final class SimulationData {
 	private SimulationData() {}
 
     private static final String[] known_extensions = new String[]
-        { "raw", "dump", "spo", "tr0", "ac0", "vcd",
+        { 
+
+          // Steve has specifically requested that tr0/ac0 files have top
+          // priority (Bug #2815)
+          "tr0", "ac0", 
           
+          "vcd", "raw", "dump", "spo",
+
           // it's important that "out" and "txt" appear last because
           // they sometimes are present yet do not contain simulation
           // data (although in such situations the user should not

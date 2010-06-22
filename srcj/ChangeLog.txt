@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/21/10, AM) I want to favor HSpice so that it reads the TR0/PA0
+     file, even in the presence of the other files (Bug #2815)
+FIX: Change priority order in SimulationData.java.
+
 IMP: (6/21/10, FS) First fully draft of SeaOfGates router with new parallel 
      infrastructure. Added a two way thread pool: Use this thread pool if you 
      want to do two different jobs in parallel, where one job starts the other
