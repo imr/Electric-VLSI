@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+IMP: (6/23/10, FS) Split task parallel runtime classes and pipeline classes
+
 BUG: (6/23/10, SMR) Further improvements needed for LEF output (Bug #2764).
 FIX: Added extra LEF statements to output.
 
