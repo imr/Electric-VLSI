@@ -41,6 +41,7 @@ import com.sun.electric.tool.simulation.RangeSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Signal.View;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -1581,11 +1582,21 @@ public class Panel extends JPanel
 				continue;
             } else {
 				// draw digital traces
-				Signal<DigitalSample> ds = (Signal<DigitalSample>)ws.getSignal();
+				Signal<DigitalSample> ds = ws.getSignal();
 				List<Signal<DigitalSample>> bussedSignals = DigitalAnalysis.getBussedSignals(ds);
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
+					List<BusCrawl> bussesToCrawl = new ArrayList<BusCrawl>();
+					for(int i=0; i<bussedSignals.size(); i++)
+					{
+						BusCrawl bc = new BusCrawl();
+						bc.sig = bussedSignals.get(i);
+						bc.exactView = bc.sig.getExactView();
+						bc.numEvents = bc.exactView.getNumEvents();
+						bc.eventPos = 0;
+						bussesToCrawl.add(bc);
+					}
 					long curYValue = 0;
 					double curXValue = 0;
 					int lastX = vertAxisPos;
@@ -1594,23 +1605,22 @@ public class Panel extends JPanel
 						double nextXValue = Double.MAX_VALUE;
 						int bit = 0;
 						boolean curDefined = true;
-						for(Signal subSig : bussedSignals)
+						for(BusCrawl bc : bussesToCrawl)
 						{
-							Signal<DigitalSample> subDS = (Signal<DigitalSample>)subSig;
-							int numEvents = subDS.getExactView().getNumEvents();
 							boolean undefined = false;
-							for(int i=0; i<numEvents; i++)
+							for(int i=bc.eventPos; i<bc.numEvents; i++)
 							{
-								double xValue = subDS.getExactView().getTime(i);
+								double xValue = bc.exactView.getTime(i);
 								if (xValue <= curXValue)
 								{
-									switch (WaveformWindow.getState(subDS, i) & Stimuli.LOGIC)
+									switch (WaveformWindow.getState(bc.sig, i) & Stimuli.LOGIC)
 									{
 										case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<bit);   undefined = false;   break;
 										case Stimuli.LOGIC_HIGH: curYValue |= (1<<bit);    undefined = false;   break;
 										case Stimuli.LOGIC_X:
 										case Stimuli.LOGIC_Z: undefined = true;    break;
 									}
+									bc.eventPos = i;
 								} else
 								{
 									if (xValue < nextXValue) nextXValue = xValue;
@@ -1763,6 +1773,14 @@ public class Panel extends JPanel
 			}
 		}
 		return selectedObjects;
+	}
+
+	private static class BusCrawl
+	{
+		Signal<DigitalSample> sig;
+		View<DigitalSample> exactView;
+		int numEvents;
+		int eventPos;
 	}
 
 	private List<WaveSelection> processControlPoints(Graphics g, Rectangle2D bounds)

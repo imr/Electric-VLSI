@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/23/10, SMR) Verilog bus display is slow (Bug #2814).
+FIX: Optimized triple-nested loop in Panel.processSignals().
+
 BUG: (6/22/10, FS) Using the new version of ERC well check (bucket, path check) (Bug #2804)
 FIX: moved old ERC Version to ERCWellCheckOld
 
