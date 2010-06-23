@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Pipeline_t.java
+ * File: PoolWorkerStrategy.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,13 +21,36 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent.test;
+package com.sun.electric.tool.util.concurrent.runtime.taskParallel;
 
+import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
 
 /**
  * @author Felix Schmidt
- * 
+ *
  */
-public class Pipeline_T {
+public abstract class PoolWorkerStrategy extends WorkerStrategy {
+	
+	protected volatile boolean pleaseWait = false;
+	
+	public void pleaseWait() {
+		this.pleaseWait = true;
+	}
+
+	public void pleaseWakeUp() {
+		this.pleaseWait = false;
+	}
+
+	public synchronized void checkForWait() {
+		while (pleaseWait) {
+			try {
+				this.wait();
+			} catch (Exception e) {}
+		}
+	}
+	
+	public void trigger() {
+
+	}
 
 }

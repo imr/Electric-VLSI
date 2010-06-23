@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent.runtime;
+package com.sun.electric.tool.util.concurrent.runtime.taskParallel;
 
 import java.util.ArrayList;
 
@@ -34,6 +34,8 @@ import com.sun.electric.tool.util.UniqueIDGenerator;
 import com.sun.electric.tool.util.concurrent.debug.LoadBalancing;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
+import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
 
 /**
  * 
@@ -415,7 +417,7 @@ public class ThreadPool {
 		} catch (InterruptedException e) {}
 		ThreadPool.instance = null;
 	}
-	
+
 	private static int getNumOfThreads() {
 		return Runtime.getRuntime().availableProcessors();
 	}

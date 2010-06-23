@@ -30,12 +30,11 @@ package com.sun.electric.tool.util.concurrent.runtime;
  * @author Felix Schmidt
  * 
  */
-public abstract class PoolWorkerStrategy {
+public abstract class WorkerStrategy {
 
 	protected volatile int executed = 0;
 	protected int threadId = -1;
 	protected volatile boolean abort;
-	protected volatile boolean pleaseWait = false;
 
 	/**
 	 * Abstract method, this method should contain the body of the worker
@@ -43,31 +42,11 @@ public abstract class PoolWorkerStrategy {
 	 */
 	public abstract void execute();
 
-	public void trigger() {
-
-	}
-
 	/**
 	 * shutdown the current worker
 	 */
 	public void shutdown() {
 		abort = true;
-	}
-
-	public void pleaseWait() {
-		this.pleaseWait = true;
-	}
-
-	public void pleaseWakeUp() {
-		this.pleaseWait = false;
-	}
-
-	public synchronized void checkForWait() {
-		while (pleaseWait) {
-			try {
-				this.wait();
-			} catch (Exception e) {}
-		}
 	}
 
 	public int getExecutedCounter() {

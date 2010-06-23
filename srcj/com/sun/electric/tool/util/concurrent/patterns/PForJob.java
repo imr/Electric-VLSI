@@ -26,7 +26,7 @@ package com.sun.electric.tool.util.concurrent.patterns;
 import java.util.List;
 
 import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
 /**
  * 

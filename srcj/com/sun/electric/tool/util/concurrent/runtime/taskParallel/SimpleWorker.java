@@ -21,10 +21,11 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent.runtime;
+package com.sun.electric.tool.util.concurrent.runtime.taskParallel;
 
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 
 /**
  * 

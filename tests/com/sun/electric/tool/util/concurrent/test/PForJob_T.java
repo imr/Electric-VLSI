@@ -40,7 +40,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
 public class PForJob_T {
 

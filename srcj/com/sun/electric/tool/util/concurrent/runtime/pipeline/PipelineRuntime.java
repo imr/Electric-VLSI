@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Pipeline_t.java
+ * File: Pipeline.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,13 +21,37 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent.test;
+package com.sun.electric.tool.util.concurrent.runtime.pipeline;
 
+import com.sun.electric.tool.util.CollectionFactory;
+import com.sun.electric.tool.util.IStructure;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class Pipeline_T {
+public class PipelineRuntime {
 
+	public static class Stage<Input, Output> {
+
+		private IStructure<Input> inputQueue;
+		private int numOfWorkers;
+
+		public Stage(int numOfWorkers) {
+			this.inputQueue = CollectionFactory.createLockFreeQueue();
+			this.numOfWorkers = numOfWorkers;
+		}
+
+		public void send(Input item) {
+			inputQueue.add(item);
+		}
+
+		public Input recv() {
+			return this.inputQueue.remove();
+		}
+	}
+
+	public static abstract class StageImpl<Input, Output> {
+		public abstract Output execute(Input item);
+	}
 }

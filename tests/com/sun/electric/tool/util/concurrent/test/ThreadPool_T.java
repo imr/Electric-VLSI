@@ -37,8 +37,8 @@ import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadPool.ThreadPoolState;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolState;
 
 public class ThreadPool_T {
 

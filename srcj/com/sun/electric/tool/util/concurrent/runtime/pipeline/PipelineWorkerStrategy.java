@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Pipeline_t.java
+ * File: PipelineWorkerStrategy.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,13 +21,14 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent.test;
+package com.sun.electric.tool.util.concurrent.runtime.pipeline;
 
+import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class Pipeline_T {
+public abstract class PipelineWorkerStrategy extends WorkerStrategy {
 
 }

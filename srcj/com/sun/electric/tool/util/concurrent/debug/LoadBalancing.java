@@ -29,7 +29,7 @@ import java.util.Set;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.concurrent.runtime.PoolWorkerStrategy;
+import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
 
 /**
  * @author Felix Schmidt
@@ -38,7 +38,7 @@ import com.sun.electric.tool.util.concurrent.runtime.PoolWorkerStrategy;
 public class LoadBalancing implements IDebug {
 
 	private static LoadBalancing instance = new LoadBalancing();
-	private Set<PoolWorkerStrategy> workers;
+	private Set<WorkerStrategy> workers;
 
 	private LoadBalancing() {
 		workers = CollectionFactory.createConcurrentHashSet();
@@ -48,7 +48,7 @@ public class LoadBalancing implements IDebug {
 		return instance;
 	}
 
-	public void registerWorker(PoolWorkerStrategy worker) {
+	public void registerWorker(WorkerStrategy worker) {
 		workers.add(worker);
 	}
 
@@ -62,10 +62,10 @@ public class LoadBalancing implements IDebug {
 	 * @see com.sun.electric.tool.util.concurrent.debug.IDebug#printStatistics()
 	 */
 	public void printStatistics() {
-		Set<PoolWorkerStrategy> workersLocalCopy = CollectionFactory.copySetToConcurrent(workers);
+		Set<WorkerStrategy> workersLocalCopy = CollectionFactory.copySetToConcurrent(workers);
 
 		int sum = 0;
-		for (Iterator<PoolWorkerStrategy> it = workersLocalCopy.iterator(); it.hasNext();) {
+		for (Iterator<WorkerStrategy> it = workersLocalCopy.iterator(); it.hasNext();) {
 			sum += it.next().getExecutedCounter();
 		}
 
@@ -73,8 +73,8 @@ public class LoadBalancing implements IDebug {
 		double varField[] = new double[workersLocalCopy.size()];
 
 		int i = 0;
-		for (Iterator<PoolWorkerStrategy> it = workersLocalCopy.iterator(); it.hasNext();) {
-			PoolWorkerStrategy worker = it.next();
+		for (Iterator<WorkerStrategy> it = workersLocalCopy.iterator(); it.hasNext();) {
+			WorkerStrategy worker = it.next();
 			System.out.print(worker);
 			System.out.print(" - ");
 			varField[i] = (double) worker.getExecutedCounter() / (double) sum;

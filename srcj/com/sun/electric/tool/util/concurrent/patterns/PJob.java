@@ -26,7 +26,7 @@ package com.sun.electric.tool.util.concurrent.patterns;
 import com.sun.electric.tool.util.concurrent.barriers.SimpleTDBarrier;
 import com.sun.electric.tool.util.concurrent.barriers.TDBarrier;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolNotInitializedException;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadPool;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
 /**
  * Parallel job. This job ends if a new further tasks for this job are
