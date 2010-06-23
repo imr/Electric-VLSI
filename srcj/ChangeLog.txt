@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/23/10, SMR) Further improvements needed for LEF output (Bug #2764).
+FIX: Added extra LEF statements to output.
+
 BUG: (6/23/10, SMR) Verilog bus display is slow (Bug #2814).
 FIX: Optimized triple-nested loop in Panel.processSignals().
 

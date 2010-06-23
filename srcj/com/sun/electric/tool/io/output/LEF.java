@@ -120,6 +120,11 @@ public class LEF extends Output
 
 	private void init(Netlist netList)
 	{
+		Cell cell = netList.getCell();
+		Technology tech = cell.getTechnology();
+		double nanometersPerUnit = tech.getScale();
+		double resolution = tech.getFactoryResolution();
+
 		// write header information
 		if (localPrefs.includeDateAndVersionInOutput)
 		{
@@ -133,8 +138,9 @@ public class LEF extends Output
 		printWriter.println("");
 		printWriter.println("NAMESCASESENSITIVE ON ;");
 		printWriter.println("UNITS");
-		printWriter.println("  DATABASE MICRONS 1 ;");
+		printWriter.println("  DATABASE MICRONS " + TextUtils.formatDouble(nanometersPerUnit/1000) + " ;");
 		printWriter.println("END UNITS");
+		printWriter.println("MANUFACTURINGGRID " + resolution + " ;");
 		printWriter.println("");
 
 		// write layer information
@@ -173,13 +179,15 @@ public class LEF extends Output
 		printWriter.println("");
 
 		// write main cell header
-		Cell cell = netList.getCell();
 		printWriter.println("MACRO " + cell.getName());
-		printWriter.println("  FOREIGN " + cell.getName() + " ;");
+		printWriter.println("  CLASS CORE ;");
+		printWriter.println("  FOREIGN " + cell.getName() + " 0 0 ;");
+		printWriter.println("  ORIGIN 0 0 ;");
 		Rectangle2D bounds = cell.getBounds();
-		double width = TextUtils.convertDistance(bounds.getWidth(), cell.getTechnology(), TextUtils.UnitScale.MICRO);
-		double height = TextUtils.convertDistance(bounds.getHeight(), cell.getTechnology(), TextUtils.UnitScale.MICRO);
+		double width = TextUtils.convertDistance(bounds.getWidth(), tech, TextUtils.UnitScale.MICRO);
+		double height = TextUtils.convertDistance(bounds.getHeight(), tech, TextUtils.UnitScale.MICRO);
 		printWriter.println("  SIZE " + TextUtils.formatDouble(width) + " BY " + TextUtils.formatDouble(height) + " ;");
+		printWriter.println("  SYMMETRY X Y ;");
 		printWriter.println("  SITE " + cell.getName() + " ;");
 
 		// write all of the metal geometry and ports
@@ -223,8 +231,17 @@ public class LEF extends Output
 			if (first) first = false; else printWriter.println();
 			printWriter.println("  PIN " + main.getName());
 			Set<NodeInst> nodesUnderExports = new HashSet<NodeInst>();
+			PortCharacteristic type = PortCharacteristic.UNKNOWN;
 			for(Export e : exportsOnNet)
+			{
+				type = e.getCharacteristic();
 				nodesUnderExports.add(e.getOriginalPort().getNodeInst());
+			}
+			if (type == PortCharacteristic.IN || type.isClock() || type == PortCharacteristic.REFIN) printWriter.println("    DIRECTION INPUT ;"); else
+			if (type == PortCharacteristic.OUT || type == PortCharacteristic.REFOUT) printWriter.println("    DIRECTION OUTPUT ;"); else
+			if (type == PortCharacteristic.BIDIR) printWriter.println("    DIRECTION INOUT ;"); else
+			if (type == PortCharacteristic.GND) printWriter.println("    DIRECTION INOUT ;\n    USE GROUND ;"); else
+			if (type == PortCharacteristic.PWR) printWriter.println("    DIRECTION INOUT ;\n    USE POWER ;");
 			for(Export e : exportsOnNet)
 			{
 				PortOriginal fp = new PortOriginal(e.getOriginalPort());
@@ -233,7 +250,6 @@ public class LEF extends Output
 				AffineTransform trans = fp.getTransformToTop();
 				printWriter.println("    PORT");
 				io_lefoutcurlayer = null;
-				Technology tech = rni.getProto().getTechnology();
 				Poly [] polys = tech.getShapeOfNode(rni, true, false, null);
 				if (polys.length == 0)
 				{
