@@ -31,8 +31,8 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
-import com.sun.electric.tool.erc.ERCWellCheck2.WellBoundRecord;
+import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
+import com.sun.electric.tool.erc.ERCWellCheck.WellBoundRecord;
 
 /**
  * Utilities for ERC well check
@@ -41,11 +41,24 @@ import com.sun.electric.tool.erc.ERCWellCheck2.WellBoundRecord;
 public class Utils {
 
 	public enum WorkDistributionStrategy {
-		cluster, random, bucket;
+		/**
+		 * assign the well contacts to the worker which is most closed by
+		 */
+		cluster,
+		/**
+		 * assign the well contacts randomly
+		 */
+		random,
+		/**
+		 * Use a grid over the cell to find the right worker
+		 */
+		bucket;
 	}
 
 	public static final boolean GATHERSTATISTICS = false;
 	public static final boolean INCREMENTALGROWTH = false;
+
+	// Change this static variable to change the work distribution
 	public static final WorkDistributionStrategy WORKDISTRIBUTION = WorkDistributionStrategy.bucket;
 	public static List<WellBoundRecord> wellBoundSearchOrder;
 	public static int numObjSearches;
@@ -79,7 +92,8 @@ public class Utils {
 	 * @param rtree
 	 * @param threadIndex
 	 */
-	public static void spreadWellSeed(double cX, double cY, NetValues wellNum, RTNode rtree, int threadIndex) {
+	public static void spreadWellSeed(double cX, double cY, NetValues wellNum, RTNode rtree,
+			int threadIndex) {
 		RTNode allFound = null;
 		Point2D ctr = new Point2D.Double(cX, cY);
 		Rectangle2D searchArea = new Rectangle2D.Double(cX, cY, 0, 0);
@@ -127,7 +141,8 @@ public class Utils {
 					sides[numSides++].setRect(newLX, hY, newHX - newLX, newHY - hY);
 			} else {
 				// just keep growing the search area
-				allFound = searchInArea(searchArea, wellNum, rtree, allFound, ctr, keepSearching, threadIndex);
+				allFound = searchInArea(searchArea, wellNum, rtree, allFound, ctr, keepSearching,
+						threadIndex);
 			}
 		}
 	}

@@ -30,8 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
-import com.sun.electric.tool.erc.ERCWellCheck2.Transistor;
+import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
+import com.sun.electric.tool.erc.ERCWellCheck.Transistor;
 import com.sun.electric.tool.util.CollectionFactory;
 
 /**

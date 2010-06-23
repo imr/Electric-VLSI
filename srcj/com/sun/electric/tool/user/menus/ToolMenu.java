@@ -27,14 +27,34 @@ package com.sun.electric.tool.user.menus;
 import static com.sun.electric.database.text.ArrayIterator.i2i;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.btree.EquivalenceClasses;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.tool.simulation.irsim.IRSIM;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
@@ -46,7 +66,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -60,7 +79,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.geometry.btree.EquivalenceClasses;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
@@ -111,8 +129,6 @@ import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
 import com.sun.electric.tool.placement.Placement;
-import com.sun.electric.tool.placement.PlacementFrame;
-import com.sun.electric.tool.placement.Placement.PlacementPreferences;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
@@ -127,41 +143,22 @@ import com.sun.electric.tool.sc.Place;
 import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.SimulationTool;
+import com.sun.electric.tool.simulation.irsim.IRSIM;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.FillGenDialog;
 import com.sun.electric.tool.user.dialogs.LanguageScripts;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ncc.HighlightEquivalent;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.InvisibleLayerConfiguration;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 
 /**
  * Class to handle the commands in the "Tools" pulldown menu.
@@ -409,7 +406,7 @@ public class ToolMenu
             // mnemonic keys available:  BCDEFGHIJKLMNOPQRSTUV XYZ
             new EMenu("_ERC",
 		        new EMenuItem("Check _Wells") { public void run() {
-                    ERCWellCheck.analyzeCurCell(GeometryHandler.GHMode.ALGO_SWEEP); }},
+                    ERCWellCheck.analyzeCurCell(); }},
 		        new EMenuItem("_Antenna Check") { public void run() {
                     ERCAntenna.doAntennaCheck(); }}),
 

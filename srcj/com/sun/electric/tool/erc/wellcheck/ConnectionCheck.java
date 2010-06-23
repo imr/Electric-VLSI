@@ -25,9 +25,9 @@ package com.sun.electric.tool.erc.wellcheck;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.topology.RTNode;
-import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
-import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
-import com.sun.electric.tool.erc.ERCWellCheck2.WellType;
+import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
+import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
+import com.sun.electric.tool.erc.ERCWellCheck.WellType;
 
 /**
  * @author Felix Schmidt

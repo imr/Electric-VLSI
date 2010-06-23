@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
+import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
 
 /**
  * @author Felix Schmidt

@@ -30,9 +30,9 @@ import java.util.Map;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.RTNode;
-import com.sun.electric.tool.erc.ERCWellCheck2.StrategyParameter;
-import com.sun.electric.tool.erc.ERCWellCheck2.WellBound;
-import com.sun.electric.tool.erc.ERCWellCheck2.WellNet;
+import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
+import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
+import com.sun.electric.tool.erc.ERCWellCheck.WellNet;
 
 /**
  * @author Felix Schmidt
