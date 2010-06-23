@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/23/10, GVG) Missing text while editing text in MacOSX Snow Leopard (Bug #2819)
+FIX: Add extra width and height depending on the font size rather than fixed numbers (5).
+
 IMP: (6/23/10, FS) Split task parallel runtime classes and pipeline classes
 
 BUG: (6/23/10, SMR) Further improvements needed for LEF output (Bug #2764).

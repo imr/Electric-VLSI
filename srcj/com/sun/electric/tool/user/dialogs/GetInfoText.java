@@ -593,7 +593,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 				if (glyphBounds.getWidth() > totalWidth) totalWidth = glyphBounds.getWidth();
 			}
 			if (textArray.length > 1) totalHeight *= 2;
-			return new Dimension((int)totalWidth+5, (int)totalHeight+5);
+			return new Dimension((int)(totalWidth +0.5*size), (int)(totalHeight + 0.2*size)); // + 20% in width and 10% in height
 		}
 
 		public void closeEditInPlace()
