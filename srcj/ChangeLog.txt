@@ -55,7 +55,7 @@ BUG: (6/18/10, SMR) Control-key axis-gridding of placed instances fails
      if mouse moving at release (Bug #2437).
 FIX: Do gridding on button release.
 
-IMP/MAN: (6/19/10, SMR) Added debugging for Karlsruhe parallel routers (Bug #2803).
+IMP: (6/19/10, SMR) Added debugging for Karlsruhe parallel routers (Bug #2803).
 
 BUG: (6/18/10, SMR) Layer visibility tab crashes (Bug #2802).
 FIX: In LayerTab.setInvisibleLayerConfiguration() handle unset technologies.
@@ -81,7 +81,7 @@ FIX: Fix longstanding confusion between
      WaveformWindow.showSimulationData() by splitting it into
      showSimulationDataInNewWindow() and refreshSimulationData().
 
-IMP/MAN: (6/17/10, SMR) When placing an instance of a cell, holding Control
+IMP: (6/17/10, SMR) When placing an instance of a cell, holding Control
      forces the instance to be on one of the axes (Bug #2437).
 
 BUG: (6/17/10, SMR) Cannot select ports on layout resistors (Bug #2761).
@@ -138,7 +138,7 @@ FIX: Don't call param.makeTempSettingReal if running in regression mode.
 
 IMP: (6/11/2010, FS) Add sleep and wake up to thread pool
 
-IMP/MAN: (6/10/10, AM) Can now view an analog signal as if it were
+IMP: (6/10/10, AM) Can now view an analog signal as if it were
 digital via thresholding (Bug #2789).
 
 BUG: (6/10/10, AM) Analog waveforms missing icons in upper right (Bug #2784)
@@ -156,7 +156,7 @@ IMP: (6/10/10, AM) Fix CachingPageStorage.fsync(int), remove
 
 IMP: (6/10/10, AM) Replace Infrastructure.waitSeconds() with Thread.sleep()
 
-IMP/MAN: (6/10/10, SMR) The Measurement display should have be able to show
+IMP: (6/10/10, SMR) The Measurement display should have be able to show
      in a user-specified color instead of using the highlight color (Bug #2787).
 FIX: Added User.ColorPrefType.MEASUREMENT.
 
@@ -172,7 +172,7 @@ IMP: (6/9/10, FS) Add test infrastructure for parallel placement tests
 
 IMP: (6/8/10, FS) Experimental work stealing for parallel infrastructure
 
-IMP/MAN: (6/7/10, GVG) Measurement tool and new style (Bug #2785)
+IMP: (6/7/10, GVG) Measurement tool and new style (Bug #2785)
 Added preference to use Cadence style. Old style by default.
 
 IMP: (6/7/10, SMR) Layer Visibility Configurations are now handled in a
@@ -256,14 +256,14 @@ FIX: Detecting when cell doesn't longer have a group.
 IMP: (/5/28/10, GVG) Unknown tag in Client.read() (Bug #2759)
 Added extra code to detect the source of the unknown tag
 
-IMP/MAN: (5/27/10, SMR) New EDIF Preference to hide arc or node names (Bug #2768).
+IMP: (5/27/10, SMR) New EDIF Preference to hide arc or node names (Bug #2768).
 
 IMP: (5/27/10, DN) The nameDescriptor of ArcInst can be non-displayable (Bug #2768).
 
 IMP: (5/25/10, DN) Technologies are immutable - new Technology objects are used if technology parameters are changed.
    Can be disabled by Tecyhnology.IMMUTABLE_TECHS = false;
 
-IMP/MAN: (5/25/10, SMR) New "Display Control" Preference to keep modeless
+IMP: (5/25/10, SMR) New "Display Control" Preference to keep modeless
      dialogs on top (Bug #2767).
 
 IMP: (5/24/10, FS)
@@ -279,7 +279,7 @@ FIX: Added these keywords to the ignore list.
 BUG: (5/24/10, SMR) Multi-object Properties crashes when in resize mode (Bug #2763).
 FIX: Fixed Highlight.HighlightSorting class to handle null returns from "getInfo()".
 
-IMP/MAN: (5/24/10, SMR) New "Display Control" preference "Shift window to show errors"
+IMP: (5/24/10, SMR) New "Display Control" preference "Shift window to show errors"
      moves the window to focus on errors if they are not visible (Bug #2755).
 
 BUG: (5/24/10, SMR) Greeked cells are not re-evaluated when layer visibility changes (Bug #2756).
@@ -296,10 +296,10 @@ IMP: (5/21/10, FS) First commit of a parallel infrastructure,
 BUG: (5/21/10, GVG) False DRC errors on tsmcsun40gp poly resistors (Bug #2762)
 FIX: Special case to detect network associated to poly in resistors.
 
-IMP/MAN: (5/20/10, SMR) Initial version of Gerber reader.  Has Preferences panel for
+IMP: (5/20/10, SMR) Initial version of Gerber reader.  Has Preferences panel for
     some controls (Bug #2749).
 
-IMP/MAN: (5/20/10, GVG) Error window in TechEditorWizard in case of loading Parameters file that
+IMP: (5/20/10, GVG) Error window in TechEditorWizard in case of loading Parameters file that
 doesn't comply with format.
 
 BUG: (5/18/10, SMR) Small arcs of a circle may draw as full circles (Bug #2757).
@@ -323,11 +323,11 @@ IMP: (5/17/10, DN) Minor changes in Added Design Summary code from GNU user (Bug
 BUG: (5/12/10, FS) Bug #2746
 FIX: Fixed for small chips
 
-BUG/MAN: (5/7/10, SMR) Schematic DRC missing wire and bus arcs connected
+BUG: (5/7/10, SMR) Schematic DRC missing wire and bus arcs connected
      at a bus pin but not really connected (Bug #2748).
 FIX: Now reported.
 
-BUG/MAN: (5/7/10, SMR) Schematic DRC missing arcs touching if they are labeled (Bug #2748).
+BUG: (5/7/10, SMR) Schematic DRC missing arcs touching if they are labeled (Bug #2748).
 FIX: Also check for unconnected pins laying on an arc.
 
 IMP: (5/5/10, AM) Add skeleton of RadixTrie (a Map<String,V> that
@@ -357,7 +357,7 @@ IMP: (5/01/10, AM) Turn WaveformWindow.treePathFromAnalysis into
 IMP: (5/01/10, AM) Add Signal.getAnalysisType(), first step towards
      removing Signal.getAnalysis().
 
-IMP/MAN: (4/30/10, JKG) Removed spacebar toggle of fat wiring mode, as it is now a preference.
+IMP: (4/30/10, JKG) Removed spacebar toggle of fat wiring mode, as it is now a preference.
 Substrate and well contacts included in as contacts for finding width of connecting wire.
 Ignore default-sized arcs when choosing arc size to connect to portinst,
 as RouteElementArc.doAction creates default-sized arcs for 0 length connections.
@@ -407,7 +407,7 @@ IMP: (4/25/10, AM) AnalogSignal extends ScalarSignal.
 IMP: (4/25/10, AM) Allow null keys in getSummaryFromKeys() when one or
      both ends of a range are unbounded.
 
-IMP/MAN: (4/19/10, SMR) Added Design Summary code contributed by GNU users.
+IMP: (4/19/10, SMR) Added Design Summary code contributed by GNU users.
      The command is "Cell|Cell Info|Summarize Cell Contents" (Bug #2734).
 
 BUG: (4/22/10, SMR) The ruler should have tick marks (Bug #2718).
@@ -419,9 +419,9 @@ FIX: Ignore code in PolyBase.unRotateType() which is not needed since Bug #2635.
 BUG: (4/21/10, GVG) Adding pure layer nodes in palette and those warning messages (Bug #2726)
 FIX: Added PrimitiveNode instances into tech.pureLayerNodes while parsing XML tech.
 
-IMP/MAN: (4/21/10, JKG) Added menu commands to wire up and down one layer in layout
+IMP: (4/21/10, JKG) Added menu commands to wire up and down one layer in layout
 
-IMP/MAN: (4/21/10, SMR) Can now resize multiple nodes and multiple arcs (Bug #2732).
+IMP: (4/21/10, SMR) Can now resize multiple nodes and multiple arcs (Bug #2732).
 
 BUG: (4/21/10, DN) Netbeans build doesn't create manifest.
 FIX: Add "trunk/srcj/manifest.mf" template. 
@@ -454,7 +454,7 @@ FIX: SizeOffset for p well contact in a substrate process corrected.
 BUG: (4/16/10, DN) Slidable arc should slide along contact array (Bug #2728).
 FIX: In CircuitCHangeJob.ManyMove.doIt don't move a node on head/tail if it is still in port.
 
-IMP/MAN: (4/15/10, SMR) First pass of generalized routing framework (Bug #2724).
+IMP: (4/15/10, SMR) First pass of generalized routing framework (Bug #2724).
 
 BUG: (4/15/10, GVG) DRC error when diff contact serves two transistors of diff sizes (Bug #2683)
 FIX: Undoing "Better solution for "false drc error between pdiff contacts in 
@@ -481,14 +481,14 @@ BUG: (4/8/10, GVG/SMR) New zero-length def of arcs and non-Manhattan shapes (Bug
 FIX: ImmutableArcInst:isManhattan() and ImmutableArcInst:makeGridBoxInt handle angle=-1
 (introduced by Bug #2713)
 
-BUG/MAN: (4/7/10, SMR) The "Measure" cursor is ambiguous (which side is the pointer?)
+BUG: (4/7/10, SMR) The "Measure" cursor is ambiguous (which side is the pointer?)
      and the measurement mode should snap the mouse when moving around (Bug #2718).
      Measurement snapping-control is now in the "Grid" Preferences.
 FIX: The cursor now looks like a tape measure; the mouse snaps.
 
-IMP/MAN: (4/6/10, SMR) Zero-length arcs can stretch in either direction (Bug #2713).
+IMP: (4/6/10, SMR) Zero-length arcs can stretch in either direction (Bug #2713).
 
-BUG/MAN: (4/6/10, SMR) Invisible Pins under Annotation Text should be selectable (Bug #2712).
+BUG: (4/6/10, SMR) Invisible Pins under Annotation Text should be selectable (Bug #2712).
 FIX: These pins are now "hard to select" and can be selected when in that mode.
 
 BUG: (4/5/10, SMR) Option reconciliation truncates fields (Bug #2709).
@@ -504,14 +504,14 @@ FIX: In PreferencesFrame.OKUpdate.terminateOK call cloaseDialog(null).
 BUG: (4/1/10, SMR) Exiting technology editor destroys its own colormap (Bug #2706).
 FIX: Detect technology-editor color maps in PixelDrawing.
 
-IMP/MAN: (3/31/10, SMR) Added VerilogA output with "Tools / Simulation (Verilog) /
+IMP: (3/31/10, SMR) Added VerilogA output with "Tools / Simulation (Verilog) /
      Write VerilogA Deck..." command (Bug #2705).
 
-BUG/MAN: (3/31/10, SMR) Parasitic preferences has User and Project preferences swapped (Bug #2701).
+BUG: (3/31/10, SMR) Parasitic preferences has User and Project preferences swapped (Bug #2701).
 FIX: Swapped the panels.
 
 BUG: (3/31/10, DN) Key Q doesn't work properly in Cadence color scheme (Bug #2704).
-FIX/MAN: Replace short cut for "Cycle Windows" in Cadence color scheme from 'Q' to 'W'.
+FIX: Replace short cut for "Cycle Windows" in Cadence color scheme from 'Q' to 'W'.
 
 BUG: (3/29/10, DN) Array indices are not being generated correctly (Bug #2703).
 FIX: In Array.makeArray compare objects by STRING_NUMBER_ORDER.
@@ -542,7 +542,7 @@ FIX: Just detect the case and allow to catch any exception in writeXML()
 BUG: (3/25/10, DN) Technology Wizard crashes in GDS panel after adding metal layer (Bug #2697).
 FIX: In TechEditWizardData.setNumMetalLayers initialize "metal_layers" correctly.
 
-IMP/MAN: (3/25/10, DN) Add command "Tool|Generation|Generate gate layouts (C_urrent tech)" (Bug #2696).
+IMP: (3/25/10, DN) Add command "Tool|Generation|Generate gate layouts (C_urrent tech)" (Bug #2696).
 
 IMP: (3/25/10, DN) Remove TechTy.eTechTypeNum (Bug #2696).
 
@@ -585,7 +585,7 @@ IMP: (3/21/10, AM) Fixed many bugs in monoid summary code.  Appears to
 BUG: (3/18/10, GVG) NPE after re-exporting an ErrorLogger that contains invalid cells (Bug #2691)
 FIX: Detecting case when cellId is null. Adding stack trace in debug mode.
 
-IMP/MAN: (3/18/10, SMR) When pasting cell instances, should convert the view
+IMP: (3/18/10, SMR) When pasting cell instances, should convert the view
      so that layout instances become icons when pasting into a schematic cell
      and icon instances become layout instances when pasting into a layout
      cell (Bug #2381).
@@ -645,7 +645,7 @@ IMP: (3/6/10, AM) DigitalSignal: add support for varying drive strength.
 
 ************************* Version 9.00a: ******************************
 
-IMP/MAN: (3/3/10, GVG) Ability to define exports per cell in Stitch fill gen (Bug #2677)
+IMP: (3/3/10, GVG) Ability to define exports per cell in Stitch fill gen (Bug #2677)
 Option format: e[layerN1;layerN2;...;layerNn]
 
 IMP: (3/3/10, AM) DigitalSignal extends BTreeSignal<DigitalSample>
@@ -672,7 +672,7 @@ FIX: Temporary solution: Remove "final" attribute from annotated fields of Editi
 BUG: (3/2/10, SMR) ALS cannot simulate transistors (Bug #2674).
 FIX: Redid "GenerateVHDL.java" to handle layout transistors correctly.
 
-IMP/MAN: (3/1/10, SMR) Placement preferences now allows algorithm-specific
+IMP: (3/1/10, SMR) Placement preferences now allows algorithm-specific
      parameters (Bug #2673).
 
 BUG: (2/26/10, GVG) DRC fails when transistor has more than 1 active layer (Bug #2669)
@@ -681,7 +681,7 @@ FIX: Condition removed for carbon-nanotube transistors.
 BUG: (2/26/10, GVG) 3D View doesn't allow transistors with more than 2 active regions (Bug #2670)
 FIX: Detecting CN transistors now whose active layers are not merged
 
-IMP/MAN: (2/26/10, GVG) -debug and -regression don't work very well (Bug #2668)
+IMP: (2/26/10, GVG) -debug and -regression don't work very well (Bug #2668)
 
 BUG: (2/25/10, DN) Icon vs sch ports (Bug #2533).
 FIX: In NetSchem connect exports by Name instead of by portImplementation.

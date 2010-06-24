@@ -104,11 +104,11 @@ public class RoutingFrame
 	private static RoutingFrame [] routingAlgorithms = {
 		new RoutingFrameSimple(),
 		new RoutingFrameSeaOfGates(),
-//		new AStarRoutingFrame(),
+//		new com.sun.electric.tool.routing.team1astar.AStarRoutingFrame(),
 //		new com.sun.electric.tool.routing.team02LeeMoore.RoutingFrameLeeMoore(),
-//		new AStarRouter(),
+//		new com.sun.electric.tool.routing.astar.t3.AStarRouter(),
 //		new com.sun.electric.tool.routing.team04LeeMoore.RoutingFrameLeeMoore(),
-//		new yana()
+//		new com.sun.electric.tool.routing.team06yana.yana()
 	};
 
 	/**

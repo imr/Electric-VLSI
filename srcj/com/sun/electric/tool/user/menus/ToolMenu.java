@@ -287,15 +287,15 @@ public class ToolMenu
 
 		//------------------- Simulation (SPICE)
 
-			// mnemonic keys available: AB   F  IJKL N  QR   VWXYZ
+			// mnemonic keys available:  B      IJK     QR   VWXYZ
             new EMenu("Simulation (_Spice)",
 		        new EMenuItem("Write Spice _Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.SPICE, true); }},
 		        new EMenuItem("Write _CDL Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.CDL, true); }},
-		        new EMenuItem("Plot Simulation _Output from Chosen File...") { public void run() {
+		        new EMenuItem("Plot Simulation _Output, Choose File...") { public void run() {
                     plotChosen(); }},
-		        new EMenuItem("Plot Simulation Output from _Guessed File") { public void run() {
+		        new EMenuItem("Plot Simulation Output, _Guess File") { public void run() {
                     UserInterface ui = Job.getUserInterface();
                     Cell cell = ui.needCurrentCell();
                     if (cell == null) return;
@@ -319,15 +319,15 @@ public class ToolMenu
                     makeTemplate(Spice.SPICE_H_TEMPLATE_KEY); }},
 		        new EMenuItem("Set _PSpice Template") { public void run() {
                     makeTemplate(Spice.SPICE_P_TEMPLATE_KEY); }},
-		        new EMenuItem("Set GnuCap Template") { public void run() {
+		        new EMenuItem("Set G_nuCap Template") { public void run() {
                     makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }},
 		        new EMenuItem("Set _SmartSpice Template") { public void run() {
                     makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }},
-                new EMenuItem("Set Assura CDL Template") { public void run() {
+                new EMenuItem("Set _Assura CDL Template") { public void run() {
                     makeTemplate(Spice.SPICE_A_TEMPLATE_KEY); }},
-                new EMenuItem("Set Calibre Spice Template") { public void run() {
+                new EMenuItem("Set Ca_libre Spice Template") { public void run() {
                     makeTemplate(Spice.SPICE_C_TEMPLATE_KEY); }},
-                new EMenuItem("Set Netlist Cell From File") { public void run() {
+                new EMenuItem("Set Netlist Cell From _File") { public void run() {
                     makeTemplate(Spice.SPICE_NETLIST_FILE_KEY); }}),
 
 		//------------------- Simulation (Verilog)
@@ -341,9 +341,9 @@ public class ToolMenu
     		    new EMenuItem("Write Verilog_A Deck...") { public void run() {
     		    	SimulationTool.setVerilogStopAtStandardCells(false);
     		    	FileMenu.exportCommand(FileType.VERILOGA, true); }},    
-		        new EMenuItem("Plot Simulation _Output from Chosen File...") { public void run() {
+		        new EMenuItem("Plot Simulation _Output, Choose File...") { public void run() {
                     plotChosen(); }},
-		        new EMenuItem("Plot Simulation Output from _Guessed File") { public void run() {
+		        new EMenuItem("Plot Simulation Output, _Guess File") { public void run() {
                     UserInterface ui = Job.getUserInterface();
                     Cell cell = ui.needCurrentCell();
                     if (cell == null) return;
@@ -622,7 +622,7 @@ public class ToolMenu
                     GateLayoutGenerator.generateFromSchematicsJob(Technology.getTSMC180Technology()); }} : null,
                 Technology.getCMOS90Technology() != null ? new EMenuItem("Generate gate layouts (CM_OS90)") { public void run() {
 	                GateLayoutGenerator.generateFromSchematicsJob(Technology.getCMOS90Technology()); }} : null,
-                Job.getDebug() ? new EMenuItem("Generate gate layouts (C_urrent tech)") { public void run() {
+                Job.getDebug() ? new EMenuItem("Generate gate layouts (c_urrent tech)") { public void run() {
 	                GateLayoutGenerator.generateFromSchematicsJob(Schematics.getDefaultSchematicTechnology()); }} : null),
 
 		//------------------- Silicon Compiler
