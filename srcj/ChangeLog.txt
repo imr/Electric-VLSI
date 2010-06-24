@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/24/10, GVG) NPE in ERC if cell to ERC is null (Bug #2821)
+FIX: Detect the case and abort the test.
+
 BUG: (6/24/10, AM) interior of waveform appears shaded (Bug #2809)
 FIX: Fix incorrect branch test in BTree range query code.
 
