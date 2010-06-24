@@ -1519,6 +1519,7 @@ public class Panel extends JPanel
                         xWaveform = xSignal;
 					int lastX = 0, lastLY = 0, lastHY = 0;
 					int numEvents = waveform.getNumEvents();
+                    boolean first = true;
 					for(int i=0; i<numEvents; i++)
 					{
                         int x = convertXDataToScreen(waveform.getTime(i));
@@ -1533,7 +1534,7 @@ public class Panel extends JPanel
 						// draw lines if requested and line is on-screen
 						if (linePointMode <= 1 && x >= vertAxisPos && lastX < sz.width)
 						{
-	                        if (i != 0)
+	                        if (!first)
 	                        {
                         		// drawing has lines
 	                            if (lastLY != lastHY || lowY != highY)
@@ -1568,6 +1569,7 @@ public class Panel extends JPanel
 							if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0)) break;
 						}
 						lastX = x;   lastLY = lowY; lastHY = highY;
+                        first = false;
 					}
                     /*
                     System.out.println("misses="+com.sun.electric.tool.simulation.BTreeSignal.misses + ", "+

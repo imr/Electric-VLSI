@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/24/10, AM) interior of waveform appears shaded (Bug #2809)
+FIX: Fix incorrect branch test in BTree range query code.
+
 BUG: (6/23/10, GVG) Missing text while editing text in MacOSX Snow Leopard (Bug #2819)
 FIX: Add extra width and height depending on the font size rather than fixed numbers (5).
 

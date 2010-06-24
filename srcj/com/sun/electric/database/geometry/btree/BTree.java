@@ -522,8 +522,10 @@ public class BTree
                 if (!cur.isLeafNode()) start = Math.max(1,start);
                 for(int i=start; i<cur.getNumBuckets(); i++) {
                     int cmpLeft  = key==null  ? -1 : cur.compare(key, key_ofs, i);
-                    int cmpRight = i==cur.getNumBuckets()-1 ? -1 : key2==null ? 1 : cur.compare(key2, key2_ofs, i+1);
-                    if (cmpLeft <= 0 && (cur.isLeafNode() || cmpRight > 0)) {
+                    int cmpRight = key2==null ? 1 : cur.isLeafNode()
+                        ? (cur.compare(key2, key2_ofs, i+1) < 0 ? -1 : 1)
+                        : (i==cur.getNumBuckets()-1 ? -1 : cur.compare(key2, key2_ofs, i+1));
+                    if (cmpLeft <= 0 && cmpRight > 0 && (cur.isLeafNode() || i<cur.getNumBuckets()-1)) {
                         if (summaryInitialized) {
                             cur.getSummary(i, monbuf, 0);
                             summary.multiply(ret, ret_ofs, monbuf, 0, ret, ret_ofs);
