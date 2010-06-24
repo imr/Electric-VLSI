@@ -53,8 +53,10 @@ These are the errors that is finds:
   <LI>Arcs:
     <UL>
       <LI>Unnamed arcs that "dangle": one end is unconnected and unexported (does not apply to busses).</LI>
+      <LI>Arcs that end on another arc without connecting to them.</LI>
       <LI>Bus arcs whose width is inconsistent with its two nodes.</LI>
       <LI>Bus pins that "float": do not connect to bus arcs and are not exported.</LI>
+      <LI>Bus taps that connect to a wire which is not part of the bus.</LI>
       <LI>Bus pins that connect to more than 1 wire.</LI>
       <LI>Network names that differ only by their case (i.e. networks "A" and "a" are actually different networks).
     </UL>
