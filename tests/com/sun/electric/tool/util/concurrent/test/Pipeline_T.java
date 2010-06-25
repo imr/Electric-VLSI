@@ -23,11 +23,40 @@
  */
 package com.sun.electric.tool.util.concurrent.test;
 
+import org.junit.Test;
+
+import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
+import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime;
+import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.StageImpl;
 
 /**
  * @author Felix Schmidt
  * 
  */
 public class Pipeline_T {
+
+    @Test
+    public void testPipelineConstruction() {
+        PipelineRuntime<Integer, Integer> testPipe = new PipelineRuntime<Integer, Integer>();
+        testPipe.addStage(new SimpleStage(), 2);
+    }
+
+    public static class SimpleStage extends StageImpl<Integer, Integer> {
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime
+         * .StageImpl#execute(java.lang.Object)
+         */
+        @Override
+        public Integer execute(Integer item) {
+            int id = ThreadID.get();
+            System.out.println(id + ": " + item);
+            return item;
+        }
+
+    }
 
 }
