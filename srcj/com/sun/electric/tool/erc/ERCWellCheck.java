@@ -53,10 +53,7 @@ import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GeometryHandler;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -651,7 +648,42 @@ public class ERCWellCheck {
 		public ErrorLogger getErrorLogger() {
 			return errorLogger;
 		}
-	}
+
+        // Apply translation to place the bounding box of the well contact
+        // in the correct location on the top cell.
+        private Rectangle2D placedWellCon(WellCon wc)
+        {
+            Rectangle2D orig = wc.getNi().getBounds();
+            return new Rectangle2D.Double(wc.getCtr().getX()-orig.getWidth()/2,
+                wc.getCtr().getY()-orig.getHeight()/2,
+                orig.getWidth(), orig.getHeight());
+        }
+
+        public void logError(WellCon wc, WellCon other, String message)
+        {
+            List<Object> list = new ArrayList<Object>();
+
+            // calculate correct location of wc bnd
+            list.add(placedWellCon(wc));
+
+            // location of other bnd
+            list.add(placedWellCon(other));
+
+            list.add(new EPoint(wc.getCtr().getX(), wc.getCtr().getY()));
+            list.add(new EPoint(other.getCtr().getX(), other.getCtr().getY()));
+//                        list.add(new PolyBase(wc.getNi().getBounds()));
+//                        list.add(new PolyBase(other.getNi().getBounds()));
+            errorLogger.logMessage(message,	list, cell, 0, true);
+
+        }
+        public void logError(WellCon wc, String message)
+        {
+            errorLogger.logError(message,
+//                new EPoint(wc.getCtr().getX(), wc.getCtr().getY()),
+                new PolyBase(placedWellCon(wc)),
+                cell, 0);
+        }
+    }
 
 	@SuppressWarnings("unchecked")
 	private void assignWellContacts(int numberOfThreads) {

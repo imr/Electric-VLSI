@@ -29,8 +29,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.awt.geom.Rectangle2D;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
 
 /**
@@ -84,11 +87,12 @@ public class ShortCircuitCheck implements WellCheckAnalysisStrategy {
 
 					// give error if not seen before
 					if (!shortsInWC.contains(otherNetNum)) {
-						List<EPoint> pointList = new ArrayList<EPoint>();
-						pointList.add(new EPoint(wc.getCtr().getX(), wc.getCtr().getY()));
-						pointList.add(new EPoint(other.getCtr().getX(), other.getCtr().getY()));
-						parameter.getErrorLogger().logMessage("Short circuit between well contacts",
-								pointList, parameter.getCell(), 0, true);
+//						List<Object> list = new ArrayList<Object>();
+//						list.add(new EPoint(wc.getCtr().getX(), wc.getCtr().getY()));
+//						list.add(new EPoint(other.getCtr().getX(), other.getCtr().getY()));
+                        parameter.logError(wc, other, "Short circuit between well contacts");
+//                        parameter.getErrorLogger().logMessage("Short circuit between well contacts",
+//								list, parameter.getCell(), 0, true);
 						shortsInWC.add(otherNetNum);
 						shortsInOther.add(wcNetNum);
 					}
