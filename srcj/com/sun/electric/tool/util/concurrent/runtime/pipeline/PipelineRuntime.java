@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime.pipeline;
 
+import java.util.List;
+
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
 
@@ -30,28 +32,113 @@ import com.sun.electric.tool.util.IStructure;
  * @author Felix Schmidt
  * 
  */
-public class PipelineRuntime {
+public class PipelineRuntime<PipeIn, PipeOut> {
 
-	public static class Stage<Input, Output> {
+    private List<Thread> threads = CollectionFactory.createLinkedList();
 
-		private IStructure<Input> inputQueue;
-		private int numOfWorkers;
+    public static enum PipelineWorkerStrategyType {
+        simple;
+    }
 
-		public Stage(int numOfWorkers) {
-			this.inputQueue = CollectionFactory.createLockFreeQueue();
-			this.numOfWorkers = numOfWorkers;
-		}
+    private List<Stage<?, ?>> stages;
 
-		public void send(Input item) {
-			inputQueue.add(item);
-		}
+    public PipelineRuntime() {
+        stages = CollectionFactory.createLinkedList();
+    }
 
-		public Input recv() {
-			return this.inputQueue.remove();
-		}
-	}
+    // TODO handle different types, checks at runtime
+    @SuppressWarnings("unchecked")
+    public <Input, Output> void addStage(StageImpl<Input, Output> impl, int numOfWorkers) {
+        Stage<Input, Output> stage = new Stage<Input, Output>(numOfWorkers);
+        for (int i = 0; i < numOfWorkers; i++) {
+            try {
+                PipelineWorkerStrategy strategy = createPipelineWorker(PipelineWorkerStrategyType.simple,
+                        stage, (StageImpl<Input, Output>) impl.clone());
+                Thread thread = new Thread(strategy);
+                thread.start();
+                threads.add(thread);
+                stage.getWorkers().add(strategy);
+                stages.add(stage);
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+        }
+        if (stages.size() != 0) {
+            stages.get(stages.size() - 1).next = (Stage<?, ?>) stage;
+        }
+    }
 
-	public static abstract class StageImpl<Input, Output> {
-		public abstract Output execute(Input item);
-	}
+    public void shutdown() throws InterruptedException {
+        for (Stage<?, ?> stage : stages) {
+            stage.shutdown();
+        }
+
+        for (Thread thread : threads) {
+            thread.join();
+        }
+    }
+
+    public static class Stage<Input, Output> {
+
+        private IStructure<Input> inputQueue;
+        private List<PipelineWorkerStrategy> workers;
+        private Stage<?, ?> next;
+
+        public Stage(int numOfWorkers) {
+            this.inputQueue = CollectionFactory.createLockFreeQueue();
+            this.workers = CollectionFactory.createLinkedList();
+        }
+
+        public void send(Input item) {
+            inputQueue.add(item);
+        }
+
+        public Input recv() {
+            return this.inputQueue.remove();
+        }
+
+        public void setWorkers(List<PipelineWorkerStrategy> workers) {
+            this.workers = workers;
+        }
+
+        public List<PipelineWorkerStrategy> getWorkers() {
+            return workers;
+        }
+
+        public void shutdown() {
+            for (PipelineWorkerStrategy strategy : workers) {
+                strategy.shutdown();
+            }
+        }
+
+        public void setParent(Stage<?, ?> next) {
+            this.next = next;
+        }
+
+        public Stage<?, ?> getParent() {
+            return next;
+        }
+    }
+
+    public static abstract class StageImpl<Input, Output> implements Cloneable {
+        public abstract Output execute(Input item);
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see java.lang.Object#clone()
+         */
+        @Override
+        public Object clone() throws CloneNotSupportedException {
+            return super.clone();
+        }
+    }
+
+    public static <Input, Output> PipelineWorkerStrategy createPipelineWorker(
+            PipelineWorkerStrategyType type, Stage<Input, Output> stage, StageImpl<Input, Output> impl) {
+        if (type == PipelineWorkerStrategyType.simple) {
+            return new SimplePipelineWorker<Input, Output>(stage, impl);
+        }
+        return null;
+    }
 }

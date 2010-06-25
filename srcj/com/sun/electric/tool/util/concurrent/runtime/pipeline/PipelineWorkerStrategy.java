@@ -29,6 +29,13 @@ import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
  * @author Felix Schmidt
  * 
  */
-public abstract class PipelineWorkerStrategy extends WorkerStrategy {
+public abstract class PipelineWorkerStrategy extends WorkerStrategy implements Runnable {
+    
+    /* (non-Javadoc)
+     * @see java.lang.Runnable#run()
+     */
+    public void run() {
+        this.execute();       
+    }
 
 }

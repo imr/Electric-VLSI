@@ -35,8 +35,9 @@ public class SimplePipelineWorker<Input, Output> extends PipelineWorkerStrategy 
     private Stage<Input, Output> myStage;
     private StageImpl<Input, Output> impl;
 
-    public SimplePipelineWorker(Stage<Input, Output> stage) {
+    public SimplePipelineWorker(Stage<Input, Output> stage, StageImpl<Input, Output> impl) {
         this.myStage = stage;
+        this.impl = impl;
     }
 
     /*
@@ -59,5 +60,4 @@ public class SimplePipelineWorker<Input, Output> extends PipelineWorkerStrategy 
         }
 
     }
-
 }
