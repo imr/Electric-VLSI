@@ -81,34 +81,48 @@ public class BusSample<S extends Sample> implements Sample {
         return new BusSample(ret);
     }
 
-
+    /** create a Signal<BusSample<S>> from preexisting Signal<S>'s */
     /*
-    private byte getByteRepresentation() { return (byte)(((value.v+1) << 3) | strength.v); }
-    private static DigitalSample fromByteRepresentation(byte b) { return cache[(b >> 3) & 3][b & 7]; }
-
-
-    public static Signal<BusSample<S>> createSignal(DigitalAnalysis an, String signalName, String signalContext) {
-        UnboxedComparable<DigitalSample> unboxer = new UnboxedComparable<DigitalSample>() {
+    public static Signal<BusSample<S>> createSignal(DigitalAnalysis an, String signalName, String signalContext,
+                                                    Signal<S>[] subsignals) {
+        final Signal<S>[] subsigs = subsignals;
+        return new Signal<BusSample<S>>(an, signalName, signalContext, BTreeSignal.getTree(unboxer)) {
+            public boolean isDigital() { return true; }
+            public boolean isEmpty() { for(Signal<S> sig : subsigs) if (!sig.isEmpty()) return false; return true; }
+            public Signal.View<RangeSample<SS>> getRasterView(double t0, double t1, int numPixels);
+            public Signal.View<SS> getExactView();
+            public double getMinTime() {
+                double min = Double.MAX_VALUE;
+                for(Signal<S> sig : subsigs) min = Math.min(min, sig.getMinTime());
+                return min;
+            }
+            public double getMaxTime() {
+                double max = Double.MIN_VALUE;
+                for(Signal<S> sig : subsigs) max = Math.max(max, sig.getMaxTime());
+                return max;
+            }
+        };
+    }
+    */
+    
+    /** create a MutableSignal<BusSample<S>> */
+        /*
+    public static Signal<BusSample<S>> createSignal(DigitalAnalysis an, String signalName, String signalContext,
+                                                    int width) {
+        final UnboxedComparable<DigitalSample> unboxer = new UnboxedComparable<DigitalSample>() {
             public int getSize() { return 1; }
             public DigitalSample deserialize(byte[] buf, int ofs) { return fromByteRepresentation(buf[ofs]); }
             public void serialize(DigitalSample v, byte[] buf, int ofs) { buf[ofs] = v.getByteRepresentation(); }
             public int compare(byte[] buf1, int ofs1, byte[] buf2, int ofs2) { return (buf1[ofs1]&0xff)-(buf2[ofs2]&0xff); }
         };
-        return new Signal<BusSample<S>>(an, signalName, signalContext, BTreeSignal.getTree(unboxer)) {
-            public boolean isDigital() { return true; }
+        Signal<ScalarSample> ret =
+            new BTreeSignal<ScalarSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
+            public boolean isDigital() { return false; }
+            public boolean isAnalog() { return true; }
         };
-        public abstract Signal.View<RangeSample<SS>> getRasterView(double t0, double t1, int numPixels);
-        public abstract Signal.View<SS> getExactView();
-        public abstract double getMinTime();
-        public abstract double getMaxTime();
-        public abstract SS     getMinValue();
-        public abstract SS     getMaxValue();
-        public boolean isDigital() { return false; }
-        public boolean isAnalog() { return !isDigital(); }
-        public void    addSample(double time, SS sample) {
-            throw new RuntimeException(getClass().getName()+" does not support adding new samples");
-        }
+        an.addSignal(ret);
+        return ret;
+        throw new RuntimeException("not implemented yet");
     }
-    */
-
+        */
 }
