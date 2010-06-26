@@ -25,7 +25,7 @@ package com.sun.electric.database.geometry.btree.unboxed;
 
 import java.io.*;
 
-/** A 64-bit <tt>long</tt> which is stored internally as a 32-bit <tt>float</tt> in unboxed form */
+/** A 64-bit <tt>double</tt> which is stored internally as a 32-bit <tt>float</tt> in unboxed form */
 public class UnboxedHalfDouble implements UnboxedComparable<Double> {
     public static final UnboxedHalfDouble instance = new UnboxedHalfDouble();
     public int getSize() { return 4; }
