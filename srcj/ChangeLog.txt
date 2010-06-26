@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+IMP/MAN: (6/26/10, GVG) highlight the outline of the geometry in ERC errors (Bug #2752)
+
 BUG: (6/25/10, AM) Waveform window pans wildly when Command-5 is pressed
 FIX: Make WaveformWindow.centerCursor() center on the "main" cursor instead
      of the mouse.
