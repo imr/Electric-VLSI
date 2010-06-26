@@ -774,70 +774,29 @@ public class Panel extends JPanel
 
 	/**
 	 * Method to make this Panel show a signal fully.
-	 * @param sSig the signal to show (must be analog)
+	 * @param sSig the signal to show (must be analog) or null to fit to all signals
 	 */
-	public void fitToSignal(Signal sSig) {
-        Sample minval = sSig.getMinValue();
-        Sample maxval = sSig.getMaxValue();
-        if (minval!=null && maxval != null && minval instanceof ScalarSample && maxval instanceof ScalarSample) {
-            double lowValue = ((ScalarSample)minval).getValue();
-            double highValue = ((ScalarSample)maxval).getValue();
-            double range = highValue - lowValue;
-            if (range == 0) range = 2;
-            double rangeExtra = range / 10;
-            setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
-            makeSelectedPanel(-1, -1);
-            repaintWithRulers();
-        }
-	}
-
-    void fillWaveform(int how, double leftEdge, double rightEdge, boolean xAxisLocked) {
-        if (!xAxisLocked) {
-            if (!isSelected()) return;
-            /*
-            // when time is not locked, compute bounds for this panel only
-            Analysis an = sd.findAnalysis(wp.getAnalysisType());
-            leftEdge = an.getMinTime();
-            rightEdge = an.getMaxTime();
-            if (wp.getXAxisSignal() != null)
-            {
-            leftEdge = wp.getXAxisSignal().getMinTime();
-            rightEdge = wp.getXAxisSignal().getMaxTime();
-            }
-            */
-        }
-        double minY = Double.MAX_VALUE;
-        double maxY = Double.MIN_VALUE;
-        for(WaveSignal ws : getSignals()) {
-            Signal sSig = ws.getSignal();
+	public void fitToSignal(Signal sig) {
+        double lowValue = Double.MAX_VALUE;
+        double highValue = Double.MIN_VALUE;
+        for(WaveSignal wSig : getSignals()) {
+            Signal sSig = wSig.getSignal();
+            if (sig!=null && sig!=sSig) continue;
             Sample minval = sSig.getMinValue();
             Sample maxval = sSig.getMaxValue();
-            if (minval!=null && maxval != null && minval instanceof ScalarSample && maxval instanceof ScalarSample) {
-                double lowValue = ((ScalarSample)minval).getValue();
-                double highValue = ((ScalarSample)maxval).getValue();
-                minY = Math.min(minY, lowValue);
-                maxY = Math.max(maxY, highValue);
-            } else if (minval!=null && maxval != null && minval instanceof DigitalSample && maxval instanceof DigitalSample) {
-                minY = Math.min(minY, 0);
-                maxY = Math.max(maxY, 1);
-            }
+            if (minval==null || maxval == null || !(minval instanceof ScalarSample) || !(maxval instanceof ScalarSample))
+                continue;
+            lowValue = Math.min(lowValue, ((ScalarSample)minval).getValue());
+            highValue = Math.max(highValue, ((ScalarSample)maxval).getValue());
         }
-        boolean repaint = false;
-        if (leftEdge != rightEdge && (getMinXAxis() != leftEdge || getMaxXAxis() != rightEdge) && (how&1) != 0) {
-            setXAxisRange(leftEdge, rightEdge);
-            repaint = true;
-        }
-        double valueRange = (maxY - minY) / 8;
-        if (valueRange == 0) valueRange = 0.5;
-        minY -= valueRange;
-        maxY += valueRange;
-        if ((getYAxisLowValue() != minY || getYAxisHighValue() != maxY) && (how&2)!=0) {
-            // only if Y filling is requested
-            setYAxisRange(minY, maxY);
-            repaint = true;
-        }
-        if (repaint) repaintWithRulers();
-    }
+        double range = highValue - lowValue;
+        if (range == 0) range = 2;
+        double rangeExtra = range / 10;
+        setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
+        makeSelectedPanel(-1, -1);
+        repaintWithRulers();
+	}
+
 
 	/**
 	 * Method to set the Y axis range in this panel.

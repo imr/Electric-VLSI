@@ -4186,8 +4186,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			rightEdge = xAxisSignalAll.getMaxTime();
 		}
 
-		for(Panel wp : wavePanels)
-            wp.fillWaveform(how, leftEdge, rightEdge, xAxisLocked);
+		for(Panel wp : wavePanels) {
+            if (!xAxisLocked && !wp.isSelected()) continue;
+            if ((how&2)!=0) wp.fitToSignal(null);
+            if (leftEdge != rightEdge && (wp.getMinXAxis() != leftEdge || wp.getMaxXAxis() != rightEdge) && (how&1) != 0) {
+                wp.setXAxisRange(leftEdge, rightEdge);
+                wp.repaintWithRulers();
+            }
+        }
 	}
 
 	public void zoomOutContents()
