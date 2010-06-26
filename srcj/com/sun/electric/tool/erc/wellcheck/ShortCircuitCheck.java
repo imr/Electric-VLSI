@@ -90,7 +90,7 @@ public class ShortCircuitCheck implements WellCheckAnalysisStrategy {
 //						List<Object> list = new ArrayList<Object>();
 //						list.add(new EPoint(wc.getCtr().getX(), wc.getCtr().getY()));
 //						list.add(new EPoint(other.getCtr().getX(), other.getCtr().getY()));
-                        parameter.logError(wc, other, "Short circuit between well contacts");
+                        parameter.logError("Short circuit between well contacts", wc, other);
 //                        parameter.getErrorLogger().logMessage("Short circuit between well contacts",
 //								list, parameter.getCell(), 0, true);
 						shortsInWC.add(otherNetNum);

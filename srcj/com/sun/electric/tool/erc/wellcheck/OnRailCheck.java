@@ -97,11 +97,11 @@ public class OnRailCheck implements WellCheckAnalysisStrategy {
 			if (!(wc.isOnRail() || wc.isOnProperRail())) {
 				if (Utils.canBeSubstrateTap(wc.getFun())) {
 					if (parameter.getWellPrefs().mustConnectPWellToGround) {
-                        parameter.logError(wc, "P-Well contact '" + wc.getNi().getName() + "' not connected to ground");
+                        parameter.logError("P-Well contact '" + wc.getNi().getName() + "' not connected to ground", wc);
                     }
 				} else {
 					if (parameter.getWellPrefs().mustConnectNWellToPower) {
-                        parameter.logError(wc, "N-Well contact '" + wc.getNi().getName() + "' not connected to ground");
+                        parameter.logError("N-Well contact '" + wc.getNi().getName() + "' not connected to ground", wc);
                     }
 				}
 			}

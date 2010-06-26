@@ -115,13 +115,10 @@ public class DRCCheck implements WellCheckAnalysisStrategy {
 					PolyBase pb = new PolyBase(child.getBounds());
 					double trueDist = pb.polyDistance(other.getBounds());
 					if (trueDist < minDist) {
-						List<PolyBase> polyList = new ArrayList<PolyBase>();
-						polyList.add(new PolyBase(child.getBounds()));
-						polyList.add(new PolyBase(other.getBounds()));
-						parameters.getErrorLogger().logMessage(
+						parameters.logError(
 								"Well areas too close (are " + TextUtils.formatDistance(trueDist)
 										+ " but should be " + TextUtils.formatDistance(minDist) + " apart)",
-								polyList, parameters.getCell(), 0, true);
+										child, other);
 					}
 				}
 			} else {

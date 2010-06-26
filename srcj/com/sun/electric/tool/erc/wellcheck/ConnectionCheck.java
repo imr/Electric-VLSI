@@ -72,12 +72,10 @@ public class ConnectionCheck implements WellCheckAnalysisStrategy {
 		if (parameter.getWellPrefs().nWellCheck != 2)
 			findUnconnected(nWellRoot, nWellRoot, WellType.nwell);
 		if (parameter.getWellPrefs().pWellCheck == 1 && !hasPCon) {
-			parameter.getErrorLogger().logError("No P-Well contact found in this cell", parameter.getCell(),
-					0);
+			parameter.logError("No P-Well contact found in this cell");
 		}
 		if (parameter.getWellPrefs().nWellCheck == 1 && !hasNCon) {
-			parameter.getErrorLogger().logError("No N-Well contact found in this cell", parameter.getCell(),
-					0);
+			parameter.logError("No N-Well contact found in this cell");
 		}
 	}
 
@@ -88,9 +86,7 @@ public class ConnectionCheck implements WellCheckAnalysisStrategy {
 				if (child.getNetID() == null) {
 					Utils.spreadWellSeed(child.getBounds().getCenterX(), child.getBounds().getCenterY(),
 							new NetValues(), rtree, 0);
-					parameter.getErrorLogger().logError("No " + type + "-Well contact in this area",
-							new EPoint(child.getBounds().getCenterX(), child.getBounds().getCenterY()),
-							parameter.getCell(), 0);
+					parameter.logError("No " + type + "-Well contact in this area", child);
 				}
 			} else {
 				RTNode child = (RTNode) current.getChild(j);

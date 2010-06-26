@@ -645,43 +645,41 @@ public class ERCWellCheck {
 			return cell;
 		}
 
-		public ErrorLogger getErrorLogger() {
-			return errorLogger;
-		}
+//		public ErrorLogger getErrorLogger() {
+//			return errorLogger;
+//		}
 
         // Apply translation to place the bounding box of the well contact
         // in the correct location on the top cell.
-        private Rectangle2D placedWellCon(WellCon wc)
+        private PolyBase placedWellCon(WellCon wc)
         {
             Rectangle2D orig = wc.getNi().getBounds();
-            return new Rectangle2D.Double(wc.getCtr().getX()-orig.getWidth()/2,
+            return new PolyBase (new Rectangle2D.Double(wc.getCtr().getX()-orig.getWidth()/2,
                 wc.getCtr().getY()-orig.getHeight()/2,
-                orig.getWidth(), orig.getHeight());
+                orig.getWidth(), orig.getHeight()));
         }
 
-        public void logError(WellCon wc, WellCon other, String message)
+        public void logError(String message)
         {
+        	errorLogger.logError(message, cell, 0);
+        }
+        
+        public void logError(String message, Object... wblist)
+        {					
             List<Object> list = new ArrayList<Object>();
-
-            // calculate correct location of wc bnd
-            list.add(placedWellCon(wc));
-
-            // location of other bnd
-            list.add(placedWellCon(other));
-
-            list.add(new EPoint(wc.getCtr().getX(), wc.getCtr().getY()));
-            list.add(new EPoint(other.getCtr().getX(), other.getCtr().getY()));
-//                        list.add(new PolyBase(wc.getNi().getBounds()));
-//                        list.add(new PolyBase(other.getNi().getBounds()));
-            errorLogger.logMessage(message,	list, cell, 0, true);
-
-        }
-        public void logError(WellCon wc, String message)
-        {
-            errorLogger.logError(message,
-//                new EPoint(wc.getCtr().getX(), wc.getCtr().getY()),
-                new PolyBase(placedWellCon(wc)),
-                cell, 0);
+        	for (Object w : wblist)
+        	{
+        		if (w instanceof WellBound)
+        		{
+        			list.add(new PolyBase(((WellBound)w).getBounds()));
+        		}
+        		else if (w instanceof WellCon)
+        		{
+        			// calculate the correct location of wc bnd with respect to the top cell
+        			list.add(placedWellCon(((WellCon)w)));
+        		}
+        	}
+        	errorLogger.logMessage(message, list, cell, 0, true);
         }
     }
 
