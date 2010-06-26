@@ -69,10 +69,11 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
 
     public Signal.View<S> getExactView() { return exactView; }
 
-    public Signal.View<RangeSample<S>> getRasterView(double t0, double t1, int numPixels) {
-        return new BTreeRasterView(t0, t1, numPixels);
+    public Signal.View<RangeSample<S>> getRasterView(double t0, double t1, int numPixels, boolean extrapolate) {
+        return new BTreeRasterView(t0, t1, numPixels, extrapolate);
     }
 
+    public boolean isEmpty() { return tree.size()==0; }
 	public double getMinTime()  { return tree.size()==0 ? 0 : getExactView().getTime(0); }
 	public double getMaxTime()  { return tree.size()==0 ? 0 : getExactView().getTime(getExactView().getNumEvents()-1); }
 	public S getMinValue() {
@@ -90,23 +91,63 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
         return tree.getSummaryFromKeys(t1, t2);
     }
 
+    /**
+     *  When a raster view is requested, there are two possibilities:
+     *  the signal has at least numRegions samples between t0 and t1,
+     *  or it has less than numRegions samples.  In the latter case we
+     *  use "exact" mode and snap the raster samples to the actual
+     *  samples.  In the former case we use range queries to summarize
+     *  multiple actual samples in each raster sample.
+     */
     private class BTreeRasterView implements Signal.View<RangeSample<S>> {
         private final double t0, t1;
         private final int numRegions;
-        public BTreeRasterView(double t0, double t1, int numRegions) {
-            this.t0 = Math.min(t0, t1);
-            this.t1 = Math.max(t0, t1);
-            this.numRegions = numRegions;
+        private final boolean exact;
+        private int t0_ord, t1_ord;
+        public BTreeRasterView(double t0, double t1, int numRegions, boolean extrapolate) {
+            double t0_ = Math.min(t0, t1);
+            double t1_ = Math.max(t0, t1);
+            t0_ord = tree.getOrdFromKeyFloor(t0_);
+            t1_ord = tree.getOrdFromKeyFloor(t1_);
+
+            if (extrapolate) {
+                // "snap" t0 and t1 to the nearest actual sample strictly outside the viewfinder
+                t0_ = tree.getKeyFromOrd(t0_ord);
+                t1_ord = Math.min(tree.size()-1, t1_ord+1);
+                t1_ = tree.getKeyFromOrd(t1_ord);
+            }
+
+            this.t0 = t0_;
+            this.t1 = t1_;
+            this.exact = numRegions > (t1_ord - t0_ord);
+            this.numRegions = exact ? numRegions : (t1_ord - t0_ord);
         }
         public int getNumEvents() { return numRegions; }
-        public double getTime(int index) { return t0+(((t1-t0)*index)/numRegions); }
+        public double getTime(int index) {
+            if (exact) return tree.getKeyFromOrd(t0_ord + index);
+            return t0+(((t1-t0)*index)/numRegions);
+        }
         public RangeSample<S> getSample(int index) {
-            Pair<S,S> highlow =
-                tree.getSummaryFromKeys(getTime(index), getTime(index+1));
-            return highlow==null
-                ? null
-                : new RangeSample<S>(highlow.getKey(),
-                                     highlow.getValue());
+            if (exact) {
+                S sample = tree.getValFromOrd(t0_ord+index);
+                return sample==null ? null : new RangeSample<S>(sample, sample);
+            } else {
+                double tfirst = getTime(index);
+                double tsecond = getTime(index+1);
+                if (tfirst==tsecond) {
+                    // this case can occur if the signal's samples
+                    // aren't evenly spaced; in effect we end up
+                    // acting sort of like exact mode at times.
+                    S sample = tree.getValFromKey(tfirst);
+                    return sample==null ? null : new RangeSample<S>(sample, sample);
+                } else {
+                    Pair<S,S> highlow = tree.getSummaryFromKeys(tfirst, tsecond);
+                    return highlow==null
+                        ? null
+                        : new RangeSample<S>(highlow.getKey(),
+                                             highlow.getValue());
+                }
+            }
         }
         public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
         public int getTimeDenominator() { throw new RuntimeException("not implemented"); }

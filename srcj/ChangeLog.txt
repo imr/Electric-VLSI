@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/25/10, AM) Extrapolation is not being done when zoomed-in (Bug #2822)
+FIX: Make BTreeSignal.RasterView far more clever than before.
+
 BUG: (6/25/10, AM) IRSIM no longer crossprobes as main cursor is dragged (Bug #2807)
 FIX: Remove the line that Steve said to comment out.
 

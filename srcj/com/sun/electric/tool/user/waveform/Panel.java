@@ -1510,10 +1510,12 @@ public class Panel extends JPanel
 					Signal wave = as.getWaveform(s);
                 */
                 Signal wave = as;
+                if (wave.isEmpty()) continue;
                     Signal.View<RangeSample<ScalarSample>> waveform =
                         ((Signal<ScalarSample>)wave).getRasterView(convertXScreenToData(0),
                                                                    convertXScreenToData(sz.width),
-                                                                   sz.width);
+                                                                   sz.width,
+                                                                   true);
                     Signal xWaveform = null;
                     if (xSignal != null)
                         xWaveform = xSignal;
@@ -1532,55 +1534,29 @@ public class Panel extends JPanel
 							x = convertXDataToScreen(((ScalarSample)xWaveform.getExactView().getSample(i)).getValue());
 
 						// draw lines if requested and line is on-screen
-						if (linePointMode <= 1 && x >= vertAxisPos && lastX < sz.width)
-						{
-	                        if (!first)
-	                        {
+						if (linePointMode <= 1) {
+	                        if (!first) {
                         		// drawing has lines
-	                            if (lastLY != lastHY || lowY != highY)
-	                            {
+	                            if (lastLY != lastHY || lowY != highY) {
                                     if (g!=null) g.setColor(light);
-	        						if (processALine(g, lastX, lastHY, lastX, lastLY, bounds, forPs, selectedObjects, ws, s)) break;
-	        						if (processALine(g, x, highY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
+	        						processALine(g, lastX, lastHY, lastX, lastLY, bounds, forPs, selectedObjects, ws, s);
+	        						processALine(g, x, highY, x, lowY, bounds, forPs, selectedObjects, ws, s);
                                     if (g!=null) g.setColor(ws.getColor());
-	        						if (processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
+	        						processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, s);
 	        						//if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
 	        						//if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
 	                            }
-	                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
+	                            processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s);
 							}
-	                        if (as.extrapolateValues() && i == numEvents-1)
-	                    	{
-	                    		if (getMinXAxis() < getMaxXAxis())
-	                    		{
-		                    		// process extrapolated line from the last data point
-		                            if (processALine(g, x, lowY, sz.width, lowY, bounds, forPs, selectedObjects, ws, s)) break;
-		                            if (lastLY != lastHY || lowY != highY)
-		                            {
-		        						if (processALine(g, x, highY, sz.width, highY, bounds, forPs, selectedObjects, ws, s)) break;
-		                            }
-	                    		}
-	                    	}
-						}
-
-						// show points if requested and point is on-screen
-                    	if (linePointMode >= 1 && x >= vertAxisPos && x <= sz.width)
-						{
-							if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0)) break;
-						}
-						lastX = x;   lastLY = lowY; lastHY = highY;
+						} else {
+                            // show points if requested and point is on-screen
+							processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0);
+                        }
+						lastX = x;
+                        lastLY = lowY;
+                        lastHY = highY;
                         first = false;
 					}
-                    /*
-                    System.out.println("misses="+com.sun.electric.tool.simulation.BTreeSignal.misses + ", "+
-                                       "avg steps="+
-                                       (((float)com.sun.electric.tool.simulation.BTreeSignal.steps)/
-                                        com.sun.electric.tool.simulation.BTreeSignal.numLookups));
-                    com.sun.electric.tool.simulation.BTreeSignal.misses=0;
-                    com.sun.electric.tool.simulation.BTreeSignal.steps=0;
-                    com.sun.electric.tool.simulation.BTreeSignal.numLookups=0;
-                    */
-                    //}
 				continue;
             } else {
 				// draw digital traces

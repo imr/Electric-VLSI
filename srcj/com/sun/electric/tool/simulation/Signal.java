@@ -116,8 +116,12 @@ public abstract class Signal<SS extends Sample> {
      *  getSample(i).getMax() in that window, but the actual value
      *  returned by getMax() might be much larger than the true
      *  maximum over that range.
+     *
+     *  If extrapolate is true, the resulting data is guaranteed to
+     *  have exactly one data point less than or equal to t0 and
+     *  exactly one greater than or equal to t1.
      */
-    public abstract Signal.View<RangeSample<SS>> getRasterView(double t0, double t1, int numPixels);
+    public abstract Signal.View<RangeSample<SS>> getRasterView(double t0, double t1, int numPixels, boolean extrapolate);
 
     /** Returns a view with all the data, no loss in fidelity. */
     public abstract Signal.View<SS> getExactView();
@@ -126,6 +130,13 @@ public abstract class Signal<SS extends Sample> {
 	public abstract double getMaxTime();
 	public abstract SS     getMinValue();
 	public abstract SS     getMaxValue();
+
+    /**
+     * There are a lot of methods which will return null only if the
+     * signal has no samples in it whatsoever; this method can be used
+     * to check for that case just once at the top of a function.
+     */
+    public abstract boolean isEmpty();
 
     public boolean isDigital() { return false; }
     public boolean isAnalog() { return !isDigital(); }
