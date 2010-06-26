@@ -331,7 +331,7 @@ public class VerilogOut extends Input<Stimuli>
 				fullList = (List)entry;
 				entry = fullList.get(0);
 			}
-			Signal<DigitalSample> sig = (Signal<DigitalSample>)entry;
+			MutableSignal<DigitalSample> sig = (MutableSignal<DigitalSample>)entry;
 			List<VerilogStimuli> listForSig = dataMap.get(sig);
 			int numStimuli = listForSig.size();
 			if (numStimuli == 0) continue;

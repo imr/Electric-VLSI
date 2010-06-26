@@ -29,10 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.UserInterfaceExec;
-import com.sun.electric.tool.simulation.ScalarSample;
-import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.ScalarSample;
+import com.sun.electric.tool.simulation.*;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.io.BufferedOutputStream;
@@ -886,7 +883,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         /** Packed waveform. */                 byte[] waveform = new byte[512];
         /** Count of bytes used in waveform. */ int len;
 
-        Signal<ScalarSample> signal;
+        MutableSignal<ScalarSample> signal;
         int sigNum;
         int count = 0;
 

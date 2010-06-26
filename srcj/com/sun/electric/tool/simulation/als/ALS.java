@@ -77,6 +77,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.GenerateVHDL;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.simulation.*;
 import com.sun.electric.tool.simulation.als.ALS;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -1040,7 +1041,7 @@ public class ALS extends Engine
 		for(ALSExport e : cr.exList)
 		{
 			if (e.nodePtr.sig != null) continue;
-			Signal<DigitalSample> sig = DigitalSample.createSignal(an, (String)e.nodeName, context);
+			MutableSignal<DigitalSample> sig = DigitalSample.createSignal(an, (String)e.nodeName, context);
 			e.nodePtr.sig = sig;
             sig.addSample(0, DigitalSample.LOGIC_0);
             sig.addSample(DEFTIMERANGE, DigitalSample.LOGIC_0);

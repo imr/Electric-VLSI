@@ -25,14 +25,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
-import com.sun.electric.tool.simulation.DigitalAnalysis;
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.Engine;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.MutableSignal;
-import com.sun.electric.tool.simulation.SimulationTool;
-import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.*;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
@@ -273,7 +266,7 @@ public class Analyzer extends Engine
 
 			// make a signal for it
 			int slashPos = n.nName.lastIndexOf('/');
-			Signal<DigitalSample> sig =
+			MutableSignal<DigitalSample> sig =
                 slashPos >= 0
                 ? DigitalSample.createSignal(analysis, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
                 : DigitalSample.createSignal(analysis, n.nName, null);
