@@ -126,8 +126,6 @@ public abstract class Signal<SS extends Sample> {
 
 	public abstract double getMinTime();
 	public abstract double getMaxTime();
-	public abstract SS     getMinValue();
-	public abstract SS     getMaxValue();
 
     /**
      * There are a lot of methods which will return null only if the

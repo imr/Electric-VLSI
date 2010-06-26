@@ -74,17 +74,6 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
     public boolean isEmpty() { return tree.size()==0; }
 	public double getMinTime()  { return tree.size()==0 ? 0 : getExactView().getTime(0); }
 	public double getMaxTime()  { return tree.size()==0 ? 0 : getExactView().getTime(getExactView().getNumEvents()-1); }
-	public S getMinValue() {
-        Pair<S,S> pk = getSummaryFromKeys(null, null);
-        if (pk==null) return null;
-        return pk.getKey();
-    }
-	public S getMaxValue() {
-        Pair<S,S> pk = getSummaryFromKeys(null, null);
-        if (pk==null) return null;
-        return pk.getValue();
-    }
-
     protected Pair<S,S> getSummaryFromKeys(Double t1, Double t2) {
         return tree.getSummaryFromKeys(t1, t2);
     }

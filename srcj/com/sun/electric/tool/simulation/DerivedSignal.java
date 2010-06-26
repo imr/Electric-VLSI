@@ -78,20 +78,6 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
             max = Math.min(max, sources[i].getMaxTime());
         return max;
     }
-	public SNew getMinValue() {
-        RangeSample<SOld>[] scratch = new RangeSample[sources.length];
-        for(int i=0; i<scratch.length; i++)
-            scratch[i] = new RangeSample<SOld>(sources[i].getMinValue(),sources[i].getMaxValue());
-        RangeSample<SNew> ret = getDerivedRange(scratch);
-        return ret.getMin();
-    }
-	public SNew getMaxValue() {
-        RangeSample<SOld>[] scratch = new RangeSample[sources.length];
-        for(int i=0; i<scratch.length; i++)
-            scratch[i] = new RangeSample<SOld>(sources[i].getMinValue(),sources[i].getMaxValue());
-        RangeSample<SNew> ret = getDerivedRange(scratch);
-        return ret.getMax();
-    }
 
     public Signal.View<SNew> getExactView() {
         if (sources.length==1)

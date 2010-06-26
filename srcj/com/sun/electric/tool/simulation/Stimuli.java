@@ -256,6 +256,7 @@ public class Stimuli {
 	 * @return a Rectangle2D that has time bounds in the X part and
 	 * value bounds in the Y part.
 	 */
+    /*
 	public Rectangle2D getBounds()
 	{
 		// determine extent of the data
@@ -274,6 +275,7 @@ public class Stimuli {
 		}
 		return bounds;
 	}
+    */
 
 	/**
 	 * Method to return the leftmost X coordinate of this Stimuli.

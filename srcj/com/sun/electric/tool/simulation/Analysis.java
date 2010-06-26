@@ -204,6 +204,7 @@ public class Analysis<S extends Signal>
 	 * @return a Rectangle2D that has time bounds in the X part and
 	 * value bounds in the Y part.
 	 */
+    /*
 	public Rectangle2D getBounds() {
         if (bounds!=null) return bounds;
         double minX = Double.MAX_VALUE;
@@ -225,9 +226,20 @@ public class Analysis<S extends Signal>
         }
         return bounds = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
+    */
 
-	public double getMinTime() { return getBounds().getX(); }
-	public double getMaxTime() { return getBounds().getX()+getBounds().getWidth(); }
+	public double getMinTime() {
+        double ret = Double.MAX_VALUE;
+        for(Signal sig : signals)
+            ret = Math.min(ret, sig.getMinTime());
+        return ret;
+    }
+	public double getMaxTime() {
+        double ret = Double.MIN_VALUE;
+        for(Signal sig : signals)
+            ret = Math.max(ret, sig.getMaxTime());
+        return ret;
+    }
 	public void setBoundsDirty() { }
 
 	/**

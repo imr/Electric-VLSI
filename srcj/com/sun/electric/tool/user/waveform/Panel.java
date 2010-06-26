@@ -782,12 +782,18 @@ public class Panel extends JPanel
         for(WaveSignal wSig : getSignals()) {
             Signal sSig = wSig.getSignal();
             if (sig!=null && sig!=sSig) continue;
-            Sample minval = sSig.getMinValue();
-            Sample maxval = sSig.getMaxValue();
-            if (minval==null || maxval == null || !(minval instanceof ScalarSample) || !(maxval instanceof ScalarSample))
-                continue;
-            lowValue = Math.min(lowValue, ((ScalarSample)minval).getValue());
-            highValue = Math.max(highValue, ((ScalarSample)maxval).getValue());
+            Signal.View<RangeSample<Sample>> view =
+                sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), 2, false);
+            for(int i=0; i<view.getNumEvents(); i++) {
+                RangeSample rs = view.getSample(i);
+                if (rs==null) continue;
+                Sample min = rs.getMin();
+                Sample max = rs.getMax();
+                if (min!=null && !(min instanceof ScalarSample)) break;
+                if (max!=null && !(max instanceof ScalarSample)) break;
+                lowValue = Math.min(lowValue, ((ScalarSample)min).getValue());
+                highValue = Math.max(highValue, ((ScalarSample)max).getValue());
+            }
         }
         double range = highValue - lowValue;
         if (range == 0) range = 2;
