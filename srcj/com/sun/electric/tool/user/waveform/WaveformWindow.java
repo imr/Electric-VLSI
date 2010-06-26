@@ -3185,9 +3185,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	private void updateAssociatedLayoutWindow()
 	{
-		// this only works for digital simulation
-		if (sd.isAnalog()) return;
-
 		// make sure there is a layout/schematic window being simulated
 		WindowFrame oWf = findSchematicsWindow();
 		if (oWf == null) return;
