@@ -82,34 +82,46 @@ public class BusSample<S extends Sample> implements Sample {
     }
 
     /** create a Signal<BusSample<S>> from preexisting Signal<S>'s */
-    /*
-    public static Signal<BusSample<S>> createSignal(DigitalAnalysis an, String signalName, String signalContext,
-                                                    Signal<S>[] subsignals) {
-        final Signal<S>[] subsigs = subsignals;
-        return new Signal<BusSample<S>>(an, signalName, signalContext, BTreeSignal.getTree(unboxer)) {
+    public static <SS extends Sample>
+        Signal<BusSample<SS>> createSignal(DigitalAnalysis an, String signalName, String signalContext,
+                                           Signal<SS>[] subsignals) {
+        final Signal<SS>[] subsigs = subsignals;
+        return new Signal<BusSample<SS>>(an, signalName, signalContext) {
             public boolean isDigital() { return true; }
-            public boolean isEmpty() { for(Signal<S> sig : subsigs) if (!sig.isEmpty()) return false; return true; }
-            public Signal.View<RangeSample<SS>> getRasterView(double t0, double t1, int numPixels);
-            public Signal.View<SS> getExactView();
+            public boolean isEmpty() { for(Signal<SS> sig : subsigs) if (!sig.isEmpty()) return false; return true; }
+            public Signal.View<RangeSample<BusSample<SS>>> getRasterView(double t0, double t1, int numPixels, boolean extrap) {
+                return new Signal.View<RangeSample<BusSample<SS>>>() {
+                    public int                        getNumEvents() { throw new RuntimeException("not implemented"); }
+                    public double                     getTime(int event) { throw new RuntimeException("not implemented"); }
+                    public RangeSample<BusSample<SS>> getSample(int event) { throw new RuntimeException("not implemented"); }
+                };
+            }
+            public Signal.View<BusSample<SS>> getExactView() {
+                return new Signal.View<BusSample<SS>>() {
+                    public int           getNumEvents() { throw new RuntimeException("not implemented"); }
+                    public double        getTime(int event) { throw new RuntimeException("not implemented"); }
+                    public BusSample<SS> getSample(int event) { throw new RuntimeException("not implemented"); }
+                };
+            }
             public double getMinTime() {
                 double min = Double.MAX_VALUE;
-                for(Signal<S> sig : subsigs) min = Math.min(min, sig.getMinTime());
+                for(Signal<SS> sig : subsigs) min = Math.min(min, sig.getMinTime());
                 return min;
             }
             public double getMaxTime() {
                 double max = Double.MIN_VALUE;
-                for(Signal<S> sig : subsigs) max = Math.max(max, sig.getMaxTime());
+                for(Signal<SS> sig : subsigs) max = Math.max(max, sig.getMaxTime());
                 return max;
             }
         };
     }
-    */
     
-    /** create a MutableSignal<BusSample<S>> */
+    /** create a MutableSignal<BusSample<SS>> */
+    public static <SS extends Sample>
+        Signal<BusSample<SS>> createSignal(DigitalAnalysis an, String signalName, String signalContext,
+                                           int width) {
         /*
-    public static Signal<BusSample<S>> createSignal(DigitalAnalysis an, String signalName, String signalContext,
-                                                    int width) {
-        final UnboxedComparable<DigitalSample> unboxer = new UnboxedComparable<DigitalSample>() {
+        final Unboxed<BusSample<SS>> unboxer = new Unboxed<BusSample<SS>>() {
             public int getSize() { return 1; }
             public DigitalSample deserialize(byte[] buf, int ofs) { return fromByteRepresentation(buf[ofs]); }
             public void serialize(DigitalSample v, byte[] buf, int ofs) { buf[ofs] = v.getByteRepresentation(); }
@@ -122,7 +134,7 @@ public class BusSample<S extends Sample> implements Sample {
         };
         an.addSignal(ret);
         return ret;
-        throw new RuntimeException("not implemented yet");
-    }
         */
+        throw new RuntimeException("not implemented");
+    }
 }
