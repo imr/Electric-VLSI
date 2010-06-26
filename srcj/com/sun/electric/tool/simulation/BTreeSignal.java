@@ -58,8 +58,6 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
                 if (ret==null) throw new RuntimeException("index out of bounds");
                 return ret;
             }
-            public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
-            public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
         };
     }
 
@@ -149,8 +147,6 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
                 }
             }
         }
-        public int getTimeNumerator(int index) { throw new RuntimeException("not implemented"); }
-        public int getTimeDenominator() { throw new RuntimeException("not implemented"); }
     }
 
 

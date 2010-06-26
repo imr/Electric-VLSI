@@ -101,8 +101,6 @@ public abstract class Signal<SS extends Sample> {
         /** the number of indices ("events") in this view */            int    getNumEvents();
         /** the absolute time of the event in question */               double getTime(int event);
         /** the absolute value of the event in question */              SS     getSample(int event);
-        /** the numerator of the time of the specified event */         int    getTimeNumerator(int event);
-        /** the common denominator of all times */                      int    getTimeDenominator();
     }
 
     /**

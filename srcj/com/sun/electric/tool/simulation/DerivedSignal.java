@@ -64,8 +64,6 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
             for(int i=0; i<scratch.length; i++) scratch[i] = null;
             return ret;
         }
-        public int             getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }
-        public int             getTimeDenominator() { throw new RuntimeException("not implemented"); }
     }
 
 	public double getMinTime() {
@@ -110,10 +108,6 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
             SOld old = view.getSample(event);
             return getDerivedRange(new RangeSample[] { new RangeSample<SOld>(old, old) }).getMin() /* FIXME: arbitrary */;
         }
-        public int             getTimeNumerator(int event) { throw new RuntimeException("not implemented"); }
-        public int             getTimeDenominator() { throw new RuntimeException("not implemented"); }
-        public int             getEventWithMinValue() { throw new RuntimeException("not implemented"); }
-        public int             getEventWithMaxValue() { throw new RuntimeException("not implemented"); }
     }
 
     protected abstract RangeSample<SNew> getDerivedRange(RangeSample<SOld>[] sourceRanges);
