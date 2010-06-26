@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -593,6 +594,25 @@ public class ErrorLogger implements Serializable
                 else if (obj instanceof EPoint)
                 {
                     h.add(new ErrorHighPoint(cell, (EPoint)obj));
+                }
+                else if (obj instanceof Rectangle2D)
+                {
+                	Rectangle2D rect = (Rectangle2D)obj;
+                	List<ErrorHighlight> l = new ArrayList<ErrorHighlight>();
+                	// points clockwise
+                	EPoint p1 = new EPoint(rect.getX(), rect.getY());
+                	EPoint p2 = new EPoint(rect.getX(), rect.getMaxY());
+                	EPoint p3 = new EPoint(rect.getMaxX(), rect.getMaxY());
+                	EPoint p4 = new EPoint(rect.getMaxX(), rect.getY());
+                	//  p1-p2
+                	l.add(new ErrorHighLine(cell, p1, p2, true));
+                	//  p2-p3
+                	l.add(new ErrorHighLine(cell, p2, p3, true));
+                	//  p3-p4
+                	l.add(new ErrorHighLine(cell, p3, p4, true));
+                	//  p4-p1
+                	l.add(new ErrorHighLine(cell, p4, p1, true));
+                	h.add(new ErrorHighPoly(cell, null, l));
                 }
                 else if (obj instanceof PolyBase)
                 {

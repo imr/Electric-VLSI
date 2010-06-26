@@ -651,12 +651,12 @@ public class ERCWellCheck {
 
         // Apply translation to place the bounding box of the well contact
         // in the correct location on the top cell.
-        private PolyBase placedWellCon(WellCon wc)
+        private Rectangle2D placedWellCon(WellCon wc)
         {
             Rectangle2D orig = wc.getNi().getBounds();
-            return new PolyBase (new Rectangle2D.Double(wc.getCtr().getX()-orig.getWidth()/2,
+            return new Rectangle2D.Double(wc.getCtr().getX()-orig.getWidth()/2,
                 wc.getCtr().getY()-orig.getHeight()/2,
-                orig.getWidth(), orig.getHeight()));
+                orig.getWidth(), orig.getHeight());
         }
 
         public void logError(String message)
@@ -671,7 +671,7 @@ public class ERCWellCheck {
         	{
         		if (w instanceof WellBound)
         		{
-        			list.add(new PolyBase(((WellBound)w).getBounds()));
+        			list.add(((WellBound)w).getBounds());
         		}
         		else if (w instanceof WellCon)
         		{
