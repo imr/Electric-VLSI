@@ -1215,27 +1215,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	}
 
 	/**
-	 * Method to shift the panels so that the current cursor location becomes the center.
+	 * Method to shift the panels so that the main cursor location becomes the center.
 	 */
-	public void centerCursor()
-	{
-		Panel pan = Panel.getCurrentPanel();
-		if (pan == null) return;
-
-		int x = Panel.getCurrentXPos();
-		if (x < 0) return;
-		Dimension dim = pan.getSize();
-		double startX = pan.convertXScreenToData(x);
-		double endX = pan.convertXScreenToData(dim.width/2);
-		double dXValue = endX - startX;
-
-		for(Iterator<Panel> it = getPanels(); it.hasNext(); )
-		{
-			Panel wp = it.next();
-			if (!isXAxisLocked() && wp != pan) continue;
-			wp.setXAxisRange(wp.getMinXAxis() - dXValue, wp.getMaxXAxis() - dXValue);
-			wp.repaintWithRulers();
-		}
+	public void centerCursor() {
+        double center = getMainXPositionCursor();
+        for(Iterator<Panel> it = getPanels(); it.hasNext(); ) {
+            Panel wp = it.next();
+            double half = (wp.getMaxXAxis() - wp.getMinXAxis())/2.;
+            wp.setXAxisRange(center-half, center+half);
+            wp.repaintWithRulers();
+        }
 	}
 
 	/**

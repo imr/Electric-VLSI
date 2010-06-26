@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/25/10, AM) Waveform window pans wildly when Command-5 is pressed
+FIX: Make WaveformWindow.centerCursor() center on the "main" cursor instead
+     of the mouse.
+
 BUG: (6/25/10, AM) Extrapolation is not being done when zoomed-in (Bug #2822)
 FIX: Make BTreeSignal.RasterView far more clever than before.
 
