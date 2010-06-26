@@ -4150,17 +4150,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		// accumulate bounds for all displayed panels
 		double leftEdge=0, rightEdge=0;
-		for(Panel wp : wavePanels)
-		{
+		for(Panel wp : wavePanels) {
 			if (wp.getXAxisSignal() != null) continue;
-			for(WaveSignal ws : wp.getSignals())
-			{
-				if (leftEdge == rightEdge)
-				{
+			for(WaveSignal ws : wp.getSignals()) {
+				if (leftEdge == rightEdge) {
 					leftEdge  = ws.getSignal().getMinTime();
 					rightEdge = ws.getSignal().getMaxTime();
-				} else
-				{
+				} else {
 					leftEdge  = Math.min(leftEdge,  ws.getSignal().getMinTime());
 					rightEdge = Math.max(rightEdge, ws.getSignal().getMaxTime());
 				}
@@ -4185,88 +4181,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// if there is an overriding signal on the X axis, use its bounds
-		if (xAxisLocked && xAxisSignalAll != null)
-		{
+		if (xAxisLocked && xAxisSignalAll != null) {
 			leftEdge = xAxisSignalAll.getMinTime();
 			rightEdge = xAxisSignalAll.getMaxTime();
 		}
 
 		for(Panel wp : wavePanels)
-		{
-			if (!xAxisLocked)
-			{
-				if (!wp.isSelected()) continue;
-
-                /*
-				// when time is not locked, compute bounds for this panel only
-				Analysis an = sd.findAnalysis(wp.getAnalysisType());
-				leftEdge = an.getMinTime();
-				rightEdge = an.getMaxTime();
-				if (wp.getXAxisSignal() != null)
-				{
-					leftEdge = wp.getXAxisSignal().getMinTime();
-					rightEdge = wp.getXAxisSignal().getMaxTime();
-				}
-                */
-			}
-
-            double minX = Double.MAX_VALUE;
-            double maxX = Double.MIN_VALUE;
-            double minY = Double.MAX_VALUE;
-            double maxY = Double.MIN_VALUE;
-			for(WaveSignal ws : wp.getSignals()) {
-                Signal sSig = ws.getSignal();
-                Sample minval = sSig.getMinValue();
-                Sample maxval = sSig.getMaxValue();
-                if (minval!=null && maxval != null && minval instanceof ScalarSample && maxval instanceof ScalarSample) {
-                    double lowValue = ((ScalarSample)minval).getValue();
-                    double highValue = ((ScalarSample)maxval).getValue();
-                    minY = Math.min(minY, lowValue);
-                    maxY = Math.max(maxY, highValue);
-				} else if (minval!=null && maxval != null && minval instanceof DigitalSample && maxval instanceof DigitalSample) {
-                    minY = Math.min(minY, 0);
-                    maxY = Math.max(maxY, 1);
-                }
-                minX = Math.min(minX, sSig.getMinTime());
-                maxX = Math.max(maxX, sSig.getMaxTime());
-            }
-			Rectangle2D yBounds = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
-			boolean repaint = false;
-			if (leftEdge != rightEdge)
-			{
-				if (wp.getMinXAxis() != leftEdge || wp.getMaxXAxis() != rightEdge)
-				{
-					// only if X filling is requested
-					if ((how&1) != 0)
-					{
-						wp.setXAxisRange(leftEdge, rightEdge);
-						repaint = true;
-					}
-				}
-			}
-			if (yBounds != null)
-			{
-				double lowValue = yBounds.getMinY();
-				double highValue = yBounds.getMaxY();
-				double valueRange = (highValue - lowValue) / 8;
-				if (valueRange == 0) valueRange = 0.5;
-				lowValue -= valueRange;
-				highValue += valueRange;
-				if (wp.getYAxisLowValue() != lowValue || wp.getYAxisHighValue() != highValue)
-				{
-					// only if Y filling is requested
-					if ((how&2) != 0)
-					{
-						wp.setYAxisRange(lowValue, highValue);
-						repaint = true;
-					}
-				}
-			}
-			if (repaint)
-			{
-				wp.repaintWithRulers();
-			}
-		}
+            wp.fillWaveform(how, leftEdge, rightEdge, xAxisLocked);
 	}
 
 	public void zoomOutContents()
