@@ -103,19 +103,31 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
                 t1_ord = Math.min(tree.size()-1, t1_ord+1);
                 t1_ = tree.getKeyFromOrd(t1_ord);
             }
+            t0_ord = Math.max(t0_ord, 0);
+            t1_ord = Math.min(t1_ord, tree.size()-1);
 
             this.t0 = t0_;
             this.t1 = t1_;
             this.exact = numRegions > (t1_ord - t0_ord);
-            this.numRegions = exact ? numRegions : (t1_ord - t0_ord);
+            this.numRegions = exact ? (t1_ord - t0_ord) : numRegions;
         }
         public int getNumEvents() { return numRegions; }
         public double getTime(int index) {
-            if (exact) return tree.getKeyFromOrd(t0_ord + index);
-            return t0+(((t1-t0)*index)/numRegions);
+            if (index < 0)
+                throw new RuntimeException("hey nitwit, don't call getTime() on a negative number");
+            if (index >= getNumEvents())
+                throw new RuntimeException("hey nitwit, don't call getTime() on a number greater than or equal to getNumEvents()");
+            if (!exact) return t0+(((t1-t0)*index)/numRegions);
+            Double ret = tree.getKeyFromOrd(t0_ord + index);
+            if (ret==null)
+                throw new RuntimeException("sample not found in BTree -- this should not happen; please report a bug;"+
+                                           " t0_ord="+t0_ord+" t1_ord="+t1_ord+
+                                           " exact="+exact+" index="+index+" tree.size()="+tree.size()+
+                                           " numRegions="+numRegions);
+            return ret.doubleValue();
         }
         public RangeSample<S> getSample(int index) {
-            if (exact) {
+            if (exact || index>=getNumEvents()-1) {
                 S sample = tree.getValFromOrd(t0_ord+index);
                 return sample==null ? null : new RangeSample<S>(sample, sample);
             } else {

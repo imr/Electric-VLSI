@@ -1534,9 +1534,8 @@ public class Panel extends JPanel
                     if (xSignal != null)
                         xWaveform = xSignal;
 					int lastX = 0, lastLY = 0, lastHY = 0;
-					int numEvents = waveform.getNumEvents();
                     boolean first = true;
-					for(int i=0; i<numEvents; i++)
+					for(int i=0; i<waveform.getNumEvents(); i++)
 					{
                         int x = convertXDataToScreen(waveform.getTime(i));
                         RangeSample<ScalarSample> samp =
