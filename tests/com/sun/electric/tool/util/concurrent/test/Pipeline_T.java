@@ -25,6 +25,7 @@ package com.sun.electric.tool.util.concurrent.test;
 
 import org.junit.Test;
 
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime;
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.StageImpl;
@@ -36,9 +37,20 @@ import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.St
 public class Pipeline_T {
 
     @Test
-    public void testPipelineConstruction() {
+    public void testPipelineConstruction() throws InterruptedException {
+    	
+    	Job.setDebug(true);
+    	
         PipelineRuntime<Integer, Integer> testPipe = new PipelineRuntime<Integer, Integer>();
-        testPipe.addStage(new SimpleStage(), 2);
+        testPipe.addStage(new SimpleStage(),3);
+        testPipe.addStage(new SimpleStage2(), 2);
+        for(int i = 0; i < 100; i++) {
+        	testPipe.input(i);
+        }
+        
+        Thread.sleep(2000);
+        
+        testPipe.shutdown();
     }
 
     public static class SimpleStage extends StageImpl<Integer, Integer> {
@@ -53,7 +65,25 @@ public class Pipeline_T {
         @Override
         public Integer execute(Integer item) {
             int id = ThreadID.get();
-            System.out.println(id + ": " + item);
+            System.out.println("stage 1 - " + id + ": " + item);
+            return item + 1;
+        }
+
+    }
+    
+    public static class SimpleStage2 extends StageImpl<Integer, Integer> {
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime
+         * .StageImpl#execute(java.lang.Object)
+         */
+        @Override
+        public Integer execute(Integer item) {
+            int id = ThreadID.get();
+            System.out.println("stage 2 - " + id + ": " + item);
             return item;
         }
 

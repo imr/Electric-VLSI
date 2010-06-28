@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime.pipeline;
 
+import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.ThreadID;
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.Stage;
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.StageImpl;
 
@@ -32,32 +33,36 @@ import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.St
  */
 public class SimplePipelineWorker<Input, Output> extends PipelineWorkerStrategy {
 
-    private Stage<Input, Output> myStage;
-    private StageImpl<Input, Output> impl;
+	private Stage<Input, Output> myStage;
+	private StageImpl<Input, Output> impl;
 
-    public SimplePipelineWorker(Stage<Input, Output> stage, StageImpl<Input, Output> impl) {
-        this.myStage = stage;
-        this.impl = impl;
-    }
+	public SimplePipelineWorker(Stage<Input, Output> stage, StageImpl<Input, Output> impl) {
+		this.myStage = stage;
+		this.impl = impl;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineWorkerStrategy
-     * #execute()
-     */
-    @Override
-    public void execute() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineWorkerStrategy
+	 * #execute()
+	 */
+	@Override
+	public void execute() {
+		ThreadID.getID();
+		this.executed = 0;
+		while (!abort) {
+			Input item = myStage.recv();
+			if (item != null) {
+				try {
+					Output result = impl.execute(item);
+					myStage.forward(result);
+				} finally {
+					this.executed++;
+				}
+			}
+		}
 
-        while (!abort) {
-
-            Input item = myStage.recv();
-            if (item != null) {
-                impl.execute(item);
-            }
-
-        }
-
-    }
+	}
 }
