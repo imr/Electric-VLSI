@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+IMP: (6/28/10, AM) Finish implementing BusSample.createSignal().
+
 BUG: (6/27/10, AM) Waveform window exception at different places (Bug #2824)
 FIX: Deal in a more robust manner with Signals having fewer than two samples.
      Also improve error reporting if things go wrong.
