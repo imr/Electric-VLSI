@@ -3194,6 +3194,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal<DigitalSample> ds = (Signal<DigitalSample>)ws.getSignal();
+                /*
 				List<Signal<DigitalSample>> bussedSignals = DigitalAnalysis.getBussedSignals(ds);
 				if (bussedSignals != null)
 				{
@@ -3205,9 +3206,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					}
 				} else
 				{
+                */
 					// single signal
 					putValueOnTrace(ds, cell, netValues, netlist);
+                    /*
 				}
+                    */
 			}
 		}
 
@@ -3405,6 +3409,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal ss = ws.getSignal();
+                /*
 				if (ss .isDigital() && DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)ss)) != null)
 				{
 					List<Signal<DigitalSample>> inBus = DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)ss));
@@ -3413,15 +3418,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						Signal<DigitalSample> subDS = inBus.get(b);
 						String oldSigName = subDS.getFullName();
 						Signal<DigitalSample> newBus = null;
-                        /*
-						for(Signal newSs :  an.getSignals() )
-						{
-							String newSigName = newSs.getFullName();
-							if (!newSigName.equals(oldSigName)) continue;
-							newBus = (Signal<DigitalSample>)newSs;
-							break;
-						}
-                        */
+
+						//for(Signal newSs :  an.getSignals() )
+                        //	{
+                        //String newSigName = newSs.getFullName();
+                        //if (!newSigName.equals(oldSigName)) continue;
+                        //newBus = (Signal<DigitalSample>)newSs;
+                        //break;
+						//}
+
 						if (newBus == null)
 						{
 							inBus.remove(b);
@@ -3434,6 +3439,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					}
 				} else
 				{
+*/
 					// single signal: find the name in the new list
 					String oldSigName = ss.getFullName();
 					ws.setSignal(null);
@@ -3451,7 +3457,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						System.out.println("Could not find signal " + oldSigName + " in the new data");
 						redoPanel = true;
 					}
-				}
+                    //}
 			}
 			while (redoPanel)
 			{
@@ -3459,10 +3465,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				for(WaveSignal ws : wp.getSignals())
 				{
 					Signal s = ws.getSignal();
-					if (s == null ||
+					if (s == null /*||
 						(s .isDigital() &&
                          DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)s)) != null &&
-                         DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)s)).size() == 0))
+                         DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)s)).size() == 0)*/)
 					{
 						redoPanel = true;
 						if (wp.getSignalButtons() != null)
@@ -4948,7 +4954,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Signal<DigitalSample> sDSig = (Signal<DigitalSample>)allSignals.get(i);
 				if (sDSig.getSignalContext() != null) continue;
-				if (DigitalAnalysis.isInBus(sDSig)) continue;
+				//if (DigitalAnalysis.isInBus(sDSig)) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
 				Panel wp = new Panel(ww, sd.isAnalog());
 				wp.makeSelectedPanel(-1, -1);
@@ -4997,12 +5003,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			// found a bus of signals: create the bus for it
 			Signal<DigitalSample> busSig = DigitalSample.createSignal(an, prefix, sSig.getSignalContext());
+            /*
 			an.buildBussedSignalList(busSig);
 			for(int k=i; k<j; k++)
 			{
 				Signal<DigitalSample> subSig = signals.get(k);
 				DigitalAnalysis.addToBussedSignalList(busSig, subSig);
 			}
+            */
 			i = j - 1;
 		}
 	}

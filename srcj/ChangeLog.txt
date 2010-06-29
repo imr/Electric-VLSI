@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+IMP: (6/28/10, AM) Remove legacy "bussing" kludge.
+
 IMP: (6/28/10, AM) Have VerilogOut use BusSample.
 
 IMP: (6/28/10, AM) Finish implementing BusSample.createSignal().

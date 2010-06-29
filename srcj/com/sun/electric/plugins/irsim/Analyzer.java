@@ -686,6 +686,7 @@ public class Analyzer extends Engine
 				{
 					// find this vector name in the list of vectors
 					Signal<DigitalSample> busSig = null;
+                    /*
 					for(Signal aSig : analysis.getBussedSignals())
 					{
 						Signal<DigitalSample> sig = (Signal<DigitalSample>)aSig;
@@ -696,16 +697,17 @@ public class Analyzer extends Engine
 							break;
 						}
 					}
+                    */
 					if (busSig == null)
 					{
 						busSig = DigitalSample.createSignal(analysis, targ[1], null);
-						analysis.buildBussedSignalList(busSig);
+						//analysis.buildBussedSignalList(busSig);
 					}
 					List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
 					getTargetNodes(targ, 2, sigs, null);
 					for(Signal<DigitalSample> sig : sigs)
 					{
-						DigitalAnalysis.addToBussedSignalList(busSig, sig);
+						//DigitalAnalysis.addToBussedSignalList(busSig, sig);
 					}
 					continue;
 				}
@@ -1682,13 +1684,13 @@ public class Analyzer extends Engine
 			return;
 		}
 
+        /*
 		List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
 		if (sigsOnBus == null)
 		{
 			System.out.println("Signal: " + sv.parameters[0] + " is not a bus");
 			return;
 		}
-
 		if (sigsOnBus.size() != sv.parameters[1].length())
 		{
 			System.out.println("Wrong number of bits for this vector");
@@ -1699,6 +1701,7 @@ public class Analyzer extends Engine
 			Sim.Node n = nodeMap.get(sigsOnBus.get(i));
 			setIn(n, sv.parameters[1].charAt(i));
 		}
+        */
 	}
 
 	private int tranCntNSD = 0, tranCntNG = 0;
@@ -1890,6 +1893,7 @@ public class Analyzer extends Engine
 		int comp = 0;
 		int nBits = 1;
 		Sim.Node [] nodes = null;
+        /*
 		if (DigitalAnalysis.getBussedSignals(sig) == null)
 		{
 			Sim.Node n = nodeMap.get(sig);
@@ -1923,7 +1927,8 @@ public class Analyzer extends Engine
 			name = sig.getFullName();
 			nBits = sigsOnBus.size();
 			nodes = nodeList;
-		}
+            //}
+        */
 		if (comp != 0)
 		{
 			String infstr = "";
@@ -1974,6 +1979,7 @@ public class Analyzer extends Engine
 		int comp = 0;
 		String name = null;
 		Sim.Node [] nodes = null;
+        /*
 		if (DigitalAnalysis.getBussedSignals(sig) == null)
 		{
 			Sim.Node n = nodeMap.get(sig);
@@ -1994,7 +2000,9 @@ public class Analyzer extends Engine
 			comp = compareVector(nodeList, sig.getSignalName(), sigsOnBus.size(), mask, value.toString());
 			name = sig.getSignalName();
 			nodes = nodeList;
-		}
+            //}
+        */
+
 		if (comp != 0)
 		{
 			String infstr = "";
@@ -2024,8 +2032,10 @@ public class Analyzer extends Engine
 			return;
 		}
 
+        /*
 		if (DigitalAnalysis.getBussedSignals(sig) == null)
 		{
+        */
 			Sim.Node n = nodeMap.get(sig);
 			n = unAlias(n);
 			awTrig = n;
@@ -2040,10 +2050,12 @@ public class Analyzer extends Engine
 
 			Sim.Node wN = nodeMap.get(oSig);
 			setupAssertWhen(wN, commandName(sv.command));
+            /*
 		} else
 		{
 			System.out.println("trigger to assertWhen " + sv.parameters[0] + " can't be a vector");
 		}
+            */
 	}
 
 	private void setupAssertWhen(Sim.Node n, String val)
@@ -2117,6 +2129,7 @@ public class Analyzer extends Engine
 		String temp = " @ " + Sim.deltaToNS(theSim.curDelta) + "ns ";
 		System.out.println(temp);
 		column = temp.length();
+        /*
 		for(Signal<DigitalSample> sig : analysis.getBussedSignals())
 		{
 			Sim.Node b = nodeMap.get(sig);
@@ -2132,6 +2145,7 @@ public class Analyzer extends Engine
 			if (found)
 				dVec(sig);
 		}
+        */
 	}
 
 	/************************** SUPPORT **************************/
@@ -2589,6 +2603,7 @@ public class Analyzer extends Engine
 	 */
 	private void setVecNodes(int flag)
 	{
+        /*
 		for(Signal<DigitalSample> sig : analysis.getBussedSignals())
 		{
 			Sim.Node b = nodeMap.get(sig);
@@ -2602,6 +2617,7 @@ public class Analyzer extends Engine
 				}
 			}
 		}
+        */
 	}
 
 	private int compareVector(Sim.Node [] np, String name, int nBits, String mask, String value)
@@ -2645,6 +2661,7 @@ public class Analyzer extends Engine
 	 */
 	private void dVec(Signal<DigitalSample> sig)
 	{
+        /*
 		List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
 		int i = sig.getSignalName().length() + 2 + sigsOnBus.size();
 		if (column + i >= MAXCOL)
@@ -2660,6 +2677,7 @@ public class Analyzer extends Engine
 		}
 
 		System.out.println(sig.getSignalName() + "=" + bits + " ");
+        */
 	}
 
 	/**
@@ -2686,10 +2704,13 @@ public class Analyzer extends Engine
 		for(Sequence cs : xClock)
 		{
 			String v = cs.values[index % cs.values.length];
+            /*
 			if (DigitalAnalysis.getBussedSignals(cs.sig) == null)
 			{
+            */
 				Sim.Node n = nodeMap.get(cs.sig);
 				setIn(n, v.charAt(0));
+                /*
 			} else
 			{
 				List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(cs.sig);
@@ -2699,6 +2720,7 @@ public class Analyzer extends Engine
 					setIn(n, v.charAt(i));
 				}
 			}
+                */
 		}
 	}
 
@@ -2723,19 +2745,24 @@ public class Analyzer extends Engine
 			return;
 		}
 		int len = 1;
+        /*
 		if (DigitalAnalysis.getBussedSignals(sig) != null)
 			len = DigitalAnalysis.getBussedSignals(sig).size();
-
+        */
 		Sim.Node n = nodeMap.get(sig);
+        /*
 		if (DigitalAnalysis.getBussedSignals(sig) == null)
 		{
+        */
 			n = unAlias(n);
 			if ((n.nFlags & Sim.MERGED) != 0)
 			{
 				System.out.println(n.nName + " can't be part of a sequence");
 				return;
 			}
+            /*
 		}
+            */
 
 		if (args.length == 1)	// just destroy the given sequence
 		{

@@ -642,6 +642,7 @@ public class Panel extends JPanel
 	}
 
 	private void toggleBusContents() {
+        /*
 		// this panel must have one signal
 		Collection<WaveSignal> theSignals = waveSignals.values();
 		if (theSignals.size() != 1) return;
@@ -732,6 +733,7 @@ public class Panel extends JPanel
 		}
 		waveWindow.validatePanel();
 		waveWindow.saveSignalOrder();
+        */
 	}
 
 	// ************************************* X AND Y AXIS CONTROL *************************************

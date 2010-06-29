@@ -289,6 +289,7 @@ public class VerilogOut extends Input<Stimuli>
 						if (entry instanceof List) entry = ((List)entry).get(0);
 						Signal<DigitalSample> sig = (Signal<DigitalSample>)entry;
 						int i = 0;
+                        /*
                         if (DigitalAnalysis.getBussedSignals(sig)!=null)
 						for(Signal anySig : DigitalAnalysis.getBussedSignals(sig))
 						{
@@ -308,6 +309,7 @@ public class VerilogOut extends Input<Stimuli>
 							List<VerilogStimuli> listForSig = dataMap.get(subSig);
 							listForSig.add(vs);
 						}
+                        */
 						continue;
 					}
 					System.out.println("Unknown stimulus on line " + lineReader.getLineNumber() + ": " + currentLine);
