@@ -4013,43 +4013,31 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void addSignal(Signal sig)
 	{
-		if (sig .isAnalog())
-		{
-			// add analog signal on top of current panel
-			Signal as = (Signal)sig;
-			boolean found = false;
-			for(Panel wp : wavePanels)
-			{
-				if (wp.isSelected())
-				{
-					if (wp.wrongPanelType(as)) return;
-					WaveSignal.addSignalToPanel(sig, wp, null);
-					if (getMainHorizRuler() != null)
-						getMainHorizRuler().repaint();
-					found = true;
-					break;
-				}
-			}
-			if (!found)
-			{
-				// create a new panel for the signal
-				Panel wp = makeNewPanel();
-                Signal sSig = as;
-                wp.fitToSignal(as);
-                if (!xAxisLocked)
-                    wp.setXAxisRange(as.getMinTime(), as.getMaxTime());
+        // add analog signal on top of current panel
+        Signal as = (Signal)sig;
+        boolean found = false;
+        for(Panel wp : wavePanels) {
+            if (wp.isSelected()) {
+                if (wp.wrongPanelType(as)) return;
                 WaveSignal.addSignalToPanel(sig, wp, null);
                 if (getMainHorizRuler() != null)
                     getMainHorizRuler().repaint();
-			}
-		} else
-		{
-			// add digital signal in new panel
-			Panel wp = makeNewPanel();
-			new WaveSignal(wp, sig);
-			overall.validate();
-			wp.repaintContents();
-		}
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            // create a new panel for the signal
+            Panel wp = makeNewPanel();
+            Signal sSig = as;
+            wp.fitToSignal(as);
+            if (!xAxisLocked)
+                wp.setXAxisRange(as.getMinTime(), as.getMaxTime());
+            WaveSignal.addSignalToPanel(sig, wp, null);
+            if (getMainHorizRuler() != null)
+                getMainHorizRuler().repaint();
+        }
+        overall.validate();
 		saveSignalOrder();
 	}
 
@@ -4602,10 +4590,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					return;
 				}
 
-				// digital signals are always added in new panels
-				if (!sSig.isAnalog()) panel = null;
-				if (panel != null)
-				{
+				if (panel != null) {
 					// overlay this signal onto an existing panel
 					if (panel.wrongPanelType(sSig))
 					{

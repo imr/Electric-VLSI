@@ -1396,20 +1396,17 @@ public class Panel extends JPanel
 
 	void dumpDataCSV(PrintWriter pw) {
 		for(WaveSignal ws : waveSignals.values()) {
-			if (ws.getSignal() .isAnalog()) {
-				Signal as = ws.getSignal();
-//				HashMap<String,Signal> an = as.getAnalysis();
-				for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
-                    pw.println();
-					Signal wave = as;
-                    Signal.View pref = ((Signal)wave).getExactView();
-                    Signal.View waveform = pref /* FIXME */;
-					int numEvents = waveform.getNumEvents();
-					for(int i=0; i<numEvents; i++)
-                        pw.println("\""+waveform.getTime(i) + "\""+
-                                   ","+
-                                   "\""+waveform.getSample(i)+"\"");
-                }
+            Signal as = ws.getSignal();
+            for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
+                pw.println();
+                Signal wave = as;
+                Signal.View pref = ((Signal)wave).getExactView();
+                Signal.View waveform = pref /* FIXME */;
+                int numEvents = waveform.getNumEvents();
+                for(int i=0; i<numEvents; i++)
+                    pw.println("\""+waveform.getTime(i) + "\""+
+                               ","+
+                               "\""+waveform.getSample(i)+"\"");
             }
         }
     }
@@ -1421,41 +1418,37 @@ public class Panel extends JPanel
         int linetype = 1;
 		for(WaveSignal ws : waveSignals.values()) {
             boolean used = false;
-			if (ws.getSignal() .isAnalog()) {
-				Signal as = ws.getSignal();
-				for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
-                    if (!first) pw.print(sep);
-                    pw.print(" \'-\' with lines ");
-                    Color c = ws.getColor();
-                    pw.print(" lt "+linetype+" ");
-                    pw.print("lc rgb \"#"+
-                             pad2(Integer.toString(c.getRed()   & 0xff, 16))+
-                             pad2(Integer.toString(c.getGreen() & 0xff, 16))+
-                             pad2(Integer.toString(c.getBlue()  & 0xff, 16))+
-                             "\" ");
-                    pw.print(" title \""+ws.getSignal().getFullName()+"\" ");
-                    first = false;
-                    used = true;
-                }
+            Signal as = ws.getSignal();
+            for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
+                if (!first) pw.print(sep);
+                pw.print(" \'-\' with lines ");
+                Color c = ws.getColor();
+                pw.print(" lt "+linetype+" ");
+                pw.print("lc rgb \"#"+
+                         pad2(Integer.toString(c.getRed()   & 0xff, 16))+
+                         pad2(Integer.toString(c.getGreen() & 0xff, 16))+
+                         pad2(Integer.toString(c.getBlue()  & 0xff, 16))+
+                         "\" ");
+                pw.print(" title \""+ws.getSignal().getFullName()+"\" ");
+                first = false;
+                used = true;
             }
             if (used) linetype++;
         }
 		for(WaveSignal ws : waveSignals.values()) {
-			if (ws.getSignal() .isAnalog()) {
-				Signal as = ws.getSignal();
-				for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
-                    pw.println();
-					Signal wave = as;//as.getWaveform(s);
-                    Signal.View pref = ((Signal)wave).getExactView();
-                    Signal.View waveform = pref /* FIXME */;
-					int numEvents = waveform.getNumEvents();
-					for(int i=0; i<numEvents; i++) {
-                        if (waveform.getTime(i) < min || waveform.getTime(i) > max) continue;
-                        pw.println(waveform.getTime(i) + " " + waveform.getSample(i));
-                    }
-                    pw.println("e");
-                    pw.println();
+            Signal as = ws.getSignal();
+            for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
+                pw.println();
+                Signal wave = as;//as.getWaveform(s);
+                Signal.View pref = ((Signal)wave).getExactView();
+                Signal.View waveform = pref /* FIXME */;
+                int numEvents = waveform.getNumEvents();
+                for(int i=0; i<numEvents; i++) {
+                    if (waveform.getTime(i) < min || waveform.getTime(i) > max) continue;
+                    pw.println(waveform.getTime(i) + " " + waveform.getSample(i));
                 }
+                pw.println("e");
+                pw.println();
             }
         }
     }
@@ -2144,8 +2137,6 @@ public class Panel extends JPanel
 		// snap to any waveform points
 		for(WaveSignal ws : waveSignals.values())
 		{
-			if (!(ws.getSignal() .isAnalog())) continue;
-
 			// draw analog trace
             /*
 			Signal as = ws.getSignal();
@@ -2178,8 +2169,6 @@ public class Panel extends JPanel
 		Point2D snap = new Point2D.Double(pt.x, pt.y);
 		for(WaveSignal ws : waveSignals.values())
 		{
-			if (!(ws.getSignal() .isAnalog())) continue;
-
 			// draw analog trace
             /*
 			Signal as = (Signal)ws.getSignal();

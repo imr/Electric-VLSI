@@ -435,7 +435,7 @@ public class VerilogOut extends Input<Stimuli>
 		if (entry == null)
 		{
 			symbolTable.put(symbol, sig);
-		} else if (entry instanceof Signal && !((Signal)entry).isAnalog())
+		} else if (entry instanceof Signal)
 		{
 			List<Object> manySigs = new ArrayList<Object>();
 			manySigs.add(entry);
