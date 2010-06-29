@@ -430,4 +430,9 @@ public class Stimuli {
 		return "?";
 	}
 
+    public static Analysis newAnalysis(Stimuli sd, String title, boolean extrapolateToRight) {
+        Analysis ret = new Analysis(sd, title, extrapolateToRight);
+		sd.addAnalysis(ret);
+        return ret;
+    }
 }

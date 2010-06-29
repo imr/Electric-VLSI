@@ -50,7 +50,6 @@ public class Analysis<S extends Signal> extends HashMap<String,Signal> {
 	 */
 	public Analysis(Stimuli sd, String title, boolean extrapolateToRight) {
         this.title = title;
-		sd.addAnalysis(this);
 	}
 
     String title;
@@ -63,7 +62,6 @@ public class Analysis<S extends Signal> extends HashMap<String,Signal> {
 	 * @return a List of signals.
 	 */
 	public Iterable<Signal> getSignals() { return values(); }
-	public boolean hasSignal(Signal s) { return get(s)!=null; }
 	public Signal get(String netName) { return super.get(netName); }
 
 

@@ -65,6 +65,7 @@ public class RawSpiceOut extends Input<Stimuli> {
 		private SweepAnalysisLT(Stimuli sd, String type)
 		{
 			super(sd, type, false);
+            sd.addAnalysis(this);
 		}
 	}
 
@@ -151,15 +152,15 @@ public class RawSpiceOut extends Input<Stimuli> {
 
                     // start reading a new analysis
                     if (restOfLine.startsWith("Transient Analysis")) {
-                        an = new Analysis(sd, "TRANS SIGNALS", false);
+                        an = Stimuli.newAnalysis(sd, "TRANS SIGNALS", false);
                     } else if (restOfLine.startsWith("DC ")) {
-                        an = new Analysis(sd, "DC SIGNALS", false);
+                        an = Stimuli.newAnalysis(sd, "DC SIGNALS", false);
                     } else if (restOfLine.startsWith("AC ")) {
-                        an = new Analysis(sd, "AC SIGNALS", false);
+                        an = Stimuli.newAnalysis(sd, "AC SIGNALS", false);
                         aType = "AC SIGNALS";
                     } else {
                         System.out.println("Warning: unknown analysis: " + restOfLine);
-                        an = new Analysis(sd, "TRANS SIGNALS", false);
+                        an = Stimuli.newAnalysis(sd, "TRANS SIGNALS", false);
                     }
                     continue;
                 }

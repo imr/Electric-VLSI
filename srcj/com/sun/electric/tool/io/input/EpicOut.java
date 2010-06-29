@@ -1082,6 +1082,7 @@ public static class EpicAnalysis extends Analysis {
      */
     EpicAnalysis(Stimuli sd) {
         super(sd, "TRANS SIGNALS", false);
+        sd.addAnalysis(this);
         ArrayList<Signal<ScalarSample>> l = new ArrayList<Signal<ScalarSample>>();
         for(Signal s : getSignals()) l.add((Signal<ScalarSample>)s);
         signalsUnmodifiable = Collections.unmodifiableList(l);

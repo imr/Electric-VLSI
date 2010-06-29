@@ -178,7 +178,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (openTextInput(mtURL)) return;
 		System.out.println("Reading HSpice measurements '" + mtURL.getFile() + "'");
 
-		Analysis an = new Analysis(sd, "MEASUREMENTS", false);
+		Analysis an = Stimuli.newAnalysis(sd, "MEASUREMENTS", false);
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;
@@ -428,7 +428,7 @@ public class HSpiceOut extends Input<Stimuli>
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		Analysis an = new Analysis(sd, analysisTitle, false);
+		Analysis an = Stimuli.newAnalysis(sd, analysisTitle, false);
 		startProgressDialog("HSpice " + analysisTitle + " analysis", fileURL.getFile());
 		System.out.println("Reading HSpice " + analysisTitle + " analysis '" + fileURL.getFile() + "'");
 
