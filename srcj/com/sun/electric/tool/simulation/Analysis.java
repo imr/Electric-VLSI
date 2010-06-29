@@ -43,6 +43,7 @@ public class Analysis<S extends Signal> {
 	/** a list of all signals in this Analysis */				List<S> signals = new ArrayList<S>();
 	/** a map of all signal names in this Analysis */			HashMap<String,S> signalNames = new HashMap<String,S>();
     /** group of signals from extracted netlist of same net */  HashMap<String,List<S>> signalGroup = new HashMap<String,List<S>>();
+    String title;
 
     /**
 	 * Constructor for a collection of simulation data.
@@ -59,15 +60,6 @@ public class Analysis<S extends Signal> {
 	}
 
     public String getTitle() { return title; }
-    String title;
-    /*
-        if (type==ANALYSIS_SIGNALS) return "SIGNALS";
-        if (type==ANALYSIS_TRANS) return "TRANS SIGNALS";
-        if (type==ANALYSIS_AC) return "AC SIGNALS";
-        if (type==ANALYSIS_DC) return "DC SIGNALS";
-        if (type==ANALYSIS_MEAS) return "MEASUREMENTS";
-        return "unknown";
-    */
 
     /**
 	 * Method to get the list of signals in this Simulation Data object.
@@ -88,19 +80,6 @@ public class Analysis<S extends Signal> {
         sigName = TextUtils.canonicString(sigName);
         sigName = ws.getBaseNameFromExtractedNet(sigName);
         return signalGroup.get(sigName);
-    }
-
-	public double getMinTime() {
-        double ret = Double.MAX_VALUE;
-        for(Signal sig : signals)
-            ret = Math.min(ret, sig.getMinTime());
-        return ret;
-    }
-	public double getMaxTime() {
-        double ret = Double.MIN_VALUE;
-        for(Signal sig : signals)
-            ret = Math.max(ret, sig.getMaxTime());
-        return ret;
     }
 
 	/**

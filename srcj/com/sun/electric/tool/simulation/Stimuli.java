@@ -282,23 +282,20 @@ public class Stimuli {
 	public double getMinTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(Analysis an : analysisList)
-		{
-			if (leftEdge == rightEdge)
-			{
-				leftEdge = an.getMinTime();
-				rightEdge = an.getMaxTime();
-			} else
-			{
-				if (leftEdge < rightEdge)
-				{
-					leftEdge = Math.min(leftEdge, an.getMinTime());
-					rightEdge = Math.max(rightEdge, an.getMaxTime());
-				} else
-				{
-					leftEdge = Math.max(leftEdge, an.getMinTime());
-					rightEdge = Math.min(rightEdge, an.getMaxTime());
-				}
+		for(Analysis an : analysisList) {
+            for (Signal sig : (List<Signal>)an.getSignals()) {
+                if (leftEdge == rightEdge) {
+                        leftEdge = sig.getMinTime();
+                        rightEdge = sig.getMaxTime();
+                } else {
+                    if (leftEdge < rightEdge) {
+                        leftEdge = Math.min(leftEdge, sig.getMinTime());
+                        rightEdge = Math.max(rightEdge, sig.getMaxTime());
+                    } else {
+                        leftEdge = Math.max(leftEdge, sig.getMinTime());
+                        rightEdge = Math.min(rightEdge, sig.getMaxTime());
+                    }
+                }
 			}
 		}
 		return leftEdge;
@@ -313,23 +310,20 @@ public class Stimuli {
 	public double getMaxTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(Analysis an : analysisList)
-		{
-			if (leftEdge == rightEdge)
-			{
-				leftEdge = an.getMinTime();
-				rightEdge = an.getMaxTime();
-			} else
-			{
-				if (leftEdge < rightEdge)
-				{
-					leftEdge = Math.min(leftEdge, an.getMinTime());
-					rightEdge = Math.max(rightEdge, an.getMaxTime());
-				} else
-				{
-					leftEdge = Math.max(leftEdge, an.getMinTime());
-					rightEdge = Math.min(rightEdge, an.getMaxTime());
-				}
+		for(Analysis an : analysisList) {
+            for (Signal sig : (List<Signal>)an.getSignals()) {
+                if (leftEdge == rightEdge) {
+                        leftEdge = sig.getMinTime();
+                        rightEdge = sig.getMaxTime();
+                } else {
+                    if (leftEdge < rightEdge) {
+                        leftEdge = Math.min(leftEdge, sig.getMinTime());
+                        rightEdge = Math.max(rightEdge, sig.getMaxTime());
+                    } else {
+                        leftEdge = Math.max(leftEdge, sig.getMinTime());
+                        rightEdge = Math.min(rightEdge, sig.getMaxTime());
+                    }
+                }
 			}
 		}
 		return rightEdge;
