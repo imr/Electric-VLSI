@@ -2149,7 +2149,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
-            nodes.add(getSignalsForExplorer(an, rootPath, an.getTitle()));
+            nodes.add(getSignalsForExplorer(an, rootPath, an.toString()));
 		}
 
 		// clean possible nulls

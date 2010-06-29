@@ -48,7 +48,7 @@ public abstract class Signal<SS extends Sample> {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
 		this.extrapolateToRight = true;
-        this.analysisTitle = analysis==null ? "SIGNALS" : analysis.getTitle();
+        this.analysisTitle = analysis==null ? "SIGNALS" : analysis.toString();
         this.fullSignalName = signalContext==null
             ? signalName
             : signalContext + (analysis==null ? '.' : sd.getSeparatorChar()) + signalName;

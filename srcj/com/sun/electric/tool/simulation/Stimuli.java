@@ -85,7 +85,7 @@ public class Stimuli {
 
 	public void addAnalysis(Analysis an)
 	{
-		analyses.put(an.getTitle(), an);
+		analyses.put(an.toString(), an);
 		analysisList.add(an);
 	}
 

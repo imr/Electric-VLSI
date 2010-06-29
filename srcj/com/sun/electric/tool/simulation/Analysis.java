@@ -59,7 +59,7 @@ public class Analysis<S extends Signal> {
 		sd.addAnalysis(this);
 	}
 
-    public String getTitle() { return title; }
+    public String toString() { return title; }
 
     /**
 	 * Method to get the list of signals in this Simulation Data object.
