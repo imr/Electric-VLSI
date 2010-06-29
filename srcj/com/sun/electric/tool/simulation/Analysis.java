@@ -61,7 +61,6 @@ public class Analysis<S extends Signal> extends HashMap<String,Signal> {
 	 * Method to get the list of signals in this Simulation Data object.
 	 * @return a List of signals.
 	 */
-	public Iterable<Signal> getSignals() { return values(); }
 	public Signal get(String netName) { return super.get(netName); }
 
 

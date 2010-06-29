@@ -2163,7 +2163,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
     
 	private DefaultMutableTreeNode getSignalsForExplorer(Analysis an, TreePath parentPath, String analysis)
 	{
-		Iterable<Signal> signalsi = an.getSignals();
+		Iterable<Signal> signalsi = an.values();
         ArrayList<Signal> signals = new ArrayList<Signal>();
         for(Signal s : signalsi) signals.add(s);
         if (signals.size()==0) return null;
@@ -2171,13 +2171,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         {
 			DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
             TreePath path = parentPath.pathByAddingChild(analysisNode);
-            for (Signal s : (Iterable<Signal>)an.getSignals())
+            for (Signal s : (Iterable<Signal>)an.values())
                 treePathFromSignal.put(s, path);
 			return analysisNode;
         }
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
 		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
-        for (Signal s : (Iterable<Signal>)an.getSignals())
+        for (Signal s : (Iterable<Signal>)an.values())
             treePathFromSignal.put(s, analysisPath);
 		Map<String,TreePath> contextMap = new HashMap<String,TreePath>();
 		contextMap.put("", analysisPath);
@@ -2301,7 +2301,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private Signal findSignal(String name, Analysis<Signal> an)
 	{
-		for(Signal sSig : an.getSignals())
+		for(Signal sSig : an.values())
 		{
 			String sigName = sSig.getFullName();
 			if (sigName.equals(name)) return sSig;
@@ -4927,7 +4927,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			// put all top-level signals in, up to a limit
 			int numSignals = 0;
-			Iterable<Signal> allSignals = an.getSignals();
+			Iterable<Signal> allSignals = an.values();
 			makeBussedSignals((Analysis)an, sd);
 			for(Signal sig : allSignals) {
 				Signal<DigitalSample> sDSig = (Signal<DigitalSample>)sig;
@@ -4947,7 +4947,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private static void makeBussedSignals(Analysis an, Stimuli sd)
 	{
-		Iterable<Signal> signalsi = an.getSignals();
+		Iterable<Signal> signalsi = an.values();
         ArrayList<Signal> signals = new ArrayList<Signal>();
         for(Signal s : signalsi) signals.add(s);
 		for(int i=0; i<signals.size(); i++)
@@ -5018,7 +5018,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public static Signal findSignalForNetwork(Analysis an, String netName) {
 		// look at all signal names in the cell
-		for(Signal sSig : (Iterable<Signal>)an.getSignals()) {
+		for(Signal sSig : (Iterable<Signal>)an.values()) {
 			String signalName = sSig.getFullName();
 			if (netName.equalsIgnoreCase(signalName)) return sSig;
 			// if the signal name has underscores, see if all alphabetic characters match
@@ -5056,7 +5056,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         if (sigName == null) return ret;
         sigName = TextUtils.canonicString(sigName);
         sigName = ws.getBaseNameFromExtractedNet(sigName);
-        for(Signal s : (List<Signal>)an.getSignals())
+        for(Signal s : (List<Signal>)an.values())
             if (ws.getBaseNameFromExtractedNet(TextUtils.canonicString(s.getFullName())).equals(sigName))
                 ret.add(s);
         return ret;

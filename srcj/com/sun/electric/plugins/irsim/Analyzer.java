@@ -1089,7 +1089,7 @@ public class Analyzer extends Engine
 			}
 			if (name.indexOf('*') >= 0)
 			{
-				for(Signal<DigitalSample> sig : analysis.getSignals())
+				for(Signal<DigitalSample> sig : analysis.values())
 				{
 					if (strMatch(name, sig.getFullName()))
 					{
@@ -2652,7 +2652,7 @@ public class Analyzer extends Engine
 
 	private Signal<DigitalSample> findName(String name)
 	{
-		for(Signal<DigitalSample> sig : analysis.getSignals())
+		for(Signal<DigitalSample> sig : analysis.values())
 		{
 			if (sig.getFullName().equals(name)) return sig;
 		}

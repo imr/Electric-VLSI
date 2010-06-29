@@ -78,6 +78,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -236,8 +237,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         an.setVoltageResolution(stdOut.readDouble());
         an.setCurrentResolution(stdOut.readDouble());
         an.setMaxTime(stdOut.readDouble());
-        List<Signal<ScalarSample>> signals = an.getSignals();
-        assert numSignals == signals.size();
+        Iterable<Signal> signals = an.values();
         an.waveStarts = new int[numSignals];
         an.waveLengths = new int[numSignals];
 
@@ -1084,7 +1084,7 @@ public static class EpicAnalysis extends Analysis {
         super(sd, "TRANS SIGNALS", false);
         sd.addAnalysis(this);
         ArrayList<Signal<ScalarSample>> l = new ArrayList<Signal<ScalarSample>>();
-        for(Signal s : getSignals()) l.add((Signal<ScalarSample>)s);
+        for(Signal s : values()) l.add((Signal<ScalarSample>)s);
         signalsUnmodifiable = Collections.unmodifiableList(l);
     }
     
@@ -1213,8 +1213,7 @@ public static class EpicAnalysis extends Analysis {
      * List is unmodifieable.
 	 * @return a List of signals.
 	 */
-    @Override
-        public List<Signal<ScalarSample>> getSignals() { return signalsUnmodifiable; }
+    public Collection<Signal> values() { return (Collection<Signal>)(Object)signalsUnmodifiable; }
 
     /**
      * This methods overrides Analysis.nameSignal.
