@@ -240,7 +240,7 @@ public class SmartSpiceOut extends Input<Stimuli>
 				context = name.substring(0, lastDotPos);
 				name = name.substring(lastDotPos + 1);
 			}
-			ScalarSample.createSignal(an, signalNames[i], context, time, values[i]);
+			ScalarSample.createSignal(an, sd, signalNames[i], context, time, values[i]);
 		}
 	}
 }

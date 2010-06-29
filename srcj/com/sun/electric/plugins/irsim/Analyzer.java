@@ -171,8 +171,10 @@ public class Analyzer extends Engine
 
 	/************************** ELECTRIC INTERFACE **************************/
 
-	Analyzer()
+    private Stimuli sd;
+	Analyzer(Stimuli sd)
 	{
+        this.sd = sd;
 		theSim = new Sim(this);
 	}
 
@@ -181,9 +183,9 @@ public class Analyzer extends Engine
 	 * @param cell the cell to simulate.
 	 * @param fileName the file with the input deck (null to generate one)
 	 */
-	public static void simulateCell(Cell cell, VarContext context, String fileName)
+	public static void simulateCell(Cell cell, VarContext context, String fileName, Stimuli sd)
 	{
-		Analyzer theAnalyzer = new Analyzer();
+		Analyzer theAnalyzer = new Analyzer(sd);
 		theAnalyzer.cell = cell;
 		theAnalyzer.context = context;
 		theAnalyzer.fileName = fileName;
@@ -203,7 +205,7 @@ public class Analyzer extends Engine
 			if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
 				System.out.println("Loading netlist for file " + analyzer.fileName + "...");
 			analyzer.loadCircuit();
-			Stimuli sd = analyzer.analysis.getStimuli();
+			Stimuli sd = analyzer.getStimuli();
 			WaveformWindow.showSimulationDataInNewWindow(sd);
 
 			// make a waveform window
@@ -268,8 +270,8 @@ public class Analyzer extends Engine
 			int slashPos = n.nName.lastIndexOf('/');
 			MutableSignal<DigitalSample> sig =
                 slashPos >= 0
-                ? DigitalSample.createSignal(analysis, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
-                : DigitalSample.createSignal(analysis, n.nName, null);
+                ? DigitalSample.createSignal(analysis, sd, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
+                : DigitalSample.createSignal(analysis, sd, n.nName, null);
 			n.sig = sig;
 			nodeMap.put(sig, n);
 
@@ -504,13 +506,14 @@ public class Analyzer extends Engine
 
 		// Load network
 		loadCircuit();
-		WaveformWindow.refreshSimulationData(analysis.getStimuli(), ww);
+		WaveformWindow.refreshSimulationData(sd, ww);
 
 		if (vectorFileName != null) loadVectorFile();
 		init();
 
 		playVectors();
 	}
+    public Stimuli getStimuli() { return sd; }
 
 	/************************** SIMULATION VECTORS **************************/
 
@@ -700,7 +703,7 @@ public class Analyzer extends Engine
                     */
 					if (busSig == null)
 					{
-						busSig = DigitalSample.createSignal(analysis, targ[1], null);
+						busSig = DigitalSample.createSignal(analysis, null, targ[1], null);
 						//analysis.buildBussedSignalList(busSig);
 					}
 					List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();

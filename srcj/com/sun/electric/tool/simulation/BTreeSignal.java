@@ -40,10 +40,10 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
     public static int steps = 0;
     public static int numLookups = 0;
 
-    public BTreeSignal(Analysis analysis, String signalName, String signalContext,
+    public BTreeSignal(Analysis analysis, Stimuli sd, String signalName, String signalContext,
                        BTree<Double,S,Pair<S,S>> tree
                        ) {
-        super(analysis, signalName, signalContext);
+        super(analysis, sd, signalName, signalContext);
         if (tree==null) throw new RuntimeException();
         this.tree = tree;
         this.exactView = new Signal.View<S>() {

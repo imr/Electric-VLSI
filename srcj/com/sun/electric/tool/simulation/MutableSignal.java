@@ -28,8 +28,8 @@ package com.sun.electric.tool.simulation;
  */
 public abstract class MutableSignal<SS extends Sample> extends Signal<SS> {
 
-    public MutableSignal(Analysis analysis, String signalName, String signalContext) {
-        super(analysis, signalName, signalContext);
+    public MutableSignal(Analysis analysis, Stimuli sd, String signalName, String signalContext) {
+        super(analysis, sd, signalName, signalContext);
     }
 
     public abstract SS   getSample(double time);

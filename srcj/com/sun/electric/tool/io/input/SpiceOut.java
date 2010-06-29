@@ -193,7 +193,7 @@ public class SpiceOut extends Input<Stimuli>
 				List<Double> row = allNumbers.get(i);
 				values[i] = row.get(j+1).doubleValue();
 			}
-			ScalarSample.createSignal(an, "Signal " + (j+1), null, time, values);
+			ScalarSample.createSignal(an, sd, "Signal " + (j+1), null, time, values);
 		}
 	}
 

@@ -83,15 +83,6 @@ public class Analysis<S extends Signal> {
 	}
 
 	/**
-	 * Method to return the Stimuli in which this Analysis resides.
-	 * @return the Stimuli in which this Analysis resides.
-	 */
-	public Stimuli getStimuli()
-	{
-		return sd;
-	}
-
-	/**
 	 * Method to return the type of data currently being manipulated.
 	 * Possibilities are ANALYSIS_TRANS, ANALYSIS_AC, ANALYSIS_DC, or ANALYSIS_MEAS.
 	 * @return the type of data currently being manipulated.

@@ -182,8 +182,10 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         }
     }
 
+    private Stimuli sd;
     private Stimuli readEpicFile(Stimuli sd) throws IOException {
         EpicAnalysis an = this.epicAnalysis;
+        this.sd = sd;
         int numSignals = 0;
         ContextBuilder contextBuilder = new ContextBuilder();
         ArrayList<ContextBuilder> contextStack = new ArrayList<ContextBuilder>();
@@ -889,7 +891,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
 
         public EpicReaderSignal(int sigNum, String name, String context) {
             this.sigNum = sigNum;
-            this.signal = ScalarSample.createSignal(epicAnalysis, name, context);
+            this.signal = ScalarSample.createSignal(epicAnalysis, sd, name, context);
         }
 
         public Signal getBWaveform() {

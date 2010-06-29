@@ -4942,7 +4942,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			// put all top-level signals in, up to a limit
 			int numSignals = 0;
 			List<Signal> allSignals = an.getSignals();
-			makeBussedSignals((Analysis)an);
+			makeBussedSignals((Analysis)an, sd);
 			for(int i=0; i<allSignals.size(); i++)
 			{
 				Signal<DigitalSample> sDSig = (Signal<DigitalSample>)allSignals.get(i);
@@ -4960,7 +4960,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		ww.fillScreen();
 	}
 
-	private static void makeBussedSignals(Analysis an)
+	private static void makeBussedSignals(Analysis an, Stimuli sd)
 	{
 		List<Signal<DigitalSample>> signals = an.getSignals();
 		for(int i=0; i<signals.size(); i++)
@@ -4995,7 +4995,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (numSignals <= 1) continue;
 
 			// found a bus of signals: create the bus for it
-			Signal<DigitalSample> busSig = DigitalSample.createSignal(an, prefix, sSig.getSignalContext());
+			Signal<DigitalSample> busSig = DigitalSample.createSignal(an, sd, prefix, sSig.getSignalContext());
             /*
 			an.buildBussedSignalList(busSig);
 			for(int k=i; k<j; k++)

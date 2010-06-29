@@ -42,16 +42,16 @@ package com.sun.electric.tool.simulation;
  */
 public abstract class Signal<SS extends Sample> {
 
-    public Signal(Analysis analysis, String signalName, String signalContext) {
+    public Signal(Analysis analysis, Stimuli sd, String signalName, String signalContext) {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
 		this.extrapolateToRight = true;
         this.analysisType = analysis==null ? Analysis.ANALYSIS_SIGNALS : analysis.getAnalysisType();
         this.fullSignalName = signalContext==null
             ? signalName
-            : signalContext + (analysis==null ? '.' : analysis.getStimuli().getSeparatorChar()) + signalName;
+            : signalContext + (analysis==null ? '.' : sd.getSeparatorChar()) + signalName;
 		if (analysis!=null) analysis.nameSignal(this, getFullName());
-        this.stimuli = analysis==null ? null : analysis.getStimuli();
+        this.stimuli = sd;
         if (analysis!=null && analysis instanceof Analysis)
             analysis.addSignal(this);
     }

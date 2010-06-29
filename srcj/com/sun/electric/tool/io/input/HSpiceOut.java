@@ -260,7 +260,7 @@ public class HSpiceOut extends Input<Stimuli>
 
 			// special case with the "alter#" name...remove the "#"
 			if (mName.equals("alter#")) mName = "alter";
-			Signal<ScalarSample> as = ScalarSample.createSignal(an, mName, null, time, values);
+			Signal<ScalarSample> as = ScalarSample.createSignal(an, sd, mName, null, time, values);
 			measData.add(as);
 		}
 
@@ -723,8 +723,8 @@ public class HSpiceOut extends Input<Stimuli>
 			}
 			signals[k] =
                 isComplex
-                ? ComplexSample.createComplexSignal(an, name, context)
-                : ScalarSample.createSignal(an, name, context);
+                ? ComplexSample.createComplexSignal(an, sd, name, context)
+                : ScalarSample.createSignal(an, sd, name, context);
 		}
 
 		// setup the simulation information

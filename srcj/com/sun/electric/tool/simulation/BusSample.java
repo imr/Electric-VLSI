@@ -87,9 +87,9 @@ public class BusSample<S extends Sample> implements Sample {
 
     /** create a Signal<BusSample<S>> from preexisting Signal<S>'s */
     public static <SS extends Sample>
-        Signal<BusSample<SS>> createSignal(Analysis an, String signalName, String signalContext,
+        Signal<BusSample<SS>> createSignal(Analysis an, Stimuli sd, String signalName, String signalContext,
                                            final Signal<SS>[] subsignals) {
-        return new Signal<BusSample<SS>>(an, signalName, signalContext) {
+        return new Signal<BusSample<SS>>(an, sd, signalName, signalContext) {
             public boolean isDigital() { return true; }
             public boolean isBussed() { return true; }
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
@@ -168,7 +168,7 @@ public class BusSample<S extends Sample> implements Sample {
     
     /** create a MutableSignal<BusSample<SS>> */
     public static <SS extends Sample>
-        Signal<BusSample<SS>> createSignal(Analysis an, String signalName, String signalContext,
+        Signal<BusSample<SS>> createSignal(Analysis an, Stimuli sd, String signalName, String signalContext,
                                            int width) {
         /*
         final Unboxed<BusSample<SS>> unboxer = new Unboxed<BusSample<SS>>() {

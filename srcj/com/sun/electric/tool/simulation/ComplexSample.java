@@ -107,9 +107,9 @@ public class ComplexSample extends ScalarSample implements Sample {
         }
     };
 
-    public static Signal<ComplexSample> createComplexSignal(Analysis an, String signalName, String signalContext) {
+    public static Signal<ComplexSample> createComplexSignal(Analysis an, Stimuli sd, String signalName, String signalContext) {
         Signal<ComplexSample> ret =
-            new BTreeSignal<ComplexSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
+            new BTreeSignal<ComplexSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
             public boolean isDigital() { return false; }
             public boolean isAnalog() { return true; }
         };

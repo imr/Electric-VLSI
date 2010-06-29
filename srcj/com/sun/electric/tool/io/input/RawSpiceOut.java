@@ -270,7 +270,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                         }
                     }
                     for (int i = 0; i < signalCount; i++)
-                        ScalarSample.createSignal(an, signalNames[i], null, time, values[i]);
+                        ScalarSample.createSignal(an, sd, signalNames[i], null, time, values[i]);
                     continue;
                 }
                 if (keyWord.equals("Binary")) {
@@ -418,7 +418,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                                         name = name.substring(lastDotPos + 1);
                                     }
                                 double minTime = 0, maxTime = 0, minValues = 0, maxValues = 0;
-                                ScalarSample.createSignal(lan, signalNames[i], context, time, values[i]);
+                                ScalarSample.createSignal(lan, sd, signalNames[i], context, time, values[i]);
                             }
                         return;
                     }

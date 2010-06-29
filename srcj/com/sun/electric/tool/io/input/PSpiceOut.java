@@ -167,7 +167,7 @@ public class PSpiceOut extends Input<Stimuli>
 			double[] doubleValues = new double[numEvents];
 			for(int i=0; i<numEvents; i++)
 				doubleValues[i] = values[j].get(i).doubleValue();
-			ScalarSample.createSignal(an, signalNames.get(j), null, time, doubleValues);
+			ScalarSample.createSignal(an, sd, signalNames.get(j), null, time, doubleValues);
 		}
 	}
 

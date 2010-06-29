@@ -353,6 +353,7 @@ public class WindowMenu {
                     Analysis an = new Analysis(stim, Analysis.ANALYSIS_DC, false) { public boolean isAnalog() { return false; } };
                     Signal derived = new DerivedSignal<DigitalSample,ScalarSample>
                         (an,
+                         stim,
                          s1.getSignalName(),
                          s1.getSignalContext(),
                          new Signal[] { s1 }) {

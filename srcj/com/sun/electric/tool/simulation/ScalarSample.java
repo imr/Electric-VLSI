@@ -109,9 +109,9 @@ public class ScalarSample implements Sample, Comparable {
         }
     };
 
-    public static MutableSignal<ScalarSample> createSignal(Analysis an, String signalName, String signalContext) {
+    public static MutableSignal<ScalarSample> createSignal(Analysis an, Stimuli sd, String signalName, String signalContext) {
         MutableSignal<ScalarSample> ret =
-            new BTreeSignal<ScalarSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
+            new BTreeSignal<ScalarSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
             public boolean isDigital() { return false; }
             public boolean isAnalog() { return true; }
         };
@@ -119,10 +119,10 @@ public class ScalarSample implements Sample, Comparable {
         return ret;
     }
 
-	public static MutableSignal<ScalarSample> createSignal(Analysis an, String signalName, String signalContext,
-                                                    double[] time, double[] values) {
+	public static MutableSignal<ScalarSample> createSignal(Analysis an, Stimuli sd, String signalName, String signalContext,
+                                                           double[] time, double[] values) {
         if (values.length==0) throw new RuntimeException("attempt to create an empty signal");
-        MutableSignal<ScalarSample> as = ScalarSample.createSignal(an, signalName, signalContext);
+        MutableSignal<ScalarSample> as = ScalarSample.createSignal(an, sd, signalName, signalContext);
         for(int i=0; i<time.length; i++)
             if (((MutableSignal)as).getSample(time[i])==null)
                 as.addSample(time[i], new ScalarSample(values[i]));

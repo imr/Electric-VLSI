@@ -57,6 +57,8 @@ public class VerilogOut extends Input<Stimuli>
 
 	public VerilogOut() {}
 
+    private Stimuli sd;
+
 	/**
 	 * Method to read an Verilog output file.
 	 */
@@ -64,6 +66,7 @@ public class VerilogOut extends Input<Stimuli>
 		throws IOException
 	{
         Stimuli sd = new Stimuli();
+        this.sd = sd;
 
 		// open the file
 		if (openTextInput(fileURL)) return sd;
@@ -193,18 +196,18 @@ public class VerilogOut extends Input<Stimuli>
 
                     Signal sig = null;
                     if (width <= 1) {
-                        sig = DigitalSample.createSignal(an, signalName + index, currentScope);
+                        sig = DigitalSample.createSignal(an, sd, signalName + index, currentScope);
                         dataMap.put(sig, new ArrayList<VerilogStimuli>());
                         if (index.length() > 0) curArray.add(sig);
                     } else {
                         Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
 						for(int i=0; i<width; i++) {
-                            subsigs[i] = DigitalSample.createSignal(an, signalName + "[" + i + "]", currentScope);
+                            subsigs[i] = DigitalSample.createSignal(an, sd, signalName + "[" + i + "]", currentScope);
 							dataMap.put(subsigs[i], new ArrayList<VerilogStimuli>());
 							addSignalToHashMap(subsigs[i], symbol + "[" + i + "]", symbolTable);
 							numSignals++;
 						}
-                        sig = BusSample.createSignal(an, signalName + "[0:" + (width-1) + "]", null, subsigs);
+                        sig = BusSample.createSignal(an, sd, signalName + "[0:" + (width-1) + "]", null, subsigs);
                         dataMap.put(sig, new ArrayList<VerilogStimuli>());
 					}
 
@@ -408,7 +411,7 @@ public class VerilogOut extends Input<Stimuli>
                         subsigs[i] = subSig;
 					}
                     Signal arraySig =
-                        BusSample.createSignal(an, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
+                        BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
 					last = null;
 				}
 			}
@@ -422,7 +425,7 @@ public class VerilogOut extends Input<Stimuli>
                 subsigs[i] = subSig;
 			}
 			Signal arraySig =
-                BusSample.createSignal(an, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
+                BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
 		}
 	}
 

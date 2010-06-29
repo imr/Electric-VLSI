@@ -220,8 +220,8 @@ public class DigitalSample implements Sample {
         return getSample(value, strength);
     }
 
-    public static MutableSignal<DigitalSample> createSignal(Analysis an, String signalName, String signalContext) {
-        return new BTreeSignal<DigitalSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
+    public static MutableSignal<DigitalSample> createSignal(Analysis an, Stimuli sd, String signalName, String signalContext) {
+        return new BTreeSignal<DigitalSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
             public boolean isDigital() { return true; }
         };
     }
