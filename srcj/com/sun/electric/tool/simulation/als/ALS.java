@@ -1012,7 +1012,7 @@ public class ALS extends Engine
 		// convert the stimuli
 		Stimuli sd = new Stimuli();
 		sd.setEngine(this);
-		Analysis<Signal<DigitalSample>> an = new Analysis<Signal<DigitalSample>>(sd, Analysis.ANALYSIS_SIGNALS, true, true);
+		Analysis<Signal<DigitalSample>> an = new Analysis<Signal<DigitalSample>>(sd, Analysis.ANALYSIS_SIGNALS, true);
 		sd.setSeparatorChar('.');
 		sd.setCell(cell);
 		String topLevelName = cell.getName().toUpperCase();

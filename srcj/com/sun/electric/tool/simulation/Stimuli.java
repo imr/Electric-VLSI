@@ -79,11 +79,7 @@ public class Stimuli {
 	 */
 	public void finished()
 	{
-		for (Analysis an: analysisList)
-			an.finished();
 		controlPointMap.clear();
-		for (Analysis an: analyses.values())
-			an.finished();
 		analyses.clear();
 	}
 

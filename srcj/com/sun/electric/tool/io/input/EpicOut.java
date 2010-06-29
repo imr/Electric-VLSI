@@ -1130,8 +1130,7 @@ public static class EpicAnalysis extends Analysis {
     /**
      * Free allocated resources before closing.
      */
-    @Override
-        public void finished() {
+    public void finished() {
         try {
             waveFile.close();
             waveFileName.delete();

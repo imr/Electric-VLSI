@@ -37,30 +37,24 @@ import java.util.List;
  * It includes the labels and values.
  * It can handle digital, analog, and many variations (intervals, sweeps).
  */
-public class Analysis<S extends Signal>
-{
-	public static class AnalysisType
-	{
+public class Analysis<S extends Signal> {
+
+	public static class AnalysisType {
 		private String name;
 		private static List<AnalysisType> allTypes = new ArrayList<AnalysisType>();
-
-		AnalysisType(String name)
-		{
+		AnalysisType(String name) {
 			this.name = name;
 			allTypes.add(this);
 		}
-
 		public String toString() { return name; }
-
-		public static AnalysisType findAnalysisType(String analysisName)
-		{
+		public static AnalysisType findAnalysisType(String analysisName) {
 			for(AnalysisType at : allTypes)
-			{
-				if (at.name.equals(analysisName)) return at;
-			}
+				if (at.name.equals(analysisName))
+                    return at;
 			return null;
 		}
 	}
+
 	/** indicates general signals */	public static final AnalysisType ANALYSIS_SIGNALS = new AnalysisType("Signals");
 	/** indicates transient analysis */	public static final AnalysisType ANALYSIS_TRANS = new AnalysisType("Transient");
 	/** indicates AC analysis */		public static final AnalysisType ANALYSIS_AC = new AnalysisType("AC");
@@ -71,8 +65,6 @@ public class Analysis<S extends Signal>
 	/** the type of analysis data here */						private AnalysisType type;
 	/** a list of all signals in this Analysis */				private List<S> signals = new ArrayList<S>();
 	/** a map of all signal names in this Analysis */			private HashMap<String,S> signalNames = new HashMap<String,S>();
-	/** the left and right side of the Analysis */				private double leftEdge, rightEdge;
-	/** true to extrapolate last value in waveform window */	private boolean extrapolateToRight;
     /** group of signals from extracted netlist of same net */  private HashMap<String,List<S>> signalGroup = new HashMap<String,List<S>>();
 
     /**
@@ -84,24 +76,10 @@ public class Analysis<S extends Signal>
 	 * False to stop drawing signals after their last value
 	 * (useful for Spice and other analog simulations).
 	 */
-	public Analysis(Stimuli sd, AnalysisType type, boolean extrapolateToRight, boolean isAnalog)
-	{
+	public Analysis(Stimuli sd, AnalysisType type, boolean extrapolateToRight) {
 		this.sd = sd;
 		this.type = type;
-		this.extrapolateToRight = extrapolateToRight;
-        this.isAnalog = isAnalog;
 		sd.addAnalysis(this);
-	}
-    private boolean isAnalog;
-    public Analysis(Stimuli sd, AnalysisType type, boolean extrapolateToRight) { this(sd, type, extrapolateToRight, true); }
-
-	/**
-	 * Free allocated resources before closing.
-	 */
-	public void finished()
-	{
-		signals.clear();
-		signalNames.clear();
 	}
 
 	/**
@@ -123,18 +101,6 @@ public class Analysis<S extends Signal>
 		return type;
 	}
 
-	/**
-	 * Method to tell whether signal values should be extrapolated to the
-	 * right side of the waveform window.
-	 * @return true to draw the last value to the right (useful for IRSIM and
-	 * other digital simulations).  False to stop drawing signals after their
-	 * last value (useful for Spice and other analog simulations).
-	 */
-	public boolean extrapolateValues()
-	{
-		return extrapolateToRight;
-	}
-
     /**
 	 * Method to get the list of signals in this Simulation Data object.
 	 * @return a List of signals.
@@ -152,7 +118,7 @@ public class Analysis<S extends Signal>
 			signalNames.put(name + "_", ws);
 
         // keep track of groups of signals that represent one extracted net
-        String baseName = getBaseNameFromExtractedNet(name, sd.getNetDelimiter());
+        String baseName = Signal.getBaseNameFromExtractedNet(name, sd.getNetDelimiter());
         List<S> sigs = signalGroup.get(baseName);
         if (sigs == null) {
             sigs = new ArrayList<S>();
@@ -173,17 +139,6 @@ public class Analysis<S extends Signal>
 		if (sigName != null) nameSignal(ws, sigName);
 	}
 
-    private static String getBaseNameFromExtractedNet(String signalFullName, String delim) {
-//        String delim = SimulationTool.getSpiceExtractedNetDelimiter();
-        int hashPos = signalFullName.indexOf(delim);
-        if (hashPos > 0)
-        {
-            return signalFullName.substring(0, hashPos);
-        } else {
-            return signalFullName;
-        }
-    }
-
     /**
      * Get a list of signals that are from the same network.
      * Extracted nets are the original name + delimiter + some junk
@@ -194,40 +149,9 @@ public class Analysis<S extends Signal>
         String sigName = ws.getFullName();
         if (sigName == null) return new ArrayList<S>();
         sigName = TextUtils.canonicString(sigName);
-        sigName = getBaseNameFromExtractedNet(sigName, sd.getNetDelimiter());
+        sigName = Signal.getBaseNameFromExtractedNet(sigName, sd.getNetDelimiter());
         return signalGroup.get(sigName);
     }
-
-    private Rectangle2D bounds = null;
-
-    /**
-	 * Method to compute the time and value bounds of this simulation data.
-	 * @return a Rectangle2D that has time bounds in the X part and
-	 * value bounds in the Y part.
-	 */
-    /*
-	public Rectangle2D getBounds() {
-        if (bounds!=null) return bounds;
-        double minX = Double.MAX_VALUE;
-        double maxX = Double.MIN_VALUE;
-        double minY = Double.MAX_VALUE;
-        double maxY = Double.MIN_VALUE;
-        for(Signal sig : signals) {
-            if (sig .isDigital()) {
-                minY = Math.min(minY, 0);
-                maxY = Math.max(maxY, 1);
-            } else if (sig.isAnalog()) {
-                ScalarSample min = ((Signal<ScalarSample>)sig).getMinValue();
-                ScalarSample max = ((Signal<ScalarSample>)sig).getMaxValue();
-                minY = min==null ? minY : Math.min(minY, min.getValue());
-                maxY = max==null ? maxY : Math.max(maxY, max.getValue());
-            }
-            minX = Math.min(minX, sig.getMinTime());
-            maxX = Math.max(maxX, sig.getMaxTime());
-        }
-        return bounds = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
-	}
-    */
 
 	public double getMinTime() {
         double ret = Double.MAX_VALUE;
@@ -241,14 +165,6 @@ public class Analysis<S extends Signal>
             ret = Math.max(ret, sig.getMaxTime());
         return ret;
     }
-	public void setBoundsDirty() { }
-
-	/**
-	 * Method to tell whether this simulation data is analog or digital.
-	 * @return true if this simulation data is analog.
-	 */
-	public boolean isAnalog() { return isAnalog; }
-
 
 	/**
 	 * Method to quickly return the signal that corresponds to a given Network name.

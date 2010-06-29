@@ -3345,13 +3345,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			this.sd.finished();
 		this.sd = sd;
 
-		// reset all bounds calculations
-		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
-		{
-			Analysis an = it.next();
-			an.setBoundsDirty();
-		}
-
 		// reload the sweeps
 		resetSweeps();
 

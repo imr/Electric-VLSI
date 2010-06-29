@@ -45,7 +45,7 @@ public abstract class Signal<SS extends Sample> {
     public Signal(Analysis analysis, String signalName, String signalContext) {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
-		this.extrapolateToRight = analysis==null ? false : analysis.extrapolateValues();
+		this.extrapolateToRight = true;
         this.analysisType = analysis==null ? Analysis.ANALYSIS_SIGNALS : analysis.getAnalysisType();
         this.fullSignalName = signalContext==null
             ? signalName
@@ -138,4 +138,9 @@ public abstract class Signal<SS extends Sample> {
     public boolean isAnalog() { return !isDigital(); }
     public boolean isBussed() { return false; }
 
+    static String getBaseNameFromExtractedNet(String signalFullName, String delim) {
+        //String delim = SimulationTool.getSpiceExtractedNetDelimiter();
+        int hashPos = signalFullName.indexOf(delim);
+        return hashPos > 0 ? signalFullName.substring(0, hashPos) : signalFullName;
+    }
 }
