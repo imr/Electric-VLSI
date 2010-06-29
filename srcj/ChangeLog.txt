@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+IMP: (6/28/10, AM) Remove Analysis.getSignalsFromExtractedNet()
+
 IMP: (6/28/10, AM) Remove Analysis.findSignalForNetwork()
 
 IMP: (6/28/10, AM) Remove Analysis.getTitle()

@@ -2908,7 +2908,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 				if (sSig != null)
                 {
-                    List<Signal> signalGroup = an.getSignalsFromExtractedNet(sSig);
+                    List<Signal> signalGroup = getSignalsFromExtractedNet(an, sSig);
                     for (Signal s : signalGroup)
                         found.add(s);
                 }
@@ -5040,4 +5040,22 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 		return null;
 	}
+
+    /**
+     * Get a list of signals that are from the same network.
+     * Extracted nets are the original name + delimiter + some junk
+     * @param ws the signal
+     * @return a list of signals
+     */
+    public static List<Signal> getSignalsFromExtractedNet(Analysis an, Signal ws) {
+        String sigName = ws.getFullName();
+        List<Signal> ret = new ArrayList<Signal>();
+        if (sigName == null) return ret;
+        sigName = TextUtils.canonicString(sigName);
+        sigName = ws.getBaseNameFromExtractedNet(sigName);
+        for(Signal s : (List<Signal>)an.getSignals())
+            if (ws.getBaseNameFromExtractedNet(TextUtils.canonicString(s.getFullName())).equals(sigName))
+                ret.add(s);
+        return ret;
+    }
 }

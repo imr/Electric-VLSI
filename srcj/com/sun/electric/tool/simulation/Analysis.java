@@ -42,7 +42,6 @@ public class Analysis<S extends Signal> {
 
 	/** a list of all signals in this Analysis */				List<S> signals = new ArrayList<S>();
 	/** a map of all signal names in this Analysis */			HashMap<String,S> signalNames = new HashMap<String,S>();
-    /** group of signals from extracted netlist of same net */  HashMap<String,List<S>> signalGroup = new HashMap<String,List<S>>();
     String title;
 
     /**
@@ -69,18 +68,5 @@ public class Analysis<S extends Signal> {
 	public boolean hasSignal(Signal s) { return signals.contains(s); }
 	public S get(String netName) { return signalNames.get(netName); }
 
-    /**
-     * Get a list of signals that are from the same network.
-     * Extracted nets are the original name + delimiter + some junk
-     * @param ws the signal
-     * @return a list of signals
-     */
-    public List<S> getSignalsFromExtractedNet(Signal ws) {
-        String sigName = ws.getFullName();
-        if (sigName == null) return new ArrayList<S>();
-        sigName = TextUtils.canonicString(sigName);
-        sigName = ws.getBaseNameFromExtractedNet(sigName);
-        return signalGroup.get(sigName);
-    }
 
 }

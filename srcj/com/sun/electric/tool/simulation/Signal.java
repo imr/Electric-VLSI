@@ -60,15 +60,6 @@ public abstract class Signal<SS extends Sample> {
             // simulators may strip off last "_"
             if (name.indexOf('_') >= 0 && !name.endsWith("_"))
                 analysis.signalNames.put(name + "_", this);
-            
-            // keep track of groups of signals that represent one extracted net
-            String baseName = getBaseNameFromExtractedNet(name);
-            List<Signal<SS>> sigs = (List<Signal<SS>>)analysis.signalGroup.get(baseName);
-            if (sigs == null) {
-                sigs = new ArrayList<Signal<SS>>();
-                analysis.signalGroup.put(baseName, sigs);
-            }
-            sigs.add(this);
         }
     }
 
@@ -154,7 +145,7 @@ public abstract class Signal<SS extends Sample> {
     public boolean isAnalog() { return !isDigital(); }
     public boolean isBussed() { return false; }
 
-    String getBaseNameFromExtractedNet(String signalFullName) {
+    public String getBaseNameFromExtractedNet(String signalFullName) {
         String delim = stimuli.getNetDelimiter();
         int hashPos = signalFullName.indexOf(delim);
         return hashPos > 0 ? signalFullName.substring(0, hashPos) : signalFullName;
