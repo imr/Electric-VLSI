@@ -162,7 +162,7 @@ public class Analyzer extends Engine
 
 	/** the simulation engine */					private Sim            theSim;
 	/** the waveform window */						private WaveformWindow ww;
-	/** the analysis data being displayed */		private DigitalAnalysis analysis;
+	/** the analysis data being displayed */		private Analysis<Signal<DigitalSample>> analysis;
 	/** the cell being simulated */					private Cell           cell;
 	/** the context for the cell being simulated */	private VarContext     context;
 	/** the name of the file being simulated */		private String         fileName;
@@ -256,7 +256,7 @@ public class Analyzer extends Engine
 		// convert the stimuli
 		Stimuli sd = new Stimuli();
 		sd.setEngine(this);
-		analysis = new DigitalAnalysis(sd, true);
+		analysis = new Analysis(sd, Analysis.ANALYSIS_SIGNALS, true, true);
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
 		nodeMap = new HashMap<Signal<DigitalSample>,Sim.Node>();
@@ -693,7 +693,7 @@ public class Analyzer extends Engine
 						if (sig.getSignalName().equals(targ[1]))
 						{
 							busSig = sig;
-							DigitalAnalysis.clearBussedSignalList(busSig);
+							Analysis.clearBussedSignalList(busSig);
 							break;
 						}
 					}
@@ -707,7 +707,7 @@ public class Analyzer extends Engine
 					getTargetNodes(targ, 2, sigs, null);
 					for(Signal<DigitalSample> sig : sigs)
 					{
-						//DigitalAnalysis.addToBussedSignalList(busSig, sig);
+						//Analysis.addToBussedSignalList(busSig, sig);
 					}
 					continue;
 				}
@@ -1685,7 +1685,7 @@ public class Analyzer extends Engine
 		}
 
         /*
-		List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+		List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
 		if (sigsOnBus == null)
 		{
 			System.out.println("Signal: " + sv.parameters[0] + " is not a bus");
@@ -1894,7 +1894,7 @@ public class Analyzer extends Engine
 		int nBits = 1;
 		Sim.Node [] nodes = null;
         /*
-		if (DigitalAnalysis.getBussedSignals(sig) == null)
+		if (Analysis.getBussedSignals(sig) == null)
 		{
 			Sim.Node n = nodeMap.get(sig);
 			name = sig.getFullName();
@@ -1911,7 +1911,7 @@ public class Analyzer extends Engine
 			nodes[0] = n;
 		} else
 		{
-			List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+			List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
 			for(int i=0; i<sigsOnBus.size(); i++)
 			{
@@ -1980,7 +1980,7 @@ public class Analyzer extends Engine
 		String name = null;
 		Sim.Node [] nodes = null;
         /*
-		if (DigitalAnalysis.getBussedSignals(sig) == null)
+		if (Analysis.getBussedSignals(sig) == null)
 		{
 			Sim.Node n = nodeMap.get(sig);
 			name = n.nName;
@@ -1991,7 +1991,7 @@ public class Analyzer extends Engine
 			nodes = nodeList;
 		} else
 		{
-			List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+			List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
 			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
 			for(int i=0; i<sigsOnBus.size(); i++)
 			{
@@ -2033,7 +2033,7 @@ public class Analyzer extends Engine
 		}
 
         /*
-		if (DigitalAnalysis.getBussedSignals(sig) == null)
+		if (Analysis.getBussedSignals(sig) == null)
 		{
         */
 			Sim.Node n = nodeMap.get(sig);
@@ -2134,7 +2134,7 @@ public class Analyzer extends Engine
 		{
 			Sim.Node b = nodeMap.get(sig);
 			if ((b.nFlags & which) == 0) continue;
-			List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+			List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
 			boolean found = false;
 			for(Signal<DigitalSample> bSig : sigsOnBus)
 			{
@@ -2609,7 +2609,7 @@ public class Analyzer extends Engine
 			Sim.Node b = nodeMap.get(sig);
 			if ((b.nFlags & flag) != 0)
 			{
-				List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+				List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
 				for(Signal bSig : sigsOnBus)
 				{
 					Sim.Node bN = nodeMap.get(bSig);
@@ -2662,7 +2662,7 @@ public class Analyzer extends Engine
 	private void dVec(Signal<DigitalSample> sig)
 	{
         /*
-		List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(sig);
+		List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
 		int i = sig.getSignalName().length() + 2 + sigsOnBus.size();
 		if (column + i >= MAXCOL)
 		{
@@ -2705,7 +2705,7 @@ public class Analyzer extends Engine
 		{
 			String v = cs.values[index % cs.values.length];
             /*
-			if (DigitalAnalysis.getBussedSignals(cs.sig) == null)
+			if (Analysis.getBussedSignals(cs.sig) == null)
 			{
             */
 				Sim.Node n = nodeMap.get(cs.sig);
@@ -2713,7 +2713,7 @@ public class Analyzer extends Engine
                 /*
 			} else
 			{
-				List<Signal<DigitalSample>> sigsOnBus = DigitalAnalysis.getBussedSignals(cs.sig);
+				List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(cs.sig);
 				for(int i=0; i<sigsOnBus.size(); i++)
 				{
 					Sim.Node n = nodeMap.get(sigsOnBus.get(i));
@@ -2746,12 +2746,12 @@ public class Analyzer extends Engine
 		}
 		int len = 1;
         /*
-		if (DigitalAnalysis.getBussedSignals(sig) != null)
-			len = DigitalAnalysis.getBussedSignals(sig).size();
+		if (Analysis.getBussedSignals(sig) != null)
+			len = Analysis.getBussedSignals(sig).size();
         */
 		Sim.Node n = nodeMap.get(sig);
         /*
-		if (DigitalAnalysis.getBussedSignals(sig) == null)
+		if (Analysis.getBussedSignals(sig) == null)
 		{
         */
 			n = unAlias(n);

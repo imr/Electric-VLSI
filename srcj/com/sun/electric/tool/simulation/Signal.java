@@ -52,7 +52,7 @@ public abstract class Signal<SS extends Sample> {
             : signalContext + (analysis==null ? '.' : analysis.getStimuli().getSeparatorChar()) + signalName;
 		if (analysis!=null) analysis.nameSignal(this, getFullName());
         this.stimuli = analysis==null ? null : analysis.getStimuli();
-        if (analysis!=null && analysis instanceof DigitalAnalysis)
+        if (analysis!=null && analysis instanceof Analysis)
             analysis.addSignal(this);
     }
 

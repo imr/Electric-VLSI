@@ -57,7 +57,7 @@ import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.DigitalAnalysis;
+import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -3195,7 +3195,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Signal<DigitalSample> ds = (Signal<DigitalSample>)ws.getSignal();
                 /*
-				List<Signal<DigitalSample>> bussedSignals = DigitalAnalysis.getBussedSignals(ds);
+				List<Signal<DigitalSample>> bussedSignals = Analysis.getBussedSignals(ds);
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
@@ -3410,9 +3410,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Signal ss = ws.getSignal();
                 /*
-				if (ss .isDigital() && DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)ss)) != null)
+				if (ss .isDigital() && Analysis.getBussedSignals(((Signal<DigitalSample>)ss)) != null)
 				{
-					List<Signal<DigitalSample>> inBus = DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)ss));
+					List<Signal<DigitalSample>> inBus = Analysis.getBussedSignals(((Signal<DigitalSample>)ss));
 					for(int b=0; b<inBus.size(); b++)
 					{
 						Signal<DigitalSample> subDS = inBus.get(b);
@@ -3467,8 +3467,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					Signal s = ws.getSignal();
 					if (s == null /*||
 						(s .isDigital() &&
-                         DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)s)) != null &&
-                         DigitalAnalysis.getBussedSignals(((Signal<DigitalSample>)s)).size() == 0)*/)
+                         Analysis.getBussedSignals(((Signal<DigitalSample>)s)) != null &&
+                         Analysis.getBussedSignals(((Signal<DigitalSample>)s)).size() == 0)*/)
 					{
 						redoPanel = true;
 						if (wp.getSignalButtons() != null)
@@ -4949,12 +4949,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			// put all top-level signals in, up to a limit
 			int numSignals = 0;
 			List<Signal> allSignals = an.getSignals();
-			makeBussedSignals((DigitalAnalysis)an);
+			makeBussedSignals((Analysis)an);
 			for(int i=0; i<allSignals.size(); i++)
 			{
 				Signal<DigitalSample> sDSig = (Signal<DigitalSample>)allSignals.get(i);
 				if (sDSig.getSignalContext() != null) continue;
-				//if (DigitalAnalysis.isInBus(sDSig)) continue;
+				//if (Analysis.isInBus(sDSig)) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
 				Panel wp = new Panel(ww, sd.isAnalog());
 				wp.makeSelectedPanel(-1, -1);
@@ -4967,7 +4967,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		ww.fillScreen();
 	}
 
-	private static void makeBussedSignals(DigitalAnalysis an)
+	private static void makeBussedSignals(Analysis an)
 	{
 		List<Signal<DigitalSample>> signals = an.getSignals();
 		for(int i=0; i<signals.size(); i++)
@@ -5008,7 +5008,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(int k=i; k<j; k++)
 			{
 				Signal<DigitalSample> subSig = signals.get(k);
-				DigitalAnalysis.addToBussedSignalList(busSig, subSig);
+				Analysis.addToBussedSignalList(busSig, subSig);
 			}
             */
 			i = j - 1;

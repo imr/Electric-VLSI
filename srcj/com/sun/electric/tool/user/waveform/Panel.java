@@ -653,7 +653,7 @@ public class Panel extends JPanel
 
 		// the digital signal must be a bus
 		Signal<DigitalSample> sDSig = (Signal<DigitalSample>)ws.getSignal();
-		List<Signal<DigitalSample>> bussedSignals = DigitalAnalysis.getBussedSignals(sDSig);
+		List<Signal<DigitalSample>> bussedSignals = Analysis.getBussedSignals(sDSig);
 		if (bussedSignals == null) return;
 
 		// see if any of the bussed signals are displayed

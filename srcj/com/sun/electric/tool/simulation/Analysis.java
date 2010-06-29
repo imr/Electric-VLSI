@@ -84,15 +84,16 @@ public class Analysis<S extends Signal>
 	 * False to stop drawing signals after their last value
 	 * (useful for Spice and other analog simulations).
 	 */
-	public Analysis(Stimuli sd, AnalysisType type, boolean extrapolateToRight)
+	public Analysis(Stimuli sd, AnalysisType type, boolean extrapolateToRight, boolean isAnalog)
 	{
 		this.sd = sd;
 		this.type = type;
 		this.extrapolateToRight = extrapolateToRight;
-        this.isAnalog = true;
+        this.isAnalog = isAnalog;
 		sd.addAnalysis(this);
 	}
     private boolean isAnalog;
+    public Analysis(Stimuli sd, AnalysisType type, boolean extrapolateToRight) { this(sd, type, extrapolateToRight, true); }
 
 	/**
 	 * Free allocated resources before closing.

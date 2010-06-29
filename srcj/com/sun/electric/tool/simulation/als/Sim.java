@@ -27,12 +27,7 @@
 package com.sun.electric.tool.simulation.als;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.SimulationTool;
-import com.sun.electric.tool.simulation.MutableSignal;
-import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.*;
 import com.sun.electric.tool.simulation.als.ALS.Load;
 import com.sun.electric.tool.simulation.als.ALS.Stat;
 import com.sun.electric.tool.user.waveform.Panel;
@@ -131,7 +126,7 @@ public class Sim
 
 			// determine highest time to simulate
             double tMax = 0;
-            for(Signal sig : als.an.getSignals())
+            for(Signal sig : ((Analysis<Signal>)als.an).getSignals())
                 tMax = Math.max(tMax, sig.getMaxTime());
 			for(Iterator<Panel> it = als.ww.getPanels(); it.hasNext(); )
 			{
@@ -186,7 +181,7 @@ public class Sim
 		stateVector[0] = 0;
 		double [] timeVector = new double[1];
 		timeVector[0] = 0;
-		for(Signal s : als.an.getSignals()) {
+		for(Signal s : ((Analysis<Signal>)als.an).getSignals()) {
 			Signal<DigitalSample> sig = (Signal<DigitalSample>)s;
 			if (sigsChanged.contains(sig)) continue;
 		}
