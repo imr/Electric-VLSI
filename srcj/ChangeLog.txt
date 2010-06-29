@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+BUG: (6/29/10, DN) Inconsistency in how export names are compared using canonicString (Bug #2826).
+FIX: ElectricObject.uniqueObjectName maintains case-sensitive uniqueness.
+
 IMP: (6/28/10, AM) Eradicate Analysis.java for all eternity.
 
 IMP: (6/28/10, AM) Remove Analysis.getSignals()

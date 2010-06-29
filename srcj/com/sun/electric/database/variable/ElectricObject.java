@@ -964,7 +964,7 @@ public abstract class ElectricObject implements Serializable {
      * @param name the original name that is not unique.
      * @param cell the Cell in which this name resides.
      * @param cls the class of the object on which this name resides.
-     * @param already a Set of names already in use (lower case).
+     * @param already a Set of names already in use.
      * @param leaveIndexValues true to leave the index values untouches
      * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
      * @param fromRight true to increment multidimensional arrays starting at the rightmost index.
@@ -974,7 +974,7 @@ public abstract class ElectricObject implements Serializable {
     	Map<String, GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues, boolean fromRight)
     {
         String newName = name;
-        String lcName = TextUtils.canonicString(newName);
+        String lcName = newName/*TextUtils.canonicString(newName)*/;
         for (int i = 0; already.contains(lcName); i++)
         {
             newName = uniqueObjectNameLow(newName, cell, cls, already, nextPlainIndex, leaveIndexValues, fromRight);
@@ -983,7 +983,7 @@ public abstract class ElectricObject implements Serializable {
                 System.out.println("Can't create unique object name in " + cell + " from original " + name + " attempted " + newName);
                 return null;
             }
-            lcName = TextUtils.canonicString(newName);
+            lcName = newName/*TextUtils.canonicString(newName)*/;
         }
         return newName;
     }
@@ -993,18 +993,18 @@ public abstract class ElectricObject implements Serializable {
      * @param name the original name that is not unique.
      * @param cell the Cell in which this name resides.
      * @param cls the class of the object on which this name resides.
-     * @param already a Set of names already in use (lower case).
+     * @param already a Set of names already in use.
      * @param leaveIndexValues true to leave the index values untouches
      * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
      * @param fromRight true to increment multidimensional arrays starting at the rightmost index.
      * @return a unique name for that class in that Cell.
      */
-    private static String uniqueObjectNameLow(String name, Cell cell, Class cls, Set already,
+    private static String uniqueObjectNameLow(String name, Cell cell, Class cls, Set<String> already,
     	Map<String, GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues, boolean fromRight)
     {
         // first see if the name is unique
         if (already != null) {
-            if (!already.contains(TextUtils.canonicString(name))) {
+            if (!already.contains(name)) {
                 return name;
             }
         } else {
@@ -1025,7 +1025,7 @@ public abstract class ElectricObject implements Serializable {
                 for (;; nextIndex++) {
                     String newname = name.substring(0, numStart) + nextIndex + name.substring(plusPlusPos);
                     if (already != null) {
-                        if (!already.contains(TextUtils.canonicString(newname))) {
+                        if (!already.contains(newname)) {
                             return newname;
                         }
                     } else {
@@ -1049,7 +1049,7 @@ public abstract class ElectricObject implements Serializable {
                 for (; nextIndex >= 0; nextIndex--) {
                     String newname = name.substring(0, numStart) + nextIndex + name.substring(minusMinusPos);
                     if (already != null) {
-                        if (!already.contains(TextUtils.canonicString(newname))) {
+                        if (!already.contains(newname)) {
                             return newname;
                         }
                     } else {
@@ -1153,9 +1153,10 @@ public abstract class ElectricObject implements Serializable {
                                 String newIndex = index.substring(0, startPos) + "[" + (startIndex + spacing * nextIndex) +
                                     ":" + (endIndex + spacing * nextIndex) + index.substring(endPos);
                                 boolean unique;
+                                String indexedName = an.baseName + newIndex;
                                 if (already != null)
-                                    unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex)); else
-                                    	unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+                                    unique = !already.contains(indexedName); else
+                                    	unique = cell.isUniqueName(indexedName, cls, null);
                                 if (unique)
                                 {
                                     indexAdjusted = true;
@@ -1178,9 +1179,10 @@ public abstract class ElectricObject implements Serializable {
                         {
                             String newIndex = index.substring(0, startPos) + "[" + nextIndex + index.substring(endPos);
                             boolean unique;
+                            String indexedName = an.baseName + newIndex;
                             if (already != null)
-                                unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex)); else
-                                	unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+                                unique = !already.contains(indexedName); else
+                                	unique = cell.isUniqueName(indexedName, cls, null);
                             if (unique)
                             {
                                 indexAdjusted = true;
@@ -1315,9 +1317,10 @@ public abstract class ElectricObject implements Serializable {
                     {
                         String newIndex = index.substring(0, startPos) + separateChar + nextIndex + index.substring(possibleEnd);
                         boolean unique;
+                        String indexedName = an.baseName + newIndex;
                         if (already != null)
-                            unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex)); else
-                            	unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
+                            unique = !already.contains(indexedName); else
+                            	unique = cell.isUniqueName(indexedName, cls, null);
                         if (unique)
                         {
                             indexAdjusted = true;

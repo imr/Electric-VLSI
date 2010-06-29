@@ -2628,29 +2628,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         if (portIndex >= 0) {
             return exports[portIndex];
         }
-//        String nameString = name.canonicString();
-//        for (int i = 0; i < exports.length; i++) {
-//            Export e = exports[i];
-//            if (e.getNameKey().canonicString() == nameString)
-//                return e;
-//        }
         return null;
     }
 
-    /**
-     * Method to determine if a given PortProto is considered as export
-     * @param port the PortProto in question.
-     * @return true if the PortProto is an export.
-     */
-// 	public boolean findPortProto(PortProto port)
-// 	{
-// 		for (int i = 0; i < exports.length; i++)
-// 		{
-// 			PortProto pp = (PortProto) exports[i];
-// 			if (pp == port) return true;
-// 		}
-// 		return false;
-// 	}
     /**
      * Method to return an iterator over all PortProtos of this NodeProto.
      * @return an iterator over all PortProtos of this NodeProto.
@@ -3163,20 +3143,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         if (cls == ArcInst.class) {
             ArcInst ai = findArc(name.toString());
             return ai == null || exclude == ai;
-//            String nameString = name.canonicString();
-//			if (name.isTempname())
-//			{
-//                ArcInst ai = findArc(nameString);
-//				return ai == null || exclude == ai;
-//			}
-//			for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
-//			{
-//				ArcInst ai = it.next();
-//				if (exclude == ai) continue;
-//				Name arcName = ai.getNameKey();
-//				if (nameString == arcName.canonicString()) return false;
-//			}
-//			return true;
         }
         return true;
     }
