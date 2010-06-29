@@ -2396,7 +2396,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(Iterator<Analysis> aIt = sd.getAnalyses(); aIt.hasNext(); )
 			{
 				Analysis an = aIt.next();
-				Signal sSig = an.findSignalForNetwork(netName);
+				Signal sSig = findSignalForNetwork(an, netName);
 				if (sSig == null) continue;
 
 				boolean found = true;
@@ -3801,7 +3801,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					Analysis an = sd.getAnalyses().next();
 					//if (curPanel.getAnalysisType() != null) an = sd.findAnalysis(curPanel.getAnalysisType());
 					if (an == null) continue;
-					Signal sig = an.findSignalForNetwork(keywords[1]);
+					Signal sig = findSignalForNetwork(an, keywords[1]);
 					if (sig == null) continue;
 					if (ww.isXAxisLocked()) ww.togglePanelXAxisLock();
 					curPanel.setXAxisSignal(sig);
@@ -3814,7 +3814,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					Analysis an = sd.getAnalyses().next();
 					//if (curPanel.getAnalysisType() != null) an = sd.findAnalysis(curPanel.getAnalysisType());
 					if (an == null) continue;
-					Signal sig = an.findSignalForNetwork(keywords[1]);
+					Signal sig = findSignalForNetwork(an, keywords[1]);
 					if (sig == null) continue;
 					String [] colorNames = keywords[2].split(",");
 					int red = TextUtils.atoi(colorNames[0]);
@@ -4872,7 +4872,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						sigColor = new Color(red, green, blue);
 						sigName = sigName.substring(0, colorPos);
 					}
-					Signal sSig = an.findSignalForNetwork(sigName);
+					Signal sSig = findSignalForNetwork(an, sigName);
 					if (sSig != null)
 					{
 						if (firstSignal)
@@ -5006,4 +5006,38 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
         throw new RuntimeException("ack!");
     }
+
+	/**
+	 * Method to return the signal that corresponds to a given Network name.
+	 * @param netName the Network name to find.
+	 * @return the Signal that corresponds with the Network.
+	 * Returns null if none can be found.
+	 */
+	public static Signal findSignalForNetwork(Analysis an, String netName) {
+		// look at all signal names in the cell
+		for(Signal sSig : (List<Signal>)an.getSignals()) {
+			String signalName = sSig.getFullName();
+			if (netName.equalsIgnoreCase(signalName)) return sSig;
+			// if the signal name has underscores, see if all alphabetic characters match
+			if (signalName.length() + 1 == netName.length() && netName.charAt(signalName.length()) == ']')
+				signalName += "_";
+			if (signalName.length() == netName.length() && signalName.indexOf('_') >= 0) {
+				boolean matches = true;
+				for(int i=0; i<signalName.length(); i++) {
+					char sigChar = signalName.charAt(i);
+					char netChar = netName.charAt(i);
+					if (TextUtils.isLetterOrDigit(sigChar) != TextUtils.isLetterOrDigit(netChar)) {
+						matches = false;
+						break;
+					}
+					if (TextUtils.isLetterOrDigit(sigChar) && TextUtils.canonicChar(sigChar) != TextUtils.canonicChar(netChar)) {
+						matches = false;
+						break;
+					}
+				}
+				if (matches) return sSig;
+			}
+		}
+		return null;
+	}
 }

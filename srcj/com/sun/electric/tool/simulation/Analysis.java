@@ -67,6 +67,7 @@ public class Analysis<S extends Signal> {
 	 */
 	public List<S> getSignals() { return signals; }
 	public boolean hasSignal(Signal s) { return signals.contains(s); }
+	public S get(String netName) { return signalNames.get(netName); }
 
     /**
      * Get a list of signals that are from the same network.
@@ -82,51 +83,4 @@ public class Analysis<S extends Signal> {
         return signalGroup.get(sigName);
     }
 
-	public S get(String netName) { return signalNames.get(netName); }
-
-	/**
-	 * Method to return the signal that corresponds to a given Network name.
-	 * @param netName the Network name to find.
-	 * @return the Signal that corresponds with the Network.
-	 * Returns null if none can be found.
-	 */
-	public S findSignalForNetwork(String netName)
-	{
-		// look at all signal names in the cell
-		for(Iterator<S> it = getSignals().iterator(); it.hasNext(); )
-		{
-			S sSig = it.next();
-
-			String signalName = sSig.getFullName();
-			if (netName.equalsIgnoreCase(signalName)) return sSig;
-
-			// if the signal name has underscores, see if all alphabetic characters match
-			if (signalName.length() + 1 == netName.length() && netName.charAt(signalName.length()) == ']')
-			{
-				signalName += "_";
-			}
-			if (signalName.length() == netName.length() && signalName.indexOf('_') >= 0)
-			{
-				boolean matches = true;
-				for(int i=0; i<signalName.length(); i++)
-				{
-					char sigChar = signalName.charAt(i);
-					char netChar = netName.charAt(i);
-					if (TextUtils.isLetterOrDigit(sigChar) != TextUtils.isLetterOrDigit(netChar))
-					{
-						matches = false;
-						break;
-					}
-					if (TextUtils.isLetterOrDigit(sigChar) &&
-						TextUtils.canonicChar(sigChar) != TextUtils.canonicChar(netChar))
-					{
-						matches = false;
-						break;
-					}
-				}
-				if (matches) return sSig;
-			}
-		}
-		return null;
-	}
 }
