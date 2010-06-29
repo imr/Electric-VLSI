@@ -2163,19 +2163,21 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
     
 	private DefaultMutableTreeNode getSignalsForExplorer(Analysis an, TreePath parentPath, String analysis)
 	{
-		List<Signal> signals = an.getSignals();
-		if (signals.size() == 0) return null;
+		Iterable<Signal> signalsi = an.getSignals();
+        ArrayList<Signal> signals = new ArrayList<Signal>();
+        for(Signal s : signalsi) signals.add(s);
+        if (signals.size()==0) return null;
         if (an instanceof EpicAnalysis)
         {
 			DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
             TreePath path = parentPath.pathByAddingChild(analysisNode);
-            for (Signal s : (List<Signal>)an.getSignals())
+            for (Signal s : (Iterable<Signal>)an.getSignals())
                 treePathFromSignal.put(s, path);
 			return analysisNode;
         }
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
 		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
-        for (Signal s : (List<Signal>)an.getSignals())
+        for (Signal s : (Iterable<Signal>)an.getSignals())
             treePathFromSignal.put(s, analysisPath);
 		Map<String,TreePath> contextMap = new HashMap<String,TreePath>();
 		contextMap.put("", analysisPath);
@@ -4925,11 +4927,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			// put all top-level signals in, up to a limit
 			int numSignals = 0;
-			List<Signal> allSignals = an.getSignals();
+			Iterable<Signal> allSignals = an.getSignals();
 			makeBussedSignals((Analysis)an, sd);
-			for(int i=0; i<allSignals.size(); i++)
-			{
-				Signal<DigitalSample> sDSig = (Signal<DigitalSample>)allSignals.get(i);
+			for(Signal sig : allSignals) {
+				Signal<DigitalSample> sDSig = (Signal<DigitalSample>)sig;
 				if (sDSig.getSignalContext() != null) continue;
 				//if (Analysis.isInBus(sDSig)) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
@@ -4946,7 +4947,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private static void makeBussedSignals(Analysis an, Stimuli sd)
 	{
-		List<Signal<DigitalSample>> signals = an.getSignals();
+		Iterable<Signal> signalsi = an.getSignals();
+        ArrayList<Signal> signals = new ArrayList<Signal>();
+        for(Signal s : signalsi) signals.add(s);
 		for(int i=0; i<signals.size(); i++)
 		{
 			Signal sSig = signals.get(i);
@@ -5015,7 +5018,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public static Signal findSignalForNetwork(Analysis an, String netName) {
 		// look at all signal names in the cell
-		for(Signal sSig : (List<Signal>)an.getSignals()) {
+		for(Signal sSig : (Iterable<Signal>)an.getSignals()) {
 			String signalName = sSig.getFullName();
 			if (netName.equalsIgnoreCase(signalName)) return sSig;
 			// if the signal name has underscores, see if all alphabetic characters match

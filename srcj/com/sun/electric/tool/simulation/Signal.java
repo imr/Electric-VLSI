@@ -54,12 +54,12 @@ public abstract class Signal<SS extends Sample> {
             : signalContext + (analysis==null ? '.' : sd.getSeparatorChar()) + signalName;
         this.stimuli = sd;
         if (analysis!=null) {
-            analysis.signals.add(this);
             String name = TextUtils.canonicString(fullSignalName);
-            analysis.signalNames.put(name, this);
             // simulators may strip off last "_"
             if (name.indexOf('_') >= 0 && !name.endsWith("_"))
-                analysis.signalNames.put(name + "_", this);
+                analysis.put(name + "_", this);
+            else
+                analysis.put(name, this);
         }
     }
 

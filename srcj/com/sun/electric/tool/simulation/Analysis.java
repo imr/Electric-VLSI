@@ -37,12 +37,7 @@ import java.util.List;
  * It includes the labels and values.
  * It can handle digital, analog, and many variations (intervals, sweeps).
  */
-public class Analysis<S extends Signal> {
-
-
-	/** a list of all signals in this Analysis */				List<S> signals = new ArrayList<S>();
-	/** a map of all signal names in this Analysis */			HashMap<String,S> signalNames = new HashMap<String,S>();
-    String title;
+public class Analysis<S extends Signal> extends HashMap<String,Signal> {
 
     /**
 	 * Constructor for a collection of simulation data.
@@ -58,15 +53,18 @@ public class Analysis<S extends Signal> {
 		sd.addAnalysis(this);
 	}
 
+    String title;
+
+
     public String toString() { return title; }
 
     /**
 	 * Method to get the list of signals in this Simulation Data object.
 	 * @return a List of signals.
 	 */
-	public List<S> getSignals() { return signals; }
-	public boolean hasSignal(Signal s) { return signals.contains(s); }
-	public S get(String netName) { return signalNames.get(netName); }
+	public Iterable<Signal> getSignals() { return values(); }
+	public boolean hasSignal(Signal s) { return get(s)!=null; }
+	public Signal get(String netName) { return super.get(netName); }
 
 
 }

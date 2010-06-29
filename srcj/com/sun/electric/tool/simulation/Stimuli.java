@@ -283,7 +283,7 @@ public class Stimuli {
 	{
 		double leftEdge = 0, rightEdge = 0;
 		for(Analysis an : analysisList) {
-            for (Signal sig : (List<Signal>)an.getSignals()) {
+            for (Signal sig : (Iterable<Signal>)an.getSignals()) {
                 if (leftEdge == rightEdge) {
                         leftEdge = sig.getMinTime();
                         rightEdge = sig.getMaxTime();
