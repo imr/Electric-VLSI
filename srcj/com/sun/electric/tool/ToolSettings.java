@@ -348,9 +348,9 @@ public class ToolSettings extends AbstractToolSettings {
     { tool("CVSTool", "tool/cvspm"); }
 
     { tool("STATool", "plugins/sctiming"); }
-    private final Setting cacheGlobalSDCCommandsMAX = makeStringSetting("GlobalSDCCommands", "Static Timing Analysis Tab", "Global SDC Constraints (MAX)", "");
-    private final Setting cacheGlobalSDCCommandsMIN = makeStringSetting("GlobalSDCCommandsMIN", "Static Timing Analysis Tab", "Global SDC Constraints (MIN)", "");
-    private final Setting cacheNumWorstPaths = makeIntSetting("NumWorstPaths", "Static Timing Analysis Tab", "Num Worst Paths", 10);
+    private final Setting cacheGlobalSDCCommandsMAX = makeStringSetting("GlobalSDCCommands", "Static Timing HashMap<String,Signal> Tab", "Global SDC Constraints (MAX)", "");
+    private final Setting cacheGlobalSDCCommandsMIN = makeStringSetting("GlobalSDCCommandsMIN", "Static Timing HashMap<String,Signal> Tab", "Global SDC Constraints (MIN)", "");
+    private final Setting cacheNumWorstPaths = makeIntSetting("NumWorstPaths", "Static Timing HashMap<String,Signal> Tab", "Num Worst Paths", 10);
 
     private ToolSettings(Setting.RootGroup rootSettingGroup) {
         super(rootSettingGroup);

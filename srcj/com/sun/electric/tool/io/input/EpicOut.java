@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
+
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
@@ -1050,7 +1050,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
  * EpicSignals don't store signalContex strings, EpicAnalysis don't have signalNames hash map.
  * Elements of Context are EpicTreeNodes. They partially implements interface javax.swing.tree.TreeNode .
  */
-public static class EpicAnalysis extends Analysis {
+public static class EpicAnalysis extends HashMap<String,Signal> {
     
     /** Separator in Epic signal names. */              static final char separator = '.';
     
@@ -1081,12 +1081,13 @@ public static class EpicAnalysis extends Analysis {
      * @param sd Stimuli.
      */
     EpicAnalysis(Stimuli sd) {
-        super(sd, "TRANS SIGNALS", false);
         sd.addAnalysis(this);
         ArrayList<Signal<ScalarSample>> l = new ArrayList<Signal<ScalarSample>>();
         for(Signal s : values()) l.add((Signal<ScalarSample>)s);
         signalsUnmodifiable = Collections.unmodifiableList(l);
     }
+
+    public String toString() { return "TRANS SIGNALS"; }
     
     /**
      * Set time resolution of this EpicAnalysis.
@@ -1145,14 +1146,13 @@ public static class EpicAnalysis extends Analysis {
     
 	/**
 	 * Method to quickly return the signal that corresponds to a given Network name.
-     * This method overrides the m,ethod from Analysis class.
+     * This method overrides the m,ethod from HashMap<String,Signal> class.
      * It doesn't use signalNames hash map.
 	 * @param netName the Network name to find.
 	 * @return the Signal that corresponds with the Network.
 	 * Returns null if none can be found.
 	 */
-    @Override
-        public Signal<ScalarSample> get(String netName) {
+    public Signal get(String netName) {
         Signal<ScalarSample> old = super.get(netName);
         
         String lookupName = netName;

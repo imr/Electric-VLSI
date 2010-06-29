@@ -87,7 +87,7 @@ public class VerilogOut extends Input<Stimuli>
 	private void readVerilogFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
-		Analysis an = Stimuli.newAnalysis(sd, "SIGNALS", true);
+		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, "SIGNALS", true);
 		sd.setCell(cell);
 		double timeScale = 1.0;
 		String currentScope = "";
@@ -293,7 +293,7 @@ public class VerilogOut extends Input<Stimuli>
 						Signal<DigitalSample> sig = (Signal<DigitalSample>)entry;
 						int i = 0;
                         /*
-                        if (Analysis.getBussedSignals(sig)!=null)
+                        if (HashMap<String,Signal>.getBussedSignals(sig)!=null)
 						for(Signal anySig : Analysis.getBussedSignals(sig))
 						{
 							Signal<DigitalSample> subSig = (Signal<DigitalSample>)anySig;
@@ -377,7 +377,7 @@ public class VerilogOut extends Input<Stimuli>
         */
 	}
 
-	private void cleanUpScope(List<Signal<DigitalSample>> curArray, Analysis an)
+	private void cleanUpScope(List<Signal<DigitalSample>> curArray, HashMap<String,Signal> an)
 	{
 		if (curArray == null) return;
 

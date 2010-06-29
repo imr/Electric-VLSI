@@ -27,13 +27,15 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
+
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
 /**
  * Class for reading and displaying waveforms from Spice2 or GNUCap output.
@@ -179,7 +181,7 @@ public class SpiceOut extends Input<Stimuli>
 			return;
 		}
 
-		Analysis an = Stimuli.newAnalysis(sd, "SIGNALS", false);
+		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, "SIGNALS", false);
 		sd.setCell(cell);
 
 		// convert lists to arrays

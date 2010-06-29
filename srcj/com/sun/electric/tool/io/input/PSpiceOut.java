@@ -27,13 +27,15 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
+
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSample;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -76,7 +78,7 @@ public class PSpiceOut extends Input<Stimuli>
 		throws IOException
 	{
 		boolean first = true;
-		Analysis an = Stimuli.newAnalysis(sd, "SIGNALS", false);
+		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, "SIGNALS", false);
 		sd.setCell(cell);
 		List<String> signalNames = new ArrayList<String>();
 		List<Double> [] values = null;

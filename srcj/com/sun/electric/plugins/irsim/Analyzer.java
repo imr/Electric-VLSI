@@ -162,12 +162,12 @@ public class Analyzer extends Engine
 
 	/** the simulation engine */					private Sim            theSim;
 	/** the waveform window */						private WaveformWindow ww;
-	/** the analysis data being displayed */		private Analysis<Signal<DigitalSample>> analysis;
+	/** the analysis data being displayed */		private HashMap<String,Signal> analysis;
 	/** the cell being simulated */					private Cell           cell;
 	/** the context for the cell being simulated */	private VarContext     context;
 	/** the name of the file being simulated */		private String         fileName;
 	/** the name of the last vector file read */	private String         vectorFileName;
-	/** mapping from signals to nodes */			private HashMap<Signal<DigitalSample>,Sim.Node> nodeMap;
+	/** mapping from signals to nodes */			private HashMap<Signal,Sim.Node> nodeMap;
 
 	/************************** ELECTRIC INTERFACE **************************/
 
@@ -261,7 +261,7 @@ public class Analyzer extends Engine
 		analysis = Stimuli.newAnalysis(sd, "SIGNALS", true);
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
-		nodeMap = new HashMap<Signal<DigitalSample>,Sim.Node>();
+		nodeMap = new HashMap<Signal,Sim.Node>();
 		for(Sim.Node n : theSim.getNodeList())
 		{
 			if (n.nName.equalsIgnoreCase("vdd") || n.nName.equalsIgnoreCase("gnd")) continue;
@@ -1897,7 +1897,7 @@ public class Analyzer extends Engine
 		int nBits = 1;
 		Sim.Node [] nodes = null;
         /*
-		if (Analysis.getBussedSignals(sig) == null)
+		if (HashMap<String,Signal>.getBussedSignals(sig) == null)
 		{
 			Sim.Node n = nodeMap.get(sig);
 			name = sig.getFullName();
@@ -1983,7 +1983,7 @@ public class Analyzer extends Engine
 		String name = null;
 		Sim.Node [] nodes = null;
         /*
-		if (Analysis.getBussedSignals(sig) == null)
+		if (HashMap<String,Signal>.getBussedSignals(sig) == null)
 		{
 			Sim.Node n = nodeMap.get(sig);
 			name = n.nName;
@@ -2036,7 +2036,7 @@ public class Analyzer extends Engine
 		}
 
         /*
-		if (Analysis.getBussedSignals(sig) == null)
+		if (HashMap<String,Signal>.getBussedSignals(sig) == null)
 		{
         */
 			Sim.Node n = nodeMap.get(sig);
@@ -2708,7 +2708,7 @@ public class Analyzer extends Engine
 		{
 			String v = cs.values[index % cs.values.length];
             /*
-			if (Analysis.getBussedSignals(cs.sig) == null)
+			if (HashMap<String,Signal>.getBussedSignals(cs.sig) == null)
 			{
             */
 				Sim.Node n = nodeMap.get(cs.sig);
@@ -2749,12 +2749,12 @@ public class Analyzer extends Engine
 		}
 		int len = 1;
         /*
-		if (Analysis.getBussedSignals(sig) != null)
+		if (HashMap<String,Signal>.getBussedSignals(sig) != null)
 			len = Analysis.getBussedSignals(sig).size();
         */
 		Sim.Node n = nodeMap.get(sig);
         /*
-		if (Analysis.getBussedSignals(sig) == null)
+		if (HashMap<String,Signal>.getBussedSignals(sig) == null)
 		{
         */
 			n = unAlias(n);

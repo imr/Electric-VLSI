@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.*;
 
 /**
  *  This class represents a set of simulation *inputs* -- that is,
@@ -57,8 +58,8 @@ public class Stimuli {
 	/** the cell attached to this Stimuli information */		private Cell cell;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
 	/** the separator character that breaks names */			private char separatorChar;
-	/** the analyses in this Stimuli */							private HashMap<String,Analysis> analyses;
-	/** the list of analyses in this Stimuli */					private List<Analysis> analysisList;
+	/** the analyses in this Stimuli */							private HashMap<String,HashMap<String,Signal>> analyses;
+	/** the list of analyses in this Stimuli */					private List<HashMap<String,Signal>> analysisList;
 	/** control points when signals are selected */				private HashMap<Signal,Double[]> controlPointMap;
 
     /** Cached version of net delimiter**/                      private String delim = SimulationTool.getSpiceExtractedNetDelimiter();
@@ -69,8 +70,8 @@ public class Stimuli {
 	public Stimuli()
 	{
 		separatorChar = '.';
-		analyses = new HashMap<String,Analysis>();
-		analysisList = new ArrayList<Analysis>();
+		analyses = new HashMap<String,HashMap<String,Signal>>();
+		analysisList = new ArrayList<HashMap<String,Signal>>();
 		controlPointMap = new HashMap<Signal,Double[]>();
 	}
 
@@ -83,20 +84,20 @@ public class Stimuli {
 		analyses.clear();
 	}
 
-	public void addAnalysis(Analysis an)
+	public void addAnalysis(HashMap<String,Signal> an)
 	{
 		analyses.put(an.toString(), an);
 		analysisList.add(an);
 	}
 
 	/**
-	 * Method to find an Analysis of a given type.
+	 * Method to find an HashMap<String,Signal> of a given type.
 	 * @param type the stimulus type being queried.
-	 * @return the Analysis of that type (null if not found).
+	 * @return the HashMap<String,Signal> of that type (null if not found).
 	 */
-	public Analysis findAnalysis(String title)
+	public HashMap<String,Signal> findAnalysis(String title)
 	{
-		Analysis an = analyses.get(title);
+		HashMap<String,Signal> an = analyses.get(title);
 		return an;
 	}
 
@@ -104,7 +105,7 @@ public class Stimuli {
 
     public int getNumAnalyses() { return analysisList.size(); }
 
-	public Iterator<Analysis> getAnalyses() { return analysisList.iterator(); }
+	public Iterator<HashMap<String,Signal>> getAnalyses() { return analysisList.iterator(); }
 
 	/**
 	 * Method to set the Cell associated with this simulation data.
@@ -257,7 +258,7 @@ public class Stimuli {
 	{
 		// determine extent of the data
 		Rectangle2D bounds = null;
-		for(Analysis an : analysisList)
+		for(HashMap<String,Signal> an : analysisList)
 		{
 			Rectangle2D anBounds = an.getBounds();
 			if (anBounds == null) continue;
@@ -282,7 +283,7 @@ public class Stimuli {
 	public double getMinTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(Analysis an : analysisList) {
+		for(HashMap<String,Signal> an : analysisList) {
             for (Signal sig : (Iterable<Signal>)an.values()) {
                 if (leftEdge == rightEdge) {
                         leftEdge = sig.getMinTime();
@@ -310,7 +311,7 @@ public class Stimuli {
 	public double getMaxTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(Analysis an : analysisList) {
+		for(HashMap<String,Signal> an : analysisList) {
             for (Signal sig : (Iterable<Signal>)an.values()) {
                 if (leftEdge == rightEdge) {
                         leftEdge = sig.getMinTime();
@@ -430,8 +431,10 @@ public class Stimuli {
 		return "?";
 	}
 
-    public static Analysis newAnalysis(Stimuli sd, String title, boolean extrapolateToRight) {
-        Analysis ret = new Analysis(sd, title, extrapolateToRight);
+    public static HashMap<String,Signal> newAnalysis(Stimuli sd, final String title, boolean extrapolateToRight) {
+        HashMap<String,Signal> ret = new HashMap<String,Signal>() {
+            public String toString() { return title; }
+        };
 		sd.addAnalysis(ret);
         return ret;
     }

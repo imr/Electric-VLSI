@@ -337,14 +337,14 @@ public class Panel extends JPanel
 			// the "signal type" selector for this panel (analog only)
 			boolean hasACData = waveWindow.getSimData().findAnalysis("AC SIGNALS") != null;
 			boolean hasDCData = waveWindow.getSimData().findAnalysis("DC SIGNALS") != null;
-			boolean hasMeasData = waveWindow.getSimData().findAnalysis(Analysis.ANALYSIS_MEAS) != null;
+			boolean hasMeasData = waveWindow.getSimData().findAnalysis(HashMap<String,Signal>.ANALYSIS_MEAS) != null;
 			if (hasACData || hasDCData || hasMeasData)
 			{
 				analysisCombo = new JComboBox();
 				analysisCombo.addItem("TRANS SIGNALS".toString());
 				if (hasACData) analysisCombo.addItem("AC SIGNALS".toString());
 				if (hasDCData) analysisCombo.addItem("DC SIGNALS".toString());
-				if (hasMeasData) analysisCombo.addItem(Analysis.ANALYSIS_MEAS.toString());
+				if (hasMeasData) analysisCombo.addItem(HashMap<String,Signal>.ANALYSIS_MEAS.toString());
 				analysisCombo.setToolTipText("Sets the type of data seen in this panel");
 				analysisCombo.setSelectedItem(analysisType.toString());
 				gbc = new GridBagConstraints();
@@ -1398,7 +1398,7 @@ public class Panel extends JPanel
 		for(WaveSignal ws : waveSignals.values()) {
 			if (ws.getSignal() .isAnalog()) {
 				Signal as = ws.getSignal();
-//				Analysis an = as.getAnalysis();
+//				HashMap<String,Signal> an = as.getAnalysis();
 				for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
                     pw.println();
 					Signal wave = as;
@@ -2150,7 +2150,7 @@ public class Panel extends JPanel
             /*
 			Signal as = ws.getSignal();
             double[] result = new double[3];
-            Analysis an = (Analysis)as.getAnalysis();
+            HashMap<String,Signal> an = (HashMap<String,Signal>)as.getAnalysis();
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
@@ -2185,7 +2185,7 @@ public class Panel extends JPanel
 			Signal as = (Signal)ws.getSignal();
             double[] result = new double[3];
             double[] lastResult = new double[3];
-            Analysis an = (Analysis)as.getAnalysis();
+            HashMap<String,Signal> an = (HashMap<String,Signal>)as.getAnalysis();
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
                 if (!waveWindow.isSweepSignalIncluded(an, s)) continue;

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+IMP: (6/28/10, AM) Eradicate Analysis.java for all eternity.
+
 IMP: (6/28/10, AM) Remove Analysis.getSignals()
 
 IMP: (6/28/10, AM) Remove calls to Analysis' constructor

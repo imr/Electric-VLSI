@@ -27,11 +27,12 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
+
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
+
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Stimuli;
 
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.io.IOException;
 import java.net.URL;
 
@@ -57,14 +59,13 @@ public class RawSpiceOut extends Input<Stimuli> {
 	/**
 	 * Class for handling swept signals.
 	 */
-	private static class SweepAnalysisLT extends Analysis
+	private static class SweepAnalysisLT extends HashMap<String,Signal>
 	{
 		double [][] commonTime; // sweep, signal
 		List<List<double[]>> theSweeps = new ArrayList<List<double[]>>(); // sweep, event, signal
 
 		private SweepAnalysisLT(Stimuli sd, String type)
 		{
-			super(sd, type, false);
             sd.addAnalysis(this);
 		}
 	}
@@ -105,7 +106,7 @@ public class RawSpiceOut extends Input<Stimuli> {
 		boolean first = true;
 
 		sd.setCell(cell);
-		Analysis an = null;
+		HashMap<String,Signal> an = null;
 
 		double[][] values = null;
         double[] time = null;
@@ -387,7 +388,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                             }
                         if (DEBUG) System.out.println("FOUND " + sweepCount + " SWEEPS");
 
-                        // place data into the Analysis object
+                        // place data into the HashMap<String,Signal> object
                         lan.commonTime = new double[sweepCount][];
                         int offset = 0;
                         for(int s=0; s<sweepCount; s++)

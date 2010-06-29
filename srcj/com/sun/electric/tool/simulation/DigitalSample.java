@@ -24,6 +24,7 @@
 package com.sun.electric.tool.simulation;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import java.io.*;
+import java.util.*;
 
 /**
  *  An implementation of Sample for digital data; supports HIGH/LOW
@@ -220,7 +221,7 @@ public class DigitalSample implements Sample {
         return getSample(value, strength);
     }
 
-    public static MutableSignal<DigitalSample> createSignal(Analysis an, Stimuli sd, String signalName, String signalContext) {
+    public static MutableSignal<DigitalSample> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext) {
         return new BTreeSignal<DigitalSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
             public boolean isDigital() { return true; }
         };

@@ -27,7 +27,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.tool.simulation.Analysis;
+
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;

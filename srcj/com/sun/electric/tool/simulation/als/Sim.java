@@ -126,7 +126,7 @@ public class Sim
 
 			// determine highest time to simulate
             double tMax = 0;
-            for(Signal sig : ((Analysis<Signal>)als.an).values())
+            for(Signal sig : ((HashMap<String,Signal>)als.an).values())
                 tMax = Math.max(tMax, sig.getMaxTime());
 			for(Iterator<Panel> it = als.ww.getPanels(); it.hasNext(); )
 			{
@@ -181,7 +181,7 @@ public class Sim
 		stateVector[0] = 0;
 		double [] timeVector = new double[1];
 		timeVector[0] = 0;
-		for(Signal s : ((Analysis<Signal>)als.an).values()) {
+		for(Signal s : ((HashMap<String,Signal>)als.an).values()) {
 			Signal<DigitalSample> sig = (Signal<DigitalSample>)s;
 			if (sigsChanged.contains(sig)) continue;
 		}

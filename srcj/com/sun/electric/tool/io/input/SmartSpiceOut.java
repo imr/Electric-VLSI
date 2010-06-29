@@ -27,11 +27,13 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
+
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 
 /**
  * Class for reading and displaying waveforms from SmartSpice Raw output.
@@ -71,7 +73,7 @@ public class SmartSpiceOut extends Input<Stimuli>
 		int signalCount = -1;
 		String[] signalNames = null;
 		int rowCount = -1;
-		Analysis an = null;
+		HashMap<String,Signal> an = null;
 		double[][] values = null;
         double[] time = null;
 		for(;;)

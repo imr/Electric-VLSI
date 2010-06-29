@@ -24,6 +24,7 @@
 package com.sun.electric.tool.simulation;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import java.io.*;
+import java.util.*;
 
 /**
  *  An implementation of Sample for scalar data.  Holds a
@@ -109,7 +110,7 @@ public class ScalarSample implements Sample, Comparable {
         }
     };
 
-    public static MutableSignal<ScalarSample> createSignal(Analysis an, Stimuli sd, String signalName, String signalContext) {
+    public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext) {
         MutableSignal<ScalarSample> ret =
             new BTreeSignal<ScalarSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
             public boolean isDigital() { return false; }
@@ -118,7 +119,7 @@ public class ScalarSample implements Sample, Comparable {
         return ret;
     }
 
-	public static MutableSignal<ScalarSample> createSignal(Analysis an, Stimuli sd, String signalName, String signalContext,
+	public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext,
                                                            double[] time, double[] values) {
         if (values.length==0) throw new RuntimeException("attempt to create an empty signal");
         MutableSignal<ScalarSample> as = ScalarSample.createSignal(an, sd, signalName, signalContext);

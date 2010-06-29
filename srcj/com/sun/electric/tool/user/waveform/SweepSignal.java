@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user.waveform;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
-
+import com.sun.electric.tool.simulation.Signal;
+import java.util.*;
 import java.util.Iterator;
 
 /**
@@ -34,11 +34,11 @@ public class SweepSignal
 {
 	private Object obj;
 	private WaveformWindow ww;
-	private Analysis an;
+	private HashMap<String,Signal> an;
 	private boolean included;
 	private int sweepIndex;
 
-	public SweepSignal(Object obj, WaveformWindow ww, Analysis an)
+	public SweepSignal(Object obj, WaveformWindow ww, HashMap<String,Signal> an)
 	{
 		this.obj = obj;
 		this.ww = ww;
@@ -92,5 +92,5 @@ public class SweepSignal
 		}
 	}
 
-	public Analysis getAnalysis() { return an; }
+	public HashMap<String,Signal> getAnalysis() { return an; }
 }

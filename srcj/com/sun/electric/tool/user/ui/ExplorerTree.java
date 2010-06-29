@@ -47,7 +47,7 @@ import com.sun.electric.tool.project.DeleteCellJob;
 import com.sun.electric.tool.project.HistoryDialog;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.project.UpdateJob;
-import com.sun.electric.tool.simulation.Analysis;
+
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChangeJobs;

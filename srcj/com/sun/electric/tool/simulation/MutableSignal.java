@@ -22,13 +22,14 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
+import java.util.HashMap;
 
 /**
  * A Signal to which one may add and remove samples.
  */
 public abstract class MutableSignal<SS extends Sample> extends Signal<SS> {
 
-    public MutableSignal(Analysis analysis, Stimuli sd, String signalName, String signalContext) {
+    public MutableSignal(HashMap<String,Signal> analysis, Stimuli sd, String signalName, String signalContext) {
         super(analysis, sd, signalName, signalContext);
     }
 

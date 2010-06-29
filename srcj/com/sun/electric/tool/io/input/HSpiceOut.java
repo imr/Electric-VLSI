@@ -27,9 +27,9 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Analysis;
+
 import com.sun.electric.tool.simulation.ScalarSample;
-import com.sun.electric.tool.simulation.Analysis;
+
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSample;
@@ -178,7 +178,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (openTextInput(mtURL)) return;
 		System.out.println("Reading HSpice measurements '" + mtURL.getFile() + "'");
 
-		Analysis an = Stimuli.newAnalysis(sd, "MEASUREMENTS", false);
+		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, "MEASUREMENTS", false);
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;
@@ -428,7 +428,7 @@ public class HSpiceOut extends Input<Stimuli>
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		Analysis an = Stimuli.newAnalysis(sd, analysisTitle, false);
+		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, analysisTitle, false);
 		startProgressDialog("HSpice " + analysisTitle + " analysis", fileURL.getFile());
 		System.out.println("Reading HSpice " + analysisTitle + " analysis '" + fileURL.getFile() + "'");
 

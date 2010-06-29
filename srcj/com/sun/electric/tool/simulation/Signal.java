@@ -44,7 +44,7 @@ import java.util.*;
  */
 public abstract class Signal<SS extends Sample> {
 
-    public Signal(Analysis analysis, Stimuli sd, String signalName, String signalContext) {
+    public Signal(HashMap<String,Signal> analysis, Stimuli sd, String signalName, String signalContext) {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
 		this.extrapolateToRight = true;
@@ -66,9 +66,9 @@ public abstract class Signal<SS extends Sample> {
 	/** the name of this signal */									private final String signalName;
 	/** the context of this signal (qualifications to name) */		private final String signalContext;
 	/** the context of this signal (qualifications to name) */		private final String fullSignalName;
-    /** the Analysis to which this signal belongs */                private final String analysisTitle;
-    /** the extrapolateToRight setting of the Analysis */           private final boolean extrapolateToRight;
-    /** the stimuli of the Analysis */                              private final Stimuli stimuli;
+    /** the HashMap<String,Signal> to which this signal belongs */                private final String analysisTitle;
+    /** the extrapolateToRight setting of the HashMap<String,Signal> */           private final boolean extrapolateToRight;
+    /** the stimuli of the HashMap<String,Signal> */                              private final Stimuli stimuli;
 
     // methods relocated from other classes
     public void clearControlPoints() { stimuli.clearControlPoints(this); }
