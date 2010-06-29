@@ -350,7 +350,7 @@ public class WindowMenu {
                     Panel panel = ww.getPanel(0);
                     Stimuli stim = ww.getSimData();
                     Signal s1 = panel.getSignals().get(0).getSignal();
-                    Analysis an = new Analysis(stim, Analysis.ANALYSIS_DC, false) { public boolean isAnalog() { return false; } };
+                    Analysis an = new Analysis(stim, "DC SIGNALS", false) { public boolean isAnalog() { return false; } };
                     Signal derived = new DerivedSignal<DigitalSample,ScalarSample>
                         (an,
                          stim,

@@ -62,7 +62,7 @@ public class RawSpiceOut extends Input<Stimuli> {
 		double [][] commonTime; // sweep, signal
 		List<List<double[]>> theSweeps = new ArrayList<List<double[]>>(); // sweep, event, signal
 
-		private SweepAnalysisLT(Stimuli sd, Analysis.AnalysisType type)
+		private SweepAnalysisLT(Stimuli sd, String type)
 		{
 			super(sd, type, false);
 		}
@@ -99,7 +99,7 @@ public class RawSpiceOut extends Input<Stimuli> {
 		int signalCount = -1;
 		String[] signalNames = null;
 		int rowCount = -1;
-		Analysis.AnalysisType aType = Analysis.ANALYSIS_TRANS;
+		String aType = "TRANS SIGNALS";
         boolean isLTSpice = false;
 		boolean first = true;
 
@@ -151,15 +151,15 @@ public class RawSpiceOut extends Input<Stimuli> {
 
                     // start reading a new analysis
                     if (restOfLine.startsWith("Transient Analysis")) {
-                        an = new Analysis(sd, Analysis.ANALYSIS_TRANS, false);
+                        an = new Analysis(sd, "TRANS SIGNALS", false);
                     } else if (restOfLine.startsWith("DC ")) {
-                        an = new Analysis(sd, Analysis.ANALYSIS_DC, false);
+                        an = new Analysis(sd, "DC SIGNALS", false);
                     } else if (restOfLine.startsWith("AC ")) {
-                        an = new Analysis(sd, Analysis.ANALYSIS_AC, false);
-                        aType = Analysis.ANALYSIS_AC;
+                        an = new Analysis(sd, "AC SIGNALS", false);
+                        aType = "AC SIGNALS";
                     } else {
                         System.out.println("Warning: unknown analysis: " + restOfLine);
-                        an = new Analysis(sd, Analysis.ANALYSIS_TRANS, false);
+                        an = new Analysis(sd, "TRANS SIGNALS", false);
                     }
                     continue;
                 }
@@ -220,8 +220,10 @@ public class RawSpiceOut extends Input<Stimuli> {
                         pos = Math.min(spacePos, tabPos);
                         name = name.substring(0, pos);
                         if (i == 0) {
-                            if (!name.equals("time") && an.getAnalysisType() == Analysis.ANALYSIS_TRANS)
+                            /*
+                            if (!name.equals("time"))
                                 System.out.println("Warning: the first variable should be time, is '" + name + "'");
+                            */
                         } else {
                             signalNames[i-1] = name;
                         }

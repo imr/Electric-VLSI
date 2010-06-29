@@ -57,7 +57,7 @@ public class Stimuli {
 	/** the cell attached to this Stimuli information */		private Cell cell;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
 	/** the separator character that breaks names */			private char separatorChar;
-	/** the analyses in this Stimuli */							private HashMap<Analysis.AnalysisType,Analysis> analyses;
+	/** the analyses in this Stimuli */							private HashMap<String,Analysis> analyses;
 	/** the list of analyses in this Stimuli */					private List<Analysis> analysisList;
 	/** control points when signals are selected */				private HashMap<Signal,Double[]> controlPointMap;
 
@@ -69,7 +69,7 @@ public class Stimuli {
 	public Stimuli()
 	{
 		separatorChar = '.';
-		analyses = new HashMap<Analysis.AnalysisType,Analysis>();
+		analyses = new HashMap<String,Analysis>();
 		analysisList = new ArrayList<Analysis>();
 		controlPointMap = new HashMap<Signal,Double[]>();
 	}
@@ -85,7 +85,7 @@ public class Stimuli {
 
 	public void addAnalysis(Analysis an)
 	{
-		analyses.put(an.getAnalysisType(), an);
+		analyses.put(an.getTitle(), an);
 		analysisList.add(an);
 	}
 
@@ -94,9 +94,9 @@ public class Stimuli {
 	 * @param type the stimulus type being queried.
 	 * @return the Analysis of that type (null if not found).
 	 */
-	public Analysis findAnalysis(Analysis.AnalysisType type)
+	public Analysis findAnalysis(String title)
 	{
-		Analysis an = analyses.get(type);
+		Analysis an = analyses.get(title);
 		return an;
 	}
 

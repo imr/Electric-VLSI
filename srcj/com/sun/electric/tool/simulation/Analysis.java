@@ -39,33 +39,10 @@ import java.util.List;
  */
 public class Analysis<S extends Signal> {
 
-	public static class AnalysisType {
-		private String name;
-		private static List<AnalysisType> allTypes = new ArrayList<AnalysisType>();
-		AnalysisType(String name) {
-			this.name = name;
-			allTypes.add(this);
-		}
-		public String toString() { return name; }
-		public static AnalysisType findAnalysisType(String analysisName) {
-			for(AnalysisType at : allTypes)
-				if (at.name.equals(analysisName))
-                    return at;
-			return null;
-		}
-	}
 
-	/** indicates general signals */	public static final AnalysisType ANALYSIS_SIGNALS = new AnalysisType("Signals");
-	/** indicates transient analysis */	public static final AnalysisType ANALYSIS_TRANS = new AnalysisType("Transient");
-	/** indicates AC analysis */		public static final AnalysisType ANALYSIS_AC = new AnalysisType("AC");
-	/** indicates DC analysis */		public static final AnalysisType ANALYSIS_DC = new AnalysisType("DC");
-	/** indicates Measurement data */	public static final AnalysisType ANALYSIS_MEAS = new AnalysisType("Measurement");
-
-	/** the Stimuli in which this Analysis resides */			private Stimuli sd;
-	/** the type of analysis data here */						private AnalysisType type;
-	/** a list of all signals in this Analysis */				private List<S> signals = new ArrayList<S>();
-	/** a map of all signal names in this Analysis */			private HashMap<String,S> signalNames = new HashMap<String,S>();
-    /** group of signals from extracted netlist of same net */  private HashMap<String,List<S>> signalGroup = new HashMap<String,List<S>>();
+	/** a list of all signals in this Analysis */				List<S> signals = new ArrayList<S>();
+	/** a map of all signal names in this Analysis */			HashMap<String,S> signalNames = new HashMap<String,S>();
+    /** group of signals from extracted netlist of same net */  HashMap<String,List<S>> signalGroup = new HashMap<String,List<S>>();
 
     /**
 	 * Constructor for a collection of simulation data.
@@ -76,21 +53,21 @@ public class Analysis<S extends Signal> {
 	 * False to stop drawing signals after their last value
 	 * (useful for Spice and other analog simulations).
 	 */
-	public Analysis(Stimuli sd, AnalysisType type, boolean extrapolateToRight) {
-		this.sd = sd;
-		this.type = type;
+	public Analysis(Stimuli sd, String title, boolean extrapolateToRight) {
+        this.title = title;
 		sd.addAnalysis(this);
 	}
 
-	/**
-	 * Method to return the type of data currently being manipulated.
-	 * Possibilities are ANALYSIS_TRANS, ANALYSIS_AC, ANALYSIS_DC, or ANALYSIS_MEAS.
-	 * @return the type of data currently being manipulated.
-	 */
-	public AnalysisType getAnalysisType()
-	{
-		return type;
-	}
+    public String getTitle() { return title; }
+    String title;
+    /*
+        if (type==ANALYSIS_SIGNALS) return "SIGNALS";
+        if (type==ANALYSIS_TRANS) return "TRANS SIGNALS";
+        if (type==ANALYSIS_AC) return "AC SIGNALS";
+        if (type==ANALYSIS_DC) return "DC SIGNALS";
+        if (type==ANALYSIS_MEAS) return "MEASUREMENTS";
+        return "unknown";
+    */
 
     /**
 	 * Method to get the list of signals in this Simulation Data object.
@@ -98,37 +75,6 @@ public class Analysis<S extends Signal> {
 	 */
 	public List<S> getSignals() { return signals; }
 	public boolean hasSignal(Signal s) { return signals.contains(s); }
-
-	public void nameSignal(S ws, String sigName)
-	{
-		String name = TextUtils.canonicString(sigName);
-		signalNames.put(name, ws);
-
-		// simulators may strip off last "_"
-		if (name.indexOf('_') >= 0 && !name.endsWith("_"))
-			signalNames.put(name + "_", ws);
-
-        // keep track of groups of signals that represent one extracted net
-        String baseName = Signal.getBaseNameFromExtractedNet(name, sd.getNetDelimiter());
-        List<S> sigs = signalGroup.get(baseName);
-        if (sigs == null) {
-            sigs = new ArrayList<S>();
-            signalGroup.put(baseName, sigs);
-        }
-        sigs.add(ws);
-    }
-
-	/**
-	 * Method to add a new signal to this Simulation Data object.
-	 * Signals can be either digital or analog.
-	 * @param ws the signal to add.
-	 * Instead of a "Signal", use either Signal<DigitalSample> or Signal<ScalarSample>.
-	 */
-	public void addSignal(S ws) {
-		signals.add(ws);
-		String sigName = ws.getFullName();
-		if (sigName != null) nameSignal(ws, sigName);
-	}
 
     /**
      * Get a list of signals that are from the same network.
@@ -140,7 +86,7 @@ public class Analysis<S extends Signal> {
         String sigName = ws.getFullName();
         if (sigName == null) return new ArrayList<S>();
         sigName = TextUtils.canonicString(sigName);
-        sigName = Signal.getBaseNameFromExtractedNet(sigName, sd.getNetDelimiter());
+        sigName = ws.getBaseNameFromExtractedNet(sigName);
         return signalGroup.get(sigName);
     }
 

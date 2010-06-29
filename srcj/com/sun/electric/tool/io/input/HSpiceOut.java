@@ -178,7 +178,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (openTextInput(mtURL)) return;
 		System.out.println("Reading HSpice measurements '" + mtURL.getFile() + "'");
 
-		Analysis an = new Analysis(sd, Analysis.ANALYSIS_MEAS, false);
+		Analysis an = new Analysis(sd, "MEASUREMENTS", false);
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;
@@ -317,7 +317,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (!TextUtils.URLExists(swURL)) return;
 
 		// process the DC data
-		readTRDCACFile(sd, swURL, paList, Analysis.ANALYSIS_TRANS);
+		readTRDCACFile(sd, swURL, paList, "TRANS SIGNALS");
 	}
 
 	/**
@@ -338,7 +338,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (swURL != null && TextUtils.URLExists(swURL))
 		{
 			// process the DC data
-			readTRDCACFile(sd, swURL, paList, Analysis.ANALYSIS_DC);
+			readTRDCACFile(sd, swURL, paList, "DC SIGNALS");
 			return;
 		}
 
@@ -376,7 +376,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (!TextUtils.URLExists(acURL)) return;
 
 		// process the AC data
-		readTRDCACFile(sd, acURL, paList, Analysis.ANALYSIS_AC);
+		readTRDCACFile(sd, acURL, paList, "AC SIGNALS");
 	}
 
 	/**
@@ -421,16 +421,16 @@ public class HSpiceOut extends Input<Stimuli>
 		return paList;
 	}
 
-	private void readTRDCACFile(Stimuli sd, URL fileURL, List<PALine> paList, Analysis.AnalysisType analysisType)
+	private void readTRDCACFile(Stimuli sd, URL fileURL, List<PALine> paList, String analysisTitle)
 		throws IOException
 	{
 		if (openBinaryInput(fileURL)) return;
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		Analysis an = new Analysis(sd, analysisType, false);
-		startProgressDialog("HSpice " + analysisType.toString() + " analysis", fileURL.getFile());
-		System.out.println("Reading HSpice " + analysisType.toString() + " analysis '" + fileURL.getFile() + "'");
+		Analysis an = new Analysis(sd, analysisTitle, false);
+		startProgressDialog("HSpice " + analysisTitle + " analysis", fileURL.getFile());
+		System.out.println("Reading HSpice " + analysisTitle + " analysis '" + fileURL.getFile() + "'");
 
 		// get number of nodes
 		int nodcnt = getHSpiceInt();
@@ -707,7 +707,7 @@ public class HSpiceOut extends Input<Stimuli>
 				constantPrefix = null;
 		}
 
-		boolean isComplex = analysisType == Analysis.ANALYSIS_AC;
+		boolean isComplex = analysisTitle.equals("AC SIGNALS");
         Signal[] signals = new Signal[numSignals];
 		for(int k=0; k<numSignals; k++) {
 			String name = signalNames[k];
@@ -779,7 +779,7 @@ public class HSpiceOut extends Input<Stimuli>
 		closeInput();
 
 		stopProgressDialog();
-		System.out.println("Done reading " + analysisType.toString() + " analysis");
+		System.out.println("Done reading " + analysisTitle + " analysis");
 	}
 
 	/**

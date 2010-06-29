@@ -890,12 +890,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 					Signal sSig = (Signal)getCurrentlySelectedObject(i);
 					String sigName = sSig.getFullName();
 					if (sSig .isAnalog())
-					{
-						if (sSig.getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
-							if (sSig.getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
-								if (sSig.getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
-									if (sSig.getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
-					}
+                        sigName = sSig.getAnalysisTitle();
 					buf.append(sigName);
 					buf.append("\n");
 				}
@@ -976,9 +971,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 //				if (sSig .isAnalog())
 //				{
 //					Signal as = (Signal)sSig;
-//					if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
-//						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
-//							if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
+//					if (as.getAnalysis().getAnalysisType() == "TRANS SIGNALS") sigName = "TRANS " + sigName; else
+//						if (as.getAnalysis().getAnalysisType() == "AC SIGNALS") sigName = "AC " + sigName; else
+//							if (as.getAnalysis().getAnalysisType() == "DC SIGNALS") sigName = "DC " + sigName; else
 //								if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
 //				}
 //				buf.append(sigName);

@@ -115,7 +115,6 @@ public class ScalarSample implements Sample, Comparable {
             public boolean isDigital() { return false; }
             public boolean isAnalog() { return true; }
         };
-        an.addSignal(ret);
         return ret;
     }
 

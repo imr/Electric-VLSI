@@ -1081,7 +1081,7 @@ public static class EpicAnalysis extends Analysis {
      * @param sd Stimuli.
      */
     EpicAnalysis(Stimuli sd) {
-        super(sd, Analysis.ANALYSIS_TRANS, false);
+        super(sd, "TRANS SIGNALS", false);
         signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
     }
     

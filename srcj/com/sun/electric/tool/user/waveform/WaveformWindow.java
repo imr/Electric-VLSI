@@ -2149,25 +2149,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
-			if (an.getAnalysisType() == Analysis.ANALYSIS_SIGNALS)
-			{
-				nodes.add(getSignalsForExplorer(an, rootPath, "SIGNALS"));
-			} else if (an.getAnalysisType() == Analysis.ANALYSIS_TRANS)
-			{
-				nodes.add(getSignalsForExplorer(an, rootPath, "TRANS SIGNALS"));
-				nodes.add(getSweepsForExplorer(an, "TRANS SWEEPS"));
-			} else if (an.getAnalysisType() == Analysis.ANALYSIS_AC)
-			{
-				nodes.add(getSignalsForExplorer(an, rootPath, "AC SIGNALS"));
-				nodes.add(getSweepsForExplorer(an, "AC SWEEPS"));
-			} else if (an.getAnalysisType() == Analysis.ANALYSIS_DC)
-			{
-				nodes.add(getSignalsForExplorer(an, rootPath, "DC SIGNALS"));
-				nodes.add(getSweepsForExplorer(an, "DC SWEEPS"));
-			} else if (an.getAnalysisType() == Analysis.ANALYSIS_MEAS)
-			{
-				nodes.add(getSignalsForExplorer(an, rootPath, "MEASUREMENTS"));
-			}
+            nodes.add(getSignalsForExplorer(an, rootPath, an.getTitle()));
 		}
 
 		// clean possible nulls
@@ -3760,7 +3742,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// read the file
 		URL url = TextUtils.makeURLToFile(configurationFileName);
 		Panel curPanel = null;
-		Analysis.AnalysisType oneType = null;
+		String oneType = null;
 		try
 		{
 			URLConnection urlCon = url.openConnection();
@@ -3774,19 +3756,21 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (keywords.length == 0) continue;
 				if (keywords[0].equals("panel"))
 				{
-					Analysis.AnalysisType analysisType = null;
+					String analysisType = null;
 					boolean xLog = false, yLog = false;
 					for(int i=1; i<keywords.length; i++)
 					{
 						if (keywords[i].equals("xlog")) xLog = true; else
 						if (keywords[i].equals("ylog")) yLog = true; else
 						{
-							analysisType = Analysis.AnalysisType.findAnalysisType(keywords[i]);
+							analysisType = keywords[i];
+                            /*
 							if (analysisType != null)
 							{
 								if (oneType == null) oneType = analysisType;
 								if (oneType != analysisType && ww.isXAxisLocked()) ww.togglePanelXAxisLock();
 							}
+                            */
 						}
 					}
 					curPanel = new Panel(ww, ww.getSimData().isAnalog());
@@ -4344,27 +4328,27 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			String sigNameData = (String)data;
 			String [] sigNames = sigNameData.split("\n");
-			Analysis.AnalysisType analysisType = null;
+			String analysisType = null;
 			for(int i=0; i<sigNames.length; i++)
 			{
-				Analysis.AnalysisType anAnalysisType = Analysis.ANALYSIS_SIGNALS;
+				String anAnalysisType = "SIGNALS";
 				String aSigName = sigNames[i];
 				if (aSigName.startsWith("TRANS "))
 				{
 					sigNames[i] = aSigName.substring(6);
-					anAnalysisType = Analysis.ANALYSIS_TRANS;
+					anAnalysisType = "TRANS SIGNALS";
 				} else if (aSigName.startsWith("MEASUREMENT "))
 				{
 					sigNames[i] = aSigName.substring(12);
-					anAnalysisType = Analysis.ANALYSIS_MEAS;
+					anAnalysisType = "MEASUREMENTS";
 				} else if (aSigName.startsWith("AC "))
 				{
 					sigNames[i] = aSigName.substring(3);
-					anAnalysisType = Analysis.ANALYSIS_AC;
+					anAnalysisType = "AC SIGNALS";
 				} else if (aSigName.startsWith("DC "))
 				{
 					sigNames[i] = aSigName.substring(3);
-					anAnalysisType = Analysis.ANALYSIS_DC;
+					anAnalysisType = "DC SIGNALS";
 				}
 				if (analysisType == null) analysisType = anAnalysisType; else
 				{
@@ -4415,7 +4399,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							sSig = ws.getSignal();
 							break;
 						}
-						analysisType = sSig.getAnalysisType();
+						analysisType = sSig.getAnalysisTitle();
 					}
 				} else
 				{
@@ -4830,7 +4814,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			String [] signalNames = WaveformWindow.getSignalOrder(sd.getCell());
 			boolean showedSomething = false;
 			boolean wantUnlockedTime = false;
-			Analysis.AnalysisType onlyType = null;
+			String onlyType = null;
 			for(int i=0; i<signalNames.length; i++)
 			{
 				String signalName = signalNames[i];
@@ -4845,7 +4829,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (openPos >= 0) tabPos = openPos;
 					String analysisName = signalName.substring(1, tabPos);
                     /*
-					Analysis.AnalysisType analysisType = Analysis.AnalysisType.findAnalysisType(analysisName);
+					String analysisType = String.findAnalysisType(analysisName);
 					if (analysisType == null) continue;
 					an = sd.findAnalysis(analysisType);
 					if (an == null) continue;
@@ -4860,8 +4844,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					}
                         */
 				}
-				if (onlyType == null) onlyType = an.getAnalysisType();
                 /*
+				if (onlyType == null) onlyType = an.getAnalysisType();
 				if (an.getAnalysisType() != onlyType) wantUnlockedTime = true;
                 */
 				Panel wp = null;

@@ -335,15 +335,15 @@ public class Panel extends JPanel
 
             /*
 			// the "signal type" selector for this panel (analog only)
-			boolean hasACData = waveWindow.getSimData().findAnalysis(Analysis.ANALYSIS_AC) != null;
-			boolean hasDCData = waveWindow.getSimData().findAnalysis(Analysis.ANALYSIS_DC) != null;
+			boolean hasACData = waveWindow.getSimData().findAnalysis("AC SIGNALS") != null;
+			boolean hasDCData = waveWindow.getSimData().findAnalysis("DC SIGNALS") != null;
 			boolean hasMeasData = waveWindow.getSimData().findAnalysis(Analysis.ANALYSIS_MEAS) != null;
 			if (hasACData || hasDCData || hasMeasData)
 			{
 				analysisCombo = new JComboBox();
-				analysisCombo.addItem(Analysis.ANALYSIS_TRANS.toString());
-				if (hasACData) analysisCombo.addItem(Analysis.ANALYSIS_AC.toString());
-				if (hasDCData) analysisCombo.addItem(Analysis.ANALYSIS_DC.toString());
+				analysisCombo.addItem("TRANS SIGNALS".toString());
+				if (hasACData) analysisCombo.addItem("AC SIGNALS".toString());
+				if (hasDCData) analysisCombo.addItem("DC SIGNALS".toString());
 				if (hasMeasData) analysisCombo.addItem(Analysis.ANALYSIS_MEAS.toString());
 				analysisCombo.setToolTipText("Sets the type of data seen in this panel");
 				analysisCombo.setSelectedItem(analysisType.toString());

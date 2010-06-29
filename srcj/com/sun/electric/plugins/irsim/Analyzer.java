@@ -258,7 +258,7 @@ public class Analyzer extends Engine
 		// convert the stimuli
 		Stimuli sd = new Stimuli();
 		sd.setEngine(this);
-		analysis = new Analysis(sd, Analysis.ANALYSIS_SIGNALS, true);
+		analysis = new Analysis(sd, "SIGNALS", true);
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
 		nodeMap = new HashMap<Signal<DigitalSample>,Sim.Node>();

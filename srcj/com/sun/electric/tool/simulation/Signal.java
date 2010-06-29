@@ -22,6 +22,8 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
+import com.sun.electric.database.text.TextUtils;
+import java.util.*;
 
 /**
  * A Signal represents simulation data captured for a particular node
@@ -46,20 +48,34 @@ public abstract class Signal<SS extends Sample> {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
 		this.extrapolateToRight = true;
-        this.analysisType = analysis==null ? Analysis.ANALYSIS_SIGNALS : analysis.getAnalysisType();
+        this.analysisTitle = analysis==null ? "SIGNALS" : analysis.getTitle();
         this.fullSignalName = signalContext==null
             ? signalName
             : signalContext + (analysis==null ? '.' : sd.getSeparatorChar()) + signalName;
-		if (analysis!=null) analysis.nameSignal(this, getFullName());
         this.stimuli = sd;
-        if (analysis!=null && analysis instanceof Analysis)
-            analysis.addSignal(this);
+        if (analysis!=null) {
+            analysis.signals.add(this);
+            String name = TextUtils.canonicString(fullSignalName);
+            analysis.signalNames.put(name, this);
+            // simulators may strip off last "_"
+            if (name.indexOf('_') >= 0 && !name.endsWith("_"))
+                analysis.signalNames.put(name + "_", this);
+            
+            // keep track of groups of signals that represent one extracted net
+            String baseName = getBaseNameFromExtractedNet(name);
+            List<Signal<SS>> sigs = (List<Signal<SS>>)analysis.signalGroup.get(baseName);
+            if (sigs == null) {
+                sigs = new ArrayList<Signal<SS>>();
+                analysis.signalGroup.put(baseName, sigs);
+            }
+            sigs.add(this);
+        }
     }
 
 	/** the name of this signal */									private final String signalName;
 	/** the context of this signal (qualifications to name) */		private final String signalContext;
 	/** the context of this signal (qualifications to name) */		private final String fullSignalName;
-    /** the Analysis to which this signal belongs */                private final Analysis.AnalysisType analysisType;
+    /** the Analysis to which this signal belongs */                private final String analysisTitle;
     /** the extrapolateToRight setting of the Analysis */           private final boolean extrapolateToRight;
     /** the stimuli of the Analysis */                              private final Stimuli stimuli;
 
@@ -69,7 +85,7 @@ public abstract class Signal<SS extends Sample> {
     public void addControlPoint(double time) { stimuli.addControlPoint(this, time); }
     public Double[] getControlPoints() { return stimuli.getControlPoints(this); }
     public boolean extrapolateValues() { return extrapolateToRight; }
-	public final Analysis.AnalysisType getAnalysisType() { return analysisType; }
+	public final String getAnalysisTitle() { return analysisTitle; }
 
 	/** The name of this simulation signal, not including hierarchical path information */
 	public final String getSignalName() { return signalName; }
@@ -138,8 +154,8 @@ public abstract class Signal<SS extends Sample> {
     public boolean isAnalog() { return !isDigital(); }
     public boolean isBussed() { return false; }
 
-    static String getBaseNameFromExtractedNet(String signalFullName, String delim) {
-        //String delim = SimulationTool.getSpiceExtractedNetDelimiter();
+    String getBaseNameFromExtractedNet(String signalFullName) {
+        String delim = stimuli.getNetDelimiter();
         int hashPos = signalFullName.indexOf(delim);
         return hashPos > 0 ? signalFullName.substring(0, hashPos) : signalFullName;
     }

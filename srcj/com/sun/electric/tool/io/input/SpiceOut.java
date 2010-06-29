@@ -179,7 +179,7 @@ public class SpiceOut extends Input<Stimuli>
 			return;
 		}
 
-		Analysis an = new Analysis(sd, Analysis.ANALYSIS_SIGNALS, false);
+		Analysis an = new Analysis(sd, "SIGNALS", false);
 		sd.setCell(cell);
 
 		// convert lists to arrays

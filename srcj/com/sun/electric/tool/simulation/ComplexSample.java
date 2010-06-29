@@ -113,7 +113,6 @@ public class ComplexSample extends ScalarSample implements Sample {
             public boolean isDigital() { return false; }
             public boolean isAnalog() { return true; }
         };
-        an.addSignal(ret);
         return ret;
     }
 

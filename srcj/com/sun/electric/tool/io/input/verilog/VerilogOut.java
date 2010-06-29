@@ -87,7 +87,7 @@ public class VerilogOut extends Input<Stimuli>
 	private void readVerilogFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
-		Analysis<Signal<DigitalSample>> an = new Analysis<Signal<DigitalSample>>(sd, Analysis.ANALYSIS_SIGNALS, true);
+		Analysis<Signal<DigitalSample>> an = new Analysis<Signal<DigitalSample>>(sd, "SIGNALS", true);
 		sd.setCell(cell);
 		double timeScale = 1.0;
 		String currentScope = "";
