@@ -136,5 +136,6 @@ public abstract class Signal<SS extends Sample> {
 
     public boolean isDigital() { return false; }
     public boolean isAnalog() { return !isDigital(); }
+    public boolean isBussed() { return false; }
 
 }

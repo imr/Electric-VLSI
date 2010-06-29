@@ -5014,4 +5014,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
         throw new RuntimeException("ack!");
     }
+	static int getState(DigitalSample ds) {
+        if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
+        if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;
+        if (ds.isLogicX()) return Stimuli.LOGIC_X;
+        if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
+        throw new RuntimeException("ack!");
+    }
 }

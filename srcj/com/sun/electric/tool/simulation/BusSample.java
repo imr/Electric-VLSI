@@ -42,6 +42,9 @@ public class BusSample<S extends Sample> implements Sample {
         }
     }
 
+    public int getWidth() { return vals.length; }
+    public S   getTrace(int i) { return (S)vals[i]; }
+
     public boolean equals(Object o) {
         if (o==null) return false;
         if (!(o instanceof BusSample)) return false;
@@ -88,6 +91,7 @@ public class BusSample<S extends Sample> implements Sample {
                                            final Signal<SS>[] subsignals) {
         return new Signal<BusSample<SS>>(an, signalName, signalContext) {
             public boolean isDigital() { return true; }
+            public boolean isBussed() { return true; }
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
             public Signal.View<RangeSample<BusSample<SS>>>
                 getRasterView(final double t0, final double t1, final int numPixels, final boolean extrap) {

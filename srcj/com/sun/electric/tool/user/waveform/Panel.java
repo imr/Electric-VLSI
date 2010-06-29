@@ -30,17 +30,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.Sample;
-import com.sun.electric.tool.simulation.ScalarSample;
-import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.DigitalAnalysis;
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.RangeSample;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.SimulationTool;
-import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.*;
 import com.sun.electric.tool.simulation.Signal.View;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
@@ -651,8 +641,7 @@ public class Panel extends JPanel
 		waveWindow.saveSignalOrder();
 	}
 
-	private void toggleBusContents()
-	{
+	private void toggleBusContents() {
 		// this panel must have one signal
 		Collection<WaveSignal> theSignals = waveSignals.values();
 		if (theSignals.size() != 1) return;
@@ -1571,118 +1560,79 @@ public class Panel extends JPanel
                         first = false;
 					}
 				continue;
-            } else {
-				// draw digital traces
-				Signal<DigitalSample> ds = ws.getSignal();
-				List<Signal<DigitalSample>> bussedSignals = DigitalAnalysis.getBussedSignals(ds);
-				if (bussedSignals != null)
-				{
-					// a digital bus trace
-					List<BusCrawl> bussesToCrawl = new ArrayList<BusCrawl>();
-					for(int i=0; i<bussedSignals.size(); i++)
-					{
-						BusCrawl bc = new BusCrawl();
-						bc.sig = bussedSignals.get(i);
-						bc.exactView = bc.sig.getExactView();
-						bc.numEvents = bc.exactView.getNumEvents();
-						bc.eventPos = 0;
-						bussesToCrawl.add(bc);
-					}
-					long curYValue = 0;
-					double curXValue = 0;
-					int lastX = vertAxisPos;
-					for(;;)
-					{
-						double nextXValue = Double.MAX_VALUE;
-						int bit = 0;
-						boolean curDefined = true;
-						for(BusCrawl bc : bussesToCrawl)
-						{
-							boolean undefined = false;
-							for(int i=bc.eventPos; i<bc.numEvents; i++)
-							{
-								double xValue = bc.exactView.getTime(i);
-								if (xValue <= curXValue)
-								{
-									switch (WaveformWindow.getState(bc.sig, i) & Stimuli.LOGIC)
-									{
-										case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<bit);   undefined = false;   break;
-										case Stimuli.LOGIC_HIGH: curYValue |= (1<<bit);    undefined = false;   break;
-										case Stimuli.LOGIC_X:
-										case Stimuli.LOGIC_Z: undefined = true;    break;
-									}
-									bc.eventPos = i;
-								} else
-								{
-									if (xValue < nextXValue) nextXValue = xValue;
-									break;
-								}
-							}
-							if (undefined) { curDefined = false;   break; }
-							bit++;
-						}
-						int x = convertXDataToScreen(curXValue);
-						if (x >= vertAxisPos)
-						{
-							if (x < vertAxisPos+5)
-							{
-								// on the left edge: just draw the "<"
-								if (processALine(g, x, hei/2, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-								if (processALine(g, x, hei/2, x+5, 5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-							} else
-							{
-								// bus change point: draw the "X"
-								if (processALine(g, x-5, 5, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-								if (processALine(g, x+5, 5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-							}
-							if (lastX+5 < x-5)
-							{
-								// previous bus change point: draw horizontal bars to connect
-								if (processALine(g, lastX+5, 5, x-5, 5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-								if (processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-							}
-							String valString = "XX";
-							if (curDefined) valString = Long.toString(curYValue);
-							if (g != null)
-							{
-								g.setFont(waveWindow.getFont());
-								GlyphVector gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), valString);
-								Rectangle2D glyphBounds = gv.getLogicalBounds();
-								int textHei = (int)glyphBounds.getHeight();
-								g.drawString(valString, x+2, hei/2+textHei/2);
-							}
-							if (forPs != null)
-							{
-								Point2D [] pts = new Point2D[1];
-								pts[0] = new Point2D.Double(x+2, hei/2);
-								Poly poly = new Poly(pts);
-								poly.setStyle(Poly.Type.TEXTLEFT);
-								poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(8));
-								poly.setString(valString);
-								forPs.add(poly);
-							}
-						}
-						curXValue = nextXValue;
-						lastX = x;
-						if (nextXValue == Double.MAX_VALUE) break;
-					}
-					if (ds.extrapolateValues())
-					{
-						int wid = sz.width;
-						if (lastX+5 < wid)
-						{
-							// run horizontal bars to the end
-							if (processALine(g, lastX+5, 5, wid, 5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-							if (processALine(g, lastX+5, hei-5, wid, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-						}
-					}
-					continue;
-				}
 
+            } else if (ws.getSignal().isBussed()) {
+				// draw digital traces
+				Signal<BusSample<DigitalSample>> ds = (Signal<BusSample<DigitalSample>>)ws.getSignal();
+                Signal.View<RangeSample<BusSample<DigitalSample> > > view =
+                    (Signal.View<RangeSample<BusSample<DigitalSample> > >)ds.getRasterView(convertXScreenToData(0),
+                                                                                         convertXScreenToData(sz.width),
+                                                                                         sz.width,
+                                                                                         true);
+                double nextXValue = Double.MAX_VALUE;
+                int bit = 0;
+                boolean curDefined = true;
+                long curYValue = 0;  /* wow, this is pretty lame that Electric can't draw buses with more than 64 bits */
+                int lastX = 0;
+                boolean undefined = false;
+                double curXValue = 0;
+                for(int i=0; i<view.getNumEvents(); i++) {
+                    double xValue = view.getTime(i);
+                    RangeSample<BusSample<DigitalSample> > rs = view.getSample(i);
+                    // XXX: shouldn't ignore the max!
+                    BusSample<DigitalSample> bs = rs.getMin();
+                    for(int j=0; j<bs.getWidth(); j++) {
+                        switch (WaveformWindow.getState(bs.getTrace(j)) & Stimuli.LOGIC) {
+                            case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<j);   undefined = false;   break;
+                            case Stimuli.LOGIC_HIGH: curYValue |= (1<<j);    undefined = false;   break;
+                            case Stimuli.LOGIC_X:
+                            case Stimuli.LOGIC_Z: undefined = true;    break;
+                        }
+                    }
+                    int x = convertXDataToScreen(xValue);
+                    if (x >= vertAxisPos) {
+                        if (x < vertAxisPos+5) {
+                            // on the left edge: just draw the "<"
+                            if (processALine(g, x, hei/2, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+                            if (processALine(g, x, hei/2, x+5, 5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+                        } else {
+                            // bus change point: draw the "X"
+                            if (processALine(g, x-5, 5, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+                            if (processALine(g, x+5, 5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+                        }
+                        if (lastX+5 < x-5) {
+                            // previous bus change point: draw horizontal bars to connect
+                            if (processALine(g, lastX+5, 5, x-5, 5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+                            if (processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+                        }
+                        String valString = "XX";
+                        if (curDefined) valString = Long.toString(curYValue);
+                        if (g != null) {
+                            g.setFont(waveWindow.getFont());
+                            GlyphVector gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), valString);
+                            Rectangle2D glyphBounds = gv.getLogicalBounds();
+                            int textHei = (int)glyphBounds.getHeight();
+                            g.drawString(valString, x+2, hei/2+textHei/2);
+                        }
+                        if (forPs != null){
+                            Point2D [] pts = new Point2D[1];
+                            pts[0] = new Point2D.Double(x+2, hei/2);
+                            Poly poly = new Poly(pts);
+                            poly.setStyle(Poly.Type.TEXTLEFT);
+                            poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(8));
+                            poly.setString(valString);
+                            forPs.add(poly);
+                        }
+                    }
+                    curXValue = nextXValue;
+                    lastX = x;
+                    if (nextXValue == Double.MAX_VALUE) break;
+                }
+            } else {
 				// a simple digital signal
 				int lastx = vertAxisPos;
 				int lastState = 0;
-				//if (ds.getStateVector() == null) continue;
+                Signal<DigitalSample> ds = (Signal<DigitalSample>)ws.getSignal();
 				int numEvents = ds.getExactView().getNumEvents();
 				int lastLowy = 0, lastHighy = 0;
 				for(int i=0; i<numEvents; i++)
