@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00i: ******************************
 
+IMP: (6/29/10, AM) Remove Signal.isAnalog(), Signal.isBussed()
+
 IMP: (6/29/10, AM) Remove Signal.isDigital()
 
 BUG: (6/29/10, DN) Inconsistency in how export names are compared using canonicString (Bug #2826).

@@ -24,7 +24,18 @@
 package com.sun.electric.tool.simulation;
 
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
+import java.util.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Dimension;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
+import com.sun.electric.tool.user.waveform.*;
+import com.sun.electric.database.geometry.Poly;
+import java.awt.font.GlyphVector;
+import com.sun.electric.database.variable.TextDescriptor;
 
 /**
  * A Signal which is derived in a *pointwise* fashion from other
@@ -99,4 +110,8 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
 
     protected abstract RangeSample<SNew> getDerivedRange(RangeSample<SOld>[] sourceRanges);
 
+    public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
+                     List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
+        throw new RuntimeException("not implemented");
+    }
 }

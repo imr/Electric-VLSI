@@ -4979,7 +4979,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			i = j - 1;
 		}
 	}
-	static int getState(Signal<DigitalSample> dsig, int index) {
+	public static int getState(Signal<DigitalSample> dsig, int index) {
         DigitalSample ds = dsig.getExactView().getSample(index);
         if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
         if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;
@@ -4987,7 +4987,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
         throw new RuntimeException("ack!");
     }
-	static int getState(DigitalSample ds) {
+	public static int getState(DigitalSample ds) {
         if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
         if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;
         if (ds.isLogicX()) return Stimuli.LOGIC_X;

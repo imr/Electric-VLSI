@@ -881,7 +881,7 @@ public class Panel extends JPanel
 	 * @param value the simulation Y value.
 	 * @return the Y coordinate of that simulation value on the screen
 	 */
-	private int convertYDataToScreen(double value)
+	public int convertYDataToScreen(double value)
 	{
 		if (vertPanelLogarithmic)
 		{
@@ -908,7 +908,7 @@ public class Panel extends JPanel
 	 * @param y the Y coordinate on the screen.
 	 * @return the Y value in the simulation corresponding to that screen coordinate.
 	 */
-	private double convertYScreenToData(int y)
+	public double convertYScreenToData(int y)
 	{
 		if (vertPanelLogarithmic)
 		{
@@ -1453,19 +1453,12 @@ public class Panel extends JPanel
         }
     }
 
-	private List<WaveSelection> processSignals(Graphics g, Rectangle2D bounds, List<PolyBase> forPs)
-	{
-
+	private List<WaveSelection> processSignals(Graphics g, Rectangle2D bounds, List<PolyBase> forPs) {
 		List<WaveSelection> selectedObjects = null;
 		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
-		int hei = sz.height;
 		Signal xSignal = xAxisSignal;
 		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
-		double[] result = new double[3];
-
-		int linePointMode = waveWindow.getLinePointMode();
 		Collection<WaveSignal> sigs = waveSignals.values();
-
 		int sigIndex = 0;
         Color light = null;
 		for(WaveSignal ws : sigs)
@@ -1480,6 +1473,7 @@ public class Panel extends JPanel
 
 			if (forPs != null)
 			{
+                int hei = sz.height;
 				double yPos = hei / 2;
 				Poly.Type style = Poly.Type.TEXTRIGHT;
 				if (sigs.size() > 1)
@@ -1495,218 +1489,7 @@ public class Panel extends JPanel
 				forPs.add(poly);
 			}
 			sigIndex++;
-			if (ws.getSignal().isAnalog()) {
-				// draw analog trace
-				Signal as = ws.getSignal();
-                int s = 0;
-                /*
-				for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++)
-				{
-					boolean included = waveWindow.isSweepSignalIncluded(an, s);
-					if (!included)
-						continue;
-					Signal wave = as.getWaveform(s);
-                */
-                Signal wave = as;
-                if (wave.isEmpty()) continue;
-                    Signal.View<RangeSample<ScalarSample>> waveform =
-                        ((Signal<ScalarSample>)wave).getRasterView(convertXScreenToData(0),
-                                                                   convertXScreenToData(sz.width),
-                                                                   sz.width,
-                                                                   true);
-                    Signal xWaveform = null;
-                    if (xSignal != null)
-                        xWaveform = xSignal;
-					int lastX = 0, lastLY = 0, lastHY = 0;
-                    boolean first = true;
-					for(int i=0; i<waveform.getNumEvents(); i++)
-					{
-                        int x = convertXDataToScreen(waveform.getTime(i));
-                        RangeSample<ScalarSample> samp =
-                            (RangeSample<ScalarSample>)waveform.getSample(i);
-                        if (samp==null) continue;
-                        int lowY = convertYDataToScreen(samp.getMin().getValue());
-                        int highY = convertYDataToScreen(samp.getMax().getValue());
-						if (xWaveform != null)
-							x = convertXDataToScreen(((ScalarSample)xWaveform.getExactView().getSample(i)).getValue());
-
-						// draw lines if requested and line is on-screen
-						if (linePointMode <= 1) {
-	                        if (!first) {
-                        		// drawing has lines
-	                            if (lastLY != lastHY || lowY != highY) {
-                                    if (g!=null) g.setColor(light);
-	        						processALine(g, lastX, lastHY, lastX, lastLY, bounds, forPs, selectedObjects, ws, s);
-	        						processALine(g, x, highY, x, lowY, bounds, forPs, selectedObjects, ws, s);
-                                    if (g!=null) g.setColor(ws.getColor());
-	        						processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, s);
-	        						//if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
-	        						//if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
-	                            }
-	                            processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s);
-							}
-						} else {
-                            // show points if requested and point is on-screen
-							processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0);
-                        }
-						lastX = x;
-                        lastLY = lowY;
-                        lastHY = highY;
-                        first = false;
-					}
-				continue;
-
-            } else if (ws.getSignal().isBussed()) {
-				// draw digital traces
-				Signal<BusSample<DigitalSample>> ds = (Signal<BusSample<DigitalSample>>)ws.getSignal();
-                Signal.View<RangeSample<BusSample<DigitalSample> > > view =
-                    (Signal.View<RangeSample<BusSample<DigitalSample> > >)ds.getRasterView(convertXScreenToData(0),
-                                                                                         convertXScreenToData(sz.width),
-                                                                                         sz.width,
-                                                                                         true);
-                double nextXValue = Double.MAX_VALUE;
-                int bit = 0;
-                boolean curDefined = true;
-                long curYValue = 0;  /* wow, this is pretty lame that Electric can't draw buses with more than 64 bits */
-                int lastX = 0;
-                boolean undefined = false;
-                double curXValue = 0;
-                for(int i=0; i<view.getNumEvents(); i++) {
-                    double xValue = view.getTime(i);
-                    RangeSample<BusSample<DigitalSample> > rs = view.getSample(i);
-                    // XXX: shouldn't ignore the max!
-                    BusSample<DigitalSample> bs = rs.getMin();
-                    for(int j=0; j<bs.getWidth(); j++) {
-                        switch (WaveformWindow.getState(bs.getTrace(j)) & Stimuli.LOGIC) {
-                            case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<j);   undefined = false;   break;
-                            case Stimuli.LOGIC_HIGH: curYValue |= (1<<j);    undefined = false;   break;
-                            case Stimuli.LOGIC_X:
-                            case Stimuli.LOGIC_Z: undefined = true;    break;
-                        }
-                    }
-                    int x = convertXDataToScreen(xValue);
-                    if (x >= vertAxisPos) {
-                        if (x < vertAxisPos+5) {
-                            // on the left edge: just draw the "<"
-                            if (processALine(g, x, hei/2, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-                            if (processALine(g, x, hei/2, x+5, 5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-                        } else {
-                            // bus change point: draw the "X"
-                            if (processALine(g, x-5, 5, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-                            if (processALine(g, x+5, 5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-                        }
-                        if (lastX+5 < x-5) {
-                            // previous bus change point: draw horizontal bars to connect
-                            if (processALine(g, lastX+5, 5, x-5, 5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-                            if (processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-                        }
-                        String valString = "XX";
-                        if (curDefined) valString = Long.toString(curYValue);
-                        if (g != null) {
-                            g.setFont(waveWindow.getFont());
-                            GlyphVector gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), valString);
-                            Rectangle2D glyphBounds = gv.getLogicalBounds();
-                            int textHei = (int)glyphBounds.getHeight();
-                            g.drawString(valString, x+2, hei/2+textHei/2);
-                        }
-                        if (forPs != null){
-                            Point2D [] pts = new Point2D[1];
-                            pts[0] = new Point2D.Double(x+2, hei/2);
-                            Poly poly = new Poly(pts);
-                            poly.setStyle(Poly.Type.TEXTLEFT);
-                            poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(8));
-                            poly.setString(valString);
-                            forPs.add(poly);
-                        }
-                    }
-                    curXValue = nextXValue;
-                    lastX = x;
-                    if (nextXValue == Double.MAX_VALUE) break;
-                }
-            } else {
-				// a simple digital signal
-				int lastx = vertAxisPos;
-				int lastState = 0;
-                Signal<DigitalSample> ds = (Signal<DigitalSample>)ws.getSignal();
-				int numEvents = ds.getExactView().getNumEvents();
-				int lastLowy = 0, lastHighy = 0;
-				for(int i=0; i<numEvents; i++)
-				{
-					double xValue = ds.getExactView().getTime(i);
-					int x = convertXDataToScreen(xValue);
-					if (SimulationTool.isWaveformDisplayMultiState() && g != null)
-					{
-						if (waveWindow.getPrintingMode() == 2) g.setColor(Color.BLACK); else
-						{
-							switch (WaveformWindow.getState(ds, i) & Stimuli.STRENGTH)
-							{
-								case Stimuli.OFF_STRENGTH:  g.setColor(waveWindow.getOffStrengthColor());    break;
-								case Stimuli.NODE_STRENGTH: g.setColor(waveWindow.getNodeStrengthColor());   break;
-								case Stimuli.GATE_STRENGTH: g.setColor(waveWindow.getGateStrengthColor());   break;
-								case Stimuli.VDD_STRENGTH:  g.setColor(waveWindow.getPowerStrengthColor());  break;
-							}
-						}
-					}
-					int state = WaveformWindow.getState(ds, i) & Stimuli.LOGIC;
-					int lowy = 0, highy = 0;
-					switch (state)
-					{
-						case Stimuli.LOGIC_HIGH:
-							lowy = highy = 5;
-							break;
-						case Stimuli.LOGIC_LOW:
-							lowy = highy = hei-5;
-							break;
-						case Stimuli.LOGIC_X:
-							lowy = 5;   highy = hei-5;
-							break;
-						case Stimuli.LOGIC_Z:
-							lowy = (hei-10) / 3 + 5;   highy = hei - (hei-10) / 3 - 5;
-							break;
-					}
-					if (g != null && !SimulationTool.isWaveformDisplayMultiState()) g.setColor(Color.RED);
-					if (i != 0)
-					{
-						if (state != lastState)
-						{
-							if (processALine(g, x, Math.min(lowy, lastLowy), x, Math.max(lowy, lastLowy), bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-						}
-					}
-					if (g != null && !SimulationTool.isWaveformDisplayMultiState())
-					{
-						if (lastState == Stimuli.LOGIC_Z) g.setColor(Color.GREEN);
-					}
-					if (lastLowy == lastHighy)
-					{
-						if (processALine(g, lastx, lastLowy, x, lastLowy, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-					} else
-					{
-						if (processABox(g, lastx, lastLowy, x, lastHighy, bounds, forPs, selectedObjects, ws, false, 0)) return selectedObjects;
-					}
-					if (ds.extrapolateValues())
-					{
-						if (i >= numEvents-1)
-						{
-							if (g != null && !SimulationTool.isWaveformDisplayMultiState())
-							{
-								if (state == Stimuli.LOGIC_Z) g.setColor(Color.GREEN); else g.setColor(Color.RED);
-							}
-							int wid = sz.width;
-							if (lowy == highy)
-							{
-								if (processALine(g, x, lowy, wid-1, lowy, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-							} else
-							{
-								if (processABox(g, x, lowy, wid-1, highy, bounds, forPs, selectedObjects, ws, false, 0)) return selectedObjects;
-							}
-						}
-					}
-					lastx = x;
-					lastLowy = lowy;
-					lastHighy = highy;
-					lastState = state;
-				}
-			}
+            ws.getSignal().plot(this, g, ws, light, forPs, bounds, selectedObjects);
 		}
 		return selectedObjects;
 	}
@@ -1758,7 +1541,7 @@ public class Panel extends JPanel
 		return selectedObjects;
 	}
 
-	private boolean processABox(Graphics g, int lX, int lY, int hX, int hY, Rectangle2D bounds, List<PolyBase> forPs,
+	public boolean processABox(Graphics g, int lX, int lY, int hX, int hY, Rectangle2D bounds, List<PolyBase> forPs,
 		List<WaveSelection> result, WaveSignal ws, boolean controlPoint, double controlXValue)
 	{
 		// bounds is non-null if doing hit-testing
@@ -1795,7 +1578,7 @@ public class Panel extends JPanel
 		return false;
 	}
 
-	private boolean processALine(Graphics g, int fX, int fY, int tX, int tY, Rectangle2D bounds,
+	public boolean processALine(Graphics g, int fX, int fY, int tX, int tY, Rectangle2D bounds,
 		List<PolyBase> forPs, List<WaveSelection> result, WaveSignal ws, int sweepNum)
 	{
 		if (bounds != null)
@@ -2066,7 +1849,7 @@ public class Panel extends JPanel
 		return polys;
 	}
 
-	private static class WaveSelection
+	public static class WaveSelection
 	{
 		/** Selected signal in Waveform Window */		WaveSignal ws;
 		/** true if this is a control point */			boolean    controlPoint;

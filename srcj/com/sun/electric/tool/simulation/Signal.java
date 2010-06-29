@@ -23,6 +23,12 @@
  */
 package com.sun.electric.tool.simulation;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.user.waveform.*;
+import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
+import java.awt.Graphics;
+import java.awt.Color;
+import java.awt.geom.Rectangle2D;
+import com.sun.electric.database.geometry.PolyBase;
 import java.util.*;
 
 /**
@@ -141,8 +147,8 @@ public abstract class Signal<SS extends Sample> {
      */
     public abstract boolean isEmpty();
 
-    public boolean isAnalog() { return true; }
-    public boolean isBussed() { return false; }
+    public abstract void plot(Panel panel, Graphics g, WaveSignal ws, Color light, List<PolyBase> forPs,
+                              Rectangle2D bounds, List<WaveSelection> selectedObjects);
 
     public String getBaseNameFromExtractedNet(String signalFullName) {
         String delim = stimuli.getNetDelimiter();

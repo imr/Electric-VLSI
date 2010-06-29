@@ -23,8 +23,15 @@
  */
 package com.sun.electric.tool.simulation;
 import com.sun.electric.database.geometry.btree.unboxed.*;
+import com.sun.electric.tool.user.waveform.*;
 import java.io.*;
 import java.util.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Dimension;
+import java.awt.geom.Rectangle2D;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
 
 /**
  *  An implementation of Sample for scalar data.  Holds a
@@ -110,10 +117,71 @@ public class ScalarSample implements Sample, Comparable {
         }
     };
 
-    public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext) {
+    public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal> an,
+                                                           Stimuli sd, String signalName, String signalContext) {
         MutableSignal<ScalarSample> ret =
             new BTreeSignal<ScalarSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
-            public boolean isAnalog() { return true; }
+            public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
+                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
+                int linePointMode = panel.getWaveWindow().getLinePointMode();
+                Dimension sz = panel.getSize();
+                int hei = sz.height;
+
+                // draw analog trace
+                Signal as = this;
+                int s = 0;
+                //for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++)
+                //{
+                //boolean included = waveWindow.isSweepSignalIncluded(an, s);
+                //if (!included)
+                //continue;
+                //Signal wave = as.getWaveform(s);
+                Signal wave = as;
+                if (wave.isEmpty()) return;
+                Signal.View<RangeSample<ScalarSample>> waveform =
+                ((Signal<ScalarSample>)wave).getRasterView(panel.convertXScreenToData(0),
+                                                           panel.convertXScreenToData(sz.width),
+                                                           sz.width,
+                                                           true);
+                Signal xWaveform = null;
+                int lastX = 0, lastLY = 0, lastHY = 0;
+                boolean first = true;
+                for(int i=0; i<waveform.getNumEvents(); i++)
+                    {
+                        int x = panel.convertXDataToScreen(waveform.getTime(i));
+                        RangeSample<ScalarSample> samp =
+                            (RangeSample<ScalarSample>)waveform.getSample(i);
+                        if (samp==null) continue;
+                        int lowY = panel.convertYDataToScreen(samp.getMin().getValue());
+                        int highY = panel.convertYDataToScreen(samp.getMax().getValue());
+                        if (xWaveform != null)
+                            x = panel.convertXDataToScreen(((ScalarSample)xWaveform.getExactView().getSample(i)).getValue());
+
+                        // draw lines if requested and line is on-screen
+                        if (linePointMode <= 1) {
+                            if (!first) {
+                                // drawing has lines
+                                if (lastLY != lastHY || lowY != highY) {
+                                    if (g!=null) g.setColor(light);
+                                    panel.processALine(g, lastX, lastHY, lastX, lastLY, bounds, forPs, selectedObjects, ws, s);
+                                    panel.processALine(g, x, highY, x, lowY, bounds, forPs, selectedObjects, ws, s);
+                                    if (g!=null) g.setColor(ws.getColor());
+                                    panel.processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, s);
+                                    //if (panel.processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
+                                    //if (panel.processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
+                                }
+                                panel.processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s);
+                            }
+                        } else {
+                            // show points if requested and point is on-screen
+                            panel.processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0);
+                        }
+                        lastX = x;
+                        lastLY = lowY;
+                        lastHY = highY;
+                        first = false;
+                    }
+            }
         };
         return ret;
     }
@@ -127,6 +195,7 @@ public class ScalarSample implements Sample, Comparable {
                 as.addSample(time[i], new ScalarSample(values[i]));
 		return as;
 	}
+
 }
 
 

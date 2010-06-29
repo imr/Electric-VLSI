@@ -25,6 +25,17 @@ package com.sun.electric.tool.simulation;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import java.io.*;
 import java.util.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Dimension;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
+import com.sun.electric.tool.user.waveform.*;
+import com.sun.electric.database.geometry.Poly;
+import java.awt.font.GlyphVector;
+import com.sun.electric.database.variable.TextDescriptor;
 
 /**
  * A bus of many Signal<S> is represented as a single
@@ -85,12 +96,32 @@ public class BusSample<S extends Sample> implements Sample {
         return new BusSample(ret);
     }
 
+    /** create a MutableSignal<BusSample<SS>> */
+    public static <SS extends Sample>
+        Signal<BusSample<SS>> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext,
+                                           int width) {
+        /*
+        final Unboxed<BusSample<SS>> unboxer = new Unboxed<BusSample<SS>>() {
+            public int getSize() { return 1; }
+            public DigitalSample deserialize(byte[] buf, int ofs) { return fromByteRepresentation(buf[ofs]); }
+            public void serialize(DigitalSample v, byte[] buf, int ofs) { buf[ofs] = v.getByteRepresentation(); }
+            public int compare(byte[] buf1, int ofs1, byte[] buf2, int ofs2) { return (buf1[ofs1]&0xff)-(buf2[ofs2]&0xff); }
+        };
+        Signal<ScalarSample> ret =
+            new BTreeSignal<ScalarSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
+            public boolean isAnalog() { return true; }
+        };
+        an.addSignal(ret);
+        return ret;
+        */
+        throw new RuntimeException("not implemented");
+    }
+
     /** create a Signal<BusSample<S>> from preexisting Signal<S>'s */
     public static <SS extends Sample>
         Signal<BusSample<SS>> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext,
                                            final Signal<SS>[] subsignals) {
         return new Signal<BusSample<SS>>(an, sd, signalName, signalContext) {
-            public boolean isBussed() { return true; }
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
             public Signal.View<RangeSample<BusSample<SS>>>
                 getRasterView(final double t0, final double t1, final int numPixels, final boolean extrap) {
@@ -162,27 +193,78 @@ public class BusSample<S extends Sample> implements Sample {
                 for(Signal<SS> sig : subsignals) max = Math.max(max, sig.getMaxTime());
                 return max;
             }
+            public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
+                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
+                int linePointMode = panel.getWaveWindow().getLinePointMode();
+                Dimension sz = panel.getSize();
+                int hei = sz.height;
+				// draw digital traces
+				Signal<BusSample<DigitalSample>> ds = (Signal<BusSample<DigitalSample>>)ws.getSignal();
+                Signal.View<RangeSample<BusSample<DigitalSample> > > view =
+                    (Signal.View<RangeSample<BusSample<DigitalSample> > >)ds.getRasterView(panel.convertXScreenToData(0),
+                                                                                           panel.convertXScreenToData(sz.width),
+                                                                                           sz.width,
+                                                                                           true);
+                double nextXValue = Double.MAX_VALUE;
+                int bit = 0;
+                boolean curDefined = true;
+                long curYValue = 0;  // wow, this is pretty lame that Electric can't draw buses with more than 64 bits
+                int lastX = 0;
+                boolean undefined = false;
+                double curXValue = 0;
+                for(int i=0; i<view.getNumEvents(); i++) {
+                    double xValue = view.getTime(i);
+                    RangeSample<BusSample<DigitalSample> > rs = view.getSample(i);
+                    // XXX: shouldn't ignore the max!
+                    BusSample<DigitalSample> bs = rs.getMin();
+                    for(int j=0; j<bs.getWidth(); j++) {
+                        switch (WaveformWindow.getState(bs.getTrace(j)) & Stimuli.LOGIC) {
+                            case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<j);   undefined = false;   break;
+                            case Stimuli.LOGIC_HIGH: curYValue |= (1<<j);    undefined = false;   break;
+                            case Stimuli.LOGIC_X:
+                            case Stimuli.LOGIC_Z: undefined = true;    break;
+                        }
+                    }
+                    int x = panel.convertXDataToScreen(xValue);
+                    if (x >= panel.getVertAxisPos()) {
+                        if (x < panel.getVertAxisPos()+5) {
+                            // on the left edge: just draw the "<"
+                            if (panel.processALine(g, x, hei/2, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return;
+                            if (panel.processALine(g, x, hei/2, x+5, 5, bounds, forPs, selectedObjects, ws, -1)) return;
+                        } else {
+                            // bus change point: draw the "X"
+                            if (panel.processALine(g, x-5, 5, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return;
+                            if (panel.processALine(g, x+5, 5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return;
+                        }
+                        if (lastX+5 < x-5) {
+                            // previous bus change point: draw horizontal bars to connect
+                            if (panel.processALine(g, lastX+5, 5, x-5, 5, bounds, forPs, selectedObjects, ws, -1)) return;
+                            if (panel.processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return;
+                        }
+                        String valString = "XX";
+                        if (curDefined) valString = Long.toString(curYValue);
+                        if (g != null) {
+                            g.setFont(panel.getWaveWindow().getFont());
+                            GlyphVector gv = panel.getWaveWindow().getFont().createGlyphVector(panel.getWaveWindow().getFontRenderContext(), valString);
+                            Rectangle2D glyphBounds = gv.getLogicalBounds();
+                            int textHei = (int)glyphBounds.getHeight();
+                            g.drawString(valString, x+2, hei/2+textHei/2);
+                        }
+                        if (forPs != null){
+                            Point2D [] pts = new Point2D[1];
+                            pts[0] = new Point2D.Double(x+2, hei/2);
+                            Poly poly = new Poly(pts);
+                            poly.setStyle(Poly.Type.TEXTLEFT);
+                            poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(8));
+                            poly.setString(valString);
+                            forPs.add(poly);
+                        }
+                    }
+                    curXValue = nextXValue;
+                    lastX = x;
+                    if (nextXValue == Double.MAX_VALUE) break;
+                }
+            }
         };
-    }
-    
-    /** create a MutableSignal<BusSample<SS>> */
-    public static <SS extends Sample>
-        Signal<BusSample<SS>> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext,
-                                           int width) {
-        /*
-        final Unboxed<BusSample<SS>> unboxer = new Unboxed<BusSample<SS>>() {
-            public int getSize() { return 1; }
-            public DigitalSample deserialize(byte[] buf, int ofs) { return fromByteRepresentation(buf[ofs]); }
-            public void serialize(DigitalSample v, byte[] buf, int ofs) { buf[ofs] = v.getByteRepresentation(); }
-            public int compare(byte[] buf1, int ofs1, byte[] buf2, int ofs2) { return (buf1[ofs1]&0xff)-(buf2[ofs2]&0xff); }
-        };
-        Signal<ScalarSample> ret =
-            new BTreeSignal<ScalarSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
-            public boolean isAnalog() { return true; }
-        };
-        an.addSignal(ret);
-        return ret;
-        */
-        throw new RuntimeException("not implemented");
     }
 }

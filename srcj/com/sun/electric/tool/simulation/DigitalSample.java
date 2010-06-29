@@ -25,6 +25,13 @@ package com.sun.electric.tool.simulation;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import java.io.*;
 import java.util.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Dimension;
+import java.awt.geom.Rectangle2D;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
+import com.sun.electric.tool.user.waveform.*;
 
 /**
  *  An implementation of Sample for digital data; supports HIGH/LOW
@@ -223,8 +230,98 @@ public class DigitalSample implements Sample {
 
     public static MutableSignal<DigitalSample> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext) {
         return new BTreeSignal<DigitalSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
-            public boolean isAnalog() { return false; }
+
+            public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
+                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
+                int linePointMode = panel.getWaveWindow().getLinePointMode();
+                Dimension sz = panel.getSize();
+                int hei = sz.height;
+
+                // draw analog trace
+                Signal as = this;
+				// a simple digital signal
+				int lastx = panel.getVertAxisPos();
+				int lastState = 0;
+                Signal<DigitalSample> ds = (Signal<DigitalSample>)ws.getSignal();
+				int numEvents = ds.getExactView().getNumEvents();
+				int lastLowy = 0, lastHighy = 0;
+				for(int i=0; i<numEvents; i++)
+				{
+					double xValue = ds.getExactView().getTime(i);
+					int x = panel.convertXDataToScreen(xValue);
+					if (SimulationTool.isWaveformDisplayMultiState() && g != null)
+					{
+						if (panel.getWaveWindow().getPrintingMode() == 2) g.setColor(Color.BLACK); else
+						{
+							switch (WaveformWindow.getState(ds, i) & Stimuli.STRENGTH)
+							{
+								case Stimuli.OFF_STRENGTH:  g.setColor(panel.getWaveWindow().getOffStrengthColor());    break;
+								case Stimuli.NODE_STRENGTH: g.setColor(panel.getWaveWindow().getNodeStrengthColor());   break;
+								case Stimuli.GATE_STRENGTH: g.setColor(panel.getWaveWindow().getGateStrengthColor());   break;
+								case Stimuli.VDD_STRENGTH:  g.setColor(panel.getWaveWindow().getPowerStrengthColor());  break;
+							}
+						}
+					}
+					int state = WaveformWindow.getState(ds, i) & Stimuli.LOGIC;
+					int lowy = 0, highy = 0;
+					switch (state)
+					{
+						case Stimuli.LOGIC_HIGH:
+							lowy = highy = 5;
+							break;
+						case Stimuli.LOGIC_LOW:
+							lowy = highy = hei-5;
+							break;
+						case Stimuli.LOGIC_X:
+							lowy = 5;   highy = hei-5;
+							break;
+						case Stimuli.LOGIC_Z:
+							lowy = (hei-10) / 3 + 5;   highy = hei - (hei-10) / 3 - 5;
+							break;
+					}
+					if (g != null && !SimulationTool.isWaveformDisplayMultiState()) g.setColor(Color.RED);
+					if (i != 0)
+					{
+						if (state != lastState)
+						{
+							if (panel.processALine(g, x, Math.min(lowy, lastLowy), x, Math.max(lowy, lastLowy), bounds, forPs, selectedObjects, ws, -1)) return;
+						}
+					}
+					if (g != null && !SimulationTool.isWaveformDisplayMultiState())
+					{
+						if (lastState == Stimuli.LOGIC_Z) g.setColor(Color.GREEN);
+					}
+					if (lastLowy == lastHighy)
+					{
+						if (panel.processALine(g, lastx, lastLowy, x, lastLowy, bounds, forPs, selectedObjects, ws, -1)) return;
+					} else
+					{
+						if (panel.processABox(g, lastx, lastLowy, x, lastHighy, bounds, forPs, selectedObjects, ws, false, 0)) return;
+					}
+					if (ds.extrapolateValues())
+					{
+						if (i >= numEvents-1)
+						{
+							if (g != null && !SimulationTool.isWaveformDisplayMultiState())
+							{
+								if (state == Stimuli.LOGIC_Z) g.setColor(Color.GREEN); else g.setColor(Color.RED);
+							}
+							int wid = sz.width;
+							if (lowy == highy)
+							{
+								if (panel.processALine(g, x, lowy, wid-1, lowy, bounds, forPs, selectedObjects, ws, -1)) return;
+							} else
+							{
+								if (panel.processABox(g, x, lowy, wid-1, highy, bounds, forPs, selectedObjects, ws, false, 0)) return;
+							}
+						}
+					}
+					lastx = x;
+					lastLowy = lowy;
+					lastHighy = highy;
+					lastState = state;
+				}
+            }
         };
     }
-
 }
