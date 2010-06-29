@@ -2,7 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 9.00i: ******************************
+************************* Version 9.00j: ******************************
 
 IMP: (6/29/10, AM) Remove Signal.isAnalog(), Signal.isBussed()
 
@@ -42,6 +42,8 @@ IMP: (6/28/10, AM) Remove legacy "bussing" kludge.
 IMP: (6/28/10, AM) Have VerilogOut use BusSample.
 
 IMP: (6/28/10, AM) Finish implementing BusSample.createSignal().
+
+************************* Version 9.00i: ******************************
 
 BUG: (6/27/10, AM) Waveform window exception at different places (Bug #2824)
 FIX: Deal in a more robust manner with Signals having fewer than two samples.
