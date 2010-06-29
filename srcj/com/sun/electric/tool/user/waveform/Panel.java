@@ -1502,7 +1502,7 @@ public class Panel extends JPanel
 				forPs.add(poly);
 			}
 			sigIndex++;
-			if (!(ws.getSignal() .isDigital())) {
+			if (ws.getSignal().isAnalog()) {
 				// draw analog trace
 				Signal as = ws.getSignal();
                 int s = 0;

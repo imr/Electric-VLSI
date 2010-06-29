@@ -4603,7 +4603,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 
 				// digital signals are always added in new panels
-				if (sSig .isDigital()) panel = null;
+				if (!sSig.isAnalog()) panel = null;
 				if (panel != null)
 				{
 					// overlay this signal onto an existing panel

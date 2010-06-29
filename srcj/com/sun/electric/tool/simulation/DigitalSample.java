@@ -223,7 +223,7 @@ public class DigitalSample implements Sample {
 
     public static MutableSignal<DigitalSample> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext) {
         return new BTreeSignal<DigitalSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
-            public boolean isDigital() { return true; }
+            public boolean isAnalog() { return false; }
         };
     }
 

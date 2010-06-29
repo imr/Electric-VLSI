@@ -113,7 +113,6 @@ public class ScalarSample implements Sample, Comparable {
     public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext) {
         MutableSignal<ScalarSample> ret =
             new BTreeSignal<ScalarSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
-            public boolean isDigital() { return false; }
             public boolean isAnalog() { return true; }
         };
         return ret;

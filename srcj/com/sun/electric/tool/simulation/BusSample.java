@@ -90,7 +90,6 @@ public class BusSample<S extends Sample> implements Sample {
         Signal<BusSample<SS>> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext,
                                            final Signal<SS>[] subsignals) {
         return new Signal<BusSample<SS>>(an, sd, signalName, signalContext) {
-            public boolean isDigital() { return true; }
             public boolean isBussed() { return true; }
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
             public Signal.View<RangeSample<BusSample<SS>>>
@@ -179,7 +178,6 @@ public class BusSample<S extends Sample> implements Sample {
         };
         Signal<ScalarSample> ret =
             new BTreeSignal<ScalarSample>(an, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
-            public boolean isDigital() { return false; }
             public boolean isAnalog() { return true; }
         };
         an.addSignal(ret);

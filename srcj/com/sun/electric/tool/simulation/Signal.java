@@ -141,8 +141,7 @@ public abstract class Signal<SS extends Sample> {
      */
     public abstract boolean isEmpty();
 
-    public boolean isDigital() { return false; }
-    public boolean isAnalog() { return !isDigital(); }
+    public boolean isAnalog() { return true; }
     public boolean isBussed() { return false; }
 
     public String getBaseNameFromExtractedNet(String signalFullName) {
