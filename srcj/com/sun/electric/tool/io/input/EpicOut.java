@@ -1149,10 +1149,10 @@ public static class EpicAnalysis extends Analysis {
 	 * Returns null if none can be found.
 	 */
     @Override
-        public Signal<ScalarSample> findSignalForNetworkQuickly(String netName) {
-        Signal<ScalarSample> old = super.findSignalForNetworkQuickly(netName);
+        public Signal<ScalarSample> get(String netName) {
+        Signal<ScalarSample> old = super.get(netName);
         
-        String lookupName = TextUtils.canonicString(netName);
+        String lookupName = netName;
         int index = searchName(lookupName);
         if (index < 0) {
             assert old == null;

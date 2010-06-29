@@ -2824,7 +2824,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 				{
 					Analysis an = it.next();
-					Signal sSig = an.findSignalForNetworkQuickly(nodeName);
+					Signal sSig = an.get(TextUtils.canonicString(nodeName));
 					if (sSig != null)
 					{
 						found.add(sSig);
@@ -2851,25 +2851,25 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(Iterator<Analysis> aIt = sd.getAnalyses(); aIt.hasNext(); )
 			{
 				Analysis an = aIt.next();
-				Signal sSig = an.findSignalForNetworkQuickly(netName);
+				Signal sSig = an.get(TextUtils.canonicString(netName));
 				if (sSig == null)
 				{
 					// try prepending the top-level cell name to the signal name
 					if (topContext == null) topContext = net.getParent();
 					String nameWithCell = topContext.getName() + "." + netName;
-					sSig = an.findSignalForNetworkQuickly(nameWithCell);
+					sSig = an.get(TextUtils.canonicString(nameWithCell));
 				}
 				if (sSig == null)
 				{
 					// when cross-probing extracted layout, hierarchy delimiter is '/x' instead of '.'
 					String temp = getSpiceNetName(context, net, true, false);
-					sSig = an.findSignalForNetworkQuickly(temp);
+					sSig = an.get(TextUtils.canonicString(temp));
                 }
                 if (sSig == null)
                 {
                     // when cross-probing extracted layout, hierarchy delimiter is '/' instead of '.'
                     String temp = getSpiceNetName(context, net, false, true);
-                    sSig = an.findSignalForNetworkQuickly(temp);
+                    sSig = an.get(TextUtils.canonicString(temp));
                 }
                 if (sSig == null)
                 {
@@ -2877,7 +2877,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
                     if (topContext == null) topContext = net.getParent();
                     String temp = getSpiceNetName(context, net, false, true);
                     String nameWithCell = topContext.getName() + "." + temp;
-                    sSig = an.findSignalForNetworkQuickly(nameWithCell);
+                    sSig = an.get(TextUtils.canonicString(nameWithCell));
                 }
 
                 if (sSig == null)
@@ -2902,7 +2902,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						{
 							String otherName = getSpiceNetName(proxy.getContext(), proxy.getNet());
 							System.out.println("Mapped "+netName+" to "+otherName);
-							sSig = an.findSignalForNetworkQuickly(otherName);
+							sSig = an.get(TextUtils.canonicString(otherName));
 						}
 					}
 				}

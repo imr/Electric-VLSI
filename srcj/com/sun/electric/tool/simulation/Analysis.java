@@ -82,20 +82,7 @@ public class Analysis<S extends Signal> {
         return signalGroup.get(sigName);
     }
 
-	/**
-	 * Method to quickly return the signal that corresponds to a given Network name.
-	 * Not all names may be found (because of name mangling, which this method does not handle).
-	 * But the lookup is faster than "findSignalForNetwork".
-	 * @param netName the Network name to find.
-	 * @return the Signal that corresponds with the Network.
-	 * Returns null if none can be found.
-	 */
-	public S findSignalForNetworkQuickly(String netName)
-	{
-		String lookupName = TextUtils.canonicString(netName);
-		S sSig = signalNames.get(lookupName);
-		return sSig;
-	}
+	public S get(String netName) { return signalNames.get(netName); }
 
 	/**
 	 * Method to return the signal that corresponds to a given Network name.
