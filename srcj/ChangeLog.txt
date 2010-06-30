@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG (6/30/10, FS) Add Placement Tools to Test Menu (Bug 2831) 
+FIX: Added, each tool has the following paramters (#threads 2, runtime 10sec) 
+
 BUG: (6/30/10, GVG) Test -> TestPlacement -> Placement1 doesn't work (Bug #2832)
 FIX: Don't assume libraries have *.jelib extension. Fixed regression as well.
 
