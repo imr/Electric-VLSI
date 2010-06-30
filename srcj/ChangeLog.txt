@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (6/30/10, GVG) Test -> TestPlacement -> Placement1 doesn't work (Bug #2832)
+FIX: Don't assume libraries have *.jelib extension. Fixed regression as well.
+
 BUG: (6/30/10, DN) I am not able to perform error-free Node Extraction (Bug #2829).
 FIX: I replaced tech.getFactoryScaledResolution() by tech.getFactoryResolution().
   This fix allows to recognize transistors by there are still some DRC errors.
