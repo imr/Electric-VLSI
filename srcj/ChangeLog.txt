@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (6/30/10, DN) I am not able to perform error-free Node Extraction (Bug #2829).
+FIX: I replaced tech.getFactoryScaledResolution() by tech.getFactoryResolution().
+  This fix allows to recognize transistors by there are still some DRC errors.
+  This fix doen't solve the entire issue but I hope that this fix is reasonable.
+
 IMP: (6/29/10, AM) Remove Signal.isAnalog(), Signal.isBussed()
 
 IMP: (6/29/10, AM) Remove Signal.isDigital()

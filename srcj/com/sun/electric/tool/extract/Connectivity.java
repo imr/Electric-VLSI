@@ -161,6 +161,7 @@ public class Connectivity
 		private int activeHandling;
 		private String expansionPattern;
 		private boolean gridAlignExtraction;
+        private final double scaledResolution;
 		private boolean approximateCuts;
 		private boolean flattenPcells;
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchRectangles;
@@ -178,6 +179,10 @@ public class Connectivity
 			activeHandling = Extract.getActiveHandling();
 			expansionPattern = Extract.getCellExpandPattern().trim();
 			gridAlignExtraction = Extract.isGridAlignExtraction();
+            Technology tech = cell.getTechnology();
+            scaledResolution = tech.getFactoryResolution();
+//            scaledResolution = tech.getFactoryScaledResolution();
+//            scaledResolution = new DRC.DRCPreferences(false).getResolution(tech);
 			approximateCuts = Extract.isApproximateCuts();
 			flattenPcells = Extract.isFlattenPcells();
 			startJob();
@@ -207,7 +212,7 @@ public class Connectivity
 			Job.getUserInterface().startProgressDialog("Extracting", null);
 
 			Connectivity c = new Connectivity(cell, this, errorLogger, smallestPolygonSize, activeHandling,
-				gridAlignExtraction, approximateCuts, recursive, pat);
+				gridAlignExtraction, scaledResolution, approximateCuts, recursive, pat);
 
 			if (recursive) c.totalCells = c.countExtracted(cell, pat, flattenPcells);
 			c.cellsExtracted = 0;
@@ -270,7 +275,7 @@ public class Connectivity
      * @param pat ?
      */
 	private Connectivity(Cell cell, Job j, ErrorLogger eLog, double smallestPolygonSize, int activeHandling,
-		boolean gridAlignExtraction, boolean approximateCuts, boolean recursive, Pattern pat)
+		boolean gridAlignExtraction, double scaledResolution, boolean approximateCuts, boolean recursive, Pattern pat)
 	{
 	    this.approximateCuts = approximateCuts;
 		this.recursive = recursive;
@@ -282,7 +287,6 @@ public class Connectivity
 		job = j;
 
         this.gridAlignExtraction = gridAlignExtraction;
-	    double scaledResolution = tech.getFactoryScaledResolution();
 	    alignment = new Dimension2D.Double(scaledResolution, scaledResolution);
 
         diffNode = pDiffNode = nDiffNode = null;
@@ -3551,8 +3555,8 @@ public class Connectivity
 							continue;
 						}
 						SizeOffset so = transistor.getProtoSizeOffset();
-						double width = wid + scaleUp(so.getLowXOffset() + so.getHighXOffset());
-						double height = hei + scaleUp(so.getLowYOffset() + so.getHighYOffset());
+                        double width = wid + scaleUp(so.getLowXOffset() + so.getHighXOffset());
+                        double height = hei + scaleUp(so.getLowYOffset() + so.getHighYOffset());
 
 						// make sure all layers fit
 						EPoint ctr = new EPoint(cX/SCALEFACTOR, cY/SCALEFACTOR);
