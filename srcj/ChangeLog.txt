@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (7/1/10, SMR) Interactive sizing misaligning coordinates (Bug #2827).
+FIX: Fixed SizeListener to avoid transforming into the space of the node.
+
 BUG (6/30/10, FS) Force-Directed-1 do not terminate (Bug 2800)
 FIX: Kill barrier after termination
 

@@ -418,15 +418,15 @@ public class SizeListener
 
 				// setup outline of node with standard offset
 				Poly nodePoly = ni.getBaseShape();
-				AffineTransform transIn = ni.transformIn();
-				Point2D xPt = transIn.transform(pt, null);
-				nodePoly.transform(transIn);
+//				AffineTransform transIn = ni.transformIn();
+//				pt = transIn.transform(pt, null);
+//				nodePoly.transform(transIn);
 
 				// determine the closest point on the outline
 				Point2D [] points = nodePoly.getPoints();
 				for(int i=0; i<points.length; i++)
 				{
-					double dist = xPt.distance(points[i]);
+					double dist = pt.distance(points[i]);
 					if (dist < closestDist)
 					{
 						closestDist = dist;
@@ -440,7 +440,7 @@ public class SizeListener
 					if (lastI < 0) lastI = points.length-1;
 					Point2D edge = new Point2D.Double((points[i].getX() + points[lastI].getX())/2,
 						(points[i].getY() + points[lastI].getY())/2);
-					dist = xPt.distance(edge);
+					dist = pt.distance(edge);
 					if (dist < closestDist)
 					{
 						closestDist = dist;
@@ -624,7 +624,6 @@ public class SizeListener
 		double growthRatioX = 1, growthRatioY = 1;
 		Point2D closest = (closestCorner != null ? closestCorner : closestEdge);
 		Point2D farthest = (farthestCorner != null ? farthestCorner : farthestEdge);
-
 		// grid-align the growth amount
 		long x = Math.round((pt.getX()-closest.getX()) / User.getAlignmentToGrid().getWidth());
         double newX = x * User.getAlignmentToGrid().getWidth() + closest.getX();
@@ -632,8 +631,8 @@ public class SizeListener
         double newY = y * User.getAlignmentToGrid().getHeight() + closest.getY();
         pt.setLocation(newX, newY);
 
-		AffineTransform transIn = selNode.transformIn();
-		transIn.transform(pt, pt);
+//		AffineTransform transIn = selNode.transformIn();
+//		transIn.transform(pt, pt);
 
 		// if SHIFT and CONTROL is held, use center-based sizing
 		boolean centerBased = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
@@ -724,7 +723,7 @@ public class SizeListener
 				double newClosestY = (closestY == farthestY ? closestY : farthestY + newSize.getY()*signY*(closestY > farthestY ? 1 : -1));
 
 				newCenter.setLocation((farthestX + newClosestX) / 2, (farthestY + newClosestY) / 2);
-				selNode.transformOut().transform(newCenter, newCenter);
+//				selNode.transformOut().transform(newCenter, newCenter);
 			} else
 			{
 				newCenter.setLocation(desiredNI.getAnchorCenterX(), desiredNI.getAnchorCenterY());
