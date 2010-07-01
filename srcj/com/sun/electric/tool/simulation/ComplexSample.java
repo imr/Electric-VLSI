@@ -24,6 +24,7 @@
 package com.sun.electric.tool.simulation;
 import java.io.*;
 import java.util.*;
+
 import com.sun.electric.database.geometry.btree.*;
 import com.sun.electric.database.geometry.btree.unboxed.*;
 import java.awt.Color;
@@ -120,11 +121,20 @@ public class ComplexSample extends ScalarSample implements Sample {
     };
 
     public static Signal<ComplexSample> createComplexSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext) {
+    	/**
+    	 *  Adam says: This class is an _anonymous_ inner class for a reason.  Although XXXSample.createSignal() returns a
+    	 *  Signal<XXXSample>, it is important that other code does not assume this is the only way such signals might
+    	 *  arise.  Phrased differently, if there were an inner class XXXSample.SignalOfXXX extends Signal<XXXSample>,
+    	 *  you might see other code write "if (x instanceof XXXSample.SignalOfXXX) { ... }" -- and we don't want people
+    	 *  to do this.  So, by making the class anonymous, we intentionally deprive other code of the ability to do these
+    	 *  instanceof checks.
+    	 */
         Signal<ComplexSample> ret =
             new BTreeSignal<ComplexSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
-                throw new RuntimeException("not implemented");
+            	ScalarSample.plotSig(this, panel, g, ws, light, forPs, bounds, selectedObjects);
+//                throw new RuntimeException("not implemented");
             }
         };
         return ret;

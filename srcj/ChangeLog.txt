@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (7/1/10, SMR) AC waveform signals crash (Bug #2835).
+FIX: Added Adam's patch.
+
 BUG (7/1/10, FS)  Placement regression failed due to missing static method
 FIX: add static method from history
 
