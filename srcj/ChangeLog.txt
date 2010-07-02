@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (7/2/10, SMR) Explorer-tree context command to create a new cell should
+     choose the proper library as the default (Bug #2836).
+FIX: Improved NewCell to take a default library.
+
 BUG: (7/1/10, SMR) AC waveform signals crash (Bug #2835).
 FIX: Added Adam's patch.
 

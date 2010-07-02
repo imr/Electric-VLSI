@@ -76,7 +76,7 @@ public class NewCell extends EDialog
 	}
 
 	/** Creates new form New Cell */
-	public NewCell(Frame parent)
+	public NewCell(Frame parent, Library curLib)
 	{
 		super(parent, true);
 		initComponents();
@@ -115,7 +115,7 @@ public class NewCell extends EDialog
 			}
 		});
 
-		// Choosen appropiate technology
+		// Choose appropriate technology
 		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext();)
 		{
 			Technology tech = it.next();
@@ -137,7 +137,8 @@ public class NewCell extends EDialog
 		{
 			library.addItem(lib.getName());
 		}
-		int curIndex = libList.indexOf(Library.getCurrent());
+		if (curLib == null) curLib = Library.getCurrent();
+		int curIndex = libList.indexOf(curLib);
 		if (curIndex >= 0) library.setSelectedIndex(curIndex);
 
 		newWindow.setSelected(makeWindow);

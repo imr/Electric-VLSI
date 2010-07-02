@@ -251,7 +251,7 @@ public class CellMenu {
 	 */
 	private static void newCellCommand()
 	{
-		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame());
+		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), null);
 		dialog.setVisible(true);
 	}
 

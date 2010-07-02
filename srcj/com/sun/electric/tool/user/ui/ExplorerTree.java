@@ -2540,8 +2540,16 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
 		private void newCellAction()
 		{
+			// figure out which library is clicked-on
+			Object obj = getCurrentlySelectedObject(0);
+			Library lib = null;
+			if (obj instanceof Library) lib = (Library)obj; else
+			if (obj instanceof Cell.CellGroup) lib = ((Cell.CellGroup)obj).getCells().next().getLibrary(); else
+			if (obj instanceof Cell) lib = ((Cell)obj).getLibrary(); else
+	        if (obj instanceof ExplorerTreeModel.CellAndCount) lib = ((ExplorerTreeModel.CellAndCount)obj).getCell().getLibrary();
+
 			JFrame jf = TopLevel.getCurrentJFrame();
-			NewCell dialog = new NewCell(jf);
+			NewCell dialog = new NewCell(jf, lib);
 			dialog.setVisible(true);
 		}
 
