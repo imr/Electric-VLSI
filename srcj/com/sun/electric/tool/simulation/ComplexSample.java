@@ -49,7 +49,8 @@ public class ComplexSample extends ScalarSample implements Sample {
     private double imag;
 
     public ComplexSample(double real, double imag) {
-        super(Math.atan2(imag, real));
+        super(Math.hypot(real, imag));
+//        super(Math.atan2(imag, real));
         this.real = real;
         this.imag = imag;
     }

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (7/5/10, SMR) Waveform window draws AC stimuli wrong (Bug #2839).
+FIX: Changed ComplexSample constructor to compute hypot() instead of atan2().
+
 BUG: (7/2/10, GVG) Placement regression failed due to change in test library? (Bug #2837)
 FIX: Rolled placementTests.jelib to original revision (r1576). Revision r1720 was
 modified inadvertent and gives different results.
