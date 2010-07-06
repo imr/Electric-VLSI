@@ -776,7 +776,7 @@ public class Panel extends JPanel
             Signal.View<RangeSample<Sample>> view =
 //                sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), 2, false);
             	sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), (int)getSize().getWidth(), false);
-System.out.println("VIEW FROM TIME "+sSig.getMinTime()+" TO "+sSig.getMaxTime()+" HAS "+view.getNumEvents()+" EVENTS");
+//System.out.println("VIEW FROM TIME "+sSig.getMinTime()+" TO "+sSig.getMaxTime()+" HAS "+view.getNumEvents()+" EVENTS");
             for(int i=0; i<view.getNumEvents(); i++) {
                 RangeSample<?> rs = view.getSample(i);
                 if (rs==null) continue;
