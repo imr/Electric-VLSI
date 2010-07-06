@@ -762,7 +762,7 @@ public class HSpiceOut extends Input<Stimuli>
 					} else {
                         MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[(k + numnoi) % numSignals];
                         double val = getHSpiceFloat(false);
-if (signalNames[k].equals("1")) System.out.println("SWEEP="+sweepName+" TIME="+time+" VALUE="+val);
+//if (signalNames[k].equals("1")) System.out.println("SWEEP="+sweepName+" TIME="+time+" VALUE="+val);
 
                         if (signal.getSample(time)==null)
                             signal.addSample(time, new ScalarSample(val));
