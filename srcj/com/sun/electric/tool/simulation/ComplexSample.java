@@ -121,7 +121,7 @@ public class ComplexSample extends ScalarSample implements Sample {
         }
     };
 
-    public static Signal<ComplexSample> createComplexSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext) {
+    public static Signal<ComplexSample> createComplexSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext) {
     	/**
     	 *  Adam says: This class is an _anonymous_ inner class for a reason.  Although XXXSample.createSignal() returns a
     	 *  Signal<XXXSample>, it is important that other code does not assume this is the only way such signals might

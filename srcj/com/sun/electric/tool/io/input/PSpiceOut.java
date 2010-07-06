@@ -78,7 +78,7 @@ public class PSpiceOut extends Input<Stimuli>
 		throws IOException
 	{
 		boolean first = true;
-		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, "SIGNALS", false);
+		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "SIGNALS", false);
 		sd.setCell(cell);
 		List<String> signalNames = new ArrayList<String>();
 		List<Double> [] values = null;

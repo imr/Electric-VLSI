@@ -29,7 +29,7 @@ import java.util.HashMap;
  */
 public abstract class MutableSignal<SS extends Sample> extends Signal<SS> {
 
-    public MutableSignal(HashMap<String,Signal> analysis, Stimuli sd, String signalName, String signalContext) {
+    public MutableSignal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext) {
         super(analysis, sd, signalName, signalContext);
     }
 

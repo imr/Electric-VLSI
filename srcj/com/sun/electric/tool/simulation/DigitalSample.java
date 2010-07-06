@@ -228,17 +228,17 @@ public class DigitalSample implements Sample {
         return getSample(value, strength);
     }
 
-    public static MutableSignal<DigitalSample> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext) {
+    public static MutableSignal<DigitalSample> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext) {
         return new BTreeSignal<DigitalSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
 
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
-                int linePointMode = panel.getWaveWindow().getLinePointMode();
+//                int linePointMode = panel.getWaveWindow().getLinePointMode();
                 Dimension sz = panel.getSize();
                 int hei = sz.height;
 
                 // draw analog trace
-                Signal as = this;
+//                Signal as = this;
 				// a simple digital signal
 				int lastx = panel.getVertAxisPos();
 				int lastState = 0;

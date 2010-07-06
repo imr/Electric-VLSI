@@ -86,7 +86,6 @@ public final class SimulationData {
             FileType.SPICE.getGroupPath(),
             TextUtils.getFilePath(cell.getLibrary().getLibFile())
         };
-        File file = null;
         for (String path : paths)
             for (String ext : known_extensions)
                 if (new File(path, cell.getName()+'.'+ext).exists()) {
@@ -126,7 +125,6 @@ public final class SimulationData {
 	 * Class to read simulation output in a new thread.
 	 */
 	private static class ReadSimulationOutput extends Thread {
-		private FileType type;
 		private Input<Stimuli> is;
 		private URL fileURL;
 		private Cell cell;
@@ -136,7 +134,6 @@ public final class SimulationData {
         private final UserInterfaceExec userInterface;
 
 		private ReadSimulationOutput(Cell cell, URL fileURL, WaveformWindow ww) {
-			this.type = type;
 			this.fileURL = fileURL;
 			this.cell = cell;
 			this.ww = ww;

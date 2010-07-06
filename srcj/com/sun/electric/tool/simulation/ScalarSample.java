@@ -41,7 +41,7 @@ import java.util.List;
  *  An implementation of Sample for scalar data.  Holds a
  *  double internally.
  */
-public class ScalarSample implements Sample, Comparable {
+public class ScalarSample implements Sample, Comparable<Object> {
 
     private double value;
 
@@ -121,16 +121,16 @@ public class ScalarSample implements Sample, Comparable {
         }
     };
 
-    public static void plotSig(MutableSignal sig, Panel panel, Graphics g, WaveSignal ws, Color light,
+    public static void plotSig(MutableSignal<?> sig, Panel panel, Graphics g, WaveSignal ws, Color light,
         List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects)
     {
 		int linePointMode = panel.getWaveWindow().getLinePointMode();
 		Dimension sz = panel.getSize();
 
 		// draw analog trace
-		Signal<ScalarSample> as = sig;
+		Signal<?> as = sig;
 		int s = 0;
-		Signal<ScalarSample> wave = as;
+		Signal<?> wave = as;
 		if (wave.isEmpty()) return;
 		Signal.View<RangeSample<ScalarSample>> waveform = ((Signal<ScalarSample>)wave).getRasterView(
 			panel.convertXScreenToData(0), panel.convertXScreenToData(sz.width), sz.width, true);
@@ -171,7 +171,7 @@ public class ScalarSample implements Sample, Comparable {
 		}
     }
 
-    public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal> an,
+    public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal<?>> an,
                                                            Stimuli sd, String signalName, String signalContext) {
     	/**
     	 *  Adam says: This class is an _anonymous_ inner class for a reason.  Although XXXSample.createSignal() returns a
@@ -191,7 +191,7 @@ public class ScalarSample implements Sample, Comparable {
         return ret;
     }
 
-	public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext,
+	public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext,
                                                            double[] time, double[] values) {
         if (values.length==0) throw new RuntimeException("attempt to create an empty signal");
         MutableSignal<ScalarSample> as = ScalarSample.createSignal(an, sd, signalName, signalContext);

@@ -46,7 +46,7 @@ import javax.swing.JPopupMenu;
 public class WaveSignal
 {
 	/** the panel that holds this signal */			private Panel wavePanel;
-	/** the data for this signal */					private Signal sSig;
+	/** the data for this signal */					private Signal<?> sSig;
 	/** the color of this signal */					private Color color;
 	/** the x values of selected control points */	private double [] controlPointsSelected;
 	/** true if this signal is highlighted */		private boolean highlighted;
@@ -124,7 +124,7 @@ public class WaveSignal
 		}
 	}
 
-	public WaveSignal(Panel wavePanel, Signal sSig)
+	public WaveSignal(Panel wavePanel, Signal<?> sSig)
 	{
 		int sigNo = wavePanel.getNumSignals();
 		this.wavePanel = wavePanel;
@@ -156,7 +156,7 @@ public class WaveSignal
 		}
 	}
 
-	public static WaveSignal addSignalToPanel(Signal sSig, Panel panel, Color newColor)
+	public static WaveSignal addSignalToPanel(Signal<?> sSig, Panel panel, Color newColor)
 	{
 		// see if the signal is already there
 		WaveSignal ws = panel.findWaveSignal(sSig);
@@ -200,9 +200,9 @@ public class WaveSignal
 	 * Method to return the actual signal information associated with this line in the waveform window.
 	 * @return the actual signal information associated with this line in the waveform window.
 	 */
-	public Signal getSignal() { return sSig; }
+	public Signal<?> getSignal() { return sSig; }
 
-	public void setSignal(Signal sig) { sSig = sig; }
+	public void setSignal(Signal<?> sig) { sSig = sig; }
 
 	public Color getColor() { return color; }
 

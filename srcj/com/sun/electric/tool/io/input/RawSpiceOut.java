@@ -59,7 +59,7 @@ public class RawSpiceOut extends Input<Stimuli> {
 	/**
 	 * Class for handling swept signals.
 	 */
-	private static class SweepAnalysisLT extends HashMap<String,Signal>
+	private static class SweepAnalysisLT extends HashMap<String,Signal<?>>
 	{
 		double [][] commonTime; // sweep, signal
 		List<List<double[]>> theSweeps = new ArrayList<List<double[]>>(); // sweep, event, signal
@@ -106,7 +106,7 @@ public class RawSpiceOut extends Input<Stimuli> {
 		boolean first = true;
 
 		sd.setCell(cell);
-		HashMap<String,Signal> an = null;
+		HashMap<String,Signal<?>> an = null;
 
 		double[][] values = null;
         double[] time = null;
@@ -421,7 +421,7 @@ public class RawSpiceOut extends Input<Stimuli> {
                                         context = name.substring(0, lastDotPos);
                                         name = name.substring(lastDotPos + 1);
                                     }
-                                double minTime = 0, maxTime = 0, minValues = 0, maxValues = 0;
+//                                double minTime = 0, maxTime = 0, minValues = 0, maxValues = 0;
                                 ScalarSample.createSignal(lan, sd, signalNames[i], context, time, values[i]);
                             }
                         return;

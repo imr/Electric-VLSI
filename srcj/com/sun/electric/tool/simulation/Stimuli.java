@@ -58,9 +58,9 @@ public class Stimuli {
 	/** the cell attached to this Stimuli information */		private Cell cell;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
 	/** the separator character that breaks names */			private char separatorChar;
-	/** the analyses in this Stimuli */							private HashMap<String,HashMap<String,Signal>> analyses;
-	/** the list of analyses in this Stimuli */					private List<HashMap<String,Signal>> analysisList;
-	/** control points when signals are selected */				private HashMap<Signal,Double[]> controlPointMap;
+	/** the analyses in this Stimuli */							private HashMap<String,HashMap<String,Signal<?>>> analyses;
+	/** the list of analyses in this Stimuli */					private List<HashMap<String,Signal<?>>> analysisList;
+	/** control points when signals are selected */				private HashMap<Signal<?>,Double[]> controlPointMap;
 
     /** Cached version of net delimiter**/                      private String delim = SimulationTool.getSpiceExtractedNetDelimiter();
 
@@ -70,9 +70,9 @@ public class Stimuli {
 	public Stimuli()
 	{
 		separatorChar = '.';
-		analyses = new HashMap<String,HashMap<String,Signal>>();
-		analysisList = new ArrayList<HashMap<String,Signal>>();
-		controlPointMap = new HashMap<Signal,Double[]>();
+		analyses = new HashMap<String,HashMap<String,Signal<?>>>();
+		analysisList = new ArrayList<HashMap<String,Signal<?>>>();
+		controlPointMap = new HashMap<Signal<?>,Double[]>();
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class Stimuli {
 		analyses.clear();
 	}
 
-	public void addAnalysis(HashMap<String,Signal> an)
+	public void addAnalysis(HashMap<String,Signal<?>> an)
 	{
 		analyses.put(an.toString(), an);
 		analysisList.add(an);
@@ -95,9 +95,9 @@ public class Stimuli {
 	 * @param type the stimulus type being queried.
 	 * @return the HashMap<String,Signal> of that type (null if not found).
 	 */
-	public HashMap<String,Signal> findAnalysis(String title)
+	public HashMap<String,Signal<?>> findAnalysis(String title)
 	{
-		HashMap<String,Signal> an = analyses.get(title);
+		HashMap<String,Signal<?>> an = analyses.get(title);
 		return an;
 	}
 
@@ -105,7 +105,7 @@ public class Stimuli {
 
     public int getNumAnalyses() { return analysisList.size(); }
 
-	public Iterator<HashMap<String,Signal>> getAnalyses() { return analysisList.iterator(); }
+	public Iterator<HashMap<String,Signal<?>>> getAnalyses() { return analysisList.iterator(); }
 
 	/**
 	 * Method to set the Cell associated with this simulation data.
@@ -179,7 +179,7 @@ public class Stimuli {
 	 * @return an array of times where there are control points.
 	 * Null if no control points are defined.
 	 */
-	public Double [] getControlPoints(Signal sig) { return controlPointMap.get(sig); }
+	public Double [] getControlPoints(Signal<?> sig) { return controlPointMap.get(sig); }
 
 	/**
 	 * Method to clear the list of control points associated with a signal.
@@ -187,7 +187,7 @@ public class Stimuli {
 	 * These points can be selected for change of the stimuli.
 	 * @param sig the signal to clear.
 	 */
-	public void clearControlPoints(Signal sig) { controlPointMap.remove(sig); }
+	public void clearControlPoints(Signal<?> sig) { controlPointMap.remove(sig); }
 
 	/**
 	 * Method to add a new control point to the list on a signal.
@@ -196,7 +196,7 @@ public class Stimuli {
 	 * @param sig the signal in question.
 	 * @param time the time of the new control point.
 	 */
-	public void addControlPoint(Signal sig, double time)
+	public void addControlPoint(Signal<?> sig, double time)
 	{
 		Double [] controlPoints = controlPointMap.get(sig);
 		if (controlPoints == null)
@@ -226,7 +226,7 @@ public class Stimuli {
 	 * @param sig the signal in question.
 	 * @param time the time of the control point to delete.
 	 */
-	public void removeControlPoint(Signal sig, double time)
+	public void removeControlPoint(Signal<?> sig, double time)
 	{
 		Double [] controlPoints = controlPointMap.get(sig);
 		if (controlPoints == null) return;
@@ -283,8 +283,8 @@ public class Stimuli {
 	public double getMinTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(HashMap<String,Signal> an : analysisList) {
-            for (Signal sig : (Iterable<Signal>)an.values()) {
+		for(HashMap<String,Signal<?>> an : analysisList) {
+            for (Signal<?> sig : (Iterable<Signal<?>>)an.values()) {
                 if (leftEdge == rightEdge) {
                         leftEdge = sig.getMinTime();
                         rightEdge = sig.getMaxTime();
@@ -311,8 +311,8 @@ public class Stimuli {
 	public double getMaxTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(HashMap<String,Signal> an : analysisList) {
-            for (Signal sig : (Iterable<Signal>)an.values()) {
+		for(HashMap<String,Signal<?>> an : analysisList) {
+            for (Signal<?> sig : (Iterable<Signal<?>>)an.values()) {
                 if (leftEdge == rightEdge) {
                         leftEdge = sig.getMinTime();
                         rightEdge = sig.getMaxTime();
@@ -431,8 +431,8 @@ public class Stimuli {
 		return "?";
 	}
 
-    public static HashMap<String,Signal> newAnalysis(Stimuli sd, final String title, boolean extrapolateToRight) {
-        HashMap<String,Signal> ret = new HashMap<String,Signal>() {
+    public static HashMap<String,Signal<?>> newAnalysis(Stimuli sd, final String title, boolean extrapolateToRight) {
+        HashMap<String,Signal<?>> ret = new HashMap<String,Signal<?>>() {
             public String toString() { return title; }
         };
 		sd.addAnalysis(ret);

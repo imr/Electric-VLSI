@@ -118,7 +118,7 @@ public class Panel extends JPanel
 	/** the main waveform window this is part of */			private WaveformWindow waveWindow;
 	/** the size of the window (in pixels) */				private Dimension sz;
 	/** true if the size field is valid */					private boolean szValid;
-	/** the signal on the X axis (null for time) */			private Signal xAxisSignal;
+	/** the signal on the X axis (null for time) */			private Signal<?> xAxisSignal;
 	/** maps signal buttons to the actual Signal */			private LinkedHashMap<JButton,WaveSignal> waveSignals = new LinkedHashMap<JButton,WaveSignal>();
 	/** the list of signal name buttons on the left */		private JPanel signalButtons;
 	/** the JScrollPane with of signal name buttons */		private JScrollPane signalButtonsPane;
@@ -129,7 +129,7 @@ public class Panel extends JPanel
 	/** the button to delete selected signal (analog). */	private JButton deleteSignal;
 	/** the button to delete all signals (analog). */		private JButton deleteAllSignals;
 	/** the signal name button (digital). */				private JButton digitalSignalButton;
-	/** for selecting the type of data in this panel */		private JComboBox analysisCombo;
+//	/** for selecting the type of data in this panel */		private JComboBox analysisCombo;
 	/** displayed range along horozintal axis */			private double minXPosition, maxXPosition;
 	/** low value displayed in this panel (analog) */		private double analogLowValue;
 	/** high value displayed in this panel (analog) */		private double analogHighValue;
@@ -488,7 +488,7 @@ public class Panel extends JPanel
 	 * @param sSig the signal being tested.
 	 * @return true if the signal is wrong and cannot appear in this panel.
 	 */
-	public boolean wrongPanelType(Signal sSig)
+	public boolean wrongPanelType(Signal<?> sSig)
 	{
         return false;
 	}
@@ -560,7 +560,7 @@ public class Panel extends JPanel
 
 	public int getNumSignals() { return waveSignals.size(); }
 
-	public WaveSignal findWaveSignal(Signal sig)
+	public WaveSignal findWaveSignal(Signal<?> sig)
 	{
 		for(JButton but : waveSignals.keySet())
 		{
@@ -596,10 +596,10 @@ public class Panel extends JPanel
 		waveWindow.deleteAllSignalsFromPanel(this);
 	}
 
-	private void setPanelSignalType()
-	{
-		repaintWithRulers();
-	}
+//	private void setPanelSignalType()
+//	{
+//		repaintWithRulers();
+//	}
 
 	// ************************************* THE HORIZONTAL RULER *************************************
 
@@ -624,9 +624,9 @@ public class Panel extends JPanel
 
 	public HorizRuler getHorizRuler() { return horizRulerPanel; }
 
-	public Signal getXAxisSignal() { return xAxisSignal; }
+	public Signal<?> getXAxisSignal() { return xAxisSignal; }
 
-	public void setXAxisSignal(Signal sig) { xAxisSignal = sig; }
+	public void setXAxisSignal(Signal<?> sig) { xAxisSignal = sig; }
 
 	// ************************************* PANEL DISPLAY CONTROL *************************************
 
@@ -767,16 +767,18 @@ public class Panel extends JPanel
 	 * Method to make this Panel show a signal fully.
 	 * @param sSig the signal to show (must be analog) or null to fit to all signals
 	 */
-	public void fitToSignal(Signal sig) {
+	public void fitToSignal(Signal<?> sig) {
         double lowValue = Double.MAX_VALUE;
         double highValue = Double.MIN_VALUE;
         for(WaveSignal wSig : getSignals()) {
-            Signal sSig = wSig.getSignal();
+            Signal<Sample> sSig = (Signal<Sample>)wSig.getSignal();
             if (sig!=null && sig!=sSig) continue;
             Signal.View<RangeSample<Sample>> view =
-                sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), 2, false);
+//                sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), 2, false);
+            	sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), (int)getSize().getWidth(), false);
+System.out.println("VIEW FROM TIME "+sSig.getMinTime()+" TO "+sSig.getMaxTime()+" HAS "+view.getNumEvents()+" EVENTS");
             for(int i=0; i<view.getNumEvents(); i++) {
-                RangeSample rs = view.getSample(i);
+                RangeSample<?> rs = view.getSample(i);
                 if (rs==null) continue;
                 Sample min = rs.getMin();
                 Sample max = rs.getMax();
@@ -1396,12 +1398,12 @@ public class Panel extends JPanel
 
 	void dumpDataCSV(PrintWriter pw) {
 		for(WaveSignal ws : waveSignals.values()) {
-            Signal as = ws.getSignal();
+            Signal<?> as = ws.getSignal();
             for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
                 pw.println();
-                Signal wave = as;
-                Signal.View pref = ((Signal)wave).getExactView();
-                Signal.View waveform = pref /* FIXME */;
+                Signal<?> wave = as;
+                Signal.View<?> pref = ((Signal<?>)wave).getExactView();
+                Signal.View<?> waveform = pref /* FIXME */;
                 int numEvents = waveform.getNumEvents();
                 for(int i=0; i<numEvents; i++)
                     pw.println("\""+waveform.getTime(i) + "\""+
@@ -1418,7 +1420,7 @@ public class Panel extends JPanel
         int linetype = 1;
 		for(WaveSignal ws : waveSignals.values()) {
             boolean used = false;
-            Signal as = ws.getSignal();
+//            Signal<?> as = ws.getSignal();
             for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
                 if (!first) pw.print(sep);
                 pw.print(" \'-\' with lines ");
@@ -1436,12 +1438,12 @@ public class Panel extends JPanel
             if (used) linetype++;
         }
 		for(WaveSignal ws : waveSignals.values()) {
-            Signal as = ws.getSignal();
+            Signal<?> as = ws.getSignal();
             for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
                 pw.println();
-                Signal wave = as;//as.getWaveform(s);
-                Signal.View pref = ((Signal)wave).getExactView();
-                Signal.View waveform = pref /* FIXME */;
+                Signal<?> wave = as;//as.getWaveform(s);
+                Signal.View<?> pref = ((Signal<?>)wave).getExactView();
+                Signal.View<?> waveform = pref /* FIXME */;
                 int numEvents = waveform.getNumEvents();
                 for(int i=0; i<numEvents; i++) {
                     if (waveform.getTime(i) < min || waveform.getTime(i) > max) continue;
@@ -1456,8 +1458,8 @@ public class Panel extends JPanel
 	private List<WaveSelection> processSignals(Graphics g, Rectangle2D bounds, List<PolyBase> forPs) {
 		List<WaveSelection> selectedObjects = null;
 		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
-		Signal xSignal = xAxisSignal;
-		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
+//		Signal xSignal = xAxisSignal;
+//		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
 		Collection<WaveSignal> sigs = waveSignals.values();
 		int sigIndex = 0;
         Color light = null;
@@ -1494,13 +1496,13 @@ public class Panel extends JPanel
 		return selectedObjects;
 	}
 
-	private static class BusCrawl
-	{
-		Signal<DigitalSample> sig;
-		View<DigitalSample> exactView;
-		int numEvents;
-		int eventPos;
-	}
+//	private static class BusCrawl
+//	{
+//		Signal<DigitalSample> sig;
+//		View<DigitalSample> exactView;
+//		int numEvents;
+//		int eventPos;
+//	}
 
 	private List<WaveSelection> processControlPoints(Graphics g, Rectangle2D bounds)
 	{
@@ -1918,10 +1920,10 @@ public class Panel extends JPanel
 	private Point snapPoint(Point pt)
 	{
 		// snap to any waveform points
+        /*
 		for(WaveSignal ws : waveSignals.values())
 		{
 			// draw analog trace
-            /*
 			Signal as = ws.getSignal();
             double[] result = new double[3];
             HashMap<String,Signal> an = (HashMap<String,Signal>)as.getAnalysis();
@@ -1945,15 +1947,15 @@ public class Panel extends JPanel
 					}
 				}
 			}
-            */
 		}
+        */
 
 		// snap to any waveform lines
+        /*
 		Point2D snap = new Point2D.Double(pt.x, pt.y);
 		for(WaveSignal ws : waveSignals.values())
 		{
 			// draw analog trace
-            /*
 			Signal as = (Signal)ws.getSignal();
             double[] result = new double[3];
             double[] lastResult = new double[3];
@@ -1981,8 +1983,8 @@ public class Panel extends JPanel
 					lastPt = thisPt;
 				}
 			}
-            */
 		}
+        */
 
 		// no snapping: return the original point
 		return pt;

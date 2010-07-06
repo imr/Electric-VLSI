@@ -163,7 +163,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Stimuli sd;
-	/** the signal on all X axes (null for time) */			private Signal xAxisSignalAll;
+	/** the signal on all X axes (null for time) */			private Signal<?> xAxisSignalAll;
 	/** the top-level panel of the waveform window. */		private JPanel overall;
 	/** the "lock X axis" button. */						private JButton xAxisLockButton;
 	/** the "refresh" button. */							private JButton refresh;
@@ -171,7 +171,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the list of panels. */								private JComboBox signalNameList;
-	/** mapping from analysis to entries in "SIGNALS" tree*/private Map<Signal,TreePath> treePathFromSignal = new HashMap<Signal,TreePath>();
+	/** mapping from analysis to entries in "SIGNALS" tree*/private Map<Signal<?>,TreePath> treePathFromSignal = new HashMap<Signal<?>,TreePath>();
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
@@ -1363,7 +1363,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (sd.isAnalog()) panelSize = User.getWaveformAnalogPanelHeight();
 
 		// determine the X and Y ranges
-		Rectangle2D bounds = null;
+//		Rectangle2D bounds = null;
 		double leftEdge, rightEdge;
         //bounds = sd.getBounds();
         leftEdge = sd.getMinTime();
@@ -1788,9 +1788,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public HorizRuler getMainHorizRuler() { return mainHorizRulerPanel; }
 
-	public Signal getXAxisSignalAll() { return xAxisSignalAll; }
+	public Signal<?> getXAxisSignalAll() { return xAxisSignalAll; }
 
-	public void setXAxisSignalAll(Signal sig) { xAxisSignalAll = sig; }
+	public void setXAxisSignalAll(Signal<?> sig) { xAxisSignalAll = sig; }
 
 	private void addMainHorizRulerPanel()
 	{
@@ -1853,7 +1853,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to check whether this particular sweep is included.
 	 * @return true if the sweep is included
 	 */
-	public boolean isSweepSignalIncluded(HashMap<String,Signal> an, int index)
+	public boolean isSweepSignalIncluded(HashMap<String,Signal<?>> an, int index)
 	{
         /*
 		Object sweep = an.getSweep(index);
@@ -2005,9 +2005,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to return a List of highlighted simulation signals.
 	 * @return a List of highlighted simulation signals.
 	 */
-	public List<Signal> getHighlightedNetworkNames()
+	public List<Signal<?>> getHighlightedNetworkNames()
 	{
-		List<Signal> highlightedSignals = new ArrayList<Signal>();
+		List<Signal<?>> highlightedSignals = new ArrayList<Signal<?>>();
 
 		// look at all signal names in the cell
 		for(Panel wp : wavePanels)
@@ -2022,9 +2022,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// also include what is in the SIGNALS tree
 		ExplorerTree sigTree = wf.getExplorerTab();
 		Object nodeInfo = sigTree.getCurrentlySelectedObject(0);
-		if (nodeInfo != null && nodeInfo instanceof Signal)
+		if (nodeInfo != null && nodeInfo instanceof Signal<?>)
 		{
-			Signal sig = (Signal)nodeInfo;
+			Signal<?> sig = (Signal<?>)nodeInfo;
 			highlightedSignals.add(sig);
 		}
 
@@ -2063,9 +2063,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// also include what is in the SIGNALS tree
 		ExplorerTree sigTree = wf.getExplorerTab();
 		Object nodeInfo = sigTree.getCurrentlySelectedObject(0);
-		if (nodeInfo != null && nodeInfo instanceof Signal)
+		if (nodeInfo != null && nodeInfo instanceof Signal<?>)
 		{
-			Signal sig = (Signal)nodeInfo;
+			Signal<?> sig = (Signal<?>)nodeInfo;
 			Network net = findNetwork(netlist, sig.getSignalName());
 			if (net != null) nets.add(net);
 		}
@@ -2146,9 +2146,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		ArrayList<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
 
 		treePathFromSignal.clear();
-		for(Iterator<HashMap<String,Signal>> it = sd.getAnalyses(); it.hasNext(); )
+		for(Iterator<HashMap<String,Signal<?>>> it = sd.getAnalyses(); it.hasNext(); )
 		{
-			HashMap<String,Signal> an = it.next();
+			HashMap<String,Signal<?>> an = it.next();
             nodes.add(getSignalsForExplorer(an, rootPath, an.toString()));
 		}
 
@@ -2161,23 +2161,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
     public void loadTechnologies() {
     }
     
-	private DefaultMutableTreeNode getSignalsForExplorer(HashMap<String,Signal> an, TreePath parentPath, String analysis)
+	private DefaultMutableTreeNode getSignalsForExplorer(HashMap<String,Signal<?>> an, TreePath parentPath, String analysis)
 	{
-		Iterable<Signal> signalsi = an.values();
-        ArrayList<Signal> signals = new ArrayList<Signal>();
-        for(Signal s : signalsi) signals.add(s);
+		Iterable<Signal<?>> signalsi = an.values();
+        ArrayList<Signal<?>> signals = new ArrayList<Signal<?>>();
+        for(Signal<?> s : signalsi) signals.add(s);
         if (signals.size()==0) return null;
         if (an instanceof EpicAnalysis)
         {
 			DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
             TreePath path = parentPath.pathByAddingChild(analysisNode);
-            for (Signal s : (Iterable<Signal>)an.values())
+            for (Signal<?> s : (Iterable<Signal<?>>)an.values())
                 treePathFromSignal.put(s, path);
 			return analysisNode;
         }
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
 		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
-        for (Signal s : (Iterable<Signal>)an.values())
+        for (Signal<?> s : (Iterable<Signal<?>>)an.values())
             treePathFromSignal.put(s, analysisPath);
 		Map<String,TreePath> contextMap = new HashMap<String,TreePath>();
 		contextMap.put("", analysisPath);
@@ -2185,7 +2185,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// add branches first
 		char separatorChar = sd.getSeparatorChar();
-		for(Signal sSig : signals)
+		for(Signal<?> sSig : signals)
 		{
 //			if (!(sSig instanceof TimedSignal)) continue;
 			if (sSig.getSignalContext() != null)
@@ -2195,7 +2195,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         String delim = SimulationTool.getSpiceExtractedNetDelimiter();
         // make a list of signal names with "#" in them
 		Set<String> sharpSet = new HashSet<String>();
-		for(Signal sSig : signals)
+		for(Signal<?> sSig : signals)
 		{
 //			if (!(sSig instanceof TimedSignal)) continue;
 			String sigName = sSig.getSignalName();
@@ -2210,7 +2210,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// add all signals to the tree
-		for(Signal sSig : signals)
+		for(Signal<?> sSig : signals)
 		{
 //			if (!(sSig instanceof TimedSignal)) continue;
 			TreePath thisTree = analysisPath;
@@ -2273,35 +2273,35 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/**
 	 * Class to sort signals by their name
 	 */
-	private static class SignalsByName implements Comparator<Signal>
+	private static class SignalsByName implements Comparator<Signal<?>>
 	{
-		public int compare(Signal s1, Signal s2)
+		public int compare(Signal<?> s1, Signal<?> s2)
 		{
 			return TextUtils.STRING_NUMBER_ORDER.compare(s1.getFullName(), s2.getFullName());
 		}
 	}
 
-	private DefaultMutableTreeNode getSweepsForExplorer(HashMap<String,Signal> an, String analysis)
-	{
-		DefaultMutableTreeNode sweepsExplorerTree = null;
-		boolean first = true;
-		for(SweepSignal ss : sweepSignals)
-		{
-			if (first)
-			{
-				first = false;
-				sweepsExplorerTree = new DefaultMutableTreeNode(analysis);
-			}
-			sweepsExplorerTree.add(new DefaultMutableTreeNode(ss));
-		}
-		return sweepsExplorerTree;
-	}
+//	private DefaultMutableTreeNode getSweepsForExplorer(HashMap<String,Signal<?>> an, String analysis)
+//	{
+//		DefaultMutableTreeNode sweepsExplorerTree = null;
+//		boolean first = true;
+//		for(SweepSignal ss : sweepSignals)
+//		{
+//			if (first)
+//			{
+//				first = false;
+//				sweepsExplorerTree = new DefaultMutableTreeNode(analysis);
+//			}
+//			sweepsExplorerTree.add(new DefaultMutableTreeNode(ss));
+//		}
+//		return sweepsExplorerTree;
+//	}
 
 	// ************************************* SIGNALS *************************************
 
-	private Signal findSignal(String name, HashMap<String,Signal> an)
+	private Signal<?> findSignal(String name, HashMap<String,Signal<?>> an)
 	{
-		for(Signal sSig : an.values())
+		for(Signal<?> sSig : an.values())
 		{
 			String sigName = sSig.getFullName();
 			if (sigName.equals(name)) return sSig;
@@ -2318,7 +2318,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void showSignals(Highlighter h, VarContext context, boolean newPanel)
 	{
-		List<Signal> found = findSelectedSignals(h, context);
+		List<Signal<?>> found = findSelectedSignals(h, context);
 		showSignals(found, newPanel);
 	}
 
@@ -2327,7 +2327,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @param found the signals to add.
 	 * @param newPanel true to create new panels for each signal.
 	 */
-	public void showSignals(List<Signal> found, boolean newPanel)
+	public void showSignals(List<Signal<?>> found, boolean newPanel)
 	{
 		// determine the current panel
 		Panel wp = null;
@@ -2347,7 +2347,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		boolean added = false;
-		for(Signal sSig : found) {
+		for(Signal<?> sSig : found) {
 			// add the signal
 			if (newPanel) {
 				wp = makeNewPanel();
@@ -2395,10 +2395,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Network net : nets)
 		{
 			String netName = getSpiceNetName(context, net);
-			for(Iterator<HashMap<String,Signal>> aIt = sd.getAnalyses(); aIt.hasNext(); )
+			for(Iterator<HashMap<String,Signal<?>>> aIt = sd.getAnalyses(); aIt.hasNext(); )
 			{
-				HashMap<String,Signal> an = aIt.next();
-				Signal sSig = findSignalForNetwork(an, netName);
+				HashMap<String,Signal<?>> an = aIt.next();
+				Signal<?> sSig = findSignalForNetwork(an, netName);
 				if (sSig == null) continue;
 
 				boolean found = true;
@@ -2563,7 +2563,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @return the displayed WaveSignal where it is in the waveform window.
 	 * Returns null if the signal is not being displayed.
 	 */
-	public WaveSignal findDisplayedSignal(Signal sSig)
+	public WaveSignal findDisplayedSignal(Signal<?> sSig)
 	{
 		for(Panel wp : wavePanels)
 		{
@@ -2732,7 +2732,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		tree.clearCurrentlySelectedObjects();
 
 		// find the signal to show in the waveform window
-		List<Signal> found = findSelectedSignals(which, loc.getContext());
+		List<Signal<?>> found = findSelectedSignals(which, loc.getContext());
 
 		// show it in every panel
 		boolean foundSignal = false;
@@ -2740,7 +2740,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			for(WaveSignal ws : wp.getSignals())
 			{
-				for(Signal sSig : found)
+				for(Signal<?> sSig : found)
 				{
 					if (ws.getSignal() == sSig)
 					{
@@ -2754,7 +2754,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// show only one in the "Signals" tree
 		Collections.sort(found, new SignalsByName());
-		for(Signal sSig : found)
+		for(Signal<?> sSig : found)
 		{
 			TreePath treePath = treePathFromSignal(sSig);
 			if (treePath != null) {
@@ -2765,7 +2765,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		freezeEditWindowHighlighting = false;
 	}
 
-	private TreePath treePathFromSignal(Signal sig) {
+	private TreePath treePathFromSignal(Signal<?> sig) {
 		TreePath treePath = treePathFromSignal.get(sig);
 		if (treePath == null) return null;
 		String fullName = sig.getFullName();
@@ -2791,8 +2791,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (child instanceof DefaultMutableTreeNode) {
 				DefaultMutableTreeNode node = (DefaultMutableTreeNode)child;
 				Object o = node.getUserObject();
-				if (o instanceof Signal)
-					s = ((Signal)o).getSignalName();
+				if (o instanceof Signal<?>)
+					s = ((Signal<?>)o).getSignalName();
 				else
 					s = o.toString();
 			} else {
@@ -2809,9 +2809,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @param context the VarContext of that window.
 	 * @return a List of Signal objects in this WaveformWindow.
 	 */
-	private List<Signal> findSelectedSignals(Highlighter h, VarContext context)
+	private List<Signal<?>> findSelectedSignals(Highlighter h, VarContext context)
 	{
-		List<Signal> found = new ArrayList<Signal>();
+		List<Signal<?>> found = new ArrayList<Signal<?>>();
 
 		// special case if a current source is selected
 		List<Geometric> highlightedObjects = h.getHighlightedEObjs(true, true);
@@ -2823,10 +2823,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				NodeInst ni = (NodeInst)geom;
 				String nodeName = "I(v" + ni.getName();
-				for(Iterator<HashMap<String,Signal>> it = sd.getAnalyses(); it.hasNext(); )
+				for(Iterator<HashMap<String,Signal<?>>> it = sd.getAnalyses(); it.hasNext(); )
 				{
-					HashMap<String,Signal> an = it.next();
-					Signal sSig = an.get(TextUtils.canonicString(nodeName));
+					HashMap<String,Signal<?>> an = it.next();
+					Signal<?> sSig = an.get(TextUtils.canonicString(nodeName));
 					if (sSig != null)
 					{
 						found.add(sSig);
@@ -2843,17 +2843,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		return found;
 	}
 
-	private List<Signal> findSelectedSignals(Set<Network> nets, VarContext context, boolean sort)
+	private List<Signal<?>> findSelectedSignals(Set<Network> nets, VarContext context, boolean sort)
 	{
 		Cell topContext = sd.getCell();
-		List<Signal> found = new ArrayList<Signal>();
+		List<Signal<?>> found = new ArrayList<Signal<?>>();
 		for(Network net : nets)
 		{
 			String netName = getSpiceNetName(context, net);
-			for(Iterator<HashMap<String,Signal>> aIt = sd.getAnalyses(); aIt.hasNext(); )
+			for(Iterator<HashMap<String,Signal<?>>> aIt = sd.getAnalyses(); aIt.hasNext(); )
 			{
-				HashMap<String,Signal> an = aIt.next();
-				Signal sSig = an.get(TextUtils.canonicString(netName));
+				HashMap<String,Signal<?>> an = aIt.next();
+				Signal<?> sSig = an.get(TextUtils.canonicString(netName));
 				if (sSig == null)
 				{
 					// try prepending the top-level cell name to the signal name
@@ -2910,8 +2910,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 				if (sSig != null)
                 {
-                    List<Signal> signalGroup = getSignalsFromExtractedNet(an, sSig);
-                    for (Signal s : signalGroup)
+                    List<Signal<?>> signalGroup = getSignalsFromExtractedNet(an, sSig);
+                    for (Signal<?> s : signalGroup)
                         found.add(s);
                 }
 //					else System.out.println("Can't find net "+netName+" in cell "+context.getInstPath("."));
@@ -2923,10 +2923,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	}
 
 	/** Test signal lookup */
-	public List<Signal> findAllSignals(Cell cell, VarContext context, boolean sort, boolean recurse)
+	public List<Signal<?>> findAllSignals(Cell cell, VarContext context, boolean sort, boolean recurse)
 	{
 		Set<Network> nets = new HashSet<Network>();
-		List<Signal> found = new ArrayList<Signal>();
+		List<Signal<?>> found = new ArrayList<Signal<?>>();
 		for (Iterator<Network> it = cell.getNetlist().getNetworks(); it.hasNext(); )
 		{
 			nets.add(it.next());
@@ -2948,9 +2948,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		return found;
 	}
 
-	private static class CompSignals implements Comparator<Signal>
+	private static class CompSignals implements Comparator<Signal<?>>
 	{
-		public int compare(Signal s1, Signal s2)
+		public int compare(Signal<?> s1, Signal<?> s2)
 		{
 			return TextUtils.STRING_NUMBER_ORDER.compare(s1.getFullName(), s2.getFullName());
 		}
@@ -3115,9 +3115,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			ExplorerTree sigTree = wf.getExplorerTab();
 			Object nodeInfo = sigTree.getCurrentlySelectedObject(0);
-			if (nodeInfo != null && nodeInfo instanceof Signal)
+			if (nodeInfo != null && nodeInfo instanceof Signal<?>)
 			{
-				Signal sig = (Signal)nodeInfo;
+				Signal<?> sig = (Signal<?>)nodeInfo;
 				if (sig.getSignalContext() == null || sig.getSignalContext().equals(contextStr) ||
 					sig.getSignalContext().equals(altContextStr))
 				{
@@ -3385,7 +3385,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			// adjust all signals inside the panel
 			for(WaveSignal ws : wp.getSignals())
 			{
-				Signal ss = ws.getSignal();
+				Signal<?> ss = ws.getSignal();
                 /*
 				if (ss .isDigital() && Analysis.getBussedSignals(((Signal<DigitalSample>)ss)) != null)
 				{
@@ -3441,7 +3441,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				redoPanel = false;
 				for(WaveSignal ws : wp.getSignals())
 				{
-					Signal s = ws.getSignal();
+					Signal<?> s = ws.getSignal();
 					if (s == null /*||
 						(s .isDigital() &&
                          Analysis.getBussedSignals(((Signal<DigitalSample>)s)) != null &&
@@ -3507,13 +3507,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(configurationFileName)));
 
-			List<Signal> dumpSignals = new ArrayList<Signal>();
+			List<Signal<?>> dumpSignals = new ArrayList<Signal<?>>();
 			List<Integer> dumpSweeps = new ArrayList<Integer>();
-			List<Signal> dumpWaveforms = new ArrayList<Signal>();
+			List<Signal<?>> dumpWaveforms = new ArrayList<Signal<?>>();
 			for(Panel wp : ww.wavePanels)
 			{
 				if (wp.isHidden()) continue;
-				Signal signalInX = ww.xAxisSignalAll;
+				Signal<?> signalInX = ww.xAxisSignalAll;
 				if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
 				if (signalInX != null) addSignalSweep(signalInX, -1, dumpSignals, dumpSweeps, dumpWaveforms);
 				for(WaveSignal ws : wp.getSignals())
@@ -3524,7 +3524,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			entries[0] = "TIME";
 			for(int i=1; i<numEntries; i++)
 			{
-				Signal sig = dumpSignals.get(i-1);
+				Signal<?> sig = dumpSignals.get(i-1);
 				entries[i] = sig.getFullName();
 				int s = dumpSweeps.get(i-1).intValue();
 				if (s >= 0)
@@ -3538,7 +3538,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				printWriter.print(entries[i]);
 			}
 			printWriter.println();
-			double result[] = new double[3];
+//			double result[] = new double[3];
 			for(int j=0; ; j++)
 			{
 				// get signal values for this iteration
@@ -3547,7 +3547,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				for(int i=1; i<numEntries; i++)
 				{
 					entries[i] = "";
-					Signal sig = dumpSignals.get(i-1);
+					Signal<?> sig = dumpSignals.get(i-1);
                     if (j < sig.getExactView().getNumEvents()) {
                         Sample sample = sig.getExactView().getSample(j);
                         if (sample == null) {
@@ -3582,7 +3582,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		System.out.println("Wrote " + configurationFileName);
 	}
 
-	private static void addSignalSweep(Signal sig, int s, List<Signal> dumpSignals, List<Integer> dumpSweeps, List<Signal> waveforms)
+	private static void addSignalSweep(Signal<?> sig, int s, List<Signal<?>> dumpSignals, List<Integer> dumpSweeps, List<Signal<?>> waveforms)
 	{
 		for(int i=0; i<dumpSignals.size(); i++)
 		{
@@ -3704,7 +3704,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						printWriter.println("panel" + analysisName + log);
 						printWriter.println("zoom " + wp.getYAxisLowValue() + " " + wp.getYAxisHighValue() +
 							" " + wp.getMinXAxis() + " " + wp.getMaxXAxis());
-						Signal signalInX = ww.xAxisSignalAll;
+						Signal<?> signalInX = ww.xAxisSignalAll;
 						if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
 						if (signalInX != null) printWriter.println("x-axis " + signalInX.getFullName());
 					}
@@ -3744,7 +3744,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// read the file
 		URL url = TextUtils.makeURLToFile(configurationFileName);
 		Panel curPanel = null;
-		String oneType = null;
+//		String oneType = null;
 		try
 		{
 			URLConnection urlCon = url.openConnection();
@@ -3758,14 +3758,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (keywords.length == 0) continue;
 				if (keywords[0].equals("panel"))
 				{
-					String analysisType = null;
+//					String analysisType = null;
 					boolean xLog = false, yLog = false;
 					for(int i=1; i<keywords.length; i++)
 					{
 						if (keywords[i].equals("xlog")) xLog = true; else
 						if (keywords[i].equals("ylog")) yLog = true; else
 						{
-							analysisType = keywords[i];
+//							analysisType = keywords[i];
                             /*
 							if (analysisType != null)
 							{
@@ -3800,10 +3800,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					if (curPanel == null) continue;
 					Stimuli sd = ww.getSimData();
-					HashMap<String,Signal> an = sd.getAnalyses().next();
+					HashMap<String,Signal<?>> an = sd.getAnalyses().next();
 					//if (curPanel.getAnalysisType() != null) an = sd.findAnalysis(curPanel.getAnalysisType());
 					if (an == null) continue;
-					Signal sig = findSignalForNetwork(an, keywords[1]);
+					Signal<?> sig = findSignalForNetwork(an, keywords[1]);
 					if (sig == null) continue;
 					if (ww.isXAxisLocked()) ww.togglePanelXAxisLock();
 					curPanel.setXAxisSignal(sig);
@@ -3813,10 +3813,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					if (curPanel == null) continue;
 					Stimuli sd = ww.getSimData();
-					HashMap<String,Signal> an = sd.getAnalyses().next();
+					HashMap<String,Signal<?>> an = sd.getAnalyses().next();
 					//if (curPanel.getAnalysisType() != null) an = sd.findAnalysis(curPanel.getAnalysisType());
 					if (an == null) continue;
-					Signal sig = findSignalForNetwork(an, keywords[1]);
+					Signal<?> sig = findSignalForNetwork(an, keywords[1]);
 					if (sig == null) continue;
 					String [] colorNames = keywords[2].split(",");
 					int red = TextUtils.atoi(colorNames[0]);
@@ -3882,7 +3882,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					// header begins with a tab
 					//sb.append("\t" + wp.getAnalysisType());
 					sb.append("\t");
-					Signal signalInX = xAxisSignalAll;
+					Signal<?> signalInX = xAxisSignalAll;
 					if (!xAxisLocked) signalInX = wp.getXAxisSignal();
 					first = false;
 					if (signalInX != null) sb.append("(" + signalInX.getFullName() + ")");
@@ -4011,10 +4011,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Called when the user double-clicks on the signal in the explorer tree.
 	 * @param sig the Signal to add to the display
 	 */
-	public void addSignal(Signal sig)
+	public void addSignal(Signal<?> sig)
 	{
         // add analog signal on top of current panel
-        Signal as = (Signal)sig;
+        Signal<?> as = (Signal<?>)sig;
         boolean found = false;
         for(Panel wp : wavePanels) {
             if (wp.isSelected()) {
@@ -4029,7 +4029,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         if (!found) {
             // create a new panel for the signal
             Panel wp = makeNewPanel();
-            Signal sSig = as;
+//            Signal<?> sSig = as;
             wp.fitToSignal(as);
             if (!xAxisLocked)
                 wp.setXAxisRange(as.getMinTime(), as.getMaxTime());
@@ -4372,7 +4372,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				WaveformWindow ww = hr.getWaveformWindow();
 
 				// find the signal that was dragged
-				Signal sSig = null;
+				Signal<?> sSig = null;
 				if (sigNames[0].startsWith("PANEL "))
 				{
 					// get signal when dragged from inside the waveform window
@@ -4393,7 +4393,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					}
 				} else
 				{
-					HashMap<String,Signal> an = ww.getSimData().findAnalysis(analysisType);
+					HashMap<String,Signal<?>> an = ww.getSimData().findAnalysis(analysisType);
 					if (an == null)
 					{
 						System.out.println("Cannot find " + analysisType + " data");
@@ -4407,7 +4407,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (panel == null)
 					{
 						// dropped signal onto main time ruler: make sure it is the right type
-						boolean warn = false;
+//						boolean warn = false;
                         /*
 						for(Panel wp : ww.wavePanels)
 						{
@@ -4548,7 +4548,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				// moving/copying a signal (analog only)
 				int sigPos = Math.max(sigMovePos, sigCopyPos);
 				String signalName = sigNames[0].substring(sigPos + 11);
-				Signal sSig = null;
+				Signal<?> sSig = null;
 				Color oldColor = null;
 				for(WaveSignal ws : sourcePanel.getSignals())
 				{
@@ -4580,10 +4580,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 
 			// not rearranging: dropped a signal onto a panel
-			HashMap<String,Signal> an = ww.getSimData().findAnalysis(analysisType);
+			HashMap<String,Signal<?>> an = ww.getSimData().findAnalysis(analysisType);
 			for(int i=0; i<sigNames.length; i++)
 			{
-				Signal sSig = ww.findSignal(sigNames[i], an);
+				Signal<?> sSig = ww.findSignal(sigNames[i], an);
 				if (sSig == null)
 				{
 					dtde.dropComplete(false);
@@ -4783,13 +4783,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
     public static void showSimulationDataInNewWindow(Stimuli sd) {
         WaveformWindow ww = null;
-		Iterator<HashMap<String,Signal>> anIt = sd.getAnalyses();
+		Iterator<HashMap<String,Signal<?>>> anIt = sd.getAnalyses();
 		if (!anIt.hasNext())
 		{
 			System.out.println("ERROR: No simulation data found: waveform window not shown");
 			return;
 		}
-		HashMap<String,Signal> an = anIt.next();
+		HashMap<String,Signal<?>> an = anIt.next();
 
 		// create a waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
@@ -4801,11 +4801,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			String [] signalNames = WaveformWindow.getSignalOrder(sd.getCell());
 			boolean showedSomething = false;
 			boolean wantUnlockedTime = false;
-			String onlyType = null;
+//			String onlyType = null;
 			for(int i=0; i<signalNames.length; i++)
 			{
 				String signalName = signalNames[i];
-				Signal xAxisSignal = null;
+				Signal<?> xAxisSignal = null;
 				int start = 0;
 				if (signalName.startsWith("\t"))
 				{
@@ -4814,7 +4814,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					int tabPos = signalName.indexOf('\t', 1);
 					start = tabPos+1;
 					if (openPos >= 0) tabPos = openPos;
-					String analysisName = signalName.substring(1, tabPos);
+//					String analysisName = signalName.substring(1, tabPos);
                     /*
 					String analysisType = String.findAnalysisType(analysisName);
 					if (analysisType == null) continue;
@@ -4859,7 +4859,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						sigColor = new Color(red, green, blue);
 						sigName = sigName.substring(0, colorPos);
 					}
-					Signal sSig = findSignalForNetwork(an, sigName);
+					Signal<?> sSig = findSignalForNetwork(an, sigName);
 					if (sSig != null)
 					{
 						if (firstSignal)
@@ -4912,9 +4912,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			// put all top-level signals in, up to a limit
 			int numSignals = 0;
-			Iterable<Signal> allSignals = an.values();
-			makeBussedSignals((HashMap<String,Signal>)an, sd);
-			for(Signal sig : allSignals) {
+			Iterable<Signal<?>> allSignals = an.values();
+			makeBussedSignals(an, sd);
+			for(Signal<?> sig : allSignals) {
 				Signal<DigitalSample> sDSig = (Signal<DigitalSample>)sig;
 				if (sDSig.getSignalContext() != null) continue;
 				//if (HashMap<String,Signal>.isInBus(sDSig)) continue;
@@ -4930,14 +4930,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		ww.fillScreen();
 	}
 
-	private static void makeBussedSignals(HashMap<String,Signal> an, Stimuli sd)
+	private static void makeBussedSignals(HashMap<String,Signal<?>> an, Stimuli sd)
 	{
-		Iterable<Signal> signalsi = an.values();
-        ArrayList<Signal> signals = new ArrayList<Signal>();
-        for(Signal s : signalsi) signals.add(s);
+		Iterable<Signal<?>> signalsi = an.values();
+        ArrayList<Signal<?>> signals = new ArrayList<Signal<?>>();
+        for(Signal<?> s : signalsi) signals.add(s);
 		for(int i=0; i<signals.size(); i++)
 		{
-			Signal sSig = signals.get(i);
+			Signal<?> sSig = signals.get(i);
 			int thisBracketPos = sSig.getSignalName().indexOf('[');
 			if (thisBracketPos < 0) continue;
 			String prefix = sSig.getSignalName().substring(0, thisBracketPos);
@@ -4946,7 +4946,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			int j = i+1;
 			for( ; j<signals.size(); j++)
 			{
-				Signal nextSig = signals.get(j);
+				Signal<?> nextSig = signals.get(j);
 
 				// other signal must have the same root
 				int nextBracketPos = nextSig.getSignalName().indexOf('[');
@@ -4967,7 +4967,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (numSignals <= 1) continue;
 
 			// found a bus of signals: create the bus for it
-			Signal<DigitalSample> busSig = DigitalSample.createSignal(an, sd, prefix, sSig.getSignalContext());
+//			Signal<DigitalSample> busSig =
+				DigitalSample.createSignal(an, sd, prefix, sSig.getSignalContext());
             /*
 			an.buildBussedSignalList(busSig);
 			for(int k=i; k<j; k++)
@@ -5001,9 +5002,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @return the Signal that corresponds with the Network.
 	 * Returns null if none can be found.
 	 */
-	public static Signal findSignalForNetwork(HashMap<String,Signal> an, String netName) {
+	public static Signal<?> findSignalForNetwork(HashMap<String,Signal<?>> an, String netName) {
 		// look at all signal names in the cell
-		for(Signal sSig : (Iterable<Signal>)an.values()) {
+		for(Signal<?> sSig : (Iterable<Signal<?>>)an.values()) {
 			String signalName = sSig.getFullName();
 			if (netName.equalsIgnoreCase(signalName)) return sSig;
 			// if the signal name has underscores, see if all alphabetic characters match
@@ -5035,13 +5036,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
      * @param ws the signal
      * @return a list of signals
      */
-    public static List<Signal> getSignalsFromExtractedNet(HashMap<String,Signal> an, Signal ws) {
+    public static List<Signal<?>> getSignalsFromExtractedNet(HashMap<String,Signal<?>> an, Signal<?> ws) {
         String sigName = ws.getFullName();
-        List<Signal> ret = new ArrayList<Signal>();
+        List<Signal<?>> ret = new ArrayList<Signal<?>>();
         if (sigName == null) return ret;
         sigName = TextUtils.canonicString(sigName);
         sigName = ws.getBaseNameFromExtractedNet(sigName);
-        for(Signal s : (List<Signal>)an.values())
+        for(Signal<?> s : (List<Signal<?>>)an.values())
             if (ws.getBaseNameFromExtractedNet(TextUtils.canonicString(s.getFullName())).equals(sigName))
                 ret.add(s);
         return ret;

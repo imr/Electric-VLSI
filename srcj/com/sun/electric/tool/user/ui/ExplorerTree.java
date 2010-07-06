@@ -261,7 +261,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         if (obj instanceof DefaultMutableTreeNode)
             return ((DefaultMutableTreeNode)obj).getUserObject();
         if (obj instanceof EpicAnalysis.EpicTreeNode) {
-            Signal sig = EpicAnalysis.getSignal(treePath);
+            Signal<?> sig = EpicAnalysis.getSignal(treePath);
             if (sig != null) return sig;
         }
         return obj;
@@ -788,9 +788,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)nodeInfo;
             return el.getMessage();
         }
-		if (nodeInfo instanceof Signal)
+		if (nodeInfo instanceof Signal<?>)
 		{
-			Signal sig = (Signal)nodeInfo;
+			Signal<?> sig = (Signal<?>)nodeInfo;
 			return sig.getSignalName();
 		}
 		if (nodeInfo == null) return "";
@@ -881,13 +881,13 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			if (numCurrentlySelectedObjects() == 0) return null;
 
 			// handle signal dragging when in a WaveformWindow setting
-			if (getCurrentlySelectedObject(0) instanceof Signal)
+			if (getCurrentlySelectedObject(0) instanceof Signal<?>)
 			{
 				// Get the Transferable Object
 				StringBuffer buf = new StringBuffer();
 				for(int i=0; i<numCurrentlySelectedObjects(); i++)
 				{
-					Signal sSig = (Signal)getCurrentlySelectedObject(i);
+					Signal<?> sSig = (Signal<?>)getCurrentlySelectedObject(i);
 					String sigName = sSig.getFullName();
                     sigName = sSig.getAnalysisTitle();
 					buf.append(sigName);
@@ -1480,9 +1480,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				{
 					Object obj = getCurrentlySelectedObject(i);
 					if (obj == clickedObject) clickedIsSelected = true;
-					if (obj instanceof Signal)
+					if (obj instanceof Signal<?>)
 					{
-						Signal sig = (Signal)obj;
+						Signal<?> sig = (Signal<?>)obj;
 						if (wf.getContent() instanceof WaveformWindow)
 						{
 							WaveformWindow ww = (WaveformWindow)wf.getContent();
@@ -1769,7 +1769,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
                     selectedObject = obj;
                 } else
 				{
-					Class clz = selectedObject.getClass();
+					Class<?> clz = selectedObject.getClass();
 					if (!clz.isInstance(obj))
 					{
                         allSame = false;
@@ -1801,7 +1801,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				return;
 			}
 
-			if (allSame && selectedObject instanceof Signal)
+			if (allSame && selectedObject instanceof Signal<?>)
 			{
 				menu = new JPopupMenu("Signals");
 
@@ -2558,10 +2558,10 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 			if (!(wf.getContent() instanceof WaveformWindow)) return;
 			WaveformWindow ww = (WaveformWindow)wf.getContent();
-			List<Signal> sigs = new ArrayList<Signal>();
+			List<Signal<?>> sigs = new ArrayList<Signal<?>>();
 			for(int i=0; i<numCurrentlySelectedObjects(); i++)
 			{
-				Signal sig = (Signal)getCurrentlySelectedObject(i);
+				Signal<?> sig = (Signal<?>)getCurrentlySelectedObject(i);
 				sigs.add(sig);
 			}
 			ww.showSignals(sigs, newPanel);

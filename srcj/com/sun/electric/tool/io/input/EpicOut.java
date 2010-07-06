@@ -237,7 +237,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         an.setVoltageResolution(stdOut.readDouble());
         an.setCurrentResolution(stdOut.readDouble());
         an.setMaxTime(stdOut.readDouble());
-        Iterable<Signal> signals = an.values();
+        Iterable<Signal<?>> signals = an.values();
         an.waveStarts = new int[numSignals];
         an.waveLengths = new int[numSignals];
 
@@ -894,7 +894,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
             this.signal = ScalarSample.createSignal(epicAnalysis, sd, name, context);
         }
 
-        public Signal getBWaveform() {
+        public Signal<?> getBWaveform() {
             return signal;
         }
 
@@ -1050,7 +1050,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
  * EpicSignals don't store signalContex strings, EpicAnalysis don't have signalNames hash map.
  * Elements of Context are EpicTreeNodes. They partially implements interface javax.swing.tree.TreeNode .
  */
-public static class EpicAnalysis extends HashMap<String,Signal> {
+public static class EpicAnalysis extends HashMap<String,Signal<?>> {
     
     /** Separator in Epic signal names. */              static final char separator = '.';
     
@@ -1083,7 +1083,7 @@ public static class EpicAnalysis extends HashMap<String,Signal> {
     EpicAnalysis(Stimuli sd) {
         sd.addAnalysis(this);
         ArrayList<Signal<ScalarSample>> l = new ArrayList<Signal<ScalarSample>>();
-        for(Signal s : values()) l.add((Signal<ScalarSample>)s);
+        for(Signal<?> s : values()) l.add((Signal<ScalarSample>)s);
         signalsUnmodifiable = Collections.unmodifiableList(l);
     }
 
@@ -1152,8 +1152,8 @@ public static class EpicAnalysis extends HashMap<String,Signal> {
 	 * @return the Signal that corresponds with the Network.
 	 * Returns null if none can be found.
 	 */
-    public Signal get(String netName) {
-        Signal<ScalarSample> old = super.get(netName);
+    public Signal<?> get(String netName) {
+        Signal<?> old = super.get(netName);
         
         String lookupName = netName;
         int index = searchName(lookupName);
@@ -1165,7 +1165,7 @@ public static class EpicAnalysis extends HashMap<String,Signal> {
         return sig;
     }
 
-    public List<Signal<ScalarSample>> getSignalsFromExtractedNet(Signal ws) {
+    public List<Signal<ScalarSample>> getSignalsFromExtractedNet(Signal<?> ws) {
         ArrayList<Signal<ScalarSample>> ret = new ArrayList<Signal<ScalarSample>>();
         ret.add((Signal<ScalarSample>)ws);
         return ret;
@@ -1213,7 +1213,7 @@ public static class EpicAnalysis extends HashMap<String,Signal> {
      * List is unmodifieable.
 	 * @return a List of signals.
 	 */
-    public Collection<Signal> values() { return (Collection<Signal>)(Object)signalsUnmodifiable; }
+    public Collection<Signal<?>> values() { return (Collection<Signal<?>>)(Object)signalsUnmodifiable; }
 
     /**
      * This methods overrides Analysis.nameSignal.
@@ -1344,10 +1344,10 @@ public static class EpicAnalysis extends HashMap<String,Signal> {
         contextHash = newHash;
     }
 
-    HashMap<Integer, Signal> loadWaveformCache =
-        new HashMap<Integer, Signal>();
+    HashMap<Integer, Signal<?>> loadWaveformCache =
+        new HashMap<Integer, Signal<?>>();
 
-    protected Signal[] loadWaveforms(Signal<ScalarSample> signal) { return new Signal[] { signal }; }
+    protected Signal<?>[] loadWaveforms(Signal<ScalarSample> signal) { return new Signal[] { signal }; }
 
     
 

@@ -126,7 +126,7 @@ public class Sim
 
 			// determine highest time to simulate
             double tMax = 0;
-            for(Signal sig : ((HashMap<String,Signal>)als.an).values())
+            for(Signal<?> sig : ((HashMap<String,Signal<?>>)als.an).values())
                 tMax = Math.max(tMax, sig.getMaxTime());
 			for(Iterator<Panel> it = als.ww.getPanels(); it.hasNext(); )
 			{
@@ -168,10 +168,10 @@ public class Sim
 			timeVector[0] = 0;
 			stateVector[0] = Stimuli.LOGIC_LOW | Stimuli.OFF_STRENGTH;
 			for(ALS.Trak trakHead : trakHeads) {
-                if (((MutableSignal)sig).getSample(trakHead.time)==null)
-                    ((MutableSignal)sig).addSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state&Stimuli.LOGIC));
+                if (((MutableSignal<DigitalSample>)sig).getSample(trakHead.time)==null)
+                    ((MutableSignal<DigitalSample>)sig).addSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state&Stimuli.LOGIC));
                 else
-                    ((MutableSignal)sig).replaceSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state&Stimuli.LOGIC));
+                    ((MutableSignal<DigitalSample>)sig).replaceSample(trakHead.time, DigitalSample.fromOldStyle(trakHead.state&Stimuli.LOGIC));
             }
 			sigsChanged.add(sig);
 		}
@@ -181,7 +181,7 @@ public class Sim
 		stateVector[0] = 0;
 		double [] timeVector = new double[1];
 		timeVector[0] = 0;
-		for(Signal s : ((HashMap<String,Signal>)als.an).values()) {
+		for(Signal<?> s : ((HashMap<String,Signal<?>>)als.an).values()) {
 			Signal<DigitalSample> sig = (Signal<DigitalSample>)s;
 			if (sigsChanged.contains(sig)) continue;
 		}

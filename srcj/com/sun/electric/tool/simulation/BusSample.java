@@ -58,8 +58,8 @@ public class BusSample<S extends Sample> implements Sample {
 
     public boolean equals(Object o) {
         if (o==null) return false;
-        if (!(o instanceof BusSample)) return false;
-        BusSample bo = (BusSample)o;
+        if (!(o instanceof BusSample<?>)) return false;
+        BusSample<?> bo = (BusSample<?>)o;
         if (bo.vals.length != vals.length) return false;
         for(int i=0; i<vals.length; i++)
             if (!vals[i].equals(bo.vals[i]))
@@ -77,8 +77,8 @@ public class BusSample<S extends Sample> implements Sample {
     public boolean isLogicZ() { for(Sample s : vals) if (!s.isLogicZ()) return false; return true; }
 
     public Sample lub(Sample s) {
-        if (!(s instanceof BusSample)) throw new RuntimeException("tried to call BusSample.lub("+s.getClass().getName()+")");
-        BusSample ds = (BusSample)s;
+        if (!(s instanceof BusSample<?>)) throw new RuntimeException("tried to call BusSample.lub("+s.getClass().getName()+")");
+        BusSample<?> ds = (BusSample<?>)s;
         if (ds.vals.length != vals.length) throw new RuntimeException("tried to call lub() on BusSamples of different width");
         Sample[] ret = new Sample[vals.length];
         for(int i=0; i<ret.length; i++)
@@ -87,8 +87,8 @@ public class BusSample<S extends Sample> implements Sample {
     }
 
     public Sample glb(Sample s) {
-        if (!(s instanceof BusSample)) throw new RuntimeException("tried to call BusSample.glb("+s.getClass().getName()+")");
-        BusSample ds = (BusSample)s;
+        if (!(s instanceof BusSample<?>)) throw new RuntimeException("tried to call BusSample.glb("+s.getClass().getName()+")");
+        BusSample<?> ds = (BusSample<?>)s;
         if (ds.vals.length != vals.length) throw new RuntimeException("tried to call glb() on BusSamples of different width");
         Sample[] ret = new Sample[vals.length];
         for(int i=0; i<ret.length; i++)
@@ -98,7 +98,7 @@ public class BusSample<S extends Sample> implements Sample {
 
     /** create a MutableSignal<BusSample<SS>> */
     public static <SS extends Sample>
-        Signal<BusSample<SS>> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext,
+        Signal<BusSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext,
                                            int width) {
         /*
         final Unboxed<BusSample<SS>> unboxer = new Unboxed<BusSample<SS>>() {
@@ -119,7 +119,7 @@ public class BusSample<S extends Sample> implements Sample {
 
     /** create a Signal<BusSample<S>> from preexisting Signal<S>'s */
     public static <SS extends Sample>
-        Signal<BusSample<SS>> createSignal(HashMap<String,Signal> an, Stimuli sd, String signalName, String signalContext,
+        Signal<BusSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext,
                                            final Signal<SS>[] subsignals) {
         return new Signal<BusSample<SS>>(an, sd, signalName, signalContext) {
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
@@ -195,7 +195,7 @@ public class BusSample<S extends Sample> implements Sample {
             }
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
-                int linePointMode = panel.getWaveWindow().getLinePointMode();
+//                int linePointMode = panel.getWaveWindow().getLinePointMode();
                 Dimension sz = panel.getSize();
                 int hei = sz.height;
 				// draw digital traces
@@ -206,12 +206,12 @@ public class BusSample<S extends Sample> implements Sample {
                                                                                            sz.width,
                                                                                            true);
                 double nextXValue = Double.MAX_VALUE;
-                int bit = 0;
+//                int bit = 0;
                 boolean curDefined = true;
                 long curYValue = 0;  // wow, this is pretty lame that Electric can't draw buses with more than 64 bits
                 int lastX = 0;
-                boolean undefined = false;
-                double curXValue = 0;
+//                boolean undefined = false;
+//                double curXValue = 0;
                 for(int i=0; i<view.getNumEvents(); i++) {
                     double xValue = view.getTime(i);
                     RangeSample<BusSample<DigitalSample> > rs = view.getSample(i);
@@ -219,10 +219,10 @@ public class BusSample<S extends Sample> implements Sample {
                     BusSample<DigitalSample> bs = rs.getMin();
                     for(int j=0; j<bs.getWidth(); j++) {
                         switch (WaveformWindow.getState(bs.getTrace(j)) & Stimuli.LOGIC) {
-                            case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<j);   undefined = false;   break;
-                            case Stimuli.LOGIC_HIGH: curYValue |= (1<<j);    undefined = false;   break;
+                            case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<j);   break;
+                            case Stimuli.LOGIC_HIGH: curYValue |= (1<<j);   break;
                             case Stimuli.LOGIC_X:
-                            case Stimuli.LOGIC_Z: undefined = true;    break;
+                            case Stimuli.LOGIC_Z:    break;
                         }
                     }
                     int x = panel.convertXDataToScreen(xValue);
@@ -260,7 +260,7 @@ public class BusSample<S extends Sample> implements Sample {
                             forPs.add(poly);
                         }
                     }
-                    curXValue = nextXValue;
+//                    curXValue = nextXValue;
                     lastX = x;
                     if (nextXValue == Double.MAX_VALUE) break;
                 }

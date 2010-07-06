@@ -73,7 +73,7 @@ public class SmartSpiceOut extends Input<Stimuli>
 		int signalCount = -1;
 		String[] signalNames = null;
 		int rowCount = -1;
-		HashMap<String,Signal> an = null;
+		HashMap<String,Signal<?>> an = null;
 		double[][] values = null;
         double[] time = null;
 		for(;;)

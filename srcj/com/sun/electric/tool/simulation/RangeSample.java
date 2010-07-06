@@ -40,8 +40,8 @@ public class RangeSample<S extends Sample> implements Sample {
     public S getMax() { return max; }
 
     public boolean equals(Object o) {
-        if (o==null || !(o instanceof RangeSample)) return false;
-        RangeSample rs = (RangeSample)o;
+        if (o==null || !(o instanceof RangeSample<?>)) return false;
+        RangeSample<?> rs = (RangeSample<?>)o;
         return rs.min.equals(min) && rs.max.equals(max);
     }
 

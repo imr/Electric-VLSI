@@ -50,7 +50,7 @@ import java.util.*;
  */
 public abstract class Signal<SS extends Sample> {
 
-    public Signal(HashMap<String,Signal> analysis, Stimuli sd, String signalName, String signalContext) {
+    public Signal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext) {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
 		this.extrapolateToRight = true;

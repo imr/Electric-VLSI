@@ -178,7 +178,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (openTextInput(mtURL)) return;
 		System.out.println("Reading HSpice measurements '" + mtURL.getFile() + "'");
 
-		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, "MEASUREMENTS", false);
+		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "MEASUREMENTS", false);
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;
@@ -428,7 +428,7 @@ public class HSpiceOut extends Input<Stimuli>
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, analysisTitle, false);
+		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, analysisTitle, false);
 		startProgressDialog("HSpice " + analysisTitle + " analysis", fileURL.getFile());
 		System.out.println("Reading HSpice " + analysisTitle + " analysis '" + fileURL.getFile() + "'");
 
@@ -708,7 +708,7 @@ public class HSpiceOut extends Input<Stimuli>
 		}
 
 		boolean isComplex = analysisTitle.equals("AC SIGNALS");
-        Signal[] signals = new Signal[numSignals];
+        Signal<?>[] signals = new Signal[numSignals];
 		for(int k=0; k<numSignals; k++) {
 			String name = signalNames[k];
 			if (constantPrefix != null &&
@@ -762,6 +762,8 @@ public class HSpiceOut extends Input<Stimuli>
 					} else {
                         MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[(k + numnoi) % numSignals];
                         double val = getHSpiceFloat(false);
+if (signalNames[k].equals("1")) System.out.println("SWEEP="+sweepName+" TIME="+time+" VALUE="+val);
+
                         if (signal.getSample(time)==null)
                             signal.addSample(time, new ScalarSample(val));
 					}

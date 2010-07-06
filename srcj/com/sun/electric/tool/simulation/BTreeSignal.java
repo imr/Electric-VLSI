@@ -31,16 +31,16 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
 
     private Signal.View<S> exactView = null;
     private final BTree<Double,S,Pair<S,S>> tree;
-    private Signal.View<S> pa = null;
-    private double tmin;
-    private double tmax;
-    private int    emax;
+//    private Signal.View<S> pa = null;
+//    private double tmin;
+//    private double tmax;
+//    private int    emax;
 
     public static int misses = 0;
     public static int steps = 0;
     public static int numLookups = 0;
 
-    public BTreeSignal(HashMap<String,Signal> analysis, Stimuli sd, String signalName, String signalContext,
+    public BTreeSignal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext,
                        BTree<Double,S,Pair<S,S>> tree
                        ) {
         super(analysis, sd, signalName, signalContext);

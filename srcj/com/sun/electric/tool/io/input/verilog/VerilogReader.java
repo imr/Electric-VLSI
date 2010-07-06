@@ -868,7 +868,8 @@ public class VerilogReader extends Input<Object>
     {
         for (VerilogData.VerilogModule module : verilogCell.getModules())
         {
-            Cell cell = buildCellFromModule(module, lib, createIconCells);
+//            Cell cell =
+            	buildCellFromModule(module, lib, createIconCells);
 //            if (topCell == null && cell.getLibrary() == lib) // first new
 //                topCell = cell;
         }

@@ -34,11 +34,11 @@ public class SweepSignal
 {
 	private Object obj;
 	private WaveformWindow ww;
-	private HashMap<String,Signal> an;
+	private HashMap<String,Signal<?>> an;
 	private boolean included;
 	private int sweepIndex;
 
-	public SweepSignal(Object obj, WaveformWindow ww, HashMap<String,Signal> an)
+	public SweepSignal(Object obj, WaveformWindow ww, HashMap<String,Signal<?>> an)
 	{
 		this.obj = obj;
 		this.ww = ww;
@@ -92,5 +92,5 @@ public class SweepSignal
 		}
 	}
 
-	public HashMap<String,Signal> getAnalysis() { return an; }
+	public HashMap<String,Signal<?>> getAnalysis() { return an; }
 }

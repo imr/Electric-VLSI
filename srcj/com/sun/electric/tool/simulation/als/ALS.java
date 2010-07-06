@@ -121,7 +121,7 @@ public class ALS extends Engine
 	/** the simulation engine */						Sim               theSim;
 	/** the circuit flattener */						Flat              theFlat;
 	/** the waveform window showing this simulator */	WaveformWindow    ww;
-	/** the stimuli set currently being displayed */	HashMap<String,Signal>   an;
+	/** the stimuli set currently being displayed */	HashMap<String,Signal<?>>   an;
 	/** current time in the simulator */				double            timeAbs;
 	/** saved list of stimuli when refreshing */		List<String>      stimuliList;
 
@@ -528,14 +528,14 @@ public class ALS extends Engine
 	 */
 	public void setClock(double period)
 	{
-		List<Signal> signals = ww.getHighlightedNetworkNames();
+		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
 			Job.getUserInterface().showErrorMessage("Must select a signal before setting a Clock on it",
 				"No Signals Selected");
 			return;
 		}
-		for(Signal sig : signals)
+		for(Signal<?> sig : signals)
 		{
 			String sigName = sig.getFullName();
 			Node nodeHead = findNode(sigName);
@@ -603,14 +603,14 @@ public class ALS extends Engine
 	 */
 	public void showSignalInfo()
 	{
-		List<Signal> signals = ww.getHighlightedNetworkNames();
+		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
 			Job.getUserInterface().showErrorMessage("Must select a signal before displaying it",
 				"No Signals Selected");
 			return;
 		}
-		for(Signal sig : signals)
+		for(Signal<?> sig : signals)
 		{
 			Node nodeHead = findNode(sig.getFullName());
 			if (nodeHead == null)
@@ -636,14 +636,14 @@ public class ALS extends Engine
 	 */
 	public void removeStimuliFromSignal()
 	{
-		List<Signal> signals = ww.getHighlightedNetworkNames();
+		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
 			Job.getUserInterface().showErrorMessage("Must select a signal on which to clear stimuli",
 				"No Signals Selected");
 			return;
 		}
-		for(Signal sig : signals)
+		for(Signal<?> sig : signals)
 		{
 			sig.clearControlPoints();
 
@@ -701,7 +701,7 @@ public class ALS extends Engine
 				if (selectedCPs == null) continue;
 				for(int i=0; i<selectedCPs.length; i++)
 				{
-					Signal sig = ws.getSignal();
+					Signal<?> sig = ws.getSignal();
 					Link lastSet = null;
 					Link nextSet = null;
 					for(Link thisSet = setRoot; thisSet != null; thisSet = nextSet)
@@ -763,7 +763,7 @@ public class ALS extends Engine
 			Panel wp = it.next();
 			for(WaveSignal ws : wp.getSignals())
 			{
-				Signal sig = ws.getSignal();
+				Signal<?> sig = ws.getSignal();
                 sig.clearControlPoints();
 			}
 		}
@@ -888,14 +888,14 @@ public class ALS extends Engine
 
 	private void makeThemThus(int state)
 	{
-		List<Signal> signals = ww.getHighlightedNetworkNames();
+		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
 			Job.getUserInterface().showErrorMessage("Must select a signal on which to set stimuli",
 				"No Signals Selected");
 			return;
 		}
-		for(Signal sig : signals)
+		for(Signal<?> sig : signals)
 		{
 			String sigName = sig.getFullName();
 			Node nodeHead = findNode(sigName);
@@ -1011,12 +1011,12 @@ public class ALS extends Engine
 		}
 	}
 
-	private HashMap<String,Signal> getCircuit(Cell cell)
+	private HashMap<String,Signal<?>> getCircuit(Cell cell)
 	{
 		// convert the stimuli
 		Stimuli sd = new Stimuli();
 		sd.setEngine(this);
-		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, "SIGNALS", true);
+		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "SIGNALS", true);
 		sd.setSeparatorChar('.');
 		sd.setCell(cell);
 		String topLevelName = cell.getName().toUpperCase();
@@ -1031,7 +1031,7 @@ public class ALS extends Engine
 		return an;
 	}
 
-	private void addExports(Connect cr, HashMap<String,Signal> an, String context)
+	private void addExports(Connect cr, HashMap<String,Signal<?>> an, String context)
 	{
 		// determine type of model
 		for(Model modPtr1 : modelList)
@@ -1104,7 +1104,7 @@ public class ALS extends Engine
 			Panel wp = it.next();
 			for(WaveSignal ws : wp.getSignals())
 			{
-				Signal sig = ws.getSignal();
+				Signal<?> sig = ws.getSignal();
                 sig.clearControlPoints();
             }
 		}

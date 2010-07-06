@@ -128,7 +128,7 @@ public class HorizRuler extends JPanel implements MouseListener, MouseMotionList
 		int wid = sz.width;
 		int hei = sz.height;
 		int offX = 0;
-		Signal xAxisSig = waveWindow.getXAxisSignalAll();
+		Signal<?> xAxisSig = waveWindow.getXAxisSignalAll();
 		if (drawHere != null)
 		{
 			xAxisSig = drawHere.getXAxisSignal();
@@ -374,7 +374,7 @@ public class HorizRuler extends JPanel implements MouseListener, MouseMotionList
 		double leftEdge = waveWindow.getSimData().getMinTime();
 		double rightEdge = waveWindow.getSimData().getMaxTime();
 
-		boolean notWarned = true;
+//		boolean notWarned = true;
 		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
 		{
 			Panel wp = it.next();

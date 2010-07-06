@@ -181,7 +181,7 @@ public class SpiceOut extends Input<Stimuli>
 			return;
 		}
 
-		HashMap<String,Signal> an = Stimuli.newAnalysis(sd, "SIGNALS", false);
+		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "SIGNALS", false);
 		sd.setCell(cell);
 
 		// convert lists to arrays
