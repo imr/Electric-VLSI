@@ -79,6 +79,7 @@ public class FileType implements Serializable {
 	/** Describes ALS decks. */				public static final FileType ALS          = makeFileType("ALS", new String[] {"als"}, "ALS Simulation Deck (als)", BUILTINSIMGRP);
 	/** Describes ALS vector decks. */		public static final FileType ALSVECTOR    = makeFileType("ALS Vectors", new String[] {"vec"}, "ALS Vector Deck (vec)", BUILTINSIMGRP);
 	/** Describes Applicon 860 decks. */	public static final FileType APPLICON860  = makeFileType("Applicon 860", new String[] {"apl"}, "Applicon 860 Deck (apl)");
+	/** Describes Bookshelf decks. */		public static final FileType BOOKSHELF    = makeFileType("Bookshelf Format", new String[] {"aux"}, "Bookshelf Aux File (aux)");
 	/** Describes CDL decks.*/				public static final FileType CDL          = makeFileType("CDL", new String[] {"cdl"}, "CDL Deck (cdl)", SPICESIMGRP);
 	/** Describes CIF files. */				public static final FileType CIF          = makeFileType("CIF", new String[] {"cif"}, "CIF File (cif)", EXPORTIMPORTGRP);
 	/** Describes COSMOS output. */			public static final FileType COSMOS       = makeFileType("COSMOS", new String[] {"sim"}, "COSMOS File (sim)", OTHERSIMGRP);

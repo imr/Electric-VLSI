@@ -35,6 +35,7 @@ import com.sun.electric.Main;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.input.bookshelf.Bookshelf;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -188,6 +189,7 @@ public class Input<ResultType>
 		if (type == FileType.SUE) return new Sue.SuePreferences(factory);
 		if (type == FileType.VERILOG) return new VerilogReader.VerilogPreferences(factory);
 		if (type == FileType.DSPF) return new DSPFReader.DSPFReaderPreferences(factory);
+		if (type == FileType.BOOKSHELF) return new Bookshelf.BookshelfPreferences(factory);
 		return null;
 	}
 

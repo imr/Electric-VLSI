@@ -168,6 +168,8 @@ public class FileMenu {
                     importLibraryCommand(FileType.VERILOG, false, true, false); }},
                 new EMenuItem("_Applicon 860...") {	public void run() {
                     importLibraryCommand(FileType.APPLICON860, false, true, true); }},
+                new EMenuItem("_Bookshelf...") {	public void run() {
+                    importLibraryCommand(FileType.BOOKSHELF, false, true, false); }},
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD)...") { public void run() {
                     importLibraryCommand(FileType.DAIS, true, true, false); }} : null,
                 SEPARATOR,
