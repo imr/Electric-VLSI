@@ -89,7 +89,8 @@ public class BookshelfNets {
 			if (pinObjs != null) {
 				for (BookshelfPin pin : pinObjs) {
 					PortProto pp = ni.getProto().getPort(0);
-					PortInst pi = PortInst.newInstance(pp, ni);
+//					PortInst pi = PortInst.newInstance(pp, ni);
+					PortInst pi = ni.findPortInstFromProto(pp);
 					Export exp = Export.newInstance(cell, pi, pin.getNodeName() + pin.getNet().name);
 					
 					//TODO stuck here
