@@ -33,12 +33,14 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNets.BookshelfNet;
 import com.sun.electric.tool.util.CollectionFactory;
 
@@ -87,8 +89,7 @@ public class BookshelfNodes {
 				}
 				NodeProto np = Artwork.tech().boxNode;
 				NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(0, 0), width, height,
-						cell);
-				ni.setName(name);
+						cell, Orientation.IDENT, name);
 			}
 		}
 	}

@@ -33,12 +33,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.Variable.Key;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfPin;
 import com.sun.electric.tool.util.CollectionFactory;
@@ -51,6 +58,8 @@ public class BookshelfNets {
 
 	private String fileName;
 	private Cell cell;
+	private Map<PortInst, BookshelfPin> pinsCache = CollectionFactory.createHashMap();
+	private Map<String, PortInst> netIndex = CollectionFactory.createHashMap();
 
 	public BookshelfNets(String fileName, Cell cell) {
 		this.fileName = fileName;
@@ -58,6 +67,7 @@ public class BookshelfNets {
 	}
 
 	public void parse() throws IOException {
+		netIndex.clear();
 
 		File file = new File(this.fileName);
 		FileReader freader = new FileReader(file);
@@ -81,7 +91,10 @@ public class BookshelfNets {
 			}
 		}
 
+		int i = 0;
 		Iterator<NodeInst> niIt = cell.getNodes();
+		ImmutableArcInst a = Generic.tech().unrouted_arc.getDefaultInst(cell
+				.getEditingPreferences());
 		while (niIt.hasNext()) {
 
 			NodeInst ni = niIt.next();
@@ -89,11 +102,23 @@ public class BookshelfNets {
 			if (pinObjs != null) {
 				for (BookshelfPin pin : pinObjs) {
 					PortProto pp = ni.getProto().getPort(0);
-//					PortInst pi = PortInst.newInstance(pp, ni);
 					PortInst pi = ni.findPortInstFromProto(pp);
-					Export exp = Export.newInstance(cell, pi, pin.getNodeName() + pin.getNet().name);
-					
-					//TODO stuck here
+					Export exp = Export
+							.newInstance(cell, pi, pin.getNodeName() + pin.getNet().name);
+
+					pinsCache.put(pi, pin);
+
+					if (netIndex.get(pin.getNet().name) == null)
+						netIndex.put(pin.getNet().name, pi);
+					else {
+						PortInst otherInst = netIndex.get(pin.getNet().name);
+						BookshelfPin otherPin = pinsCache.get(otherInst);
+						ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null,
+								otherInst, pi, new EPoint(otherPin.getLocation().getX(), otherPin
+										.getLocation().getY()), new EPoint(
+										pin.getLocation().getX(), pin.getLocation().getY()), a
+										.getGridExtendOverMin(), ArcInst.DEFAULTANGLE, a.flags);
+					}
 				}
 			}
 		}
