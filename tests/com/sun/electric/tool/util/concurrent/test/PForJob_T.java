@@ -79,14 +79,14 @@ public class PForJob_T {
     private static int[][] matB;
     private static Integer[][] matCPar;
     private static Integer[][] matCSer;
-    private static int size = 20;
+    private static int size = 4;
 
     @Test
     public void testMatrixMultiply() throws PoolExistsException, InterruptedException {
         matA = TestHelper.createMatrix(size, size, 100);
         matB = TestHelper.createMatrix(size, size, 100);
-        matCPar = TestHelper.createMatrixInteger(size, size, 100);
-        matCSer = TestHelper.createMatrixInteger(size, size, 100);
+        matCPar = TestHelper.createMatrixIntegerNull(size, size, 100);
+        matCSer = TestHelper.createMatrixIntegerNull(size, size, 100);
 
         ThreadPool pool = ThreadPool.initialize();
 
@@ -122,8 +122,8 @@ public class PForJob_T {
 
         matA = TestHelper.createMatrix(sizePerf, sizePerf, 100);
         matB = TestHelper.createMatrix(sizePerf, sizePerf, 100);
-        matCPar = TestHelper.createMatrixInteger(sizePerf, sizePerf, 100);
-        matCSer = TestHelper.createMatrixInteger(sizePerf, sizePerf, 100);
+        matCPar = TestHelper.createMatrixIntegerNull(sizePerf, sizePerf, 100);
+        matCSer = TestHelper.createMatrixIntegerNull(sizePerf, sizePerf, 100);
 
         ThreadPool pool = ThreadPool.initialize(8);
 
@@ -158,8 +158,8 @@ public class PForJob_T {
 
         matA = TestHelper.createMatrix(sizePerf, sizePerf, 100);
         matB = TestHelper.createMatrix(sizePerf, sizePerf, 100);
-        matCPar = TestHelper.createMatrixInteger(sizePerf, sizePerf, 100);
-        matCSer = TestHelper.createMatrixInteger(sizePerf, sizePerf, 100);
+        matCPar = TestHelper.createMatrixIntegerNull(sizePerf, sizePerf, 100);
+        matCSer = TestHelper.createMatrixIntegerNull(sizePerf, sizePerf, 100);
 
         IStructure<PTask> taskPool = WorkStealingStructure.createForThreadPool(8);
         ThreadPool pool = ThreadPool.initialize(taskPool, 8);
@@ -308,7 +308,7 @@ public class PForJob_T {
 
         matA = TestHelper.createMatrix(size, size, 100);
         matB = TestHelper.createMatrix(size, size, 100);
-        matCPar = TestHelper.createMatrixInteger(size, size, 100);
+        matCPar = TestHelper.createMatrixIntegerNull(size, size, 100);
 
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {

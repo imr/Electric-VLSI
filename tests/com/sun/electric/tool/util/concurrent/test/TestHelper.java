@@ -43,17 +43,17 @@ public class TestHelper {
 		return result;
 	}
 	
-	public static Integer[][] createMatrixInteger(int sizeX, int sizeY, int maximumValue) {
-		Integer[][] result = new Integer[sizeY][sizeX];
+	public static Integer[][] createMatrixIntegerNull(int sizeX, int sizeY, int maximumValue) {
+        Integer[][] result = new Integer[sizeY][sizeX];
 
-		Random rand = new Random(System.currentTimeMillis());
+        Random rand = new Random(System.currentTimeMillis());
 
-		for (int i = 0; i < sizeY; i++)
-			for (int j = 0; j < sizeX; j++)
-				result[i][j] = rand.nextInt(maximumValue);
+        for (int i = 0; i < sizeY; i++)
+            for (int j = 0; j < sizeX; j++)
+                result[i][j] = 0;
 
-		return result;
-	}
+        return result;
+    }
 	
 	public static float[][] createMatrix(int sizeX, int sizeY) {
 		float[][] result = new float[sizeY][sizeX];
