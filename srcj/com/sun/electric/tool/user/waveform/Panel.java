@@ -776,17 +776,30 @@ public class Panel extends JPanel
             Signal.View<RangeSample<Sample>> view =
 //                sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), 2, false);
             	sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), (int)getSize().getWidth(), false);
-//System.out.println("VIEW FROM TIME "+sSig.getMinTime()+" TO "+sSig.getMaxTime()+" HAS "+view.getNumEvents()+" EVENTS");
             for(int i=0; i<view.getNumEvents(); i++) {
                 RangeSample<?> rs = view.getSample(i);
                 if (rs==null) continue;
                 Sample min = rs.getMin();
+                if (min != null)
+                {
+                	if (min instanceof ScalarSample) lowValue = Math.min(lowValue, ((ScalarSample)min).getValue()); else
+                		if (min instanceof SweptSample<?>) lowValue = Math.min(lowValue, ((SweptSample<ScalarSample>)min).getMin());
+                }
                 Sample max = rs.getMax();
-                if (min!=null && !(min instanceof ScalarSample)) break;
-                if (max!=null && !(max instanceof ScalarSample)) break;
-                lowValue = Math.min(lowValue, ((ScalarSample)min).getValue());
-                highValue = Math.max(highValue, ((ScalarSample)max).getValue());
+                if (max != null)
+                {
+                	if (max instanceof ScalarSample) highValue = Math.max(highValue, ((ScalarSample)max).getValue()); else
+                		if (max instanceof SweptSample<?>) highValue = Math.max(highValue, ((SweptSample<ScalarSample>)max).getMax());
+                }
             }
+//            Signal.View<?> view = sSig.getExactView();
+////System.out.println("VIEW FROM TIME "+sSig.getMinTime()+" TO "+sSig.getMaxTime()+" HAS "+view.getNumEvents()+" EVENTS");
+//            for(int i=0; i<view.getNumEvents(); i++) {
+//                ScalarSample ss = (ScalarSample)view.getSample(i);
+//                if (ss==null) continue;
+//                lowValue = Math.min(lowValue, ss.getValue());
+//                highValue = Math.max(highValue, ss.getValue());
+//            }
         }
         double range = highValue - lowValue;
         if (range == 0) range = 2;

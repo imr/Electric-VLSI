@@ -101,6 +101,8 @@ public class Stimuli {
 		return an;
 	}
 
+    public void setNetDelimiter(String d) { delim = d;}
+
     public String getNetDelimiter() { return delim;}
 
     public int getNumAnalyses() { return analysisList.size(); }

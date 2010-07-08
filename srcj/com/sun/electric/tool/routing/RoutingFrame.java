@@ -107,6 +107,7 @@ public class RoutingFrame
 //		new com.sun.electric.tool.routing.team1astar.AStarRoutingFrame(),
 //		new com.sun.electric.tool.routing.team02LeeMoore.RoutingFrameLeeMoore(),
 //		new com.sun.electric.tool.routing.astar.t3.AStarRouter(),
+//		new com.sun.electric.tool.routing.astar2.t3.AStarRouter(),
 //		new com.sun.electric.tool.routing.team04LeeMoore.RoutingFrameLeeMoore(),
 //		new com.sun.electric.tool.routing.team06yana.yana()
 	};

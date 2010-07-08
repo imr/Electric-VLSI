@@ -22,41 +22,49 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
-import com.sun.electric.database.geometry.btree.unboxed.*;
-import java.io.*;
-import java.util.*;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Dimension;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
-import com.sun.electric.tool.user.waveform.*;
+
 import com.sun.electric.database.geometry.Poly;
-import java.awt.font.GlyphVector;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.font.GlyphVector;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.TreeMap;
 
 /**
  * A bus of many Signal<S> is represented as a single
  * Signal<BusSample<S>>.
  */
-public class BusSample<S extends Sample> implements Sample {
-
+public class BusSample<S extends Sample> implements Sample
+{
     private final Sample[] vals;
 
-    public BusSample(Sample[] vals) {
-        this.vals = new Sample[vals.length];
-        for(int i=0; i<vals.length; i++) {
-            if (vals[i]==null) throw new RuntimeException("null values not allowed in buses");
-            this.vals[i] = vals[i];
-        }
+    public BusSample(Sample[] vals)
+    {
+        int numValids = 0;
+        for(int i=0; i<vals.length; i++) if (vals[i] != null) numValids++;
+        this.vals = new Sample[numValids];
+        int fill = 0;
+        for(int i=0; i<vals.length; i++)
+            if (vals[i] != null) this.vals[fill++] = vals[i];
     }
 
     public int getWidth() { return vals.length; }
     public S   getTrace(int i) { return (S)vals[i]; }
 
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (o==null) return false;
         if (!(o instanceof BusSample<?>)) return false;
         BusSample<?> bo = (BusSample<?>)o;
@@ -66,7 +74,8 @@ public class BusSample<S extends Sample> implements Sample {
                 return false;
         return true;
     }
-    public int hashCode() {
+    public int hashCode()
+    {
         int ret = 0;
         for(int i=0; i<vals.length; i++)
             ret ^= vals[i].hashCode();
@@ -76,30 +85,32 @@ public class BusSample<S extends Sample> implements Sample {
     public boolean isLogicX() { for(Sample s : vals) if (!s.isLogicX()) return false; return true; }
     public boolean isLogicZ() { for(Sample s : vals) if (!s.isLogicZ()) return false; return true; }
 
-    public Sample lub(Sample s) {
+    public Sample lub(Sample s)
+    {
         if (!(s instanceof BusSample<?>)) throw new RuntimeException("tried to call BusSample.lub("+s.getClass().getName()+")");
         BusSample<?> ds = (BusSample<?>)s;
         if (ds.vals.length != vals.length) throw new RuntimeException("tried to call lub() on BusSamples of different width");
         Sample[] ret = new Sample[vals.length];
         for(int i=0; i<ret.length; i++)
             ret[i] = vals[i].lub(ds.vals[i]);
-        return new BusSample(ret);
+        return new BusSample<DigitalSample>(ret);
     }
 
-    public Sample glb(Sample s) {
+    public Sample glb(Sample s)
+    {
         if (!(s instanceof BusSample<?>)) throw new RuntimeException("tried to call BusSample.glb("+s.getClass().getName()+")");
         BusSample<?> ds = (BusSample<?>)s;
         if (ds.vals.length != vals.length) throw new RuntimeException("tried to call glb() on BusSamples of different width");
         Sample[] ret = new Sample[vals.length];
         for(int i=0; i<ret.length; i++)
             ret[i] = vals[i].glb(ds.vals[i]);
-        return new BusSample(ret);
+        return new BusSample<DigitalSample>(ret);
     }
 
     /** create a MutableSignal<BusSample<SS>> */
-    public static <SS extends Sample>
-        Signal<BusSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext,
-                                           int width) {
+    public static <SS extends Sample> Signal<BusSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName,
+    	String signalContext, int width)
+    {
         /*
         final Unboxed<BusSample<SS>> unboxer = new Unboxed<BusSample<SS>>() {
             public int getSize() { return 1; }
@@ -118,34 +129,34 @@ public class BusSample<S extends Sample> implements Sample {
     }
 
     /** create a Signal<BusSample<S>> from preexisting Signal<S>'s */
-    public static <SS extends Sample>
-        Signal<BusSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext,
-                                           final Signal<SS>[] subsignals) {
-        return new Signal<BusSample<SS>>(an, sd, signalName, signalContext) {
+    public static <SS extends Sample> Signal<BusSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName,
+    	String signalContext, final Signal<SS>[] subsignals)
+    {
+        return new Signal<BusSample<SS>>(an, sd, signalName, signalContext)
+        {
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
-            public Signal.View<RangeSample<BusSample<SS>>>
-                getRasterView(final double t0, final double t1, final int numPixels, final boolean extrap) {
+
+            public Signal.View<RangeSample<BusSample<SS>>> getRasterView(final double t0, final double t1, final int numPixels, final boolean extrap)
+            {
                 final Signal.View<RangeSample<SS>>[] subviews = new Signal.View[subsignals.length];
 
                 for(int i=0; i<subviews.length; i++)
                     subviews[i] = subsignals[i].getRasterView(t0, t1, numPixels, extrap);
 
-                // the subviews' getRasterView() methods might have
-                // differing getNumEvents() values or different
-                // getTime() values for a given index.  Therefore, we
-                // must "collate" them.  By using a sorted treemap
-                // here we ensure that this takes only O(n log n)
-                // time.
+                // the subviews' getRasterView() methods might have differing getNumEvents() values or different
+                // getTime() values for a given index.  Therefore, we must "collate" them.  By using a sorted treemap
+                // here we ensure that this takes only O(n log n) time.
                 
                 // INVARIANT: tm.get(t).contains(i) ==> (exists j such that subviews[i].getTime(j)==t)
-                TreeMap<Double,HashSet<Integer>> tm =
-                    new TreeMap<Double,HashSet<Integer>>();
-                for (int i=0; i<subviews.length; i++) {
+                TreeMap<Double,HashSet<Integer>> tm = new TreeMap<Double,HashSet<Integer>>();
+                for (int i=0; i<subviews.length; i++)
+                {
                     Signal.View<RangeSample<SS>> view = subviews[i];
-                    for(int j=0; j<view.getNumEvents(); j++) {
+                    for(int j=0; j<view.getNumEvents(); j++)
+                    {
                         double t = view.getTime(j);
                         HashSet<Integer> hs = tm.get(t);
-                        if (hs==null) tm.put(t, hs = new HashSet<Integer>());
+                        if (hs == null) tm.put(t, hs = new HashSet<Integer>());
                         hs.add(i);
                     }
                 }
@@ -157,44 +168,57 @@ public class BusSample<S extends Sample> implements Sample {
                 int[] event = new int[subviews.length];
                 SS[] minvals = (SS[])new Sample[subviews.length];
                 SS[] maxvals = (SS[])new Sample[subviews.length];
-                for(double t : tm.keySet()) {
+                for(double t : tm.keySet())
+                {
+                	times[i] = t;
                     HashSet<Integer> hs = tm.get(t);
-                    for(int v : hs) {
+                    for(int v : hs)
+                    {
                         assert subviews[v].getTime(event[v])==t;  // sanity check
                         RangeSample<SS> rs = subviews[v].getSample(event[v]);
                         minvals[v] = rs.getMin();
                         maxvals[v] = rs.getMax();
                         event[v]++;
                     }
-                    vals[i] = new RangeSample<BusSample<SS>>( new BusSample(minvals), new BusSample(maxvals) );
+                    vals[i] = new RangeSample<BusSample<SS>>( new BusSample<SS>(minvals), new BusSample<SS>(maxvals) );
                     i++;
                 }
 
-                return new Signal.View<RangeSample<BusSample<SS>>>() {
+                return new Signal.View<RangeSample<BusSample<SS>>>()
+                {
                     public int                        getNumEvents() { return times.length; }
                     public double                     getTime(int event) { return times[event]; }
                     public RangeSample<BusSample<SS>> getSample(int event) { return vals[event]; }
                 };
             }
-            public Signal.View<BusSample<SS>> getExactView() {
-                return new Signal.View<BusSample<SS>>() {
+
+            public Signal.View<BusSample<SS>> getExactView()
+            {
+                return new Signal.View<BusSample<SS>>()
+                {
                     public int           getNumEvents() { throw new RuntimeException("not implemented"); }
                     public double        getTime(int event) { throw new RuntimeException("not implemented"); }
                     public BusSample<SS> getSample(int event) { throw new RuntimeException("not implemented"); }
                 };
             }
-            public double getMinTime() {
+
+            public double getMinTime()
+            {
                 double min = Double.MAX_VALUE;
                 for(Signal<SS> sig : subsignals) min = Math.min(min, sig.getMinTime());
                 return min;
             }
-            public double getMaxTime() {
+
+            public double getMaxTime()
+            {
                 double max = Double.MIN_VALUE;
                 for(Signal<SS> sig : subsignals) max = Math.max(max, sig.getMaxTime());
                 return max;
             }
+
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
-                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
+                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects)
+            {
 //                int linePointMode = panel.getWaveWindow().getLinePointMode();
                 Dimension sz = panel.getSize();
                 int hei = sz.height;
@@ -205,20 +229,19 @@ public class BusSample<S extends Sample> implements Sample {
                                                                                            panel.convertXScreenToData(sz.width),
                                                                                            sz.width,
                                                                                            true);
-                double nextXValue = Double.MAX_VALUE;
-//                int bit = 0;
                 boolean curDefined = true;
                 long curYValue = 0;  // wow, this is pretty lame that Electric can't draw buses with more than 64 bits
                 int lastX = 0;
-//                boolean undefined = false;
-//                double curXValue = 0;
-                for(int i=0; i<view.getNumEvents(); i++) {
+                for(int i=0; i<view.getNumEvents(); i++)
+                {
                     double xValue = view.getTime(i);
                     RangeSample<BusSample<DigitalSample> > rs = view.getSample(i);
                     // XXX: shouldn't ignore the max!
                     BusSample<DigitalSample> bs = rs.getMin();
-                    for(int j=0; j<bs.getWidth(); j++) {
-                        switch (WaveformWindow.getState(bs.getTrace(j)) & Stimuli.LOGIC) {
+                    for(int j=0; j<bs.getWidth(); j++)
+                    {
+                        switch (WaveformWindow.getState(bs.getTrace(j)) & Stimuli.LOGIC)
+                        {
                             case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<j);   break;
                             case Stimuli.LOGIC_HIGH: curYValue |= (1<<j);   break;
                             case Stimuli.LOGIC_X:
@@ -226,31 +249,37 @@ public class BusSample<S extends Sample> implements Sample {
                         }
                     }
                     int x = panel.convertXDataToScreen(xValue);
-                    if (x >= panel.getVertAxisPos()) {
-                        if (x < panel.getVertAxisPos()+5) {
+                    if (x >= panel.getVertAxisPos())
+                    {
+                        if (x < panel.getVertAxisPos()+5)
+                        {
                             // on the left edge: just draw the "<"
                             if (panel.processALine(g, x, hei/2, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return;
                             if (panel.processALine(g, x, hei/2, x+5, 5, bounds, forPs, selectedObjects, ws, -1)) return;
-                        } else {
+                        } else
+                        {
                             // bus change point: draw the "X"
                             if (panel.processALine(g, x-5, 5, x+5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return;
                             if (panel.processALine(g, x+5, 5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return;
                         }
-                        if (lastX+5 < x-5) {
+                        if (lastX+5 < x-5)
+                        {
                             // previous bus change point: draw horizontal bars to connect
                             if (panel.processALine(g, lastX+5, 5, x-5, 5, bounds, forPs, selectedObjects, ws, -1)) return;
                             if (panel.processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, forPs, selectedObjects, ws, -1)) return;
                         }
                         String valString = "XX";
                         if (curDefined) valString = Long.toString(curYValue);
-                        if (g != null) {
+                        if (g != null)
+                        {
                             g.setFont(panel.getWaveWindow().getFont());
                             GlyphVector gv = panel.getWaveWindow().getFont().createGlyphVector(panel.getWaveWindow().getFontRenderContext(), valString);
                             Rectangle2D glyphBounds = gv.getLogicalBounds();
                             int textHei = (int)glyphBounds.getHeight();
                             g.drawString(valString, x+2, hei/2+textHei/2);
                         }
-                        if (forPs != null){
+                        if (forPs != null)
+                        {
                             Point2D [] pts = new Point2D[1];
                             pts[0] = new Point2D.Double(x+2, hei/2);
                             Poly poly = new Poly(pts);
@@ -260,9 +289,15 @@ public class BusSample<S extends Sample> implements Sample {
                             forPs.add(poly);
                         }
                     }
-//                    curXValue = nextXValue;
                     lastX = x;
-                    if (nextXValue == Double.MAX_VALUE) break;
+                }
+
+                // connect lines to the right
+				int wid = sz.width;
+                if (lastX+5 < wid)
+                {
+	                if (panel.processALine(g, lastX+5, 5, wid, 5, bounds, forPs, selectedObjects, ws, -1)) return;
+	                if (panel.processALine(g, lastX+5, hei-5, wid, hei-5, bounds, forPs, selectedObjects, ws, -1)) return;
                 }
             }
         };

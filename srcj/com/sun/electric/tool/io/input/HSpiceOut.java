@@ -27,26 +27,19 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-
+import com.sun.electric.tool.simulation.ComplexSample;
+import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.ScalarSample;
-
-import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.ScalarSample;
-import com.sun.electric.database.geometry.btree.*;
-import com.sun.electric.database.geometry.btree.unboxed.*;
+import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.SweptSample;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.io.*;
-import com.sun.electric.tool.io.input.*;
-import com.sun.electric.database.geometry.btree.*;
-import com.sun.electric.tool.simulation.*;
 
 /**
  * Class for reading and displaying waveforms from HSpice output.
@@ -695,7 +688,8 @@ public class HSpiceOut extends Input<Stimuli>
 			if (constantPrefix == null) constantPrefix = prefix;
 			if (!constantPrefix.equals(prefix)) { hasPrefix = false;   break; }
 		}
-		if (!hasPrefix) constantPrefix = null; else {
+		if (!hasPrefix) constantPrefix = null; else
+		{
 			String fileName = fileURL.getFile();
 			int pos = fileName.lastIndexOf(File.separatorChar);
 			if (pos >= 0) fileName = fileName.substring(pos+1);
@@ -708,75 +702,126 @@ public class HSpiceOut extends Input<Stimuli>
 		}
 
 		boolean isComplex = analysisTitle.equals("AC SIGNALS");
-        Signal<?>[] signals = new Signal[numSignals];
-		for(int k=0; k<numSignals; k++) {
-			String name = signalNames[k];
-			if (constantPrefix != null &&
-				name.startsWith(constantPrefix))
-					name = name.substring(constantPrefix.length());
-			String context = null;
-			int lastDotPos = name.lastIndexOf('.');
-			if (lastDotPos >= 0)
-			{
-				context = name.substring(0, lastDotPos);
-				name = name.substring(lastDotPos+1);
-			}
-			signals[k] =
-                isComplex
-                ? ComplexSample.createComplexSignal(an, sd, name, context)
-                : ScalarSample.createSignal(an, sd, name, context);
-		}
+		int sweepUpper = (sweepcnt > 0) ? sweepcnt : 1;
+        Signal<?>[][] signals = new Signal[numSignals][sweepUpper];
+        String [] sweepNames = new String[sweepUpper];
 
 		// setup the simulation information
 		int sweepCounter = sweepcnt;
-		for(;;) {
+        int sweepIndex = 0;
+		for(;;)
+		{
 			// get sweep info
             String sweepName = "";
-			if (sweepcnt > 0) {
+			if (sweepcnt > 0)
+			{
 				float sweepValue = getHSpiceFloat(false);
 				if (eofReached)  { System.out.println("EOF before sweep data");   break; }
 				sweepName = TextUtils.formatDouble(sweepValue);
 				if (DEBUGCONDITIONS) System.out.println("READING SWEEP NUMBER: "+sweepValue);
 				// if there are more than 2 conditions, read extra sweep values
-				for(int i=2; i<cndcnt; i++) {
+				for(int i=2; i<cndcnt; i++)
+				{
 					float anotherSweepValue = getHSpiceFloat(false);
 					if (eofReached)  { System.out.println("EOF reading sweep header");   break; }
 					sweepName += "," + TextUtils.formatDouble(anotherSweepValue);
 					if (DEBUGCONDITIONS) System.out.println("  EXTRA SWEEP NUMBER: "+anotherSweepValue);
 				}
-                sweepName = ":"+sweepName;
+                sweepNames[sweepIndex] = sweepName;
+			}
+			for(int k=0; k<numSignals; k++)
+			{
+				String name = signalNames[k];
+				if (constantPrefix != null && name.startsWith(constantPrefix))
+					name = name.substring(constantPrefix.length());
+				String context = null;
+				int lastDotPos = name.lastIndexOf('.');
+				if (lastDotPos >= 0)
+				{
+					context = name.substring(0, lastDotPos);
+					name = name.substring(lastDotPos+1);
+				}
+				if (sweepcnt > 0) name += "[" + sweepName + "]";
+				HashMap<String,Signal<?>> anToUse = an;
+				if (sweepcnt > 0) anToUse = null;
+				signals[k][sweepIndex] = isComplex
+	                ? ComplexSample.createComplexSignal(anToUse, sd, name, context)
+	                : ScalarSample.createSignal(anToUse, sd, name, context);
 			}
 
-			for(;;) {
+			for(;;)
+			{
 				// get the first number, see if it terminates
 				float time = getHSpiceFloat(true);
 				if (eofReached) break;
+
 				// get a row of numbers
-				for(int k=0; k<numSignals; k++) {
-					if (isComplex) {
-                        MutableSignal<ComplexSample> signal = (MutableSignal<ComplexSample>)signals[(k + numnoi) % numSignals];
+				for(int k=0; k<numSignals; k++)
+				{
+					if (isComplex)
+					{
+                        MutableSignal<ComplexSample> signal = (MutableSignal<ComplexSample>)signals[(k + numnoi) % numSignals][sweepIndex];
 						float realPart = getHSpiceFloat(false);
 						float imagPart = getHSpiceFloat(false);
-                        if (signal.getSample(time)==null)
+                        if (signal.getSample(time) == null)
                             signal.addSample(time, new ComplexSample(realPart, imagPart));
-					} else {
-                        MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[(k + numnoi) % numSignals];
+					} else
+					{
+                        MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[(k + numnoi) % numSignals][sweepIndex];
                         double val = getHSpiceFloat(false);
-//if (signalNames[k].equals("1")) System.out.println("SWEEP="+sweepName+" TIME="+time+" VALUE="+val);
-
-                        if (signal.getSample(time)==null)
+                        if (signal.getSample(time) == null)
                             signal.addSample(time, new ScalarSample(val));
 					}
-					if (eofReached) {
+					if (eofReached)
+					{
 						System.out.println("EOF in the middle of the data (at " + k + " out of " + numSignals +")");
 						break;
 					}
 				}
-				if (eofReached)  { System.out.println("EOF before the end of the data");   break; }
+				if (eofReached) { System.out.println("EOF before the end of the data");   break; }
 			}
 			sweepCounter--;
 			if (sweepCounter <= 0) break;
+			sweepIndex++;
 			eofReached = false;
+		}
+		if (sweepcnt > 0)
+		{
+			for(int k=0; k<numSignals; k++)
+			{
+				String name = signalNames[k];
+				if (constantPrefix != null && name.startsWith(constantPrefix))
+					name = name.substring(constantPrefix.length());
+				String context = null;
+				int lastDotPos = name.lastIndexOf('.');
+				if (lastDotPos >= 0)
+				{
+					context = name.substring(0, lastDotPos);
+					name = name.substring(lastDotPos+1);
+				}
+
+				int total = 0;
+		        for(int i=0; i<signals[k].length; i++)
+		        	if (signals[k][i] != null) total++;
+		        Signal<?>[] signalCopy = new Signal[total];
+		        String [] sweepNameCopy = new String[total];
+		        int j = 0;
+		        for(int i=0; i<signals[k].length; i++)
+		        {
+		        	if (signals[k][i] == null) continue;
+		        	signalCopy[j] = signals[k][i];
+		        	sweepNameCopy[j] = sweepNames[i];
+		        	j++;
+		        }
+		        
+				if (isComplex)
+				{
+					SweptSample.createSignal(an, sd, name, context, sweepNameCopy, (Signal<ComplexSample>[])signalCopy);
+				} else
+				{
+					SweptSample.createSignal(an, sd, name, context, sweepNameCopy, (Signal<ScalarSample>[])signalCopy);
+				}
+			}
 		}
 		closeInput();
 

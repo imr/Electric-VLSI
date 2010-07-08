@@ -58,9 +58,11 @@ import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 
+import com.sun.electric.tool.simulation.RangeSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.SweptSample;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -121,6 +123,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 import java.util.prefs.Preferences;
 
 import javax.print.attribute.standard.ColorSupported;
@@ -183,7 +186,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta, diskLabel;
 	/** buttons for centering the X-axis cursors. */		private JButton centerMain, centerExt;
 	/** a list of panels in this window */					private List<Panel> wavePanels;
-	/** a list of sweep signals in this window */			private List<SweepSignal> sweepSignals;
+	/** a list of sweep signals in this window */			private Map<String,SweepSignal[]> sweepSignals;
 	/** the main horizontal ruler for all panels. */		private HorizRuler mainHorizRulerPanel;
 	/** true if the main horizontal ruler is logarithmic */	private boolean mainHorizRulerPanelLogarithmic;
 	/** the VCR timer, when running */						private Timer vcrTimer;
@@ -1814,29 +1817,27 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private void resetSweeps()
 	{
-		sweepSignals = new ArrayList<SweepSignal>();
-        /*
-		for(Iterator<HashMap<String,Signal>> it = sd.getAnalyses(); it.hasNext(); )
+		sweepSignals = new HashMap<String,SweepSignal[]>();
+		for(Iterator<HashMap<String,Signal<?>>> it = sd.getAnalyses(); it.hasNext(); )
 		{
-			HashMap<String,Signal> an = it.next();
-			if (!(an instanceof Analysis)) continue;
-			Analysis aa = (HashMap<String,Signal>)an;
-			int maxNum = aa.getNumSweeps();
-			if (maxNum <= 1) continue;
-			for (int i = 0; i < maxNum; i++)
+			HashMap<String,Signal<?>> an = it.next();
+			String anName = an.toString();
+			SweepSignal[] signalArray = sweepSignals.get(anName);
+			if (signalArray == null)
 			{
-				Object obj = aa.getSweep(i);
-				new SweepSignal(obj, this, an);
+				for(String key : an.keySet())
+				{
+					Signal<?> sig = (Signal<?>)an.get(key);
+					String[] sweeps = sig.getSweepNames();
+					if (sweeps == null) continue;
+					signalArray = new SweepSignal[sweeps.length];
+					for(int i=0; i<sweeps.length; i++)
+						signalArray[i] = new SweepSignal(sweeps[i], this);
+					sweepSignals.put(anName, signalArray);
+					break;
+				}
 			}
 		}
-        */
-	}
-
-	public int addSweep(SweepSignal ss)
-	{
-		if (sweepSignals.add(ss))
-			return sweepSignals.size()-1;
-		return -1;
 	}
 
 	public void setIncludeInAllSweeps(List<SweepSignal> sweeps, boolean include)
@@ -1853,16 +1854,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to check whether this particular sweep is included.
 	 * @return true if the sweep is included
 	 */
-	public boolean isSweepSignalIncluded(HashMap<String,Signal<?>> an, int index)
+	public boolean isSweepSignalIncluded(String anName, int index)
 	{
-        /*
-		Object sweep = an.getSweep(index);
-		for (SweepSignal ss : sweepSignals)
+		SweepSignal[] signalArray = sweepSignals.get(anName);
+		if (signalArray != null)
 		{
-			if (ss.getObject() == sweep)
-				return ss.isIncluded();
+			SweepSignal ss = signalArray[index];
+			if (ss != null) return ss.isIncluded();
 		}
-        */
 		return true; // in case no sweep, always true
 	}
 
@@ -2150,6 +2149,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			HashMap<String,Signal<?>> an = it.next();
             nodes.add(getSignalsForExplorer(an, rootPath, an.toString()));
+            DefaultMutableTreeNode sweepTree = getSweepsForExplorer(an, an.toString());
+            if (sweepTree != null) nodes.add(sweepTree);
 		}
 
 		// clean possible nulls
@@ -2187,17 +2188,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		char separatorChar = sd.getSeparatorChar();
 		for(Signal<?> sSig : signals)
 		{
-//			if (!(sSig instanceof TimedSignal)) continue;
 			if (sSig.getSignalContext() != null)
 				makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 		}
 
-        String delim = SimulationTool.getSpiceExtractedNetDelimiter();
+        String delim = sd.getNetDelimiter(); //SimulationTool.getSpiceExtractedNetDelimiter();
         // make a list of signal names with "#" in them
 		Set<String> sharpSet = new HashSet<String>();
 		for(Signal<?> sSig : signals)
 		{
-//			if (!(sSig instanceof TimedSignal)) continue;
 			String sigName = sSig.getSignalName();
 			int hashPos = sigName.indexOf(delim);
 			if (hashPos > 0)
@@ -2212,7 +2211,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// add all signals to the tree
 		for(Signal<?> sSig : signals)
 		{
-//			if (!(sSig instanceof TimedSignal)) continue;
 			TreePath thisTree = analysisPath;
 
 			String nodeName = sSig.getSignalContext();
@@ -2273,7 +2271,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/**
 	 * Class to sort signals by their name
 	 */
-	private static class SignalsByName implements Comparator<Signal<?>>
+	public static class SignalsByName implements Comparator<Signal<?>>
 	{
 		public int compare(Signal<?> s1, Signal<?> s2)
 		{
@@ -2281,21 +2279,28 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 	}
 
-//	private DefaultMutableTreeNode getSweepsForExplorer(HashMap<String,Signal<?>> an, String analysis)
-//	{
-//		DefaultMutableTreeNode sweepsExplorerTree = null;
-//		boolean first = true;
-//		for(SweepSignal ss : sweepSignals)
-//		{
-//			if (first)
-//			{
-//				first = false;
-//				sweepsExplorerTree = new DefaultMutableTreeNode(analysis);
-//			}
-//			sweepsExplorerTree.add(new DefaultMutableTreeNode(ss));
-//		}
-//		return sweepsExplorerTree;
-//	}
+	private DefaultMutableTreeNode getSweepsForExplorer(HashMap<String,Signal<?>> an, String analysis)
+	{
+		DefaultMutableTreeNode sweepsExplorerTree = null;
+		boolean first = true;
+		SweepSignal[] signalArray = sweepSignals.get(an.toString());
+		if (signalArray != null)
+		{
+			for(SweepSignal ss : signalArray)
+			{
+				if (first)
+				{
+					first = false;
+					int spacePos = analysis.indexOf(' ');
+					if (spacePos >= 0) analysis = analysis.substring(0, spacePos) + " SWEEPS"; else
+						analysis += " SWEEPS";
+					sweepsExplorerTree = new DefaultMutableTreeNode(analysis);
+				}
+				sweepsExplorerTree.add(new DefaultMutableTreeNode(ss));
+			}
+		}
+		return sweepsExplorerTree;
+	}
 
 	// ************************************* SIGNALS *************************************
 

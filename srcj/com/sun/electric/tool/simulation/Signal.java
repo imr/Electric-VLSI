@@ -22,14 +22,17 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.waveform.*;
-import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
-import java.awt.Graphics;
-import java.awt.Color;
-import java.awt.geom.Rectangle2D;
 import com.sun.electric.database.geometry.PolyBase;
-import java.util.*;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * A Signal represents simulation data captured for a particular node
@@ -69,12 +72,12 @@ public abstract class Signal<SS extends Sample> {
         }
     }
 
-	/** the name of this signal */									private final String signalName;
-	/** the context of this signal (qualifications to name) */		private final String signalContext;
-	/** the context of this signal (qualifications to name) */		private final String fullSignalName;
-    /** the HashMap<String,Signal> to which this signal belongs */                private final String analysisTitle;
-    /** the extrapolateToRight setting of the HashMap<String,Signal> */           private final boolean extrapolateToRight;
-    /** the stimuli of the HashMap<String,Signal> */                              private final Stimuli stimuli;
+	/** the name of this signal */										private final String signalName;
+	/** the context of this signal (qualifications to name) */			private final String signalContext;
+	/** the context of this signal (qualifications to name) */			private final String fullSignalName;
+    /** the HashMap<String,Signal> to which this signal belongs */      private final String analysisTitle;
+    /** the extrapolateToRight setting of the HashMap<String,Signal> */ private final boolean extrapolateToRight;
+    /** the stimuli of the HashMap<String,Signal> */                    private final Stimuli stimuli;
 
     // methods relocated from other classes
     public void clearControlPoints() { stimuli.clearControlPoints(this); }
@@ -83,6 +86,9 @@ public abstract class Signal<SS extends Sample> {
     public Double[] getControlPoints() { return stimuli.getControlPoints(this); }
     public boolean extrapolateValues() { return extrapolateToRight; }
 	public final String getAnalysisTitle() { return analysisTitle; }
+
+	/** returns an array of sweep names on this Signal */
+	public String [] getSweepNames() { return null; }
 
 	/** The name of this simulation signal, not including hierarchical path information */
 	public final String getSignalName() { return signalName; }

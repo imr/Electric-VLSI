@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (7/8/10, SMR) Waveform window doesn't handle HSpice sweeps (Bug #2782).
+FIX: Added SweptSample class, added getSweepNames() to Signal.
+
 BUG: (7/5/10, SMR) Waveform window draws AC stimuli wrong (Bug #2839).
 FIX: Changed ComplexSample constructor to compute hypot() instead of atan2().
 

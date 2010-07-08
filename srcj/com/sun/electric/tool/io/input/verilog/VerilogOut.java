@@ -27,12 +27,18 @@ package com.sun.electric.tool.io.input.verilog;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.io.input.*;
-import com.sun.electric.tool.simulation.*;
+import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.simulation.BusSample;
+import com.sun.electric.tool.simulation.DigitalSample;
+import com.sun.electric.tool.simulation.MutableSignal;
+import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +72,7 @@ public class VerilogOut extends Input<Stimuli>
 		throws IOException
 	{
         Stimuli sd = new Stimuli();
+        sd.setNetDelimiter(" ");
         this.sd = sd;
 
 		// open the file
@@ -94,8 +101,8 @@ public class VerilogOut extends Input<Stimuli>
 		int curLevel = 0;
 		int numSignals = 0;
 		Map<String,Object> symbolTable = new HashMap<String,Object>();
-		Map<Signal<DigitalSample>,List<VerilogStimuli>> dataMap = new HashMap<Signal<DigitalSample>,List<VerilogStimuli>>();
-		List<Signal<DigitalSample>> curArray = null;
+		Map<Signal<?>,List<VerilogStimuli>> dataMap = new HashMap<Signal<?>,List<VerilogStimuli>>();
+		List<Signal<?>> curArray = null;
 		for(;;)
 		{
 			String keyword = getNextKeyword();
@@ -127,14 +134,13 @@ public class VerilogOut extends Input<Stimuli>
 				{
 					// scan for arrays
 					cleanUpScope(curArray, an);
-					curArray = new ArrayList<Signal<DigitalSample>>();
+					curArray = new ArrayList<Signal<?>>();
 
 					String scopeName = getNextKeyword();
 					if (scopeName == null) break;
 					if (currentScope.length() > 0) currentScope += ".";
 					currentScope += scopeName;
 					curLevel++;
-					curArray = new ArrayList<Signal<DigitalSample>>();
 				}
 				parseToEnd();
 				continue;
@@ -150,7 +156,7 @@ public class VerilogOut extends Input<Stimuli>
 
 				// scan for arrays
 				cleanUpScope(curArray, an);
-				curArray = new ArrayList<Signal<DigitalSample>>();
+				curArray = new ArrayList<Signal<?>>();
 
 				int dotPos = currentScope.lastIndexOf('.');
 				if (dotPos >= 0)
@@ -194,12 +200,13 @@ public class VerilogOut extends Input<Stimuli>
 					}
 					numSignals++;
 
-                    Signal sig = null;
+                    Signal<?> sig = null;
                     if (width <= 1) {
                         sig = DigitalSample.createSignal(an, sd, signalName + index, currentScope);
                         dataMap.put(sig, new ArrayList<VerilogStimuli>());
                         if (index.length() > 0) curArray.add(sig);
                     } else {
+//System.out.println("+++BUS "+width+" WIDE CALLED "+signalName);
                         Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
 						for(int i=0; i<width; i++) {
                             subsigs[i] = DigitalSample.createSignal(an, sd, signalName + "[" + i + "]", currentScope);
@@ -376,10 +383,10 @@ public class VerilogOut extends Input<Stimuli>
         */
 	}
 
-	private void cleanUpScope(List<Signal<DigitalSample>> curArray, HashMap<String,Signal<?>> an)
+	private void cleanUpScope(List<Signal<?>> curArray, HashMap<String,Signal<?>> an)
 	{
 		if (curArray == null) return;
-
+        Collections.sort(curArray, new WaveformWindow.SignalsByName());
 		String last = null;
 		String scope = null;
 		int firstEntry = 0;
@@ -388,47 +395,50 @@ public class VerilogOut extends Input<Stimuli>
 		int numSignalsInArray = curArray.size();
 		for(int j=0; j<numSignalsInArray; j++)
 		{
-			Signal<DigitalSample> sig = curArray.get(j);
+			Signal<?> sig = curArray.get(j);
 			int squarePos = sig.getSignalName().indexOf('[');
 			if (squarePos < 0) continue;
 			String purename = sig.getSignalName().substring(0, squarePos);
 			int index = TextUtils.atoi(sig.getSignalName().substring(squarePos+1));
-			if (last == null)
+//System.out.println("BUS NAME "+sig.getSignalName()+" HAS PURE NAME "+purename+" AND INDEX "+index);
+			if (last != null)
 			{
-				firstEntry = j;
-				last = purename;
-				firstIndex = lastIndex = index;
-				scope = sig.getSignalContext();
-			} else
-			{
-				if (last.equals(purename)) lastIndex = index; else
+				if (last.equals(purename))
 				{
-					int width = j - firstEntry;
-                    Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
-					for(int i=0; i<width; i++) {
-						Signal<DigitalSample> subSig = curArray.get(firstEntry+i);
-                        subsigs[i] = subSig;
-					}
-//                    Signal arraySig =
-                        BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
-					last = null;
+					lastIndex = index;
+					continue;
 				}
+				int width = j - firstEntry;
+//System.out.println("  FINISHED BUS "+last+" WIDTH="+width);
+                Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
+				for(int i=0; i<width; i++)
+				{
+					Signal<?> subSig = curArray.get(firstEntry+i);
+                    subsigs[i] = (Signal<DigitalSample>)subSig;
+				}
+//              Signal arraySig =
+                    BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
 			}
+			firstEntry = j;
+			last = purename;
+			firstIndex = lastIndex = index;
+			scope = sig.getSignalContext();
 		}
 		if (last != null)
 		{
 			int width = numSignalsInArray - firstEntry;
+//System.out.println("  FINISHED EVERYTHING AND BUS "+last+" HAS WIDTH="+width);
             Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
 			for(int i=0; i<width; i++) {
-				Signal<DigitalSample> subSig = curArray.get(firstEntry+i);
-                subsigs[i] = subSig;
+				Signal<?> subSig = curArray.get(firstEntry+i);
+                subsigs[i] = (Signal<DigitalSample>)subSig;
 			}
 //			Signal arraySig =
                 BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
 		}
 	}
 
-	private void addSignalToHashMap(Signal<DigitalSample> sig, String symbol, Map<String,Object> symbolTable)
+	private void addSignalToHashMap(Signal<?> sig, String symbol, Map<String,Object> symbolTable)
 	{
 		Object entry = symbolTable.get(symbol);
 		if (entry == null)
@@ -442,7 +452,7 @@ public class VerilogOut extends Input<Stimuli>
 			symbolTable.put(symbol, manySigs);
 		} else if (entry instanceof List<?>)
 		{
-			((List<Signal<DigitalSample>>)entry).add(sig);
+			((List<Signal<?>>)entry).add(sig);
 		}
 	}
 
