@@ -33,6 +33,8 @@ import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.DigitalSample.Strength;
+import com.sun.electric.tool.simulation.DigitalSample.Value;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.io.IOException;
@@ -49,18 +51,6 @@ import java.util.Map;
  */
 public class VerilogOut extends Input<Stimuli>
 {
-	private static class VerilogStimuli
-	{
-		double time;
-		int state;
-
-		VerilogStimuli(double time, int state)
-		{
-			this.time = time;
-			this.state = state;
-		}
-	}
-
 	public VerilogOut() {}
 
     private Stimuli sd;
@@ -68,12 +58,11 @@ public class VerilogOut extends Input<Stimuli>
 	/**
 	 * Method to read an Verilog output file.
 	 */
-	protected Stimuli processInput(URL fileURL, Cell cell)
+	protected Stimuli processInput(URL fileURL, Cell cell, Stimuli sd)
 		throws IOException
 	{
-        Stimuli sd = new Stimuli();
-        sd.setNetDelimiter(" ");
         this.sd = sd;
+        sd.setNetDelimiter(" ");
 
 		// open the file
 		if (openTextInput(fileURL)) return sd;
@@ -95,13 +84,12 @@ public class VerilogOut extends Input<Stimuli>
 		throws IOException
 	{
 		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "SIGNALS", true);
-		sd.setCell(cell);
+		Map<String,Signal<DigitalSample>[]> busMembers = new HashMap<String,Signal<DigitalSample>[]>();
 		double timeScale = 1.0;
 		String currentScope = "";
 		int curLevel = 0;
 		int numSignals = 0;
 		Map<String,Object> symbolTable = new HashMap<String,Object>();
-		Map<Signal<?>,List<VerilogStimuli>> dataMap = new HashMap<Signal<?>,List<VerilogStimuli>>();
 		List<Signal<?>> curArray = null;
 		for(;;)
 		{
@@ -201,22 +189,23 @@ public class VerilogOut extends Input<Stimuli>
 					numSignals++;
 
                     Signal<?> sig = null;
-                    if (width <= 1) {
+                    if (width <= 1)
+                    {
                         sig = DigitalSample.createSignal(an, sd, signalName + index, currentScope);
-                        dataMap.put(sig, new ArrayList<VerilogStimuli>());
                         if (index.length() > 0) curArray.add(sig);
-                    } else {
+                    } else
+                    {
 //System.out.println("+++BUS "+width+" WIDE CALLED "+signalName);
                         Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
-						for(int i=0; i<width; i++) {
+						for(int i=0; i<width; i++)
+						{
                             subsigs[i] = DigitalSample.createSignal(an, sd, signalName + "[" + i + "]", currentScope);
-							dataMap.put(subsigs[i], new ArrayList<VerilogStimuli>());
 							addSignalToHashMap(subsigs[i], symbol + "[" + i + "]", symbolTable);
-							numSignals++;
 						}
                         sig = BusSample.createSignal(an, sd, signalName + "[0:" + (width-1) + "]", null, subsigs);
-                        dataMap.put(sig, new ArrayList<VerilogStimuli>());
+                		busMembers.put(symbol, subsigs);
 					}
+					numSignals++;
 
 					// put it in the symbol table
 					addSignalToHashMap(sig, symbol, symbolTable);
@@ -248,25 +237,24 @@ public class VerilogOut extends Input<Stimuli>
 							System.out.println("Unknown symbol '" + restOfLine + "' on line " + lineReader.getLineNumber());
 							continue;
 						}
-						if (entry instanceof List<?>) entry = ((List<?>)entry).get(0);
+						if (entry instanceof List<?>) entry = ((List<Signal<?>>)entry).get(0);
 						Signal<DigitalSample> sig = (Signal<DigitalSample>)entry;
 
 						// insert the stimuli
-						int state = 0;
+						DigitalSample ds = null;
 						switch (chr)
 						{
-							case '0': state = Stimuli.LOGIC_LOW  | Stimuli.GATE_STRENGTH;  break;
-							case '1': state = Stimuli.LOGIC_HIGH | Stimuli.GATE_STRENGTH;  break;
+							case '0': ds = DigitalSample.getSample(Value.LOW, Strength.LARGE_CAPACITANCE);   break;
+							case '1': ds = DigitalSample.getSample(Value.HIGH, Strength.LARGE_CAPACITANCE);  break;
 							case 'X':
-							case 'x': state = Stimuli.LOGIC_X    | Stimuli.GATE_STRENGTH;  break;
+							case 'x': ds = DigitalSample.getSample(Value.X, Strength.LARGE_CAPACITANCE);     break;
 							case 'Z':
-							case 'z': state = Stimuli.LOGIC_Z    | Stimuli.GATE_STRENGTH;  break;
+							case 'z': ds = DigitalSample.getSample(Value.Z, Strength.HIGH_IMPEDANCE);        break;
 						}
-						VerilogStimuli vs = new VerilogStimuli(curTime, state);
-						List<VerilogStimuli> listForSig = dataMap.get(sig);
-						listForSig.add(vs);
+			            ((MutableSignal<DigitalSample>)sig).addSample(curTime, ds);
 						continue;
 					}
+
 					if (chr == '$')
 					{
 						if (restOfLine.equals("end")) continue;
@@ -290,68 +278,29 @@ public class VerilogOut extends Input<Stimuli>
 							continue;
 						}
 						String symName = restOfLine.substring(spacePos+1);
-						Object entry = symbolTable.get(symName);
-						if (entry == null)
+                		Signal<DigitalSample>[] members = busMembers.get(symName);
+						for(int i=0; i<members.length; i++)
 						{
-							System.out.println("Unknown symbol '" + symName + "' on line " + lineReader.getLineNumber());
-							continue;
-						}
-//						if (entry instanceof List) entry = ((List)entry).get(0);
-//						Signal<DigitalSample> sig = (Signal<DigitalSample>)entry;
-//						int i = 0;
-                        /*
-                        if (HashMap<String,Signal>.getBussedSignals(sig)!=null)
-						for(Signal anySig : Analysis.getBussedSignals(sig))
-						{
-							Signal<DigitalSample> subSig = (Signal<DigitalSample>)anySig;
+							Signal<DigitalSample> subSig = members[i];
 							char bit = restOfLine.charAt(i++);
-							int state = 0;
+							DigitalSample ds = null;
 							switch (bit)
 							{
-								case '0': state = Stimuli.LOGIC_LOW  | Stimuli.GATE_STRENGTH;  break;
-								case '1': state = Stimuli.LOGIC_HIGH | Stimuli.GATE_STRENGTH;  break;
+								case '0': ds = DigitalSample.getSample(Value.LOW, Strength.LARGE_CAPACITANCE);   break;
+								case '1': ds = DigitalSample.getSample(Value.HIGH, Strength.LARGE_CAPACITANCE);  break;
 								case 'X':
-								case 'x': state = Stimuli.LOGIC_X    | Stimuli.GATE_STRENGTH;  break;
+								case 'x': ds = DigitalSample.getSample(Value.X, Strength.LARGE_CAPACITANCE);     break;
 								case 'Z':
-								case 'z': state = Stimuli.LOGIC_Z    | Stimuli.GATE_STRENGTH;  break;
+								case 'z': ds = DigitalSample.getSample(Value.Z, Strength.HIGH_IMPEDANCE);        break;
 							}
-							VerilogStimuli vs = new VerilogStimuli(curTime, state);
-							List<VerilogStimuli> listForSig = dataMap.get(subSig);
-							listForSig.add(vs);
+				            ((MutableSignal<DigitalSample>)subSig).addSample(curTime, ds);
 						}
-                        */
 						continue;
 					}
 					System.out.println("Unknown stimulus on line " + lineReader.getLineNumber() + ": " + currentLine);
 				}
 			}
 			continue;
-		}
-
-		// convert the stimuli
-		for(Object entry : symbolTable.values())
-		{
-			List<Signal<DigitalSample>> fullList = null;
-			if (entry instanceof List<?>)
-			{
-				fullList = (List<Signal<DigitalSample>>)entry;
-				entry = fullList.get(0);
-			}
-            if (entry instanceof MutableSignal<?>) {
-                MutableSignal<DigitalSample> sig = (MutableSignal<DigitalSample>)entry;
-                List<VerilogStimuli> listForSig = dataMap.get(sig);
-                int numStimuli = listForSig.size();
-                if (numStimuli == 0) continue;
-                for(VerilogStimuli vs : listForSig)
-                    sig.addSample(vs.time, DigitalSample.fromOldStyle(vs.state));
-            }
-            /*
-			if (fullList != null)
-				for(Signal<DigitalSample> oSig : fullList) {
-                    if (oSig.getTimeVector() == null) oSig.setTimeVector(sig.getTimeVector());
-                    if (oSig.getStateVector() == null) oSig.setStateVector(sig.getStateVector());
-                }
-            */
 		}
 
 		// remove singular top-level signal name (this code also occurs in HSpiceOut.readTRDCACFile)
@@ -416,8 +365,7 @@ public class VerilogOut extends Input<Stimuli>
 					Signal<?> subSig = curArray.get(firstEntry+i);
                     subsigs[i] = (Signal<DigitalSample>)subSig;
 				}
-//              Signal arraySig =
-                    BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
+                BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
 			}
 			firstEntry = j;
 			last = purename;
@@ -433,8 +381,7 @@ public class VerilogOut extends Input<Stimuli>
 				Signal<?> subSig = curArray.get(firstEntry+i);
                 subsigs[i] = (Signal<DigitalSample>)subSig;
 			}
-//			Signal arraySig =
-                BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
+            BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, subsigs);
 		}
 	}
 
@@ -446,8 +393,8 @@ public class VerilogOut extends Input<Stimuli>
 			symbolTable.put(symbol, sig);
 		} else if (entry instanceof Signal<?>)
 		{
-			List<Object> manySigs = new ArrayList<Object>();
-			manySigs.add(entry);
+			List<Signal<?>> manySigs = new ArrayList<Signal<?>>();
+			manySigs.add((Signal<?>)entry);
 			manySigs.add(sig);
 			symbolTable.put(symbol, manySigs);
 		} else if (entry instanceof List<?>)

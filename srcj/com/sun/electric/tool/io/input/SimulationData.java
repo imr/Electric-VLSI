@@ -27,20 +27,13 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.verilog.VerilogOut;
 import com.sun.electric.tool.simulation.SimulationTool;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.user.dialogs.CellBrowser;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.io.File;
@@ -132,13 +125,14 @@ public final class SimulationData {
         private Stimuli sd;
         private final Environment launcherEnvironment;
         private final UserInterfaceExec userInterface;
+        private String netDelimeter;
 
 		private ReadSimulationOutput(Cell cell, URL fileURL, WaveformWindow ww) {
 			this.fileURL = fileURL;
 			this.cell = cell;
 			this.ww = ww;
-            this.sd = null;
             this.is = getInputForExtension(fileURL.getPath());
+            this.netDelimeter = SimulationTool.getSpiceExtractedNetDelimiter();
             if (this.is==null) throw new RuntimeException("unable to detect type");
             // future feature: try to guess the file type from the first few lines
             launcherEnvironment = Environment.getThreadEnvironment();
@@ -152,7 +146,10 @@ public final class SimulationData {
                 Job.setUserInterface(userInterface);
             }
 			try {
-                sd = is.processInput(fileURL, cell);
+				sd = new Stimuli();
+				sd.setNetDelimiter(netDelimeter);
+				sd.setCell(cell);
+                is.processInput(fileURL, cell, sd);
 				if (sd == null) return;
                 sd.setFileURL(fileURL);
                 final Stimuli sdx = sd;

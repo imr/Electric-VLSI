@@ -27,10 +27,10 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-
-import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.ScalarSample;
+import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.Stimuli;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
@@ -46,10 +46,10 @@ public class SmartSpiceOut extends Input<Stimuli>
 	/**
 	 * Method to read an Smart Spice output file.
 	 */
-	protected Stimuli processInput(URL fileURL, Cell cell)
+	protected Stimuli processInput(URL fileURL, Cell cell, Stimuli sd)
 		throws IOException
 	{
-        Stimuli sd = new Stimuli();
+		sd.setNetDelimiter(" ");
 
 		// open the file
 		if (openBinaryInput(fileURL)) return sd;

@@ -54,15 +54,16 @@ public class RawSpiceOut extends Input<Stimuli>
 	/**
 	 * Method to read an LTSpice output file.
 	 */
-	protected Stimuli processInput(URL fileURL, Cell cell)
+	protected Stimuli processInput(URL fileURL, Cell cell, Stimuli sd)
 		throws IOException
 	{
-        Stimuli sd = new Stimuli();
+		sd.setNetDelimiter(" ");
 
 		// open the file
 		if (openBinaryInput(fileURL)) return sd;
 
 		// show progress reading .raw file
+		System.out.println("Reading LTSpice/SmartSpice raw output file: " + fileURL.getFile());
 		startProgressDialog("LTSpice output", fileURL.getFile());
 
 		// read the actual signal data from the .raw file

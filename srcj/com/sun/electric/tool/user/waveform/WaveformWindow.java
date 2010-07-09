@@ -5047,7 +5047,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         if (sigName == null) return ret;
         sigName = TextUtils.canonicString(sigName);
         sigName = ws.getBaseNameFromExtractedNet(sigName);
-        for(Signal<?> s : (List<Signal<?>>)an.values())
+        for(Signal<?> s : an.values())
             if (ws.getBaseNameFromExtractedNet(TextUtils.canonicString(s.getFullName())).equals(sigName))
                 ret.add(s);
         return ret;

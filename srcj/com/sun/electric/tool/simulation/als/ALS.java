@@ -27,17 +27,21 @@
 package com.sun.electric.tool.simulation.als;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
-
-import com.sun.electric.tool.simulation.DigitalSample;
+import com.sun.electric.tool.io.output.GenerateVHDL;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
+import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -54,62 +58,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
-
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Geometric;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.lib.LibFile;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.ToolSettings;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.output.GenerateVHDL;
-import com.sun.electric.tool.io.output.Spice;
-import com.sun.electric.tool.io.output.Verilog;
-import com.sun.electric.tool.simulation.*;
-import com.sun.electric.tool.simulation.als.ALS;
-import com.sun.electric.tool.user.CompileVHDL;
-import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.EMenu;
-import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.waveform.Panel;
-import com.sun.electric.tool.user.waveform.WaveSignal;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
-
-import java.awt.Color;
-import java.awt.Frame;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.geom.Rectangle2D;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
 
 /**
  * Class to control the ALS Simulator.
@@ -121,7 +69,7 @@ public class ALS extends Engine
 	/** the simulation engine */						Sim               theSim;
 	/** the circuit flattener */						Flat              theFlat;
 	/** the waveform window showing this simulator */	WaveformWindow    ww;
-	/** the stimuli set currently being displayed */	HashMap<String,Signal<?>>   an;
+	/** the stimuli set currently being displayed */	HashMap<String,Signal<?>> an;
 	/** current time in the simulator */				double            timeAbs;
 	/** saved list of stimuli when refreshing */		List<String>      stimuliList;
 
@@ -871,14 +819,12 @@ public class ALS extends Engine
 		an = getCircuit(cell);
 		ww = oldWW;
 
-        if (ww==null)
+        if (ww == null)
+        {
             WaveformWindow.showSimulationDataInNewWindow(getStimuli());
-        else
-            WaveformWindow.refreshSimulationData(getStimuli(), ww);
-
-		// make a waveform window
-		if (ww == null)
 			ww = getStimuli().getWaveformWindow();
+        } else
+            WaveformWindow.refreshSimulationData(getStimuli(), ww);
 
 		if (stimuliList != null) processStimuliList(stimuliList);
 
@@ -1014,7 +960,6 @@ public class ALS extends Engine
 	private HashMap<String,Signal<?>> getCircuit(Cell cell)
 	{
 		// convert the stimuli
-		Stimuli sd = new Stimuli();
 		sd.setEngine(this);
 		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "SIGNALS", true);
 		sd.setSeparatorChar('.');
@@ -1045,7 +990,7 @@ public class ALS extends Engine
 		for(ALSExport e : cr.exList)
 		{
 			if (e.nodePtr.sig != null) continue;
-			MutableSignal<DigitalSample> sig = DigitalSample.createSignal(an, null, (String)e.nodeName, context);
+			MutableSignal<DigitalSample> sig = DigitalSample.createSignal(an, sd, (String)e.nodeName, context);
 			e.nodePtr.sig = sig;
             sig.addSample(0, DigitalSample.LOGIC_0);
             sig.addSample(DEFTIMERANGE, DigitalSample.LOGIC_0);

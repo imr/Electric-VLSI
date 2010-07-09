@@ -99,12 +99,9 @@ public class HSpiceOut extends Input<Stimuli>
 	 * @param fileURL the URL to one of the output files.
 	 * @param cell the Cell associated with these HSpice output files.
 	 */
-	protected Stimuli processInput(URL fileURL, Cell cell)
+	protected Stimuli processInput(URL fileURL, Cell cell, Stimuli sd)
 		throws IOException
 	{
-        Stimuli sd = new Stimuli();
-		sd.setCell(cell);
-
 		// figure out file names
 		fileBase = fileURL.getFile();
 		trExtension = "tr0";
@@ -169,7 +166,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (mtURL == null) return;
 		if (!TextUtils.URLExists(mtURL)) return;
 		if (openTextInput(mtURL)) return;
-		System.out.println("Reading HSpice measurements '" + mtURL.getFile() + "'");
+		System.out.println("Reading HSpice measurements file: " + mtURL.getFile());
 
 		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "MEASUREMENTS", false);
 		List<String> measurementNames = new ArrayList<String>();
@@ -423,7 +420,7 @@ public class HSpiceOut extends Input<Stimuli>
 
 		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, analysisTitle, false);
 		startProgressDialog("HSpice " + analysisTitle + " analysis", fileURL.getFile());
-		System.out.println("Reading HSpice " + analysisTitle + " analysis '" + fileURL.getFile() + "'");
+		System.out.println("Reading HSpice " + analysisTitle + " file: " + fileURL.getFile());
 
 		// get number of nodes
 		int nodcnt = getHSpiceInt();

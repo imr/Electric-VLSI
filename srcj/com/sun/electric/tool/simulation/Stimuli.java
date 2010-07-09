@@ -24,16 +24,13 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
-import java.awt.geom.Rectangle2D;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.*;
 
 /**
  *  This class represents a set of simulation *inputs* -- that is,
@@ -62,7 +59,7 @@ public class Stimuli {
 	/** the list of analyses in this Stimuli */					private List<HashMap<String,Signal<?>>> analysisList;
 	/** control points when signals are selected */				private HashMap<Signal<?>,Double[]> controlPointMap;
 
-    /** Cached version of net delimiter**/                      private String delim = SimulationTool.getSpiceExtractedNetDelimiter();
+    /** Cached version of net delimiter**/                      private String delim; // = SimulationTool.getSpiceExtractedNetDelimiter();
 
     /**
 	 * Constructor to build a new Simulation Data object.
@@ -73,6 +70,7 @@ public class Stimuli {
 		analyses = new HashMap<String,HashMap<String,Signal<?>>>();
 		analysisList = new ArrayList<HashMap<String,Signal<?>>>();
 		controlPointMap = new HashMap<Signal<?>,Double[]>();
+		delim = " ";
 	}
 
 	/**

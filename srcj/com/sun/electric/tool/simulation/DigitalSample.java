@@ -22,16 +22,20 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
-import com.sun.electric.database.geometry.btree.unboxed.*;
-import java.io.*;
-import java.util.*;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Dimension;
-import java.awt.geom.Rectangle2D;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.btree.unboxed.LatticeOperation;
+import com.sun.electric.database.geometry.btree.unboxed.Unboxed;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
-import com.sun.electric.tool.user.waveform.*;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  *  An implementation of Sample for digital data; supports HIGH/LOW
@@ -207,7 +211,7 @@ public class DigitalSample implements Sample {
         }
         return ret;
     }
-    
+
     public static DigitalSample fromOldStyle(int i) {
         Strength strength = null;
         Value value = null;

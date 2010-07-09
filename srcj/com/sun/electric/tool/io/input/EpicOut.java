@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: EpicOut.java
+ * Module to read Nanosim simulation output
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
@@ -24,12 +25,16 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.Environment;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.btree.BTree;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.UserInterfaceExec;
-import com.sun.electric.tool.simulation.*;
+import com.sun.electric.tool.simulation.MutableSignal;
+import com.sun.electric.tool.simulation.ScalarSample;
+import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.io.BufferedOutputStream;
@@ -38,6 +43,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,50 +52,30 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.io.Serializable;
+import java.io.RandomAccessFile;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.text.TextUtils;
-
-import com.sun.electric.tool.simulation.ScalarSample;
-import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.user.ActivityLogger;
-
-import com.sun.electric.tool.simulation.*;
-import com.sun.electric.database.geometry.btree.*;
-import com.sun.electric.database.geometry.btree.unboxed.*;
-
-import java.awt.geom.Rectangle2D;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Vector;
+import java.util.regex.Pattern;
+
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-public class EpicOut {
+public class EpicOut
+{
 
 /**
  * Class for reading and displaying waveforms from Epic output using
@@ -116,15 +102,13 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
     /**
      * Method to read an Spice output file.
      */
-    protected Stimuli processInput(URL fileURL, Cell cell)
+    protected Stimuli processInput(URL fileURL, Cell cell, Stimuli sd)
         throws IOException
     {
-        Stimuli sd = new Stimuli();
-
-        // show progress reading .spo file
+        // show progress reading .out file
         startProgressDialog("EPIC output", fileURL.getFile());
 
-        // read the actual signal data from the .spo file
+        // read the actual signal data from the .out file
         boolean eof = false;
 
         pos = new PipedOutputStream();
@@ -142,7 +126,6 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
             stdOut = new DataInputStream(pis);
             (new Thread(this, "EpicReaderErrors")).start();
             sd = readEpicFile(sd);
-            sd.setCell(cell);
         } catch (EOFException e) {
             eof = true;
         }
@@ -167,9 +150,6 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         readerProcess = null;
         return sd;
     }
-
-
-
 
     private static class SigInfo {
         private final int minV, maxV;
@@ -199,7 +179,8 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
             switch (b) {
                 case 'V':
                 case 'I':
-                    int sigNum = stdOut.readInt();
+//                    int sigNum =
+                    	stdOut.readInt();
                     String name = readString();
                     if (DEBUG) printDebug(contextStackDepth, (char)b, name);
                     contextBuilder.strings.add(name);
@@ -237,7 +218,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         an.setVoltageResolution(stdOut.readDouble());
         an.setCurrentResolution(stdOut.readDouble());
         an.setMaxTime(stdOut.readDouble());
-        Iterable<Signal<?>> signals = an.values();
+//        Iterable<Signal<?>> signals = an.values();
         an.waveStarts = new int[numSignals];
         an.waveLengths = new int[numSignals];
 
@@ -364,7 +345,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
      * signalInfoEOF :== -1
      * fileName :== UDF
      *
-     * Inititially current context is empty.
+     * Initially current context is empty.
      * 'D' pushes a string to it.
      * 'U' pops a string.
      * 'V' and 'I' use the current context.
@@ -385,13 +366,13 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         /** Count of parsed lines. */                               private int lineNum;
         /** String builder to build input line. */                  private StringBuilder builder = new StringBuilder();
         /** Pattern used to split input line into pieces. */        private Pattern whiteSpace = Pattern.compile("[ \t]+");
-        /** Last value of progress indicater (percents(.*/          private byte lastProgress;
+        /** Last value of progress indicator (percents(.*/          private byte lastProgress;
 
         /** ContextRoot */                                          private EpicReaderContext rootCtx = new EpicReaderContext();
         /** A map from Strings to Integer ids. */                   private HashMap<String,Integer> stringIds = new HashMap<String,Integer>();
-        /** Sparce list to access signals by their Epic indices. */ private ArrayList<EpicReaderSignal> signalsByEpicIndex = new ArrayList<EpicReaderSignal>();
+        /** Sparse list to access signals by their Epic indices. */ private ArrayList<EpicReaderSignal> signalsByEpicIndex = new ArrayList<EpicReaderSignal>();
         /** Current time (in integer units). */                     private int curTime = 0;
-        /** A stack of signal context pieces. */                    private ArrayList<String> contextStack = new ArrayList<String>();
+//        /** A stack of signal context pieces. */                    private ArrayList<String> contextStack = new ArrayList<String>();
         /** Count of timepoints for statistics. */                  private int timesC = 0;
         /** Count of signal events for statistics. */               private int eventsC = 0;
     
@@ -416,7 +397,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
             BTree.clearStats();
             try {
             URL fileURL = new URL("file:"+urlName);
-            long startTime = System.currentTimeMillis();
+//            long startTime = System.currentTimeMillis();
             URLConnection urlCon = fileURL.openConnection();
             urlCon.setConnectTimeout(10000);
             urlCon.setReadTimeout(1000);
@@ -447,15 +428,15 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
             */
             inputStream.close();
         
-            long stopTime = System.currentTimeMillis();
+//            long stopTime = System.currentTimeMillis();
             int numSignals = 0;
             for (EpicReaderSignal s: signalsByEpicIndex) {
                 if (s == null) continue;
                 numSignals++;
             }
-            err.println((stopTime - startTime)/1000.0 + " sec to read " + byteCount + " bytes " + numSignals + " signals (max " + (signalsByEpicIndex.size() - 1) + " ) "+ stringIds.size() + " strings " +
-                               timesC + " timepoints " +  eventsC + " events from " + urlName);
-            BTree.dumpStats(err);
+//            err.println((stopTime - startTime)/1000.0 + " sec to read " + byteCount + " bytes " + numSignals + " signals (max " + (signalsByEpicIndex.size() - 1) + " ) "+ stringIds.size() + " strings " +
+//                               timesC + " timepoints " +  eventsC + " events from " + urlName);
+//            BTree.dumpStats(err);
             writeOut();
             } catch (IOException e) { throw new RuntimeException(e); }
         }
@@ -479,7 +460,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
                         return;
                     }
                     String name = split[1];
-                    int sigNum = atoi(split[2]);
+                    int sigNum = TextUtils.atoi(split[2]);
                     while (signalsByEpicIndex.size() <= sigNum)
                         signalsByEpicIndex.add(null);
                 
@@ -516,11 +497,11 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
                     **/
                 } else if (split[0].equals(".vdd") && split.length == 2) {
                 } else if (split[0].equals(".time_resolution") && split.length == 2) {
-                    timeResolution = atof(split[1]) * 1e-9;
+                    timeResolution = TextUtils.atof(split[1]) * 1e-9;
                 } else if (split[0].equals(".current_resolution") && split.length == 2) {
-                    currentResolution = atof(split[1]);
+                    currentResolution = TextUtils.atof(split[1]);
                 } else if (split[0].equals(".voltage_resolution") && split.length == 2) {
-                    voltageResolution = atof(split[1]);
+                    voltageResolution = TextUtils.atof(split[1]);
                 } else if (split[0].equals(".simulation_time") && split.length == 2) {
                 } else if (split[0].equals(".high_threshold") && split.length == 2) {
                 } else if (split[0].equals(".low_threshold") && split.length == 2) {
@@ -535,9 +516,9 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
                 }
             } else if (ch >= '0' && ch <= '9') {
                 String[] split = whiteSpace.split(line);
-                int num = atoi(split[0]);
+                int num = TextUtils.atoi(split[0]);
                 if (split.length  > 1) {
-                    putValue(num, atoi(split[1]));
+                    putValue(num, TextUtils.atof(split[1]));
                 } else {
                     putTime(num);
                 }
@@ -547,44 +528,44 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
             }
         }
     
-        /**
-         * Writes new context as diff to previous context.
-         * @param s string with new context.
-         */
-        private void writeContext(String s) throws IOException {
-            int matchSeps = 0;
-            int pos = 0;
-            matchLoop:
-            while (matchSeps < contextStack.size()) {
-                String si = contextStack.get(matchSeps);
-                if (pos < s.length() && s.charAt(pos) == 'x')
-                    pos++;
-                if (pos + si.length() >= s.length() || s.charAt(pos + si.length()) != separator)
-                    break;
-                for (int k = 0; k < si.length(); k++)
-                    if (s.charAt(pos + k) != si.charAt(k))
-                        break matchLoop;
-                matchSeps++;
-                pos += si.length() + 1;
-            }
-            while (contextStack.size() > matchSeps) {
-                stdOut.writeByte('U');
-                contextStack.remove(contextStack.size() - 1);
-            }
-            assert contextStack.size() == matchSeps;
-            while (pos < s.length()) {
-                int indexOfSep = s.indexOf(separator, pos);
-                assert indexOfSep >= pos;
-                stdOut.writeByte('D');
-                if (pos < indexOfSep && s.charAt(pos) == 'x')
-                    pos++;
-                String si = s.substring(pos, indexOfSep);
-                writeString(si);
-                contextStack.add(si);
-                pos = indexOfSep + 1;
-            }
-            assert pos == s.length();
-        }
+//        /**
+//         * Writes new context as diff to previous context.
+//         * @param s string with new context.
+//         */
+//        private void writeContext(String s) throws IOException {
+//            int matchSeps = 0;
+//            int pos = 0;
+//            matchLoop:
+//            while (matchSeps < contextStack.size()) {
+//                String si = contextStack.get(matchSeps);
+//                if (pos < s.length() && s.charAt(pos) == 'x')
+//                    pos++;
+//                if (pos + si.length() >= s.length() || s.charAt(pos + si.length()) != separator)
+//                    break;
+//                for (int k = 0; k < si.length(); k++)
+//                    if (s.charAt(pos + k) != si.charAt(k))
+//                        break matchLoop;
+//                matchSeps++;
+//                pos += si.length() + 1;
+//            }
+//            while (contextStack.size() > matchSeps) {
+//                stdOut.writeByte('U');
+//                contextStack.remove(contextStack.size() - 1);
+//            }
+//            assert contextStack.size() == matchSeps;
+//            while (pos < s.length()) {
+//                int indexOfSep = s.indexOf(separator, pos);
+//                assert indexOfSep >= pos;
+//                stdOut.writeByte('D');
+//                if (pos < indexOfSep && s.charAt(pos) == 'x')
+//                    pos++;
+//                String si = s.substring(pos, indexOfSep);
+//                writeString(si);
+//                contextStack.add(si);
+//                pos = indexOfSep + 1;
+//            }
+//            assert pos == s.length();
+//        }
     
         /**
          * Writes string to stdOut.
@@ -670,7 +651,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
          * @param sigNum Epic signal index of signal.
          * @param value new value of signal.
          */
-        private void putValue(int sigNum, int value) {
+        private void putValue(int sigNum, double value) {
             EpicReaderSignal s = signalsByEpicIndex.get(sigNum);
             if (s == null) {
                 message("Signal " + sigNum + " not defined");
@@ -706,36 +687,6 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
                     return builder.toString();
                 }
             }
-        }
-    
-        /**
-         * ASCII to double.
-         * @param s ASCII string. 
-         * @return double value of string.
-         */
-        private double atof(String s) {
-            double value = 0;
-            try {
-                value = Double.parseDouble(s);
-            } catch (NumberFormatException e) {
-                message("Bad float format: " + s);
-            }
-            return value;
-        }
-    
-        /**
-         * ASCII to int.
-         * @param s ASCII string. 
-         * @return int value of string.
-         */
-        private int atoi(String s) {
-            int value = 0;
-            try {
-                value = Integer.parseInt(s);
-            } catch (NumberFormatException e) {
-                message("Bad integer format: " + s);
-            }
-            return value;
         }
     
         /**
@@ -903,14 +854,14 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
          * @param t time of event.
          * @param v value of event.
          */
-        void putEvent(int t, int v) {
+        void putEvent(int t, double v) {
             double value = v * voltageResolution;
             count++;
             signal.addSample(new Double(t*timeResolution), new ScalarSample(value));
         }
 
         /**
-         * Packes unsigned int.
+         * Packs unsigned int.
          * @param value value to pack.
          */
         void putUnsigned(int value) {
@@ -932,7 +883,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         }
     
         /**
-         * Packes signed int.
+         * Packs signed int.
          * @param value value to pack.
          */
         void putSigned(int value) {
@@ -954,7 +905,7 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
         }
     
         /**
-         * Unpackes waveform.
+         * Unpacks waveform.
          * @return array with time/value pairs.
          */    
         int[] getWaveform() {
@@ -1041,12 +992,12 @@ public static class EpicOutProcess extends Input<Stimuli> implements Runnable
 }
 
 /**
- * Class to define a set of simulation data producet by Epic
+ * Class to define a set of simulation data produced by Epic
  * simulators, using the new disk-indexed format.
 
- * This class differs from Anylisis base class by less memory consumption.
+ * This class differs from Analysis base class by less memory consumption.
  * Waveforms are stored in a file in packed form. They are loaded to memory by
- * denand. Hierarchical structure is reconstructed from Epic flat names into Context objects.
+ * demand. Hierarchical structure is reconstructed from Epic flat names into Context objects.
  * EpicSignals don't store signalContex strings, EpicAnalysis don't have signalNames hash map.
  * Elements of Context are EpicTreeNodes. They partially implements interface javax.swing.tree.TreeNode .
  */
@@ -1070,7 +1021,7 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
     /** Current resolution of integer current unit. */  private double currentResolution;
     /** Simulation time. */                             private double maxTime;
     
-    /** Unmodifieable view of signals list. */          private List<Signal<ScalarSample>> signalsUnmodifiable;
+    /** Unmodifiable view of signals list. */           private List<Signal<ScalarSample>> signalsUnmodifiable;
     /** a set of voltage signals. */                    private BitSet voltageSignals = new BitSet(); 
     /** Top-most context. */                            private Context rootContext;
     /** Hash of all contexts. */                        private Context[] contextHash = new Context[1];
@@ -1083,7 +1034,9 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
     EpicAnalysis(Stimuli sd) {
         sd.addAnalysis(this);
         ArrayList<Signal<ScalarSample>> l = new ArrayList<Signal<ScalarSample>>();
-        for(Signal<?> s : values()) l.add((Signal<ScalarSample>)s);
+        Collection<Signal<?>> vs = values();
+        if (vs != null)
+        	for(Signal<?> s : vs) l.add((Signal<ScalarSample>)s);
         signalsUnmodifiable = Collections.unmodifiableList(l);
     }
 
@@ -1094,6 +1047,11 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
      * @param timeResolution time resolution in nanoseconds.
      */
     void setTimeResolution(double timeResolution) { this.timeResolution = timeResolution; }
+
+    /**
+     * Get time resolution of this EpicAnalysis.
+     */
+    double getTimeResolution() { return timeResolution; }
     
     /**
      * Set voltage resolution of this EpicAnalysys.
@@ -1116,6 +1074,11 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
      * @param maxTime simulation time in nanoseconds.
      */
     void setMaxTime(double maxTime) { this.maxTime = maxTime; }
+    
+    /**
+     * Get simulation time of this EpicAnalysis.
+     */
+    double getMaxTime() { return maxTime; }
     
     /**
      * Set root context of this EpicAnalysys.
@@ -1146,7 +1109,7 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
     
 	/**
 	 * Method to quickly return the signal that corresponds to a given Network name.
-     * This method overrides the m,ethod from HashMap<String,Signal> class.
+     * This method overrides the method from HashMap<String,Signal> class.
      * It doesn't use signalNames hash map.
 	 * @param netName the Network name to find.
 	 * @return the Signal that corresponds with the Network.
@@ -1210,7 +1173,7 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
     
 	/**
 	 * Method to get the list of signals in this Simulation Data object.
-     * List is unmodifieable.
+     * List is unmodifiable.
 	 * @return a List of signals.
 	 */
     public Collection<Signal<?>> values() { return (Collection<Signal<?>>)(Object)signalsUnmodifiable; }
@@ -1363,7 +1326,7 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
         /**
          * Private constructor.
          * @param an specified EpicAnalysy.
-         * @paran name name of bwq EpicRootTreeNode
+         * @param name name of bwq EpicRootTreeNode
          */
         private EpicRootTreeNode(EpicAnalysis an, String name) {
             super(name);
@@ -1446,7 +1409,7 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
     }
     
     /************************* Context *********************************************
-     * This class denotes a group of siignals. It may have a few instance in signal tree.
+     * This class denotes a group of signals. It may have a few instance in signal tree.
      */
     static class Context {
         /**
@@ -1476,7 +1439,7 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
          */
         private final HashMap<String,EpicTreeNode> subs = new HashMap<String,EpicTreeNode>();
         /**
-         * Map from name of leaf npde to EpicTreeNode.
+         * Map from name of leaf node to EpicTreeNode.
          */
         private final HashMap<String,EpicTreeNode> sigs = new HashMap<String,EpicTreeNode>();
  
@@ -1531,8 +1494,8 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
         boolean isLeaf() { return type != 0; }
         
         /**
-         * Returns true if contenst of this Context is equal to specified lists.
-         * @returns true if contenst of this Context is equal to specified lists.
+         * Returns true if contents of this Context is equal to specified lists.
+         * @returns true if contents of this Context is equal to specified lists.
          */
         private boolean equals(ArrayList<String> names, ArrayList<Context> contexts) {
             int len = nodes.length;
@@ -1663,7 +1626,7 @@ public static class EpicAnalysis extends HashMap<String,Signal<?>> {
         /**
          * Returns the children of the receiver as an <code>Enumeration</code>.
          */
-        public Enumeration children() {
+        public Enumeration<?> children() {
             if (isLeaf())
                 return DefaultMutableTreeNode.EMPTY_ENUMERATION;
             return new Enumeration<EpicTreeNode>() {

@@ -25,7 +25,14 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
-import com.sun.electric.tool.simulation.*;
+import com.sun.electric.tool.simulation.DigitalSample;
+import com.sun.electric.tool.simulation.Engine;
+import com.sun.electric.tool.simulation.MutableSignal;
+import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.SimulationTool;
+import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.DigitalSample.Strength;
+import com.sun.electric.tool.simulation.DigitalSample.Value;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
@@ -143,7 +150,7 @@ public class Analyzer extends Engine
 	private long      lastStart;					/** last redisplay starting time */
 
 	private double [] traceTime;
-	private short  [] traceState;
+	private DigitalSample [] traceState;
 	private int       traceTotal = 0;
 
 	/** vectors which make up clock */				private List<Sequence> xClock;
@@ -172,9 +179,9 @@ public class Analyzer extends Engine
 	/************************** ELECTRIC INTERFACE **************************/
 
     private Stimuli sd;
-	Analyzer(Stimuli sd)
+	Analyzer()
 	{
-        this.sd = sd;
+        sd = new Stimuli();
 		theSim = new Sim(this);
 	}
 
@@ -183,9 +190,9 @@ public class Analyzer extends Engine
 	 * @param cell the cell to simulate.
 	 * @param fileName the file with the input deck (null to generate one)
 	 */
-	public static void simulateCell(Cell cell, VarContext context, String fileName, Stimuli sd)
+	public static void simulateCell(Cell cell, VarContext context, String fileName)
 	{
-		Analyzer theAnalyzer = new Analyzer(sd);
+		Analyzer theAnalyzer = new Analyzer();
 		theAnalyzer.cell = cell;
 		theAnalyzer.context = context;
 		theAnalyzer.fileName = fileName;
@@ -256,7 +263,6 @@ public class Analyzer extends Engine
 		if (theSim.readNetwork(fileURL, components)) return;
 
 		// convert the stimuli
-		Stimuli sd = new Stimuli();
 		sd.setEngine(this);
 		analysis = Stimuli.newAnalysis(sd, "SIGNALS", true);
 		sd.setSeparatorChar('/');
@@ -917,7 +923,7 @@ public class Analyzer extends Engine
 				break;
 		}
 
-		// insert the vector */
+		// insert the vector
 		SimVector lastSV = null;
 		if (justAppend || insertTime < 0.0)
 		{
@@ -1549,7 +1555,7 @@ public class Analyzer extends Engine
 	}
 
 	/**
-	 * discover and print critical path for node's last transistion
+	 * discover and print critical path for node's last transition
 	 */
 	private void doPath(SimVector sv)
 	{
@@ -1766,7 +1772,7 @@ public class Analyzer extends Engine
 	}
 
 	/**
-	 * mark nodes and vectors for stoping
+	 * mark nodes and vectors for stopping
 	 */
 	private void doStop(SimVector sv)
 	{
@@ -2319,7 +2325,7 @@ public class Analyzer extends Engine
 					int newTotal = traceTotal * 2;
 					if (newTotal <= count) newTotal = count + 50;
 					double [] newTime = new double[newTotal];
-					short [] newState = new short[newTotal];
+					DigitalSample [] newState = new DigitalSample[newTotal];
 					for(int i=0; i<count; i++)
 					{
 						newTime[i] = traceTime[i];
@@ -2330,28 +2336,25 @@ public class Analyzer extends Engine
 					traceTotal = newTotal;
 				}
 
-				//traceTime[count] = curT / 100000000000.0;
 				traceTime[count] = Sim.deltaToNS(curT) / 1000000000;
 				switch (val)
 				{
 					case Sim.LOW:
-						traceState[count] = Stimuli.LOGIC_LOW | Stimuli.GATE_STRENGTH;
+						traceState[count] = DigitalSample.getSample(Value.LOW, Strength.LARGE_CAPACITANCE);
 						break;
 					case Sim.HIGH:
-						traceState[count] = Stimuli.LOGIC_HIGH | Stimuli.GATE_STRENGTH;
+						traceState[count] = DigitalSample.getSample(Value.HIGH, Strength.LARGE_CAPACITANCE);
 						break;
 					default:
-						traceState[count] = Stimuli.LOGIC_X | Stimuli.GATE_STRENGTH;
+						traceState[count] = DigitalSample.getSample(Value.X, Strength.LARGE_CAPACITANCE);
 						break;
 				}
 				curT = nextT;
 				count++;
 			}
-//			double [] timeVector = new double[count];
-//			int [] stateVector = new int[count];
 			for(int i=0; i<count; i++)
                 if (((MutableSignal<DigitalSample>)nd.sig).getSample(traceTime[i])==null)
-                    ((MutableSignal<DigitalSample>)nd.sig).addSample(traceTime[i], DigitalSample.fromOldStyle(traceState[i]));
+                    ((MutableSignal<DigitalSample>)nd.sig).addSample(traceTime[i], traceState[i]);
 		}
 		ww.repaint();
 	}
