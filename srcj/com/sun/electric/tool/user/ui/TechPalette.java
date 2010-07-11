@@ -966,8 +966,18 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
                 // switch the default menu subentry and port
                 User.getUserTool().setCurrentContactNodeProto(curTech, popupName, obj);
-                panel.paletteImageStale = true;
-                panel.repaint();
+//                panel.paletteImageStale = true;
+//                panel.repaint();
+
+                // update all component menus
+                for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+                {
+                	WindowFrame wf = it.next();
+                	PaletteFrame pf = wf.getPaletteTab();
+                	TechPalette tp = pf.getTechPalette();
+                	tp.paletteImageStale = true;
+                	tp.repaint();
+                }
             }
         }
     }

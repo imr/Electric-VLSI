@@ -167,7 +167,12 @@ public class PaletteFrame implements MouseListener
 		techPalette.setCursor(cursor);
 	}
 
-	public JPanel getTechPalette()
+	public TechPalette getTechPalette()
+	{
+		return techPalette;
+	}
+
+	public JPanel getMainPanel()
 	{
 		return topPanel;
 	}

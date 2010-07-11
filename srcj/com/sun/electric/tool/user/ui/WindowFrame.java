@@ -381,7 +381,7 @@ public class WindowFrame extends Observable
 		layersTab = new LayerTab(this);
 		loadComponentMenuForTechnology();
 
-		sideBar.add("Components", paletteTab.getTechPalette());
+		sideBar.add("Components", paletteTab.getMainPanel());
 		sideBar.add("Explorer", scrolledTree);
 		sideBar.add("Layers", layersTab);
 
