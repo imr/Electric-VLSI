@@ -100,17 +100,16 @@ public final class SimulationData {
     }
 
     private static Input<Stimuli> getInputForExtension(String extension) {
-        if (extension.indexOf('.')!=-1)
+        if (extension.indexOf('.') != -1)
             extension = extension.substring(extension.lastIndexOf('.')+1);
-        if      (extension.equals("txt"))  return new PSpiceOut();
-        else if (extension.equals("raw"))  return new RawSpiceOut();
-        else if (extension.equals("dump")) return new VerilogOut();
-        else if (extension.equals("spo"))  return new SpiceOut();
-        else if (extension.equals("out"))  return new EpicOut.EpicOutProcess();
-        else if (extension.equals("vcd"))  return new VerilogOut();
-        else if (extension.startsWith("tr") || extension.startsWith("sw") || extension.startsWith("ic") ||
-                 extension.startsWith("ac") || extension.startsWith("mt") || extension.startsWith("pa"))
-            return new HSpiceOut();
+        if (extension.equals("dump") || extension.equals("vcd")) return new VerilogOut();
+        if (extension.equals("txt")) return new PSpiceOut();
+        if (extension.equals("raw")) return new RawSpiceOut();
+        if (extension.equals("spo")) return new SpiceOut();
+        if (extension.equals("out")) return new EpicOut();
+        if (extension.startsWith("tr") || extension.startsWith("sw") || extension.startsWith("ic") ||
+            extension.startsWith("ac") || extension.startsWith("mt") || extension.startsWith("pa"))
+            	return new HSpiceOut();
         return null;
     }
 

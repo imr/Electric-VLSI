@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (7/12/10, SMR) Nanosim/Epic waveform reader crashes on bad file (Bug #2816).
+FIX: Rewrote Epic reader to use new waveform model.
+
 BUG: (7/11/10, SMR) Changing component choice in component menu should
      change all component menus (Bug #2154).
 Fixed in TechPalette.PlacePopupListListener.actionPerformed().

@@ -164,18 +164,14 @@ public class DigitalSample implements Sample {
         }
     };
 
-
-    // Backward-Compatibility //////////////////////////////////////////////////////////////////////////////
-
     /**
-     * The only thing that really matters to ALS is that the four
-     * strengths:
-     *
+     * Method for converting ALS levels to new DigitalSample values,
+     * for backward compatibility.
+     * The only thing that really matters to ALS is that the four strengths:
      *           OFF_STRENGTH
      *           NODE_STRENGTH
      *           GATE_STRENGTH
      *           VDD_STRENGTH
-     *
      * be in ascending strength.
      *
      * Clearly, VDD_STRENGTH is a supply-level, so your choice of
@@ -188,30 +184,8 @@ public class DigitalSample implements Sample {
      * OFF_STRENGTH goes, why not use HIGH_IMPEDENCE?  I really don't
      * know the difference between that and SMALL_CAPACITANCE, so it's
      * your choice here.
-     *
-     *    -Steve
+     *    -SMR
      */
-    public int toOldStyle() {
-        int ret = 0;
-        switch(value) {
-            case LOW: ret |= Stimuli.LOGIC_LOW; break;
-            case HIGH: ret |= Stimuli.LOGIC_HIGH; break;
-            case X: ret |= Stimuli.LOGIC_X; break;
-            case Z: ret |= Stimuli.LOGIC_Z; break;
-        }
-        switch(strength) {
-            case SUPPLY_DRIVE:       ret |= Stimuli.VDD_STRENGTH;  break;
-            case STRONG_PULL:        ret |= Stimuli.NODE_STRENGTH; break;
-            case PULL_DRIVE:         ret |= Stimuli.NODE_STRENGTH; break;
-            case LARGE_CAPACITANCE:  ret |= Stimuli.GATE_STRENGTH; break;
-            case WEAK_DRIVE:         ret |= Stimuli.GATE_STRENGTH; break;
-            case MEDIUM_CAPACITANCE: ret |= Stimuli.GATE_STRENGTH; break;
-            case SMALL_CAPACITANCE:  ret |= Stimuli.OFF_STRENGTH;  break;
-            case HIGH_IMPEDANCE:     ret |= Stimuli.OFF_STRENGTH;  break;
-        }
-        return ret;
-    }
-
     public static DigitalSample fromOldStyle(int i) {
         Strength strength = null;
         Value value = null;
@@ -232,6 +206,21 @@ public class DigitalSample implements Sample {
         return getSample(value, strength);
     }
 
+    public static int getState(Signal.View<DigitalSample> view, int index)
+    {
+        DigitalSample ds = view.getSample(index);
+        return getState(ds);
+    }
+
+	public static int getState(DigitalSample ds)
+	{
+        if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
+        if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;
+        if (ds.isLogicX()) return Stimuli.LOGIC_X;
+        if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
+        throw new RuntimeException("ack!");
+    }
+
     public static MutableSignal<DigitalSample> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext) {
         return new BTreeSignal<DigitalSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
 
@@ -247,17 +236,18 @@ public class DigitalSample implements Sample {
 				int lastx = panel.getVertAxisPos();
 				int lastState = 0;
                 Signal<DigitalSample> ds = (Signal<DigitalSample>)ws.getSignal();
-				int numEvents = ds.getExactView().getNumEvents();
+                Signal.View<DigitalSample> view = ds.getExactView();
+				int numEvents = view.getNumEvents();
 				int lastLowy = 0, lastHighy = 0;
 				for(int i=0; i<numEvents; i++)
 				{
-					double xValue = ds.getExactView().getTime(i);
+					double xValue = view.getTime(i);
 					int x = panel.convertXDataToScreen(xValue);
 					if (SimulationTool.isWaveformDisplayMultiState() && g != null)
 					{
 						if (panel.getWaveWindow().getPrintingMode() == 2) g.setColor(Color.BLACK); else
 						{
-							switch (WaveformWindow.getState(ds, i) & Stimuli.STRENGTH)
+							switch (getState(view, i) & Stimuli.STRENGTH)
 							{
 								case Stimuli.OFF_STRENGTH:  g.setColor(panel.getWaveWindow().getOffStrengthColor());    break;
 								case Stimuli.NODE_STRENGTH: g.setColor(panel.getWaveWindow().getNodeStrengthColor());   break;
@@ -266,7 +256,7 @@ public class DigitalSample implements Sample {
 							}
 						}
 					}
-					int state = WaveformWindow.getState(ds, i) & Stimuli.LOGIC;
+					int state = getState(view, i) & Stimuli.LOGIC;
 					int lowy = 0, highy = 0;
 					switch (state)
 					{

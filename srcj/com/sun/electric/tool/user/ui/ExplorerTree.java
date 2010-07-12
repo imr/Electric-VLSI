@@ -37,7 +37,6 @@ import com.sun.electric.tool.cvspm.Log;
 import com.sun.electric.tool.cvspm.State;
 import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.EpicOut.EpicAnalysis;
 import com.sun.electric.tool.project.AddCellJob;
 import com.sun.electric.tool.project.AddLibraryJob;
 import com.sun.electric.tool.project.CancelCheckOutJob;
@@ -47,7 +46,6 @@ import com.sun.electric.tool.project.DeleteCellJob;
 import com.sun.electric.tool.project.HistoryDialog;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.project.UpdateJob;
-
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -260,10 +258,6 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         Object obj = treePath.getLastPathComponent();
         if (obj instanceof DefaultMutableTreeNode)
             return ((DefaultMutableTreeNode)obj).getUserObject();
-        if (obj instanceof EpicAnalysis.EpicTreeNode) {
-            Signal<?> sig = EpicAnalysis.getSignal(treePath);
-            if (sig != null) return sig;
-        }
         return obj;
 	}
 

@@ -47,6 +47,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -58,17 +59,15 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
-import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.SimulationData;
 import com.sun.electric.tool.io.input.spicenetlist.SpiceNetlistReader;
 import com.sun.electric.tool.io.input.spicenetlist.SpiceSubckt;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
 import com.sun.electric.tool.simulation.SimulationTool;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.Exec;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -115,7 +114,7 @@ public class Spice extends Topology
 	/** key of Variable holding SPICE declaration. */			public static final Variable.Key SPICE_DECLARATION_KEY = Variable.newKey("SIM_spice_declaration");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = Variable.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE flat code. */				public static final Variable.Key SPICE_CODE_FLAT_KEY = Variable.newKey("SIM_spice_code_flat");
-	/** key of deprected Variable holding model file */         public static final Variable.Key SPICE_MODEL_FILE_KEY = Variable.newKey("SIM_spice_behave_file");
+	/** key of deprecated Variable holding model file */        public static final Variable.Key SPICE_MODEL_FILE_KEY = Variable.newKey("SIM_spice_behave_file");
     /** key of Variable holding generic CDL templates. */		public static final Variable.Key CDL_TEMPLATE_KEY = Variable.newKey("ATTR_CDL_template");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
 	/** Prefix for spice null extension. */                     public static final String SPICE_NOEXTENSION_PREFIX = "N O N E ";
@@ -153,9 +152,8 @@ public class Spice extends Topology
 	public static class SpicePreferences extends OutputPreferences
     {
 		public boolean                      cdl;
-        public SimulationTool.SpiceEngine       engine = SimulationTool.getFactorySpiceEngine();
+        public SimulationTool.SpiceEngine   engine = SimulationTool.getFactorySpiceEngine();
         public String                       level = SimulationTool.getFactorySpiceLevel();
-        public String                       outputFormat = SimulationTool.getFactorySpiceOutputFormat();
         public int                          shortResistors = SimulationTool.getFactorySpiceShortResistors();
         public String                       runChoice = SimulationTool.getFactorySpiceRunChoice();
         public String                       runDir = SimulationTool.getFactorySpiceRunDir();
@@ -168,7 +166,7 @@ public class Spice extends Topology
         public String                       headerCardInfo = SimulationTool.getFactorySpiceHeaderCardInfo();
         public String                       trailerCardInfo = SimulationTool.getFactorySpiceTrailerCardInfo();
 
-        public SimulationTool.SpiceParasitics   parasiticsLevel = SimulationTool.getFactorySpiceParasiticsLevel();
+        public SimulationTool.SpiceParasitics parasiticsLevel = SimulationTool.getFactorySpiceParasiticsLevel();
     	public boolean                      parasiticsUseVerboseNaming = SimulationTool.isFactoryParasiticsUseVerboseNaming();
         public boolean                      parasiticsBackAnnotateLayout = SimulationTool.isFactoryParasiticsBackAnnotateLayout();
         public boolean                      parasiticsExtractPowerGround = SimulationTool.isFactoryParasiticsExtractPowerGround();
@@ -177,7 +175,7 @@ public class Spice extends Topology
         public boolean                      parasiticsExtractsR = SimulationTool.isFactoryParasiticsExtractsR();
         public boolean                      parasiticsExtractsC = SimulationTool.isFactoryParasiticsExtractsC();
 
-        public SimulationTool.SpiceGlobal       globalTreatment = SimulationTool.getFactorySpiceGlobalTreatment();
+        public SimulationTool.SpiceGlobal   globalTreatment = SimulationTool.getFactorySpiceGlobalTreatment();
         public boolean                      writePwrGndInTopCell = SimulationTool.isFactorySpiceWritePwrGndInTopCell();
         public boolean                      useCellParameters = SimulationTool.isFactorySpiceUseCellParameters();
         public boolean                      writeTransSizeInLambda = SimulationTool.isFactorySpiceWriteTransSizeInLambda();
@@ -186,7 +184,6 @@ public class Spice extends Topology
         public boolean                      writeEmptySubckts = true;
         public boolean                      writeFinalDotEnd = true;
         public boolean                      ignoreParasiticResistors = false;
-        public int                          epicMemorySize = SimulationTool.getFactorySpiceEpicMemorySize();
         public String                       extractedNetDelimiter = SimulationTool.getFactorySpiceExtractedNetDelimiter();
         public boolean                      ignoreModelFiles = SimulationTool.isFactorySpiceIgnoreModelFiles();
 
@@ -211,7 +208,6 @@ public class Spice extends Topology
         private void fillPrefs() {
             engine                          = SimulationTool.getSpiceEngine();
             level                           = SimulationTool.getSpiceLevel();
-            outputFormat                    = SimulationTool.getSpiceOutputFormat();
             shortResistors                  = SimulationTool.getSpiceShortResistors();
             runChoice                       = SimulationTool.getSpiceRunChoice();
             runDir                          = SimulationTool.getSpiceRunDir();
@@ -242,7 +238,6 @@ public class Spice extends Topology
             writeEmptySubckts               = SimulationTool.isSpiceWriteEmtpySubckts();
             writeFinalDotEnd                = SimulationTool.isSpiceWriteFinalDotEnd();
             ignoreParasiticResistors        = SimulationTool.isSpiceIgnoreParasiticResistors();
-            epicMemorySize                  = SimulationTool.getSpiceEpicMemorySize();
             extractedNetDelimiter           = SimulationTool.getSpiceExtractedNetDelimiter();
             ignoreModelFiles                = SimulationTool.isSpiceIgnoreModelFiles();
 
@@ -339,33 +334,16 @@ public class Spice extends Topology
                 command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", Matcher.quoteReplacement(filename_noext));
 
                 // set up run probe
-                FileType type = null;
-                if (outputFormat.equalsIgnoreCase("Standard")) {
-                    if (engine == SimulationTool.SpiceEngine.SPICE_ENGINE_H)
-                        type = FileType.HSPICEOUT;
-                    if (engine == SimulationTool.SpiceEngine.SPICE_ENGINE_3 || engine == SimulationTool.SpiceEngine.SPICE_ENGINE_P)
-                        type = FileType.PSPICEOUT;
-                    type = FileType.SPICEOUT;
-                } else if (outputFormat.equalsIgnoreCase("Raw"))
-                    type = FileType.RAWSPICEOUT;
-                else if (outputFormat.equalsIgnoreCase("RawSmart"))
-                    type = FileType.RAWSSPICEOUT;
-                else if (outputFormat.equalsIgnoreCase("RawLT"))
-                    type = FileType.RAWLTSPICEOUT;
-                else if (outputFormat.equalsIgnoreCase("Epic"))
-                    type = FileType.EPIC;
-                else
-                    type = null;
+                Exec.FinishedListener l = new SpiceFinishedListener();
 
-                String outFile = rundir + File.separator + filename_noext + "." + type.getFirstExtension();
-                Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);
-
-                if (runSpice.equals(SimulationTool.spiceRunChoiceRunIgnoreOutput)) {
+                if (runSpice.equals(SimulationTool.spiceRunChoiceRunIgnoreOutput))
+                {
                     Exec e = new Exec(command, null, dir, null, null);
                     if (runProbe) e.addFinishedListener(l);
                     e.start();
                 }
-                if (runSpice.equals(SimulationTool.spiceRunChoiceRunReportOutput)) {
+                if (runSpice.equals(SimulationTool.spiceRunChoiceRunReportOutput))
+                {
                     ExecDialog dialog = new ExecDialog(TopLevel.getCurrentJFrame(), false);
                     if (runProbe) dialog.addFinishedListener(l);
                     dialog.startProcess(command, null, dir);
@@ -534,7 +512,7 @@ public class Spice extends Topology
         for(Iterator<Network> it = netList.getNetworks(); it.hasNext(); )
         {
             Network net = it.next();
-            SpiceNet spNet = new SpiceNet(net);
+            SpiceNet spNet = new SpiceNet();
             spiceNetMap.put(net, spNet);
         }
 
@@ -707,7 +685,7 @@ public class Spice extends Topology
 			}
 		}
 
-		// write out any directly-typed SPICE declaratons for the cell
+		// write out any directly-typed SPICE declarations for the cell
 		if (!useCDL)
 		{
 			boolean firstDecl = true;
@@ -1930,7 +1908,7 @@ public class Spice extends Topology
      * @param segNets
      * @param info
      * @param flatNetNames
-     * @param forceEval alsways evaluate parameters to numbers
+     * @param forceEval always evaluate parameters to numbers
      * @return the modified line
      */
     private StringBuffer replacePortsAndVars(String line, Nodable no, VarContext context,
@@ -2188,7 +2166,6 @@ public class Spice extends Topology
      * @param line the string to search and replace within
      * @param prototype of instance that has the parameters on it
      * @param isPortReplacement true if port name replacement will be done)
-     * @parm
      */
     private void findVarsInLine(String line, NodeProto prototype, boolean isPortReplacement, Set<Variable.Key> vars) {
     	PrimitiveNode prim = null;
@@ -3133,16 +3110,14 @@ public class Spice extends Topology
 
 	private static class SpiceNet
 	{
-		/** network object associated with this */	Network   network;
 		/** merged geometry for this network */		PolyMerge merge;
 		/** area of diffusion */					double    diffArea;
 		/** perimeter of diffusion */				double    diffPerim;
 		/** amount of capacitance in non-diff */	float     nonDiffCapacitance;
 		/** number of transistors on the net */		int       transistorCount;
 
-		SpiceNet(Network net)
+		SpiceNet()
 		{
-            network = net;
             transistorCount = 0;
             diffArea = 0;
             diffPerim = 0;
@@ -3153,24 +3128,10 @@ public class Spice extends Topology
 
     private static class SpiceFinishedListener implements Exec.FinishedListener
     {
-//        private Cell cell;
-//        private FileType type;
-//        private String file;
-
-        private SpiceFinishedListener(Cell cell, FileType type, String file) {
-//            this.cell = cell;
-//            this.type = type;
-//            this.file = file;
-        }
+        private SpiceFinishedListener() {}
 
         public void processFinished(Exec.FinishedEvent e)
         {
-//            URL fileURL = TextUtils.makeURLToFile(file);
-//
-//			// create a new waveform window
-//            WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
-//
-//            SimulationData.plotSimulationResults(type, cell, fileURL, ww);
             SwingUtilities.invokeLater(new Runnable() { public void run() {
                 UserInterface ui = Job.getUserInterface();
                 Cell cell = ui.needCurrentCell();

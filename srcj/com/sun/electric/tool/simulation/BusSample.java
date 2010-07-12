@@ -240,7 +240,7 @@ public class BusSample<S extends Sample> implements Sample
                     BusSample<DigitalSample> bs = rs.getMin();
                     for(int j=0; j<bs.getWidth(); j++)
                     {
-                        switch (WaveformWindow.getState(bs.getTrace(j)) & Stimuli.LOGIC)
+                        switch (DigitalSample.getState(bs.getTrace(j)) & Stimuli.LOGIC)
                         {
                             case Stimuli.LOGIC_LOW:  curYValue &= ~(1<<j);   break;
                             case Stimuli.LOGIC_HIGH: curYValue |= (1<<j);   break;

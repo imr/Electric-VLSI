@@ -44,25 +44,19 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.ExecProcess;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.EpicOut.EpicAnalysis;
 import com.sun.electric.tool.io.input.SimulationData;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.ncc.NccCrossProbing;
 import com.sun.electric.tool.ncc.result.NccResult;
-
+import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Sample;
 import com.sun.electric.tool.simulation.ScalarSample;
-
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.DigitalSample;
-
-import com.sun.electric.tool.simulation.RangeSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.SweptSample;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -73,7 +67,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.ExplorerTree;
 import com.sun.electric.tool.user.ui.ExplorerTreeModel;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -104,13 +97,20 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -123,7 +123,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.TreeSet;
 import java.util.prefs.Preferences;
 
 import javax.print.attribute.standard.ColorSupported;
@@ -133,7 +132,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -151,9 +149,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-
-import com.sun.electric.tool.io.*;
-import java.io.*;
 
 /**
  * This class defines the a screenful of Panels that make up a waveform display.
@@ -2168,14 +2163,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         ArrayList<Signal<?>> signals = new ArrayList<Signal<?>>();
         for(Signal<?> s : signalsi) signals.add(s);
         if (signals.size()==0) return null;
-        if (an instanceof EpicAnalysis)
-        {
-			DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
-            TreePath path = parentPath.pathByAddingChild(analysisNode);
-            for (Signal<?> s : (Iterable<Signal<?>>)an.values())
-                treePathFromSignal.put(s, path);
-			return analysisNode;
-        }
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
 		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
         for (Signal<?> s : (Iterable<Signal<?>>)an.values())
@@ -3182,7 +3169,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (wp.isHidden()) continue;
 			for(WaveSignal ws : wp.getSignals())
 			{
-				Signal<DigitalSample> ds = (Signal<DigitalSample>)ws.getSignal();
+				Signal<?> sig = (Signal<?>)ws.getSignal();
                 /*
 				List<Signal<DigitalSample>> bussedSignals = Analysis.getBussedSignals(ds);
 				if (bussedSignals != null)
@@ -3197,7 +3184,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
                 */
 					// single signal
-					putValueOnTrace(ds, cell, netValues, netlist);
+					putValueOnTrace(sig, netValues, netlist);
                     /*
 				}
                     */
@@ -3267,21 +3254,33 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		return Color.RED;
 	}
 
-	private void putValueOnTrace(Signal<DigitalSample> ds, Cell cell, Map<Network,Integer> netValues, Netlist netlist)
+	/**
+	 * Method to crossprobe back to the schematic/layout window.
+	 * @param sig the signal to trace back.
+	 * @param netValues a Map to store state by Network.
+	 * @param netlist the netlist with the signal in it.
+	 */
+	private void putValueOnTrace(Signal<?> sig, Map<Network,Integer> netValues, Netlist netlist)
 	{
 		// set simulation value on the network in the associated layout/schematic window
-		Network net = findNetwork(netlist, ds.getSignalName());
+		Network net = findNetwork(netlist, sig.getSignalName());
 		if (net == null) return;
 
 		// find the proper data for the main cursor
-		int numEvents = ds.getExactView().getNumEvents();
+		Signal.View<?> view = sig.getExactView();
+		int numEvents = view.getNumEvents();
 		int state = Stimuli.LOGIC_X;
 		for(int i=numEvents-1; i>=0; i--)
 		{
-			double xValue = ds.getExactView().getTime(i);
+			double xValue = view.getTime(i);
 			if (xValue <= mainXPosition)
 			{
-				state = getState(ds, i) & Stimuli.LOGIC;
+		        Sample samp = view.getSample(i);
+		        if (!(samp instanceof DigitalSample)) return;
+		        DigitalSample ds = (DigitalSample)samp;
+		        if (ds.isLogic0()) state = Stimuli.LOGIC_LOW; else
+		        if (ds.isLogic1()) state = Stimuli.LOGIC_HIGH; else
+		        if (ds.isLogicZ()) state = Stimuli.LOGIC_Z;
 				break;
 			}
 		}
@@ -3543,7 +3542,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				printWriter.print(entries[i]);
 			}
 			printWriter.println();
-//			double result[] = new double[3];
 			for(int j=0; ; j++)
 			{
 				// get signal values for this iteration
@@ -3553,18 +3551,19 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					entries[i] = "";
 					Signal<?> sig = dumpSignals.get(i-1);
-                    if (j < sig.getExactView().getNumEvents()) {
-                        Sample sample = sig.getExactView().getSample(j);
+	                Signal.View<?> view = sig.getExactView();
+                    if (j < view.getNumEvents()) {
+                        Sample sample = view.getSample(j);
                         if (sample == null) {
                         } else if (sample instanceof ScalarSample) {
-                            double t = sig.getExactView().getTime(j);
+                            double t = view.getTime(j);
                             double v = ((ScalarSample)sample).getValue();
 							if (entries[0] == null) entries[0] = "" + t;
 							entries[i] = "" + v;
 							haveData = true;
 						} else if (sample instanceof DigitalSample) {
-							if (entries[0] == null) entries[0] = "" + sig.getExactView().getTime(j);
-							entries[i] = "" + getState((Signal<DigitalSample>)sig, j);
+							if (entries[0] == null) entries[0] = "" + view.getTime(j);
+							entries[i] = "" + DigitalSample.getState((Signal.View<DigitalSample>)view, j);
 							haveData = true;
 						}
 					}
@@ -4985,21 +4984,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			i = j - 1;
 		}
 	}
-	public static int getState(Signal<DigitalSample> dsig, int index) {
-        DigitalSample ds = dsig.getExactView().getSample(index);
-        if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
-        if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;
-        if (ds.isLogicX()) return Stimuli.LOGIC_X;
-        if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
-        throw new RuntimeException("ack!");
-    }
-	public static int getState(DigitalSample ds) {
-        if (ds.isLogic0()) return Stimuli.LOGIC_LOW;
-        if (ds.isLogic1()) return Stimuli.LOGIC_HIGH;
-        if (ds.isLogicX()) return Stimuli.LOGIC_X;
-        if (ds.isLogicZ()) return Stimuli.LOGIC_Z;
-        throw new RuntimeException("ack!");
-    }
 
 	/**
 	 * Method to return the signal that corresponds to a given Network name.

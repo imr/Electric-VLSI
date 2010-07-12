@@ -1188,39 +1188,6 @@ public class SimulationTool extends Tool {
 	 */
 	public static String getFactorySpiceLevel() { return cacheSpiceLevel.getStringFactoryValue(); }
 
-	private static Pref cacheSpiceOutputFormat = Pref.makeStringPref("SpiceOutputFormat", tool.prefs, "Standard");
-//	static { cacheSpiceOutputFormat.attachToObject(tool, "Tools/Spice tab", "Spice output format"); }
-	/**
-	 * Method to tell the type of output files expected from Spice.
-	 * @return the type of output files expected from Spice.
-	 * The values are:<BR>
-	 * "Standard": Standard output (the default)<BR>
-	 * "Raw" Raw output<BR>
-	 * "RawLT" Raw output from LTSpice<BR>
-	 * "RawSmart": Raw output from SmartSpice<BR>
-	 */
-	public static String getSpiceOutputFormat() { return cacheSpiceOutputFormat.getString(); }
-	/**
-	 * Method to set the type of output files expected from Spice.
-	 * @param format the type of output files expected from Spice.
-	 * The values are:<BR>
-	 * "Standard": Standard output (the default)<BR>
-	 * "Raw" Raw output<BR>
-	 * "RawLT" Raw output from LTSpice<BR>
-	 * "RawSmart": Raw output from SmartSpice<BR>
-	 */
-	public static void setSpiceOutputFormat(String format) { cacheSpiceOutputFormat.setString(format); }
-	/**
-	 * Method to tell the type of output files expected from Spice, by default.
-	 * @return the type of output files expected from Spice, by default.
-	 * The values are:<BR>
-	 * "Standard": Standard output<BR>
-	 * "Raw" Raw output<BR>
-	 * "RawLT" Raw output from LTSpice<BR>
-	 * "RawSmart": Raw output from SmartSpice<BR>
-	 */
-	public static String getFactorySpiceOutputFormat() { return cacheSpiceOutputFormat.getStringFactoryValue(); }
-
 	private static Pref cacheSpiceShortResistors = Pref.makeIntPref("SpiceShortResistors", tool.prefs, 0);
 	/**
 	 * Method to tell how SPICE should short resistors.
@@ -1674,24 +1641,6 @@ public class SimulationTool extends Tool {
     public static boolean isSpiceIgnoreModelFiles() { return cachedSpiceIgnoreModelFiles.getBoolean(); }
     public static void setSpiceIgnoreModelFiles(boolean b) { cachedSpiceIgnoreModelFiles.setBoolean(b); }
     public static boolean isFactorySpiceIgnoreModelFiles() { return cachedSpiceIgnoreModelFiles.getBooleanFactoryValue(); }
-
-    private static Pref cacheSpiceEpicReaderMemorySize = Pref.makeIntPref("SpiceEpicReaderMemorySize", tool.prefs, 1000);
-	/**
-	 * Method to tell the maximum memory to use for EpicReaderProcess, in megatybes.
-	 * The default is 1000 (1 gigabyte).
-	 * @return the maximum memory to use for EpicReaderProcess (in megabytes).
-	 */
-	public static int getSpiceEpicMemorySize() { return cacheSpiceEpicReaderMemorySize.getInt(); }
-	/**
-	 * Method to set the maximum memory to use for EpicReaderProcess.
-	 * @param limit maximum memory to use for EpicReaderProcess (in megabytes).
-	 */
-	public static void setSpiceEpicMemorySize(int limit) { cacheSpiceEpicReaderMemorySize.setInt(limit); }
-	/**
-	 * Method to tell the maximum memory to use for EpicReaderProcess (in megatybes), by default.
-	 * @return the maximum memory to use for EpicReaderProcess (in megabytes), by default.
-	 */
-	public static int getFactorySpiceEpicMemorySize() { return cacheSpiceEpicReaderMemorySize.getIntFactoryValue(); }
 
     private static Pref cacheSpiceExtractedNetDelimiter = Pref.makeStringPref("SpiceExtractedNetDelimiter", tool.prefs, ":");
     public static String getSpiceExtractedNetDelimiter() { return cacheSpiceExtractedNetDelimiter.getString(); }

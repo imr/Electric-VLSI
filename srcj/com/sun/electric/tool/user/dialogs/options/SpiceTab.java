@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
@@ -43,11 +42,6 @@ import javax.swing.JPanel;
  */
 public class SpiceTab extends PreferencePanel
 {
-	private enum SpiceOutFormat
-	{
-		Standard, Raw, RawSmart, RawLT, Epic;
-	}
-
 	/** Creates new form SpiceTab */
 	public SpiceTab(Frame parent, boolean modal)
 	{
@@ -55,7 +49,6 @@ public class SpiceTab extends PreferencePanel
 		initComponents();
 
 		// make all text fields select-all when entered
-	    EDialog.makeTextFieldSelectAllOnTab(epicText);
 	    EDialog.makeTextFieldSelectAllOnTab(spiceRunProgram);
 	    EDialog.makeTextFieldSelectAllOnTab(spiceRunProgramArgs);
 	    EDialog.makeTextFieldSelectAllOnTab(useDir);
@@ -63,7 +56,6 @@ public class SpiceTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(spiceHeaderCardFile);
 	    EDialog.makeTextFieldSelectAllOnTab(spiceTrailerCardExtension);
 	    EDialog.makeTextFieldSelectAllOnTab(spiceTrailerCardFile);
-	    EDialog.makeTextFieldSelectAllOnTab(spiceNetworkDelimiter);
 	}
 
 	/** return the panel to use for user preferences. */
@@ -183,16 +175,7 @@ public class SpiceTab extends PreferencePanel
 		if (spiceRunPopup.getSelectedIndex() == 0) setSpiceRunOptionsEnabled(false);
 		else setSpiceRunOptionsEnabled(true);
 
-		// the bottom section: reading spice output
-		spiceOutputFormatPopup.addItem(SpiceOutFormat.Standard);
-		spiceOutputFormatPopup.addItem(SpiceOutFormat.Raw);
-		spiceOutputFormatPopup.addItem(SpiceOutFormat.RawSmart);
-		spiceOutputFormatPopup.addItem(SpiceOutFormat.RawLT);
-		spiceOutputFormatPopup.addItem(SpiceOutFormat.Epic);
-		spiceOutputFormatPopup.setSelectedItem(SpiceOutFormat.valueOf(SimulationTool.getSpiceOutputFormat()));
-
-		epicText.setText(String.valueOf(SimulationTool.getSpiceEpicMemorySize()));
-		spiceNetworkDelimiter.setText(SimulationTool.getSpiceExtractedNetDelimiter());
+//		spiceNetworkDelimiter.setText(SimulationTool.getSpiceExtractedNetDelimiter());
 	}
 
 	private void spiceBrowseTrailerFileActionPerformed()
@@ -300,15 +283,8 @@ public class SpiceTab extends PreferencePanel
 		stringNow = spiceRunProgramArgs.getText();
 		if (!SimulationTool.getSpiceRunProgramArgs().equals(stringNow)) SimulationTool.setSpiceRunProgramArgs(stringNow);
 
-		// the bottom section: reading spice output
-		SpiceOutFormat formatVal = (SpiceOutFormat)spiceOutputFormatPopup.getSelectedItem();
-		if (!SimulationTool.getSpiceOutputFormat().equals(formatVal)) SimulationTool.setSpiceOutputFormat(formatVal.name());
-
-		if (formatVal == SpiceOutFormat.Epic)
-			SimulationTool.setSpiceEpicMemorySize(TextUtils.atoi(epicText.getText()));
-
-		stringNow = spiceNetworkDelimiter.getText();
-		if (!SimulationTool.getSpiceExtractedNetDelimiter().equals(stringNow)) SimulationTool.setSpiceExtractedNetDelimiter(stringNow);
+//		stringNow = spiceNetworkDelimiter.getText();
+//		if (!SimulationTool.getSpiceExtractedNetDelimiter().equals(stringNow)) SimulationTool.setSpiceExtractedNetDelimiter(stringNow);
 	}
 
 	/**
@@ -362,13 +338,8 @@ public class SpiceTab extends PreferencePanel
 		if (SimulationTool.getFactorySpiceRunProbe() != SimulationTool.getSpiceRunProbe())
 			SimulationTool.setSpiceRunProbe(SimulationTool.getFactorySpiceRunProbe());
 
-		// the bottom section: reading spice output
-		if (!SimulationTool.getFactorySpiceOutputFormat().equals(SimulationTool.getSpiceOutputFormat()))
-			SimulationTool.setSpiceOutputFormat(SimulationTool.getFactorySpiceOutputFormat());
-		if (SimulationTool.getFactorySpiceEpicMemorySize() != SimulationTool.getSpiceEpicMemorySize())
-			SimulationTool.setSpiceEpicMemorySize(SimulationTool.getFactorySpiceEpicMemorySize());
-		if (SimulationTool.getFactorySpiceExtractedNetDelimiter() != SimulationTool.getSpiceExtractedNetDelimiter())
-			SimulationTool.setSpiceExtractedNetDelimiter(SimulationTool.getFactorySpiceExtractedNetDelimiter());
+//		if (SimulationTool.getFactorySpiceExtractedNetDelimiter() != SimulationTool.getSpiceExtractedNetDelimiter())
+//			SimulationTool.setSpiceExtractedNetDelimiter(SimulationTool.getFactorySpiceExtractedNetDelimiter());
 	}
 
 	// enable or disable the spice run options
@@ -399,13 +370,6 @@ public class SpiceTab extends PreferencePanel
         spiceHeader = new javax.swing.ButtonGroup();
         spiceTrailer = new javax.swing.ButtonGroup();
         spice = new javax.swing.JPanel();
-        readingOutput = new javax.swing.JPanel();
-        jLabel10 = new javax.swing.JLabel();
-        spiceOutputFormatPopup = new javax.swing.JComboBox();
-        epicLabel = new javax.swing.JLabel();
-        epicText = new javax.swing.JTextField();
-        jLabel7 = new javax.swing.JLabel();
-        spiceNetworkDelimiter = new javax.swing.JTextField();
         execution = new javax.swing.JPanel();
         spiceRunPopup = new javax.swing.JComboBox();
         spiceRunProgram = new javax.swing.JTextField();
@@ -466,70 +430,6 @@ public class SpiceTab extends PreferencePanel
 
         spice.setToolTipText("Options for Spice deck generation");
         spice.setLayout(new java.awt.GridBagLayout());
-
-        readingOutput.setBorder(javax.swing.BorderFactory.createTitledBorder("Reading Spice Output"));
-        readingOutput.setLayout(new java.awt.GridBagLayout());
-
-        jLabel10.setText("Output format:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 0);
-        readingOutput.add(jLabel10, gridBagConstraints);
-
-        spiceOutputFormatPopup.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                spiceOutputFormatPopupActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 4);
-        readingOutput.add(spiceOutputFormatPopup, gridBagConstraints);
-
-        epicLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        epicLabel.setText("Epic reader memory size: ");
-        epicLabel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        readingOutput.add(epicLabel, gridBagConstraints);
-
-        epicText.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 4);
-        readingOutput.add(epicText, gridBagConstraints);
-
-        jLabel7.setText("Extracted network delimiter character:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        readingOutput.add(jLabel7, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 2, 0, 4);
-        readingOutput.add(spiceNetworkDelimiter, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        spice.add(readingOutput, gridBagConstraints);
 
         execution.setBorder(javax.swing.BorderFactory.createTitledBorder("Running Spice"));
         execution.setLayout(new java.awt.GridBagLayout());
@@ -956,12 +856,6 @@ public class SpiceTab extends PreferencePanel
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void spiceOutputFormatPopupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spiceOutputFormatPopupActionPerformed
-		boolean vis = spiceOutputFormatPopup.getSelectedItem() == SpiceOutFormat.Epic;
-		epicLabel.setEnabled(vis);
-		epicText.setEnabled(vis);
-    }//GEN-LAST:event_spiceOutputFormatPopupActionPerformed
-
     private void spiceRunPopupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spiceRunPopupActionPerformed
 		if (spiceRunPopup.getSelectedIndex() == 0) setSpiceRunOptionsEnabled(false); else
 			setSpiceRunOptionsEnabled(true);
@@ -995,11 +889,8 @@ public class SpiceTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel epicFrame;
-    private javax.swing.JLabel epicLabel;
-    private javax.swing.JTextField epicText;
     private javax.swing.JPanel execution;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
@@ -1007,13 +898,11 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JPanel modelCards;
     private javax.swing.JCheckBox overwriteOutputFile;
-    private javax.swing.JPanel readingOutput;
     private javax.swing.JPanel spice;
     private javax.swing.JButton spiceBrowseHeaderFile;
     private javax.swing.JButton spiceBrowseTrailerFile;
@@ -1025,10 +914,8 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JRadioButton spiceHeaderCardsFromFile;
     private javax.swing.JRadioButton spiceHeaderCardsWithExtension;
     private javax.swing.JComboBox spiceLevelPopup;
-    private javax.swing.JTextField spiceNetworkDelimiter;
     private javax.swing.JRadioButton spiceNoHeaderCards;
     private javax.swing.JRadioButton spiceNoTrailerCards;
-    private javax.swing.JComboBox spiceOutputFormatPopup;
     private javax.swing.JComboBox spiceParasitics;
     private javax.swing.JComboBox spicePrimitivesetPopup;
     private javax.swing.JComboBox spiceResistorShorting;
