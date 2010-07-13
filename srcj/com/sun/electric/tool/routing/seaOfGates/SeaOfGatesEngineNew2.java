@@ -31,12 +31,12 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.SeaOfGates.SeaOfGatesOptions;
-import com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngine.NeededRoute;
-import com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngine.RouteBatches;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
@@ -46,15 +46,15 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
-import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolType;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
+public class SeaOfGatesEngineNew2 extends SeaOfGatesEngine {
 
-	private ThreadPool[] pools;
+	private ThreadPool pools;
+	private PJob seaOfGatesJob;
 
 	/*
 	 * (non-Javadoc)
@@ -74,13 +74,15 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			// ThreadPool.initialize(WorkStealingStructure.createForThreadPool(2),
 			// 2, true);
 			ThreadPool.initialize(2, true);
-		} catch (PoolExistsException e1) {}
+		} catch (PoolExistsException e1) {
+		}
 
 		super.doRouting(allRoutes, routeBatches, job, env, ep);
 
 		try {
 			ThreadPool.getThreadPool().shutdown();
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+		}
 	}
 
 	/*
@@ -101,26 +103,13 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			System.out.println("Do routing parallel with new parallel Infrastructure");
 
 		try {
-
-			if (parallelDij) {
-
-				numberOfThreads = 4;
-				pools = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
-						numberOfThreads, ThreadPoolType.synchronizedPool, WorkStealingStructure
-								.createForThreadPool(4), 4, ThreadPoolType.simplePool, false);
-			} else {
-				ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
-						numberOfThreads, true, ThreadPoolType.synchronizedPool);
-				// ThreadPool.initialize(numberOfThreads, true);
-			}
-		} catch (PoolExistsException e1) {}
-
-		PJob seaOfGatesJob;
-		if (pools != null) {
-			seaOfGatesJob = new PJob(pools[0]);
-		} else {
-			seaOfGatesJob = new PJob();
+			pools = ThreadPool.initialize(WorkStealingStructure
+					.createForThreadPool(numberOfThreads), numberOfThreads);
+		} catch (PoolExistsException e1) {
 		}
+
+		seaOfGatesJob = new PJob();
+
 		// non-blocking execute
 		seaOfGatesJob.execute(false);
 
@@ -155,16 +144,10 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 				blocked.add(nr.routeBounds);
 				routesToDo[threadAssign] = nr;
 				routeIndices[threadAssign] = i;
-				seaOfGatesJob.add(new RouteInTask(seaOfGatesJob, nr, ep), threadAssign);
+				findPath(nr, env, ep);
 				threadAssign++;
 				if (threadAssign >= numberOfThreads)
 					break;
-			}
-
-			if (pools != null) {
-				pools[0].trigger();
-			} else {
-				ThreadPool.getThreadPool().trigger();
 			}
 
 			String routes = "";
@@ -196,14 +179,13 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 		}
 
 		seaOfGatesJob.join();
+
 		try {
-			if (pools != null) {
-				pools[0].shutdown();
-				pools[1].shutdown();
-			} else {
-				ThreadPool.getThreadPool().shutdown();
-			}
-		} catch (InterruptedException e) {}
+			ThreadPool.getThreadPool().shutdown();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 
@@ -244,7 +226,8 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 	protected void findPath(NeededRoute nr, Environment env, EditingPreferences ep) {
 		// special case when route is null length
 		Wavefront d1 = nr.dir1;
-		if (DBMath.areEquals(d1.toX, d1.fromX) && DBMath.areEquals(d1.toY, d1.fromY) && d1.toZ == d1.fromZ) {
+		if (DBMath.areEquals(d1.toX, d1.fromX) && DBMath.areEquals(d1.toY, d1.fromY)
+				&& d1.toZ == d1.fromZ) {
 			nr.winningWF = d1;
 			nr.winningWF.vertices = new ArrayList<SearchVertex>();
 			SearchVertex sv = new SearchVertex(d1.toX, d1.toY, d1.toZ, 0, null, 0, nr.winningWF);
@@ -253,69 +236,106 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			return;
 		}
 
-		PJob dijkstraJob;
-		if (pools.length == 2)
-			dijkstraJob = new PJob(pools[1]);
-		else
-			dijkstraJob = new PJob();
-
 		if (parallelDij) {
-			dijkstraJob.add(new DijkstraInTask(dijkstraJob, nr.dir1, nr.dir2, ep));
-			dijkstraJob.add(new DijkstraInTask(dijkstraJob, nr.dir2, nr.dir1, ep));
-
-			dijkstraJob.execute();
-
+			RoutingTask rtask = new RoutingTask(this.seaOfGatesJob, nr, env, ep, errorLogger, cell);
+			seaOfGatesJob.add(new DijkstraInTask(seaOfGatesJob, nr.dir1, nr.dir2, ep, rtask, 0));
+			seaOfGatesJob.add(new DijkstraInTask(seaOfGatesJob, nr.dir2, nr.dir1, ep, rtask, 1));
 		} else {
 			// run both wavefronts in parallel (interleaving steps)
 			doTwoWayDijkstra(nr);
 		}
+	}
 
-		// analyze the winning wavefront
-		Wavefront wf = nr.winningWF;
-		double verLength = Double.MAX_VALUE;
-		if (wf != null)
-			verLength = SeaOfGatesEngine.getVertexLength(wf.vertices);
-		if (verLength == Double.MAX_VALUE) {
-			// failed to route
-			String errorMsg;
-			if (wf == null)
-				wf = nr.dir1;
-			if (wf.vertices == null) {
-				errorMsg = "Search too complex (exceeds complexity limit of " + nr.prefs.complexityLimit
-						+ " steps)";
-			} else {
-				errorMsg = "Failed to route from port " + wf.from.getPortProto().getName() + " of node "
-						+ wf.from.getNodeInst().describe(false) + " to port "
-						+ wf.to.getPortProto().getName() + " of node " + wf.to.getNodeInst().describe(false);
-			}
-			System.out.println("ERROR: " + errorMsg);
-			List<EPoint> lineList = new ArrayList<EPoint>();
-			lineList.add(new EPoint(wf.toX, wf.toY));
-			lineList.add(new EPoint(wf.fromX, wf.fromY));
-			errorLogger.logMessageWithLines(errorMsg, null, lineList, cell, 0, true);
+	public static class RoutingTask extends PTask {
 
-			if (DEBUGFAILURE && firstFailure) {
-				firstFailure = false;
-				EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
-				wnd.clearHighlighting();
-				showSearchVertices(nr.dir1.searchVertexPlanes, false, cell);
-				wnd.finishedHighlighting();
-			}
+		private NeededRoute nr;
+		private Environment env;
+		private EditingPreferences ep;
+		private ErrorLogger errorLogger;
+		private Cell cell;
+		private boolean[] isReady = { false, false };
+
+		/**
+		 * @param job
+		 */
+		public RoutingTask(PJob job, NeededRoute nr, Environment env, EditingPreferences ep,
+				ErrorLogger errorLogger, Cell cell) {
+			super(job);
+
+			this.nr = nr;
+			this.env = env;
+			this.ep = ep;
+			this.errorLogger = errorLogger;
+			this.cell = cell;
+
 		}
-		nr.cleanSearchMemory();
+
+		public synchronized boolean isReady(int id) {
+			isReady[id] = true;
+			return isReady[0] && isReady[1];
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#execute()
+		 */
+		@Override
+		public void execute() {
+			// analyze the winning wavefront
+			Wavefront wf = nr.winningWF;
+			double verLength = Double.MAX_VALUE;
+			if (wf != null)
+				verLength = SeaOfGatesEngine.getVertexLength(wf.vertices);
+			if (verLength == Double.MAX_VALUE) {
+				// failed to route
+				String errorMsg;
+				if (wf == null)
+					wf = nr.dir1;
+				if (wf.vertices == null) {
+					errorMsg = "Search too complex (exceeds complexity limit of "
+							+ nr.prefs.complexityLimit + " steps)";
+				} else {
+					errorMsg = "Failed to route from port " + wf.from.getPortProto().getName()
+							+ " of node " + wf.from.getNodeInst().describe(false) + " to port "
+							+ wf.to.getPortProto().getName() + " of node "
+							+ wf.to.getNodeInst().describe(false);
+				}
+				System.out.println("ERROR: " + errorMsg);
+				List<EPoint> lineList = new ArrayList<EPoint>();
+				lineList.add(new EPoint(wf.toX, wf.toY));
+				lineList.add(new EPoint(wf.fromX, wf.fromY));
+				errorLogger.logMessageWithLines(errorMsg, null, lineList, cell, 0, true);
+
+				if (DEBUGFAILURE && firstFailure) {
+					firstFailure = false;
+					EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+					wnd.clearHighlighting();
+					showSearchVertices(nr.dir1.searchVertexPlanes, false, cell);
+					wnd.finishedHighlighting();
+				}
+			}
+			nr.cleanSearchMemory();
+
+		}
+
 	}
 
 	class DijkstraInTask extends PTask {
 		private Wavefront wf;
 		private Wavefront otherWf;
-		private Environment env;
 		private EditingPreferences ep;
+		private RoutingTask rtask;
+		private int number;
 
-		public DijkstraInTask(PJob job, Wavefront wf, Wavefront otherWf, EditingPreferences ep) {
+		public DijkstraInTask(PJob job, Wavefront wf, Wavefront otherWf, EditingPreferences ep,
+				RoutingTask rtask, int number) {
 			super(job);
 			this.wf = wf;
 			this.otherWf = otherWf;
 			this.ep = ep;
+			this.rtask = rtask;
+			this.number = number;
 		}
 
 		public void execute() {
@@ -353,6 +373,10 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 					System.out.println("    Wavefront " + wf.name + " " + status);
 				}
 			}
+
+			if (rtask.isReady(number)) {
+				seaOfGatesJob.add(rtask);
+			}
 		}
 	}
 
@@ -367,8 +391,9 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 	 * com.sun.electric.tool.routing.SeaOfGates.SeaOfGatesOptions)
 	 */
 	@Override
-	protected void makeListOfRoutes(int numBatches, RouteBatches[] routeBatches, List<NeededRoute> allRoutes,
-			List<ArcInst> arcsToRoute, SeaOfGatesOptions prefs, EditingPreferences ep) {
+	protected void makeListOfRoutes(int numBatches, RouteBatches[] routeBatches,
+			List<NeededRoute> allRoutes, List<ArcInst> arcsToRoute, SeaOfGatesOptions prefs,
+			EditingPreferences ep) {
 
 		try {
 			ThreadPool.initialize(WorkStealingStructure.createForThreadPool(8));
@@ -416,7 +441,8 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 		public void execute(BlockedRange range) {
 			EditingPreferences.setThreadEditingPreferences(ep);
 			BlockedRange1D tmpRange = (BlockedRange1D) range;
-			doMakeListOfRoutes(tmpRange.start(), tmpRange.end(), routeBatches, allRoutes, arcsToRoute, prefs);
+			doMakeListOfRoutes(tmpRange.start(), tmpRange.end(), routeBatches, allRoutes,
+					arcsToRoute, prefs);
 
 		}
 

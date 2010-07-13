@@ -101,7 +101,7 @@ import com.sun.electric.tool.user.ErrorLogger;
  * "river routes" and route specially Ability to route to any previous part of
  * route when daisy-chaining? Lower cost if running over existing layout (on the
  * same net) Ability to connect to anything on the destination net Rip-up Global
- * routing(?) Sweeping cost parameters (with parallel processors) to find best,
+j * routing(?) Sweeping cost parameters (with parallel processors) to find best,
  * dynamically Forcing each processor to use a different grid track
  * Characterizing routing task (which parallelism to use)
  */
@@ -151,7 +151,7 @@ public abstract class SeaOfGatesEngine {
 	/** Maps Arcs to network IDs in the R-Tree. */
 	private Map<ArcInst, Integer> netIDs;
 	/** number of metal layers in the technology. */
-	private int numMetalLayers;
+	private static int numMetalLayers;
 	/** metal layers in the technology. */
 	private Layer[] metalLayers;
 	/** via layers in the technology. */
@@ -171,7 +171,7 @@ public abstract class SeaOfGatesEngine {
 	/** the total length of wires routed */
 	protected double totalWireLength;
 	/** true if this is the first failure of a route (for debugging) */
-	protected boolean firstFailure;
+	protected static volatile boolean firstFailure;
 	/** true to run to/from and from/to routing in parallel */
 	protected boolean parallelDij;
 	/** for logging errors */
@@ -533,6 +533,7 @@ public abstract class SeaOfGatesEngine {
 		}
 		Environment env = Environment.getThreadEnvironment();
 
+		numberOfThreads = 2;
 		startRouting(numberOfThreads, allRoutes, routeBatches, env, ep, job);
 
 		// finally analyze the results and remove unrouted arcs
@@ -1410,7 +1411,7 @@ public abstract class SeaOfGatesEngine {
 	 *            the list of SearchVertices in the route.
 	 * @return the length of the route.
 	 */
-	protected double getVertexLength(List<SearchVertex> vertices) {
+	protected static double getVertexLength(List<SearchVertex> vertices) {
 		if (vertices == null)
 			return Double.MAX_VALUE;
 		if (vertices.size() == 0)
@@ -1530,7 +1531,7 @@ public abstract class SeaOfGatesEngine {
 		Wavefront wf = nr.winningWF;
 		double verLength = Double.MAX_VALUE;
 		if (wf != null)
-			verLength = getVertexLength(wf.vertices);
+			verLength = SeaOfGatesEngine.getVertexLength(wf.vertices);
 		if (verLength == Double.MAX_VALUE) {
 			// failed to route
 			String errorMsg;
@@ -1554,7 +1555,7 @@ public abstract class SeaOfGatesEngine {
 				firstFailure = false;
 				EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
 				wnd.clearHighlighting();
-				showSearchVertices(nr.dir1.searchVertexPlanes, false);
+				showSearchVertices(nr.dir1.searchVertexPlanes, false, cell);
 				wnd.finishedHighlighting();
 			}
 		}
@@ -3246,7 +3247,7 @@ public abstract class SeaOfGatesEngine {
 	// }
 	// }
 
-	protected void showSearchVertices(Map<Integer, Set<Integer>>[] planes, boolean horiz) {
+	protected static void showSearchVertices(Map<Integer, Set<Integer>>[] planes, boolean horiz, Cell cell) {
 		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
 		for (int i = 0; i < numMetalLayers; i++) {
 			double offset = i;
