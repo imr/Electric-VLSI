@@ -40,7 +40,6 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNets.BookshelfNet;
 import com.sun.electric.tool.util.CollectionFactory;
 

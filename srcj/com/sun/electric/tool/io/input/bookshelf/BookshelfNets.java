@@ -40,11 +40,13 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkManager;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfPin;
@@ -98,13 +100,14 @@ public class BookshelfNets {
 		while (niIt.hasNext()) {
 
 			NodeInst ni = niIt.next();
+			
 			List<BookshelfPin> pinObjs = pins.get(ni.getName());
 			if (pinObjs != null) {
 				for (BookshelfPin pin : pinObjs) {
 					PortProto pp = ni.getProto().getPort(0);
+					
 					PortInst pi = ni.findPortInstFromProto(pp);
-					Export exp = Export
-							.newInstance(cell, pi, pin.getNodeName() + pin.getNet().name);
+					Export exp = Export.newInstance(cell, pi, pin.getNodeName() + pin.getNet().name);
 
 					pinsCache.put(pi, pin);
 
@@ -113,11 +116,12 @@ public class BookshelfNets {
 					else {
 						PortInst otherInst = netIndex.get(pin.getNet().name);
 						BookshelfPin otherPin = pinsCache.get(otherInst);
-						ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null,
-								otherInst, pi, new EPoint(otherPin.getLocation().getX(), otherPin
-										.getLocation().getY()), new EPoint(
-										pin.getLocation().getX(), pin.getLocation().getY()), a
-										.getGridExtendOverMin(), ArcInst.DEFAULTANGLE, a.flags);
+						EPoint headPt = new EPoint(pin.getLocation().getX(), pin.getLocation()
+								.getY());
+						EPoint tailPt = new EPoint(otherPin.getLocation().getX(), otherPin
+								.getLocation().getY());
+						ArcInst ai = ArcInst.newInstanceBase(Generic.tech().unrouted_arc, 1.0, pi,
+								otherInst, headPt, tailPt, exp.getName(), 0);
 					}
 				}
 			}
