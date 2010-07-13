@@ -93,7 +93,8 @@ public class J3DKeyBehavior extends Behavior
 
 			for( int i = 0; i < event.length; i++ )
 			{
-				if( event[i].getID( ) == KeyEvent.KEY_PRESSED )
+				if( event[i].getID( ) == KeyEvent.KEY_PRESSED ||
+                    event[i].getID( ) == KeyEvent.KEY_RELEASED )
 					processKeyEvent((KeyEvent)event[i]);
 			}
 		}

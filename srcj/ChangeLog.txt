@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (7/13/10< GVG) [Bug 2845] New: KeyBehavior not picking arrow keys (Bug #2845)
+FIX: Added KeyEvent.KEY_RELEASED as valid ID to accept the event.
+
 BUG: (7/12/10, SMR) Nanosim/Epic waveform reader crashes on bad file (Bug #2816).
 FIX: Rewrote Epic reader to use new waveform model.
 
