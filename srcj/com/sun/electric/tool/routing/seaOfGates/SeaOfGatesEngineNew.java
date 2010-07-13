@@ -104,10 +104,9 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 
 			if (parallelDij) {
 
-				numberOfThreads = 4;
 				pools = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
-						numberOfThreads, ThreadPoolType.synchronizedPool, WorkStealingStructure
-								.createForThreadPool(4), 4, ThreadPoolType.simplePool, false);
+						numberOfThreads, ThreadPoolType.simplePool, WorkStealingStructure
+								.createForThreadPool(numberOfThreads), numberOfThreads, ThreadPoolType.simplePool, false);
 			} else {
 				ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
 						numberOfThreads, true, ThreadPoolType.synchronizedPool);

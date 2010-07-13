@@ -30,7 +30,7 @@ package com.sun.electric.tool.routing.seaOfGates;
 public class SeaOfGatesEngineFactory {
 
 	public enum SeaOfGatesEngineType {
-		newInfrastrucuture, oldThreads, defaultVersion, newInfrastructure2
+		newInfrastructure, oldThreads, defaultVersion, newInfrastructure2
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class SeaOfGatesEngineFactory {
 	public static SeaOfGatesEngine createSeaOfGatesEngine(SeaOfGatesEngineType version) {
 		SeaOfGatesEngine result = null;
 
-		if (version.equals(SeaOfGatesEngineType.newInfrastrucuture))
+		if (version.equals(SeaOfGatesEngineType.newInfrastructure))
 			result = createSeaOfGatesEngineNew();
 		else if (version.equals(SeaOfGatesEngineType.oldThreads))
 			result = createSeaOfGatesEngineOld();
