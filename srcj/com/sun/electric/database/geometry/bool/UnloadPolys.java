@@ -303,7 +303,11 @@ public class UnloadPolys {
                 return;
             }
         }
-        System.out.print("POLY");
+        if (v == B) {
+            System.out.print("POLY");
+        } else {
+            System.out.print("NEGATIVE POLY");
+        }
     	do {
             System.out.print(" " + prPoint(pg.x, pg.y));
             System.out.print(" " + prPoint(pg.x, pg.next.y));
