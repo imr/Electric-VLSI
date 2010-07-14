@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: BookshelfAux.java
+ * File: BookshelfPlacement.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -23,53 +23,65 @@
  */
 package com.sun.electric.tool.io.input.bookshelf;
 
-import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
-import com.sun.electric.tool.util.CollectionFactory;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
 import java.util.StringTokenizer;
 
 /**
- * @author fschmidt
- * 
  */
-public class BookshelfAux {
+public class BookshelfPlacement
+{
+	private String plFile;
 
-	private String auxFile = null;
-
-	public BookshelfAux(String auxFile) {
-		this.auxFile = auxFile;
+	public BookshelfPlacement(String plFile)
+	{
+		this.plFile = plFile;
 	}
 
-	public Map<BookshelfFiles, String> parse() throws IOException {
-		Map<BookshelfFiles, String> result = CollectionFactory.createHashMap();
-
-		File file = new File(this.auxFile);
+	public void parse()
+		throws IOException
+	{
+		File file = new File(plFile);
 		FileReader freader = new FileReader(file);
 		BufferedReader rin = new BufferedReader(freader);
-		
-		String line;
-		while((line = rin.readLine()) != null) {
-			StringTokenizer tokenizer = new StringTokenizer(line, " ");
-			while(tokenizer.hasMoreTokens()) {
-				String token = tokenizer.nextToken();
-				BookshelfFiles type = BookshelfFiles.getFileType(token);
-				if(type != null) {
-					result.put(type, token);
-				}
-			}
-		}
-		
-		return result;
-	}
-	
-	public String getAuxDir() {
-		File file = new File(this.auxFile);
-		return file.getParent() + File.separator;
-	}
 
+		// skip the first line
+		rin.readLine();
+
+		for(;;)
+		{
+			String line = rin.readLine();
+			if (line == null) break;
+			if (line.length() == 0) continue;
+			if (line.charAt(0) == '#') continue;
+
+			StringTokenizer tokenizer = new StringTokenizer(line, " ");
+			int i = 0;
+			String name = "";
+			double x = 0;
+			double y = 0;
+			while (tokenizer.hasMoreTokens())
+			{
+				if (i == 0) {
+					name = tokenizer.nextToken();
+				} else if (i == 1) {
+					x = TextUtils.atof(tokenizer.nextToken());
+				} else if (i == 2) {
+					y = TextUtils.atof(tokenizer.nextToken());
+				} else {
+					tokenizer.nextToken();
+				}
+				i++;
+			}
+			
+			BookshelfNode bn = BookshelfNode.findNode(name);
+			if (bn != null)
+				bn.setLocation(x, y);
+		}
+	}
 }

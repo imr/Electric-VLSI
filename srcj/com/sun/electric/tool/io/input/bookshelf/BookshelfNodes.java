@@ -23,25 +23,22 @@
  */
 package com.sun.electric.tool.io.input.bookshelf;
 
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.io.input.bookshelf.BookshelfNets.BookshelfNet;
+import com.sun.electric.tool.util.CollectionFactory;
+
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-
-import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.tool.io.input.bookshelf.BookshelfNets.BookshelfNet;
-import com.sun.electric.tool.util.CollectionFactory;
 
 /**
  * @author fschmidt
@@ -50,15 +47,9 @@ import com.sun.electric.tool.util.CollectionFactory;
 public class BookshelfNodes {
 
 	private String nodesFile;
-	private Library lib;
-	private String name;
-	private Cell cell;
 
-	public BookshelfNodes(String nodesFile, Library lib, String name, Cell cell) {
+	public BookshelfNodes(String nodesFile) {
 		this.nodesFile = nodesFile;
-		this.lib = lib;
-		this.name = name;
-		this.cell = cell;
 	}
 
 	public void parse() throws IOException {
@@ -72,32 +63,34 @@ public class BookshelfNodes {
 				StringTokenizer tokenizer = new StringTokenizer(line, " ");
 				int i = 0;
 				String name = "";
-				int height = 0;
-				int width = 0;
+				double height = 0;
+				double width = 0;
 				while (tokenizer.hasMoreTokens()) {
 					if (i == 0) {
 						name = tokenizer.nextToken();
 					} else if (i == 1) {
-						width = Integer.parseInt(tokenizer.nextToken());
+						width = TextUtils.atof(tokenizer.nextToken());
 					} else if (i == 2) {
-						height = Integer.parseInt(tokenizer.nextToken());
+						height = TextUtils.atof(tokenizer.nextToken());
 					} else {
 						tokenizer.nextToken();
 					}
 					i++;
 				}
-				NodeProto np = Artwork.tech().boxNode;
-				NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(0, 0), width, height,
-						cell, Orientation.IDENT, name);
+				new BookshelfNode(name, width, height);
 			}
 		}
 	}
 
 	public static class BookshelfNode {
 		private String name;
-		private int width;
-		private int height;
+		private double width;
+		private double height;
+		private double x, y;
 		private List<BookshelfPin> pins;
+		private Cell prototype;
+		private NodeInst instance;
+		private static Map<String,BookshelfNode> nodeMap = new HashMap<String,BookshelfNode>();
 
 		/**
 		 * @return the name
@@ -117,7 +110,7 @@ public class BookshelfNodes {
 		/**
 		 * @return the width
 		 */
-		public int getWidth() {
+		public double getWidth() {
 			return width;
 		}
 
@@ -125,14 +118,14 @@ public class BookshelfNodes {
 		 * @param width
 		 *            the width to set
 		 */
-		public void setWidth(int width) {
+		public void setWidth(double width) {
 			this.width = width;
 		}
 
 		/**
 		 * @return the height
 		 */
-		public int getHeight() {
+		public double getHeight() {
 			return height;
 		}
 
@@ -140,8 +133,59 @@ public class BookshelfNodes {
 		 * @param height
 		 *            the height to set
 		 */
-		public void setHeight(int height) {
+		public void setHeight(double height) {
 			this.height = height;
+		}
+
+		/**
+		 * @return the X coordinate
+		 */
+		public double getX() {
+			return x;
+		}
+
+		/**
+		 * @return the Y coordinate
+		 */
+		public double getY() {
+			return y;
+		}
+
+		/**
+		 * @param x the X coordinate to set
+		 * @param y the Y coordinate to set
+		 */
+		public void setLocation(double x, double y) {
+			this.x = x;
+			this.y = y;
+		}
+
+		/**
+		 * @return the Cell prototype
+		 */
+		public Cell getPrototype() {
+			return prototype;
+		}
+
+		/**
+		 * @param cell the Cell prototype
+		 */
+		public void setInstance(NodeInst instance) {
+			this.instance = instance;
+		}
+
+		/**
+		 * @return the Cell prototype
+		 */
+		public NodeInst getInstance() {
+			return instance;
+		}
+
+		/**
+		 * @param cell the Cell prototype
+		 */
+		public void setPrototype(Cell prototype) {
+			this.prototype = prototype;
 		}
 
 		/**
@@ -149,11 +193,32 @@ public class BookshelfNodes {
 		 * @param width
 		 * @param height
 		 */
-		public BookshelfNode(String name, int width, int height) {
+		public BookshelfNode(String name, double width, double height) {
 			this.name = name;
 			this.width = width;
 			this.height = height;
+			this.x = this.y = 0;
 			this.pins = CollectionFactory.createArrayList();
+			nodeMap.put(name, this);
+		}
+
+		/**
+		 * Find a BookshelfNode from its name.
+		 * @param name the name of the BookshelfNode.
+		 * @return the BookshelfNode with that name (null if not found).
+		 */
+		public static BookshelfNode findNode(String name)
+		{
+			return nodeMap.get(name);
+		}
+
+		/**
+		 * Return a list of all BookshelfNodes.
+		 * @return a list of all BookshelfNodes.
+		 */
+		public static Collection<BookshelfNode> getAllNodes()
+		{
+			return nodeMap.values();
 		}
 
 		/**

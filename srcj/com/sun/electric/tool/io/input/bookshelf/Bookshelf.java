@@ -23,17 +23,16 @@
  */
 package com.sun.electric.tool.io.input.bookshelf;
 
-import java.net.URL;
-import java.util.BitSet;
-import java.util.Map;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
+
+import java.net.URL;
+import java.util.BitSet;
+import java.util.Map;
 
 /**
  * @author fschmidt
@@ -111,18 +110,21 @@ public class Bookshelf extends Input<Object> {
 	@Override
 	protected Library importALibrary(Library lib, Technology tech, Map<Library, Cell> currentCells) {
 
-		try {
-			Cell cell = Cell.makeInstance(lib, lib.getName() + "{lay}");
-			
+		try {			
 			BookshelfAux auxParser = new BookshelfAux(preferences.fileUrl.getFile());
 			Map<BookshelfFiles, String> files = auxParser.parse();
 			String auxDir = auxParser.getAuxDir();
-			BookshelfNodes nodes = new BookshelfNodes(auxDir + files.get(BookshelfFiles.nodes), lib, lib.getName(), cell);
+
+			// read the nodes
+			BookshelfNodes nodes = new BookshelfNodes(auxDir + files.get(BookshelfFiles.nodes));
 			nodes.parse();
-			
-			BookshelfNets nets = new BookshelfNets(auxDir + files.get(BookshelfFiles.nets), cell);
+
+			// add in placement information
+			BookshelfPlacement pl = new BookshelfPlacement(auxDir + files.get(BookshelfFiles.pl));
+			pl.parse();
+
+			BookshelfNets nets = new BookshelfNets(auxDir + files.get(BookshelfFiles.nets), lib);
 			nets.parse();
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
