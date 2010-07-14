@@ -357,8 +357,8 @@ public class WindowMenu {
                          stim,
                          s1.getSignalName(),
                          s1.getSignalContext(),
+                         true,
                          new Signal[] { s1 }) {
-                        public boolean isDigital() { return true; }
                         public boolean isEmpty() { return false; }
                         public RangeSample<DigitalSample> getDerivedRange(RangeSample<ScalarSample>[] s) {
                             if (s[0]==null) return null;

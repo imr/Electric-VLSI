@@ -130,11 +130,13 @@ public class BusSample<S extends Sample> implements Sample
 
     /** create a Signal<BusSample<S>> from preexisting Signal<S>'s */
     public static <SS extends Sample> Signal<BusSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName,
-    	String signalContext, final Signal<SS>[] subsignals)
+    	String signalContext, boolean digital, final Signal<SS>[] subsignals)
     {
-        return new Signal<BusSample<SS>>(an, sd, signalName, signalContext)
+        return new Signal<BusSample<SS>>(an, sd, signalName, signalContext, digital)
         {
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
+
+            public Signal<?>[] getBusMembers() { return subsignals; }
 
             public Signal.View<RangeSample<BusSample<SS>>> getRasterView(final double t0, final double t1, final int numPixels, final boolean extrap)
             {
@@ -174,10 +176,15 @@ public class BusSample<S extends Sample> implements Sample
                     HashSet<Integer> hs = tm.get(t);
                     for(int v : hs)
                     {
-                        assert subviews[v].getTime(event[v])==t;  // sanity check
+                    	// this used to be an assertion, but since it is possible for two successive events
+                    	// to have the same time, the assertion may fail
+                    	if (subviews[v].getTime(event[v]) != t) continue;
                         RangeSample<SS> rs = subviews[v].getSample(event[v]);
-                        minvals[v] = rs.getMin();
-                        maxvals[v] = rs.getMax();
+						if (rs != null)
+						{
+	                        minvals[v] = rs.getMin();
+	                        maxvals[v] = rs.getMax();
+						}
                         event[v]++;
                     }
                     vals[i] = new RangeSample<BusSample<SS>>( new BusSample<SS>(minvals), new BusSample<SS>(maxvals) );
@@ -219,7 +226,6 @@ public class BusSample<S extends Sample> implements Sample
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects)
             {
-//                int linePointMode = panel.getWaveWindow().getLinePointMode();
                 Dimension sz = panel.getSize();
                 int hei = sz.height;
 				// draw digital traces

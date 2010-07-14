@@ -22,22 +22,20 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
-import java.io.*;
-import java.util.*;
 
-import com.sun.electric.database.geometry.btree.*;
-import com.sun.electric.database.geometry.btree.unboxed.*;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.btree.unboxed.LatticeOperation;
+import com.sun.electric.database.geometry.btree.unboxed.Unboxed;
+import com.sun.electric.database.geometry.btree.unboxed.UnboxedHalfDouble;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
+
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Dimension;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
-import com.sun.electric.tool.user.waveform.*;
-import com.sun.electric.database.geometry.Poly;
-import java.awt.font.GlyphVector;
-import com.sun.electric.database.variable.TextDescriptor;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  *  An implementation of Sample for complex data.  Holds 
@@ -50,7 +48,6 @@ public class ComplexSample extends ScalarSample implements Sample {
 
     public ComplexSample(double real, double imag) {
         super(Math.hypot(real, imag));
-//        super(Math.atan2(imag, real));
         this.real = real;
         this.imag = imag;
     }
@@ -102,12 +99,6 @@ public class ComplexSample extends ScalarSample implements Sample {
         }
     };
 
-    /*
-                        double val = Math.hypot(imagPart, realPart);
-                        if (signal.getSample(time)==null)
-                            signal.addSample(time, new ScalarSample(val));
-    */
-
     private static final LatticeOperation<ComplexSample> latticeOp =
         new LatticeOperation<ComplexSample>(unboxer) {
         private final int sz = UnboxedHalfDouble.instance.getSize();
@@ -131,16 +122,13 @@ public class ComplexSample extends ScalarSample implements Sample {
     	 *  instanceof checks.
     	 */
         Signal<ComplexSample> ret =
-            new BTreeSignal<ComplexSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
+            new BTreeSignal<ComplexSample>(an, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp)) {
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
             	ScalarSample.plotSig(this, panel, g, ws, light, forPs, bounds, selectedObjects);
-//                throw new RuntimeException("not implemented");
             }
         };
         return ret;
     }
 
 }
-
-

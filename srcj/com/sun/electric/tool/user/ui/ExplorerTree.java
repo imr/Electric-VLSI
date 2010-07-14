@@ -1467,7 +1467,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 	    				clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
 				}
 
-				// handle things that can accomodate multiple selections
+				// handle things that can accommodate multiple selections
 				boolean didSomething = false;
 				boolean clickedIsSelected = false;
 				for(int i=0; i<numCurrentlySelectedObjects(); i++)

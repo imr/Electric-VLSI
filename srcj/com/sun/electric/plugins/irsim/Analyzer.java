@@ -25,6 +25,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
+import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.MutableSignal;
@@ -33,6 +34,7 @@ import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.DigitalSample.Strength;
 import com.sun.electric.tool.simulation.DigitalSample.Value;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
@@ -47,6 +49,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -268,6 +271,7 @@ public class Analyzer extends Engine
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
 		nodeMap = new HashMap<Signal<?>,Sim.Node>();
+		List<Signal<?>> sigList = new ArrayList<Signal<?>>();
 		for(Sim.Node n : theSim.getNodeList())
 		{
 			if (n.nName.equalsIgnoreCase("vdd") || n.nName.equalsIgnoreCase("gnd")) continue;
@@ -279,11 +283,15 @@ public class Analyzer extends Engine
                 ? DigitalSample.createSignal(analysis, sd, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
                 : DigitalSample.createSignal(analysis, sd, n.nName, null);
 			n.sig = sig;
+			sigList.add(sig);
 			nodeMap.put(sig, n);
 
             sig.addSample(0, DigitalSample.LOGIC_0);
             sig.addSample(0.00000001, DigitalSample.LOGIC_0);
 		}
+
+		// make bus signals from individual ones found in the list
+		sd.makeBusSignals(sigList, analysis);
 	}
 
 	/**
@@ -683,7 +691,8 @@ public class Analyzer extends Engine
 					getTargetNodes(targ, 1, sigs, null);
 					for(Signal<?> sig : sigs)
 					{
-						Panel wp = new Panel(ww, false);
+						int height = User.getWaveformDigitalPanelHeight();
+						Panel wp = new Panel(ww, height);
 						wp.makeSelectedPanel(-1, -1);
 						new WaveSignal(wp, sig);
 					}
@@ -695,29 +704,10 @@ public class Analyzer extends Engine
 				{
 					// find this vector name in the list of vectors
 					Signal<DigitalSample> busSig = null;
-                    /*
-					for(Signal aSig : analysis.getBussedSignals())
-					{
-						Signal<DigitalSample> sig = (Signal<DigitalSample>)aSig;
-						if (sig.getSignalName().equals(targ[1]))
-						{
-							busSig = sig;
-							Analysis.clearBussedSignalList(busSig);
-							break;
-						}
-					}
-                    */
 					if (busSig == null)
-					{
 						busSig = DigitalSample.createSignal(analysis, null, targ[1], null);
-						//analysis.buildBussedSignalList(busSig);
-					}
 					List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
 					getTargetNodes(targ, 2, sigs, null);
-//					for(Signal<DigitalSample> sig : sigs)
-//					{
-//						//Analysis.addToBussedSignalList(busSig, sig);
-//					}
 					continue;
 				}
 			}

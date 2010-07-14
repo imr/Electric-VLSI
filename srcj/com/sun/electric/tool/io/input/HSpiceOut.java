@@ -468,7 +468,7 @@ public class HSpiceOut extends Input<Stimuli>
 		line = new StringBuffer();
 		for(int j=0; j<16; j++) line.append((char)getByteFromFile());
 
-		// ignore the copywrite information (72 characters over line break)
+		// ignore the copyright information (72 characters over line break)
 		line = new StringBuffer();
 		for(int j=0; j<72; j++)
 		{
@@ -813,10 +813,10 @@ public class HSpiceOut extends Input<Stimuli>
 		        
 				if (isComplex)
 				{
-					SweptSample.createSignal(an, sd, name, context, sweepNameCopy, (Signal<ComplexSample>[])signalCopy);
+					SweptSample.createSignal(an, sd, name, context, false, sweepNameCopy, (Signal<ComplexSample>[])signalCopy);
 				} else
 				{
-					SweptSample.createSignal(an, sd, name, context, sweepNameCopy, (Signal<ScalarSample>[])signalCopy);
+					SweptSample.createSignal(an, sd, name, context, false, sweepNameCopy, (Signal<ScalarSample>[])signalCopy);
 				}
 			}
 		}

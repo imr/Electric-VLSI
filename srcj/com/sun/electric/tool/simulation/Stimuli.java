@@ -24,10 +24,12 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -58,8 +60,7 @@ public class Stimuli {
 	/** the analyses in this Stimuli */							private HashMap<String,HashMap<String,Signal<?>>> analyses;
 	/** the list of analyses in this Stimuli */					private List<HashMap<String,Signal<?>>> analysisList;
 	/** control points when signals are selected */				private HashMap<Signal<?>,Double[]> controlPointMap;
-
-    /** Cached version of net delimiter**/                      private String delim; // = SimulationTool.getSpiceExtractedNetDelimiter();
+    /** Cached version of net delimiter**/                      private String delim;
 
     /**
 	 * Constructor to build a new Simulation Data object.
@@ -334,7 +335,17 @@ public class Stimuli {
 	 * Method to tell whether this simulation data is analog or digital.
 	 * @return true if this simulation data is analog.
 	 */
-	public boolean isAnalog() { return true; }
+	public boolean isAnalog()
+	{
+		for(HashMap<String,Signal<?>> an : analysisList)
+		{
+            for (Signal<?> sig : (Iterable<Signal<?>>)an.values())
+            {
+            	if (!sig.isDigital()) return true;
+            }
+		}
+		return false;
+	}
 
 	/**
 	 * Method to convert a strength to an index value.
@@ -438,4 +449,78 @@ public class Stimuli {
 		sd.addAnalysis(ret);
         return ret;
     }
+
+    /**
+     * Method to find busses in a list of signals and create them.
+     * @param curArray the list of signals.
+     * @param an the Analysis in which the signals reside.
+     */
+    public void makeBusSignals(List<Signal<?>> signalList, HashMap<String,Signal<?>> an)
+	{
+		if (signalList == null) return;
+        Collections.sort(signalList, new WaveformWindow.SignalsByName());
+		List<Signal<?>> busSoFar = new ArrayList<Signal<?>>();
+		for(Signal<?> sig : signalList)
+		{
+			String curSignalName = sig.getSignalName();
+			int squarePos = curSignalName.indexOf('[');
+			if (squarePos < 0)
+			{
+				makeBus(busSoFar, an);
+				continue;
+			}
+			boolean startNewBus = false;
+			if (busSoFar.size() > 0)
+			{
+				String curBusName = curSignalName.substring(0, squarePos);
+				int curIndex = TextUtils.atoi(curSignalName.substring(squarePos+1));
+				String curScope = sig.getSignalContext();
+				if (curScope == null) curScope = "";
+
+				Signal<?> lastSig = busSoFar.get(busSoFar.size()-1);
+				String lastSignalName = lastSig.getSignalName();
+				squarePos = lastSignalName.indexOf('[');
+				String lastBusName = lastSignalName.substring(0, squarePos);
+				int lastIndex = TextUtils.atoi(lastSignalName.substring(squarePos+1));
+				String lastScope = lastSig.getSignalContext();
+				if (lastScope == null) lastScope = "";
+
+				if (!lastBusName.equals(curBusName)) startNewBus = true; else
+					if (!lastScope.equals(curScope)) startNewBus = true; else
+						if (lastIndex+1 != curIndex) startNewBus = true;
+			}
+			if (startNewBus)
+				makeBus(busSoFar, an);
+			busSoFar.add(sig);
+		}
+		makeBus(busSoFar, an);
+	}
+
+	private void makeBus(List<Signal<?>> busSoFar, HashMap<String,Signal<?>> an)
+	{
+		if (busSoFar.size() == 0) return;
+		int width = busSoFar.size();
+		Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
+		for(int i=0; i<width; i++)
+            subsigs[i] = (Signal<DigitalSample>)busSoFar.get(i);
+
+		// get first index
+		String firstEntryName = subsigs[0].getSignalName();
+		int firstSquarePos = firstEntryName.indexOf('[');
+		int firstIndex = TextUtils.atoi(firstEntryName.substring(firstSquarePos+1));
+
+		// get last index
+		String lastEntryName = subsigs[width-1].getSignalName();
+		int lastSquarePos = lastEntryName.indexOf('[');
+		int lastIndex = TextUtils.atoi(lastEntryName.substring(lastSquarePos+1));
+
+		// make the bus
+		String busName = firstEntryName.substring(0, firstSquarePos) + "[" + firstIndex + ":" + lastIndex + "]";
+		String scope = subsigs[0].getSignalContext();
+        BusSample.createSignal(an, this, busName, scope, true, subsigs);
+
+        // reset the list
+        busSoFar.clear();
+	}
+
 }

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.waveform;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -51,6 +51,7 @@ public class WaveSignal
 	/** the x values of selected control points */	private double [] controlPointsSelected;
 	/** true if this signal is highlighted */		private boolean highlighted;
 	/** the button on the left with this signal */	private JButton sigButton;
+	/** for determining double-clicks */			private static long lastClick = 0;
 
 	private static Color [] colorArray = new Color [] {
 		new Color(255,   0,   0),		// red
@@ -132,28 +133,18 @@ public class WaveSignal
 		controlPointsSelected = null;
 		highlighted = false;
 		String sigName = sSig.getFullName();
-		if (wavePanel.isAnalog())
+		color = colorArray[sigNo % colorArray.length];
+		sigButton = new DragButton(sigName, wavePanel.getPanelNumber());
+		sigButton.setBorderPainted(false);
+		sigButton.setDefaultCapable(false);
+		sigButton.setForeground(color);
+		wavePanel.getSignalButtons().add(sigButton);
+		wavePanel.addSignal(this, sigButton);
+		sigButton.addActionListener(new ActionListener()
 		{
-			color = colorArray[sigNo % colorArray.length];
-			sigButton = new DragButton(sigName, wavePanel.getPanelNumber());
-			sigButton.setBorderPainted(false);
-			sigButton.setDefaultCapable(false);
-			sigButton.setForeground(color);
-			wavePanel.getSignalButtons().add(sigButton);
-			wavePanel.addSignal(this, sigButton);
-			sigButton.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { signalNameClicked(evt); }
-			});
-			sigButton.addMouseListener(new SignalButton(this));
-		} else
-		{
-			color = new Color(User.getColor(User.ColorPrefType.WAVE_STIMULI));
-			sigButton = wavePanel.getDigitalSignalButton();
-			sigButton.setText(wavePanel.getPanelNumber() + ": " + sigName);
-			wavePanel.addSignal(this, sigButton);
-			sigButton.setForeground(color);
-		}
+			public void actionPerformed(ActionEvent evt) { signalNameClicked(evt); }
+		});
+		sigButton.addMouseListener(new SignalButton(this));
 	}
 
 	public static WaveSignal addSignalToPanel(Signal<?> sSig, Panel panel, Color newColor)
@@ -268,6 +259,17 @@ public class WaveSignal
 	{
 		JButton signal = (JButton)evt.getSource();
 		WaveSignal ws = wavePanel.findWaveSignal(signal);
+		if (ws == null) return;
+
+		// handle double-clicks
+		long delay = evt.getWhen() - lastClick;
+		lastClick = evt.getWhen();
+		if (delay < TopLevel.getDoubleClickSpeed())
+		{
+			ws.wavePanel.toggleBusContents();
+			return;
+		}
+
 		if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 		{
 			// standard click: add this as the only trace

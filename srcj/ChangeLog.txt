@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (7/14/10, SMR) Restore waveform window functionality (Bug #2846).
+FIX: Redid many things.
+
 BUG: (7/13/10 GVG) KeyBehavior not picking arrow keys (Bug #2845)
 FIX: Added KeyEvent.KEY_RELEASED as valid ID to accept the event.
 

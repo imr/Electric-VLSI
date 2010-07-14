@@ -2762,7 +2762,7 @@ public class User extends Listener
 	 */
 	public static void setNewNodeMirrorX(boolean on) { cacheNewNodeMirrorX.setBoolean(on); }
 
-	private static Pref cacheWaveformDigitalPanelHeight = Pref.makeIntPref("WaveformDigitalPanelHeight", tool.prefs, 25);
+	private static Pref cacheWaveformDigitalPanelHeight = Pref.makeIntPref("WaveformDigitalPanelHeight", tool.prefs, 30);
 	/**
 	 * Method to tell the height of digital waveform panels.
 	 * The default is "25".

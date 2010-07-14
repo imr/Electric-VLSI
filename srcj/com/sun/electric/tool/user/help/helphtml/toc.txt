@@ -109,9 +109,7 @@ Display
   Introduction                       =chap04-10-01
   Preferences                        =chap04-10-02
   Behaviors and Animation            =chap04-10-03
- Waveform Windows
-  Digital Waveform Windows           =chap04-11-01
-  Analog Waveform Windows            =chap04-11-02
+ Waveform Windows                    =chap04-11
 
 Arcs
  Introduction to Arcs                =chap05-01

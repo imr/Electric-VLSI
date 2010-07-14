@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
+
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.btree.unboxed.LatticeOperation;
 import com.sun.electric.database.geometry.btree.unboxed.UnboxedComparable;
@@ -182,7 +183,7 @@ public class ScalarSample implements Sample, Comparable<Object> {
     	 *  instanceof checks.
     	 */
         MutableSignal<ScalarSample> ret =
-            new BTreeSignal<ScalarSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
+            new BTreeSignal<ScalarSample>(an, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp)) {
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
             	plotSig(this, panel, g, ws, light, forPs, bounds, selectedObjects);
@@ -200,7 +201,4 @@ public class ScalarSample implements Sample, Comparable<Object> {
                 as.addSample(time[i], new ScalarSample(values[i]));
 		return as;
 	}
-
 }
-
-

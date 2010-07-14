@@ -41,9 +41,9 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
     public static int numLookups = 0;
 
     public BTreeSignal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext,
-                       BTree<Double,S,Pair<S,S>> tree
+                       boolean digital, BTree<Double,S,Pair<S,S>> tree
                        ) {
-        super(analysis, sd, signalName, signalContext);
+        super(analysis, sd, signalName, signalContext, digital);
         if (tree==null) throw new RuntimeException();
         this.tree = tree;
         this.exactView = new Signal.View<S>() {

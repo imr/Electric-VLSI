@@ -22,9 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.waveform;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Signal;
-import java.util.*;
+
 import java.util.Iterator;
 
 /**
@@ -86,6 +84,4 @@ public class SweepSignal
 			wp.repaintWithRulers();
 		}
 	}
-
-//	public HashMap<String,Signal<?>> getAnalysis() { return an; }
 }

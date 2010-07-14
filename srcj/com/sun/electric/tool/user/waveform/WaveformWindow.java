@@ -127,14 +127,12 @@ import java.util.prefs.Preferences;
 
 import javax.print.attribute.standard.ColorSupported;
 import javax.swing.AbstractCellEditor;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -155,9 +153,7 @@ import javax.swing.tree.TreePath;
  */
 public class WaveformWindow implements WindowContent, PropertyChangeListener
 {
-	/** minimum height of an Analog panel */				private static final int MINANALOGPANELSIZE = 30;
-	/** minimum height of a Digital panel */				private static final int MINDIGITALPANELSIZE = 20;
-	public static final boolean USETABLES = true;
+	/** minimum height of a panel */						private static final int MINPANELHEIGHT = 24;
 
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Stimuli sd;
@@ -172,7 +168,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** mapping from analysis to entries in "SIGNALS" tree*/private Map<Signal<?>,TreePath> treePathFromSignal = new HashMap<Signal<?>,TreePath>();
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
-	/** the split between signal names and traces. */		private JSplitPane split;
 	/** left panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
 	/** the table with panels and labels */					private WaveTable table;
@@ -190,11 +185,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** speed of the VCR (in screen pixels) */				private int vcrAdvanceSpeed = 3;
 	/** current "main" x-axis cursor */						private double mainXPosition;
 	/** current "extension" x-axis cursor */				private double extXPosition;
-	/** default range along horozintal axis */				private double minXPosition, maxXPosition;
+	/** default range along horizontal axis */				private double minXPosition, maxXPosition;
 	/** true if the X axis is the same in each panel */		private boolean xAxisLocked;
 	/** the sweep signal that is highlighted */				private int highlightedSweep = -1;
 	/** display mode (0=lines, 1=lines&points, 2=points) */	private int linePointMode;
-	/** true to show a grid (analog only) */				private boolean showGrid;
+	/** true to show a grid */								private boolean showGrid;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
 	/** a listener for redraw requests */					private WaveComponentListener wcl;
 	/** The highlighter for this waveform window. */		private Highlighter highlighter;
@@ -272,39 +267,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		new DropTarget(overall, DnDConstants.ACTION_LINK, waveformDropTarget, true);
 
 		// the table that holds the waveform panels
-		if (USETABLES)
-		{
-			tableModel = new WaveTableModel();
-			table = new WaveTable(tableModel, this);
-			new TableMouseListener(table);
-			table.getTableHeader().setPreferredSize(new Dimension(1, 1));
-			TableColumn column1 = table.getColumnModel().getColumn(0);
-			column1.setPreferredWidth(100);
-			TableColumn column2 = table.getColumnModel().getColumn(1);
-			column2.setPreferredWidth(500);
-			leftSideColumn = new WaveCellEditor(table, 0);
-			rightSideColumn = new WaveCellEditor(table, 1);
-			int height = User.getWaveformDigitalPanelHeight();
-			if (sd.isAnalog()) height = User.getWaveformAnalogPanelHeight();
-			table.setRowHeight(height);
-			scrollAll = new JScrollPane(table);
+		tableModel = new WaveTableModel();
+		table = new WaveTable(tableModel, this);
+		new TableMouseListener(table);
+		table.getTableHeader().setPreferredSize(new Dimension(1, 1));
+		TableColumn column1 = table.getColumnModel().getColumn(0);
+		column1.setPreferredWidth(100);
+		TableColumn column2 = table.getColumnModel().getColumn(1);
+		column2.setPreferredWidth(500);
+		leftSideColumn = new WaveCellEditor(table, 0);
+		rightSideColumn = new WaveCellEditor(table, 1);
+		int height = User.getWaveformDigitalPanelHeight();
+		if (sd.isAnalog()) height = User.getWaveformAnalogPanelHeight();
+		table.setRowHeight(height);
+		scrollAll = new JScrollPane(table);
 
-			// a drop target for the table
-			new DropTarget(table, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
-		} else
-		{
-			// the left half has signal names; the right half has waveforms
-			left = new JPanel();
-			left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-			right = new JPanel();
-			right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
-
-			// the main part of the waveform window: a split-pane between names and waveforms, put into a scrollpane
-			split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
-			split.setResizeWeight(0.1);
-			split.addPropertyChangeListener(this);
-			scrollAll = new JScrollPane(split);
-		}
+		// a drop target for the table
+		new DropTarget(table, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
 
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 2;
@@ -314,63 +293,60 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc.fill = GridBagConstraints.BOTH;
 		overall.add(scrollAll, gbc);
 
-		if (sd.isAnalog())
+		// the top part of the waveform window: status information
+		JButton addPanel = new JButton(iconAddPanel);
+		addPanel.setBorderPainted(false);
+		addPanel.setDefaultCapable(false);
+		addPanel.setToolTipText("Create new waveform panel");
+		Dimension minWid = new Dimension(iconAddPanel.getIconWidth()+4, iconAddPanel.getIconHeight()+4);
+		addPanel.setMinimumSize(minWid);
+		addPanel.setPreferredSize(minWid);
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;       gbc.gridy = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		overall.add(addPanel, gbc);
+		addPanel.addActionListener(new ActionListener()
 		{
-			// the top part of the waveform window: status information
-			JButton addPanel = new JButton(iconAddPanel);
-			addPanel.setBorderPainted(false);
-			addPanel.setDefaultCapable(false);
-			addPanel.setToolTipText("Create new waveform panel");
-			Dimension minWid = new Dimension(iconAddPanel.getIconWidth()+4, iconAddPanel.getIconHeight()+4);
-			addPanel.setMinimumSize(minWid);
-			addPanel.setPreferredSize(minWid);
-			gbc = new GridBagConstraints();
-			gbc.gridx = 0;       gbc.gridy = 0;
-			gbc.anchor = GridBagConstraints.CENTER;
-			overall.add(addPanel, gbc);
-			addPanel.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { makeNewPanel(); }
-			});
+			public void actionPerformed(ActionEvent evt) { makeNewPanel(); }
+		});
 
-			showPoints = new JButton(iconLineOnPointOff);
-			showPoints.setBorderPainted(false);
-			showPoints.setDefaultCapable(false);
-			showPoints.setToolTipText("Toggle display of vertex points and lines");
-			minWid = new Dimension(iconLineOnPointOff.getIconWidth()+4, iconLineOnPointOff.getIconHeight()+4);
-			showPoints.setMinimumSize(minWid);
-			showPoints.setPreferredSize(minWid);
-			gbc = new GridBagConstraints();
-			gbc.gridx = 1;       gbc.gridy = 0;
-			gbc.anchor = GridBagConstraints.CENTER;
-			overall.add(showPoints, gbc);
-			showPoints.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { toggleShowPoints(); }
-			});
+		showPoints = new JButton(iconLineOnPointOff);
+		showPoints.setBorderPainted(false);
+		showPoints.setDefaultCapable(false);
+		showPoints.setToolTipText("Toggle display of vertex points and lines");
+		minWid = new Dimension(iconLineOnPointOff.getIconWidth()+4, iconLineOnPointOff.getIconHeight()+4);
+		showPoints.setMinimumSize(minWid);
+		showPoints.setPreferredSize(minWid);
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;       gbc.gridy = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		overall.add(showPoints, gbc);
+		showPoints.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { toggleShowPoints(); }
+		});
 
-			JButton toggleGrid = new JButton(iconToggleGrid);
-			toggleGrid.setBorderPainted(false);
-			toggleGrid.setDefaultCapable(false);
-			toggleGrid.setToolTipText("Toggle display of a grid");
-			minWid = new Dimension(iconToggleGrid.getIconWidth()+4, iconToggleGrid.getIconHeight()+4);
-			toggleGrid.setMinimumSize(minWid);
-			toggleGrid.setPreferredSize(minWid);
-			gbc = new GridBagConstraints();
-			gbc.gridx = 0;       gbc.gridy = 1;
-			gbc.anchor = GridBagConstraints.CENTER;
-			overall.add(toggleGrid, gbc);
-			toggleGrid.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { toggleGridPoints(); }
-			});
-		}
+		JButton toggleGrid = new JButton(iconToggleGrid);
+		toggleGrid.setBorderPainted(false);
+		toggleGrid.setDefaultCapable(false);
+		toggleGrid.setToolTipText("Toggle display of a grid");
+		minWid = new Dimension(iconToggleGrid.getIconWidth()+4, iconToggleGrid.getIconHeight()+4);
+		toggleGrid.setMinimumSize(minWid);
+		toggleGrid.setPreferredSize(minWid);
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;       gbc.gridy = 1;
+		gbc.anchor = GridBagConstraints.CENTER;
+		overall.add(toggleGrid, gbc);
+		toggleGrid.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { toggleGridPoints(); }
+		});
 
 		refresh = new JButton(iconRefresh);
 		refresh.setBorderPainted(false);
 		refresh.setDefaultCapable(false);
 		refresh.setToolTipText("Reread stimuli data file and update waveforms");
-		Dimension minWid = new Dimension(iconRefresh.getIconWidth()+4, iconRefresh.getIconHeight()+4);
+		minWid = new Dimension(iconRefresh.getIconWidth()+4, iconRefresh.getIconHeight()+4);
 		refresh.setMinimumSize(minWid);
 		refresh.setPreferredSize(minWid);
 		gbc = new GridBagConstraints();
@@ -852,11 +828,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (resizingRow >= 0)
 			{
 				int newHeight = e.getY() - mouseYOffset;
-				if (newHeight > 0)
+				if (newHeight < MINPANELHEIGHT) newHeight = MINPANELHEIGHT;
+				table.setRowHeight(resizingRow, newHeight);
+				if (resizingRow < wavePanels.size())
 				{
-					table.setRowHeight(resizingRow, newHeight);
-					return;
+					Panel wp = wavePanels.get(resizingRow);
+					wp.updatePanelTitle();
 				}
+				return;
 			}
 
 			// forward event to the panel contents
@@ -969,7 +948,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
             String commands = "";
             double min = Double.MAX_VALUE;
             double max = Double.MIN_VALUE;
-            //double sr = 1;
             int numPanels = 0;
             int maxWidth = 0;
             int height = 0;
@@ -1081,10 +1059,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	private boolean changedColors = false;
 
 	/**
-	 * Method to intialize for printing.
+	 * Method to initialize for printing.
 	 * @param ep the ElectricPrinter object.
 	 * @param pageFormat information about the print job.
-	 * @return true if no erros were found during initialization.
+	 * @return true if no errors were found during initialization.
 	 */
 	public boolean initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
@@ -1242,14 +1220,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void setCursor(Cursor cursor)
 	{
 		overall.setCursor(cursor);
-		if (USETABLES)
-		{
-			table.setCursor(cursor);
-		} else
-		{
-			split.setCursor(cursor);
-			right.setCursor(cursor);
-		}
+		table.setCursor(cursor);
 		for (JPanel p : wavePanels)
 		{
 			p.setCursor(cursor);
@@ -1351,6 +1322,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	// ************************************* CONTROL OF PANELS IN THE WINDOW *************************************
 
+	public int getNewPanelNumber()
+	{
+		int highestPanelNumber = 1;
+		for(Panel wp : wavePanels)
+		{
+			if (wp.getPanelNumber() >= highestPanelNumber)
+				highestPanelNumber = wp.getPanelNumber() + 1;
+		}
+		return highestPanelNumber;
+	}
+
 	/**
 	 * Method to create a new panel with an X range similar to others on the display.
 	 * @return the newly created Panel.
@@ -1361,14 +1343,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (sd.isAnalog()) panelSize = User.getWaveformAnalogPanelHeight();
 
 		// determine the X and Y ranges
-//		Rectangle2D bounds = null;
 		double leftEdge, rightEdge;
-        //bounds = sd.getBounds();
         leftEdge = sd.getMinTime();
         rightEdge = sd.getMaxTime();
 
-		//double lowValue = bounds.getMinY();
-		//double highValue = bounds.getMaxY();
 		int vertAxisPos = -1;
 		if (xAxisLocked && wavePanels.size() > 0)
 		{
@@ -1379,16 +1357,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		int [] rowHeights = null;
-		if (USETABLES)
-		{
-			int rows = table.getRowCount();
-			rowHeights = new int[rows+1];
-			for(int i=0; i<rows; i++) rowHeights[i] = table.getRowHeight(i);
-			rowHeights[rows] = panelSize;
-		}
+		int rows = table.getRowCount();
+		rowHeights = new int[rows+1];
+		for(int i=0; i<rows; i++) rowHeights[i] = table.getRowHeight(i);
+		rowHeights[rows] = panelSize;
 
 		// create the new panel
-		Panel panel = new Panel(this, sd.isAnalog());
+		Panel panel = new Panel(this, panelSize);
 
 		// set the X and Y ranges
 		panel.setXAxisRange(leftEdge, rightEdge);
@@ -1399,11 +1374,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		getPanel().validate();
 		if (getMainHorizRuler() != null)
 			getMainHorizRuler().repaint();
-		if (USETABLES)
-		{
-			table.tableChanged(new TableModelEvent(tableModel));
-			for(int i=0; i<rowHeights.length; i++) table.setRowHeight(i, rowHeights[i]);
-		}
+		table.tableChanged(new TableModelEvent(tableModel));
+		for(int i=0; i<rowHeights.length; i++) table.setRowHeight(i, rowHeights[i]);
+		table.setRowHeight(rowHeights[0]);
 		return panel;
 	}
 
@@ -1526,25 +1499,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			wp.repaintContents();
 		}
-		if (USETABLES)
-		{
-			table.repaint();
-		} else
-		{
-			left.repaint();
-			right.repaint();
-		}
+		table.repaint();
 	}
 
 	public void repaintAllPanels()
 	{
-		if (USETABLES)
-		{
-			table.repaint();
-		} else
-		{
-			right.repaint();
-		}
+		table.repaint();
 	}
 
 	/**
@@ -1553,32 +1513,24 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void closePanel(Panel wp)
 	{
-		if (USETABLES)
+		int rows = wavePanels.size();
+		int [] rowHeights = new int[rows];
+		int closedPanelIndex = wavePanels.indexOf(wp);
+		int validPanels = 0;
+		int visRow = 0;
+		for(int i=0; i<rows; i++)
 		{
-			int rows = wavePanels.size();
-			int [] rowHeights = new int[rows];
-			int closedPanelIndex = wavePanels.indexOf(wp);
-			int validPanels = 0;
-			int visRow = 0;
-			for(int i=0; i<rows; i++)
-			{
-				if (wavePanels.get(i).isHidden()) continue;
-				int rowHeight = table.getRowHeight(visRow++);
-				if (i == closedPanelIndex) continue;
-				rowHeights[validPanels++] = rowHeight;
-			}
-
-			stopEditing();
-			reloadTable();
-			wavePanels.remove(wp);
-
-			for(int i=0; i<validPanels; i++) table.setRowHeight(i, rowHeights[i]);
-		} else
-		{
-			left.remove(wp.getLeftHalf());
-			right.remove(wp.getRightHalf());
-			wavePanels.remove(wp);
+			if (wavePanels.get(i).isHidden()) continue;
+			int rowHeight = table.getRowHeight(visRow++);
+			if (i == closedPanelIndex) continue;
+			rowHeights[validPanels++] = rowHeight;
 		}
+
+		stopEditing();
+		reloadTable();
+		wavePanels.remove(wp);
+
+		for(int i=0; i<validPanels; i++) table.setRowHeight(i, rowHeights[i]);
 		rebuildPanelList();
 		overall.validate();
 		redrawAllPanels();
@@ -1591,32 +1543,24 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void hidePanel(Panel wp)
 	{
 		if (wp.isHidden()) return;
-		if (USETABLES)
+		int rows = wavePanels.size();
+		int [] rowHeights = new int[rows];
+		int hiddenPanelIndex = wavePanels.indexOf(wp);
+		int validPanels = 0;
+		int visRow = 0;
+		for(int i=0; i<rows; i++)
 		{
-			int rows = wavePanels.size();
-			int [] rowHeights = new int[rows];
-			int hiddenPanelIndex = wavePanels.indexOf(wp);
-			int validPanels = 0;
-			int visRow = 0;
-			for(int i=0; i<rows; i++)
-			{
-				if (wavePanels.get(i).isHidden()) continue;
-				int rowHeight = table.getRowHeight(visRow++);
-				if (i == hiddenPanelIndex) continue;
-				rowHeights[validPanels++] = rowHeight;
-			}
-
-			wp.setHidden(true);
-			stopEditing();
-			reloadTable();
-
-			for(int i=0; i<validPanels; i++) table.setRowHeight(i, rowHeights[i]);
-		} else
-		{
-			wp.setHidden(true);
-			left.remove(wp.getLeftHalf());
-			right.remove(wp.getRightHalf());
+			if (wavePanels.get(i).isHidden()) continue;
+			int rowHeight = table.getRowHeight(visRow++);
+			if (i == hiddenPanelIndex) continue;
+			rowHeights[validPanels++] = rowHeight;
 		}
+
+		wp.setHidden(true);
+		stopEditing();
+		reloadTable();
+
+		for(int i=0; i<validPanels; i++) table.setRowHeight(i, rowHeights[i]);
 		rebuildPanelList();
 		overall.validate();
 		redrawAllPanels();
@@ -1629,46 +1573,38 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void showPanel(Panel wp)
 	{
 		if (!wp.isHidden()) return;
-		if (USETABLES)
+		int rows = wavePanels.size();
+		int [] rowHeights = new int[rows];
+		int openedPanelIndex = wavePanels.indexOf(wp);
+		int validPanels = 0;
+		int visRow = 0;
+		int openedPanelHeightIndex = -1;
+		int averageHeight = 0;
+		int numAverages = 0;
+		for(int i=0; i<rows; i++)
 		{
-			int rows = wavePanels.size();
-			int [] rowHeights = new int[rows];
-			int openedPanelIndex = wavePanels.indexOf(wp);
-			int validPanels = 0;
-			int visRow = 0;
-			int openedPanelHeightIndex = -1;
-			int averageHeight = 0;
-			int numAverages = 0;
-			for(int i=0; i<rows; i++)
+			if (i == openedPanelIndex)
 			{
-				if (i == openedPanelIndex)
-				{
-					openedPanelHeightIndex = validPanels;
-					int height = User.getWaveformDigitalPanelHeight();
-					if (sd.isAnalog()) height = User.getWaveformAnalogPanelHeight();
-					rowHeights[validPanels++] = height;
-					continue;
-				}
-				if (wavePanels.get(i).isHidden()) continue;
-				int rowHeight = table.getRowHeight(visRow++);
-				rowHeights[validPanels++] = rowHeight;
-				averageHeight += rowHeight;
-				numAverages++;
+				openedPanelHeightIndex = validPanels;
+				int height = User.getWaveformDigitalPanelHeight();
+				if (sd.isAnalog()) height = User.getWaveformAnalogPanelHeight();
+				rowHeights[validPanels++] = height;
+				continue;
 			}
-
-			wp.setHidden(false);
-			stopEditing();
-			reloadTable();
-
-			if (numAverages != 0)
-				rowHeights[openedPanelHeightIndex] = averageHeight / numAverages;
-			for(int i=0; i<validPanels; i++) table.setRowHeight(i, rowHeights[i]);
-		} else
-		{
-			wp.setHidden(false);
-			left.add(wp.getLeftHalf());
-			right.add(wp.getRightHalf());
+			if (wavePanels.get(i).isHidden()) continue;
+			int rowHeight = table.getRowHeight(visRow++);
+			rowHeights[validPanels++] = rowHeight;
+			averageHeight += rowHeight;
+			numAverages++;
 		}
+
+		wp.setHidden(false);
+		stopEditing();
+		reloadTable();
+
+		if (numAverages != 0)
+			rowHeights[openedPanelHeightIndex] = averageHeight / numAverages;
+		for(int i=0; i<validPanels; i++) table.setRowHeight(i, rowHeights[i]);
 		rebuildPanelList();
 		overall.validate();
 		redrawAllPanels();
@@ -1679,61 +1615,33 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void growPanels(double scale)
 	{
-		// if minimum doesn't apply to this display, stop now
-		int minHeight;
-		if (sd.isAnalog())
-		{
-			int origPanelSize = User.getWaveformAnalogPanelHeight();
-			int newPanelSize = (int)(origPanelSize * scale);
-			if (newPanelSize < MINANALOGPANELSIZE) newPanelSize = MINANALOGPANELSIZE;
-			if (origPanelSize == newPanelSize) return;
-			User.setWaveformAnalogPanelHeight(newPanelSize);
-			minHeight = MINANALOGPANELSIZE;
-		} else
-		{
-			int origPanelSize = User.getWaveformDigitalPanelHeight();
-			int newPanelSize = (int)(origPanelSize * scale);
-			if (newPanelSize < MINDIGITALPANELSIZE) newPanelSize = MINDIGITALPANELSIZE;
-			if (origPanelSize == newPanelSize) return;
-			User.setWaveformDigitalPanelHeight(newPanelSize);
-			minHeight = MINDIGITALPANELSIZE;
-		}
+		// adjust the default analog panel size
+		int origPanelSize = User.getWaveformAnalogPanelHeight();
+		int newPanelSize = (int)(origPanelSize * scale);
+		if (newPanelSize < MINPANELHEIGHT) newPanelSize = MINPANELHEIGHT;
+		if (origPanelSize != newPanelSize) User.setWaveformAnalogPanelHeight(newPanelSize);
+
+		// adjust the default digital panel size
+		origPanelSize = User.getWaveformDigitalPanelHeight();
+		newPanelSize = (int)(origPanelSize * scale);
+		if (newPanelSize < MINPANELHEIGHT) newPanelSize = MINPANELHEIGHT;
+		if (origPanelSize != newPanelSize) User.setWaveformDigitalPanelHeight(newPanelSize);
 
 		// resize the panels
-		if (USETABLES)
+		for(int i=0; i<table.getRowCount(); i++)
 		{
-			for(int i=0; i<table.getRowCount(); i++)
+			int rowHeight = table.getRowHeight(i);
+			int newRowHeight = (int)(rowHeight*scale);
+			Panel wp = wavePanels.get(i);
+			if (wp.isAnalog())
 			{
-				int rowHeight = table.getRowHeight(i);
-				int newRowHeight = (int)(rowHeight*scale);
-				if (newRowHeight < minHeight) newRowHeight = minHeight;
-				table.setRowHeight(i, newRowHeight);
-			}
-		} else
-		{
-			for(Panel wp : wavePanels)
+				if (newRowHeight < MINPANELHEIGHT) newRowHeight = MINPANELHEIGHT;
+			} else
 			{
-				Dimension sz = wp.getSize();
-				sz.height = (int)(sz.height * scale);
-				if (sz.height < minHeight) sz.height = minHeight;
-				wp.setSize(sz.width, sz.height);
-				wp.setMinimumSize(sz);
-				wp.setPreferredSize(sz);
-
-				sz = wp.getLeftHalf().getSize();
-				sz.height = (int)(sz.height * scale);
-				if (sz.height < minHeight) sz.height = minHeight;
-				wp.getLeftHalf().setPreferredSize(sz);
-				wp.getLeftHalf().setMinimumSize(sz);
-				wp.getLeftHalf().setSize(sz.width, sz.height);
-
-				sz = wp.getRightHalf().getSize();
-				sz.height = (int)(sz.height * scale);
-				if (sz.height < minHeight) sz.height = minHeight;
-				wp.getRightHalf().setPreferredSize(sz);
-				wp.getRightHalf().setMinimumSize(sz);
-				wp.getRightHalf().setSize(sz.width, sz.height);
+				if (newRowHeight < MINPANELHEIGHT) newRowHeight = MINPANELHEIGHT;
 			}
+			table.setRowHeight(i, newRowHeight);
+			wp.updatePanelTitle();
 		}
 		overall.validate();
 		redrawAllPanels();
@@ -1876,7 +1784,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (wavePanels.size() == 0) return;
 		Panel wp = wavePanels.iterator().next();
 		int xValueScreen = wp.convertXDataToScreen(mainXPosition);
-		//Rectangle2D bounds = sd.getBounds();
 		if (vcrPlayingBackwards)
 		{
 			int newXValueScreen = xValueScreen - vcrAdvanceSpeed;
@@ -2161,7 +2068,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		Iterable<Signal<?>> signalsi = an.values();
         ArrayList<Signal<?>> signals = new ArrayList<Signal<?>>();
-        for(Signal<?> s : signalsi) signals.add(s);
+
+        // find bussed signals
+        Set<Signal<?>> busMembers = new HashSet<Signal<?>>();
+        for(Signal<?> s : signalsi)
+        {
+        	Signal<?>[] members = s.getBusMembers();
+        	if (members == null) continue;
+        	for(int i=0; i<members.length; i++) busMembers.add(members[i]);
+        }
+
+        for(Signal<?> s : signalsi)
+        	if (!busMembers.contains(s)) signals.add(s);
         if (signals.size()==0) return null;
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
 		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
@@ -2331,7 +2249,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				break;
 			}
 		}
-		if (!sd.isAnalog()) newPanel = true;
 		if (!newPanel && wp == null)
 		{
 			System.out.println("No current waveform panel to add signals");
@@ -2347,9 +2264,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
                 newPanel = false;
 				if (!xAxisLocked)
 					wp.setXAxisRange(sSig.getMinTime(), sSig.getMaxTime());
-			} else {
-				// make sure the analysis type is correct
-				if (wp.wrongPanelType(sSig)) break;
 			}
 
 			// check if signal already in panel
@@ -3480,7 +3394,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				System.out.println("Simulation data reloaded from disk");
 	}
 
-    public static WaveformWindow getCurrentWaveformWindow() {
+    public static WaveformWindow getCurrentWaveformWindow()
+    {
 		WindowFrame current = WindowFrame.getCurrentWindowFrame();
 		WindowContent content = current.getContent();
 		if (!(content instanceof WaveformWindow))
@@ -3748,7 +3663,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// read the file
 		URL url = TextUtils.makeURLToFile(configurationFileName);
 		Panel curPanel = null;
-//		String oneType = null;
 		try
 		{
 			URLConnection urlCon = url.openConnection();
@@ -3762,24 +3676,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (keywords.length == 0) continue;
 				if (keywords[0].equals("panel"))
 				{
-//					String analysisType = null;
 					boolean xLog = false, yLog = false;
 					for(int i=1; i<keywords.length; i++)
 					{
 						if (keywords[i].equals("xlog")) xLog = true; else
-						if (keywords[i].equals("ylog")) yLog = true; else
-						{
-//							analysisType = keywords[i];
-                            /*
-							if (analysisType != null)
-							{
-								if (oneType == null) oneType = analysisType;
-								if (oneType != analysisType && ww.isXAxisLocked()) ww.togglePanelXAxisLock();
-							}
-                            */
-						}
+						if (keywords[i].equals("ylog")) yLog = true;
 					}
-					curPanel = new Panel(ww, ww.getSimData().isAnalog());
+					int height = User.getWaveformDigitalPanelHeight();
+					if (ww.getSimData().isAnalog()) height = User.getWaveformAnalogPanelHeight();
+					curPanel = new Panel(ww, height);
 					if (xLog)
 					{
 						if (ww.isXAxisLocked()) ww.togglePanelXAxisLock();
@@ -3796,8 +3701,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					double lowXValue = TextUtils.atof(keywords[3]);
 					double highXValue = TextUtils.atof(keywords[4]);
 					curPanel.setXAxisRange(lowXValue, highXValue);
-					if (curPanel.isAnalog())
-						curPanel.setYAxisRange(lowYValue, highYValue);
+					curPanel.setYAxisRange(lowYValue, highYValue);
 					continue;
 				}
 				if (keywords[0].equals("x-axis"))
@@ -3805,7 +3709,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (curPanel == null) continue;
 					Stimuli sd = ww.getSimData();
 					HashMap<String,Signal<?>> an = sd.getAnalyses().next();
-					//if (curPanel.getAnalysisType() != null) an = sd.findAnalysis(curPanel.getAnalysisType());
 					if (an == null) continue;
 					Signal<?> sig = findSignalForNetwork(an, keywords[1]);
 					if (sig == null) continue;
@@ -3818,7 +3721,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (curPanel == null) continue;
 					Stimuli sd = ww.getSimData();
 					HashMap<String,Signal<?>> an = sd.getAnalyses().next();
-					//if (curPanel.getAnalysisType() != null) an = sd.findAnalysis(curPanel.getAnalysisType());
 					if (an == null) continue;
 					Signal<?> sig = findSignalForNetwork(an, keywords[1]);
 					if (sig == null) continue;
@@ -3884,7 +3786,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (first)
 				{
 					// header begins with a tab
-					//sb.append("\t" + wp.getAnalysisType());
 					sb.append("\t");
 					Signal<?> signalInX = xAxisSignalAll;
 					if (!xAxisLocked) signalInX = wp.getXAxisSignal();
@@ -4017,23 +3918,27 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void addSignal(Signal<?> sig)
 	{
-        // add analog signal on top of current panel
+        // add signal on top of current panel
         Signal<?> as = (Signal<?>)sig;
         boolean found = false;
-        for(Panel wp : wavePanels) {
-            if (wp.isSelected()) {
-                if (wp.wrongPanelType(as)) return;
-                WaveSignal.addSignalToPanel(sig, wp, null);
-                if (getMainHorizRuler() != null)
-                    getMainHorizRuler().repaint();
-                found = true;
-                break;
-            }
+        if (!sig.isDigital())
+        {
+	        for(Panel wp : wavePanels)
+	        {
+	            if (wp.isSelected())
+	            {
+	                WaveSignal.addSignalToPanel(sig, wp, null);
+	                if (getMainHorizRuler() != null)
+	                    getMainHorizRuler().repaint();
+	                found = true;
+	                break;
+	            }
+	        }
         }
-        if (!found) {
+        if (!found)
+        {
             // create a new panel for the signal
             Panel wp = makeNewPanel();
-//            Signal<?> sSig = as;
             wp.fitToSignal(as);
             if (!xAxisLocked)
                 wp.setXAxisRange(as.getMinTime(), as.getMaxTime());
@@ -4048,7 +3953,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/**
 	 * Method called when "delete" command (or key) is given.
 	 * If a control point is selected, delete it.
-	 * If a single signal of an analog window is selected, remove it.
+	 * If a single signal is selected, remove it.
 	 */
 	public void deleteSelectedSignals()
 	{
@@ -4068,7 +3973,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					}
 				}
 			}
-			if (/*wp.getAnalysisType() != null &&*/ !removedSingleStimuli) deleteSignalFromPanel(wp);
+			if (!removedSingleStimuli) deleteSignalFromPanel(wp);
 			break;
 		}
 	}
@@ -4121,46 +4026,36 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		// accumulate bounds for all displayed panels
 		double leftEdge=0, rightEdge=0;
-		for(Panel wp : wavePanels) {
+		for(Panel wp : wavePanels)
+		{
 			if (wp.getXAxisSignal() != null) continue;
-			for(WaveSignal ws : wp.getSignals()) {
-				if (leftEdge == rightEdge) {
+			for(WaveSignal ws : wp.getSignals())
+			{
+				if (leftEdge == rightEdge)
+				{
 					leftEdge  = ws.getSignal().getMinTime();
 					rightEdge = ws.getSignal().getMaxTime();
-				} else {
+				} else
+				{
 					leftEdge  = Math.min(leftEdge,  ws.getSignal().getMinTime());
 					rightEdge = Math.max(rightEdge, ws.getSignal().getMaxTime());
 				}
 			}
-//			HashMap<String,Signal> an = sd.findAnalysis(wp.getAnalysisType());
-//			if (leftEdge == rightEdge)
-//			{
-//				leftEdge = an.getMinTime();
-//				rightEdge = an.getMaxTime();
-//			} else
-//			{
-//				if (leftEdge < rightEdge)
-//				{
-//					leftEdge = Math.min(leftEdge, an.getMinTime());
-//					rightEdge = Math.max(rightEdge, an.getMaxTime());
-//				} else
-//				{
-//					leftEdge = Math.max(leftEdge, an.getMinTime());
-//					rightEdge = Math.min(rightEdge, an.getMaxTime());
-//				}
-//			}
 		}
 
 		// if there is an overriding signal on the X axis, use its bounds
-		if (xAxisLocked && xAxisSignalAll != null) {
+		if (xAxisLocked && xAxisSignalAll != null)
+		{
 			leftEdge = xAxisSignalAll.getMinTime();
 			rightEdge = xAxisSignalAll.getMaxTime();
 		}
 
-		for(Panel wp : wavePanels) {
+		for(Panel wp : wavePanels)
+		{
             if (!xAxisLocked && !wp.isSelected()) continue;
             if ((how&2)!=0) wp.fitToSignal(null);
-            if (leftEdge != rightEdge && (wp.getMinXAxis() != leftEdge || wp.getMaxXAxis() != rightEdge) && (how&1) != 0) {
+            if (leftEdge != rightEdge && (wp.getMinXAxis() != leftEdge || wp.getMaxXAxis() != rightEdge) && (how&1) != 0)
+            {
                 wp.setXAxisRange(leftEdge, rightEdge);
                 wp.repaintWithRulers();
             }
@@ -4512,36 +4407,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				// see if a signal button was grabbed
 				int sigMovePos = sigNames[0].indexOf("MOVEBUTTON ");
 				int sigCopyPos = sigNames[0].indexOf("COPYBUTTON ");
-				if (!panel.isAnalog()) sigMovePos = sigCopyPos = -1;
 				if (sigMovePos < 0 && sigCopyPos < 0)
 				{
 					// moving the entire panel
-					if (USETABLES)
-					{
-						ww.stopEditing();
+					ww.stopEditing();
 
-						ww.wavePanels.remove(sourcePanel);
-						int destIndex = ww.wavePanels.indexOf(panel);
-						if (dtde.getLocation().y > panel.getBounds().height/2)
-							destIndex++;
-						ww.wavePanels.add(destIndex, sourcePanel);
-						ww.reloadTable();
-						ww.table.repaint();
-					} else
-					{
-						ww.left.remove(sourcePanel.getLeftHalf());
-						ww.right.remove(sourcePanel.getRightHalf());
-						int destIndex = 0;
-						Component [] lefts = ww.left.getComponents();
-						for(destIndex=0; destIndex < lefts.length; destIndex++)
-						{
-							if (lefts[destIndex] == panel.getLeftHalf()) break;
-						}
-						if (dtde.getLocation().y > panel.getBounds().height/2)
-							destIndex++;
-						ww.left.add(sourcePanel.getLeftHalf(), destIndex);
-						ww.right.add(sourcePanel.getRightHalf(), destIndex);
-					}
+					ww.wavePanels.remove(sourcePanel);
+					int destIndex = ww.wavePanels.indexOf(panel);
+					if (dtde.getLocation().y > panel.getBounds().height/2)
+						destIndex++;
+					ww.wavePanels.add(destIndex, sourcePanel);
+					ww.reloadTable();
+					ww.table.repaint();
 
 					ww.getPanel().validate();
 					dtde.dropComplete(true);
@@ -4549,7 +4426,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					return;
 				}
 
-				// moving/copying a signal (analog only)
+				// moving/copying a signal
 				int sigPos = Math.max(sigMovePos, sigCopyPos);
 				String signalName = sigNames[0].substring(sigPos + 11);
 				Signal<?> sSig = null;
@@ -4558,11 +4435,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					if (!ws.getSignal().getFullName().equals(signalName)) continue;
 					sSig = ws.getSignal();
-					if (panel.wrongPanelType(sSig))
-					{
-						dtde.dropComplete(true);
-						return;
-					}
 					oldColor = ws.getColor();
 					if (sigCopyPos < 0)
 					{
@@ -4596,11 +4468,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 				if (panel != null) {
 					// overlay this signal onto an existing panel
-					if (panel.wrongPanelType(sSig))
-					{
-						dtde.dropComplete(true);
-						return;
-					}
 					WaveSignal.addSignalToPanel(sSig, panel, null);
 					panel.makeSelectedPanel(-1, -1);
 					continue;
@@ -4686,7 +4553,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		/**
 		 * Method to return the WaveformWindow found by this locator class.
-		 * @return the WaveformWindow associated with the EditWindow given to the contructor.
+		 * @return the WaveformWindow associated with the EditWindow given to the constructor.
 		 * Returns null if no WaveformWindow could be found.
 		 */
 		public WaveformWindow getWaveformWindow() { return ww; }
@@ -4756,17 +4623,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		public void componentShown(ComponentEvent e) {}
 	}
 
-	public void propertyChange(PropertyChangeEvent e)
-	{
-		if (!USETABLES)
-		{
-			if (e.getPropertyName().equals("dividerLocation"))
-			{
-				if (mainHorizRulerPanel != null)
-					mainHorizRulerPanel.repaint();
-			}
-		}
-	}
+	public void propertyChange(PropertyChangeEvent e) {}
 
 	/**
 	 * Method to display simulation data in an existing waveform window; ignores preferences.
@@ -4805,7 +4662,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			String [] signalNames = WaveformWindow.getSignalOrder(sd.getCell());
 			boolean showedSomething = false;
 			boolean wantUnlockedTime = false;
-//			String onlyType = null;
 			for(int i=0; i<signalNames.length; i++)
 			{
 				String signalName = signalNames[i];
@@ -4818,27 +4674,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					int tabPos = signalName.indexOf('\t', 1);
 					start = tabPos+1;
 					if (openPos >= 0) tabPos = openPos;
-//					String analysisName = signalName.substring(1, tabPos);
-                    /*
-					String analysisType = String.findAnalysisType(analysisName);
-					if (analysisType == null) continue;
-					an = sd.findAnalysis(analysisType);
-					if (an == null) continue;
-                    */
-                        /*
-					if (openPos >= 0)
-					{
-						int closePos = signalName.indexOf(')');
-						String sigName = signalName.substring(openPos+1, closePos);
-						xAxisSignal = an.findSignalForNetwork(sigName);
-						wantUnlockedTime = true;
-					}
-                        */
 				}
-                /*
-				if (onlyType == null) onlyType = an.getAnalysisType();
-				if (an.getAnalysisType() != onlyType) wantUnlockedTime = true;
-                */
 				Panel wp = null;
 				boolean firstSignal = true;
 
@@ -4869,7 +4705,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						if (firstSignal)
 						{
 							firstSignal = false;
-							wp = new Panel(ww, sd.isAnalog());
+							int height = User.getWaveformDigitalPanelHeight();
+							if (sd.isAnalog()) height = User.getWaveformAnalogPanelHeight();
+							wp = new Panel(ww, height);
 							if (xAxisSignal != null)
 								wp.setXAxisSignal(xAxisSignal);
 							wp.makeSelectedPanel(-1, -1);
@@ -4910,7 +4748,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// nothing saved, so show a default set of signals (if it even exists)
 		if (sd.isAnalog())
 		{
-			Panel wp = new Panel(ww, sd.isAnalog());
+			int height = User.getWaveformAnalogPanelHeight();
+			Panel wp = new Panel(ww, height);
 			wp.makeSelectedPanel(-1, -1);
 		} else
 		{
@@ -4923,7 +4762,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (sDSig.getSignalContext() != null) continue;
 				//if (HashMap<String,Signal>.isInBus(sDSig)) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
-				Panel wp = new Panel(ww, sd.isAnalog());
+				int height = User.getWaveformDigitalPanelHeight();
+				Panel wp = new Panel(ww, height);
 				wp.makeSelectedPanel(-1, -1);
 				new WaveSignal(wp, sDSig);
 				numSignals++;
@@ -4971,16 +4811,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (numSignals <= 1) continue;
 
 			// found a bus of signals: create the bus for it
-//			Signal<DigitalSample> busSig =
-				DigitalSample.createSignal(an, sd, prefix, sSig.getSignalContext());
-            /*
-			an.buildBussedSignalList(busSig);
-			for(int k=i; k<j; k++)
-			{
-				Signal<DigitalSample> subSig = signals.get(k);
-				Analysis.addToBussedSignalList(busSig, subSig);
-			}
-            */
+			DigitalSample.createSignal(an, sd, prefix, sSig.getSignalContext());
 			i = j - 1;
 		}
 	}

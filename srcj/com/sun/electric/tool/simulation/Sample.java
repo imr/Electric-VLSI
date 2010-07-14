@@ -22,7 +22,8 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
-import java.io.*;
+
+import java.io.Serializable;
 
 /**
  *  A Sample is the data assigned to each point in time by a

@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
+
 import java.util.HashMap;
 
 /**
@@ -29,12 +30,11 @@ import java.util.HashMap;
  */
 public abstract class MutableSignal<SS extends Sample> extends Signal<SS> {
 
-    public MutableSignal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext) {
-        super(analysis, sd, signalName, signalContext);
+    public MutableSignal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext, boolean digital) {
+        super(analysis, sd, signalName, signalContext, digital);
     }
 
     public abstract SS   getSample(double time);
     public abstract void addSample(double time, SS sample);
     public abstract void replaceSample(double time, SS sample);
-
 }

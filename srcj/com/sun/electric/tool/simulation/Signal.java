@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
+
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.waveform.Panel;
@@ -53,7 +54,7 @@ import java.util.List;
  */
 public abstract class Signal<SS extends Sample> {
 
-    public Signal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext) {
+    public Signal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext, boolean digital) {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
 		this.extrapolateToRight = true;
@@ -61,6 +62,7 @@ public abstract class Signal<SS extends Sample> {
         this.fullSignalName = signalContext==null
             ? signalName
             : signalContext + (analysis==null ? '.' : sd.getSeparatorChar()) + signalName;
+        this.digital = digital;
         this.stimuli = sd;
         if (analysis!=null) {
             String name = TextUtils.canonicString(fullSignalName);
@@ -74,8 +76,9 @@ public abstract class Signal<SS extends Sample> {
 
 	/** the name of this signal */										private final String signalName;
 	/** the context of this signal (qualifications to name) */			private final String signalContext;
-	/** the context of this signal (qualifications to name) */			private final String fullSignalName;
+	/** full name (with context) */										private final String fullSignalName;
     /** the HashMap<String,Signal> to which this signal belongs */      private final String analysisTitle;
+    /** true if the signal is digital */                    			private final boolean digital;
     /** the extrapolateToRight setting of the HashMap<String,Signal> */ private final boolean extrapolateToRight;
     /** the stimuli of the HashMap<String,Signal> */                    private final Stimuli stimuli;
 
@@ -85,7 +88,11 @@ public abstract class Signal<SS extends Sample> {
     public void addControlPoint(double time) { stimuli.addControlPoint(this, time); }
     public Double[] getControlPoints() { return stimuli.getControlPoints(this); }
     public boolean extrapolateValues() { return extrapolateToRight; }
+	public final boolean isDigital() { return digital; }
 	public final String getAnalysisTitle() { return analysisTitle; }
+
+	/** method to return the sub-signals in this bus (null if not a bus) */
+    public Signal<?>[] getBusMembers() { return null; }
 
 	/** returns an array of sweep names on this Signal */
 	public String [] getSweepNames() { return null; }

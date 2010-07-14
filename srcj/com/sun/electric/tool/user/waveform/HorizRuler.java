@@ -136,7 +136,7 @@ public class HorizRuler extends JPanel implements MouseListener, MouseMotionList
 		if (g != null)
 		{
 			// figure out where the panel sits on the screen
-			if (WaveformWindow.USETABLES && drawHere != null)
+			if (drawHere != null)
 			{
 				Dimension tableSz = waveWindow.getWaveformTable().getSize();
 				Point screenLoc = waveWindow.getWaveformTable().getLocationOnScreen();

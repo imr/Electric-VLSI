@@ -140,10 +140,10 @@ public class SweptSample<S extends Sample> implements Sample
 
     /** create a Signal<SweptSample<S>> from preexisting Signal<S>'s */
     public static <SS extends Sample> Signal<SweptSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd,
-    	String signalName, String signalContext, final String [] sweepNames, final Signal<SS>[] subsignals)
+    	String signalName, String signalContext, boolean digital, final String [] sweepNames, final Signal<SS>[] subsignals)
     {
     	final String anName = an.toString();
-        return new Signal<SweptSample<SS>>(an, sd, signalName, signalContext)
+        return new Signal<SweptSample<SS>>(an, sd, signalName, signalContext, digital)
         {
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
 

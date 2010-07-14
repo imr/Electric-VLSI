@@ -28,7 +28,7 @@ command (in menu <B>Tools / Simulation (Spice)</B>) to read the file.
 If the file has the same name as the current cell, you can more simply use <B>Plot Simulation Output, Guess File</B>,
 which does not need to prompt for a file name.
 The Spice simulation information is shown in an analog waveform window
-(see <A HREF="chap04-11-02.html#chap04-11-02">Section 4-11-2</A> for more).
+(see <A HREF="chap04-11.html#chap04-11">Section 4-11</A> for more).
 <P>
 <H4>Special Spice Nodes</H4>
 <P>
@@ -184,7 +184,7 @@ This popup can be found in the
 Technology Preferences (in menu <B>File / Preferences...</B>, "Technology" tab,
 see <A HREF="chap07-01-02.html#chap07-01-02">Section 7-1-2</A>).
 <P>
-The middle part of the dialog controls how Spice can be run after a deck has been written:
+The bottom part of the dialog controls how Spice can be run after a deck has been written:
 <UL>
 <LI><B>After writing deck</B> Electric can create an external process as specified by the user to
 run Spice on the generated netlist.
@@ -210,21 +210,6 @@ The following variables are available to use in the program name and arguments:
 <LI><B>${FILENAME}</B> The output file name (with extension).</LI>
 <LI><B>${FILENAME_NO_EXT}</B> The output file name (without extension).</LI>
 <LI><B>${FILEPATH}</B> The full path to the output file.</LI>
-</UL>
-<P>
-The bottom part of the dialog controls the reading back of Spice output for plotting in the waveform window:
-<UL>
-<LI><B>Output format</B> The format to expect when reading Spice output.
-The choices are "Standard" (the default),
-"Raw" (raw format),
-"RawSmart" (SmartSpice raw format),
-"RawLT" (LTSpice raw format),
-and "Epic" (for Nanosim).</LI>
-<LI><B>Epic reader memory size</B> Sets the amount of memory to allocate to the separate reader process
-(which is only valid if the Output format is set to Epic).</LI>
-<LI><B>Extracted network delimiter character</B> The character that separates automatically-extracted
-networks in the Spice output.
-Some Spice engines use ":" and others use "#".</LI>
 </UL>
 <P>
 <!-- NEED 5in -->

@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
-import java.io.*;
 
 /**
  *  A sample consisting of a range (a min and a max).  Example usage:

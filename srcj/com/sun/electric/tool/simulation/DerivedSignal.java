@@ -23,19 +23,16 @@
  */
 package com.sun.electric.tool.simulation;
 
-import java.awt.geom.Rectangle2D;
-import java.util.*;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.tool.user.waveform.Panel;
+import com.sun.electric.tool.user.waveform.WaveSignal;
+import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
+
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Dimension;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
-import com.sun.electric.tool.user.waveform.*;
-import com.sun.electric.database.geometry.Poly;
-import java.awt.font.GlyphVector;
-import com.sun.electric.database.variable.TextDescriptor;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * A Signal which is derived in a *pointwise* fashion from other
@@ -49,8 +46,8 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
     private final Signal<SOld>[] sources;
 
     public DerivedSignal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext,
-                         Signal<SOld>[] sources) {
-        super(analysis, sd, signalName, signalContext);
+                         boolean digital, Signal<SOld>[] sources) {
+        super(analysis, sd, signalName, signalContext, digital);
         this.sources = sources;
     }
 

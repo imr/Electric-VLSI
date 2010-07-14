@@ -1,8 +1,10 @@
 <!-- NEED 5in -->
 
-<!-- HEADER 4-11-2: Analog Waveform Windows -->
+<!-- HEADER 4-11: Waveform Windows -->
 
 <!-- COMMAND Edit/Selection/Add to Waveform in Current Panel -->
+<!-- COMMAND Edit/Selection/Add to Waveform in New Panel -->
+<!-- COMMAND Edit/Selection/Remove from Waveform -->
 <!-- COMMAND Window/Waveform Window/Save Waveform Window Configuration to Disk... -->
 <!-- COMMAND Window/Waveform Window/Restore Waveform Window Configuration from Disk... -->
 <!-- COMMAND Window/Waveform Window/Refresh Simulation Data -->
@@ -11,6 +13,7 @@
 <!-- COMMAND Window/Waveform Window/Fill Only in X -->
 <!-- COMMAND Window/Waveform Window/Fill Only in Y -->
 <!-- COMMAND Window/Waveform Window/Clear All Signals in Waveform Window -->
+<!-- COMMAND Window/Waveform Window/Generate Digital Signal from Analog Signal (0.5v threshold) -->
 
 <!-- COMMAND Window/Waveform Window/Create New Waveform Panel -->
 <!-- COMMAND Window/Waveform Window/Toggle Horizontal Panel Lock -->
@@ -28,64 +31,89 @@
 <!-- COMMAND Window/Waveform Window/Move Main X Axis Cursor Faster -->
 <!-- COMMAND Window/Waveform Window/Move Main X Axis Cursor Slower -->
 
+<!-- COMMAND Tools/Simulation (Built-in)/Set Signal High at Main Time -->
+<!-- COMMAND Tools/Simulation (Built-in)/Set Signal Low at Main Time -->
+<!-- COMMAND Tools/Simulation (Built-in)/Set Signal Undefined at Main Time -->
+<!-- COMMAND Tools/Simulation (Built-in)/Set Clock on Selected Signal... -->
+<!-- COMMAND Tools/Simulation (Built-in)/Update Simulation Window -->
+<!-- COMMAND Tools/Simulation (Built-in)/Get Information about Selected Signals -->
+<!-- COMMAND Tools/Simulation (Built-in)/Clear Selected Stimuli -->
+<!-- COMMAND Tools/Simulation (Built-in)/Clear All Stimuli on Selected Signals -->
+<!-- COMMAND Tools/Simulation (Built-in)/Clear All Stimuli -->
+<!-- COMMAND Tools/Simulation (Built-in)/Save Stimuli to Disk... -->
+<!-- COMMAND Tools/Simulation (Built-in)/Restore Stimuli from Disk... -->
 
-The waveform window is able to display analog simulation output.
-This simulation output comes from external simulators (such as Spice).
-When the system is asked to display the results of an external simulation, it reads
+
+The waveform window is able to display simulation output and cross-probe it to the layout or schematic.
+This simulation output can come from external simulators (such as Spice and Verilog)
+or from built-in simulators (such as ALS and IRSIM).
+When displaying the results of external simulators, it reads
 the simulation output and shows it.
+When internal simulators are displayed,
+you have the additional capability of changing the stimuli.
 <P>
-The analog waveform window looks like the picture below.
+The waveform window looks like the picture below.
 Note that there is a side bar with a cell explorer in the window, just like in all windows,
 but the explorer has a "SIGNALS" section that lists the signals found in the simulation
 (and optionally a "SWEEPS" section if swept data was found).
 When reading HSpice data, the signals and sweeps sections may be further qualified by analysis,
-for example "TRANS SIGNALS", "DC SWEEPS", etc.
+for example "TRANS SIGNALS", "DC SIGNALS", etc.
 <P>
 <CENTER><IMG SRC="fig09-04.png" ALT="Figure 9.4"></CENTER>
 <P>
-<H4>Wave Panels</H4>
+<H4>Panels</H4>
 <P>
-The waveform window contains a set of <I>panels</I>, each with one or more signals and waveforms.
+The waveform window contains a set of <I>panels</I>, each with one or more signals.
+There is a "current panel" which is identified with a thicker vertical axis
+(the top panel in the above picture).
 In a panel, signal names are shown on the left, and their waveform on the right.
-Above the signal names in each panel are 5 names and controls:
+Above the signal names in each panel are a number of controls:
 <UL>
 <LI><B>Panel number</B> each panel is numbered so that it can be hidden and retrieved.</LI>
-<LI><B>Close</B> (an "X") to remove the panel from the waveform window.</LI>
+<LI><B>Close</B> (an "X") to remove the panel from the waveform window.
+The command <B>Clear All Signals in Waveform Window</B> (in menu <B>Window / Waveform Window</B>)
+removes all waveform panels from the display.</LI>
 <LI><B>Hide</B> to stop displaying the panel, but keep it available (it can be restored by selecting its name from the popup at the top
 of the waveform window).</LI>
 <LI><B>Remove Signal</B> remove the selected signal from the panel (the DELETE key works for this, too).</LI>
 <LI><B>Remove All Signals</B> remove all signals from the panel.</LI>
 </UL>
-The command <B>Clear All Signals in Waveform Window</B> (in menu <B>Window / Waveform Window</B>)
-removes all waveform panels from the display.
+You can create a new panel, with no signals in it, by clicking on the button in the upper-left of the waveform window
+(<IMG SRC="fig09-29.png" ALT="Figure 9.29">) or by using the <B>Create New Waveform Panel</B> command
+(in menu <B>Window / Waveform Window</B>).
 <P>
-You can select a signal by selecting either its name or the actual waveform.
-Note that when you click on a signal,
-the equivalent network in the associated schematic or layout window is also highlighted.
-If a Spice deck was generated from the schematic,
-then crossprobing its simulation results to layout may not work properly.
-This can be fixed with the <B>Run NCC for Schematic Cross-Probing</B> command (in menu <B>Tools / NCC</B>,
-see <A HREF="chap09-07-02.html#chap09-07-02">Section 9-7-2</A>).
+<TABLE><TR><TD>
+When viewing digital simulation output (such as Verilog) waveforms can be busses.
+Busses are collections of single signals that display integer values (for example, "path[0:31]").
+To see the individual signal that make up a bus, double-click the bus signal
+(and double-click it again to remove the individual signals).
+</TD><TD><CENTER><IMG SRC="fig04-25.png" ALT="Figure 4.25"></CENTER></TD></TR></TABLE>
 <P>
-You can change the color of a signal by right-clicking on its name and choosing a different color.
+You can add signals to a panel by double-clicking on the name in the "SIGNALS" area.
+The signals will be added to the current panel.
+You can also add signals to a panel by dragging the text onto the panel.
+<P>
+If the layout or schematics cell that produced the simulation is being displayed in another window,
+and a network is selected in that window,
+then that network can be added to the waveform window with
+the <B>Add to Waveform in New Panel</B> command (in menu <B>Edit / Selection</B>).
+The command <B>Add to Waveform in Current Panel</B> overlays the signal on top of others in the currently selected waveform panel.
 <P>
 You can rearrange the order of the waveform panels by clicking on their panel-number and dragging the panel to a new location.
 You can move signals from one panel to another by dragging their names to their desired panel.
 If you use shift-click to drag signals, they are copied to the new panel.
 <P>
-You can add signals to the list by double-clicking on their name in the "SIGNALS" area
-(or by dragging those names to the waveform part on the right).
-The signals will be added to the highlighted panel (the one with the bold vertical axis).
-You can create a new panel, with no signals in it, by clicking on the button in the upper-left of the waveform window
-(<IMG SRC="fig09-29.png" ALT="Figure 9.29">) or by using the <B>Create New Waveform Panel</B> command.
+You can change the color of a signal by right-clicking on its name and choosing a different color.
+When viewing digital waveforms, the color can also vary with the strength of the signal.
+To enable such a display, check "Multistate display" in the Simulators Preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab).
+To control the actual colors used in multistate display, use the Layers Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Layers" tab)
+and set the colors for "WAVEFORM: OFF STRENGTH", "WAVEFORM: NODE (WEAK) STRENGTH",
+"WAVEFORM: GATE STRENGTH", and "WAVEFORM: POWER STRENGTH"
+(see <A HREF="chap04-06-02.html#chap04-06-02">Section 4-6-2</A>).
 <P>
-If the layout or schematics cell that produced the simulation is being displayed in another window,
-and the currently selected network in that window is found in the simulation output,
-then that output can be added to the waveform window with
-the <B>Add to Waveform in New Panel</B> command (in menu <B>Edit / Selection</B>).
-The command <B>Add to Waveform in Current Panel</B> overlays the signal on top of others in the currently selected waveform panel.
-<P>
-The order of signals in the waveform window is saved in the original cell
+The order of signals in the waveform window is saved
 so that subsequent simulations will show the same signals.
 You can also save the configuration of the waveform window with the
 <B>Save Waveform Window Configuration to Disk...</B> command
@@ -101,16 +129,16 @@ These commands are useful for doing spreadsheet analysis of the data.
 
 <H4>Sweeps</H4>
 <P>
-If the simulation had sweeps, those values are shown in the cell explorer in the "SWEEPS" area.
-You can right-click on a sweep and choose to include or exclude it from the display
-(double-clicking on the sweep toggles its inclusion).
+If the simulation had sweeps, those values are shown in the cell explorer in a separate "SWEEPS" area.
+You can double-click on a sweep to toggle its visibility,
+or right-click on a sweep and choose to include or exclude it from the display.
 Right-clicking on the "SWEEPS" icon lets you include or exclude all of them.
 <P>
 A single sweep can be highlighted to distinguish it on the display.
 Right-click on that sweep and choose "Highlight".
 To remove all highlighting, right-click on the "SWEEPS" icon and choose "Remove Highlighting".
 <P>
-<!-- NEED 3in -->
+
 <H4>Time Control</H4>
 <P>
 Two vertical cursors appear in the window, called "main" and "extension"
@@ -127,7 +155,7 @@ the top/bottom values with difference.
 The tool snaps to data points so it is easy to get precise measurements.
 </TD></TR></TABLE>
 <P>
-The time axis of the simulation window can be controlled with the appropriate <B>Window</B> menu commands.
+The time range in the simulation window can be controlled with the appropriate <B>Window</B> menu commands.
 Use <B>Zoom Out</B> and <B>Zoom In</B> to scale the time axis by a factor of two.
 Use <B>Focus on Highlighted</B> (in menu <B>Window / Special Zoom</B>)
 to display the range between the main and extension cursors.
@@ -170,7 +198,7 @@ These VCR controls are also available by using the <B>Rewind Main X Axis Cursor 
 <B>Move Main X Axis Cursor Faster</B>, and
 <B>Move Main X Axis Cursor Slower</B> commands.
 <P>
-These window functions apply to the analog simulation windows:
+These window functions apply to the simulation window:
 <UL>
 <LI><B>Window / Fill Window</B> make all data fit in window.
 If you wish to fill only in X, use the <B>Fill Only in X</B> command
@@ -182,11 +210,37 @@ To fill only in Y, use <B>Fill Only in Y</B>.</LI>
 <LI><B>Window / Pan Left</B> show earlier time.</LI>
 <LI><B>Window / Pan Right</B> show later time.</LI>
 <LI><B>Window / Special Pan / Center Cursor</B> shifts the time so that the location of
-the cursor is in the center (this command is only sensibly executed by using its quick-key binding).</LI>
+the main cursor is in the center.</LI>
 <LI><B>"Pan" tool in tool bar</B> freehand drag of time.</LI>
 <LI><B>"Zoom" tool in tool bar</B> drag area to zoom in, hold shift to zoom out.</LI>
 <LI><B>"Measure" tool in tool bar</B> for measuring time.</LI>
 </UL>
+
+<H4>Crossprobing</H4>
+<P>
+You can select a signal by selecting either its name or the actual waveform.
+When you select a signal, and the equivalent schematic or layout is being displayed,
+Electric does crossprobing and shows the selected network in the schematic/layout.
+Similarly, when a network in the original schematic or layout is selected, the equivalent waveform is highlighted.
+<P>
+Another feature of crossprobing is the ability to show the electrical state of the network in the original schematic or layout cell
+(this happens only for digital waveforms).
+Electric not only highlights the network in the original circuit, but it shows wires with
+different colors depending on their state (high/low/X/Z) at the current time.
+If you connect <I>Simulation Probe</I> nodes to any part of the circuit,
+those nodes light up with the appropriate color instead,
+which allows better visualization of activity patterns (see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
+You can control the colors used in crossprobing by using the Layers Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Layers" tab)
+and setting the colors for "WAVEFORM: CROSSPROBE LOW", "WAVEFORM: CROSSPROBE HIGH",
+"WAVEFORM: CROSSPROBE UNDEFINED", and "WAVEFORM: CROSSPROBE FLOATING"
+(see <A HREF="chap04-06-02.html#chap04-06-02">Section 4-6-2</A>).
+<P>
+If a Spice deck was generated from the schematic,
+then crossprobing its simulation results to layout may not work properly.
+This can be fixed with the <B>Run NCC for Schematic Cross-Probing</B> command (in menu <B>Tools / NCC</B>,
+see <A HREF="chap09-07-02.html#chap09-07-02">Section 9-7-2</A>).
+<P>
 
 <H4>Eye Plots</H4>
 <P>
@@ -194,6 +248,59 @@ The horizontal axis does not have to represent time.
 Any signal can be used in the horizontal axis, simply by dragging that signal onto the horizontal ruler.
 To restore the horizontal axis to show time, right-click on it and choose "Make the X axis show Time".
 <P>
+
+<H4>Stimuli (for Built-in Simulators)</H4>
+<P>
+When the waveform window displays the output of built-in simulators, you can set stimuli on the
+signals to affect the simulation.
+Each stimulus that you set is marked with a large red box at the time of the stimulus.
+You can select the stimuli by clicking on the red box.
+A selected stimulus has a green box in it.
+<P>
+<CENTER><IMG SRC="fig09-37.png" ALT="Figure 9.37"></CENTER>
+<P>
+To set stimuli, select either a waveform or the equivalent network in the original schematic or layout.
+Once selected, use the <B>Set Signal High at Main Time</B>
+(in menu <B>Tools / Simulation (Built-in)</B>)
+to make that signal go to "high" at the time indicated by the Main cursor.
+Use <B>Set Signal Low at Main Time</B> to set the selected signal "low", and use
+<B>Set Signal Undefined at Main Time</B> to set the selected signal "undefined" (X).
+Use the <B>Get Information about Selected Signals</B> command to show stimuli and
+other information on the selected signals.
+<P>
+To remove the selected stimulus, use the <B>Clear Selected Stimuli</B> command.
+To remove all stimuli on a the selected waveforms, use <B>Clear All Stimuli on Selected Signals</B>.
+To remove all stimuli in the simulation, use <B>Clear All Stimuli</B>.
+
+<!-- NEED 3in -->
+<P>
+<TABLE><TR><TD>
+Besides simple test vectors,
+the ALS simulator can also set clock patterns on the currently selected signal
+by using the <B>Set Clock on Selected Signal...</B> command.
+There are two ways to specify a clock: by frequency (in cycles per second) or period (in seconds).
+</TD><TD><CENTER><IMG SRC="fig09-40.png" ALT="Figure 9.40"></CENTER></TD></TR></TABLE>
+<P>
+Note that the clock cycles infinitely,
+but Electric generates simulation events to fill only the current waveform window.
+If you want more clock events generated,
+zoom-out the waveform window before issuing the clock command.
+<P>
+Once a set of stimuli has been established, you can save it to disk with the
+<B>Save Stimuli to Disk...</B> command.
+These stimuli can be restored later with the <B>Restore Stimuli from Disk...</B> command.
+Each built-in simulator has its own format for saving stimuli.
+<P>
+The Simulators Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab),
+offers some controls for built-in simulators.
+<UL>
+<LI>"Auto advance time" requests that the main time cursor advance after each stimulus is added.
+This allows each stimulus added to occur at a new time.</LI>
+<LI>"Resimulate each change" requests that the simulator rerun the simulation after any change to the stimuli.
+Because the process of simulating a circuit can be costly, you might want to delay
+resimulation until all stimuli have been set.
+If you uncheck this item, you must issue the <B>Update Simulation Window</B> command to re-run the simulation.
+</UL>
 
 <H4>Other Controls</H4>
 <P>
@@ -212,6 +319,7 @@ This function is also available with the <B>Refresh Simulation Data</B> command
 Controls the display of dots on the vertices of the waveforms.
 The button toggles between three states:
 (1) showing lines only, (2) showing lines and dots, and (3) showing dots only.
+This is only available for analog waveforms: digital signals are always drawn with lines.
 These functions are also available with the <B>Show Points and Lines</B>, <B>Show Lines</B>, and <B>Show Points</B> commands
 (in menu <B>Window / Waveform Window</B>).
 </LI>
@@ -234,9 +342,13 @@ These functions are also available with the <B>Increase Minimum Panel Height</B>
 (in menu <B>Window / Waveform Window</B>).
 By shrinking the panel size, more of them can fit in the window without having to use a slider to access them.
 Also, the panels can be resized individually by dragging any of the dividers.</LI>
-
-<LI><B>Plotting</B> can be done with special commands in the <B>Window / Waveform Window</B> submenu
-(see <A HREF="chap04-08.html#chap04-08">Section 4-8</A> for more on printing).</LI>
 </UL>
+
+Plotting> can be done with special commands in the <B>Window / Waveform Window</B> submenu
+(see <A HREF="chap04-08.html#chap04-08">Section 4-8</A> for more on printing).</LI>
+
+An analog signal can be converted to digital with the command
+<B>Generate Digital Signal from Analog Signal (0.5v threshold)</B>
+(in menu <B>Window / Waveform Window</B>).
 
 <!-- TRAILER -->

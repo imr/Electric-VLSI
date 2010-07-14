@@ -22,12 +22,12 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.simulation;
+
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.btree.unboxed.LatticeOperation;
 import com.sun.electric.database.geometry.btree.unboxed.Unboxed;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
 
 import java.awt.Color;
@@ -222,16 +222,13 @@ public class DigitalSample implements Sample {
     }
 
     public static MutableSignal<DigitalSample> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext) {
-        return new BTreeSignal<DigitalSample>(an, sd, signalName, signalContext, BTreeSignal.getTree(unboxer, latticeOp)) {
+        return new BTreeSignal<DigitalSample>(an, sd, signalName, signalContext, true, BTreeSignal.getTree(unboxer, latticeOp)) {
 
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
-//                int linePointMode = panel.getWaveWindow().getLinePointMode();
                 Dimension sz = panel.getSize();
                 int hei = sz.height;
 
-                // draw analog trace
-//                Signal as = this;
 				// a simple digital signal
 				int lastx = panel.getVertAxisPos();
 				int lastState = 0;

@@ -433,7 +433,7 @@ public class RawSpiceOut extends Input<Stimuli>
                             context = name.substring(0, lastDotPos);
                             name = name.substring(lastDotPos + 1);
                         }
-                    	SweptSample.createSignal(an, sd, name, context, sweepNames, (Signal<ScalarSample>[])signals[i]);
+                    	SweptSample.createSignal(an, sd, name, context, false, sweepNames, (Signal<ScalarSample>[])signals[i]);
                     }
                     return;
                 }
