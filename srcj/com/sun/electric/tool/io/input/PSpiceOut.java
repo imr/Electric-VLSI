@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
@@ -78,7 +79,7 @@ public class PSpiceOut extends Input<Stimuli>
 		throws IOException
 	{
 		boolean first = true;
-		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "SIGNALS", false);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS", false);
 		sd.setCell(cell);
 		List<String> signalNames = new ArrayList<String>();
 		List<Double> [] values = null;
@@ -169,7 +170,7 @@ public class PSpiceOut extends Input<Stimuli>
 			double[] doubleValues = new double[numEvents];
 			for(int i=0; i<numEvents; i++)
 				doubleValues[i] = values[j].get(i).doubleValue();
-			ScalarSample.createSignal(an, sd, signalNames.get(j), null, time, doubleValues);
+			ScalarSample.createSignal(sc, sd, signalNames.get(j), null, time, doubleValues);
 		}
 	}
 

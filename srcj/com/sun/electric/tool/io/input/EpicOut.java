@@ -29,6 +29,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
@@ -74,7 +75,7 @@ public class EpicOut extends Input<Stimuli>
 	{
 		double curTime = 0;
 		List<Signal<ScalarSample>> signalsByEpicIndex = new ArrayList<Signal<ScalarSample>>();
-		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "TRANS SIGNALS", false);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "TRANS SIGNALS", false);
 		Set<Integer> currentSignals = new HashSet<Integer>();
 		double timeResolution = 1;
 		double voltageResolution = 1;
@@ -131,7 +132,7 @@ public class EpicOut extends Input<Stimuli>
 							context  = name.substring(0, sepPos);
 							name = name.substring(sepPos+1);
 						}
-						s = ScalarSample.createSignal(an, sd, name, context);
+						s = ScalarSample.createSignal(sc, sd, name, context);
 						signalsByEpicIndex.set(sigNum, s);
 						if (isCurrent) currentSignals.add(Integer.valueOf(sigNum));
 					}

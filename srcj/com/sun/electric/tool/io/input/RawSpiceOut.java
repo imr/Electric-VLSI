@@ -30,6 +30,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.SweptSample;
 
@@ -87,7 +88,7 @@ public class RawSpiceOut extends Input<Stimuli>
 		boolean first = true;
 
 		sd.setCell(cell);
-		HashMap<String,Signal<?>> an = null;
+		SignalCollection sc = null;
 
 		double[][] values = null;
         double[] time = null;
@@ -129,7 +130,7 @@ public class RawSpiceOut extends Input<Stimuli>
             {
                 // see if known analysis is specified
                 // terminate any previous analysis
-                if (an != null)
+                if (sc != null)
                 {
                     signalCount = -1;
                     rowCount = -1;
@@ -140,17 +141,17 @@ public class RawSpiceOut extends Input<Stimuli>
                 // start reading a new analysis
                 if (restOfLine.startsWith("Transient Analysis"))
                 {
-                    an = Stimuli.newAnalysis(sd, "TRANS SIGNALS", false);
+                    sc = Stimuli.newSignalCollection(sd, "TRANS SIGNALS", false);
                 } else if (restOfLine.startsWith("DC "))
                 {
-                    an = Stimuli.newAnalysis(sd, "DC SIGNALS", false);
+                    sc = Stimuli.newSignalCollection(sd, "DC SIGNALS", false);
                 } else if (restOfLine.startsWith("AC "))
                 {
-                    an = Stimuli.newAnalysis(sd, "AC SIGNALS", false);
+                    sc = Stimuli.newSignalCollection(sd, "AC SIGNALS", false);
                 } else
                 {
                     System.out.println("Warning: unknown analysis: " + restOfLine);
-                    an = Stimuli.newAnalysis(sd, "TRANS SIGNALS", false);
+                    sc = Stimuli.newSignalCollection(sd, "TRANS SIGNALS", false);
                 }
                 continue;
             }
@@ -279,7 +280,7 @@ public class RawSpiceOut extends Input<Stimuli>
                         }
                     }
                     for (int i = 0; i < signalCount; i++)
-                        ScalarSample.createSignal(an, sd, signalNames[i], null, time, values[i]);
+                        ScalarSample.createSignal(sc, sd, signalNames[i], null, time, values[i]);
                     continue;
                 }
                 if (keyWord.equals("Binary"))
@@ -402,7 +403,7 @@ public class RawSpiceOut extends Input<Stimuli>
                             name = name.substring(lastDotPos + 1);
                         }
                         for(int s=0; s<sweepCount; s++)
-            				signals[i][s] = ScalarSample.createSignal(an, sd, name, context);
+            				signals[i][s] = ScalarSample.createSignal(sc, sd, name, context);
                     }
 
                     // place data into the HashMap<String,Signal> object
@@ -433,8 +434,9 @@ public class RawSpiceOut extends Input<Stimuli>
                             context = name.substring(0, lastDotPos);
                             name = name.substring(lastDotPos + 1);
                         }
-                    	SweptSample.createSignal(an, sd, name, context, false, sweepNames, (Signal<ScalarSample>[])signals[i]);
+                    	SweptSample.createSignal(sc, sd, name, context, false, (Signal<ScalarSample>[])signals[i]);
                     }
+                    sc.setSweepNames(sweepNames);
                     return;
                 }
             }

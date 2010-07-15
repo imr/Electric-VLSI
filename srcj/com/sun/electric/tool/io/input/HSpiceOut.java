@@ -31,6 +31,7 @@ import com.sun.electric.tool.simulation.ComplexSample;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.SweptSample;
 
@@ -168,7 +169,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (openTextInput(mtURL)) return;
 		System.out.println("Reading HSpice measurements file: " + mtURL.getFile());
 
-		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "MEASUREMENTS", false);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "MEASUREMENTS", false);
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;
@@ -250,7 +251,7 @@ public class HSpiceOut extends Input<Stimuli>
 
 			// special case with the "alter#" name...remove the "#"
 			if (mName.equals("alter#")) mName = "alter";
-			Signal<ScalarSample> as = ScalarSample.createSignal(an, sd, mName, null, time, values);
+			Signal<ScalarSample> as = ScalarSample.createSignal(sc, sd, mName, null, time, values);
 			measData.add(as);
 		}
 
@@ -418,7 +419,7 @@ public class HSpiceOut extends Input<Stimuli>
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, analysisTitle, false);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, analysisTitle, false);
 		startProgressDialog("HSpice " + analysisTitle + " analysis", fileURL.getFile());
 		System.out.println("Reading HSpice " + analysisTitle + " file: " + fileURL.getFile());
 
@@ -739,11 +740,11 @@ public class HSpiceOut extends Input<Stimuli>
 					name = name.substring(lastDotPos+1);
 				}
 				if (sweepcnt > 0) name += "[" + sweepName + "]";
-				HashMap<String,Signal<?>> anToUse = an;
-				if (sweepcnt > 0) anToUse = null;
+				SignalCollection scToUse = sc;
+				if (sweepcnt > 0) scToUse = null;
 				signals[k][sweepIndex] = isComplex
-	                ? ComplexSample.createComplexSignal(anToUse, sd, name, context)
-	                : ScalarSample.createSignal(anToUse, sd, name, context);
+	                ? ComplexSample.createComplexSignal(scToUse, sd, name, context)
+	                : ScalarSample.createSignal(scToUse, sd, name, context);
 			}
 
 			for(;;)
@@ -801,24 +802,23 @@ public class HSpiceOut extends Input<Stimuli>
 		        for(int i=0; i<signals[k].length; i++)
 		        	if (signals[k][i] != null) total++;
 		        Signal<?>[] signalCopy = new Signal[total];
-		        String [] sweepNameCopy = new String[total];
 		        int j = 0;
 		        for(int i=0; i<signals[k].length; i++)
 		        {
 		        	if (signals[k][i] == null) continue;
 		        	signalCopy[j] = signals[k][i];
-		        	sweepNameCopy[j] = sweepNames[i];
 		        	j++;
 		        }
 		        
 				if (isComplex)
 				{
-					SweptSample.createSignal(an, sd, name, context, false, sweepNameCopy, (Signal<ComplexSample>[])signalCopy);
+					SweptSample.createSignal(sc, sd, name, context, false, (Signal<ComplexSample>[])signalCopy);
 				} else
 				{
-					SweptSample.createSignal(an, sd, name, context, false, sweepNameCopy, (Signal<ScalarSample>[])signalCopy);
+					SweptSample.createSignal(sc, sd, name, context, false, (Signal<ScalarSample>[])signalCopy);
 				}
 			}
+			sc.setSweepNames(sweepNames);
 		}
 		closeInput();
 

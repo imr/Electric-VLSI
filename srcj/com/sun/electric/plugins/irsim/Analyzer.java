@@ -29,6 +29,7 @@ import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.DigitalSample.Strength;
@@ -171,7 +172,7 @@ public class Analyzer extends Engine
 
 	/** the simulation engine */					private Sim            theSim;
 	/** the waveform window */						private WaveformWindow ww;
-	/** the analysis data being displayed */		private HashMap<String,Signal<?>> analysis;
+	/** the analysis data being displayed */		private SignalCollection sigCollection;
 	/** the cell being simulated */					private Cell           cell;
 	/** the context for the cell being simulated */	private VarContext     context;
 	/** the name of the file being simulated */		private String         fileName;
@@ -266,7 +267,7 @@ public class Analyzer extends Engine
 
 		// convert the stimuli
 		sd.setEngine(this);
-		analysis = Stimuli.newAnalysis(sd, "SIGNALS", true);
+		sigCollection = Stimuli.newSignalCollection(sd, "SIGNALS", true);
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
 		nodeMap = new HashMap<Signal<?>,Sim.Node>();
@@ -279,8 +280,8 @@ public class Analyzer extends Engine
 			int slashPos = n.nName.lastIndexOf('/');
 			MutableSignal<DigitalSample> sig =
                 slashPos >= 0
-                ? DigitalSample.createSignal(analysis, sd, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
-                : DigitalSample.createSignal(analysis, sd, n.nName, null);
+                ? DigitalSample.createSignal(sigCollection, sd, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
+                : DigitalSample.createSignal(sigCollection, sd, n.nName, null);
 			n.sig = sig;
 			sigList.add(sig);
 			nodeMap.put(sig, n);
@@ -290,7 +291,7 @@ public class Analyzer extends Engine
 		}
 
 		// make bus signals from individual ones found in the list
-		sd.makeBusSignals(sigList, analysis);
+		sd.makeBusSignals(sigList, sigCollection);
 	}
 
 	/**
@@ -704,7 +705,7 @@ public class Analyzer extends Engine
 					// find this vector name in the list of vectors
 					Signal<DigitalSample> busSig = null;
 					if (busSig == null)
-						busSig = DigitalSample.createSignal(analysis, null, targ[1], null);
+						busSig = DigitalSample.createSignal(sigCollection, null, targ[1], null);
 					List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
 					getTargetNodes(targ, 2, sigs, null);
 					continue;
@@ -1084,7 +1085,7 @@ public class Analyzer extends Engine
 			}
 			if (name.indexOf('*') >= 0)
 			{
-				for(Signal<?> sig : analysis.values())
+				for(Signal<?> sig : sigCollection.getSignals())
 				{
 					if (strMatch(name, sig.getFullName()))
 					{
@@ -2113,7 +2114,7 @@ public class Analyzer extends Engine
 		String temp = " @ " + Sim.deltaToNS(theSim.curDelta) + "ns ";
 		System.out.println(temp);
 		column = temp.length();
-		Collection<Signal<?>> sigs = analysis.values();
+		Collection<Signal<?>> sigs = sigCollection.getSignals();
 		for(Signal<?> sig : sigs)
 		{
 			Signal<?>[] sigsOnBus = sig.getBusMembers();
@@ -2584,7 +2585,7 @@ public class Analyzer extends Engine
 	 */
 	private void setVecNodes(int flag)
 	{
-		Collection<Signal<?>> sigs = analysis.values();
+		Collection<Signal<?>> sigs = sigCollection.getSignals();
 		for(Signal<?> sig : sigs)
 		{
 			Signal<?>[] sigsOnBus = sig.getBusMembers();
@@ -2630,7 +2631,7 @@ public class Analyzer extends Engine
 
 	private Signal<DigitalSample> findName(String name)
 	{
-		for(Signal<?> sig : analysis.values())
+		for(Signal<?> sig : sigCollection.getSignals())
 		{
 			if (sig.getFullName().equals(name)) return (Signal<DigitalSample>)sig;
 		}

@@ -221,8 +221,8 @@ public class DigitalSample implements Sample {
         throw new RuntimeException("ack!");
     }
 
-    public static MutableSignal<DigitalSample> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext) {
-        return new BTreeSignal<DigitalSample>(an, sd, signalName, signalContext, true, BTreeSignal.getTree(unboxer, latticeOp)) {
+    public static MutableSignal<DigitalSample> createSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext) {
+        return new BTreeSignal<DigitalSample>(sc, sd, signalName, signalContext, true, BTreeSignal.getTree(unboxer, latticeOp)) {
 
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {

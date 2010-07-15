@@ -54,23 +54,23 @@ import java.util.List;
  */
 public abstract class Signal<SS extends Sample> {
 
-    public Signal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext, boolean digital) {
+    public Signal(SignalCollection sc, Stimuli sd, String signalName, String signalContext, boolean digital) {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
 		this.extrapolateToRight = true;
-        this.analysisTitle = analysis==null ? "SIGNALS" : analysis.toString();
+        this.analysisTitle = sc==null ? "SIGNALS" : sc.getName();
         this.fullSignalName = signalContext==null
             ? signalName
-            : signalContext + (analysis==null ? '.' : sd.getSeparatorChar()) + signalName;
+            : signalContext + (sc==null ? '.' : sd.getSeparatorChar()) + signalName;
         this.digital = digital;
         this.stimuli = sd;
-        if (analysis!=null) {
+        if (sc!=null) {
             String name = TextUtils.canonicString(fullSignalName);
             // simulators may strip off last "_"
             if (name.indexOf('_') >= 0 && !name.endsWith("_"))
-                analysis.put(name + "_", this);
+                sc.addSignal(name + "_", this);
             else
-                analysis.put(name, this);
+                sc.addSignal(name, this);
         }
     }
 
@@ -93,9 +93,6 @@ public abstract class Signal<SS extends Sample> {
 
 	/** method to return the sub-signals in this bus (null if not a bus) */
     public Signal<?>[] getBusMembers() { return null; }
-
-	/** returns an array of sweep names on this Signal */
-	public String [] getSweepNames() { return null; }
 
 	/** The name of this simulation signal, not including hierarchical path information */
 	public final String getSignalName() { return signalName; }

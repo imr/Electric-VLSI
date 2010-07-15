@@ -112,7 +112,7 @@ public class ComplexSample extends ScalarSample implements Sample {
         }
     };
 
-    public static Signal<ComplexSample> createComplexSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext) {
+    public static Signal<ComplexSample> createComplexSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext) {
     	/**
     	 *  Adam says: This class is an _anonymous_ inner class for a reason.  Although XXXSample.createSignal() returns a
     	 *  Signal<XXXSample>, it is important that other code does not assume this is the only way such signals might
@@ -122,7 +122,7 @@ public class ComplexSample extends ScalarSample implements Sample {
     	 *  instanceof checks.
     	 */
         Signal<ComplexSample> ret =
-            new BTreeSignal<ComplexSample>(an, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp)) {
+            new BTreeSignal<ComplexSample>(sc, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp)) {
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
             	ScalarSample.plotSig(this, panel, g, ws, light, forPs, bounds, selectedObjects);

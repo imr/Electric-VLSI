@@ -30,8 +30,8 @@ import java.util.HashMap;
  */
 public abstract class MutableSignal<SS extends Sample> extends Signal<SS> {
 
-    public MutableSignal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext, boolean digital) {
-        super(analysis, sd, signalName, signalContext, digital);
+    public MutableSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext, boolean digital) {
+        super(sc, sd, signalName, signalContext, digital);
     }
 
     public abstract SS   getSample(double time);

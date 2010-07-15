@@ -45,9 +45,9 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
 
     private final Signal<SOld>[] sources;
 
-    public DerivedSignal(HashMap<String,Signal<?>> analysis, Stimuli sd, String signalName, String signalContext,
+    public DerivedSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext,
                          boolean digital, Signal<SOld>[] sources) {
-        super(analysis, sd, signalName, signalContext, digital);
+        super(sc, sd, signalName, signalContext, digital);
         this.sources = sources;
     }
 

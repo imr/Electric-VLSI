@@ -118,7 +118,7 @@ public class SweptSample<S extends Sample> implements Sample
     }
 
     /** create a MutableSignal<SweptSample<SS>> */
-    public static <SS extends Sample> Signal<SweptSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd,
+    public static <SS extends Sample> Signal<SweptSample<SS>> createSignal(SignalCollection sc, Stimuli sd,
     	String signalName, String signalContext, int width)
     {
         /*
@@ -139,15 +139,13 @@ public class SweptSample<S extends Sample> implements Sample
     }
 
     /** create a Signal<SweptSample<S>> from preexisting Signal<S>'s */
-    public static <SS extends Sample> Signal<SweptSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd,
-    	String signalName, String signalContext, boolean digital, final String [] sweepNames, final Signal<SS>[] subsignals)
+    public static <SS extends Sample> Signal<SweptSample<SS>> createSignal(SignalCollection sc, Stimuli sd,
+    	String signalName, String signalContext, boolean digital, final Signal<SS>[] subsignals)
     {
-    	final String anName = an.toString();
-        return new Signal<SweptSample<SS>>(an, sd, signalName, signalContext, digital)
+    	final String scName = sc.getName();
+        return new Signal<SweptSample<SS>>(sc, sd, signalName, signalContext, digital)
         {
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
-
-            public String [] getSweepNames() { return sweepNames; }
 
             public Signal.View<RangeSample<SweptSample<SS>>> getRasterView(final double t0, final double t1, final int numPixels, final boolean extrap)
             {
@@ -237,7 +235,7 @@ public class SweptSample<S extends Sample> implements Sample
             {
             	for(int i=0; i<subsignals.length; i++)
             	{
-            		if (!panel.getWaveWindow().isSweepSignalIncluded(anName, i)) continue;
+            		if (!panel.getWaveWindow().isSweepSignalIncluded(scName, i)) continue;
             		ScalarSample.plotSig((MutableSignal<ScalarSample>)subsignals[i], panel, g, ws, light, forPs, bounds, selectedObjects);
             	}
             }

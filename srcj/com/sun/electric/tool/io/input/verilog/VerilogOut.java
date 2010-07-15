@@ -32,6 +32,7 @@ import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.DigitalSample.Strength;
 import com.sun.electric.tool.simulation.DigitalSample.Value;
@@ -78,7 +79,7 @@ public class VerilogOut extends Input<Stimuli>
 	private void readVerilogFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
-		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "SIGNALS", true);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS", true);
 		Map<String,Signal<DigitalSample>[]> busMembers = new HashMap<String,Signal<DigitalSample>[]>();
 		double timeScale = 1.0;
 		String currentScope = "";
@@ -117,7 +118,7 @@ public class VerilogOut extends Input<Stimuli>
 				{
 					// scan for arrays
 //					cleanUpScope(curArray, an);
-					sd.makeBusSignals(curArray, an);
+					sd.makeBusSignals(curArray, sc);
 					curArray = new ArrayList<Signal<?>>();
 
 					String scopeName = getNextKeyword();
@@ -140,7 +141,7 @@ public class VerilogOut extends Input<Stimuli>
 
 				// scan for arrays
 //				cleanUpScope(curArray, an);
-				sd.makeBusSignals(curArray, an);
+				sd.makeBusSignals(curArray, sc);
 				curArray = new ArrayList<Signal<?>>();
 
 				int dotPos = currentScope.lastIndexOf('.');
@@ -188,7 +189,7 @@ public class VerilogOut extends Input<Stimuli>
                     Signal<?> sig = null;
                     if (width <= 1)
                     {
-                        sig = DigitalSample.createSignal(an, sd, signalName + index, currentScope);
+                        sig = DigitalSample.createSignal(sc, sd, signalName + index, currentScope);
                         if (index.length() > 0) curArray.add(sig);
 
                         // put it in the symbol table
@@ -198,9 +199,9 @@ public class VerilogOut extends Input<Stimuli>
                         Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
 						for(int i=0; i<width; i++)
 						{
-                            subsigs[i] = DigitalSample.createSignal(an, sd, signalName + "[" + i + "]", currentScope);
+                            subsigs[i] = DigitalSample.createSignal(sc, sd, signalName + "[" + i + "]", currentScope);
 						}
-                        sig = BusSample.createSignal(an, sd, signalName + "[0:" + (width-1) + "]", currentScope, true, subsigs);
+                        sig = BusSample.createSignal(sc, sd, signalName + "[0:" + (width-1) + "]", currentScope, true, subsigs);
 
                         // put it in the bus symbol table
                 		busMembers.put(symbol, subsigs);
@@ -329,56 +330,6 @@ public class VerilogOut extends Input<Stimuli>
 		}
         */
 	}
-//
-//	private void cleanUpScope(List<Signal<?>> curArray, HashMap<String,Signal<?>> an)
-//	{
-//		if (curArray == null) return;
-//        Collections.sort(curArray, new WaveformWindow.SignalsByName());
-//		String last = null;
-//		String scope = null;
-//		int firstEntry = 0;
-//		int firstIndex = 0;
-//		int lastIndex = 0;
-//		int numSignalsInArray = curArray.size();
-//		for(int j=0; j<numSignalsInArray; j++)
-//		{
-//			Signal<?> sig = curArray.get(j);
-//			int squarePos = sig.getSignalName().indexOf('[');
-//			if (squarePos < 0) continue;
-//			String purename = sig.getSignalName().substring(0, squarePos);
-//			int index = TextUtils.atoi(sig.getSignalName().substring(squarePos+1));
-//			if (last != null)
-//			{
-//				if (last.equals(purename))
-//				{
-//					lastIndex = index;
-//					continue;
-//				}
-//				int width = j - firstEntry;
-//                Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
-//				for(int i=0; i<width; i++)
-//				{
-//					Signal<?> subSig = curArray.get(firstEntry+i);
-//                    subsigs[i] = (Signal<DigitalSample>)subSig;
-//				}
-//                BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, true, subsigs);
-//			}
-//			firstEntry = j;
-//			last = purename;
-//			firstIndex = lastIndex = index;
-//			scope = sig.getSignalContext();
-//		}
-//		if (last != null)
-//		{
-//			int width = numSignalsInArray - firstEntry;
-//            Signal<DigitalSample>[] subsigs = (Signal<DigitalSample>[])new Signal[width];
-//			for(int i=0; i<width; i++) {
-//				Signal<?> subSig = curArray.get(firstEntry+i);
-//                subsigs[i] = (Signal<DigitalSample>)subSig;
-//			}
-//            BusSample.createSignal(an, sd, last + "[" + firstIndex + ":" + lastIndex + "]", scope, true, subsigs);
-//		}
-//	}
 
 	private void addSignalToHashMap(Signal<?> sig, String symbol, Map<String,Object> symbolTable)
 	{

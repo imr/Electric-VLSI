@@ -108,7 +108,7 @@ public class BusSample<S extends Sample> implements Sample
     }
 
     /** create a MutableSignal<BusSample<SS>> */
-    public static <SS extends Sample> Signal<BusSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName,
+    public static <SS extends Sample> Signal<BusSample<SS>> createSignal(SignalCollection sc, Stimuli sd, String signalName,
     	String signalContext, int width)
     {
         /*
@@ -129,10 +129,10 @@ public class BusSample<S extends Sample> implements Sample
     }
 
     /** create a Signal<BusSample<S>> from preexisting Signal<S>'s */
-    public static <SS extends Sample> Signal<BusSample<SS>> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName,
+    public static <SS extends Sample> Signal<BusSample<SS>> createSignal(SignalCollection sc, Stimuli sd, String signalName,
     	String signalContext, boolean digital, final Signal<SS>[] subsignals)
     {
-        return new Signal<BusSample<SS>>(an, sd, signalName, signalContext, digital)
+        return new Signal<BusSample<SS>>(sc, sd, signalName, signalContext, digital)
         {
             public boolean isEmpty() { for(Signal<SS> sig : subsignals) if (!sig.isEmpty()) return false; return true; }
 

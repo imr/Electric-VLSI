@@ -172,7 +172,7 @@ public class ScalarSample implements Sample, Comparable<Object> {
 		}
     }
 
-    public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal<?>> an,
+    public static MutableSignal<ScalarSample> createSignal(SignalCollection sc,
                                                            Stimuli sd, String signalName, String signalContext) {
     	/**
     	 *  Adam says: This class is an _anonymous_ inner class for a reason.  Although XXXSample.createSignal() returns a
@@ -183,7 +183,7 @@ public class ScalarSample implements Sample, Comparable<Object> {
     	 *  instanceof checks.
     	 */
         MutableSignal<ScalarSample> ret =
-            new BTreeSignal<ScalarSample>(an, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp)) {
+            new BTreeSignal<ScalarSample>(sc, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp)) {
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
                              List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
             	plotSig(this, panel, g, ws, light, forPs, bounds, selectedObjects);
@@ -192,10 +192,10 @@ public class ScalarSample implements Sample, Comparable<Object> {
         return ret;
     }
 
-	public static MutableSignal<ScalarSample> createSignal(HashMap<String,Signal<?>> an, Stimuli sd, String signalName, String signalContext,
+	public static MutableSignal<ScalarSample> createSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext,
                                                            double[] time, double[] values) {
         if (values.length==0) throw new RuntimeException("attempt to create an empty signal");
-        MutableSignal<ScalarSample> as = ScalarSample.createSignal(an, sd, signalName, signalContext);
+        MutableSignal<ScalarSample> as = ScalarSample.createSignal(sc, sd, signalName, signalContext);
         for(int i=0; i<time.length; i++)
             if (as.getSample(time[i]) == null)
                 as.addSample(time[i], new ScalarSample(values[i]));

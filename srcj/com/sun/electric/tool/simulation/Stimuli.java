@@ -57,8 +57,8 @@ public class Stimuli {
 	/** the cell attached to this Stimuli information */		private Cell cell;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
 	/** the separator character that breaks names */			private char separatorChar;
-	/** the analyses in this Stimuli */							private HashMap<String,HashMap<String,Signal<?>>> analyses;
-	/** the list of analyses in this Stimuli */					private List<HashMap<String,Signal<?>>> analysisList;
+	/** the analyses in this Stimuli */							private HashMap<String,SignalCollection> scMap;
+	/** the list of analyses in this Stimuli */					private List<SignalCollection> scList;
 	/** control points when signals are selected */				private HashMap<Signal<?>,Double[]> controlPointMap;
     /** Cached version of net delimiter**/                      private String delim;
 
@@ -68,8 +68,8 @@ public class Stimuli {
 	public Stimuli()
 	{
 		separatorChar = '.';
-		analyses = new HashMap<String,HashMap<String,Signal<?>>>();
-		analysisList = new ArrayList<HashMap<String,Signal<?>>>();
+		scMap = new HashMap<String,SignalCollection>();
+		scList = new ArrayList<SignalCollection>();
 		controlPointMap = new HashMap<Signal<?>,Double[]>();
 		delim = " ";
 	}
@@ -80,23 +80,23 @@ public class Stimuli {
 	public void finished()
 	{
 		controlPointMap.clear();
-		analyses.clear();
+		scMap.clear();
 	}
 
-	public void addAnalysis(HashMap<String,Signal<?>> an)
+	public void addSignalCollection(SignalCollection an)
 	{
-		analyses.put(an.toString(), an);
-		analysisList.add(an);
+		scMap.put(an.getName(), an);
+		scList.add(an);
 	}
 
 	/**
-	 * Method to find an HashMap<String,Signal> of a given type.
+	 * Method to find a SignalCollection with a given name.
 	 * @param type the stimulus type being queried.
-	 * @return the HashMap<String,Signal> of that type (null if not found).
+	 * @return the SignalCollection with that name (null if not found).
 	 */
-	public HashMap<String,Signal<?>> findAnalysis(String title)
+	public SignalCollection findSignalCollection(String title)
 	{
-		HashMap<String,Signal<?>> an = analyses.get(title);
+		SignalCollection an = scMap.get(title);
 		return an;
 	}
 
@@ -104,9 +104,9 @@ public class Stimuli {
 
     public String getNetDelimiter() { return delim;}
 
-    public int getNumAnalyses() { return analysisList.size(); }
+    public int getNumAnalyses() { return scList.size(); }
 
-	public Iterator<HashMap<String,Signal<?>>> getAnalyses() { return analysisList.iterator(); }
+	public Iterator<SignalCollection> getSignalCollections() { return scList.iterator(); }
 
 	/**
 	 * Method to set the Cell associated with this simulation data.
@@ -284,8 +284,8 @@ public class Stimuli {
 	public double getMinTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(HashMap<String,Signal<?>> an : analysisList) {
-            for (Signal<?> sig : (Iterable<Signal<?>>)an.values()) {
+		for(SignalCollection sc : scList) {
+            for (Signal<?> sig : sc.getSignals()) {
                 if (leftEdge == rightEdge) {
                         leftEdge = sig.getMinTime();
                         rightEdge = sig.getMaxTime();
@@ -312,8 +312,8 @@ public class Stimuli {
 	public double getMaxTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(HashMap<String,Signal<?>> an : analysisList) {
-            for (Signal<?> sig : (Iterable<Signal<?>>)an.values()) {
+		for(SignalCollection sc : scList) {
+            for (Signal<?> sig : sc.getSignals()) {
                 if (leftEdge == rightEdge) {
                         leftEdge = sig.getMinTime();
                         rightEdge = sig.getMaxTime();
@@ -337,9 +337,9 @@ public class Stimuli {
 	 */
 	public boolean isAnalog()
 	{
-		for(HashMap<String,Signal<?>> an : analysisList)
+		for(SignalCollection sc : scList)
 		{
-            for (Signal<?> sig : (Iterable<Signal<?>>)an.values())
+            for (Signal<?> sig : sc.getSignals())
             {
             	if (!sig.isDigital()) return true;
             }
@@ -442,20 +442,19 @@ public class Stimuli {
 		return "?";
 	}
 
-    public static HashMap<String,Signal<?>> newAnalysis(Stimuli sd, final String title, boolean extrapolateToRight) {
-        HashMap<String,Signal<?>> ret = new HashMap<String,Signal<?>>() {
-            public String toString() { return title; }
-        };
-		sd.addAnalysis(ret);
-        return ret;
+    public static SignalCollection newSignalCollection(Stimuli sd, final String title, boolean extrapolateToRight)
+    {
+    	SignalCollection sc = new SignalCollection(title);
+		sd.addSignalCollection(sc);
+        return sc;
     }
 
     /**
      * Method to find busses in a list of signals and create them.
      * @param curArray the list of signals.
-     * @param an the Analysis in which the signals reside.
+     * @param sc the Analysis in which the signals reside.
      */
-    public void makeBusSignals(List<Signal<?>> signalList, HashMap<String,Signal<?>> an)
+    public void makeBusSignals(List<Signal<?>> signalList, SignalCollection sc)
 	{
 		if (signalList == null) return;
         Collections.sort(signalList, new WaveformWindow.SignalsByName());
@@ -466,7 +465,7 @@ public class Stimuli {
 			int squarePos = curSignalName.indexOf('[');
 			if (squarePos < 0)
 			{
-				makeBus(busSoFar, an);
+				makeBus(busSoFar, sc);
 				continue;
 			}
 			boolean startNewBus = false;
@@ -490,13 +489,13 @@ public class Stimuli {
 						if (lastIndex+1 != curIndex) startNewBus = true;
 			}
 			if (startNewBus)
-				makeBus(busSoFar, an);
+				makeBus(busSoFar, sc);
 			busSoFar.add(sig);
 		}
-		makeBus(busSoFar, an);
+		makeBus(busSoFar, sc);
 	}
 
-	private void makeBus(List<Signal<?>> busSoFar, HashMap<String,Signal<?>> an)
+	private void makeBus(List<Signal<?>> busSoFar, SignalCollection sc)
 	{
 		if (busSoFar.size() == 0) return;
 		int width = busSoFar.size();
@@ -517,7 +516,7 @@ public class Stimuli {
 		// make the bus
 		String busName = firstEntryName.substring(0, firstSquarePos) + "[" + firstIndex + ":" + lastIndex + "]";
 		String scope = subsigs[0].getSignalContext();
-        BusSample.createSignal(an, this, busName, scope, true, subsigs);
+        BusSample.createSignal(sc, this, busName, scope, true, subsigs);
 
         // reset the list
         busSoFar.clear();

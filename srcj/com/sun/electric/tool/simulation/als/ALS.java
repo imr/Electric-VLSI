@@ -37,6 +37,7 @@ import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.CompileVHDL;
@@ -69,7 +70,7 @@ public class ALS extends Engine
 	/** the simulation engine */						Sim               theSim;
 	/** the circuit flattener */						Flat              theFlat;
 	/** the waveform window showing this simulator */	WaveformWindow    ww;
-	/** the stimuli set currently being displayed */	HashMap<String,Signal<?>> an;
+	/** the stimuli set currently being displayed */	SignalCollection  sc;
 	/** current time in the simulator */				double            timeAbs;
 	/** saved list of stimuli when refreshing */		List<String>      stimuliList;
 
@@ -816,7 +817,7 @@ public class ALS extends Engine
 		if (theFlat.flattenNetwork(cell)) return;
 
 		// initialize display
-		an = getCircuit(cell);
+		sc = getCircuit(cell);
 		ww = oldWW;
 
         if (ww == null)
@@ -957,11 +958,11 @@ public class ALS extends Engine
 		}
 	}
 
-	private HashMap<String,Signal<?>> getCircuit(Cell cell)
+	private SignalCollection getCircuit(Cell cell)
 	{
 		// convert the stimuli
 		sd.setEngine(this);
-		HashMap<String,Signal<?>> an = Stimuli.newAnalysis(sd, "SIGNALS", true);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS", true);
 		sd.setSeparatorChar('.');
 		sd.setCell(cell);
 		String topLevelName = cell.getName().toUpperCase();
@@ -969,14 +970,14 @@ public class ALS extends Engine
 		{
 			if (cr.modelName.equals(topLevelName))
 			{
-				addExports(cr, an, null);
+				addExports(cr, sc, null);
 				break;
 			}
 		}
-		return an;
+		return sc;
 	}
 
-	private void addExports(Connect cr, HashMap<String,Signal<?>> an, String context)
+	private void addExports(Connect cr, SignalCollection sc, String context)
 	{
 		// determine type of model
 		for(Model modPtr1 : modelList)
@@ -990,7 +991,7 @@ public class ALS extends Engine
 		for(ALSExport e : cr.exList)
 		{
 			if (e.nodePtr.sig != null) continue;
-			MutableSignal<DigitalSample> sig = DigitalSample.createSignal(an, sd, (String)e.nodeName, context);
+			MutableSignal<DigitalSample> sig = DigitalSample.createSignal(sc, sd, (String)e.nodeName, context);
 			e.nodePtr.sig = sig;
             sig.addSample(0, DigitalSample.LOGIC_0);
             sig.addSample(DEFTIMERANGE, DigitalSample.LOGIC_0);
@@ -999,7 +1000,7 @@ public class ALS extends Engine
 		if (subContext == null) subContext = ""; else subContext += ".";
 		for(Connect child = cr.child; child != null; child = child.next)
 		{
-			addExports(child, an, subContext + child.instName);
+			addExports(child, sc, subContext + child.instName);
 		}
 	}
 
