@@ -656,6 +656,7 @@ public class Spice extends Topology
 			if (!useCDL && localPrefs.useCellParameters)
 			{
 				// add in parameters to this cell
+				boolean firstParam = true;
                 Set<Variable.Key> spiceParams = detectSpiceParams(cell);
 				for(Iterator<Variable> it = cell.getParameters(); it.hasNext(); )
 				{
@@ -666,6 +667,11 @@ public class Spice extends Topology
                         value = evalParam(context, info.getParentInst(), paramVar, forceEval);
                     } else if (!isNetlistableParam(paramVar))
                         continue;
+                    if (spiceEngine == SimulationTool.SpiceEngine.SPICE_ENGINE_O && firstParam)
+                    {
+                        infstr.append(" param:");
+                    	firstParam = false;
+                    }
                     infstr.append(" " + paramVar.getTrueName() + "=" + value);
 				}
 			}
@@ -3006,12 +3012,17 @@ public class Spice extends Topology
             return value;
         } catch (NumberFormatException e) {}
 
-        // not a number: if Spice engine cannot handle quotes, return stripped value
-		if (spiceEngine == SimulationTool.SpiceEngine.SPICE_ENGINE_2 ||
-			spiceEngine == SimulationTool.SpiceEngine.SPICE_ENGINE_3) return value;
 
-        // not a number but Spice likes quotes, enclose it
-		if (!wrapped) value = "'" + value + "'";
+        // not a number and some Spices like a wrapper, so enclose it
+		if (!wrapped)
+		{
+	        // Spice2 and Spice3 don't need a wrapper
+			if (spiceEngine == SimulationTool.SpiceEngine.SPICE_ENGINE_2 ||
+				spiceEngine == SimulationTool.SpiceEngine.SPICE_ENGINE_3) return value;
+	        if (spiceEngine == SimulationTool.SpiceEngine.SPICE_ENGINE_O)
+	        	value = "{" + value + "}"; else
+	        		value = "'" + value + "'";
+		}
         return value;
     }
 
@@ -3068,7 +3079,11 @@ public class Spice extends Topology
 	 */
 	public void multiLinePrint(boolean isComment, String str)
 	{
-		// put in line continuations, if over 78 chars long
+		// convert "@" characters to "_" for Opus
+        if (spiceEngine == SimulationTool.SpiceEngine.SPICE_ENGINE_O)
+        	str = str.replaceAll("@", "_");
+
+        // put in line continuations, if over 78 chars long
 		char contChar = '+';
 		if (isComment) contChar = '*';
 		int lastSpace = -1;

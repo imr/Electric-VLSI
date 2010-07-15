@@ -77,6 +77,7 @@ public class SpiceTab extends PreferencePanel
 		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_P);
 		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_G);
 		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_S);
+		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_O);
 		spiceEnginePopup.addItem(SimulationTool.SpiceEngine.SPICE_ENGINE_H_ASSURA);
 		spiceEnginePopup.setSelectedItem(SimulationTool.getSpiceEngine());
 
