@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -400,7 +399,7 @@ public class Sim
 	public static final int	STOPVECCHANGE  = 0x000100;
 	public static final int	VISITED        = 0x000200;
 
-	/** node is whithin a txtor stack */			public static final int	MERGED		= 0x000400;
+	/** node is within a txtor stack */				public static final int	MERGED		= 0x000400;
 
 	/** node is in high input list */				public static final int	H_INPUT		= 0x001000;
 	/** node is in low input list */				public static final int	L_INPUT		= 0x002000;
@@ -436,8 +435,8 @@ public class Sim
 
 	/** minimum node capacitance (in pf) */			public static final double MIN_CAP	= 0.00001;
 
-	/** dynamic low resiatance index */				public static final int	R_LOW		= 0;
-	/** dynamic high resiatance index */			public static final int	R_HIGH		= 1;
+	/** dynamic low resistance index */				public static final int	R_LOW		= 0;
+	/** dynamic high resistance index */			public static final int	R_HIGH		= 1;
 
 	/** a huge time */								private static final long MAX_TIME	= 0x0FFFFFFFFFFFFFFFL;
 
@@ -471,7 +470,7 @@ public class Sim
 
 	/** list of capacitor-transistors */									public  Trans   tCap = null;
 
-	/** # of erros found in sim file */										private int     numErrors = 0;
+	/** # of errors found in sim file */									private int     numErrors = 0;
 
 	/** list of transistors just read */									private List<Trans> readTransistorList;
 	public  Trans [] parallelTransistors = new Trans[MAX_PARALLEL];
@@ -642,12 +641,10 @@ public class Sim
 			numTrans[baseType(type)]++;
 			if (src == drn || (src.nFlags & drn.nFlags & POWER_RAIL) != 0)
 			{
-				/*
-				 * transistor is just a capacitor.
-				 * Transistors that have their drain/source shorted are NOT connected
-				 * to the network, they are instead linked as a doubly linked list
-				 * using the scache/dcache fields.
-				 */
+				// transistor is just a capacitor.
+				// Transistors that have their drain/source shorted are NOT connected
+				// to the network, they are instead linked as a doubly linked list
+				// using the scache/dcache fields.
 				t.tType |= TCAP;
 				t.setDTrans(tCap);
 				t.setSTrans(tCap.getSTrans());

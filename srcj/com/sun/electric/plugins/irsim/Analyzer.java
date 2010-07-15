@@ -25,7 +25,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
-import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.MutableSignal;
@@ -49,7 +48,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -1683,24 +1682,22 @@ public class Analyzer extends Engine
 			return;
 		}
 
-        /*
-		List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
+		Signal<?>[] sigsOnBus = sig.getBusMembers();
 		if (sigsOnBus == null)
 		{
 			System.out.println("Signal: " + sv.parameters[0] + " is not a bus");
 			return;
 		}
-		if (sigsOnBus.size() != sv.parameters[1].length())
+		if (sigsOnBus.length != sv.parameters[1].length())
 		{
 			System.out.println("Wrong number of bits for this vector");
 			return;
 		}
-		for(int i = 0; i < sigsOnBus.size(); i++)
+		for(int i = 0; i < sigsOnBus.length; i++)
 		{
-			Sim.Node n = nodeMap.get(sigsOnBus.get(i));
+			Sim.Node n = nodeMap.get(sigsOnBus[i]);
 			setIn(n, sv.parameters[1].charAt(i));
 		}
-        */
 	}
 
 	private int tranCntNSD = 0, tranCntNG = 0;
@@ -1892,8 +1889,8 @@ public class Analyzer extends Engine
 		int comp = 0;
 		int nBits = 1;
 		Sim.Node [] nodes = null;
-        /*
-		if (HashMap<String,Signal>.getBussedSignals(sig) == null)
+		Signal<?>[] sigsOnBus = sig.getBusMembers();
+		if (sigsOnBus == null)
 		{
 			Sim.Node n = nodeMap.get(sig);
 			name = sig.getFullName();
@@ -1910,24 +1907,20 @@ public class Analyzer extends Engine
 			nodes[0] = n;
 		} else
 		{
-			List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
-			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
-			for(int i=0; i<sigsOnBus.size(); i++)
-			{
-				nodeList[i] = nodeMap.get(sigsOnBus.get(i));
-			}
+			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.length];
+			for(int i=0; i<sigsOnBus.length; i++)
+				nodeList[i] = nodeMap.get(sigsOnBus[i]);
 
 			int cnt = 0;
-			while ((cnt <= cCount) && (comp = compareVector(nodeList, sig.getFullName(), sigsOnBus.size(), mask, value.toString())) != 0)
+			while ((cnt <= cCount) && (comp = compareVector(nodeList, sig.getFullName(), sigsOnBus.length, mask, value.toString())) != 0)
 			{
 				cnt++;
 				clockIt(1);
 			}
 			name = sig.getFullName();
-			nBits = sigsOnBus.size();
+			nBits = sigsOnBus.length;
 			nodes = nodeList;
-            //}
-        */
+        }
 		if (comp != 0)
 		{
 			String infstr = "";
@@ -1978,8 +1971,8 @@ public class Analyzer extends Engine
 		int comp = 0;
 		String name = null;
 		Sim.Node [] nodes = null;
-        /*
-		if (HashMap<String,Signal>.getBussedSignals(sig) == null)
+		Signal<?>[] sigsOnBus = sig.getBusMembers();
+		if (sigsOnBus == null)
 		{
 			Sim.Node n = nodeMap.get(sig);
 			name = n.nName;
@@ -1990,17 +1983,13 @@ public class Analyzer extends Engine
 			nodes = nodeList;
 		} else
 		{
-			List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
-			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.size()];
-			for(int i=0; i<sigsOnBus.size(); i++)
-			{
-				nodeList[i] = nodeMap.get(sigsOnBus.get(i));
-			}
-			comp = compareVector(nodeList, sig.getSignalName(), sigsOnBus.size(), mask, value.toString());
+			Sim.Node [] nodeList = new Sim.Node[sigsOnBus.length];
+			for(int i=0; i<sigsOnBus.length; i++)
+				nodeList[i] = nodeMap.get(sigsOnBus[i]);
+			comp = compareVector(nodeList, sig.getSignalName(), sigsOnBus.length, mask, value.toString());
 			name = sig.getSignalName();
 			nodes = nodeList;
-            //}
-        */
+        }
 
 		if (comp != 0)
 		{
@@ -2031,10 +2020,8 @@ public class Analyzer extends Engine
 			return;
 		}
 
-        /*
-		if (HashMap<String,Signal>.getBussedSignals(sig) == null)
+		if (sig.getBusMembers() == null)
 		{
-        */
 			Sim.Node n = nodeMap.get(sig);
 			n = unAlias(n);
 			awTrig = n;
@@ -2049,12 +2036,10 @@ public class Analyzer extends Engine
 
 			Sim.Node wN = nodeMap.get(oSig);
 			setupAssertWhen(wN, commandName(sv.command));
-            /*
 		} else
 		{
 			System.out.println("trigger to assertWhen " + sv.parameters[0] + " can't be a vector");
 		}
-            */
 	}
 
 	private void setupAssertWhen(Sim.Node n, String val)
@@ -2128,14 +2113,15 @@ public class Analyzer extends Engine
 		String temp = " @ " + Sim.deltaToNS(theSim.curDelta) + "ns ";
 		System.out.println(temp);
 		column = temp.length();
-        /*
-		for(Signal<DigitalSample> sig : analysis.getBussedSignals())
+		Collection<Signal<?>> sigs = analysis.values();
+		for(Signal<?> sig : sigs)
 		{
+			Signal<?>[] sigsOnBus = sig.getBusMembers();
+			if (sigsOnBus == null) continue;
 			Sim.Node b = nodeMap.get(sig);
 			if ((b.nFlags & which) == 0) continue;
-			List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
 			boolean found = false;
-			for(Signal<DigitalSample> bSig : sigsOnBus)
+			for(Signal<?> bSig : sigsOnBus)
 			{
 				Sim.Node bN = nodeMap.get(bSig);
 				if (bN.getTime() == theSim.curDelta)
@@ -2144,7 +2130,6 @@ public class Analyzer extends Engine
 			if (found)
 				dVec(sig);
 		}
-        */
 	}
 
 	/************************** SUPPORT **************************/
@@ -2208,7 +2193,7 @@ public class Analyzer extends Engine
 
     /**
      * Get the resolution scale.  As this number increases the min resolution
-     * descreases (becomes more accurate).  A value of 1 corresponds to 1ns resolution.
+     * decreases (becomes more accurate).  A value of 1 corresponds to 1ns resolution.
      * A value of 1000 corresponds to 1ps resolution.
      * @return resolution scale factor
      */
@@ -2218,7 +2203,7 @@ public class Analyzer extends Engine
     }
 
 	/**
-	 * Update the cache (begining of window and cursor) for traces that just
+	 * Update the cache (beginning of window and cursor) for traces that just
 	 * became visible (or were just added).
 	 */
 	private void updateTraceCache()
@@ -2599,21 +2584,21 @@ public class Analyzer extends Engine
 	 */
 	private void setVecNodes(int flag)
 	{
-        /*
-		for(Signal<DigitalSample> sig : analysis.getBussedSignals())
+		Collection<Signal<?>> sigs = analysis.values();
+		for(Signal<?> sig : sigs)
 		{
+			Signal<?>[] sigsOnBus = sig.getBusMembers();
+			if (sigsOnBus == null) continue;
 			Sim.Node b = nodeMap.get(sig);
 			if ((b.nFlags & flag) != 0)
 			{
-				List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
-				for(Signal bSig : sigsOnBus)
+				for(Signal<?> bSig : sigsOnBus)
 				{
 					Sim.Node bN = nodeMap.get(bSig);
 					bN.nFlags |= flag;
 				}
 			}
 		}
-        */
 	}
 
 	private int compareVector(Sim.Node [] np, String name, int nBits, String mask, String value)
@@ -2655,18 +2640,17 @@ public class Analyzer extends Engine
 	/**
 	 * display bit vector.
 	 */
-    /*
-	private void dVec(Signal<DigitalSample> sig)
+	private void dVec(Signal<?> sig)
 	{
-		List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(sig);
-		int i = sig.getSignalName().length() + 2 + sigsOnBus.size();
+		Signal<?>[] sigsOnBus = sig.getBusMembers();
+		int i = sig.getSignalName().length() + 2 + sigsOnBus.length;
 		if (column + i >= MAXCOL)
 		{
 			column = 0;
 		}
 		column += i;
 		String bits = "";
-		for(Signal bSig : sigsOnBus)
+		for(Signal<?> bSig : sigsOnBus)
 		{
 			Sim.Node n = nodeMap.get(bSig);
 			bits += Sim.vChars.charAt(n.nPot);
@@ -2674,7 +2658,6 @@ public class Analyzer extends Engine
 
 		System.out.println(sig.getSignalName() + "=" + bits + " ");
 	}
-    */
 
 	/**
 	 * Settle network until the specified stop time is reached.
@@ -2700,23 +2683,19 @@ public class Analyzer extends Engine
 		for(Sequence cs : xClock)
 		{
 			String v = cs.values[index % cs.values.length];
-            /*
-			if (HashMap<String,Signal>.getBussedSignals(cs.sig) == null)
+			Signal<?>[] sigsOnBus = cs.sig.getBusMembers();
+			if (sigsOnBus == null)
 			{
-            */
 				Sim.Node n = nodeMap.get(cs.sig);
 				setIn(n, v.charAt(0));
-                /*
 			} else
 			{
-				List<Signal<DigitalSample>> sigsOnBus = Analysis.getBussedSignals(cs.sig);
-				for(int i=0; i<sigsOnBus.size(); i++)
+				for(int i=0; i<sigsOnBus.length; i++)
 				{
-					Sim.Node n = nodeMap.get(sigsOnBus.get(i));
+					Sim.Node n = nodeMap.get(sigsOnBus[i]);
 					setIn(n, v.charAt(i));
 				}
 			}
-                */
 		}
 	}
 
@@ -2741,24 +2720,19 @@ public class Analyzer extends Engine
 			return;
 		}
 		int len = 1;
-        /*
-		if (HashMap<String,Signal>.getBussedSignals(sig) != null)
-			len = Analysis.getBussedSignals(sig).size();
-        */
+		Signal<?>[] sigsOnBus = sig.getBusMembers();
+		if (sigsOnBus != null)
+			len = sigsOnBus.length;
 		Sim.Node n = nodeMap.get(sig);
-        /*
-		if (HashMap<String,Signal>.getBussedSignals(sig) == null)
+		if (sigsOnBus == null)
 		{
-        */
 			n = unAlias(n);
 			if ((n.nFlags & Sim.MERGED) != 0)
 			{
 				System.out.println(n.nName + " can't be part of a sequence");
 				return;
 			}
-            /*
 		}
-            */
 
 		if (args.length == 1)	// just destroy the given sequence
 		{
@@ -2858,18 +2832,17 @@ public class Analyzer extends Engine
 			System.out.println("  there is no previous transition!");
 		}
 
-		/* here if we come across a node which has changed more recently than
-		 * the time reached during the backtrace.  We can't continue the
-		 * backtrace in any reasonable fashion, so we stop here.
-		 */
+		// here if we come across a node which has changed more recently than
+		// the time reached during the backtrace.  We can't continue the
+		// backtrace in any reasonable fashion, so we stop here.
 		else if (level != 0 && n.getTime() > pTime)
 		{
 			System.out.println("  transition of " + n.nName + ", which has since changed again");
 		}
-		/* here if there seems to be a cause for this node's transition.
-		 * If the node appears to have 'caused' its own transition (n.t.cause
-		 * == n), that means it was input.  Otherwise continue backtrace...
-		 */
+
+		// here if there seems to be a cause for this node's transition.
+		// If the node appears to have 'caused' its own transition (n.t.cause
+		// == n), that means it was input.  Otherwise continue backtrace...
 		else if (n.getCause() == n)
 		{
 			System.out.println("  " + n.nName + " . " + Sim.vChars.charAt(n.nPot) +
@@ -2878,8 +2851,7 @@ public class Analyzer extends Engine
 		else if ((n.getCause().nFlags & Sim.VISITED) != 0)
 		{
 			System.out.println("  ... loop in traceback");
-		}
-		else
+		} else
 		{
 			long deltaT = n.getTime() - n.getCause().getTime();
 

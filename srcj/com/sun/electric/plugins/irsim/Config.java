@@ -85,7 +85,7 @@ public class Config
 	/** centi-microns/lambda */						public  long   lambdaCM   = 250;
 	/** low voltage threshold, normalized units */	public  double lowThresh  = 0.3;
 	/** high voltage threshold,normalized units */	public  double highThresh = 0.8;
-	/** width of source/drain diffusion */			private double DIFFEXT    = 0;
+//	/** width of source/drain diffusion */			private double DIFFEXT    = 0;
 
 	/* the following are computed from above */
 	/** xtor gate capacitance -- area */			public  double CTGA;
@@ -172,7 +172,7 @@ public class Config
 					{
 						if (TextUtils.atof(targ[1]) != 0.0)
 						{
-							DIFFEXT = TextUtils.atof(targ[1]);
+//							DIFFEXT = TextUtils.atof(targ[1]);
 							configFlags |= DIFFEXTF;
 						}
 					} else
@@ -189,31 +189,31 @@ public class Config
 		lambdaSquared = lambda * lambda;
 		lambdaCM = (long)(lambda * CM_M);
 		CTGA = ((configFlags & SUBPAREA) != 0 ? (CGA - CPA) : CGA) / (CM_M * CM_M);
-		double CTDW = 0;	// xtor diff-width capacitance -- perimeter
-		double CPTDW = 0;
-		double CTDE = 0;	// xtor diff-extension cap. -- perimeter
-		double CPTDE = 0;
+//		double CTDW = 0;	// xtor diff-width capacitance -- perimeter
+//		double CPTDW = 0;
+//		double CTDE = 0;	// xtor diff-extension cap. -- perimeter
+//		double CPTDE = 0;
 		switch(configFlags & (DIFFEXTF | DIFFPERIM))
 		{
 			case DIFFPERIM:
 				configFlags |= TDIFFCAP;
-				CTDE = CPTDE = 0.0;
-				CTDW = -(CDP / CM_M);
-				CPTDW = -(CPDP / CM_M);
+//				CTDE = CPTDE = 0.0;
+//				CTDW = -(CDP / CM_M);
+//				CPTDW = -(CPDP / CM_M);
 				break;
 			case DIFFEXTF:
 				configFlags |= TDIFFCAP;
-				CTDE = (2 * DIFFEXT * lambda * CDP);
-				CPTDE = (2 * DIFFEXT * lambda * CPDP);
-				CTDW = (CDP + DIFFEXT * lambda * CDA) / CM_M;
-				CPTDW = (CPDP + DIFFEXT * lambda * CPDA) / CM_M;
+//				CTDE = (2 * DIFFEXT * lambda * CDP);
+//				CPTDE = (2 * DIFFEXT * lambda * CPDP);
+//				CTDW = (CDP + DIFFEXT * lambda * CDA) / CM_M;
+//				CPTDW = (CPDP + DIFFEXT * lambda * CPDA) / CM_M;
 				break;
 			case (DIFFEXTF | DIFFPERIM):
 				configFlags |= TDIFFCAP;
-				CTDE = (2 * DIFFEXT * lambda * CDP);
-				CPTDE = (2 * DIFFEXT * lambda * CPDP);
-				CTDW = (DIFFEXT * lambda * CDA) / CM_M;
-				CPTDW = (DIFFEXT * lambda * CPDA) / CM_M;
+//				CTDE = (2 * DIFFEXT * lambda * CDP);
+//				CPTDE = (2 * DIFFEXT * lambda * CPDP);
+//				CTDW = (DIFFEXT * lambda * CDA) / CM_M;
+//				CPTDW = (DIFFEXT * lambda * CPDA) / CM_M;
 				break;
 		}
 

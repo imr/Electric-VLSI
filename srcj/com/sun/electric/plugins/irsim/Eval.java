@@ -18,12 +18,11 @@
 
 package com.sun.electric.plugins.irsim;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class Eval
 {
-	private static final boolean DEBUG = false;
+//	private static final boolean DEBUG = false;
 
 	private boolean	firstCall;	    /* reset when calling init_vdd_gnd */
 	protected Analyzer theAnalyzer;
@@ -225,7 +224,7 @@ public class Eval
 		}
 		while(e != null);
 
-		// run thorugh event list again, marking src/drn of input nodes
+		// run through event list again, marking src/drn of input nodes
 		if ((allFlags & Sim.INPUT) != 0)
 		{
 			for(e = evList; e != null; e = e.fLink)
@@ -259,7 +258,7 @@ public class Eval
 			Sim.Node n = theSim.curNode = event.eNode;
 			n.setTime(event.nTime);	// set up the cause stuff
 			n.setCause(event.cause);
-if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNodes");
+//if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNodes");
 			nPending--;
 
 			/*
@@ -402,7 +401,7 @@ if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNode
 	{
 		if (nPending == 0) return null;
 
-if (DEBUG) System.out.println("Find events up to " + stopTime);
+//if (DEBUG) System.out.println("Find events up to " + stopTime);
 		Event event = null;
 		boolean eventValid = false;
 		long time = theSim.maxTime;
@@ -437,7 +436,7 @@ if (DEBUG) System.out.println("Find events up to " + stopTime);
 
 		if (time >= stopTime)
 		{
-if (DEBUG) System.out.println("Time="+time+" which is beyond stop time="+stopTime);
+//if (DEBUG) System.out.println("Time="+time+" which is beyond stop time="+stopTime);
 			return null;
 		}
 
@@ -461,18 +460,18 @@ if (DEBUG) System.out.println("Time="+time+" which is beyond stop time="+stopTim
 			evList.bLink = event.bLink;
 			event.fLink = event.bLink = event;
 		}
-if (DEBUG)
-{
-	System.out.print("FOUND EVENTS:");
-	Event xx = evList;
-	do
-	{
-		System.out.print(" time="+xx.nTime);
-		xx = xx.fLink;
-	}
-	while(xx != null);
-	System.out.println();
-}
+//if (DEBUG)
+//{
+//	System.out.print("FOUND EVENTS:");
+//	Event xx = evList;
+//	do
+//	{
+//		System.out.print(" time="+xx.nTime);
+//		xx = xx.fLink;
+//	}
+//	while(xx != null);
+//	System.out.println();
+//}
 		return evList;
 	}
 
@@ -532,7 +531,7 @@ if (DEBUG)
 		marker.bLink.fLink = newEV;
 		marker.bLink = newEV;
 		nPending++;
-if (DEBUG) System.out.println("Adding event at " + newEV.nTime + " in enqueueEvent (cur="+theSim.curDelta+" delta="+delta);
+//if (DEBUG) System.out.println("Adding event at " + newEV.nTime + " in enqueueEvent (cur="+theSim.curDelta+" delta="+delta);
 		/*
 		 * thread event onto list of events for this node, keeping it
 		 * in sorted order
@@ -577,7 +576,7 @@ if (DEBUG) System.out.println("Adding event at " + newEV.nTime + " in enqueueEve
 		marker.fLink.bLink = newEV;
 		marker.fLink = newEV;
 		nPending++;
-if (DEBUG) System.out.println("Adding event at " + newEV.nTime + " in enqueueInput");
+//if (DEBUG) System.out.println("Adding event at " + newEV.nTime + " in enqueueInput");
 		// thread event onto (now empty) list of events for this node
 		newEV.nLink = null;
 		n.events = newEV;
@@ -619,7 +618,7 @@ if (DEBUG) System.out.println("Adding event at " + newEV.nTime + " in enqueueInp
 
 			nPending++;
 			long eTime = ev.nTime;
-if (DEBUG) System.out.println("Adding of event at time "+eTime + " in requeueEvents");
+//if (DEBUG) System.out.println("Adding of event at time "+eTime + " in requeueEvents");
 			Event target = getEVArray(eTime);
 
 			if ((target.bLink != target) && ((target.bLink).nTime > eTime))
@@ -657,14 +656,14 @@ if (DEBUG) System.out.println("Adding of event at time "+eTime + " in requeueEve
 		if (nPending == 0) return;
 		System.out.println("Warning: there are " + nPending + " pending events:");
 
-		for(int i=0; i<TSIZE; i++)
-		{
-			Event hdr = evArray[i];
-			for(Event evhdr = hdr.fLink; evhdr != hdr; evhdr = evhdr.fLink)
-			{
-				if (DEBUG) System.out.println("   Event at time " + Sim.deltaToNS(evhdr.nTime) + " caused by node " + evhdr.cause.nName);
-			}
-		}
+//		for(int i=0; i<TSIZE; i++)
+//		{
+//			Event hdr = evArray[i];
+//			for(Event evhdr = hdr.fLink; evhdr != hdr; evhdr = evhdr.fLink)
+//			{
+//				if (DEBUG) System.out.println("   Event at time " + Sim.deltaToNS(evhdr.nTime) + " caused by node " + evhdr.cause.nName);
+//			}
+//		}
 	}
 
 	/**

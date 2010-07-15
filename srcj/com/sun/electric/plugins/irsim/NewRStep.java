@@ -22,8 +22,6 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.SimulationTool;
 
-import java.util.Iterator;
-
 /**
  * Event-driven timing simulation step for irsim.
  *
@@ -567,7 +565,7 @@ public class NewRStep extends Eval
 	}
 
 	/**
-	 * Compute the parametes used to calculate the final value (cHigh, cLow,
+	 * Compute the parameters used to calculate the final value (cHigh, cLow,
 	 * rUp, rDown) by doing a depth-first traversal of the tree rooted at node
 	 * 'n'.  The traversal is done by a recursive walk through the tree. Note that
 	 * the stage is already a simple tree; loops are broken by buildConnList.  As
@@ -611,11 +609,9 @@ public class NewRStep extends Eval
 				other = t.source;	cache = t.getSThev();
 			}
 
-			/*
-			 * if cache is not empty use the value found there, otherwise
-			 * compute what is on the other side of the transistor and
-			 * transmit the result through a series operation.
-			 */
+			// if cache is not empty use the value found there, otherwise
+			// compute what is on the other side of the transistor and
+			// transmit the result through a series operation.
 			if (cache == null)
 			{
 				cache = seriesOP(getDCVal(other, t), t);
@@ -779,7 +775,7 @@ public class NewRStep extends Eval
 	}
 
 	/**
-	 * make oldR = (oldR || newR), but watch out for infinte resistances.
+	 * make oldR = (oldR || newR), but watch out for infinite resistances.
 	 */
 	private double doParallel(double oldR, double newR)
 	{
@@ -803,10 +799,8 @@ public class NewRStep extends Eval
 			r.cHigh.min += newRB.cHigh.min;
 		}
 
-		/*
-		 * Accumulate the minimum user-specified delay only if the new block
-		 * has some drive associated with it.
-		 */
+		// Accumulate the minimum user-specified delay only if the new block
+		// has some drive associated with it.
 		if ((newRB.flags & (T_DEFINITE | T_UDELAY)) == (T_DEFINITE | T_UDELAY))
 		{
 			if ((r.flags & T_UDELAY) != 0)
@@ -848,7 +842,7 @@ public class NewRStep extends Eval
 
 	/**
 	 * Determine the input time-constant (input-slope * rStatic).  We are only
-	 * interseted in transistors that just turned on (its gate has a transition
+	 * interested in transistors that just turned on (its gate has a transition
 	 * at time == Sched.curDelta).  We must be careful not to report as a transition
 	 * nodes that stop being inputs (hist.delay == 0 and hist.inp == 0).
 	 */
@@ -895,7 +889,7 @@ public class NewRStep extends Eval
 		return isInt;
 	}
 
-	/* combine 2 resistors in parallel, watch out for zero resistance */
+	/** combine 2 resistors in parallel, watch out for zero resistance */
 	private double combineR(double a, double b) { return ((a + b <= Sim.SMALL) ? 0 : Sim.combine(a, b)); }
 
 	private boolean getParallelTin(Sim.Trans t, GenMath.MutableDouble iTau)

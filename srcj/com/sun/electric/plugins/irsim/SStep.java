@@ -15,11 +15,7 @@
  * software for any purpose.  It is provided "as is" without
  * express or implied warranty.
  */
-
 package com.sun.electric.plugins.irsim;
-
-import java.util.Iterator;
-
 
 public class SStep extends Eval
 {
@@ -615,11 +611,9 @@ public class SStep extends Eval
 
 			if ((thisOne.nFlags & Sim.INPUT) == 0)
 			{
-				/*
-				 * Check to see if this new value invalidates other events.
-				 * Since this event has newer info about the state of the network,
-				 * delete transitions scheduled to come after it.
-				 */
+				// Check to see if this new value invalidates other events.
+				// Since this event has newer info about the state of the network,
+				// delete transitions scheduled to come after it.
 				Event e;
 				while((e = thisOne.events) != null && e.nTime >= theSim.curDelta + delta)
 				{
@@ -630,7 +624,7 @@ public class SStep extends Eval
 					 * Besides, this event will not be queued.
 					 *
 					 * However, if there is event scheduled now but driving to a
-					 * different value, then kick it becuase we will enqueue this
+					 * different value, then kick it because we will enqueue this
 					 * one, and source/drain of transistors controlled by this
 					 * node will be re-evaluated. At worst, some extra computation
 					 * will be carried out due to VISITED flags set previously.
@@ -641,11 +635,9 @@ public class SStep extends Eval
 					puntEvent(thisOne, e);
 				}
 
-				/*
-				 * Now see if the new value is different from the last value
-				 * scheduled for the node. If there are no pending events then
-				 * just use the current value.
-				 */
+				// Now see if the new value is different from the last value
+				// scheduled for the node. If there are no pending events then
+				// just use the current value.
 				boolean queued = false;
 				if (newVal != ((e == null) ? thisOne.nPot : e.eval))
 				{
@@ -683,7 +675,7 @@ public class SStep extends Eval
 	 * examined, return the answer!
 	 *
 	 * Notes: The node-visited flag is set during the computation of a node's
-	 *	  value. This keeps the tree walk exanding outward; loops are avoided.
+	 *	  value. This keeps the tree walk expanding outward; loops are avoided.
 	 *	  Since the flag is cleared at the end of the computation, all paths
 	 *	  through the network will eventually be explored.  (If it had been
 	 *	  left set, only a single path through a particular cycle would be
@@ -714,13 +706,12 @@ public class SStep extends Eval
 				// don't bother with off transistors
 				if (t.state == Sim.OFF) continue;
 
-				/* for each non-off transistor, do nothing if node on other side has
-				 * its visited flag set (this is how cycles are detected).  Otherwise
-				 * check cache and use value found there, if any.  As a last resort,
-				 * actually compute value for network on other side of transistor,
-				 * transmit the value through the transistor, and save that result
-				 * for later use.
-				 */
+				// for each non-off transistor, do nothing if node on other side has
+				// its visited flag set (this is how cycles are detected).  Otherwise
+				// check cache and use value found there, if any.  As a last resort,
+				// actually compute value for network on other side of transistor,
+				// transmit the value through the transistor, and save that result
+				// for later use.
 				if (n == t.source)
 				{
 					if ((t.drain.nFlags & Sim.VISITED) == 0)
