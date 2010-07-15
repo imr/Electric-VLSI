@@ -3308,6 +3308,7 @@ public class EditWindow extends JPanel
 					PortInst pi = null;
 					if (selectedExport != null)
 						pi = ni.findPortInstFromProto(selectedExport);
+					highlighter.clear();
 					if (pi != null)
 						highlighter.addElectricObject(pi, parent);
 					else
@@ -3405,6 +3406,7 @@ public class EditWindow extends JPanel
 				// highlight instance
 				if (theOne != null)
 				{
+					highlighter.clear();
 					if (selectedExport != null)
 						highlighter.addElectricObject(theOne.findPortInstFromProto(selectedExport), parent); else
 							highlighter.addElectricObject(theOne, parent);

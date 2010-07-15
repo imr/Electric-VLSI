@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+BUG: (7/15/10, SMR) Going up hierarchy can duplicate selection (Bug #2843).
+FIX: In WindowFrame.setCellByHistory() and in EditWindow.upHierarchy()
+     clear selection before setting new ones.
+
 BUG: (7/14/10, SMR) Restore waveform window functionality (Bug #2846).
 FIX: Redid many things.
 
