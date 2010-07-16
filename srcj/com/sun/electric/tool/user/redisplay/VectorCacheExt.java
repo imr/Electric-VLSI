@@ -23,32 +23,38 @@
  */
 package com.sun.electric.tool.user.redisplay;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableIconInst;
+import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.bool.DeltaMerge;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.PrimitiveNodeId;
+import com.sun.electric.database.id.PrimitivePortId;
+import com.sun.electric.database.id.TechId;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -57,150 +63,372 @@ import java.util.TreeSet;
 /**
  *
  */
-public class VectorCacheExt extends VectorCache {
-    Set<Layer> layers = new TreeSet<Layer>();
-    Cell topCell;
+public class VectorCacheExt {
+    private static boolean DEBUG = true;
+    private static final boolean USE_ELECTRICAL = false;
+    private static final boolean WIPE_PINS = true;
+
+    private Set<Layer> layers = new TreeSet<Layer>();
+    private final EDatabase database;
+    private final Snapshot snapshot;
+    private final TechPool techPool;
+    private Cell topCell;
+    private HashMap<CellId, MyVectorCell> cells = new HashMap<CellId,MyVectorCell>();
+    private final PrimitivePortId busPinPortId;
+    private final PrimitiveNodeId cellCenterId;
+    private final PrimitiveNodeId essentialBoundsId;
+    /** local shape builder */
+    private final ShapeBuilder shapeBuilder = new ShapeBuilder();
+    /** List of VectorManhattanBuilders */
+    private final ArrayList<VectorManhattanBuilder> boxBuilders = new ArrayList<VectorManhattanBuilder>();
+
+    private class MyVectorCell {
+        private final TechId techId;
+        private final ArrayList<VectorCache.VectorBase> shapes = new ArrayList<VectorCache.VectorBase>();
+        private final ArrayList<ImmutableNodeInst> subCells = new ArrayList<ImmutableNodeInst>();
+
+        MyVectorCell(CellId cellId) {
+            CellBackup cellBackup = snapshot.getCell(cellId);
+            techId = cellBackup.cellRevision.d.techId;
+            if (isCellParameterized(cellBackup.cellRevision)) {
+                throw new IllegalArgumentException();
+            }
+
+            long startTime = DEBUG ? System.currentTimeMillis() : 0;
+
+            for (VectorManhattanBuilder b : boxBuilders) {
+                b.clear();
+            }
+            // draw all arcs
+            shapeBuilder.setup(cellBackup, Orientation.IDENT, USE_ELECTRICAL, WIPE_PINS, false, null);
+            shapeBuilder.mvc = this;
+            shapeBuilder.textType = VectorCache.VectorText.TEXTTYPEARC;
+            for (ImmutableArcInst a: cellBackup.cellRevision.arcs) {
+                shapeBuilder.genShapeOfArc(a);
+            }
+
+            // draw all primitive nodes
+            for (ImmutableNodeInst n: cellBackup.cellRevision.nodes) {
+                if (n.protoId instanceof CellId) {
+                    subCells.add(n);
+                } else {
+                    boolean hideOnLowLevel = n.is(ImmutableNodeInst.VIS_INSIDE) || n.protoId  == cellCenterId ||
+                            n.protoId == essentialBoundsId;
+                    if (!hideOnLowLevel) {
+                        PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
+                        shapeBuilder.textType = pn == Generic.tech().invisiblePinNode ? VectorCache.VectorText.TEXTTYPEANNOTATION : VectorCache.VectorText.TEXTTYPENODE;
+                        shapeBuilder.genShapeOfNode(n);
+                    }
+                }
+            }
+
+            addBoxesFromBuilder(this, techPool.getTech(cellBackup.cellRevision.d.techId), boxBuilders);
+            Collections.sort(shapes, VectorCache.shapeByLayer);
+
+            if (DEBUG) {
+                long stopTime = System.currentTimeMillis();
+                System.out.println((stopTime - startTime) + " init " + cellBackup.cellRevision.d.cellId);
+            }
+        }
+
+    }
 
     public VectorCacheExt(Cell topCell) {
-        super(topCell.getDatabase());
+        database = topCell.getDatabase();
+        snapshot = database.backup();
+        techPool = snapshot.getTechPool();
+        busPinPortId = techPool.getSchematics().busPinNode.getPort(0).getId();
+        cellCenterId = techPool.getGeneric().cellCenterNode.getId();
+        essentialBoundsId = techPool.getGeneric().essentialBoundsNode.getId();
         this.topCell = topCell;
-        Set<VectorCell> visited = new HashSet<VectorCell>();
-        subTree(topCell, Orientation.IDENT, visited);
-        subTree(topCell, Orientation.XR, visited);
-        showLayer("Metal-1", false);
-        showLayer("Metal-2", true,
-                22.0, 9.0,
-                44.0, 2.8,  50.0, 2.8,  56.0, 2.8,  62.0, 2.8,
-                72.0, 9.0,
-                82.0, 2.8,  88.0, 2.8,  94.0, 2.8,  100.0, 2.8,  106.0, 2.8, 
-                122.0, 9.0);
-        showLayer("Metal-3", false,
-                0.0, 25.0,
-                /* 18.0, 2.8,  24.0, 2.8, */
-                24.0, 9.0,
-                /* ? 48.0, 9.0 */
-                30.0, 2.8,  36.0, 2.8, 42.0, 2.8,  48.0, 2.8,  54.0, 2.8,  60.0, 2.8,  66.0, 2.8,  72.0, 2.8,  78.0, 2.8,  84.0, 2.8,  90.0, 2.8,  96.0, 2.8,  102.0, 2.8,  108.0, 2.8,  114.0, 2.8,
-                /* 57.0, 2.8,  63.0, 2.8,  69.0, 2.8,  71.0, 2.8,  73.0, 2.8, */
-                /* ? 96.0, 9.0 */
-                120.0, 9.0
-                /* 120.0, 2.8,  126, 2.8, */
-                );
-        showLayer("Metal-4", true,
-                /* 0.0, 10.0 */
-                0.0, 2.8,  5.8, 0.0,  11.6, 2.8,  17.4, 2.8,  23.2, 2.8,
-                /* 4.6, 2.8,  13.8, 2.8,  23.0, 2.8, */
-                36.0, 15.0,
-                48.8, 2.8,  54.6, 2.8,  60.4, 2.8,  66.2, 2.8,  72.0, 2.8,  77.8, 2.8,  83.6, 2.8,  89.4, 2.8,  95.2, 2.8,
-                /* 57.5, 2.8,  63.3, 2.8,  69.1, 2.8,  74.9, 2.8,  80.7, 2.8,  86.5, 2.8, */
-                108.0, 15.0,
-                120.8, 2.8,  126.6, 2.8,  132.4, 2.8,  138.2, 2.8
-                /*121.0, 2.8, 130.2, 2.8, 139.4, 2.8*/);
-        showLayer("Metal-5", false, 12.0, 12.0,  60.0, 12.0,  84.0, 12.0,  132.0, 12.0);
-        showLayer("Metal-6", true , 16.0, 24.0,  56.0, 24.0,  88.0, 24.0,  128.0, 24.0);
-        showLayer("Metal-7", false, 16.0, 24.0,  56.0, 24.0,  88.0, 24.0,  128.0, 24.0);
-        showLayer("Metal-8", true , 18.0, 27.0,  54.0, 27.0,  90.0, 27.0,  126.0, 27.0);
-        showLayer("Metal-9", false, 18.0, 27.0,  54.0, 27.0,  90.0, 27.0,  126.0, 27.0);
     }
 
-    public void showLayer(String layerName, boolean rotate, double... channels) {
-        List<Rectangle> rects = new ArrayList<Rectangle>();
-        Layer layer = Technology.getCMOS90Technology().findLayer(layerName);
-        collectLayer(layer, findVectorCell(topCell.getId(), rotate ? Orientation.XR : Orientation.IDENT), new Point(0, 0), rects);
-        if (true) {
-            System.out.println(layerName);
-            DeltaMerge dm = new DeltaMerge();
-            try {
-                DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(layerName + ".dm")));
-                out.writeBoolean(rotate);
-                dm.loop(rects, out);
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Collections.sort(rects, new Comparator<Rectangle>() {
-                public int compare(Rectangle r1, Rectangle r2) {
-                    if (r1.x < r2.x) {
-                        return -1;
-                    } else if (r1.x > r2.x) {
-                        return 1;
-                    } else if (r1.y < r2.y) {
-                        return -1;
-                    } else if (r1.y > r2.y) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                }
-            });
-            GeometryHandler merger = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 0);
-            for (Rectangle rect: rects) {
-                merger.add(layer, rect);
-            }
-            merger.postProcess(true);
-            Collection<PolyBase> polys = merger.getObjects(layer, true, true);
-            Library destLib = Library.newInstance("Metal9", null);
-            Cell destCell = Cell.newInstance(destLib, "merged{lay}");
-            PrimitiveNode pn = layer.getPureLayerNode();
-            for (PolyBase poly: polys) {
-                EPoint anchor = EPoint.fromGrid((long)poly.getCenterX(), (long)poly.getCenterY());
-                Rectangle2D box = poly.getBox();
-                if (box != null) {
-                    long w = Math.round(box.getWidth());
-                    long h = Math.round(box.getHeight());
-                    if ((w&1) == 0 && (h&1) == 0) {
-                        NodeInst.newInstance(pn, anchor,
-                                DBMath.gridToLambda(w), DBMath.gridToLambda(h),
-                                destCell);
-                        continue;
-                    }
-                }
-                NodeInst ni = NodeInst.newInstance(pn, anchor, 0, 0, destCell);
-                ni.setTrace(poly.getPoints());
-            }
+    private MyVectorCell findVectorCell(CellId cellId) {
+        MyVectorCell mvc = cells.get(cellId);
+        if (mvc == null) {
+            mvc = new MyVectorCell(cellId);
+            cells.put(cellId, mvc);
         }
+        return mvc;
     }
 
-    private void subTree(Cell cell, Orientation orient, Set<VectorCell> visited) {
-        VectorCell vc = findVectorCell(cell.getId(), orient);
-        if (visited.contains(vc)) {
-            return;
-        }
-        visited.add(vc);
-        drawCell(cell.getId(), orient, VarContext.globalContext, 1.0);
-        for (VectorBase vb: vc.shapes) {
-            if (vb instanceof VectorManhattan) {
-                layers.add(vb.layer);
-            }
-        }
+    public List<Rectangle> collectLayer(Layer layer, CellId cellId, boolean rotate) {
+        List<Rectangle> result = new ArrayList<Rectangle>();
+        Orientation orient = (rotate ? Orientation.XR : Orientation.IDENT).canonic();
+        collectLayer(layer, findVectorCell(cellId), new Point(0, 0), orient, result);
+        return result;
+    }
 
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = it.next();
-            if (!ni.isCellInstance()) {
+    void renderPoly(Poly poly, MyVectorCell vc, boolean hideOnLowLevel, int textType, boolean pureLayer) {
+        if (poly.isPseudoLayer()) return;
+        throw new UnsupportedOperationException();
+//        super.renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
+    }
+
+    private void addBoxesFromBuilder(MyVectorCell vc, Technology tech, ArrayList<VectorManhattanBuilder> boxBuilders) {
+        for (int layerIndex = 0; layerIndex < boxBuilders.size(); layerIndex++) {
+            VectorManhattanBuilder b = boxBuilders.get(layerIndex);
+            if (b.size == 0) {
                 continue;
             }
-            subTree((Cell)ni.getProto(), orient.concatenate(ni.getOrient()), visited);
+            Layer layer = tech.getLayer(layerIndex);
+            MyVectorManhattan vm = new MyVectorManhattan(b.toArray(), layer, null, false);
+            vc.shapes.add(vm);
         }
     }
 
-    private void collectLayer(Layer layer, VectorCell vc, Point anchor, List<Rectangle> result) {
-        for (VectorBase vb: vc.shapes) {
-            if (vb.layer != layer || !(vb instanceof VectorManhattan)) {
+    private void collectLayer(Layer layer, MyVectorCell vc, Point anchor, Orientation orient, List<Rectangle> result) {
+        int[] coords = new int[4];
+        for (VectorCache.VectorBase vb:  vc.shapes) {
+            if (vb.layer != layer) {
                 continue;
             }
-            VectorManhattan vm = (VectorManhattan)vb;
+            MyVectorManhattan vm = (MyVectorManhattan)vb;
             for (int i = 0; i < vm.coords.length; i += 4) {
-                int lx = anchor.x + vm.coords[i + 0];
-                int ly = anchor.y + vm.coords[i + 1];
-                int hx = anchor.x + vm.coords[i + 2];
-                int hy = anchor.y + vm.coords[i + 3];
+                coords[0] = vm.coords[i + 0];
+                coords[1] = vm.coords[i + 1];
+                coords[2] = vm.coords[i + 2];
+                coords[3] = vm.coords[i + 3];
+                orient.rectangleBounds(coords);
+
+                int lx = anchor.x + coords[0];
+                int ly = anchor.y + coords[1];
+                int hx = anchor.x + coords[2];
+                int hy = anchor.y + coords[3];
                 assert lx <= hx && ly <= hy;
+
                 result.add(new Rectangle(lx, ly, hx - lx, hy - ly));
             }
         }
-        for (VectorSubCell vsc: vc.subCells) {
-            VectorCell subCell = findVectorCell(vsc.subCellId, vc.orient.concatenate(vsc.n.orient));
-            collectLayer(layer, subCell, new Point(anchor.x + vsc.offsetX, anchor.y + vsc.offsetY), result);
+        for (ImmutableNodeInst n: vc.subCells) {
+            if (!n.orient.isManhattan()) {
+                throw new IllegalArgumentException();
+            }
+            coords[0] = (int)n.anchor.getGridX();
+            coords[1] = (int)n.anchor.getGridY();
+            orient.transformPoints(1, coords);
+            Orientation subOrient = orient.concatenate(n.orient).canonic();
+            MyVectorCell subCell = findVectorCell((CellId)n.protoId);
+            collectLayer(layer, subCell, new Point(anchor.x + coords[0], anchor.y + coords[1]), subOrient, result);
+        }
+    }
+
+    /**
+     * Method to tell whether a Cell is parameterized.
+     * Code is taken from tool.drc.Quick.checkEnumerateProtos
+     * Could also use the code in tool.io.output.Spice.checkIfParameterized
+     * @param cellRevision the Cell to examine
+     * @return true if the cell has parameters
+     */
+    private boolean isCellParameterized(CellRevision cellRevision) {
+        if (cellRevision.d.getNumParameters() > 0) {
+            return true;
+        }
+
+        // look for any Java coded stuff (Logical Effort calls)
+        for (ImmutableNodeInst n : cellRevision.nodes) {
+            if (n instanceof ImmutableIconInst) {
+                for (Iterator<Variable> vIt = ((ImmutableIconInst) n).getDefinedParameters(); vIt.hasNext();) {
+                    Variable var = vIt.next();
+                    if (var.isCode()) {
+                        return true;
+                    }
+                }
+            }
+            for (Iterator<Variable> vIt = n.getVariables(); vIt.hasNext();) {
+                Variable var = vIt.next();
+                if (var.isCode()) {
+                    return true;
+                }
+            }
+        }
+        for (ImmutableArcInst a : cellRevision.arcs) {
+            for (Iterator<Variable> vIt = a.getVariables(); vIt.hasNext();) {
+                Variable var = vIt.next();
+                if (var.isCode()) {
+                    return true;
+                }
+            }
+        }
+
+        // bus pin appearance depends on parent Cell
+        for (ImmutableExport e : cellRevision.exports) {
+            if (e.originalPortId == busPinPortId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private class ShapeBuilder extends AbstractShapeBuilder {
+        private MyVectorCell mvc;
+        private int textType;
+
+        @Override
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
+            if (layer.isPseudoLayer()) {
+                return;
+            }
+            throw new UnsupportedOperationException();
+//            Point2D.Double[] points = new Point2D.Double[numPoints];
+//            for (int i = 0; i < numPoints; i++) {
+//                points[i] = new Point2D.Double(doubleCoords[i * 2], doubleCoords[i * 2 + 1]);
+//            }
+//            Poly poly = new Poly(points);
+//            poly.setStyle(style);
+//            poly.setLayer(layer);
+//            poly.setGraphicsOverride(graphicsOverride);
+//            poly.gridToLambda();
+//            renderPoly(poly, vc, hideOnLowLevel, textType, false);
+        }
+
+        @Override
+        public void addDoubleTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
+            throw new UnsupportedOperationException();
+//            Point2D.Double[] points = new Point2D.Double[numPoints];
+//            for (int i = 0; i < numPoints; i++) {
+//                points[i] = new Point2D.Double(doubleCoords[i * 2], doubleCoords[i * 2 + 1]);
+//            }
+//            Poly poly = new Poly(points);
+//            poly.setStyle(style);
+//            poly.setLayer(layer);
+//            poly.gridToLambda();
+//            poly.setString(message);
+//            poly.setTextDescriptor(descriptor);
+//            renderPoly(poly, vc, hideOnLowLevel, textType, false);
+        }
+
+        @Override
+        public void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
+            throw new UnsupportedOperationException();
+//            switch (style) {
+//                case OPENED:
+//                    addIntLine(0, layer, graphicsOverride);
+//                    break;
+//                case OPENEDT1:
+//                    addIntLine(1, layer, graphicsOverride);
+//                    break;
+//                case OPENEDT2:
+//                    addIntLine(2, layer, graphicsOverride);
+//                    break;
+//                case OPENEDT3:
+//                    addIntLine(3, layer, graphicsOverride);
+//                    break;
+//                default:
+//                    Point2D.Double[] points = new Point2D.Double[numPoints];
+//                    for (int i = 0; i < numPoints; i++) {
+//                        points[i] = new Point2D.Double(intCoords[i * 2], intCoords[i * 2 + 1]);
+//                    }
+//                    Poly poly = new Poly(points);
+//                    poly.setStyle(style);
+//                    poly.setLayer(layer);
+//                    poly.setGraphicsOverride(graphicsOverride);
+//                    poly.gridToLambda();
+//                    renderPoly(poly, vc, hideOnLowLevel, textType, false);
+//                    break;
+//            }
+        }
+
+        private void addIntLine(int lineType, Layer layer, EGraphics graphicsOverride) {
+            throw new UnsupportedOperationException();
+//            int x1 = intCoords[0];
+//            int y1 = intCoords[1];
+//            int x2 = intCoords[2];
+//            int y2 = intCoords[3];
+//            VectorLine vl = new VectorLine(x1, y1, x2, y2, lineType, layer, graphicsOverride);
+//            vc.shapes.add(vl);
+        }
+
+        @Override
+        public void addIntBox(int[] coords, Layer layer) {
+            // convert coordinates
+            int lX = coords[0];
+            int lY = coords[1];
+            int hX = coords[2];
+            int hY = coords[3];
+            int layerIndex = -1;
+            if (layer.getId().techId == mvc.techId) {
+                layerIndex = layer.getIndex();
+            }
+            if (layerIndex >= 0) {
+                putBox(layerIndex, boxBuilders, lX, lY, hX, hY);
+            } else {
+                MyVectorManhattan vm = new MyVectorManhattan(new int[]{lX, lY, hX, hY}, layer, null, false);
+                mvc.shapes.add(vm);
+            }
+        }
+    }
+
+    private static void putBox(int layerIndex, ArrayList<VectorManhattanBuilder> boxBuilders, int lX, int lY, int hX, int hY) {
+        while (layerIndex >= boxBuilders.size()) {
+            boxBuilders.add(new VectorManhattanBuilder());
+        }
+        VectorManhattanBuilder b = boxBuilders.get(layerIndex);
+        b.add(lX, lY, hX, hY);
+    }
+    
+    /**
+     * Class which defines a cached Manhattan rectangle.
+     */
+    static class MyVectorManhattan extends VectorCache.VectorBase {
+
+        /** coordinates of boxes: 1X, 1Y, hX, hY */
+        int[] coords;
+        boolean pureLayer;
+
+        private MyVectorManhattan(int[] coords, Layer layer, EGraphics graphicsOverride, boolean pureLayer) {
+            super(layer, graphicsOverride);
+            this.coords = coords;
+            this.pureLayer = pureLayer;
+        }
+
+        MyVectorManhattan(double c1X, double c1Y, double c2X, double c2Y, Layer layer, EGraphics graphicsOverride, boolean pureLayer) {
+            this(new int[]{databaseToGrid(c1X), databaseToGrid(c1Y), databaseToGrid(c2X), databaseToGrid(c2Y)},
+                    layer, graphicsOverride, pureLayer);
+        }
+
+        @Override
+        boolean isFilled() {
+            return true;
+        }
+    }
+
+    private static int databaseToGrid(double lambdaValue) {
+        return (int) DBMath.lambdaToGrid(lambdaValue);
+    }
+
+    /**
+     * Class which collects boxes for VectorManhattan.
+     */
+    static class VectorManhattanBuilder {
+
+        /** Number of boxes. */
+        int size; // number of boxes
+        /** Coordiantes of boxes. */
+        int[] coords = new int[4];
+
+        private void add(int lX, int lY, int hX, int hY) {
+            if (size * 4 >= coords.length) {
+                int[] newCoords = new int[coords.length * 2];
+                System.arraycopy(coords, 0, newCoords, 0, coords.length);
+                coords = newCoords;
+            }
+            int i = size * 4;
+            coords[i] = lX;
+            coords[i + 1] = lY;
+            coords[i + 2] = hX;
+            coords[i + 3] = hY;
+            size++;
+        }
+
+        int[] toArray() {
+            int[] a = new int[size * 4];
+            System.arraycopy(coords, 0, a, 0, a.length);
+            return a;
+        }
+
+        private void clear() {
+            size = 0;
         }
     }
 }

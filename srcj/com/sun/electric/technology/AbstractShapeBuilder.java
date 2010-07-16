@@ -651,6 +651,31 @@ public abstract class AbstractShapeBuilder {
         if (!electrical)
             pp = null;
         transformDoubleCoords(style);
+        if (style == Poly.Type.FILLED && pointCount == 4 && graphicsOverride == null && pp == null) {
+            if (doubleCoords[0] == doubleCoords[2] && doubleCoords[4] == doubleCoords[6] &&
+                    doubleCoords[1] == doubleCoords[7] && doubleCoords[3] == doubleCoords[5] ||
+                    doubleCoords[0] == doubleCoords[6] && doubleCoords[2] == doubleCoords[4] &&
+                    doubleCoords[1] == doubleCoords[3] && doubleCoords[5] == doubleCoords[7]) {
+                double dlx = Math.min(doubleCoords[0], doubleCoords[4]);
+                double dhx = Math.max(doubleCoords[0], doubleCoords[4]);
+                double dly = Math.min(doubleCoords[1], doubleCoords[5]);
+                double dhy = Math.max(doubleCoords[1], doubleCoords[5]);
+                long lx = (long)dlx;
+                long hx = (long)dhx;
+                long ly = (long)dly;
+                long hy = (long)dhy;
+                if (dlx == lx && dhx == hx && dly == ly && dhy == hy &&
+                        lx < hx && ly < hy) {
+                    pointCount = 0;
+                    intCoords[0] = (int)lx;
+                    intCoords[1] = (int)ly;
+                    intCoords[2] = (int)hx;
+                    intCoords[3] = (int)hy;
+                    addIntBox(intCoords, layer);
+                    return;
+                }
+            }
+        }
         addDoublePoly(pointCount, style, layer, graphicsOverride, pp);
         pointCount = 0;
     }

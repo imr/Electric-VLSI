@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+IMP: (7/16/10, DN) Fast path for grid-aligned boxes in AbstractShapeBuilder.pushPoly .
+
 IMP/MAN: (7/15/10, SMR) Added Spice Opus output format (Bug #2848).
 
 BUG: (7/15/10, SMR) Going up hierarchy can duplicate selection (Bug #2843).
