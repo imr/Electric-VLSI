@@ -31,7 +31,6 @@ import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -41,32 +40,37 @@ import java.util.List;
  * for the source signals over that same range.  So, for example, a
  * convolution cannot be represented using this class.
  */
-public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> extends Signal<SNew> {
-
+public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> extends Signal<SNew>
+{
     private final Signal<SOld>[] sources;
 
     public DerivedSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext,
-                         boolean digital, Signal<SOld>[] sources) {
+    	boolean digital, Signal<SOld>[] sources)
+    {
         super(sc, sd, signalName, signalContext, digital);
         this.sources = sources;
     }
 
-    public Signal.View<RangeSample<SNew>> getRasterView(double t0, double t1, int numPixels, boolean extrapolate) {
+    public Signal.View<RangeSample<SNew>> getRasterView(double t0, double t1, int numPixels, boolean extrapolate)
+    {
         View<RangeSample<SOld>>[] views = new View[sources.length];
         for(int i=0; i<views.length; i++)
             views[i] = sources[i].getRasterView(t0, t1, numPixels, extrapolate);
         return new DerivedSignalRasterView(views);
     }
-    private class DerivedSignalRasterView implements View<RangeSample<SNew>> {
+    private class DerivedSignalRasterView implements View<RangeSample<SNew>>
+    {
         private View<RangeSample<SOld>>[] views;
         private RangeSample<SOld>[]       scratch;
-        public DerivedSignalRasterView(View<RangeSample<SOld>>[] views) {
+        public DerivedSignalRasterView(View<RangeSample<SOld>>[] views)
+        {
             this.views = views;
             scratch = new RangeSample[views.length];
         }
         public int             getNumEvents() { return views[0].getNumEvents(); }
         public double          getTime(int event) { return views[0].getTime(event); }
-        public RangeSample<SNew> getSample(int event) {
+        public RangeSample<SNew> getSample(int event)
+        {
             for(int i=0; i<scratch.length; i++)
                 scratch[i] = views[i].getSample(event);
             RangeSample<SNew> ret = getDerivedRange(scratch);
@@ -75,31 +79,37 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
         }
     }
 
-	public double getMinTime() {
+	public double getMinTime()
+	{
         double min = Double.MIN_VALUE;
         for(int i=0; i<sources.length; i++)
             min = Math.max(min, sources[i].getMinTime());
         return min;
     }
-	public double getMaxTime() {
+
+	public double getMaxTime()
+	{
         double max = Double.MAX_VALUE;
         for(int i=0; i<sources.length; i++)
             max = Math.min(max, sources[i].getMaxTime());
         return max;
     }
 
-    public Signal.View<SNew> getExactView() {
+    public Signal.View<SNew> getExactView()
+    {
         if (sources.length==1)
             return new DerivedSignalExactView(sources[0].getExactView());
         throw new RuntimeException("Exact views of DerivedSignal's with >1 source are not supported");
     }
 
-    private class DerivedSignalExactView implements View<SNew> {
+    private class DerivedSignalExactView implements View<SNew>
+    {
         private View<SOld> view;
         public DerivedSignalExactView(View<SOld> view) { this.view = view; }
         public int               getNumEvents() { return view.getNumEvents(); }
         public double            getTime(int event) { return view.getTime(event); }
-        public SNew getSample(int event) {
+        public SNew getSample(int event)
+        {
             SOld old = view.getSample(event);
             return getDerivedRange(new RangeSample[] { new RangeSample<SOld>(old, old) }).getMin() /* FIXME: arbitrary */;
         }
@@ -107,8 +117,9 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
 
     protected abstract RangeSample<SNew> getDerivedRange(RangeSample<SOld>[] sourceRanges);
 
-    public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
-                     List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
+    public void plot(Panel panel, Graphics g, WaveSignal ws, Color light, List<PolyBase> forPs,
+    	Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal)
+    {
         throw new RuntimeException("not implemented");
     }
 }

@@ -231,12 +231,12 @@ public class SweptSample<S extends Sample> implements Sample
             }
 
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light, List<PolyBase> forPs,
-            	Rectangle2D bounds, List<WaveSelection> selectedObjects)
+            	Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal)
             {
             	for(int i=0; i<subsignals.length; i++)
             	{
             		if (!panel.getWaveWindow().isSweepSignalIncluded(scName, i)) continue;
-            		ScalarSample.plotSig((MutableSignal<ScalarSample>)subsignals[i], panel, g, ws, light, forPs, bounds, selectedObjects);
+            		ScalarSample.plotSig((MutableSignal<ScalarSample>)subsignals[i], panel, g, ws, light, forPs, bounds, selectedObjects, xAxisSignal);
             	}
             }
         };

@@ -141,17 +141,17 @@ public class RawSpiceOut extends Input<Stimuli>
                 // start reading a new analysis
                 if (restOfLine.startsWith("Transient Analysis"))
                 {
-                    sc = Stimuli.newSignalCollection(sd, "TRANS SIGNALS", false);
+                    sc = Stimuli.newSignalCollection(sd, "TRANS SIGNALS");
                 } else if (restOfLine.startsWith("DC "))
                 {
-                    sc = Stimuli.newSignalCollection(sd, "DC SIGNALS", false);
+                    sc = Stimuli.newSignalCollection(sd, "DC SIGNALS");
                 } else if (restOfLine.startsWith("AC "))
                 {
-                    sc = Stimuli.newSignalCollection(sd, "AC SIGNALS", false);
+                    sc = Stimuli.newSignalCollection(sd, "AC SIGNALS");
                 } else
                 {
                     System.out.println("Warning: unknown analysis: " + restOfLine);
-                    sc = Stimuli.newSignalCollection(sd, "TRANS SIGNALS", false);
+                    sc = Stimuli.newSignalCollection(sd, "TRANS SIGNALS");
                 }
                 continue;
             }

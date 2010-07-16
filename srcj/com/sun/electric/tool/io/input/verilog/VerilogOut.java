@@ -79,7 +79,7 @@ public class VerilogOut extends Input<Stimuli>
 	private void readVerilogFile(Cell cell, Stimuli sd)
 		throws IOException
 	{
-		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS", true);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS");
 		Map<String,Signal<DigitalSample>[]> busMembers = new HashMap<String,Signal<DigitalSample>[]>();
 		double timeScale = 1.0;
 		String currentScope = "";

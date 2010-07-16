@@ -186,17 +186,20 @@ public class DigitalSample implements Sample {
      * your choice here.
      *    -SMR
      */
-    public static DigitalSample fromOldStyle(int i) {
+    public static DigitalSample fromOldStyle(int i)
+    {
         Strength strength = null;
         Value value = null;
-        switch(i & Stimuli.LOGIC) {
+        switch(i & Stimuli.LOGIC)
+        {
             case Stimuli.LOGIC_LOW:  value = Value.LOW; break;
             case Stimuli.LOGIC_HIGH: value = Value.HIGH; break;
             case Stimuli.LOGIC_X:    value = Value.X; break;
             case Stimuli.LOGIC_Z:    return getSample(Value.Z, Strength.HIGH_IMPEDANCE);
             default: throw new RuntimeException("unknown value: " + (i & Stimuli.LOGIC));
         }
-        switch(i & Stimuli.STRENGTH) {
+        switch(i & Stimuli.STRENGTH)
+        {
             case Stimuli.OFF_STRENGTH:  strength = Strength.SMALL_CAPACITANCE; break;
             case Stimuli.NODE_STRENGTH: strength = Strength.STRONG_PULL;       break;
             case Stimuli.GATE_STRENGTH: strength = Strength.LARGE_CAPACITANCE; break;
@@ -221,11 +224,15 @@ public class DigitalSample implements Sample {
         throw new RuntimeException("ack!");
     }
 
-    public static MutableSignal<DigitalSample> createSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext) {
-        return new BTreeSignal<DigitalSample>(sc, sd, signalName, signalContext, true, BTreeSignal.getTree(unboxer, latticeOp)) {
-
-            public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
-                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
+    public static MutableSignal<DigitalSample> createSignal(SignalCollection sc, Stimuli sd, String signalName,
+    	String signalContext)
+    {
+        return new BTreeSignal<DigitalSample>(sc, sd, signalName, signalContext, true,
+        	BTreeSignal.getTree(unboxer, latticeOp))
+        {
+            public void plot(Panel panel, Graphics g, WaveSignal ws, Color light, List<PolyBase> forPs,
+            	Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal)
+            {
                 Dimension sz = panel.getSize();
                 int hei = sz.height;
 
@@ -289,22 +296,19 @@ public class DigitalSample implements Sample {
 					{
 						if (panel.processABox(g, lastx, lastLowy, x, lastHighy, bounds, forPs, selectedObjects, ws, false, 0)) return;
 					}
-					if (ds.extrapolateValues())
+					if (i >= numEvents-1)
 					{
-						if (i >= numEvents-1)
+						if (g != null && !SimulationTool.isWaveformDisplayMultiState())
 						{
-							if (g != null && !SimulationTool.isWaveformDisplayMultiState())
-							{
-								if (state == Stimuli.LOGIC_Z) g.setColor(Color.GREEN); else g.setColor(Color.RED);
-							}
-							int wid = sz.width;
-							if (lowy == highy)
-							{
-								if (panel.processALine(g, x, lowy, wid-1, lowy, bounds, forPs, selectedObjects, ws, -1)) return;
-							} else
-							{
-								if (panel.processABox(g, x, lowy, wid-1, highy, bounds, forPs, selectedObjects, ws, false, 0)) return;
-							}
+							if (state == Stimuli.LOGIC_Z) g.setColor(Color.GREEN); else g.setColor(Color.RED);
+						}
+						int wid = sz.width;
+						if (lowy == highy)
+						{
+							if (panel.processALine(g, x, lowy, wid-1, lowy, bounds, forPs, selectedObjects, ws, -1)) return;
+						} else
+						{
+							if (panel.processABox(g, x, lowy, wid-1, highy, bounds, forPs, selectedObjects, ws, false, 0)) return;
 						}
 					}
 					lastx = x;

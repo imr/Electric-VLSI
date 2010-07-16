@@ -442,7 +442,7 @@ public class Stimuli {
 		return "?";
 	}
 
-    public static SignalCollection newSignalCollection(Stimuli sd, final String title, boolean extrapolateToRight)
+    public static SignalCollection newSignalCollection(Stimuli sd, final String title)
     {
     	SignalCollection sc = new SignalCollection(title);
 		sd.addSignalCollection(sc);
@@ -452,7 +452,7 @@ public class Stimuli {
     /**
      * Method to find busses in a list of signals and create them.
      * @param curArray the list of signals.
-     * @param sc the Analysis in which the signals reside.
+     * @param sc the SignalCollection in which the signals reside.
      */
     public void makeBusSignals(List<Signal<?>> signalList, SignalCollection sc)
 	{

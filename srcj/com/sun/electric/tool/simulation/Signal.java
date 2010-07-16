@@ -39,7 +39,7 @@ import java.util.List;
  * A Signal represents simulation data captured for a particular node
  * over a stretch of time.  Internally, it associates Samples to
  * points in time (measured by a double).  Each Signal also belongs to
- * an Analysis, and has a Name and a Context (which are both Strings).
+ * a SignalCollection, and has a Name and a Context (which are both Strings).
  *
  * Because the simulation data set may be extremely large, one does
  * not access the data directly through the Signal class.  Instead,
@@ -57,8 +57,7 @@ public abstract class Signal<SS extends Sample> {
     public Signal(SignalCollection sc, Stimuli sd, String signalName, String signalContext, boolean digital) {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
-		this.extrapolateToRight = true;
-        this.analysisTitle = sc==null ? "SIGNALS" : sc.getName();
+        this.signalCollectionName = sc==null ? "SIGNALS" : sc.getName();
         this.fullSignalName = signalContext==null
             ? signalName
             : signalContext + (sc==null ? '.' : sd.getSeparatorChar()) + signalName;
@@ -77,19 +76,17 @@ public abstract class Signal<SS extends Sample> {
 	/** the name of this signal */										private final String signalName;
 	/** the context of this signal (qualifications to name) */			private final String signalContext;
 	/** full name (with context) */										private final String fullSignalName;
-    /** the HashMap<String,Signal> to which this signal belongs */      private final String analysisTitle;
+    /** the name of theSignalCollection to which this signal belongs */	private final String signalCollectionName;
     /** true if the signal is digital */                    			private final boolean digital;
-    /** the extrapolateToRight setting of the HashMap<String,Signal> */ private final boolean extrapolateToRight;
-    /** the stimuli of the HashMap<String,Signal> */                    private final Stimuli stimuli;
+    /** the stimuli to which this signal belongs */						private final Stimuli stimuli;
 
     // methods relocated from other classes
     public void clearControlPoints() { stimuli.clearControlPoints(this); }
     public void removeControlPoint(double time) { stimuli.removeControlPoint(this, time); }
     public void addControlPoint(double time) { stimuli.addControlPoint(this, time); }
     public Double[] getControlPoints() { return stimuli.getControlPoints(this); }
-    public boolean extrapolateValues() { return extrapolateToRight; }
 	public final boolean isDigital() { return digital; }
-	public final String getAnalysisTitle() { return analysisTitle; }
+	public final String getSignalCollectionName() { return signalCollectionName; }
 
 	/** method to return the sub-signals in this bus (null if not a bus) */
     public Signal<?>[] getBusMembers() { return null; }
@@ -158,7 +155,7 @@ public abstract class Signal<SS extends Sample> {
     public abstract boolean isEmpty();
 
     public abstract void plot(Panel panel, Graphics g, WaveSignal ws, Color light, List<PolyBase> forPs,
-                              Rectangle2D bounds, List<WaveSelection> selectedObjects);
+                              Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal);
 
     public String getBaseNameFromExtractedNet(String signalFullName) {
         String delim = stimuli.getNetDelimiter();

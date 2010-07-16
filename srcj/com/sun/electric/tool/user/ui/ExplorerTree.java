@@ -882,9 +882,12 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				for(int i=0; i<numCurrentlySelectedObjects(); i++)
 				{
 					Signal<?> sSig = (Signal<?>)getCurrentlySelectedObject(i);
-					String sigName = sSig.getFullName();
-                    sigName = sSig.getAnalysisTitle();
-					buf.append(sigName);
+                    String sigCollectionName = sSig.getSignalCollectionName();
+                    int spacePos = sigCollectionName.indexOf(' ');
+                    if (spacePos < 0) sigCollectionName += " "; else
+                    	sigCollectionName = sigCollectionName.substring(0, spacePos+1);
+					buf.append(sigCollectionName);
+					buf.append(sSig.getFullName());
 					buf.append("\n");
 				}
 				Transferable transferable = new StringSelection(buf.toString());

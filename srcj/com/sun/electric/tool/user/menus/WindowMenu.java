@@ -351,7 +351,7 @@ public class WindowMenu {
                     Panel panel = ww.getPanel(0);
                     Stimuli stim = ww.getSimData();
                     Signal<?> s1 = panel.getSignals().get(0).getSignal();
-                    SignalCollection sc = Stimuli.newSignalCollection(stim, "DC SIGNALS", false);
+                    SignalCollection sc = Stimuli.newSignalCollection(stim, "DC SIGNALS");
                     Signal<?> derived = new DerivedSignal<DigitalSample,ScalarSample>
                         (sc,
                          stim,

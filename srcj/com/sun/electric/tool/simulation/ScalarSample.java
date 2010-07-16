@@ -123,7 +123,7 @@ public class ScalarSample implements Sample, Comparable<Object> {
     };
 
     public static void plotSig(MutableSignal<?> sig, Panel panel, Graphics g, WaveSignal ws, Color light,
-        List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects)
+        List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal)
     {
 		int linePointMode = panel.getWaveWindow().getLinePointMode();
 		Dimension sz = panel.getSize();
@@ -135,24 +135,37 @@ public class ScalarSample implements Sample, Comparable<Object> {
 		if (wave.isEmpty()) return;
 		Signal.View<RangeSample<ScalarSample>> waveform = ((Signal<ScalarSample>)wave).getRasterView(
 			panel.convertXScreenToData(0), panel.convertXScreenToData(sz.width), sz.width, true);
-		Signal<ScalarSample> xWaveform = null;
+		Signal.View<RangeSample<ScalarSample>> xWaveform = null;
+	    if (xAxisSignal != null)
+	    	xWaveform = ((Signal<ScalarSample>)xAxisSignal).getRasterView(
+				panel.convertXScreenToData(0), panel.convertXScreenToData(sz.width), sz.width, true);
 		int lastX = 0, lastLY = 0, lastHY = 0;
 		boolean first = true;
 		for(int i=0; i<waveform.getNumEvents(); i++)
 		{
-		    int x = panel.convertXDataToScreen(waveform.getTime(i));
 		    RangeSample<ScalarSample> samp = (RangeSample<ScalarSample>)waveform.getSample(i);
 		    if (samp == null) continue;
 		    int lowY = panel.convertYDataToScreen(samp.getMin().getValue());
 		    int highY = panel.convertYDataToScreen(samp.getMax().getValue());
-		    if (xWaveform != null)
-		    	x = panel.convertXDataToScreen(((ScalarSample)xWaveform.getExactView().getSample(i)).getValue());
 
-		   // draw lines if requested and line is on-screen
-		   if (linePointMode <= 1) {
-		       if (!first) {
-		           // drawing has lines
-		           if (lastLY != lastHY || lowY != highY) {
+		    int x = panel.convertXDataToScreen(waveform.getTime(i));
+		    if (xWaveform != null)
+		    {
+		    	int xEventNum = waveform.getNumEvents() * i / xWaveform.getNumEvents();
+			    RangeSample<ScalarSample> xSampRange = (RangeSample<ScalarSample>)xWaveform.getSample(xEventNum);
+			    Sample xSamp = xSampRange.getMin();
+			    if (xSamp instanceof SweptSample<?>) xSamp = ((SweptSample<?>)xSamp).getSweep(0);
+		    	x = panel.convertXDataToScreen(((ScalarSample)xSamp).getValue());
+		    }
+
+		   // draw lines/points if requested and on-screen
+		   if (linePointMode <= 1)
+		   {
+	           // show line
+		       if (!first)
+		       {
+		           if (lastLY != lastHY || lowY != highY)
+		           {
 		               if (g != null) g.setColor(light);
 		               panel.processALine(g, lastX, lastHY, lastX, lastLY, bounds, forPs, selectedObjects, ws, s);
 		               panel.processALine(g, x, highY, x, lowY, bounds, forPs, selectedObjects, ws, s);
@@ -161,14 +174,16 @@ public class ScalarSample implements Sample, Comparable<Object> {
 		           }
 		           panel.processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s);
 		       }
-		   } else {
-		       // show points if requested and point is on-screen
+			   first = false;
+		   }
+		   if (linePointMode >= 1)
+		   {
+		       // show point
 		       panel.processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0);
 		   }
 		   lastX = x;
 		   lastLY = lowY;
 		   lastHY = highY;
-		   first = false;
 		}
     }
 
@@ -185,8 +200,8 @@ public class ScalarSample implements Sample, Comparable<Object> {
         MutableSignal<ScalarSample> ret =
             new BTreeSignal<ScalarSample>(sc, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp)) {
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
-                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
-            	plotSig(this, panel, g, ws, light, forPs, bounds, selectedObjects);
+                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal) {
+            	plotSig(this, panel, g, ws, light, forPs, bounds, selectedObjects, xAxisSignal);
             }
         };
         return ret;

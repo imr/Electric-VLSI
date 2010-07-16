@@ -1753,9 +1753,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to check whether this particular sweep is included.
 	 * @return true if the sweep is included
 	 */
-	public boolean isSweepSignalIncluded(String anName, int index)
+	public boolean isSweepSignalIncluded(String scName, int index)
 	{
-		SweepSignal[] signalArray = sweepSignals.get(anName);
+		SweepSignal[] signalArray = sweepSignals.get(scName);
 		if (signalArray != null)
 		{
 			SweepSignal ss = signalArray[index];
@@ -2310,7 +2310,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					for(Iterator<Panel> pIt = getPanels(); pIt.hasNext(); )
 					{
 						Panel wp = pIt.next();
-						//if (wp.getAnalysisType() != an.getAnalysisType()) continue;
 						for(WaveSignal ws : wp.getSignals())
 						{
 							if (ws.getSignal() != sSig) continue;
@@ -3080,24 +3079,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal<?> sig = (Signal<?>)ws.getSignal();
-                /*
-				List<Signal<DigitalSample>> bussedSignals = Analysis.getBussedSignals(ds);
+				Signal<?>[] bussedSignals = sig.getBusMembers();
 				if (bussedSignals != null)
 				{
 					// a digital bus trace
-					for(Signal subSig : bussedSignals)
-					{
-						Signal<DigitalSample> subDS = (Signal<DigitalSample>)subSig;
-						putValueOnTrace(subDS, cell, netValues, netlist);
-					}
+					for(Signal<?> subSig : bussedSignals)
+						putValueOnTrace(subSig, netValues, netlist);
 				} else
 				{
-                */
 					// single signal
 					putValueOnTrace(sig, netValues, netlist);
-                    /*
 				}
-                    */
 			}
 		}
 
@@ -3247,11 +3239,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		resetSweeps();
 
 		// adjust the overall X axis signal (if it is not time)
-		String oldXAxisSignalAllName = null;
+		Signal<?> oldXAxisSignalAll = null;
 		if (xAxisSignalAll != null)
 		{
-			oldXAxisSignalAllName = xAxisSignalAll.getFullName();
+			oldXAxisSignalAll = xAxisSignalAll;
 			xAxisSignalAll = null;
+
+			SignalCollection sc = sd.findSignalCollection(oldXAxisSignalAll.getSignalCollectionName());
+			for(Signal<?> newSs : sc.getSignals())
+			{
+				String newSigName = newSs.getFullName();
+				if (!newSigName.equals(oldXAxisSignalAll.getFullName())) continue;
+				xAxisSignalAll = newSs;
+				break;
+			}
+			if (xAxisSignalAll == null)
+				System.out.println("Could not find main X axis signal " + oldXAxisSignalAll.getFullName() +
+					" in the new data");
 		}
 
 		List<Panel> panelList = new ArrayList<Panel>();
@@ -3259,23 +3263,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			panelList.add(wp);
 		for(Panel wp : panelList)
 		{
-			//HashMap<String,Signal> an = sd.findAnalysis(wp.getAnalysisType());
 			boolean redoPanel = false;
 
 			// adjust the panel's X axis signal (if it is not time)
 			if (wp.getXAxisSignal() != null)
 			{
-				String oldSigName = wp.getXAxisSignal().getFullName();
+				Signal<?> oldSig = wp.getXAxisSignal();
 				wp.setXAxisSignal(null);
-                /*
-				for(Signal newSs : an.getSignals())
+
+				String oldSigName = oldSig.getFullName();
+				SignalCollection sc = sd.findSignalCollection(oldSig.getSignalCollectionName());
+				for(Signal<?> newSs : sc.getSignals())
 				{
 					String newSigName = newSs.getFullName();
 					if (!newSigName.equals(oldSigName)) continue;
 					wp.setXAxisSignal(newSs);
 					break;
 				}
-                */
 				if (wp.getXAxisSignal() == null)
 				{
 					System.out.println("Could not find X axis signal " + oldSigName + " in the new data");
@@ -3283,72 +3287,56 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 			}
 
-            /*
-			if (oldXAxisSignalAllName != null)
-			{
-				for(Signal newSs : an.getSignals())
-				{
-					String newSigName = newSs.getFullName();
-					if (!newSigName.equals(oldXAxisSignalAllName)) continue;
-					xAxisSignalAll = newSs;
-					break;
-				}
-			}
-            */
-
 			// adjust all signals inside the panel
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal<?> ss = ws.getSignal();
-                /*
-				if (ss .isDigital() && Analysis.getBussedSignals(((Signal<DigitalSample>)ss)) != null)
+				SignalCollection sc = sd.findSignalCollection(ss.getSignalCollectionName());
+//				Signal<?>[] busMembers = ss.getBusMembers();
+//				if (busMembers != null)
+//				{
+//					for(int b=0; b<busMembers.length; b++)
+//					{
+//						Signal<?> subDS = busMembers[b];
+//						String oldSigName = subDS.getFullName();
+//						Signal<?> newBus = null;
+//
+//						for(Signal<?> newSs : sc.getSignals())
+//                        {
+//	                        String newSigName = newSs.getFullName();
+//	                        if (!newSigName.equals(oldSigName)) continue;
+//	                        newBus = newSs;
+//	                        break;
+//						}
+//
+//						if (newBus == null)
+//						{
+//							inBus.remove(b);
+//							b--;
+//							System.out.println("Could not find signal " + oldSigName + " in the new data");
+//							redoPanel = true;
+//							continue;
+//						}
+//						inBus.set(b, newBus);
+//					}
+//				} else
 				{
-					List<Signal<DigitalSample>> inBus = Analysis.getBussedSignals(((Signal<DigitalSample>)ss));
-					for(int b=0; b<inBus.size(); b++)
-					{
-						Signal<DigitalSample> subDS = inBus.get(b);
-						String oldSigName = subDS.getFullName();
-						Signal<DigitalSample> newBus = null;
-
-						//for(Signal newSs :  an.getSignals() )
-                        //	{
-                        //String newSigName = newSs.getFullName();
-                        //if (!newSigName.equals(oldSigName)) continue;
-                        //newBus = (Signal<DigitalSample>)newSs;
-                        //break;
-						//}
-
-						if (newBus == null)
-						{
-							inBus.remove(b);
-							b--;
-							System.out.println("Could not find signal " + oldSigName + " in the new data");
-							redoPanel = true;
-							continue;
-						}
-						inBus.set(b, newBus);
-					}
-				} else
-				{
-*/
 					// single signal: find the name in the new list
 					String oldSigName = ss.getFullName();
 					ws.setSignal(null);
-                    /*
-					for(Signal newSs : an.getSignals())
+					for(Signal<?> newSs : sc.getSignals())
 					{
 						String newSigName = newSs.getFullName();
 						if (!newSigName.equals(oldSigName)) continue;
 						ws.setSignal(newSs);
 						break;
 					}
-                    */
 					if (ws.getSignal() == null)
 					{
 						System.out.println("Could not find signal " + oldSigName + " in the new data");
 						redoPanel = true;
 					}
-                    //}
+                }
 			}
 			while (redoPanel)
 			{
@@ -3356,10 +3344,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				for(WaveSignal ws : wp.getSignals())
 				{
 					Signal<?> s = ws.getSignal();
-					if (s == null /*||
-						(s .isDigital() &&
-                         Analysis.getBussedSignals(((Signal<DigitalSample>)s)) != null &&
-                         Analysis.getBussedSignals(((Signal<DigitalSample>)s)).size() == 0)*/)
+					if (s == null)
 					{
 						redoPanel = true;
 						if (wp.getSignalButtons() != null)
@@ -3382,8 +3367,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				wp.repaintContents();
 			}
 		}
-		if (oldXAxisSignalAllName != null && xAxisSignalAll == null)
-			System.out.println("Could not find main X axis signal " + oldXAxisSignalAllName + " in the new data");
 		wf.wantToRedoSignalTree();
 		if (sd.getEngine() != null)
 			System.out.println("Simulation data reloaded from circuit"); else
@@ -3757,7 +3740,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 *   <PanelInfo> \n <PanelInfo> \n<BR>
 	 * Each PanelInfo section starts with information about the analysis in that panel,
 	 * and then lists the signals in that panel.  The format is:<BR>
-	 *    \t [<AnalysisName>] [(<HorizontalSignal>)] <SignalList><BR>
+	 *    \t [<SignalCollectionName>] [(<HorizontalSignal>)] <SignalList><BR>
 	 * Where <SignalList> is one or more of this:<BR>
 	 *    \t <SignalName> { <Red> , <Green> , <Blue> }<BR>
 	 *
@@ -4213,31 +4196,31 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			String sigNameData = (String)data;
 			String [] sigNames = sigNameData.split("\n");
-			String analysisType = null;
+			String signalCollectionName = null;
 			for(int i=0; i<sigNames.length; i++)
 			{
-				String anAnalysisType = "SIGNALS";
+				String collectionName = "SIGNALS";
 				String aSigName = sigNames[i];
 				if (aSigName.startsWith("TRANS "))
 				{
 					sigNames[i] = aSigName.substring(6);
-					anAnalysisType = "TRANS SIGNALS";
+					collectionName = "TRANS SIGNALS";
 				} else if (aSigName.startsWith("MEASUREMENT "))
 				{
 					sigNames[i] = aSigName.substring(12);
-					anAnalysisType = "MEASUREMENTS";
+					collectionName = "MEASUREMENTS";
 				} else if (aSigName.startsWith("AC "))
 				{
 					sigNames[i] = aSigName.substring(3);
-					anAnalysisType = "AC SIGNALS";
+					collectionName = "AC SIGNALS";
 				} else if (aSigName.startsWith("DC "))
 				{
 					sigNames[i] = aSigName.substring(3);
-					anAnalysisType = "DC SIGNALS";
+					collectionName = "DC SIGNALS";
 				}
-				if (analysisType == null) analysisType = anAnalysisType; else
+				if (signalCollectionName == null) signalCollectionName = collectionName; else
 				{
-					if (analysisType != anAnalysisType)
+					if (signalCollectionName != collectionName)
 					{
 						Job.getUserInterface().showErrorMessage("All signals must be the same type", "Incorrect Signal Selection");
 						dtde.dropComplete(false);
@@ -4245,7 +4228,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					}
 				}
 			}
-			if (analysisType == null)
+			if (signalCollectionName == null)
 			{
 				dtde.dropComplete(false);
 				return;
@@ -4284,14 +4267,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							sSig = ws.getSignal();
 							break;
 						}
-						analysisType = sSig.getAnalysisTitle();
+						signalCollectionName = sSig.getSignalCollectionName();
 					}
 				} else
 				{
-					SignalCollection sc = ww.getSimData().findSignalCollection(analysisType);
+					SignalCollection sc = ww.getSimData().findSignalCollection(signalCollectionName);
 					if (sc == null)
 					{
-						System.out.println("Cannot find " + analysisType + " data");
+						System.out.println("Cannot find " + signalCollectionName + " data");
 						dtde.dropComplete(true);
 						return;
 					}
@@ -4301,49 +4284,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					if (panel == null)
 					{
-						// dropped signal onto main time ruler: make sure it is the right type
-//						boolean warn = false;
-                        /*
-						for(Panel wp : ww.wavePanels)
-						{
-							if (wp.getAnalysisType() != analysisType && wp.getNumSignals() > 0) warn = true;
-						}
-						if (warn)
-						{
-							String warning = "The waveform window is not showing " + analysisType +
-								" data.  Remove all traces and convert panels to show " + analysisType + " data?";
-							int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), warning);
-							if (response != JOptionPane.YES_OPTION)
-							{
-								dtde.dropComplete(true);
-								return;
-							}
-							for(Panel wp : ww.wavePanels)
-								ww.deleteAllSignalsFromPanel(wp);
-						}
-                        */
+						// dropped signal onto main time ruler
 						ww.xAxisSignalAll = sSig;
 						for(Panel wp : ww.wavePanels)
-						{
-							//wp.setAnalysisType(analysisType);
 							wp.setXAxisRange(sSig.getMinTime(), sSig.getMaxTime());
-						}
 						ww.redrawAllPanels();
 					} else
 					{
-                        /*
 						// dropped signal onto a single panel's time ruler
-						if (panel.getAnalysisType() != analysisType)
-						{
-							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-								"Cannot drop a " + analysisType + " signal onto the horizontal ruler of a " +
-								panel.getAnalysisType() + " panel.  " +
-								"First convert the panel with the popup in the upper-left.",
-								"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
-							dtde.dropComplete(true);
-							return;
-						}
-                        */
 						panel.setXAxisSignal(sSig);
 						panel.setXAxisRange(sSig.getMinTime(), sSig.getMaxTime());
 						panel.repaintContents();
@@ -4452,7 +4400,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 
 			// not rearranging: dropped a signal onto a panel
-			SignalCollection sc = ww.getSimData().findSignalCollection(analysisType);
+			SignalCollection sc = ww.getSimData().findSignalCollection(signalCollectionName);
 			for(int i=0; i<sigNames.length; i++)
 			{
 				Signal<?> sSig = ww.findSignal(sigNames[i], sc);

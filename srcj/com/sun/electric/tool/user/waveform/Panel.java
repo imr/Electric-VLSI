@@ -1369,11 +1369,12 @@ public class Panel extends JPanel
         }
     }
 
-	private List<WaveSelection> processSignals(Graphics g, Rectangle2D bounds, List<PolyBase> forPs) {
+	private List<WaveSelection> processSignals(Graphics g, Rectangle2D bounds, List<PolyBase> forPs)
+	{
 		List<WaveSelection> selectedObjects = null;
 		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
-//		Signal xSignal = xAxisSignal;
-//		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
+		Signal<?> xSignal = xAxisSignal;
+		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
 		Collection<WaveSignal> sigs = waveSignals.values();
 		int sigIndex = 0;
         Color light = null;
@@ -1405,7 +1406,7 @@ public class Panel extends JPanel
 				forPs.add(poly);
 			}
 			sigIndex++;
-            ws.getSignal().plot(this, g, ws, light, forPs, bounds, selectedObjects);
+            ws.getSignal().plot(this, g, ws, light, forPs, bounds, selectedObjects, xSignal);
 		}
 		return selectedObjects;
 	}
@@ -1826,17 +1827,17 @@ public class Panel extends JPanel
 
 	private Point snapPoint(Point pt)
 	{
-		// snap to any waveform points
         /*
+		// snap to any waveform points
 		for(WaveSignal ws : waveSignals.values())
 		{
 			// draw analog trace
-			Signal as = ws.getSignal();
+			Signal<?> as = ws.getSignal();
             double[] result = new double[3];
-            HashMap<String,Signal> an = (HashMap<String,Signal>)as.getAnalysis();
+            String scName = as.getSignalCollectionName();
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
-                if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
+                if (!waveWindow.isSweepSignalIncluded(scName, s)) continue;
                 Signal waveform = as;//as.getWaveform(s);
 				int numEvents = waveform.getExactView().getNumEvents();
 				for(int i=0; i<numEvents; i++)
@@ -1855,10 +1856,8 @@ public class Panel extends JPanel
 				}
 			}
 		}
-        */
 
 		// snap to any waveform lines
-        /*
 		Point2D snap = new Point2D.Double(pt.x, pt.y);
 		for(WaveSignal ws : waveSignals.values())
 		{

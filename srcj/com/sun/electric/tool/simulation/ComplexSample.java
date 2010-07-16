@@ -123,9 +123,10 @@ public class ComplexSample extends ScalarSample implements Sample {
     	 */
         Signal<ComplexSample> ret =
             new BTreeSignal<ComplexSample>(sc, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp)) {
-            public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
-                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects) {
-            	ScalarSample.plotSig(this, panel, g, ws, light, forPs, bounds, selectedObjects);
+            public void plot(Panel panel, Graphics g, WaveSignal ws, Color light, List<PolyBase> forPs,
+            	Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal)
+            {
+            	ScalarSample.plotSig(this, panel, g, ws, light, forPs, bounds, selectedObjects, xAxisSignal);
             }
         };
         return ret;

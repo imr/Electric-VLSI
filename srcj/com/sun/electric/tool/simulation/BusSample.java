@@ -223,8 +223,8 @@ public class BusSample<S extends Sample> implements Sample
                 return max;
             }
 
-            public void plot(Panel panel, Graphics g, WaveSignal ws, Color light,
-                             List<PolyBase> forPs, Rectangle2D bounds, List<WaveSelection> selectedObjects)
+            public void plot(Panel panel, Graphics g, WaveSignal ws, Color light, List<PolyBase> forPs,
+            	Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal)
             {
                 Dimension sz = panel.getSize();
                 int hei = sz.height;

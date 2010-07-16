@@ -79,7 +79,7 @@ public class PSpiceOut extends Input<Stimuli>
 		throws IOException
 	{
 		boolean first = true;
-		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS", false);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS");
 		sd.setCell(cell);
 		List<String> signalNames = new ArrayList<String>();
 		List<Double> [] values = null;

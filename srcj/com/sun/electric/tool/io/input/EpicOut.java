@@ -75,7 +75,7 @@ public class EpicOut extends Input<Stimuli>
 	{
 		double curTime = 0;
 		List<Signal<ScalarSample>> signalsByEpicIndex = new ArrayList<Signal<ScalarSample>>();
-		SignalCollection sc = Stimuli.newSignalCollection(sd, "TRANS SIGNALS", false);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "TRANS SIGNALS");
 		Set<Integer> currentSignals = new HashSet<Integer>();
 		double timeResolution = 1;
 		double voltageResolution = 1;

@@ -962,7 +962,7 @@ public class ALS extends Engine
 	{
 		// convert the stimuli
 		sd.setEngine(this);
-		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS", true);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS");
 		sd.setSeparatorChar('.');
 		sd.setCell(cell);
 		String topLevelName = cell.getName().toUpperCase();

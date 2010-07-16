@@ -123,7 +123,7 @@ public class SmartSpiceOut extends Input<Stimuli>
 					System.out.println("Missing variable count in file");
 					return;
 				}
-				sc = Stimuli.newSignalCollection(sd, "SIGNALS", false);
+				sc = Stimuli.newSignalCollection(sd, "SIGNALS");
 				sd.setCell(cell);
 				signalNames = new String[signalCount];
 				values = new double[signalCount][rowCount];

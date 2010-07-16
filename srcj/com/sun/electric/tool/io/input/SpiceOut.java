@@ -181,7 +181,7 @@ public class SpiceOut extends Input<Stimuli>
 			return;
 		}
 
-		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS", false);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "SIGNALS");
 		sd.setCell(cell);
 
 		// convert lists to arrays

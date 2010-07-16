@@ -169,7 +169,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (openTextInput(mtURL)) return;
 		System.out.println("Reading HSpice measurements file: " + mtURL.getFile());
 
-		SignalCollection sc = Stimuli.newSignalCollection(sd, "MEASUREMENTS", false);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, "MEASUREMENTS");
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;
@@ -419,7 +419,7 @@ public class HSpiceOut extends Input<Stimuli>
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		SignalCollection sc = Stimuli.newSignalCollection(sd, analysisTitle, false);
+		SignalCollection sc = Stimuli.newSignalCollection(sd, analysisTitle);
 		startProgressDialog("HSpice " + analysisTitle + " analysis", fileURL.getFile());
 		System.out.println("Reading HSpice " + analysisTitle + " file: " + fileURL.getFile());
 
