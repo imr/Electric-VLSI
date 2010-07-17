@@ -43,6 +43,7 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -2022,13 +2023,19 @@ if (Poly.NEWTEXTTREATMENT) return origType;
         List<PolyBaseTree> sons;
         PolyBase poly;
 
-        PolyBaseTree(PolyBase p)
+        public PolyBaseTree(PolyBase p)
         {
+            if (p == null)
+                throw new NullPointerException();
             poly = p;
-            sons = new ArrayList<PolyBaseTree>();
+//            sons = new ArrayList<PolyBaseTree>();
         }
 
-        public List<PolyBaseTree> getSons() {return sons;}
+        public List<PolyBaseTree> getSons() {
+            if (sons != null)
+                return sons;
+            return Collections.emptyList();
+        }
         public PolyBase getPoly() {return poly;}
 
         void getLoops(int level, Stack<PolyBase> stack)
@@ -2052,8 +2059,10 @@ if (Poly.NEWTEXTTREATMENT) return origType;
                 stack.push(p);
             }
             level++;
-            for (PolyBaseTree t : sons)
-                t.getLoops(level, stack);
+            if (sons != null) {
+                for (PolyBaseTree t : sons)
+                    t.getLoops(level, stack);
+            }
         }
 
         boolean add(PolyBaseTree t)
@@ -2064,11 +2073,11 @@ if (Poly.NEWTEXTTREATMENT) return origType;
                 return false;
             }
 
-            if (sons.size() == 0)
+            if (sons == null || sons.size() == 0)
             {
                 double a = poly.getArea();
                 double b = t.poly.getArea();
-                sons.add(t);
+                addSonLowLevel(t);
                 if (a < b)
                 {
                     assert(false);
@@ -2097,6 +2106,12 @@ if (Poly.NEWTEXTTREATMENT) return origType;
                 sons.add(t);
             }
             return true;
+        }
+
+        public void addSonLowLevel(PolyBaseTree son) {
+            if (sons == null)
+                sons = new ArrayList<PolyBaseTree>();
+            sons.add(son);
         }
     }
 

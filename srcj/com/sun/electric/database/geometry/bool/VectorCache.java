@@ -60,7 +60,7 @@ import java.util.TreeSet;
  *
  */
 public class VectorCache {
-    private static boolean DEBUG = true;
+    private static boolean DEBUG = false;
     private static final boolean USE_ELECTRICAL = false;
     private static final boolean WIPE_PINS = true;
 

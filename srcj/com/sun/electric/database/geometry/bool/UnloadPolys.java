@@ -24,6 +24,8 @@
 package com.sun.electric.database.geometry.bool;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.PolyBase;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,7 +52,22 @@ public class UnloadPolys {
         Arc next;
         int[] y = new int[2];
         Arc[] b = new Arc[2], t = new Arc[2];
+        List<PolyBase.PolyBaseTree> sons;
         Polys pol;
+
+        private void addSon(PolyBase.PolyBaseTree son) {
+            if (sons == null)
+                sons = new ArrayList<PolyBase.PolyBaseTree>();
+            sons.add(son);
+        }
+
+        private void addSons(List<PolyBase.PolyBaseTree> newSons) {
+            if (newSons == null || newSons.isEmpty())
+                return;
+            if (sons == null)
+                sons = new ArrayList<PolyBase.PolyBaseTree>();
+            sons.addAll(newSons);
+        }
     }
 
     Arc arcPool;
@@ -146,6 +163,7 @@ public class UnloadPolys {
                 al = top;
                 POP();
 		    }
+            assert top.y[v] <= y && y < top.y[nv];
 		    for (;;) {
                 while (al.t[v] != top && y >= al.t[v].y[v]) {
                     al = al.t[v];
@@ -156,6 +174,7 @@ public class UnloadPolys {
                 al = al.t[v];
                 PUSH( al );
 		    }
+            assert top.y[v] <= y && y < top.y[nv];
 		    Arc ar = al.t[v];
 		    if (y > al.y[v]) {
                 Polys pl = newPolys();
@@ -170,6 +189,8 @@ public class UnloadPolys {
                 al = at;
 		    }
 		    assert y == al.y[v];
+            assert ar == al.t[v];
+            assert al == ar.b[nv];
             {
                 int inpVal = inpA[inpPos++];
                 y = inpVal >> 1;
@@ -198,26 +219,38 @@ public class UnloadPolys {
                 if (al == ar) {
                     assert al == top;
                     top.pol.x = x;
+                    PolyBase.PolyBaseTree t = outTree(top.pol);
+                    if (top.sons != null) {
+                        for (PolyBase.PolyBaseTree s: top.sons)
+                            t.addSonLowLevel(s);
+                    }
                     out(top.pol,v);
                     dispArc(top);
                     POP();
+                    top.addSon(t);
                 } else if (al == top) {
                     top.pol = CAT(top.pol, v, ar.pol);
                     REPLACE(ar,top,v);
                     arn = aln.t[nv];
+                    List<PolyBase.PolyBaseTree> sons = ar.sons;
                     dispArc(ar);
                     POP();
+                    top.addSons(sons);
                 } else if (ar == top) {
                     top.pol = CAT(top.pol, nv, al.pol);
                     REPLACE(al, top, nv);
                     aln = arn.b[v];
+                    List<PolyBase.PolyBaseTree> sons = al.sons;
                     dispArc(al);
                     POP();
+                    top.addSons(sons);
                 } else {
                     al.pol = CAT(al.pol, v, ar.pol);
                     REPLACE(ar, al, v);
                     arn = aln.t[nv];
+                    List<PolyBase.PolyBaseTree> sons = ar.sons;
                     dispArc(ar);
+                    al.addSons(sons);
                     PUSH(al);
                 }
                 al = aln;
@@ -314,6 +347,24 @@ public class UnloadPolys {
             pg = pg.next;
         } while (pg != pl);
         System.out.println();
+    }
+
+    PolyBase.PolyBaseTree outTree(Polys pl) {
+        Polys pg = pl;
+        int n = 0;
+    	do {
+            pg = pg.next;
+            n++;
+        } while (pg != pl);
+        EPoint[] pts = new EPoint[n*2];
+        int k = 0;
+    	do {
+            pts[k++] = EPoint.fromGrid(pg.x, pg.y);
+            pts[k++] = EPoint.fromGrid(pg.x, pg.next.y);
+            pg = pg.next;
+        } while (pg != pl);
+        PolyBase p = new PolyBase(pts);
+        return new PolyBase.PolyBaseTree(p);
     }
 
     private String prPoint(int x, int y) {
@@ -423,5 +474,6 @@ public class UnloadPolys {
     private void dispArc(Arc p) {
         p.next = arcPool;
         arcPool = p;
+        p.sons = null;
     }
 }
