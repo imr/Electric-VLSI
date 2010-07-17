@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.user.redisplay;
+package com.sun.electric.database.geometry.bool;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
@@ -34,8 +34,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
@@ -48,12 +46,10 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -63,16 +59,14 @@ import java.util.TreeSet;
 /**
  *
  */
-public class VectorCacheExt {
+public class VectorCache {
     private static boolean DEBUG = true;
     private static final boolean USE_ELECTRICAL = false;
     private static final boolean WIPE_PINS = true;
 
     private Set<Layer> layers = new TreeSet<Layer>();
-    private final EDatabase database;
     private final Snapshot snapshot;
     private final TechPool techPool;
-    private Cell topCell;
     private HashMap<CellId, MyVectorCell> cells = new HashMap<CellId,MyVectorCell>();
     private final PrimitivePortId busPinPortId;
     private final PrimitiveNodeId cellCenterId;
@@ -84,7 +78,7 @@ public class VectorCacheExt {
 
     private class MyVectorCell {
         private final TechId techId;
-        private final ArrayList<VectorCache.VectorBase> shapes = new ArrayList<VectorCache.VectorBase>();
+        private final ArrayList<MyVectorManhattan> shapes = new ArrayList<MyVectorManhattan>();
         private final ArrayList<ImmutableNodeInst> subCells = new ArrayList<ImmutableNodeInst>();
 
         MyVectorCell(CellId cellId) {
@@ -102,7 +96,6 @@ public class VectorCacheExt {
             // draw all arcs
             shapeBuilder.setup(cellBackup, Orientation.IDENT, USE_ELECTRICAL, WIPE_PINS, false, null);
             shapeBuilder.mvc = this;
-            shapeBuilder.textType = VectorCache.VectorText.TEXTTYPEARC;
             for (ImmutableArcInst a: cellBackup.cellRevision.arcs) {
                 shapeBuilder.genShapeOfArc(a);
             }
@@ -116,14 +109,12 @@ public class VectorCacheExt {
                             n.protoId == essentialBoundsId;
                     if (!hideOnLowLevel) {
                         PrimitiveNode pn = techPool.getPrimitiveNode((PrimitiveNodeId)n.protoId);
-                        shapeBuilder.textType = pn == Generic.tech().invisiblePinNode ? VectorCache.VectorText.TEXTTYPEANNOTATION : VectorCache.VectorText.TEXTTYPENODE;
                         shapeBuilder.genShapeOfNode(n);
                     }
                 }
             }
 
             addBoxesFromBuilder(this, techPool.getTech(cellBackup.cellRevision.d.techId), boxBuilders);
-            Collections.sort(shapes, VectorCache.shapeByLayer);
 
             if (DEBUG) {
                 long stopTime = System.currentTimeMillis();
@@ -133,14 +124,12 @@ public class VectorCacheExt {
 
     }
 
-    public VectorCacheExt(Cell topCell) {
-        database = topCell.getDatabase();
-        snapshot = database.backup();
+    public VectorCache(Snapshot snapshot) {
+        this.snapshot = snapshot;
         techPool = snapshot.getTechPool();
         busPinPortId = techPool.getSchematics().busPinNode.getPort(0).getId();
         cellCenterId = techPool.getGeneric().cellCenterNode.getId();
         essentialBoundsId = techPool.getGeneric().essentialBoundsNode.getId();
-        this.topCell = topCell;
     }
 
     private MyVectorCell findVectorCell(CellId cellId) {
@@ -172,14 +161,14 @@ public class VectorCacheExt {
                 continue;
             }
             Layer layer = tech.getLayer(layerIndex);
-            MyVectorManhattan vm = new MyVectorManhattan(b.toArray(), layer, null, false);
+            MyVectorManhattan vm = new MyVectorManhattan(b.toArray(), layer);
             vc.shapes.add(vm);
         }
     }
 
     private void collectLayer(Layer layer, MyVectorCell vc, Point anchor, Orientation orient, List<Rectangle> result) {
         int[] coords = new int[4];
-        for (VectorCache.VectorBase vb:  vc.shapes) {
+        for (MyVectorManhattan vb:  vc.shapes) {
             if (vb.layer != layer) {
                 continue;
             }
@@ -262,7 +251,6 @@ public class VectorCacheExt {
 
     private class ShapeBuilder extends AbstractShapeBuilder {
         private MyVectorCell mvc;
-        private int textType;
 
         @Override
         public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
@@ -353,7 +341,7 @@ public class VectorCacheExt {
             if (layerIndex >= 0) {
                 putBox(layerIndex, boxBuilders, lX, lY, hX, hY);
             } else {
-                MyVectorManhattan vm = new MyVectorManhattan(new int[]{lX, lY, hX, hY}, layer, null, false);
+                MyVectorManhattan vm = new MyVectorManhattan(new int[]{lX, lY, hX, hY}, layer);
                 mvc.shapes.add(vm);
             }
         }
@@ -370,26 +358,18 @@ public class VectorCacheExt {
     /**
      * Class which defines a cached Manhattan rectangle.
      */
-    static class MyVectorManhattan extends VectorCache.VectorBase {
-
+    static class MyVectorManhattan {
+        final Layer layer;
         /** coordinates of boxes: 1X, 1Y, hX, hY */
-        int[] coords;
-        boolean pureLayer;
+        final int[] coords;
 
-        private MyVectorManhattan(int[] coords, Layer layer, EGraphics graphicsOverride, boolean pureLayer) {
-            super(layer, graphicsOverride);
+        private MyVectorManhattan(int[] coords, Layer layer) {
+            this.layer = layer;
             this.coords = coords;
-            this.pureLayer = pureLayer;
         }
 
-        MyVectorManhattan(double c1X, double c1Y, double c2X, double c2Y, Layer layer, EGraphics graphicsOverride, boolean pureLayer) {
-            this(new int[]{databaseToGrid(c1X), databaseToGrid(c1Y), databaseToGrid(c2X), databaseToGrid(c2Y)},
-                    layer, graphicsOverride, pureLayer);
-        }
-
-        @Override
-        boolean isFilled() {
-            return true;
+        MyVectorManhattan(double c1X, double c1Y, double c2X, double c2Y, Layer layer) {
+            this(new int[]{databaseToGrid(c1X), databaseToGrid(c1Y), databaseToGrid(c2X), databaseToGrid(c2Y)}, layer);
         }
     }
 
