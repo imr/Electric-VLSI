@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -84,7 +85,7 @@ public class UnloadPolys {
 
     private boolean rotated;
 
-    public void loop(DataInputStream inpS, boolean rotated) throws IOException {
+    public List<PolyBase.PolyBaseTree> loop(DataInputStream inpS, boolean rotated) throws IOException {
         this.rotated = rotated;
     	mainArc = newArc();
     	mainArc.y[IN] = Integer.MIN_VALUE;
@@ -97,7 +98,11 @@ public class UnloadPolys {
             scanLine();
         }
         assert mainArc.t[IN] == mainArc && mainArc.b[OUT] == mainArc;
+        List<PolyBase.PolyBaseTree> result = mainArc.sons;
+        if (result == null)
+            result = Collections.emptyList();
         dispArc(mainArc);
+        return result;
     }
 
     private boolean getLine(DataInputStream inpS) throws IOException {
@@ -156,7 +161,7 @@ public class UnloadPolys {
                     }
                 }
             }
-            assert d != 0;
+            assert d == 1 || d == -1;
 
             assert v + nv == 1;
 		    while (y >= top.y[nv]) {
@@ -202,10 +207,10 @@ public class UnloadPolys {
                         d--;
                     }
                 }
-                assert d != 0;
+                assert d == 1 || d == -1 || d == 2 || d == -2;
             }
 		    assert y <= ar.y[nv];
-		    if ( y < ar.y[nv] || Math.abs(d) == 2) {
+		    if ( y < ar.y[nv] /*|| Math.abs(d) == 2*/) {
                 al.y[v] = y;
                 Polys pl = newPolys();
                 pl.y = y;
@@ -224,7 +229,7 @@ public class UnloadPolys {
                         for (PolyBase.PolyBaseTree s: top.sons)
                             t.addSonLowLevel(s);
                     }
-                    out(top.pol,v);
+//                    out(top.pol,v);
                     dispArc(top);
                     POP();
                     top.addSon(t);
@@ -357,12 +362,21 @@ public class UnloadPolys {
             n++;
         } while (pg != pl);
         EPoint[] pts = new EPoint[n*2];
-        int k = 0;
-    	do {
-            pts[k++] = EPoint.fromGrid(pg.x, pg.y);
-            pts[k++] = EPoint.fromGrid(pg.x, pg.next.y);
-            pg = pg.next;
-        } while (pg != pl);
+        if (rotated) {
+            int k = 0;
+            do {
+                pts[k++] = EPoint.fromGrid(pg.y, pg.x);
+                pts[k++] = EPoint.fromGrid(pg.next.y, pg.x);
+                pg = pg.next;
+            } while (pg != pl);
+        } else {
+            int k = 0;
+            do {
+                pts[k++] = EPoint.fromGrid(pg.x, pg.y);
+                pts[k++] = EPoint.fromGrid(pg.x, pg.next.y);
+                pg = pg.next;
+            } while (pg != pl);
+        }
         PolyBase p = new PolyBase(pts);
         return new PolyBase.PolyBaseTree(p);
     }

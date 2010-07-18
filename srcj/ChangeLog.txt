@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+IMP: (7/18/10, DN) The last argument of basicDRCTest specifies min area check algorithm.
+
+IMP: (7/18/10, DN) Add min area check algorithm DRCCheckMinArea.AREA_MANHATTAN .
+    It is fast, but accepts only manhattan layout.
+
 IMP: (7/17/10, DN) Laze allocaltion of "sons" in PolyBase.PolyBaseTree ..
 
 IMP: (7/16/10, DN) Fast path for grid-aligned boxes in AbstractShapeBuilder.pushPoly .

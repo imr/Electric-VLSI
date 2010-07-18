@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.geometry.bool;
 
-import com.sun.electric.database.geometry.DBMath;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.DataOutputStream;
@@ -267,7 +266,19 @@ public class DeltaMerge {
             System.arraycopy(outA, 0, newOutA, 0, outA.length);
             outA = newOutA;
         }
-        outA[outC++] = (y << 1) | (val > 0 ? 1 : 0);
+        if (val == +1) {
+            outA[outC++] = (y << 1) | 1;
+        } else if (val == -1) {
+            outA[outC++] = (y << 1);
+        } else if (val == +2) {
+            outA[outC++] = (y << 1) | 1;
+            putPointOut(y, +1);
+        } else if (val == -2) {
+            outA[outC++] = (y << 1);
+            putPointOut(y, -1);
+        } else {
+            throw new AssertionError();
+        }
     }
 
     private Segment newSegment(Segment next) {

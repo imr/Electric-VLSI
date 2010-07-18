@@ -50,7 +50,9 @@ import com.sun.electric.technology.Technology;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -84,6 +86,7 @@ public class VectorCache {
         MyVectorCell(CellId cellId) {
             CellBackup cellBackup = snapshot.getCell(cellId);
             techId = cellBackup.cellRevision.d.techId;
+            Technology tech = techPool.getTech(techId);
             if (isCellParameterized(cellBackup.cellRevision)) {
                 throw new IllegalArgumentException();
             }
@@ -96,6 +99,12 @@ public class VectorCache {
             // draw all arcs
             shapeBuilder.setup(cellBackup, Orientation.IDENT, USE_ELECTRICAL, WIPE_PINS, false, null);
             shapeBuilder.mvc = this;
+            shapeBuilder.polyLayer = null;
+            for (Layer layer: tech.getLayersSortedByHeight()) {
+                if (layer.getFunction() == Layer.Function.POLY1) {
+                    shapeBuilder.polyLayer = layer;
+                }
+            }
             for (ImmutableArcInst a: cellBackup.cellRevision.arcs) {
                 shapeBuilder.genShapeOfArc(a);
             }
@@ -124,12 +133,30 @@ public class VectorCache {
 
     }
 
+    public Collection<Layer> getLayers() {
+        return new ArrayList<Layer>(layers);
+    }
+
     public VectorCache(Snapshot snapshot) {
         this.snapshot = snapshot;
         techPool = snapshot.getTechPool();
         busPinPortId = techPool.getSchematics().busPinNode.getPort(0).getId();
         cellCenterId = techPool.getGeneric().cellCenterNode.getId();
         essentialBoundsId = techPool.getGeneric().essentialBoundsNode.getId();
+    }
+
+    public void scanLayers(CellId topCellId) {
+        HashSet<CellId> visited = new HashSet<CellId>();
+        scanLayers(topCellId, visited);
+    }
+
+    private void scanLayers(CellId cellId, HashSet<CellId> visited) {
+        if (!visited.add(cellId))
+            return;
+        MyVectorCell mvc = findVectorCell(cellId);
+        for (ImmutableNodeInst n: mvc.subCells) {
+            scanLayers((CellId)n.protoId, visited);
+        }
     }
 
     private MyVectorCell findVectorCell(CellId cellId) {
@@ -146,12 +173,6 @@ public class VectorCache {
         Orientation orient = (rotate ? Orientation.XR : Orientation.IDENT).canonic();
         collectLayer(layer, findVectorCell(cellId), new Point(0, 0), orient, result);
         return result;
-    }
-
-    void renderPoly(Poly poly, MyVectorCell vc, boolean hideOnLowLevel, int textType, boolean pureLayer) {
-        if (poly.isPseudoLayer()) return;
-        throw new UnsupportedOperationException();
-//        super.renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
     }
 
     private void addBoxesFromBuilder(MyVectorCell vc, Technology tech, ArrayList<VectorManhattanBuilder> boxBuilders) {
@@ -251,6 +272,15 @@ public class VectorCache {
 
     private class ShapeBuilder extends AbstractShapeBuilder {
         private MyVectorCell mvc;
+        private Layer polyLayer;
+
+        @Override
+        public void pushPoly(Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
+            if (layer.getFunction() == Layer.Function.GATE && polyLayer != null) {
+                layer = polyLayer;
+            }
+            super.pushPoly(style, layer, null, null);
+        }
 
         @Override
         public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
@@ -329,6 +359,7 @@ public class VectorCache {
 
         @Override
         public void addIntBox(int[] coords, Layer layer) {
+            layers.add(layer);
             // convert coordinates
             int lX = coords[0];
             int lY = coords[1];

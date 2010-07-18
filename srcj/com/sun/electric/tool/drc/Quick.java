@@ -24,6 +24,9 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.bool.DeltaMerge;
+import com.sun.electric.database.geometry.bool.UnloadPolys;
+import com.sun.electric.database.geometry.bool.VectorCache;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -45,11 +48,20 @@ import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
+import java.awt.Rectangle;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -2573,6 +2585,9 @@ public class Quick
             case AREA_LOCAL:
                     quickArea = new QuickAreaEnumeratorLocal(mergeMode);
                 break;
+            case AREA_MANHATTAN:
+                    quickArea = new QuickAreaEnumeratorManhattan();
+                break;
         }
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
 
@@ -4452,6 +4467,143 @@ public class Quick
             }
 
             return true;
+        }
+    }
+
+    /**************************************************************************************************************
+	 *  QuickAreaEnumeratorManhattan class
+	 **************************************************************************************************************/
+    /**
+     * Class that uses local GeometryHandler to calculate the area per cell
+     */
+    private class QuickAreaEnumeratorManhattan extends QuickAreaEnumerator
+    {
+//        private Map<Cell, MTDRCAreaTool.GeometryHandlerLayerBucket> cellsMap;
+//        private GeometryHandler.GHMode mode;
+
+        QuickAreaEnumeratorManhattan()
+        {
+//            this.mode = mode;
+//            cellsMap = new HashMap<Cell, MTDRCAreaTool.GeometryHandlerLayerBucket>();
+        }
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
+        {
+            VectorCache vce = new VectorCache(topCell.getDatabase().backup());
+            vce.scanLayers(topCell.getId());
+            boolean errorsFound = false;
+            for (Layer layer: vce.getLayers()) {
+                System.out.println("layer " + layer);
+        		DRCTemplate minAreaRule = minAreaLayerMap.get(layer);
+                DRCTemplate encloseAreaRule = enclosedAreaLayerMap.get(layer);
+                DRCTemplate spacingRule = spacingLayerMap.get(layer);
+
+                // Layer doesn't have min areae
+                if (minAreaRule == null && encloseAreaRule == null && spacingRule == null) continue;
+
+                List<PolyBase.PolyBaseTree> trees = null;
+                try {
+                    File file = File.createTempFile("Electric", "DRC");
+                    DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+//                    out.writeBoolean(rotate);
+                    List<Rectangle> rects = vce.collectLayer(layer, topCell.getId(), false);
+                    DeltaMerge dm = new DeltaMerge();
+                    dm.loop(rects, out);
+                    rects = null;
+                    out.close();
+                    dm = null;
+
+                    DataInputStream inpS = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+                    UnloadPolys up = new UnloadPolys();
+                    trees = up.loop(inpS, false);
+                    inpS.close();
+                    file.delete();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                System.out.println(trees.size() + " roots");
+                for (PolyBase.PolyBaseTree r: trees) {
+                    if (r.getSons().isEmpty())
+                        continue;
+                    int grandsons = 0;
+                    int grandgrandsons = 0;
+                    for (PolyBase.PolyBaseTree s: r.getSons()) {
+                        for (PolyBase.PolyBaseTree gs: s.getSons()) {
+                            grandsons++;
+                            grandgrandsons += gs.getSons().size();
+                        }
+                    }
+                    System.out.println(" " + r.getSons().size() + " sons " + grandsons + " grandsons " + grandgrandsons + " grandgrandsons");
+                }
+
+                GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
+
+                for (PolyBase.PolyBaseTree obj : trees)
+                {
+                    traversePolyTree(layer, obj, 0, minAreaRule, encloseAreaRule, spacingRule, topCell, errorFound);
+                }
+                errorsFound = errorsFound || errorFound.intValue() != 0;
+            }
+            return false;
+//            if (job != null && job.checkAbort()) return false;
+//            Cell cell = info.getCell();
+//            MTDRCAreaTool.GeometryHandlerLayerBucket bucket = cellsMap.get(cell);
+//            if (bucket == null)
+//            {
+//                bucket = new MTDRCAreaTool.GeometryHandlerLayerBucket(mode);
+//                cellsMap.put(cell, bucket);
+//            }
+//            else
+//            {
+//                assert(bucket.merged);
+//                return false; // done with this cell
+//            }
+//
+//            for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
+//            {
+//                ArcInst ai = it.next();
+//                Network aNet = info.getNetlist().getNetwork(ai, 0);
+//
+//                // aNet is null if ArcProto is Artwork
+//                if (aNet == null)
+//                {
+//                    continue;
+//                }
+//                Technology tech = ai.getProto().getTechnology();
+//                Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+//                int tot = arcInstPolyList.length;
+//                for(int i=0; i<tot; i++)
+//                {
+//                    Poly poly = arcInstPolyList[i];
+//                    Layer layer = poly.getLayer();
+//
+//                    // No area associated or already done
+//                    if (skipLayer(layer))
+//                        continue;
+//
+//                    // it has to take into account poly and transistor poly as one layer
+//                    if (layer.getFunction().isPoly())
+//                    {
+//                        if (polyLayer == null)
+//                            polyLayer = layer;
+//                        layer = polyLayer;
+//                    }
+//                    bucket.addElementLocal(poly, layer);
+//                }
+//            }
+//
+//            return true;
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info)
+        {
+            throw new UnsupportedOperationException();
+        }
+
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+        {
+            throw new UnsupportedOperationException();
         }
     }
 }

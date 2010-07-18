@@ -1031,7 +1031,7 @@ public class DRC extends Listener
 
     public enum DRCCheckMinArea
     {
-        AREA_BASIC("Simple") /*brute force algorithm*/, AREA_LOCAL("Local");
+        AREA_BASIC("Simple") /*brute force algorithm*/, AREA_LOCAL("Local"), AREA_MANHATTAN("Manhattan");
         private final String name;
         DRCCheckMinArea(String s)
         {
