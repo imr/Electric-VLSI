@@ -69,7 +69,6 @@ import com.sun.electric.tool.placement.metrics.boundingbox.BBMetric;
 import com.sun.electric.tool.placement.metrics.mst.MSTMetric;
 import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing;
 import com.sun.electric.tool.placement.simulatedAnnealing2.PlacementSimulatedAnnealing;
-import com.sun.electric.tool.placement.simulatedAnnealingFelix.SimulatedAnnealingFelix;
 
 /**
  * Class to define a framework for Placement algorithms. To make Placement
