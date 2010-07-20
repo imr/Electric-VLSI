@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
+import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 import com.sun.electric.tool.util.concurrent.datastructures.UnboundedDEQueue;
@@ -84,6 +85,16 @@ public class CollectionFactory {
 	 */
 	public static <T> LockFreeQueue<T> createLockFreeQueue() {
 		return new LockFreeQueue<T>();
+	}
+
+	/**
+	 * Create a new FC Queue (concurrent)
+	 * 
+	 * @param <T>
+	 * @return
+	 */
+	public static <T> FCQueue<T> createFCQueue() {
+		return new FCQueue<T>();
 	}
 
 	/**
