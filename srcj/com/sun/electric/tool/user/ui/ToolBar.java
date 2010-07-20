@@ -1165,7 +1165,7 @@ public class ToolBar extends JToolBar
                     int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
 						"Undo the " + msg + " process?" + extra, "Undo " + msg,
 						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "Cancel");
-					if (ret == 0)
+					if (ret <= 0)
                         realUndo = false;
                 }
 //                if (realUndo && task.startsWith("Write"))
