@@ -53,12 +53,15 @@ public class PlaceNodesStageWorker extends StageWorker {
 				PlacementDTO data = this.stage.getInput(this).get();
 				List<CheckboardingField> fields = data.getFieldsList();
 
-				if (fields != null) {
+				if (fields != null && data != null) {
 					for (CheckboardingField field : fields) {
 						if ((field != null) && (field.getNode() != null)) {
 							Force2D force = data.getForces().get(field.getNode());
 							// System.out.println(force.toString());
-							force = force.mult(data.getVelocityFactor());
+							if(force != null)
+								force = force.mult(data.getVelocityFactor());
+							else 
+								continue;
 							PlacementNode node = field.getNode();
 
 							node.setPlacement(node.getPlacementX() + force.getX(), node.getPlacementY() + force.getY());
