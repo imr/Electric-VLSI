@@ -23,9 +23,9 @@
  */
 package com.sun.electric.tool.util.concurrent.test;
 
-import java.io.IOException;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.List;
-import java.util.Random;
 
 import junit.framework.Assert;
 
@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.UniqueIDGenerator;
+import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob;
@@ -299,35 +300,53 @@ public class PForJob_T {
         }
     }
 
-    public static void main(String[] args) throws PoolExistsException, InterruptedException, IOException {
-        Random rand = new Random(System.currentTimeMillis());
+    public static void main(String[] args) throws Exception {
 
-        int numThreads = 32;
+        if (args.length != 4) {
+            System.out
+                    .println("Usage: --threads=<#threads> --size=<size> --grain=<grain> --outfile=<outfile>");
+            System.exit(1);
+        }
 
-        size = 2000;
+        int numThreads = 1;
+        int grain = 128;
+        String outFile = "";
+
+        for (String arg : args) {
+            if (arg.startsWith("--threads")) {
+                numThreads = TestHelper.extractValueFromArgInteger(arg);
+            } else if (arg.startsWith("--size")) {
+                size = TestHelper.extractValueFromArgInteger(arg);
+            } else if (arg.startsWith("--grain")) {
+                grain = TestHelper.extractValueFromArgInteger(arg);
+            } else if (arg.startsWith("--outfile")) {
+                outFile = TestHelper.extractValueFromArgString(arg);
+            } else {
+                System.out.println("Unexpected Parameter: " + arg);
+                System.exit(1);
+            }
+
+        }
 
         matA = TestHelper.createMatrix(size, size, 100);
         matB = TestHelper.createMatrix(size, size, 100);
         matCPar = TestHelper.createMatrixIntegerNull(size, size, 100);
 
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                matA[i][j] = rand.nextInt(100);
-                matB[i][j] = rand.nextInt(100);
-                matCPar[i][j] = 0;
-            }
-        }
-
-        ThreadPool pool = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numThreads),
-                numThreads);
+        ThreadPool pool = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numThreads), numThreads);
 
         long start = System.currentTimeMillis();
-        PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 128, 0, size, 128),
-                new MatrixMultTask(size));
+        PForJob pforjob = new PForJob(new BlockedRange2D(0, size, grain, 0, size, grain), new MatrixMultTask(
+                size));
         pforjob.execute();
 
         long endPar = System.currentTimeMillis() - start;
         System.out.println(endPar);
+
+        BufferedWriter bw = new BufferedWriter(new FileWriter(outFile, true));
+        bw.write(numThreads + "," + size + "," + grain + "," + String.valueOf(endPar));
+        bw.newLine();
+        bw.flush();
+
         pool.shutdown();
     }
 }

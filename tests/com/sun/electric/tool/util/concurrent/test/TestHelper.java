@@ -25,25 +25,28 @@ package com.sun.electric.tool.util.concurrent.test;
 
 import java.util.Random;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 /**
  * @author Felix Schmidt
  * 
  */
 public class TestHelper {
 
-	public static int[][] createMatrix(int sizeX, int sizeY, int maximumValue) {
-		int[][] result = new int[sizeY][sizeX];
+    public static int[][] createMatrix(int sizeX, int sizeY, int maximumValue) {
+        int[][] result = new int[sizeY][sizeX];
 
-		Random rand = new Random(System.currentTimeMillis());
+        Random rand = new Random(System.currentTimeMillis());
 
-		for (int i = 0; i < sizeY; i++)
-			for (int j = 0; j < sizeX; j++)
-				result[i][j] = rand.nextInt(maximumValue);
+        for (int i = 0; i < sizeY; i++)
+            for (int j = 0; j < sizeX; j++)
+                result[i][j] = rand.nextInt(maximumValue);
 
-		return result;
-	}
-	
-	public static Integer[][] createMatrixIntegerNull(int sizeX, int sizeY, int maximumValue) {
+        return result;
+    }
+
+    public static Integer[][] createMatrixIntegerNull(int sizeX, int sizeY, int maximumValue) {
         Integer[][] result = new Integer[sizeY][sizeX];
 
         Random rand = new Random(System.currentTimeMillis());
@@ -54,16 +57,53 @@ public class TestHelper {
 
         return result;
     }
-	
-	public static float[][] createMatrix(int sizeX, int sizeY) {
-		float[][] result = new float[sizeY][sizeX];
 
-		Random rand = new Random(System.currentTimeMillis());
+    public static float[][] createMatrix(int sizeX, int sizeY) {
+        float[][] result = new float[sizeY][sizeX];
 
-		for (int i = 0; i < sizeY; i++)
-			for (int j = 0; j < sizeX; j++)
-				result[i][j] = rand.nextFloat();
+        Random rand = new Random(System.currentTimeMillis());
 
-		return result;
-	}
+        for (int i = 0; i < sizeY; i++)
+            for (int j = 0; j < sizeX; j++)
+                result[i][j] = rand.nextFloat();
+
+        return result;
+    }
+
+    public static Integer extractValueFromArgInteger(String arg) throws Exception {
+        String[] split = arg.split("=");
+
+        if (split.length != 2) {
+            throw new Exception("");
+        }
+        return Integer.parseInt(split[1]);
+    }
+
+    public static String extractValueFromArgString(String arg) throws Exception {
+        String[] split = arg.split("=");
+
+        if (split.length != 2) {
+            throw new Exception("");
+        }
+        return split[1];
+    }
+
+    @Test
+    public void testExtractValueFromArgInteger() throws Exception {
+        Integer result = extractValueFromArgInteger("--test=1");
+
+        Assert.assertEquals(new Integer(1), result);
+    }
+    
+    @Test
+    public void testExtractValueFromArgString() throws Exception {
+        String result = extractValueFromArgString("--test=test");
+
+        Assert.assertEquals("test", result);
+    }
+
+    @Test(expected = Exception.class)
+    public void testExtractValueFromArgError() throws Exception {
+        Integer result = extractValueFromArgInteger("test1");
+    }
 }
