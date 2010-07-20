@@ -26,6 +26,7 @@ package com.sun.electric.tool.io.input.bookshelf;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNets.BookshelfNet;
 import com.sun.electric.tool.util.CollectionFactory;
 
@@ -53,6 +54,9 @@ public class BookshelfNodes {
 	}
 
 	public void parse() throws IOException {
+		
+		Job.getUserInterface().setProgressNote("Parse Nodes File");
+		
 		File file = new File(this.nodesFile);
 		FileReader freader = new FileReader(file);
 		BufferedReader rin = new BufferedReader(freader);
@@ -81,6 +85,7 @@ public class BookshelfNodes {
 			}
 		}
 	}
+	
 
 	public static class BookshelfNode {
 		private String name;

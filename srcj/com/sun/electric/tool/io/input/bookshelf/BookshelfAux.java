@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.input.bookshelf;
 
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
 import com.sun.electric.tool.util.CollectionFactory;
 
@@ -46,6 +47,8 @@ public class BookshelfAux {
 	}
 
 	public Map<BookshelfFiles, String> parse() throws IOException {
+		Job.getUserInterface().setProgressNote("Parse Aux File");
+		
 		Map<BookshelfFiles, String> result = CollectionFactory.createHashMap();
 
 		File file = new File(this.auxFile);
