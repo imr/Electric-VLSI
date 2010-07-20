@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+IMP: (7/19/10, FS) Add progress bar to bookshelf import
+
 BUG: (7/19/10, DN) Database regression failes due to UnsupportedOperationException in testMakeGridPoly.
 FOX: In ImmutableArcInstTest.MyBuilder implement addIntBox.
 
