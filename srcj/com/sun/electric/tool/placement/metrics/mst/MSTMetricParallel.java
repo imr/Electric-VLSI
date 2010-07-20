@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: AbstractMetricGeneric.java
+ * File: MSTMetric.java
  * Written by Team 7: Felix Schmidt, Daniel Lechner
  * 
  * This code has been developed at the Karlsruhe Institute of Technology (KIT), Germany, 
@@ -26,50 +26,33 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.placement.metrics;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+package com.sun.electric.tool.placement.metrics.mst;
 
 import java.util.List;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.metrics.AbstractMetric;
+import com.sun.electric.tool.util.concurrent.Parallel;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
+
 /**
  * Parallel Placement
- * 
- * General abstract metric class
  */
-public abstract class AbstractMetricGeneric<T> {
+public class MSTMetricParallel extends AbstractMetric {
 
-	protected List<PlacementNode> nodesToPlace;
-	protected List<PlacementNetwork> allNetworks;
-
-	/**
-	 * 
-	 * @param nodesToPlace
-	 * @param allNetworks
-	 */
-	public AbstractMetricGeneric(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks) {
-		this.nodesToPlace = nodesToPlace;
-		this.allNetworks = allNetworks;
+	public MSTMetricParallel(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks) {
+		super(nodesToPlace, allNetworks);
 	}
-
-	/**
-	 * compute metric
-	 * 
-	 * @return metric value
-	 */
-	public abstract T compute();
-
-	/**
-	 * 
-	 * @return a metric name
-	 */
-	public abstract String getMetricName();
 
 	@Override
-	public String toString() {
-		String output = "Result of " + this.getMetricName() + ": " + this.compute().toString();
-		return output;
+	public Double compute() {
+		return Parallel.Reduce(new BlockedRange1D(0, allNetworks.size(), 256), new MSTMetricTask(
+				nodesToPlace, allNetworks));
 	}
 
+	@Override
+	public String getMetricName() {
+		return "MSTMetric";
+	}
 }

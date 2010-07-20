@@ -26,23 +26,24 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.placement.metrics;
+package com.sun.electric.tool.placement.metrics.boundingbox;
+
+import java.util.List;
 
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
-
-import java.awt.geom.Point2D;
-import java.util.List;
+import com.sun.electric.tool.placement.metrics.AbstractMetric;
+import com.sun.electric.tool.util.concurrent.Parallel;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 
 /**
  * Parallel Placement
  * 
  * Estimate wirelength using the bounding box metric
  */
-public class BBMetric extends AbstractMetric {
+public class BBMetricParallel extends AbstractMetric {
 
-	public BBMetric(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks) {
+	public BBMetricParallel(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks) {
 		super(nodesToPlace, allNetworks);
 	}
 
@@ -54,52 +55,12 @@ public class BBMetric extends AbstractMetric {
 	@Override
 	public Double compute() {
 
-		double sum = 0;
-
-		for (PlacementNetwork net : this.allNetworks) {
-			sum = sum + this.compute(net);
-		}
-
-		return new Double(sum);
-	}
-
-	private double compute(PlacementNetwork net) {
-		List<PlacementPort> portsOnNet = net.getPortsOnNet();
-
-		double leftmost = Double.MAX_VALUE;
-		double rightmost = Double.MIN_VALUE;
-		double uppermost = Double.MIN_VALUE;
-		double undermost = Double.MAX_VALUE;
-
-		for (PlacementPort port : portsOnNet) {
-			Point2D.Double position = this.getPortPosition(port);
-			if (position.getX() < leftmost) {
-				leftmost = position.getX();
-			}
-			if (position.getX() > rightmost) {
-				rightmost = position.getX();
-			}
-			if (position.getY() > uppermost) {
-				uppermost = position.getY();
-			}
-			if (position.getY() < undermost) {
-				undermost = position.getY();
-			}
-		}
-
-		return (rightmost - leftmost) + (uppermost - undermost);
-
+		return Parallel.Reduce(new BlockedRange1D(0, allNetworks.size(), 128), new BBMetricTask(
+				nodesToPlace, allNetworks));
 	}
 
 	@Override
 	public String getMetricName() {
-		return ("Bounding Box Metric");
-	}
-
-	private Point2D.Double getPortPosition(PlacementPort port) {
-		double x = port.getRotatedOffX() + port.getPlacementNode().getPlacementX();
-		double y = port.getRotatedOffY() + port.getPlacementNode().getPlacementY();
-
-		return new Point2D.Double(x, y);
+		return ("Bounding Box Metric Parallel");
 	}
 }

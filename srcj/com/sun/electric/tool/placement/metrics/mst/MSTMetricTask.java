@@ -26,21 +26,24 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.placement.metrics;
-
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+package com.sun.electric.tool.placement.metrics.mst;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
+import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
+
 /**
  * Parallel Placement
  */
-public class MSTMetric extends AbstractMetric {
+public class MSTMetricTask extends PReduceTask<Double> {
 
 	/*
 	 * Kruskal's algorithm finds a minimum spanning tree for a connected
@@ -143,18 +146,13 @@ public class MSTMetric extends AbstractMetric {
 		}
 	}
 
-	public MSTMetric(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks) {
-		super(nodesToPlace, allNetworks);
-	}
+	protected List<PlacementNode> nodesToPlace;
+	protected List<PlacementNetwork> allNetworks;
+	private Double sum = 0.0;
 
-	@Override
-	public Double compute() {
-		double total = 0;
-		for (PlacementNetwork net : this.allNetworks) {
-			total += this.compute(net);
-		}
-
-		return new Double(total);
+	public MSTMetricTask(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks) {
+		this.nodesToPlace = nodesToPlace;
+		this.allNetworks = allNetworks;
 	}
 
 	/**
@@ -169,7 +167,8 @@ public class MSTMetric extends AbstractMetric {
 
 		for (PlacementPort port1 : net.getPortsOnNet()) {
 			for (PlacementPort port2 : net.getPortsOnNet()) {
-				edges.add(new Edge(port1.getPlacementNode(), port2.getPlacementNode(), this.getDistance(port1, port2)));
+				edges.add(new Edge(port1.getPlacementNode(), port2.getPlacementNode(), this
+						.getDistance(port1, port2)));
 			}
 		}
 
@@ -200,7 +199,6 @@ public class MSTMetric extends AbstractMetric {
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
 
-	@Override
 	public String getMetricName() {
 		return "MSTMetric";
 	}
@@ -229,5 +227,42 @@ public class MSTMetric extends AbstractMetric {
 		double nodeY = port.getPlacementNode().getPlacementY();
 		double portY = port.getRotatedOffY();
 		return nodeY + portY;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask
+	 * #reduce
+	 * (com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask)
+	 */
+	@Override
+	public Double reduce(PReduceTask<Double> other) {
+		MSTMetricTask mstOther = (MSTMetricTask) other;
+
+		if (!this.equals(other)) {
+			this.sum += mstOther.sum;
+		}
+
+		return this.sum;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask#execute
+	 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
+	 */
+	@Override
+	public void execute(BlockedRange range) {
+
+		BlockedRange1D tmpRange = (BlockedRange1D) range;
+
+		for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
+			sum = sum + this.compute(allNetworks.get(i));
+		}
+
 	}
 }
