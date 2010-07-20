@@ -232,6 +232,12 @@ public class BookshelfNets {
 								+ " (CELL " + bn2.getPrototype().describe(false) + ")");
 						continue;
 					}
+                    if (!pi1.getCenter().equals(ep1)) {
+                        System.out.println("pi1=" + pi1.getCenter() + " ep1=" + ep1);
+                    }
+                    if (!pi2.getCenter().equals(ep2)) {
+                        System.out.println("pi2=" + pi2.getCenter() + " ep2=" + ep2);
+                    }
 					ArcProto ap = Generic.tech().unrouted_arc;
 					newInstance(mainCell, ap, bn.name, pi1, pi2, ep1, ep2, 0, 0, 0);
 				}
@@ -245,28 +251,33 @@ public class BookshelfNets {
 	public static void newInstance(Cell parent, ArcProto protoType, String name, PortInst headPort,
 			PortInst tailPort, EPoint headPt, EPoint tailPt, long gridExtendOverMin, int angle,
 			int flags) {
-		ArcInst.makeInstance(protoType, headPort, tailPort);
-		// // make sure the arc can connect to these ports
-		// PortProto headProto = headPort.getPortProto();
-		// PortProto tailProto = tailPort.getPortProto();
-		// Name nameKey = Name.findName(name);
-		// TextDescriptor nameDescriptor =
-		// TextDescriptor.getArcTextDescriptor();
-		//
-		// // search for spare arcId
-		// CellId parentId = parent.getId();
-		// int arcId;
-		// do {
-		// arcId = parentId.newArcId();
-		// } while (parent.getArcById(arcId) != null);
-		// ImmutableArcInst d = ImmutableArcInst.newInstance(arcId,
-		// protoType.getId(), nameKey, nameDescriptor,
-		// tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
-		// headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
-		// gridExtendOverMin, angle, flags);
-		// Topology topology = parent.getTopology();
-		// ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
-		// topology.addArc(ai);
+        if (true) {
+            ArcInst.newInstance(parent, protoType, name, null, headPort, tailPort, headPt, tailPt,
+                    gridExtendOverMin, angle, flags);
+        } else {
+            ArcInst.makeInstance(protoType, headPort, tailPort);
+            // // make sure the arc can connect to these ports
+            // PortProto headProto = headPort.getPortProto();
+            // PortProto tailProto = tailPort.getPortProto();
+            // Name nameKey = Name.findName(name);
+            // TextDescriptor nameDescriptor =
+            // TextDescriptor.getArcTextDescriptor();
+            //
+            // // search for spare arcId
+            // CellId parentId = parent.getId();
+            // int arcId;
+            // do {
+            // arcId = parentId.newArcId();
+            // } while (parent.getArcById(arcId) != null);
+            // ImmutableArcInst d = ImmutableArcInst.newInstance(arcId,
+            // protoType.getId(), nameKey, nameDescriptor,
+            // tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
+            // headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
+            // gridExtendOverMin, angle, flags);
+            // Topology topology = parent.getTopology();
+            // ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
+            // topology.addArc(ai);
+        }
 	}
 
 	private BookshelfPin parsePin(String line, BookshelfNet net) {
