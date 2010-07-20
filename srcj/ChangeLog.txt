@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+IMP: (7/20/10, FS) Add FCQueue proposed by Nir Shavit and integrated the queue
+	as a scheduler for the parallel infrastructure.
+
+IMP: (7/20/10, FS) Parallel metrics: bounding box - minimum spaning tree (MST)
+
 BUG: (7/20/10, SMR) Canceling undo warning dialog with ESC fails (Bug #2852).
 FIX: Fixed ToolBar.undoCommand.run().
 
