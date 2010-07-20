@@ -232,14 +232,16 @@ public class BookshelfNets {
 								+ " (CELL " + bn2.getPrototype().describe(false) + ")");
 						continue;
 					}
-                    if (!pi1.getCenter().equals(ep1)) {
-                        System.out.println("pi1=" + pi1.getCenter() + " ep1=" + ep1);
-                    }
-                    if (!pi2.getCenter().equals(ep2)) {
-                        System.out.println("pi2=" + pi2.getCenter() + " ep2=" + ep2);
-                    }
+                    EPoint p1 = EPoint.fromLambda(bn1.getX() + ep1.getLambdaX(), bn1.getY() + ep1.getLambdaY());
+                    EPoint p2 = EPoint.fromLambda(bn2.getX() + ep2.getLambdaX(), bn2.getY() + ep2.getLambdaY());
+//                    if (!pi1.getCenter().equals(p1)) {
+//                        System.out.println("pi1=" + pi1.getCenter() + " p1=" + p1);
+//                    }
+//                    if (!pi2.getCenter().equals(p2)) {
+//                        System.out.println("pi2=" + pi2.getCenter() + " p2=" + p2);
+//                    }
 					ArcProto ap = Generic.tech().unrouted_arc;
-					newInstance(mainCell, ap, bn.name, pi1, pi2, ep1, ep2, 0, 0, 0);
+					newInstance(mainCell, ap, bn.name, pi1, pi2, p1, p2, 0, 0, 0);
 				}
 				lastPin = bp;
 				counter++;
