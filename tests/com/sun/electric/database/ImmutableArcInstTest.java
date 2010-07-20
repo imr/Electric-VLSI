@@ -905,6 +905,7 @@ public class ImmutableArcInstTest {
         public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
             assertEquals(4, pointCount);
             int angle = a.getAngle();
+            assertTrue(angle % 900 != 0);
             long w2x = (long) Math.rint(GenMath.cos(angle) * w2 * SHAPE_SCALE);
             long w2y = (long) Math.rint(GenMath.sin(angle) * w2 * SHAPE_SCALE);
             assertEquals((double) a.tailLocation.getGridX() * SHAPE_SCALE - w2x - w2y, doubleCoords[0] * SHAPE_SCALE, 0);
@@ -925,7 +926,13 @@ public class ImmutableArcInstTest {
 
         @Override
         public void addIntBox(int[] coords, Layer layer) {
-            throw new UnsupportedOperationException();
+            int angle = a.getAngle();
+            assertTrue(angle % 900 == 0);
+            assertTrue(w2 == (long)w2);
+            assertEquals(Math.min(a.tailLocation.getGridX(), a.headLocation.getGridX()) - (long)w2, coords[0]);
+            assertEquals(Math.min(a.tailLocation.getGridY(), a.headLocation.getGridY()) - (long)w2, coords[1]);
+            assertEquals(Math.max(a.tailLocation.getGridX(), a.headLocation.getGridX()) + (long)w2, coords[2]);
+            assertEquals(Math.max(a.tailLocation.getGridY(), a.headLocation.getGridY()) + (long)w2, coords[3]);
         }
     }
 
