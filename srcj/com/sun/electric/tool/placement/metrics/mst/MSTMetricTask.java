@@ -238,7 +238,7 @@ public class MSTMetricTask extends PReduceTask<Double> {
 	 * (com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask)
 	 */
 	@Override
-	public Double reduce(PReduceTask<Double> other) {
+	public synchronized Double reduce(PReduceTask<Double> other) {
 		MSTMetricTask mstOther = (MSTMetricTask) other;
 
 		if (!this.equals(other)) {

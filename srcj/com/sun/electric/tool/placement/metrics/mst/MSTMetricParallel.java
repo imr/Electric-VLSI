@@ -47,7 +47,7 @@ public class MSTMetricParallel extends AbstractMetric {
 
 	@Override
 	public Double compute() {
-		return Parallel.Reduce(new BlockedRange1D(0, allNetworks.size(), 256), new MSTMetricTask(
+		return Parallel.Reduce(new BlockedRange1D(0, allNetworks.size(), 128), new MSTMetricTask(
 				nodesToPlace, allNetworks));
 	}
 
