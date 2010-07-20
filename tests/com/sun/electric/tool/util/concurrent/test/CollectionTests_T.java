@@ -31,6 +31,7 @@ import com.sun.electric.tool.util.IDEStructure;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.CircularArray;
+import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeSkipList;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
@@ -68,6 +69,11 @@ public class CollectionTests_T {
 	public void testLockFreeSkipList() {
 		testIStructure(new LockFreeSkipList<Integer>());
 	}
+	
+	@Test
+	public void testFCQueue() {
+		testIStructure(new FCQueue<Integer>());
+	}
 
 	@Test
 	public void testUnboundedDEQueue() {
@@ -78,6 +84,18 @@ public class CollectionTests_T {
 	public void testLockFreeQueueMore() {
 		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 		LockFreeQueue<Integer> intQueue = new LockFreeQueue<Integer>();
+		for (int i = 0; i < testData.length; i++)
+			intQueue.add(testData[i]);
+
+		// first in - first out
+		for (int i = 0; i < testData.length; i++)
+			Assert.assertEquals(new Integer(testData[i]), intQueue.remove());
+	}
+	
+	@Test
+	public void testLockFCQueue() {
+		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+		FCQueue<Integer> intQueue = new FCQueue<Integer>();
 		for (int i = 0; i < testData.length; i++)
 			intQueue.add(testData[i]);
 
