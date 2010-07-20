@@ -56,6 +56,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -4478,13 +4480,10 @@ public class Quick
      */
     private class QuickAreaEnumeratorManhattan extends QuickAreaEnumerator
     {
-//        private Map<Cell, MTDRCAreaTool.GeometryHandlerLayerBucket> cellsMap;
-//        private GeometryHandler.GHMode mode;
+        private static final int TMP_FILE_THRESHOLD = 1000000;
 
         QuickAreaEnumeratorManhattan()
         {
-//            this.mode = mode;
-//            cellsMap = new HashMap<Cell, MTDRCAreaTool.GeometryHandlerLayerBucket>();
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
@@ -4493,6 +4492,8 @@ public class Quick
             vce.scanLayers(topCell.getId());
             boolean errorsFound = false;
             for (Layer layer: vce.getLayers()) {
+                if (skipLayer(layer))
+                    continue;
                 System.out.println("layer " + layer);
         		DRCTemplate minAreaRule = minAreaLayerMap.get(layer);
                 DRCTemplate encloseAreaRule = enclosedAreaLayerMap.get(layer);
@@ -4503,39 +4504,56 @@ public class Quick
 
                 List<PolyBase.PolyBaseTree> trees = null;
                 try {
-                    File file = File.createTempFile("Electric", "DRC");
-                    DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
-//                    out.writeBoolean(rotate);
                     List<Rectangle> rects = vce.collectLayer(layer, topCell.getId(), false);
-                    DeltaMerge dm = new DeltaMerge();
-                    dm.loop(rects, out);
-                    rects = null;
-                    out.close();
-                    dm = null;
+                    boolean inMemory = rects.size() < TMP_FILE_THRESHOLD;
+                    DataInputStream inpS;
+                    if (rects.size() <= TMP_FILE_THRESHOLD) {
+                        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                        DataOutputStream out = new DataOutputStream(bout);
+                        DeltaMerge dm = new DeltaMerge();
+                        dm.loop(rects, out);
+                        rects = null;
+                        byte[] ba = bout.toByteArray();
+                        out.close();
+                        dm = null;
 
-                    DataInputStream inpS = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
-                    UnloadPolys up = new UnloadPolys();
-                    trees = up.loop(inpS, false);
-                    inpS.close();
-                    file.delete();
+                        inpS = new DataInputStream(new ByteArrayInputStream(ba));
+                        UnloadPolys up = new UnloadPolys();
+                        trees = up.loop(inpS, false);
+                        inpS.close();
+                   } else {
+                        File file = File.createTempFile("Electric", "DRC");
+                        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+                        DeltaMerge dm = new DeltaMerge();
+                        dm.loop(rects, out);
+                        rects = null;
+                        out.close();
+                        dm = null;
+
+                        inpS = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+                        UnloadPolys up = new UnloadPolys();
+                        trees = up.loop(inpS, false);
+                        inpS.close();
+                        file.delete();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                System.out.println(trees.size() + " roots");
-                for (PolyBase.PolyBaseTree r: trees) {
-                    if (r.getSons().isEmpty())
-                        continue;
-                    int grandsons = 0;
-                    int grandgrandsons = 0;
-                    for (PolyBase.PolyBaseTree s: r.getSons()) {
-                        for (PolyBase.PolyBaseTree gs: s.getSons()) {
-                            grandsons++;
-                            grandgrandsons += gs.getSons().size();
-                        }
-                    }
-                    System.out.println(" " + r.getSons().size() + " sons " + grandsons + " grandsons " + grandgrandsons + " grandgrandsons");
-                }
+//                System.out.println(trees.size() + " roots");
+//                for (PolyBase.PolyBaseTree r: trees) {
+//                    if (r.getSons().isEmpty())
+//                        continue;
+//                    int grandsons = 0;
+//                    int grandgrandsons = 0;
+//                    for (PolyBase.PolyBaseTree s: r.getSons()) {
+//                        for (PolyBase.PolyBaseTree gs: s.getSons()) {
+//                            grandsons++;
+//                            grandgrandsons += gs.getSons().size();
+//                        }
+//                    }
+//                    System.out.println(" " + r.getSons().size() + " sons " + grandsons + " grandsons " + grandgrandsons + " grandgrandsons");
+//                }
 
                 GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
 
