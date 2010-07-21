@@ -32,6 +32,7 @@ import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.CircularArray;
 import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
+import com.sun.electric.tool.util.concurrent.datastructures.JavaQueueWrapper;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeSkipList;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
@@ -63,13 +64,19 @@ public class CollectionTests_T {
 	public void testCircularArray() {
 		testIStructureCircular(new CircularArray<Integer>(Integer.class, 4));
 	}
-	
+
+	@Test
+	public void testJavaQueueWrapper() {
+		JavaQueueWrapper<Integer> queue = JavaQueueWrapper.createConcurrentQueue();
+		testIStructure(queue);
+	}
+
 	@Ignore
 	@Test
 	public void testLockFreeSkipList() {
 		testIStructure(new LockFreeSkipList<Integer>());
 	}
-	
+
 	@Test
 	public void testFCQueue() {
 		testIStructure(new FCQueue<Integer>());
@@ -91,11 +98,23 @@ public class CollectionTests_T {
 		for (int i = 0; i < testData.length; i++)
 			Assert.assertEquals(new Integer(testData[i]), intQueue.remove());
 	}
-	
+
 	@Test
 	public void testLockFCQueue() {
 		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 		FCQueue<Integer> intQueue = new FCQueue<Integer>();
+		for (int i = 0; i < testData.length; i++)
+			intQueue.add(testData[i]);
+
+		// first in - first out
+		for (int i = 0; i < testData.length; i++)
+			Assert.assertEquals(new Integer(testData[i]), intQueue.remove());
+	}
+	
+	@Test
+	public void testJavaQueueWrapperMore() {
+		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+		JavaQueueWrapper<Integer> intQueue = JavaQueueWrapper.createConcurrentQueue();
 		for (int i = 0; i < testData.length; i++)
 			intQueue.add(testData[i]);
 
@@ -225,9 +244,10 @@ public class CollectionTests_T {
 		testIsEmpty(new LockFreeStack<Integer>());
 		testIsEmpty(new BDEQueue<Integer>(1));
 
-//		WorkStealingStructure<Integer> wsSt = new WorkStealingStructure<Integer>(1, Integer.class);
-//		wsSt.registerThread();
-//		testIsEmpty(wsSt);
+		// WorkStealingStructure<Integer> wsSt = new
+		// WorkStealingStructure<Integer>(1, Integer.class);
+		// wsSt.registerThread();
+		// testIsEmpty(wsSt);
 	}
 
 	private void testIStructure(IStructure<Integer> structure) {
