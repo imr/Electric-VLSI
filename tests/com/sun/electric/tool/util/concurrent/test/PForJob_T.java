@@ -305,7 +305,6 @@ public class PForJob_T {
 
     public static void main(String[] args) throws Exception {
 
-        // TODO
         if (args.length != 5) {
             System.out
                     .println("Usage: --threads=<#threads> --size=<size> --grain=<grain> --outfile=<outfile> --scheduler=<stack|queue|workStealing>");
