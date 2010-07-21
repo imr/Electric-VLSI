@@ -25,6 +25,7 @@ package com.sun.electric.tool.util.concurrent.runtime;
 
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.datastructures.MultipleQueuesStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 
@@ -34,38 +35,40 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
  */
 public class Scheduler {
 
-    public enum SchedulingStrategy {
-        queue, stack, workStealing;
-    }
+	public enum SchedulingStrategy {
+		queue, stack, workStealing, multipleQueues;
+	}
 
-    public static IStructure<PTask> createScheduler(SchedulingStrategy strategy, int numOfThreads)
-            throws UnknownSchedulerException {
-        IStructure<PTask> result = null;
+	public static IStructure<PTask> createScheduler(SchedulingStrategy strategy, int numOfThreads)
+			throws UnknownSchedulerException {
+		IStructure<PTask> result = null;
 
-        if (strategy.equals(SchedulingStrategy.queue)) {
-            result = CollectionFactory.createLockFreeQueue();
-        } else if (strategy.equals(SchedulingStrategy.stack)) {
-            result = CollectionFactory.createLockFreeStack();
-        } else if (strategy.equals(SchedulingStrategy.workStealing)) {
-            result = WorkStealingStructure.createForThreadPool(numOfThreads);
-        } else {
-            throw new UnknownSchedulerException();
-        }
+		if (strategy.equals(SchedulingStrategy.queue)) {
+			result = CollectionFactory.createLockFreeQueue();
+		} else if (strategy.equals(SchedulingStrategy.stack)) {
+			result = CollectionFactory.createLockFreeStack();
+		} else if (strategy.equals(SchedulingStrategy.workStealing)) {
+			result = WorkStealingStructure.createForThreadPool(numOfThreads);
+		} else if (strategy.equals(SchedulingStrategy.multipleQueues)) {
+			result = new MultipleQueuesStructure<PTask>(numOfThreads);
+		} else {
+			throw new UnknownSchedulerException();
+		}
 
-        return result;
-    }
+		return result;
+	}
 
-    public static class UnknownSchedulerException extends Exception {
+	public static class UnknownSchedulerException extends Exception {
 
-    }
+	}
 
-    public static String getAvailableScheduler() {
-        StringBuilder builder = new StringBuilder();
-        for (SchedulingStrategy strategy : SchedulingStrategy.values()) {
-            builder.append(strategy.toString());
-            builder.append(", ");
-        }
-        return builder.substring(0, builder.length() - 2);
-    }
+	public static String getAvailableScheduler() {
+		StringBuilder builder = new StringBuilder();
+		for (SchedulingStrategy strategy : SchedulingStrategy.values()) {
+			builder.append(strategy.toString());
+			builder.append(", ");
+		}
+		return builder.substring(0, builder.length() - 2);
+	}
 
 }
