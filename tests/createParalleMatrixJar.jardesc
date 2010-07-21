@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="/home/fs239085/work/tmp/electric.jar"/>
+    <options buildIfNeeded="true" compress="false" descriptionLocation="/electric/createParalleMatrixJar.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" mainClassHandleIdentifier="=electric/tests&lt;com.sun.electric.tool.util.concurrent.test{PForJob_T.java[PForJob_T" manifestLocation="/Electric Trunk/manifest.mf" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="false" exportJavaFiles="false" exportOutputFolder="true">
+        <javaElement handleIdentifier="=electric/tests"/>
+        <javaElement handleIdentifier="=electric/srcj"/>
+    </selectedElements>
+</jardesc>
