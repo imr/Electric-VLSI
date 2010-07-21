@@ -51,11 +51,11 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
         this.sources = sources;
     }
 
-    public Signal.View<RangeSample<SNew>> getRasterView(double t0, double t1, int numPixels, boolean extrapolate)
+    public Signal.View<RangeSample<SNew>> getRasterView(double t0, double t1, int numPixels)
     {
         View<RangeSample<SOld>>[] views = new View[sources.length];
         for(int i=0; i<views.length; i++)
-            views[i] = sources[i].getRasterView(t0, t1, numPixels, extrapolate);
+            views[i] = sources[i].getRasterView(t0, t1, numPixels);
         return new DerivedSignalRasterView(views);
     }
     private class DerivedSignalRasterView implements View<RangeSample<SNew>>

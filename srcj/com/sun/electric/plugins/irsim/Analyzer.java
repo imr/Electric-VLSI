@@ -25,6 +25,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
+import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.MutableSignal;
@@ -703,11 +704,14 @@ public class Analyzer extends Engine
 				if (command == VECTORVECTOR)
 				{
 					// find this vector name in the list of vectors
-					Signal<DigitalSample> busSig = null;
-					if (busSig == null)
-						busSig = DigitalSample.createSignal(sigCollection, null, targ[1], null);
+//					Signal<DigitalSample> busSig = null;
+//					if (busSig == null)
+//						busSig = DigitalSample.createSignal(sigCollection, sd, targ[1], null);
 					List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
 					getTargetNodes(targ, 2, sigs, null);
+					Signal<DigitalSample>[] subsigs = new Signal[sigs.size()];
+					for(int i=0; i<sigs.size(); i++) subsigs[i] = sigs.get(i);
+                    BusSample.createSignal(sigCollection, sd, targ[1], null, true, subsigs);
 					continue;
 				}
 			}

@@ -21,34 +21,39 @@
  */
 package com.sun.electric.tool.simulation;
 
-import java.io.*;
-import java.util.*;
-import com.sun.electric.database.geometry.btree.*;
-import com.sun.electric.database.geometry.btree.unboxed.*;
-import com.sun.electric.tool.simulation.*;
+import com.sun.electric.database.geometry.btree.BTree;
+import com.sun.electric.database.geometry.btree.CachingPageStorage;
+import com.sun.electric.database.geometry.btree.CachingPageStorageWrapper;
+import com.sun.electric.database.geometry.btree.FilePageStorage;
+import com.sun.electric.database.geometry.btree.MemoryPageStorage;
+import com.sun.electric.database.geometry.btree.OverflowPageStorage;
+import com.sun.electric.database.geometry.btree.PageStorage;
+import com.sun.electric.database.geometry.btree.unboxed.AssociativeCommutativeOperation;
+import com.sun.electric.database.geometry.btree.unboxed.LatticeOperation;
+import com.sun.electric.database.geometry.btree.unboxed.Pair;
+import com.sun.electric.database.geometry.btree.unboxed.Unboxed;
+import com.sun.electric.database.geometry.btree.unboxed.UnboxedHalfDouble;
+import com.sun.electric.database.geometry.btree.unboxed.UnboxedPair;
 
-abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
-
+abstract class BTreeSignal<S extends Sample> extends MutableSignal<S>
+{
     private Signal.View<S> exactView = null;
     private final BTree<Double,S,Pair<S,S>> tree;
-//    private Signal.View<S> pa = null;
-//    private double tmin;
-//    private double tmax;
-//    private int    emax;
-
+    private double minTime = 0, maxTime = 0;
     public static int misses = 0;
     public static int steps = 0;
     public static int numLookups = 0;
 
     public BTreeSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext,
-                       boolean digital, BTree<Double,S,Pair<S,S>> tree
-                       ) {
+                       boolean digital, BTree<Double,S,Pair<S,S>> tree)
+    {
         super(sc, sd, signalName, signalContext, digital);
         if (tree==null) throw new RuntimeException();
         this.tree = tree;
-        this.exactView = new Signal.View<S>() {
+        this.exactView = new Signal.View<S>()
+        {
             public int getNumEvents() { return BTreeSignal.this.tree.size(); }
-            public double             getTime(int index) {
+            public double getTime(int index) {
                 Double d = BTreeSignal.this.tree.getKeyFromOrd(index);
                 if (d==null) throw new RuntimeException("index out of bounds");
                 return d.doubleValue();
@@ -62,18 +67,37 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
     }
 
     public S    getSample(double time) { return tree.getValFromKey(time); }
-    public void addSample(double time, S sample) { tree.insert(time, sample); }
-    public void replaceSample(double time, S sample) { tree.replace(time, sample); }
+    public void addSample(double time, S sample)
+    {
+    	tree.insert(time, sample);
+    	minTime = Math.min(minTime, time);
+    	maxTime = Math.max(maxTime, time);
+    }
+    public void replaceSample(double time, S sample)
+    {
+    	tree.replace(time, sample);
+    	minTime = Math.min(minTime, time);
+    	maxTime = Math.max(maxTime, time);
+    }
 
     public Signal.View<S> getExactView() { return exactView; }
 
-    public Signal.View<RangeSample<S>> getRasterView(double t0, double t1, int numPixels, boolean extrapolate) {
-        return new BTreeRasterView(t0, t1, numPixels, extrapolate);
+    public Signal.View<RangeSample<S>> getRasterView(double t0, double t1, int numPixels) {
+        return new BTreeRasterView(t0, t1, numPixels);
     }
 
     public boolean isEmpty() { return tree.size()==0; }
-	public double getMinTime()  { return tree.size()==0 ? 0 : getExactView().getTime(0); }
-	public double getMaxTime()  { return tree.size()==0 ? 0 : getExactView().getTime(getExactView().getNumEvents()-1); }
+
+	public double getMinTime()
+	{
+//		return tree.size()==0 ? 0 : getExactView().getTime(0);
+		return minTime;
+	}
+	public double getMaxTime()
+	{
+//		return tree.size()==0 ? 0 : getExactView().getTime(getExactView().getNumEvents()-1);
+		return maxTime;
+	}
     protected Pair<S,S> getSummaryFromKeys(Double t1, Double t2) {
         return tree.getSummaryFromKeys(t1, t2);
     }
@@ -86,33 +110,35 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
      *  samples.  In the former case we use range queries to summarize
      *  multiple actual samples in each raster sample.
      */
-    private class BTreeRasterView implements Signal.View<RangeSample<S>> {
+    private class BTreeRasterView implements Signal.View<RangeSample<S>>
+    {
         private final double t0, t1;
         private final int numRegions;
         private final boolean exact;
         private int t0_ord, t1_ord;
-        public BTreeRasterView(double t0, double t1, int numRegions, boolean extrapolate) {
+        public BTreeRasterView(double t0, double t1, int numRegions)
+        {
             double t0_ = Math.min(t0, t1);
             double t1_ = Math.max(t0, t1);
             t0_ord = tree.getOrdFromKeyFloor(t0_);
             t1_ord = tree.getOrdFromKeyFloor(t1_);
 
-            if (extrapolate) {
-                // "snap" t0 and t1 to the nearest actual sample strictly outside the viewfinder
-                t0_ = tree.getKeyFromOrd(t0_ord);
-                t1_ord = Math.min(tree.size()-1, t1_ord+1);
-                t1_ = tree.getKeyFromOrd(t1_ord);
-            }
+            // "snap" t0 and t1 to the nearest actual sample strictly outside the viewfinder
+            t0_ = tree.getKeyFromOrd(t0_ord);
+            t1_ord = Math.min(tree.size()-1, t1_ord+1);
+            t1_ = tree.getKeyFromOrd(t1_ord);
+
             t0_ord = Math.max(t0_ord, 0);
             t1_ord = Math.min(t1_ord, tree.size()-1);
 
             this.t0 = t0_;
             this.t1 = t1_;
-            this.exact = numRegions > (t1_ord - t0_ord);
-            this.numRegions = exact ? (t1_ord - t0_ord) : numRegions;
+            this.exact = numRegions > (t1_ord - t0_ord+1);
+            this.numRegions = exact ? (t1_ord - t0_ord+1) : numRegions;
         }
         public int getNumEvents() { return numRegions; }
-        public double getTime(int index) {
+        public double getTime(int index)
+        {
             if (index < 0)
                 throw new RuntimeException("hey nitwit, don't call getTime() on a negative number");
             if (index >= getNumEvents())
@@ -126,39 +152,46 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
                                            " numRegions="+numRegions);
             return ret.doubleValue();
         }
-        public RangeSample<S> getSample(int index) {
-            if (exact || index>=getNumEvents()-1) {
+        public RangeSample<S> getSample(int index)
+        {
+            if (index>=getNumEvents()-1)
+            {
+                S sample = tree.getValFromOrd(t1_ord);
+                return sample==null ? null : new RangeSample<S>(sample, sample);
+            }
+            if (exact)
+            {
                 S sample = tree.getValFromOrd(t0_ord+index);
                 return sample==null ? null : new RangeSample<S>(sample, sample);
-            } else {
-                double tfirst = getTime(index);
-                double tsecond = getTime(index+1);
-                if (tfirst==tsecond) {
-                    // this case can occur if the signal's samples
-                    // aren't evenly spaced; in effect we end up
-                    // acting sort of like exact mode at times.
-                    S sample = tree.getValFromKey(tfirst);
-                    return sample==null ? null : new RangeSample<S>(sample, sample);
-                } else {
-                    Pair<S,S> highlow = tree.getSummaryFromKeys(tfirst, tsecond);
-                    return highlow==null
-                        ? null
-                        : new RangeSample<S>(highlow.getKey(),
-                                             highlow.getValue());
-                }
+            }
+            double tfirst = getTime(index);
+            double tsecond = getTime(index+1);
+            if (tfirst==tsecond)
+            {
+                // this case can occur if the signal's samples
+                // aren't evenly spaced; in effect we end up
+                // acting sort of like exact mode at times.
+                S sample = tree.getValFromKey(tfirst);
+                return sample==null ? null : new RangeSample<S>(sample, sample);
+            } else
+            {
+                Pair<S,S> highlow = tree.getSummaryFromKeys(tfirst, tsecond);
+                return highlow==null
+                    ? null
+                    : new RangeSample<S>(highlow.getKey(),
+                                         highlow.getValue());
             }
         }
     }
 
-
     // Page Storage //////////////////////////////////////////////////////////////////////////////
 
     private static CachingPageStorage ps = null;
-    static <SS extends Sample>
-        BTree<Double,SS,Pair<SS,SS>>
-        getTree(Unboxed<SS> unboxer, LatticeOperation<SS> latticeOp) {
+    static <SS extends Sample> BTree<Double,SS,Pair<SS,SS>> getTree(Unboxed<SS> unboxer, LatticeOperation<SS> latticeOp)
+    {
         if (ps==null)
-            try {
+            try
+        	{
                 long highWaterMarkInBytes = 50 * 1024 * 1024;
                 PageStorage fps = FilePageStorage.create();
                 PageStorage ops = new OverflowPageStorage(new MemoryPageStorage(fps.getPageSize()), fps, highWaterMarkInBytes);
@@ -171,10 +204,9 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
              new Summary<SS>(UnboxedHalfDouble.instance, unboxer, latticeOp));
     }
 
-    private static class Summary<SS extends Sample>
-        extends UnboxedPair<SS,SS>
-        implements BTree.Summary<Double,SS,Pair<SS,SS>>,
-        AssociativeCommutativeOperation<Pair<SS,SS>> {
+    private static class Summary<SS extends Sample> extends UnboxedPair<SS,SS>
+        implements BTree.Summary<Double,SS,Pair<SS,SS>>, AssociativeCommutativeOperation<Pair<SS,SS>>
+    {
         private final LatticeOperation<SS> latticeOp;
         private final Unboxed<Double> uk;
         private final Unboxed<SS> uv;
@@ -205,7 +237,5 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S> {
                           buf2, ofs2+uv.getSize(),
                           buf_dest, ofs_dest+uv.getSize());
         }
-    };
-
+    }
 }
-

@@ -3290,54 +3290,24 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			// adjust all signals inside the panel
 			for(WaveSignal ws : wp.getSignals())
 			{
+				// find the signal name in the new list
 				Signal<?> ss = ws.getSignal();
+				String oldSigName = ss.getFullName();
+				ws.setSignal(null);
 				SignalCollection sc = sd.findSignalCollection(ss.getSignalCollectionName());
-//				Signal<?>[] busMembers = ss.getBusMembers();
-//				if (busMembers != null)
-//				{
-//					for(int b=0; b<busMembers.length; b++)
-//					{
-//						Signal<?> subDS = busMembers[b];
-//						String oldSigName = subDS.getFullName();
-//						Signal<?> newBus = null;
-//
-//						for(Signal<?> newSs : sc.getSignals())
-//                        {
-//	                        String newSigName = newSs.getFullName();
-//	                        if (!newSigName.equals(oldSigName)) continue;
-//	                        newBus = newSs;
-//	                        break;
-//						}
-//
-//						if (newBus == null)
-//						{
-//							inBus.remove(b);
-//							b--;
-//							System.out.println("Could not find signal " + oldSigName + " in the new data");
-//							redoPanel = true;
-//							continue;
-//						}
-//						inBus.set(b, newBus);
-//					}
-//				} else
+				for(Signal<?> newSs : sc.getSignals())
 				{
-					// single signal: find the name in the new list
-					String oldSigName = ss.getFullName();
-					ws.setSignal(null);
-					for(Signal<?> newSs : sc.getSignals())
-					{
-						String newSigName = newSs.getFullName();
-						if (!newSigName.equals(oldSigName)) continue;
-						ws.setSignal(newSs);
-						break;
-					}
-					if (ws.getSignal() == null)
-					{
-						System.out.println("Could not find signal " + oldSigName + " in the new data");
-						redoPanel = true;
-					}
-                }
-			}
+					String newSigName = newSs.getFullName();
+					if (!newSigName.equals(oldSigName)) continue;
+					ws.setSignal(newSs);
+					break;
+				}
+				if (ws.getSignal() == null)
+				{
+					System.out.println("Could not find signal " + oldSigName + " in the new data");
+					redoPanel = true;
+				}
+            }
 			while (redoPanel)
 			{
 				redoPanel = false;
@@ -4704,7 +4674,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(Signal<?> sig : allSignals) {
 				Signal<DigitalSample> sDSig = (Signal<DigitalSample>)sig;
 				if (sDSig.getSignalContext() != null) continue;
-				//if (HashMap<String,Signal>.isInBus(sDSig)) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
 				int height = User.getWaveformDigitalPanelHeight();
 				Panel wp = new Panel(ww, height);

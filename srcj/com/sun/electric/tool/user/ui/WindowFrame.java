@@ -27,6 +27,7 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;

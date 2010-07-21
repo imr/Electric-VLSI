@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.PushbackInputStream;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.net.URL;
@@ -72,6 +73,7 @@ public class Input<ResultType>
 	/** Name of the file being input. */					protected String filePath;
 	/** The raw input stream. */							protected InputStream inputStream;
 	/** The line number reader (text only). */				protected LineNumberReader lineReader;
+	/** The input stream. */								protected PushbackInputStream pushbackInputStream;
 	/** The input stream. */								protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
 	/** the number of bytes of data read so far */			protected long byteCount;
@@ -237,7 +239,8 @@ public class Input<ResultType>
 		byteCount = 0;
 
 		BufferedInputStream bufStrm = new BufferedInputStream(inputStream, READ_BUFFER_SIZE);
-		dataInputStream = new DataInputStream(bufStrm);
+		pushbackInputStream = new PushbackInputStream(bufStrm);
+		dataInputStream = new DataInputStream(pushbackInputStream);
 		return false;
 	}
 
@@ -372,12 +375,23 @@ public class Input<ResultType>
 		throws IOException
 	{
 		StringBuffer sb = new StringBuffer();
+		int lastCharacter = 0;
 		for(;;)
 		{
 			int c = dataInputStream.read();
 			if (c == -1) return null;
-			if (c == '\n' || c == '\r') break;
+			if (lastCharacter == '\n')
+			{
+				if (c != '\r') pushbackInputStream.unread(c);
+				break;
+			}
+			if (lastCharacter == '\r')
+			{
+				if (c != '\n') pushbackInputStream.unread(c);
+				break;
+			}
 			sb.append((char)c);
+			lastCharacter = c;
 		}
 		return sb.toString();
 	}
@@ -391,14 +405,29 @@ public class Input<ResultType>
 		throws IOException
 	{
 		StringBuffer sb = new StringBuffer();
+		int lastCharacter = 0;
         int bytesRead = 0;
 		for(;;)
 		{
 			int c = dataInputStream.read();
-			if (c == -1) return null;
+			if (c == -1)
+			{
+				if (sb.length() > 0) break;
+				return null;
+			}
             bytesRead++;
-			if (c == '\n' || c == '\r') break;
+			if (lastCharacter == '\n')
+			{
+				if (c != '\r') pushbackInputStream.unread(c);
+				break;
+			}
+			if (lastCharacter == '\r')
+			{
+				if (c != '\n') pushbackInputStream.unread(c);
+				break;
+			}
 			sb.append((char)c);
+			lastCharacter = c;
 		}
 		updateProgressDialog(bytesRead);
 		return sb.toString();

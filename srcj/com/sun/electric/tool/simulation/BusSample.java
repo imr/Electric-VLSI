@@ -138,12 +138,12 @@ public class BusSample<S extends Sample> implements Sample
 
             public Signal<?>[] getBusMembers() { return subsignals; }
 
-            public Signal.View<RangeSample<BusSample<SS>>> getRasterView(final double t0, final double t1, final int numPixels, final boolean extrap)
+            public Signal.View<RangeSample<BusSample<SS>>> getRasterView(final double t0, final double t1, final int numPixels)
             {
                 final Signal.View<RangeSample<SS>>[] subviews = new Signal.View[subsignals.length];
 
                 for(int i=0; i<subviews.length; i++)
-                    subviews[i] = subsignals[i].getRasterView(t0, t1, numPixels, extrap);
+                    subviews[i] = subsignals[i].getRasterView(t0, t1, numPixels);
 
                 // the subviews' getRasterView() methods might have differing getNumEvents() values or different
                 // getTime() values for a given index.  Therefore, we must "collate" them.  By using a sorted treemap
@@ -233,8 +233,7 @@ public class BusSample<S extends Sample> implements Sample
                 Signal.View<RangeSample<BusSample<DigitalSample> > > view =
                     (Signal.View<RangeSample<BusSample<DigitalSample> > >)ds.getRasterView(panel.convertXScreenToData(0),
                                                                                            panel.convertXScreenToData(sz.width),
-                                                                                           sz.width,
-                                                                                           true);
+                                                                                           sz.width);
                 boolean curDefined = true;
                 long curYValue = 0;  // wow, this is pretty lame that Electric can't draw buses with more than 64 bits
                 int lastX = 0;

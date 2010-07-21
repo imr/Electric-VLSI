@@ -259,16 +259,16 @@ public class Stimuli {
 	{
 		// determine extent of the data
 		Rectangle2D bounds = null;
-		for(HashMap<String,Signal> an : analysisList)
+		for(SignalCollection sc : scList)
 		{
-			Rectangle2D anBounds = an.getBounds();
-			if (anBounds == null) continue;
+			Rectangle2D scBounds = sc.getBounds();
+			if (scBounds == null) continue;
 			if (bounds == null)
 			{
-				bounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
+				bounds = new Rectangle2D.Double(scBounds.getMinX(), scBounds.getMinY(), scBounds.getWidth(), scBounds.getHeight());
 			} else
 			{
-				Rectangle2D.union(bounds, anBounds, bounds);
+				Rectangle2D.union(bounds, scBounds, bounds);
 			}
 		}
 		return bounds;

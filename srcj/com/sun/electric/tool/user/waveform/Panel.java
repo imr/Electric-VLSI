@@ -704,9 +704,7 @@ public class Panel extends JPanel
             	highValue = Math.max(highValue, 1);
             } else
             {
-            	Signal.View<RangeSample<Sample>> view =
-//                  sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), 2, false);
-            		sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), (int)getSize().getWidth(), false);
+            	Signal.View<RangeSample<Sample>> view = sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), 2);
 	            for(int i=0; i<view.getNumEvents(); i++)
 	            {
 	                RangeSample<?> rs = view.getSample(i);
@@ -1230,9 +1228,12 @@ public class Panel extends JPanel
 			if (ss.getSeparation() != 0.0)
 			{
 				double value = ss.getLowValue();
-				if (localGraphics != null)
-					localGraphics.setFont(waveWindow.getFont());
+				if (localGraphics != null) localGraphics.setFont(waveWindow.getFont());
 				int lastY = -1;
+				int ySeparation = convertYDataToScreen(value) - convertYDataToScreen(value+ss.getSeparation());
+				int textSkip = 100;
+				if (ySeparation > 0) textSkip = 20 / ySeparation;
+				int textSkipPos = 0;
 				for(int i=0; ; i++)
 				{
 					if (value > displayedHigh) break;
@@ -1241,26 +1242,11 @@ public class Panel extends JPanel
 						int y = convertYDataToScreen(value);
 						if (lastY >= 0)
 						{
-							if (lastY - y > 100)
+							// add extra tick marks
+							int addedTicks = (lastY - y) / 20;
+							for(int j=1; j<addedTicks; j++)
 							{
-								// add 5 tick marks
-								for(int j=1; j<5; j++)
-								{
-									int intY = (lastY - y) / 5 * j + y;
-									if (polys != null)
-									{
-										polys.add(new Poly(new Point2D[] {
-											new Point2D.Double(vertAxisPos-5, intY),
-											new Point2D.Double(vertAxisPos, intY)}));
-									} else
-									{
-										localGraphics.drawLine(vertAxisPos-5, intY, vertAxisPos, intY);
-									}
-								}
-							} else if (lastY - y > 25)
-							{
-								// add 1 tick mark
-								int intY = (lastY - y) / 2 + y;
+								int intY = (lastY - y) / addedTicks * j + y;
 								if (polys != null)
 								{
 									polys.add(new Poly(new Point2D[] {
@@ -1282,26 +1268,32 @@ public class Panel extends JPanel
 						{
 							localGraphics.drawLine(vertAxisPos-10, y, vertAxisPos, y);
 						}
-						String yValue = TextUtils.convertToEngineeringNotation(value, null);
-						if (polys != null)
+
+						// skip text if spaced too closely
+						textSkipPos--;
+						if (textSkipPos <= 0)
 						{
-							Poly poly = new Poly(new Point2D[] {
-								new Point2D.Double(vertAxisPos-12, y)});
-							poly.setStyle(Poly.Type.TEXTRIGHT);
-							poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(6));
-							poly.setString(yValue);
-							polys.add(poly);
-						} else
-						{
-							GlyphVector gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), yValue);
-							Rectangle2D glyphBounds = gv.getLogicalBounds();
-							int height = (int)glyphBounds.getHeight();
-							int yPos = y + height / 2;
-							if (yPos-height <= 0) yPos = height+1;
-							if (yPos >= hei) yPos = hei;
-							int xPos = vertAxisPos-10-(int)glyphBounds.getWidth()-2;
-							if (xPos < 0) xPos = 0;
-							localGraphics.drawString(yValue, xPos, yPos);
+							textSkipPos = textSkip;
+							String yValue = TextUtils.convertToEngineeringNotation(value, null);
+							if (polys != null)
+							{
+								Poly poly = new Poly(new Point2D[] { new Point2D.Double(vertAxisPos-12, y) });
+								poly.setStyle(Poly.Type.TEXTRIGHT);
+								poly.setTextDescriptor(TextDescriptor.EMPTY.withAbsSize(6));
+								poly.setString(yValue);
+								polys.add(poly);
+							} else
+							{
+								GlyphVector gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), yValue);
+								Rectangle2D glyphBounds = gv.getLogicalBounds();
+								int height = (int)glyphBounds.getHeight();
+								int yPos = y + height / 2;
+								if (yPos-height <= 0) yPos = height+1;
+								if (yPos >= hei) yPos = hei;
+								int xPos = vertAxisPos-10-(int)glyphBounds.getWidth()-2;
+								if (xPos < 0) xPos = 0;
+								localGraphics.drawString(yValue, xPos, yPos);
+							}
 						}
 						lastY = y;
 					}
@@ -1311,19 +1303,20 @@ public class Panel extends JPanel
 		}
 	}
 
-	void dumpDataCSV(PrintWriter pw) {
-		for(WaveSignal ws : waveSignals.values()) {
+	void dumpDataCSV(PrintWriter pw)
+	{
+		for(WaveSignal ws : waveSignals.values())
+		{
             Signal<?> as = ws.getSignal();
-            for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
+            for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++)
+            {
                 pw.println();
                 Signal<?> wave = as;
                 Signal.View<?> pref = ((Signal<?>)wave).getExactView();
                 Signal.View<?> waveform = pref /* FIXME */;
                 int numEvents = waveform.getNumEvents();
                 for(int i=0; i<numEvents; i++)
-                    pw.println("\""+waveform.getTime(i) + "\""+
-                               ","+
-                               "\""+waveform.getSample(i)+"\"");
+                    pw.println("\"" + waveform.getTime(i) + "\",\"" + waveform.getSample(i) + "\"");
             }
         }
     }
@@ -1825,72 +1818,162 @@ public class Panel extends JPanel
 		draggingArea = true;
 	}
 
+	private Point getPointIfClose(int x, int y, Point pt)
+	{
+		if (Math.abs(x - pt.x) < 8 && Math.abs(y - pt.y) < 8)
+		{
+			pt.x = x;   pt.y = y;
+			return pt;
+		}
+		return null;
+	}
+
+	private Point getPointIfCloseToLine(Point2D lstPt, Point2D thisPt, Point2D snap)
+	{
+		Point2D closest = GenMath.closestPointToSegment(lstPt, thisPt, snap);
+		if (closest.distance(snap) < 5)
+		{
+			Point pt = new Point((int)Math.round(closest.getX()), (int)Math.round(closest.getY()));
+            return pt;
+		}
+		return null;
+	}
+
 	private Point snapPoint(Point pt)
 	{
-        /*
-		// snap to any waveform points
+		// get list of views in this panel
+		List<Signal.View<RangeSample<Sample>>> allViews = new ArrayList<Signal.View<RangeSample<Sample>>>();
 		for(WaveSignal ws : waveSignals.values())
 		{
-			// draw analog trace
-			Signal<?> as = ws.getSignal();
-            double[] result = new double[3];
-            String scName = as.getSignalCollectionName();
-			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
-			{
-                if (!waveWindow.isSweepSignalIncluded(scName, s)) continue;
-                Signal waveform = as;//as.getWaveform(s);
-				int numEvents = waveform.getExactView().getNumEvents();
-				for(int i=0; i<numEvents; i++)
-				{
-                    result[0] = waveform.getExactView().getTime(i);                                            
-                    result[1] = result[2] = (waveform.getExactView().getSample(i)).getValue();   
-					int x = convertXDataToScreen(result[0]);
-                    int lowY = convertYDataToScreen(result[1]);
-                    int highY = convertYDataToScreen(result[2]);
-					if (Math.abs(x - pt.x) < 5 && pt.y > lowY - 5 && pt.y < highY + 5)
-					{
-						pt.x = x;
-                		pt.y = Math.max(Math.min(pt.y, highY), lowY);
-						return pt;
-					}
-				}
-			}
+			Signal<Sample> sig = (Signal<Sample>)ws.getSignal();
+			allViews.add(sig.getRasterView(sig.getMinTime(), sig.getMaxTime(), sz.width));
+		}
+
+		// snap to any waveform points
+		for(Signal.View<RangeSample<Sample>> view : allViews)
+		{
+            for(int i=0; i<view.getNumEvents(); i++)
+            {
+                RangeSample<?> rs = view.getSample(i);
+                if (rs == null) continue;
+        		int x = convertXDataToScreen(view.getTime(i));
+
+        		// see if point on minimum is close
+        		Sample min = rs.getMin();
+			    if (min instanceof SweptSample<?>)
+			    {
+			    	SweptSample<?> ss = (SweptSample<?>)min;
+			    	for(int s=0; s<ss.getWidth(); s++)
+			    	{
+			    		Sample sweepSample = ss.getSweep(s);
+			    		int y = convertYDataToScreen(((ScalarSample)sweepSample).getValue());
+			    		Point closePoint = getPointIfClose(x, y, pt);
+			    		if (closePoint != null) return closePoint;
+			    	}
+			    } else
+			    {
+			    	int y = convertYDataToScreen(((ScalarSample)min).getValue());
+		    		Point closePoint = getPointIfClose(x, y, pt);
+		    		if (closePoint != null) return closePoint;
+			    }
+
+        		// see if point on maximum is close
+        		Sample max = rs.getMax();
+			    if (max instanceof SweptSample<?>)
+			    {
+			    	SweptSample<?> ss = (SweptSample<?>)max;
+			    	for(int s=0; s<ss.getWidth(); s++)
+			    	{
+			    		Sample sweepSample = ss.getSweep(s);
+			    		int y = convertYDataToScreen(((ScalarSample)sweepSample).getValue());
+			    		Point closePoint = getPointIfClose(x, y, pt);
+			    		if (closePoint != null) return closePoint;
+			    	}
+			    } else
+			    {
+			    	int y = convertYDataToScreen(((ScalarSample)max).getValue());
+		    		Point closePoint = getPointIfClose(x, y, pt);
+		    		if (closePoint != null) return closePoint;
+			    }
+            }
 		}
 
 		// snap to any waveform lines
 		Point2D snap = new Point2D.Double(pt.x, pt.y);
-		for(WaveSignal ws : waveSignals.values())
+		for(Signal.View<RangeSample<Sample>> view : allViews)
 		{
-			// draw analog trace
-			Signal as = (Signal)ws.getSignal();
-            double[] result = new double[3];
-            double[] lastResult = new double[3];
-            HashMap<String,Signal> an = (HashMap<String,Signal>)as.getAnalysis();
-			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
-			{
-                if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
-                Signal waveform = as;//as.getWaveform(s);
-				int numEvents = waveform.getExactView().getNumEvents();
-                result[0] = waveform.getExactView().getTime(0);                                            
-                result[1] = result[2] = (waveform.getExactView().getSample(0)).getValue();   
-				Point2D lastPt = new Point2D.Double(convertXDataToScreen(lastResult[0]), convertYDataToScreen((lastResult[1] + lastResult[2]) / 2));
-				for(int i=1; i<numEvents; i++)
-				{
-                    result[0] = waveform.getExactView().getTime(i);                                            
-                    result[1] = result[2] = (waveform.getExactView().getSample(i)).getValue();   
-					Point2D thisPt = new Point2D.Double(convertXDataToScreen(result[0]), convertYDataToScreen((result[1] + result[2]) / 2));
-					Point2D closest = GenMath.closestPointToSegment(lastPt, thisPt, snap);
-					if (closest.distance(snap) < 5)
-					{
-						pt.x = (int)Math.round(closest.getX());
-                		pt.y = (int)Math.round(closest.getY());
-                        break;
-					}
-					lastPt = thisPt;
-				}
-			}
+			Point2D lastPt = null;
+			List<Point2D> lastSweepMinPts = new ArrayList<Point2D>();
+			List<Point2D> lastSweepMaxPts = new ArrayList<Point2D>();
+            for(int i=0; i<view.getNumEvents(); i++)
+            {
+                RangeSample<?> rs = view.getSample(i);
+                if (rs == null) continue;
+        		int x = convertXDataToScreen(view.getTime(i));
+
+        		// see if point on minimum is close
+        		Sample min = rs.getMin();
+			    if (min instanceof SweptSample<?>)
+			    {
+			    	SweptSample<?> ss = (SweptSample<?>)min;
+			    	for(int s=0; s<ss.getWidth(); s++)
+			    	{
+			    		Sample sweepSample = ss.getSweep(s);
+			    		int y = convertYDataToScreen(((ScalarSample)sweepSample).getValue());
+						Point2D thisPt = new Point2D.Double(x, y);
+			    		if (s < lastSweepMinPts.size())
+			    		{
+			    			Point2D lstPt = lastSweepMinPts.get(s);
+			    			Point close = getPointIfCloseToLine(lstPt, thisPt, snap);
+			    			if (close != null) return close;
+			    		}
+			    		while (lastSweepMinPts.size() <= s) lastSweepMinPts.add(null);
+			    		lastSweepMinPts.set(s, thisPt);
+			    	}
+			    } else
+			    {
+			    	int y = convertYDataToScreen(((ScalarSample)min).getValue());
+					Point2D thisPt = new Point2D.Double(x, y);
+		    		if (lastPt != null)
+		    		{
+		    			Point close = getPointIfCloseToLine(lastPt, thisPt, snap);
+		    			if (close != null) return close;
+		    		}
+		    		lastPt = thisPt;
+			    }
+
+        		// see if point on maximum is close
+        		Sample max = rs.getMax();
+			    if (max instanceof SweptSample<?>)
+			    {
+			    	SweptSample<?> ss = (SweptSample<?>)max;
+			    	for(int s=0; s<ss.getWidth(); s++)
+			    	{
+			    		Sample sweepSample = ss.getSweep(s);
+			    		int y = convertYDataToScreen(((ScalarSample)sweepSample).getValue());
+						Point2D thisPt = new Point2D.Double(x, y);
+			    		if (s < lastSweepMaxPts.size())
+			    		{
+			    			Point2D lstPt = lastSweepMaxPts.get(s);
+			    			Point close = getPointIfCloseToLine(lstPt, thisPt, snap);
+			    			if (close != null) return close;
+			    		}
+			    		while (lastSweepMaxPts.size() <= s) lastSweepMaxPts.add(null);
+			    		lastSweepMaxPts.set(s, thisPt);
+			    	}
+			    } else
+			    {
+			    	int y = convertYDataToScreen(((ScalarSample)max).getValue());
+					Point2D thisPt = new Point2D.Double(x, y);
+		    		if (lastPt != null)
+		    		{
+		    			Point close = getPointIfCloseToLine(lastPt, thisPt, snap);
+		    			if (close != null) return close;
+		    		}
+		    		lastPt = thisPt;
+			    }
+            }
 		}
-        */
 
 		// no snapping: return the original point
 		return pt;
@@ -2035,7 +2118,7 @@ public class Panel extends JPanel
 			}
 
 			// snap to waveform point
-			curPanel.snapPoint(cPt);
+			cPt = curPanel.snapPoint(cPt);
 
 			dragEndXD = curPanel.convertXScreenToData(cPt.x);
 			dragEndYD = curPanel.convertYScreenToData(cPt.y);

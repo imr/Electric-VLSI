@@ -134,11 +134,11 @@ public class ScalarSample implements Sample, Comparable<Object> {
 		Signal<?> wave = as;
 		if (wave.isEmpty()) return;
 		Signal.View<RangeSample<ScalarSample>> waveform = ((Signal<ScalarSample>)wave).getRasterView(
-			panel.convertXScreenToData(0), panel.convertXScreenToData(sz.width), sz.width, true);
+			panel.convertXScreenToData(0), panel.convertXScreenToData(sz.width), sz.width);
 		Signal.View<RangeSample<ScalarSample>> xWaveform = null;
 	    if (xAxisSignal != null)
 	    	xWaveform = ((Signal<ScalarSample>)xAxisSignal).getRasterView(
-				panel.convertXScreenToData(0), panel.convertXScreenToData(sz.width), sz.width, true);
+				panel.convertXScreenToData(0), panel.convertXScreenToData(sz.width), sz.width);
 		int lastX = 0, lastLY = 0, lastHY = 0;
 		boolean first = true;
 		for(int i=0; i<waveform.getNumEvents(); i++)

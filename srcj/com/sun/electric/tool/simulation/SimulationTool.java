@@ -1117,7 +1117,7 @@ public class SimulationTool extends Tool {
 		{
 			if (p.code() == cache) return p;
 		}
-		throw new Error("No Spice engine found");
+		return SpiceEngine.values()[0];
 	}
 	/**
 	 * Method to set which SPICE engine is being used.
@@ -1157,7 +1157,7 @@ public class SimulationTool extends Tool {
 		{
 			if (p.code() == cache) return p;
 		}
-		throw new Error("No Spice engine found");
+		return SpiceEngine.values()[0];
 	}
 
 	private static Pref cacheSpiceLevel = Pref.makeStringPref("SpiceLevel", tool.prefs, "1");
