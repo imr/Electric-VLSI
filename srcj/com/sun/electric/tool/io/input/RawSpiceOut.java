@@ -82,6 +82,7 @@ public class RawSpiceOut extends Input<Stimuli>
 		complexValues = false;
 		boolean realValues = false;
 		int signalCount = -1;
+		boolean firstFieldIsTime = false;
 		String[] signalNames = null;
 		int rowCount = -1;
         boolean isLTSpice = false;
@@ -90,7 +91,6 @@ public class RawSpiceOut extends Input<Stimuli>
 		sd.setCell(cell);
 		SignalCollection sc = null;
 
-		double[][] values = null;
         double[] time = null;
 		for(;;)
 		{
@@ -135,7 +135,6 @@ public class RawSpiceOut extends Input<Stimuli>
                     signalCount = -1;
                     rowCount = -1;
                     signalNames = null;
-                    values = null;
                 }
 
                 // start reading a new analysis
@@ -148,6 +147,9 @@ public class RawSpiceOut extends Input<Stimuli>
                 } else if (restOfLine.startsWith("AC "))
                 {
                     sc = Stimuli.newSignalCollection(sd, "AC SIGNALS");
+                } else if (restOfLine.startsWith("Operating "))
+                {
+                    sc = Stimuli.newSignalCollection(sd, "OPERATING POINT");
                 } else
                 {
                     System.out.println("Warning: unknown analysis: " + restOfLine);
@@ -169,7 +171,7 @@ public class RawSpiceOut extends Input<Stimuli>
 			if (keyWord.equals("No. Variables"))
             {
                 // the first signal is Time
-                signalCount = TextUtils.atoi(restOfLine) - 1;
+                signalCount = TextUtils.atoi(restOfLine);
                 continue;
             }
 
@@ -190,8 +192,8 @@ public class RawSpiceOut extends Input<Stimuli>
                         return;
                     }
                     signalNames = new String[signalCount];
-                    values = new double[signalCount][rowCount];
-                    for(int i=0; i<=signalCount; i++)
+                    int trueSignalCount = 0;
+                    for(int i=0; i<signalCount; i++)
                     {
                         if (restOfLine.length() > 0)
                         {
@@ -220,15 +222,15 @@ public class RawSpiceOut extends Input<Stimuli>
                         name = name.substring(0, pos);
                         if (i == 0)
                         {
-                            /*
-                            if (!name.equals("time"))
-                                System.out.println("Warning: the first variable should be time, is '" + name + "'");
-                            */
-                        } else
-                        {
-                            signalNames[i-1] = name;
+                            if (name.equals("time"))
+                            {
+                            	firstFieldIsTime = true;
+                            	continue;
+                            }
                         }
+                        signalNames[trueSignalCount++] = name;
                     }
+                    signalCount = trueSignalCount;
                     continue;
                 }
                 if (keyWord.equals("Values"))
@@ -243,9 +245,14 @@ public class RawSpiceOut extends Input<Stimuli>
                         System.out.println("Missing point count in file");
                         return;
                     }
+                    double[][] values = new double[signalCount][rowCount];
                     for(int j=0; j<rowCount; j++)
                     {
-                        for(int i = -1; i <= signalCount; )
+                    	int valueFill = 0;
+                    	int valuesToRead = signalCount;
+                        if (firstFieldIsTime) valuesToRead++; else
+                        	time[j] = j;
+                        for(int i = -1; i < valuesToRead; )
                         {
                             line = getLineAndUpdateProgressBinary();
                             if (line == null)
@@ -271,11 +278,11 @@ public class RawSpiceOut extends Input<Stimuli>
                                 } else
                                 {
                                     double val = TextUtils.atof(field);
-                                    if (i == 0) time[j] = val; else
-                                        values[i-1][j] = val;
+                                    if (i == 0 && firstFieldIsTime) time[j] = val; else
+                                        values[valueFill++][j] = val;
                                 }
                                 i++;
-                                if (i > signalCount) break;
+                                if (i >= valuesToRead) break;
                             }
                         }
                     }
@@ -297,16 +304,21 @@ public class RawSpiceOut extends Input<Stimuli>
                     }
 
                     // read the data
+                    double[][] values = new double[signalCount][rowCount];
                     for(int j=0; j<rowCount; j++)
                     {
                         time[j] = dataInputStream.readDouble();
                         for(int i=0; i<signalCount; i++)
                             values[i][j] = dataInputStream.readDouble();
                     }
+                    for (int i = 0; i < signalCount; i++)
+                        ScalarSample.createSignal(sc, sd, signalNames[i], null, time, values[i]);
                     continue;
                 }
             } else
             {
+boolean OLD = true;
+if (OLD) firstFieldIsTime = true;
                 if (keyWord.equals("Variables"))
                 {
                     if (signalCount < 0)
@@ -315,7 +327,8 @@ public class RawSpiceOut extends Input<Stimuli>
                         return;
                     }
                     signalNames = new String[signalCount];
-                    for(int i=0; i<=signalCount; i++)
+                    int trueSignalCount = 0;
+                    for(int i=0; i<signalCount; i++)
                     {
                         restOfLine = getLineFromBinary();
                         if (restOfLine == null) break;
@@ -334,8 +347,18 @@ public class RawSpiceOut extends Input<Stimuli>
                         {
                             name = name.substring(2, name.length()-1);
                         }
-                        if (i > 0) signalNames[i-1] = name;
+                        if (i == 0)
+                        {
+if (OLD) continue;
+                            if (name.equals("time"))
+                            {
+                            	firstFieldIsTime = true;
+                            	continue;
+                            }
+                        }
+                        signalNames[trueSignalCount++] = name;
                     }
+                    signalCount = trueSignalCount;
                     continue;
                 }
 
@@ -359,11 +382,12 @@ public class RawSpiceOut extends Input<Stimuli>
                     }
 
                     // read all of the data in the RAW file
-                    values = new double[signalCount][rowCount];
+                    double[][] values = new double[signalCount][rowCount];
                     time = new double[rowCount];
                     for(int j=0; j<rowCount; j++)
                     {
-                        double t = getNextDouble();
+                        double t = j;
+                        if (firstFieldIsTime) t = getNextDouble();
                         if (DEBUG) System.out.println("TIME AT "+j+" IS "+t);
                         time[j] = Math.abs(t);
                         for(int i=0; i<signalCount; i++)
@@ -406,7 +430,7 @@ public class RawSpiceOut extends Input<Stimuli>
             				signals[i][s] = ScalarSample.createSignal(sc, sd, name, context);
                     }
 
-                    // place data into the HashMap<String,Signal> object
+                    // place data into the Sample object
                     int offset = 0;
                     for(int s=0; s<sweepCount; s++)
                     {
