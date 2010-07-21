@@ -90,7 +90,7 @@ public class PJob {
 	 * 
 	 * @param task
 	 */
-	public synchronized void add(PTask task, int threadID) {
+	public void add(PTask task, int threadID) {
 		if (pool != null) {
 			barrier.setActive(false);
 			pool.add(task);
@@ -105,7 +105,7 @@ public class PJob {
 	 * 
 	 * @param task
 	 */
-	public synchronized void add(PTask task) {
+	public void add(PTask task) {
 		this.add(task, PJob.SERIAL);
 	}
 

@@ -50,165 +50,165 @@ import com.sun.electric.tool.util.concurrent.datastructures.UnboundedDEQueue;
  */
 public class CollectionFactory {
 
-	private static final int LOG_CAPACITY = 4;
+    private static final int LOG_CAPACITY = 4;
 
-	/**
-	 * Create a new array list.
-	 */
-	public static <T> ArrayList<T> createArrayList() {
-		return new ArrayList<T>();
-	}
+    /**
+     * Create a new array list.
+     */
+    public static <T> ArrayList<T> createArrayList() {
+        return new ArrayList<T>();
+    }
 
-	/**
-	 * Create a new hash set
-	 * 
-	 * @param <T>
-	 * @return HashSet of type T
-	 */
-	public static <T> HashSet<T> createHashSet() {
-		return new HashSet<T>();
-	}
+    /**
+     * Create a new hash set
+     * 
+     * @param <T>
+     * @return HashSet of type T
+     */
+    public static <T> HashSet<T> createHashSet() {
+        return new HashSet<T>();
+    }
 
-	public static <T, K> HashMap<T, K> createHashMap() {
-		return new HashMap<T, K>();
-	}
+    public static <T, K> HashMap<T, K> createHashMap() {
+        return new HashMap<T, K>();
+    }
 
-	/**
-	 * Create a new linked list.
-	 */
-	public static <T> LinkedList<T> createLinkedList() {
-		return new LinkedList<T>();
-	}
+    /**
+     * Create a new linked list.
+     */
+    public static <T> LinkedList<T> createLinkedList() {
+        return new LinkedList<T>();
+    }
 
-	/**
-	 * Create a new lock free queue (concurrent).
-	 */
-	public static <T> LockFreeQueue<T> createLockFreeQueue() {
-		return new LockFreeQueue<T>();
-	}
+    /**
+     * Create a new lock free queue (concurrent).
+     */
+    public static <T> LockFreeQueue<T> createLockFreeQueue() {
+        return new LockFreeQueue<T>();
+    }
 
-	/**
-	 * Create a new FC Queue (concurrent)
-	 * 
-	 * @param <T>
-	 * @return
-	 */
-	public static <T> FCQueue<T> createFCQueue() {
-		return new FCQueue<T>();
-	}
+    /**
+     * Create a new FC Queue (concurrent)
+     * 
+     * @param <T>
+     * @return
+     */
+    public static <T> FCQueue<T> createFCQueue() {
+        return new FCQueue<T>();
+    }
 
-	/**
-	 * Create a new lock free stack (concurrent).
-	 */
-	public static <T> LockFreeStack<T> createLockFreeStack() {
-		return new LockFreeStack<T>();
-	}
+    /**
+     * Create a new lock free stack (concurrent).
+     */
+    public static <T> LockFreeStack<T> createLockFreeStack() {
+        return new LockFreeStack<T>();
+    }
 
-	/**
-	 * Create a new double ended queue (concurrent).
-	 */
-	public static <T> BDEQueue<T> createBoundedDoubleEndedQueue(int capacity) {
-		return new BDEQueue<T>(capacity);
-	}
+    /**
+     * Create a new double ended queue (concurrent).
+     */
+    public static <T> BDEQueue<T> createBoundedDoubleEndedQueue(int capacity) {
+        return new BDEQueue<T>(capacity);
+    }
 
-	/**
-	 * Create a new double ended queue (concurrent).
-	 */
-	public static <T> UnboundedDEQueue<T> createUnboundedDoubleEndedQueue(Class<T> clazz) {
-		return new UnboundedDEQueue<T>(clazz, LOG_CAPACITY);
-	}
+    /**
+     * Create a new double ended queue (concurrent).
+     */
+    public static <T> UnboundedDEQueue<T> createUnboundedDoubleEndedQueue(Class<T> clazz) {
+        return new UnboundedDEQueue<T>(clazz, LOG_CAPACITY);
+    }
 
-	/**
-	 * create a new concurrent hash map
-	 */
-	public static <T, K> ConcurrentHashMap<T, K> createConcurrentHashMap() {
-		return new ConcurrentHashMap<T, K>();
-	}
+    /**
+     * create a new concurrent hash map
+     */
+    public static <T, K> ConcurrentHashMap<T, K> createConcurrentHashMap() {
+        return new ConcurrentHashMap<T, K>();
+    }
 
-	public static <T> ConcurrentSkipListSet<T> createConcurrentSkipList() {
-		return new ConcurrentSkipListSet<T>();
-	}
+    public static <T> ConcurrentSkipListSet<T> createConcurrentSkipList() {
+        return new ConcurrentSkipListSet<T>();
+    }
 
-	/**
-	 * create a new concurrent hash set
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> Set<T> createConcurrentHashSet() {
-		return (Set<T>) Collections.synchronizedSet(CollectionFactory.createHashSet());
-	}
+    /**
+     * create a new concurrent hash set
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> createConcurrentHashSet() {
+        return (Set<T>) Collections.synchronizedSet(CollectionFactory.createHashSet());
+    }
 
-	/**
-	 * create concurrent linked list
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> List<T> createConcurrentList() {
-		return (List<T>) Collections.synchronizedList(createArrayList());
-	}
+    /**
+     * create concurrent linked list
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> createConcurrentList() {
+        return (List<T>) Collections.synchronizedList(createArrayList());
+    }
 
-	/**
-	 * 
-	 * @param <T>
-	 * @param item
-	 * @param list
-	 */
-	public static <T> void threadSafeListAdd(T item, List<T> list) {
-		synchronized (list) {
-			list.add(item);
-		}
-	}
+    /**
+     * 
+     * @param <T>
+     * @param item
+     * @param list
+     */
+    public static <T> void threadSafeListAdd(T item, List<T> list) {
+        synchronized (list) {
+            list.add(item);
+        }
+    }
 
-	public static <T> T threadSafeListGet(int index, List<T> list) {
-		synchronized (list) {
-			return list.get(index);
-		}
-	}
+    public static <T> T threadSafeListGet(int index, List<T> list) {
+        synchronized (list) {
+            return list.get(index);
+        }
+    }
 
-	public static <T> T threadSafeListRemove(int index, List<T> list) {
-		synchronized (list) {
-			return list.remove(index);
-		}
-	}
+    public static <T> T threadSafeListRemove(int index, List<T> list) {
+        synchronized (list) {
+            return list.remove(index);
+        }
+    }
 
-	/**
-	 * 
-	 * @param <T>
-	 * @param source
-	 * @return
-	 */
-	public static <T> Set<T> copySet(Set<T> source) {
-		Set<T> result = CollectionFactory.createHashSet();
+    /**
+     * 
+     * @param <T>
+     * @param source
+     * @return
+     */
+    public static <T> Set<T> copySet(Set<T> source) {
+        Set<T> result = CollectionFactory.createHashSet();
 
-		doCopySet(source, result);
+        doCopySet(source, result);
 
-		return result;
-	}
+        return result;
+    }
 
-	/**
-	 * 
-	 * @param <T>
-	 * @param source
-	 * @return
-	 */
-	public static <T> Set<T> copySetToConcurrent(Set<T> source) {
-		Set<T> result = CollectionFactory.createConcurrentHashSet();
+    /**
+     * 
+     * @param <T>
+     * @param source
+     * @return
+     */
+    public static <T> Set<T> copySetToConcurrent(Set<T> source) {
+        Set<T> result = CollectionFactory.createConcurrentHashSet();
 
-		doCopySet(source, result);
+        doCopySet(source, result);
 
-		return result;
-	}
+        return result;
+    }
 
-	/**
-	 * 
-	 * @param <T>
-	 * @param source
-	 * @param dest
-	 */
-	private static <T> void doCopySet(Set<T> source, Set<T> dest) {
+    /**
+     * 
+     * @param <T>
+     * @param source
+     * @param dest
+     */
+    private static <T> void doCopySet(Set<T> source, Set<T> dest) {
 
-		for (Iterator<T> it = source.iterator(); it.hasNext();) {
-			dest.add(it.next());
-		}
+        for (Iterator<T> it = source.iterator(); it.hasNext();) {
+            dest.add(it.next());
+        }
 
-	}
+    }
 
 }

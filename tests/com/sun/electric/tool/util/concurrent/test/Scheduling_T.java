@@ -39,6 +39,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
 /**
@@ -52,7 +53,7 @@ public class Scheduling_T {
 	private static Integer[][] matCPar;
 	private static Integer[][] matCSer;
 	private static int size = 700;
-	private static final int numOfThreads = 1;
+	private static final int numOfThreads = 8;
 
 	@Test
 	public void balancingTest() throws PoolExistsException, InterruptedException {
@@ -136,6 +137,11 @@ public class Scheduling_T {
 
 		}
 
+	}
+	
+	@Test
+	public void testGetSchedulers() {
+	    System.out.println(Scheduler.getAvailableScheduler());
 	}
 
 }

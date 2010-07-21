@@ -124,9 +124,6 @@ public class ThreadPool_T {
 		long total = endTime - startTime;
 
 		System.out.println("test took: " + TextUtils.getElapsedTime(total));
-		
-		Assert.assertTrue(total > 50000);
-		Assert.assertTrue(total < 51000);
 
 	}
 

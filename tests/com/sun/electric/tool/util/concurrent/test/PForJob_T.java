@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.UniqueIDGenerator;
+import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
@@ -42,6 +43,8 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
 public class PForJob_T {
@@ -89,7 +92,7 @@ public class PForJob_T {
         matCPar = TestHelper.createMatrixIntegerNull(size, size, 100);
         matCSer = TestHelper.createMatrixIntegerNull(size, size, 100);
 
-        ThreadPool pool = ThreadPool.initialize();
+        ThreadPool pool = ThreadPool.initialize(new FCQueue<PTask>(), 8);
 
         long start = System.currentTimeMillis();
         PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask(size));
@@ -97,7 +100,7 @@ public class PForJob_T {
 
         long endPar = System.currentTimeMillis() - start;
         System.out.println(endPar);
-        pool.shutdown();
+        ThreadPool.killPool();
 
         start = System.currentTimeMillis();
         matrixMultSer();
@@ -302,15 +305,17 @@ public class PForJob_T {
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 4) {
+        // TODO
+        if (args.length != 5) {
             System.out
-                    .println("Usage: --threads=<#threads> --size=<size> --grain=<grain> --outfile=<outfile>");
+                    .println("Usage: --threads=<#threads> --size=<size> --grain=<grain> --outfile=<outfile> --scheduler=<stack|queue|workStealing>");
             System.exit(1);
         }
 
         int numThreads = 1;
         int grain = 128;
         String outFile = "";
+        SchedulingStrategy schedulingStrategy = null;
 
         for (String arg : args) {
             if (arg.startsWith("--threads")) {
@@ -321,6 +326,15 @@ public class PForJob_T {
                 grain = TestHelper.extractValueFromArgInteger(arg);
             } else if (arg.startsWith("--outfile")) {
                 outFile = TestHelper.extractValueFromArgString(arg);
+            } else if (arg.startsWith("--scheduler")) {
+                String tmpScheduler = TestHelper.extractValueFromArgString(arg);
+                try {
+                    schedulingStrategy = SchedulingStrategy.valueOf(tmpScheduler);
+                } catch (Exception ex) {
+                    System.out.println("No scheduler " + tmpScheduler + " available. Use: "
+                            + Scheduler.getAvailableScheduler());
+                    System.exit(1);
+                }
             } else {
                 System.out.println("Unexpected Parameter: " + arg);
                 System.exit(1);
@@ -332,7 +346,8 @@ public class PForJob_T {
         matB = TestHelper.createMatrix(size, size, 100);
         matCPar = TestHelper.createMatrixIntegerNull(size, size, 100);
 
-        ThreadPool pool = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numThreads), numThreads);
+        ThreadPool pool = ThreadPool.initialize(new LockFreeStack<PTask>(), numThreads);
+        pool = ThreadPool.initialize(schedulingStrategy, numThreads);
 
         long start = System.currentTimeMillis();
         PForJob pforjob = new PForJob(new BlockedRange2D(0, size, grain, 0, size, grain), new MatrixMultTask(

@@ -23,10 +23,36 @@
  */
 package com.sun.electric.tool.util.concurrent.patterns;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime;
+import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.StageImpl;
+
 /**
  * @author fs239085
- *
+ * 
  */
-public class Pipeline {
+public class Pipeline<PipeIn, PipeOut> {
+
+    private PipelineRuntime<PipeIn, PipeOut> pipeline;
+
+    public Pipeline() {
+        this.pipeline = new PipelineRuntime<PipeIn, PipeOut>();
+    }
+
+    public void input(PipeIn in) {
+        this.pipeline.input(in);
+    }
+
+    public <Input, Output> void addStage(StageImpl<Input, Output> impl, int numOfWorkers) {
+        this.pipeline.addStage(impl, numOfWorkers);
+    }
+
+    public static class PipelineJob<PipeIn, PipeOut> {
+        
+        private AtomicInteger added = new AtomicInteger(0);
+        private AtomicInteger processed = new AtomicInteger(0);
+
+    }
 
 }

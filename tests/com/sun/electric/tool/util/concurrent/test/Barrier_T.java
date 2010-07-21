@@ -27,6 +27,7 @@ import java.util.Random;
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.electric.tool.util.concurrent.barriers.Barrier;
@@ -41,7 +42,7 @@ public class Barrier_T {
 
 	private static final int TEST_NUM = 10;
 	
-	
+	@Ignore
 	@Test
 	public void testSenseBarrier() throws InterruptedException {
 		Barrier b = new SenseBarrier(TEST_NUM);

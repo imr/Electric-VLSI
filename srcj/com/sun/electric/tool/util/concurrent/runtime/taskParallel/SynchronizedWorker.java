@@ -46,64 +46,64 @@ import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
  */
 public class SynchronizedWorker extends PoolWorkerStrategy {
 
-	protected IStructure<PTask> taskPool = null;
-	protected Semaphore sem;
+    protected IStructure<PTask> taskPool = null;
+    protected Semaphore sem;
 
-	public SynchronizedWorker(IStructure<PTask> taskPool) {
-		super();
-		this.taskPool = taskPool;
-		this.abort = false;
-		sem = new Semaphore(0);
-	}
+    public SynchronizedWorker(IStructure<PTask> taskPool, Semaphore sem) {
+        super();
+        this.taskPool = taskPool;
+        this.abort = false;
+        this.sem = sem;
+    }
 
-	public void trigger() {
-		sem.release();
-	}
+    public void trigger() {
+        sem.release();
+    }
 
-	/**
-	 * This function iterates while the flag abort is false. <br>
-	 * <b>Algorithm:</b>
-	 * <ul>
-	 * <li>wait for trigger</li>
-	 * <li>pick one task from thread pool's task queue</li>
-	 * <li>if task not equal to null, then set threadId and do some
-	 * initialization work on the task object</li>
-	 * <li>execute the task</li>
-	 * <li>finalize work on the task object</li>
-	 * <li>do it again ...</li>
-	 * </ul>
-	 */
-	@Override
-	public void execute() {
-		this.threadId = ThreadID.get();
-		this.executed = 0;
-		while (!abort) {
-			this.checkForWait();
+    /**
+     * This function iterates while the flag abort is false. <br>
+     * <b>Algorithm:</b>
+     * <ul>
+     * <li>wait for trigger</li>
+     * <li>pick one task from thread pool's task queue</li>
+     * <li>if task not equal to null, then set threadId and do some
+     * initialization work on the task object</li>
+     * <li>execute the task</li>
+     * <li>finalize work on the task object</li>
+     * <li>do it again ...</li>
+     * </ul>
+     */
+    @Override
+    public void execute() {
+        this.threadId = ThreadID.get();
+        this.executed = 0;
+        while (!abort) {
+            this.checkForWait();
 
-			sem.acquireUninterruptibly();
+            sem.acquireUninterruptibly();
 
-			// retrieve a new task
-			PTask task = taskPool.remove();
-			if (task != null) {
-				try {
-					// set the current thread id
-					task.setThreadID(ThreadID.get());
-					// do something before execution
-					task.before();
-					// execute the task
-					task.execute();
-					this.executed++;
-				} finally {
-					// do some clean up work etc. after execution of the task
-					task.after();
+            // retrieve a new task
+            PTask task = taskPool.remove();
+            if (task != null) {
+                try {
+                    // set the current thread id
+                    task.setThreadID(ThreadID.get());
+                    // do something before execution
+                    task.before();
+                    // execute the task
+                    task.execute();
+                    this.executed++;
+                } finally {
+                    // do some clean up work etc. after execution of the task
+                    task.after();
 
-					// Debug
+                    // Debug
 
-				}
-			} else {
-				Thread.yield();
-			}
-		}
-	}
+                }
+            } else {
+                Thread.yield();
+            }
+        }
+    }
 
 }

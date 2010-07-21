@@ -32,39 +32,39 @@ package com.sun.electric.tool.util.concurrent.runtime;
  */
 public abstract class WorkerStrategy {
 
-	protected volatile int executed = 0;
-	protected int threadId = -1;
-	protected volatile boolean abort;
+    protected volatile int executed = 0;
+    protected int threadId = -1;
+    protected volatile boolean abort;
 
-	/**
-	 * Abstract method, this method should contain the body of the worker
-	 * strategy
-	 */
-	public abstract void execute();
+    /**
+     * Abstract method, this method should contain the body of the worker
+     * strategy
+     */
+    public abstract void execute();
 
-	/**
-	 * shutdown the current worker
-	 */
-	public void shutdown() {
-		abort = true;
-	}
+    /**
+     * shutdown the current worker
+     */
+    public void shutdown() {
+        abort = true;
+    }
 
-	public int getExecutedCounter() {
-		return this.executed;
-	}
+    public int getExecutedCounter() {
+        return this.executed;
+    }
 
-	public int getThreadID() {
-		return this.threadId;
-	}
+    public int getThreadID() {
+        return this.threadId;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "Thread " + getThreadID() + ": " + getExecutedCounter();
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "Thread " + getThreadID() + ": " + getExecutedCounter();
+    }
 
 }

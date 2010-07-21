@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent.test;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.electric.tool.Job;
@@ -36,6 +37,7 @@ import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.St
  */
 public class Pipeline_T {
 
+    @Ignore
     @Test
     public void testPipelineConstruction() throws InterruptedException {
     	

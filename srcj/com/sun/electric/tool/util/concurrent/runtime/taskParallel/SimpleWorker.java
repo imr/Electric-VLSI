@@ -57,7 +57,7 @@ public class SimpleWorker extends PoolWorkerStrategy {
 	 * </ul>
 	 */
 	@Override
-	public void execute() {
+	public void execute() {	    
 		this.threadId = ThreadID.get();
 		this.executed = 0;
 		while (!abort) {
