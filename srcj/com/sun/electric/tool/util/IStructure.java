@@ -38,6 +38,8 @@ import com.sun.electric.tool.util.concurrent.datastructures.IWorkStealing;
  */
 public abstract class IStructure<T> implements IWorkStealing {
 
+	protected volatile boolean abort = false;
+
 	/**
 	 * add a object of type T
 	 * 
@@ -91,6 +93,10 @@ public abstract class IStructure<T> implements IWorkStealing {
 		public Node(T value) {
 			this.value = value;
 		}
+	}
+
+	public void shutdown() {
+		abort = true;
 	}
 
 	/**

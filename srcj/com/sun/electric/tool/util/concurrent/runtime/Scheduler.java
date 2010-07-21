@@ -36,7 +36,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
 public class Scheduler {
 
 	public enum SchedulingStrategy {
-		queue, stack, workStealing, multipleQueues;
+		queue, stack, workStealing, multipleQueues, fcQueue;
 	}
 
 	public static IStructure<PTask> createScheduler(SchedulingStrategy strategy, int numOfThreads)
@@ -51,6 +51,8 @@ public class Scheduler {
 			result = WorkStealingStructure.createForThreadPool(numOfThreads);
 		} else if (strategy.equals(SchedulingStrategy.multipleQueues)) {
 			result = new MultipleQueuesStructure<PTask>(numOfThreads);
+		} else if (strategy.equals(SchedulingStrategy.fcQueue)) {
+			result = CollectionFactory.createFCQueue();
 		} else {
 			throw new UnknownSchedulerException();
 		}
