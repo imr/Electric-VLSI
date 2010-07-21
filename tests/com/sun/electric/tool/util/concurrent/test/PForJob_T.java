@@ -345,8 +345,8 @@ public class PForJob_T {
         matB = TestHelper.createMatrix(size, size, 100);
         matCPar = TestHelper.createMatrixIntegerNull(size, size, 100);
 
-        ThreadPool pool = ThreadPool.initialize(new LockFreeStack<PTask>(), numThreads);
-        pool = ThreadPool.initialize(schedulingStrategy, numThreads);
+        
+        ThreadPool pool = ThreadPool.initialize(schedulingStrategy, numThreads);
 
         long start = System.currentTimeMillis();
         PForJob pforjob = new PForJob(new BlockedRange2D(0, size, grain, 0, size, grain), new MatrixMultTask(
