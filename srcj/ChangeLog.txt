@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00j: ******************************
 
+IMP: (7/21/10, FS) Add Scheduler Factory to Parallel Infrastructure
+
 IMP: (7/20/10, FS) Add FCQueue proposed by Nir Shavit and integrated the queue
 	as a scheduler for the parallel infrastructure.
 
