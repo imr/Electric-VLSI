@@ -25,6 +25,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
+import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
 import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Engine;
@@ -54,6 +55,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.SwingUtilities;
 
 
 /**
@@ -194,16 +197,16 @@ public class Analyzer extends Engine
 	 * @param cell the cell to simulate.
 	 * @param fileName the file with the input deck (null to generate one)
 	 */
-	public static void simulateCell(Cell cell, VarContext context, String fileName)
+	public static void simulateCell(Cell cell, VarContext context, String fileName, IRSIMPreferences ip)
 	{
 		Analyzer theAnalyzer = new Analyzer();
 		theAnalyzer.cell = cell;
 		theAnalyzer.context = context;
 		theAnalyzer.fileName = fileName;
-		startIrsim(theAnalyzer);
+		startIrsim(theAnalyzer, ip);
 	}
 
-	private static void startIrsim(Analyzer analyzer)
+	private static void startIrsim(final Analyzer analyzer, IRSIMPreferences ip)
 	{
 		synchronized(analyzer)
 		{
@@ -215,16 +218,27 @@ public class Analyzer extends Engine
 			// Load network
 			if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
 				System.out.println("Loading netlist for file " + analyzer.fileName + "...");
-			analyzer.loadCircuit();
-			Stimuli sd = analyzer.getStimuli();
-			WaveformWindow.showSimulationDataInNewWindow(sd);
+			analyzer.loadCircuit(ip);
+			final Stimuli sd = analyzer.getStimuli();
+
+			SwingUtilities.invokeLater(new Runnable() { public void run()
+			{
+				// make a waveform window
+				WaveformWindow.showSimulationDataInNewWindow(sd);
+				analyzer.ww = sd.getWaveformWindow();
+				analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
+				analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
+				analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+				analyzer.init();
+			}});
 
 			// make a waveform window
-			analyzer.ww = sd.getWaveformWindow();
-			analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
-			analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
-			analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
-			analyzer.init();
+//			WaveformWindow.showSimulationDataInNewWindow(sd);
+//			analyzer.ww = sd.getWaveformWindow();
+//			analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
+//			analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
+//			analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+//			analyzer.init();
 		}
 	}
 
@@ -250,7 +264,7 @@ public class Analyzer extends Engine
 		updateWindow(theSim.curDelta);
 	}
 
-	private void loadCircuit()
+	private void loadCircuit(IRSIMPreferences ip)
 	{
 		// Load network
 		List<Object> components = null;
@@ -258,7 +272,7 @@ public class Analyzer extends Engine
 		if (fileName == null)
 		{
 			// generate the components directly
-			components = IRSIM.getIRSIMComponents(cell, context);
+			components = IRSIM.getIRSIMComponents(cell, context, ip);
 		} else
 		{
 			// get a pointer to to the file with the network (.sim file)
@@ -508,26 +522,26 @@ public class Analyzer extends Engine
 		loadVectorFile();
 	}
 
-	/**
-	 * Method to reload the circuit data.
-	 */
-	public void refresh()
-	{
-		// make a new simulation object
-		theSim = new Sim(this);
-
-		// now initialize the simulator
-		initRSim();
-
-		// Load network
-		loadCircuit();
-		WaveformWindow.refreshSimulationData(sd, ww);
-
-		if (vectorFileName != null) loadVectorFile();
-		init();
-
-		playVectors();
-	}
+//	/**
+//	 * Method to reload the circuit data.
+//	 */
+//	public void refresh(IRSIMPreferences ip)
+//	{
+//		// make a new simulation object
+//		theSim = new Sim(this);
+//
+//		// now initialize the simulator
+//		initRSim();
+//
+//		// Load network
+//		loadCircuit(ip);
+//		WaveformWindow.refreshSimulationData(sd, ww);
+//
+//		if (vectorFileName != null) loadVectorFile();
+//		init();
+//
+//		playVectors();
+//	}
     public Stimuli getStimuli() { return sd; }
 
 	/************************** SIMULATION VECTORS **************************/

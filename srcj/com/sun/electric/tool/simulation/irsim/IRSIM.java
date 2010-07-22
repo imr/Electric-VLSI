@@ -23,60 +23,11 @@
  */
 package com.sun.electric.tool.simulation.irsim;
 
-import com.sun.electric.tool.simulation.*;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Geometric;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.lib.LibFile;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.ToolSettings;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.output.GenerateVHDL;
-import com.sun.electric.tool.io.output.Spice;
-import com.sun.electric.tool.io.output.Verilog;
-import com.sun.electric.tool.simulation.als.ALS;
-import com.sun.electric.tool.user.CompileVHDL;
-import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.EMenu;
-import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.waveform.Panel;
-import com.sun.electric.tool.user.waveform.WaveSignal;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
 
-import java.awt.Color;
-import java.awt.Frame;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
 
 /**
  * IRSIM
@@ -112,7 +63,8 @@ public class IRSIM {
                 // find the necessary methods on the IRSIM class
                 try
                     {
-                        irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class, VarContext.class, String.class});
+                        irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class,
+                        	VarContext.class, String.class, IRSIMPreferences.class});
                     } catch (NoSuchMethodException e)
                     {
                         irsimClass = null;
@@ -133,11 +85,11 @@ public class IRSIM {
      * @param fileName the name of the file with the netlist.  If this is null, simulate the cell.
      * If this is not null, ignore the cell and simulate the file.
      */
-    public static void runIRSIM(Cell cell, VarContext context, String fileName)
+    public static void runIRSIM(Cell cell, VarContext context, String fileName, IRSIMPreferences ip)
     {
         try
             {
-                irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName});
+                irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName, ip});
                 return;
             } catch (Exception e)
             {

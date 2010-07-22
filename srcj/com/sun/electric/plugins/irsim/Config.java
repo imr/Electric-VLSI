@@ -276,7 +276,7 @@ public class Config
 	}
 
 	/**
-	 * given a list of length structures, sorted by incresing length return
+	 * given a list of length structures, sorted by increasing length return
 	 * resistance of given channel.  If no exact match, return result of
 	 * linear interpolation using two closest channels.
 	 */

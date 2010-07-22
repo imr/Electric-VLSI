@@ -95,10 +95,9 @@ public class IRSIM extends Output implements ParasiticGenerator
 	 * @param context the hierarchical context to the cell.
 	 * @return a List of ComponentInfoOLD objects that describes the circuit.
 	 */
-	public static List<Object> getIRSIMComponents(Cell cell, VarContext context)
+	public static List<Object> getIRSIMComponents(Cell cell, VarContext context, IRSIMPreferences ip)
 	{
 		// gather all components
-		IRSIMPreferences ip = new IRSIMPreferences(true);
 		IRSIM out = new IRSIM(ip);
 		out.technology = cell.getTechnology();
 		if (out.technology == Schematics.tech()) out.technology = ip.schematicTech;

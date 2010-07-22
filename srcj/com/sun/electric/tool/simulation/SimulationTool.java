@@ -43,6 +43,7 @@ import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
 import com.sun.electric.tool.simulation.als.ALS;
 import com.sun.electric.tool.simulation.irsim.IRSIM;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -96,7 +97,8 @@ public class SimulationTool extends Tool {
 	 * @param prevCell the previous cell being simulated (null for a new simulation).
 	 * @param prevEngine the previous simulation engine running (null for a new simulation).
 	 */
-	public static void startSimulation(int engine, boolean forceDeck, Cell prevCell, Engine prevEngine) {
+	public static void startSimulation(int engine, boolean forceDeck, Cell prevCell, Engine prevEngine)
+	{
 		Cell cell = null;
 		VarContext context = null;
 		String fileName = null;
@@ -149,11 +151,33 @@ public class SimulationTool extends Tool {
 
 			case IRSIM_ENGINE:
 				if (!IRSIM.hasIRSIM()) return;
-//                if (!cell.isSchematic()) // not valid cell
-//                    System.out.println("Can't run IRSIM on a non-schematic cell: " + cell);
-//                else
-                IRSIM.runIRSIM(cell, context, fileName);
+				new RunIRSIM(cell, context, fileName);
+//                IRSIM.runIRSIM(cell, context, fileName);
 				break;
+		}
+	}
+
+	private static class RunIRSIM extends Job
+	{
+		private Cell cell;
+		private VarContext context;
+		private String fileName;
+        private IRSIMPreferences ip;
+
+		public RunIRSIM(Cell cell, VarContext context, String fileName)
+		{
+			super("Start IRSIM simulation", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.context = context;
+			this.fileName = fileName;
+            ip = new IRSIMPreferences(true);
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			IRSIM.runIRSIM(cell, context, fileName, ip);
+			return true;
 		}
 	}
 

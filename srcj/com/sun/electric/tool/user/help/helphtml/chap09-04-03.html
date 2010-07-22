@@ -11,23 +11,18 @@
 <!-- PREFERENCE Tools/Spice -->
 <!-- PREFERENCE Tools/Spice Model Files -->
 
-Electric can produce input decks for Spice simulation with <B>Write Spice Deck...</B> command
+Electric can produce input decks for Spice simulation with the <B>Write Spice Deck...</B> command
 (in menu <B>Tools / Simulation (Spice)</B>).
-After this has been done, you must run Spice externally to produce a simulation output file.
+Since there are may formats of Spice output, you must first set the "Spice Engine" field of the
+Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
+After the Spice deck has been written, you must run Spice externally to produce a simulation output file.
 Note that the Electric distribution does not come with a Spice simulator: you must obtain it separately.
 <P>
-Once Spice has been run,
-you can see a plot of the simulation by reading the Spice output file back into Electric.
-Since there are may formats of Spice output, you must first set the "Spice Engine" and the "Output format" fields of the
-Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
-The "Output format" field is "Standard" for the default output of the Spice engine; "Raw" for rawfile dumps;
-and "Raw/Smart" for the rawfile dumps from SmartSpice.
-<P>
-When Electric knows what type of Spice output file to expect, use the <B>Plot Simulation Output, Choose File...</B>
-command (in menu <B>Tools / Simulation (Spice)</B>) to read the file.
-If the file has the same name as the current cell, you can more simply use <B>Plot Simulation Output, Guess File</B>,
-which does not need to prompt for a file name.
-The Spice simulation information is shown in an analog waveform window
+After Spice has finished running, use the <B>Plot Simulation Output, Guess File</B>
+command (in menu <B>Tools / Simulation (Spice)</B>) to read the Spice output and plot the waveforms.
+If the file cannot be guessed from the cell name, you can use <B>Plot Simulation Output, Choose File...</B>,
+to select the desired Spice output file.
+The Spice simulation information is shown in a waveform window
 (see <A HREF="chap04-11.html#chap04-11">Section 4-11</A> for more).
 <P>
 <H4>Special Spice Nodes</H4>
@@ -116,7 +111,7 @@ Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice
 <!-- NEED 3in -->
 The top part of this dialog allows you to control Spice deck generation:
 <UL>
-<LI><B>Spice engine</B> Can be Spice 2, Spice 3, HSpice, PSpice, Gnucap, or SmartSpice.</LI>
+<LI><B>Spice engine</B> Can be Spice 2, Spice 3, HSpice, PSpice, Spice Opus, Gnucap, or SmartSpice.</LI>
 <LI><B>Spice level</B> Can be 1, 2, or 3 (not used anymore).</LI>
 <LI><B>Resistor shorting</B> Specifies which resistors get shorted when writing a Spice netlist from a schematic.
 Choices are:

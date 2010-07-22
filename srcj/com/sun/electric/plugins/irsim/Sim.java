@@ -22,6 +22,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.extract.ExtractedPBucket;
 import com.sun.electric.tool.extract.RCPBucket;
 import com.sun.electric.tool.extract.TransistorPBucket;
@@ -1156,9 +1157,16 @@ public class Sim
 		boolean rError = false;
 		boolean aError = false;
 		String fileName = simFileURL.getFile();
+		Job.getUserInterface().startProgressDialog("import", fileName);
 		try
 		{
 			URLConnection urlCon = simFileURL.openConnection();
+			String contentLength = urlCon.getHeaderField("content-length");
+			long fileLength = -1;
+			try {
+				fileLength = Long.parseLong(contentLength);
+			} catch (Exception e) {}
+			long readSoFar = 0;
 			InputStream inputStream = urlCon.getInputStream();
 			InputStreamReader is = new InputStreamReader(inputStream);
 			LineNumberReader lineReader = new LineNumberReader(is);
@@ -1166,6 +1174,8 @@ public class Sim
 			{
 				String line = lineReader.readLine();
 				if (line == null) break;
+				readSoFar += line.length() + 1;
+				Job.getUserInterface().setProgressValue((int)(readSoFar * 100 / fileLength));
 				String [] targ = parseLine(line, false);
 				if (targ.length == 0) continue;
 				char firstCh = targ[0].charAt(0);
@@ -1247,6 +1257,7 @@ public class Sim
 		{
 			System.out.println("Error reading file");
 		}
+		Job.getUserInterface().stopProgressDialog();
 		System.out.println("Loaded circuit, lambda=" + theConfig.lambda + "u");
 	}
 

@@ -133,7 +133,7 @@ public final class SimulationData {
             this.is = getInputForExtension(fileURL.getPath());
             this.netDelimeter = SimulationTool.getSpiceExtractedNetDelimiter();
             if (this.is==null) throw new RuntimeException("unable to detect type");
-            // future feature: try to guess the file type from the first few lines
+
             launcherEnvironment = Environment.getThreadEnvironment();
             userInterface = new UserInterfaceExec();
 		}

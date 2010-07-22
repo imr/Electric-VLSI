@@ -32,7 +32,7 @@ IMP: (7/17/10, DN) Lazy allocation of "sons" in PolyBase.PolyBaseTree ..
 
 IMP: (7/16/10, DN) Fast path for grid-aligned boxes in AbstractShapeBuilder.pushPoly .
 
-IMP/MAN: (7/15/10, SMR) Added Spice Opus output format (Bug #2848).
+IMP: (7/15/10, SMR) Added Spice Opus output format (Bug #2848).
 
 BUG: (7/15/10, SMR) Going up hierarchy can duplicate selection (Bug #2843).
 FIX: In WindowFrame.setCellByHistory() and in EditWindow.upHierarchy()
