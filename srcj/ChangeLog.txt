@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+IMP: DRC regression failing due to memory problem in sport test (Bug #2854)
+Just disconnecting sport/area/local test since it takes too much time to run.
+
 IMP: (7/22/10, SMR) Added 6 experimental routers from Karlsruhe (Bug #2803).
 
 ************************* Version 9.00j: ******************************
@@ -13,14 +16,14 @@ IMP: (7/21/10, FS) Add Scheduler Factory to Parallel Infrastructure
 IMP: (7/20/10, FS) Add FCQueue proposed by Nir Shavit and integrated the queue
 	as a scheduler for the parallel infrastructure.
 
-IMP: (7/20/10, FS) Parallel metrics: bounding box - minimum spanning tree (MST)
+IMP: (7/20/10, FS) Parallel metrics: bounding box - minimum spaning tree (MST)
 
 BUG: (7/20/10, SMR) Canceling undo warning dialog with ESC fails (Bug #2852).
 FIX: Fixed ToolBar.undoCommand.run().
 
 IMP: (7/19/10, FS) Add progress bar to bookshelf import
 
-BUG: (7/19/10, DN) Database regression fails due to UnsupportedOperationException in testMakeGridPoly.
+BUG: (7/19/10, DN) Database regression failes due to UnsupportedOperationException in testMakeGridPoly.
 FOX: In ImmutableArcInstTest.MyBuilder implement addIntBox.
 
 IMP: (7/18/10, DN) The last argument of basicDRCTest specifies min area check algorithm.
@@ -28,11 +31,11 @@ IMP: (7/18/10, DN) The last argument of basicDRCTest specifies min area check al
 IMP: (7/18/10, DN) Add min area check algorithm DRCCheckMinArea.AREA_MANHATTAN .
     It is fast, but accepts only manhattan layout.
 
-IMP: (7/17/10, DN) Lazy allocation of "sons" in PolyBase.PolyBaseTree ..
+IMP: (7/17/10, DN) Laze allocaltion of "sons" in PolyBase.PolyBaseTree ..
 
 IMP: (7/16/10, DN) Fast path for grid-aligned boxes in AbstractShapeBuilder.pushPoly .
 
-IMP: (7/15/10, SMR) Added Spice Opus output format (Bug #2848).
+IMP/MAN: (7/15/10, SMR) Added Spice Opus output format (Bug #2848).
 
 BUG: (7/15/10, SMR) Going up hierarchy can duplicate selection (Bug #2843).
 FIX: In WindowFrame.setCellByHistory() and in EditWindow.upHierarchy()
@@ -80,8 +83,8 @@ FIX: Fixed SizeListener to avoid transforming into the space of the node.
 BUG (6/30/10, FS) Force-Directed-1 do not terminate (Bug 2800)
 FIX: Kill barrier after termination
 
-BUG (6/30/10, FS) Add Placement Tools to Test Menu (Bug 2831) 
-FIX: Added, each tool has the following parameters (#threads 2, runtime 10sec) 
+BUG (6/30/10, FS) Add Placement Tools to Test Menu (Bug 2831)
+FIX: Added, each tool has the following paramters (#threads 2, runtime 10sec)
 
 BUG: (6/30/10, GVG) Test -> TestPlacement -> Placement1 doesn't work (Bug #2832)
 FIX: Don't assume libraries have *.jelib extension. Fixed regression as well.
