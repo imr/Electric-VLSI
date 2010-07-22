@@ -29,44 +29,50 @@ package com.sun.electric.tool.routing.seaOfGates;
  */
 public class SeaOfGatesEngineFactory {
 
-	public enum SeaOfGatesEngineType {
-		newInfrastructure, oldThreads, defaultVersion, newInfrastructure2
-	}
+    public enum SeaOfGatesEngineType {
+        newInfrastructure, oldThreads, defaultVersion, newInfrastructure2, newInfrastructure3
+    }
 
-	/**
-	 * Create a SeaOfGates version using the default version
-	 * 
-	 * @return
-	 */
-	public static SeaOfGatesEngine createSeaOfGatesEngine() {
-		return createSeaOfGatesEngine(SeaOfGatesEngineType.defaultVersion);
-	}
+    /**
+     * Create a SeaOfGates version using the default version
+     * 
+     * @return
+     */
+    public static SeaOfGatesEngine createSeaOfGatesEngine() {
+        return createSeaOfGatesEngine(SeaOfGatesEngineType.defaultVersion);
+    }
 
-	public static SeaOfGatesEngine createSeaOfGatesEngine(SeaOfGatesEngineType version) {
-		SeaOfGatesEngine result = null;
+    public static SeaOfGatesEngine createSeaOfGatesEngine(SeaOfGatesEngineType version) {
+        SeaOfGatesEngine result = null;
 
-		if (version.equals(SeaOfGatesEngineType.newInfrastructure))
-			result = createSeaOfGatesEngineNew();
-		else if (version.equals(SeaOfGatesEngineType.oldThreads))
-			result = createSeaOfGatesEngineOld();
-		else if (version.equals(SeaOfGatesEngineType.newInfrastructure2))
-			result = createSeaOfGatesEngineNew2();
-		else if (version.equals(SeaOfGatesEngineType.defaultVersion))
-			result = createSeaOfGatesEngineOld();
+        if (version.equals(SeaOfGatesEngineType.newInfrastructure))
+            result = createSeaOfGatesEngineNew();
+        else if (version.equals(SeaOfGatesEngineType.oldThreads))
+            result = createSeaOfGatesEngineOld();
+        else if (version.equals(SeaOfGatesEngineType.newInfrastructure2))
+            result = createSeaOfGatesEngineNew2();
+        else if (version.equals(SeaOfGatesEngineType.newInfrastructure3))
+            result = createSeaOfGatesEngineNew3();
+        else if (version.equals(SeaOfGatesEngineType.defaultVersion))
+            result = createSeaOfGatesEngineOld();
 
-		return result;
-	}
+        return result;
+    }
 
-	public static SeaOfGatesEngine createSeaOfGatesEngineOld() {
-		return new SeaOfGatesEngineOld();
-	}
+    public static SeaOfGatesEngine createSeaOfGatesEngineOld() {
+        return new SeaOfGatesEngineOld();
+    }
 
-	public static SeaOfGatesEngine createSeaOfGatesEngineNew() {
-		return new SeaOfGatesEngineNew();
-	}
+    public static SeaOfGatesEngine createSeaOfGatesEngineNew() {
+        return new SeaOfGatesEngineNew();
+    }
 
-	public static SeaOfGatesEngine createSeaOfGatesEngineNew2() {
-		return new SeaOfGatesEngineNew2();
-	}
+    public static SeaOfGatesEngine createSeaOfGatesEngineNew2() {
+        return new SeaOfGatesEngineNew2();
+    }
+
+    public static SeaOfGatesEngine createSeaOfGatesEngineNew3() {
+        return new SeaOfGatesEngineNew3();
+    }
 
 }

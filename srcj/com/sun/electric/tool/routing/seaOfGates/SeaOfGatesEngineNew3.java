@@ -37,7 +37,9 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.SeaOfGates.SeaOfGatesOptions;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.Parallel;
+import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
@@ -45,13 +47,15 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class SeaOfGatesEngineNew2 extends SeaOfGatesEngine {
+public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
 
     private ThreadPool pools;
     private PJob seaOfGatesJob;
@@ -101,17 +105,19 @@ public class SeaOfGatesEngineNew2 extends SeaOfGatesEngine {
             System.out.println("Do routing parallel with new parallel Infrastructure 2");
 
         try {
-            pools = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
-                    numberOfThreads);
-        } catch (PoolExistsException e1) {}
+            pools = ThreadPool.initialize(SchedulingStrategy.fcQueue, numberOfThreads * 2);
+        } catch (PoolExistsException e1) {} catch (UnknownSchedulerException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         seaOfGatesJob = new PJob();
 
         // non-blocking execute
         seaOfGatesJob.execute(false);
 
-        NeededRoute[] routesToDo = new NeededRoute[numberOfThreads];
-        int[] routeIndices = new int[numberOfThreads];
+        List<NeededRoute> routesToDo = CollectionFactory.createArrayList();
+        List<Integer> routeIndices = CollectionFactory.createArrayList();
 
         // create list of routes and blocked areas
         List<NeededRoute> myList = new ArrayList<NeededRoute>();
@@ -137,45 +143,53 @@ public class SeaOfGatesEngineNew2 extends SeaOfGatesEngine {
                 if (isBlocked)
                     continue;
 
+                myList.remove(i);
+
                 // this route can be done: start it
                 blocked.add(nr.routeBounds);
-                routesToDo[threadAssign] = nr;
-                routeIndices[threadAssign] = i;
+                routesToDo.add(nr);
+                routeIndices.add(i);
                 findPath(nr, env, ep);
                 threadAssign++;
-                if (threadAssign >= numberOfThreads)
-                    break;
+                // if (threadAssign >= numberOfThreads)
+                // break;
             }
 
-            String routes = "";
-            for (int i = 0; i < threadAssign; i++) {
-                String routeName = routesToDo[i].routeName;
-                if (routeBatches[routesToDo[i].batchNumber].segsInBatch > 1)
-                    routeName += "(" + routesToDo[i].routeInBatch + "/"
-                            + routeBatches[routesToDo[i].batchNumber].segsInBatch + ")";
-                if (routes.length() > 0)
-                    routes += ", ";
-                routes += routeName;
-            }
-            System.out.println("Parallel routing " + routes + "...");
-            Job.getUserInterface().setProgressNote(routes);
+            // String routes = "";
+            // for (int i = 0; i < threadAssign; i++) {
+            // String routeName = routesToDo[i].routeName;
+            // if (routeBatches[routesToDo[i].batchNumber].segsInBatch > 1)
+            // routeName += "(" + routesToDo[i].routeInBatch + "/"
+            // + routeBatches[routesToDo[i].batchNumber].segsInBatch + ")";
+            // if (routes.length() > 0)
+            // routes += ", ";
+            // routes += routeName;
+            // }
+            // System.out.println("Parallel routing " + routes + "...");
+            // Job.getUserInterface().setProgressNote(routes);
 
             // now wait for routing threads to finish
             // outSem.acquireUninterruptibly(threadAssign);
             seaOfGatesJob.join();
 
             // all done, now handle the results
-            for (int i = 0; i < threadAssign; i++) {
-                if (routesToDo[i].winningWF != null && routesToDo[i].winningWF.vertices != null)
-                    createRoute(routesToDo[i]);
+            // System.out.println("parallel routes: " + routesToDo.size());
+            for (NeededRoute tmpNr : routesToDo) {
+                if (tmpNr.winningWF != null && tmpNr.winningWF.vertices != null)
+                    createRoute(tmpNr);
             }
-            for (int i = threadAssign - 1; i >= 0; i--)
-                myList.remove(routeIndices[i]);
+
+            routesToDo.clear();
+            routeIndices.clear();
+
             routesDone += threadAssign;
             Job.getUserInterface().setProgressValue(routesDone * 100 / totalRoutes);
+
         }
 
         seaOfGatesJob.join();
+        routesToDo.clear();
+        routeIndices.clear();
 
         try {
             ThreadPool.getThreadPool().shutdown();
@@ -268,7 +282,7 @@ public class SeaOfGatesEngineNew2 extends SeaOfGatesEngine {
 
         public synchronized boolean isReady(int id) {
             isReady[id] = true;
-            return isReady[0] && isReady[1];
+            return !(isReady[0] && isReady[1]);
         }
 
         /*
@@ -311,7 +325,10 @@ public class SeaOfGatesEngineNew2 extends SeaOfGatesEngine {
                     wnd.finishedHighlighting();
                 }
             }
-            nr.cleanSearchMemory();
+            // nr.cleanSearchMemory();
+
+            // System.out.println(nr.routeName + " done ... (" + nr.routeInBatch
+            // + "/" + nr.batchNumber + ")");
 
         }
 
