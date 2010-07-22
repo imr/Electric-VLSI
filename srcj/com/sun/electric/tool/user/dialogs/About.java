@@ -57,31 +57,44 @@ public class About extends EDialog
 		static CastOfThousands [] javaTeam = new CastOfThousands[]
 		{
 			new CastOfThousands("Iskandar Abudiab",			"Placement tool (Simulated Annealing 1)"),
+			new CastOfThousands("Dennis Appelt",			"Routing tool (Lee/Moore 3)"),
 			new CastOfThousands("Jake Baker",				"Thin Film technology"),
 			new CastOfThousands("Jan Barth",				"Placement tool (Simulated Annealing 1)"),
 			new CastOfThousands("Philippe Bartscherer",		"Placement tool (Force Directed 1)"),
+			new CastOfThousands("Ingo Besenfelder",			"Routing tool (A* 2/3)"),
+			new CastOfThousands("Alexander Bieles",			"Routing tool (Lee/Moore 1)"),
 			new CastOfThousands("Robert Bosnyak",			"Pads library"),
 			new CastOfThousands("Prashanth Busa",			"Thin Film technology"),
 			new CastOfThousands("Ivan Dimitrov",			"Placement tool (Genetic 1)"),
 			new CastOfThousands("Richard Fallert",			"Placement tool (Genetic 2)"),
+			new CastOfThousands("Martin Fietz",				"Routing tool (Lee/Moore 2)"),
 			new CastOfThousands("Stephen Friedman",			"NCC"),
 			new CastOfThousands("Jonathan Gainsley",		"User interface, Simulation, Logical effort"),
 			new CastOfThousands("Gilda Garret\u00F3n",		"DRC, ERC, 3D, technologies, fill generation"),
+			new CastOfThousands("Christian Harnisch",		"Routing tool (A* 2/3)"),
 			new CastOfThousands("David Harris",				"ROM generator, Color printing"),
 			new CastOfThousands("Thomas Hauck",				"Placement tool (Force Directed 1)"),
+			new CastOfThousands("Alexander Herzog",			"Routing tool (Lee/Moore 2)"),
 			new CastOfThousands("Jochen Huck",				"Placement tool (Force Directed 1)"),
 			new CastOfThousands("Jason Imada",				"ROM generator"),
+			new CastOfThousands("Sven Janko",				"Routing tool (Lee/Moore 3)"),
+			new CastOfThousands("Christian J\u00FClg",		"Routing tool (A* 1)"),
 			new CastOfThousands("Russell Kao",				"NCC, generators, Hierarchy enumeration, Regressions"),
 			new CastOfThousands("Daniel Lechner",			"Placement tool (Force Directed 2)"),
 			new CastOfThousands("Frank Lee",				"ROM generator"),
 			new CastOfThousands("Jochen Lutz",				"Placement tool (Simulated Annealing 2)"),
+			new CastOfThousands("Adam Megacz",				"Simulation"),
 			new CastOfThousands("Ivan Minevskiy",			"NCC display"),
 			new CastOfThousands("Benedikt Mueller",			"Placement tool (Genetic 2)"),
 			new CastOfThousands("Dmitry Nadezhin",			"Database, Networks, Libraries, Simulation, Optimizations"),
+			new CastOfThousands("Michael Neumann",			"Routing tool (A* 2/3)"),
 			new CastOfThousands("Bob Reese",				"DEF input"),
 			new CastOfThousands("Sebastian Roether",		"Placement tool (Simulated Annealing 2)"),
-			new CastOfThousands("Felix Schmidt",			"Placement tool (Force Directed 2)"),
+			new CastOfThousands("Felix Schmidt",			"Parallelism, ERC, Routing, Placement tool (Force Directed 2)"),
+			new CastOfThousands("Emre Selegin",				"Routing tool (Lee/Moore 1)"),
 			new CastOfThousands("Ivan Sutherland",			"Inspiration, NCC"),
+			new CastOfThousands("Jonas Thedering",			"Routing tool (A* 1)"),
+			new CastOfThousands("Andreas \u00DCbelh\u00F6r","Routing tool (Lee/Moore 1)"),
 			new CastOfThousands("Thomas Valine",			"GDS output"),
 			new CastOfThousands("Brian van Essen",			"Icon generation"),
 			new CastOfThousands("Andreas Wagner",			"Placement tool (Force Directed 1)"),
@@ -89,7 +102,7 @@ public class About extends EDialog
 			new CastOfThousands("Christian Wittner",		"Placement tool (Genetic 1)"),
 			new CastOfThousands("Min Hao Zhu",				"VerilogA output")
 		};
-		static CastOfThousands [] theCast = new CastOfThousands[]
+		static CastOfThousands [] cTeam = new CastOfThousands[]
 		{
 			new CastOfThousands("Philip Attfield", 			"Box merging"),
 			new CastOfThousands("Brett Bissinger", 		    "Node extraction"),
@@ -321,7 +334,7 @@ public class About extends EDialog
 		gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
 		TopLeft.add(javaTeam, gridBagConstraints);
 
-		castOfThousands.setText("Cast of Thousands");
+		castOfThousands.setText("C Team");
 		castOfThousands.addActionListener(new java.awt.event.ActionListener()
 		{
 			public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -415,9 +428,9 @@ public class About extends EDialog
 	private void showCast(java.awt.event.ActionEvent evt)//GEN-FIRST:event_showCast
 	{//GEN-HEADEREND:event_showCast
 		model.clear();
-		for(int i=0; i<CastOfThousands.theCast.length; i++)
-			model.addElement(CastOfThousands.theCast[i].name);
-		showingCast = CastOfThousands.theCast;
+		for(int i=0; i<CastOfThousands.cTeam.length; i++)
+			model.addElement(CastOfThousands.cTeam[i].name);
+		showingCast = CastOfThousands.cTeam;
 	}//GEN-LAST:event_showCast
 
 	private void showJavaTeam(java.awt.event.ActionEvent evt)//GEN-FIRST:event_showJavaTeam

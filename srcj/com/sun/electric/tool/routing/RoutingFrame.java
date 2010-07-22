@@ -23,15 +23,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -59,8 +50,15 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.routing.experimentalSeaOfGates.RoutingFrameSeaOfGates;
-import com.sun.electric.tool.routing.experimentalSimple.RoutingFrameSimple;
+
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Class to define a framework for Routing algorithms.
@@ -102,14 +100,14 @@ public class RoutingFrame
 	 * When you create a new algorithm, add it to the following list.
 	 */
 	private static RoutingFrame [] routingAlgorithms = {
-		new RoutingFrameSimple(),
-		new RoutingFrameSeaOfGates(),
-//		new com.sun.electric.tool.routing.team1astar.AStarRoutingFrame(),
-//		new com.sun.electric.tool.routing.team02LeeMoore.RoutingFrameLeeMoore(),
-//		new com.sun.electric.tool.routing.astar.t3.AStarRouter(),
-//		new com.sun.electric.tool.routing.astar.t3v2.AStarRouter(),
-//		new com.sun.electric.tool.routing.team04LeeMoore.RoutingFrameLeeMoore(),
-//		new com.sun.electric.tool.routing.team06yana.yana()
+//		new RoutingFrameSample(),
+//		new RoutingFrameSeaOfGates(),
+		new com.sun.electric.tool.routing.experimentalAStar1.AStarRoutingFrame(),		// Team 1
+		new com.sun.electric.tool.routing.experimentalAStar2.AStarRouter(),				// Team 3v2
+		new com.sun.electric.tool.routing.experimentalAStar3.AStarRouter(),				// Team 3v1
+		new com.sun.electric.tool.routing.experimentalLeeMoore1.yana(),					// Team 6
+		new com.sun.electric.tool.routing.experimentalLeeMoore2.RoutingFrameLeeMoore(),	// Team 4
+		new com.sun.electric.tool.routing.experimentalLeeMoore3.RoutingFrameLeeMoore(),	// Team 2
 	};
 
 	/**

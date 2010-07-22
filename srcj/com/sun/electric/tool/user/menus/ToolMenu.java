@@ -183,10 +183,31 @@ public class ToolMenu
 	    	setDynamicLanguageMenu();
 		}});
 
-		expRoutingMenu = new EMenu("Experimental Routers");
-		SwingUtilities.invokeLater(new Runnable() { public void run() {
-			setDynamicExperimentalRoutingMenus();
-		}});
+    	RoutingFrame[] expRouters = RoutingFrame.getRoutingAlgorithms();
+		expRoutingMenu = new EMenu("Experimental Routers",
+			expRouters.length > 0 ? new DynamicExperimentalRoutingMenuItem(expRouters[0]) : null,
+			expRouters.length > 1 ? new DynamicExperimentalRoutingMenuItem(expRouters[1]) : null,
+			expRouters.length > 2 ? new DynamicExperimentalRoutingMenuItem(expRouters[2]) : null,
+			expRouters.length > 3 ? new DynamicExperimentalRoutingMenuItem(expRouters[3]) : null,
+			expRouters.length > 4 ? new DynamicExperimentalRoutingMenuItem(expRouters[4]) : null,
+			expRouters.length > 5 ? new DynamicExperimentalRoutingMenuItem(expRouters[5]) : null,
+			expRouters.length > 6 ? new DynamicExperimentalRoutingMenuItem(expRouters[6]) : null,
+			expRouters.length > 7 ? new DynamicExperimentalRoutingMenuItem(expRouters[7]) : null
+		);
+//		expRoutingMenu = new EMenu("Experimental Routers");
+//		SwingUtilities.invokeLater(new Runnable() { public void run() {	
+//	        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
+//	        {
+//	            JMenu menu = (JMenu)menuBarInstance.findMenuItem(expRoutingMenu.getPath());
+//	            RoutingFrame[] expRouters = RoutingFrame.getRoutingAlgorithms();
+//	            for(int i=0; i<expRouters.length; i++)
+//	            {
+//	            	EMenuItem elem = new DynamicExperimentalRoutingMenuItem(expRouters[i]);
+//	                JMenuItem item = elem.genMenu();
+//	                menu.add(item);
+//	            }
+//	        }
+//		}});
 
     	// mnemonic keys available:  B   F H JK     Q      XYZ
 		return new EMenu("_Tools",
@@ -1987,24 +2008,6 @@ public class ToolMenu
 	        	System.out.println("Executing commands in Python Script: " + fileName);
 	        	EvalJython.runScript(fileName);
         	}
-        }
-    }
-
-    /**
-     * Method to load the Experimental Routing menu.
-     */
-    public static void setDynamicExperimentalRoutingMenus()
-    {
-        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
-        {
-            JMenu menu = (JMenu)menuBarInstance.findMenuItem(expRoutingMenu.getPath());
-            RoutingFrame[] expRouters = RoutingFrame.getRoutingAlgorithms();
-            for(int i=0; i<expRouters.length; i++)
-            {
-            	EMenuItem elem = new DynamicExperimentalRoutingMenuItem(expRouters[i]);
-                JMenuItem item = elem.genMenu();
-                menu.add(item);
-            }
         }
     }
 
