@@ -87,6 +87,9 @@ public class FCQueue<T> extends IStructure<T> {
 		boolean have_work = false;
 
 		while (true) {
+			if(this.abort) {
+				return;
+			}
 			// initialize for a new round
 			num_pushed_items = 0;
 			cur_comb_node = comb_list_head;
