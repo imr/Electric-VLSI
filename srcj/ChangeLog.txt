@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+BUG: (7/24/10, FS) Interrupt Exception in LockFreeStack (Bug #2856)
+FIX: Fixed. Save return from backoff algorithm instead of exception.
+
 IMP: DRC regression failing due to memory problem in sport test (Bug #2854)
 Just disconnecting sport/area/local test since it takes too much time to run.
 
