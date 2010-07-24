@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: Tupel.java
- * Written by: Andreas Übelhör, Alexander Bieles, Emre Selegin (Team 6)
+ * Written by: Andreas Uebelhoer, Alexander Bieles, Emre Selegin (Team 6)
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
