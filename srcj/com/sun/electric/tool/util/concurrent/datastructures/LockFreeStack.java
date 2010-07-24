@@ -53,7 +53,7 @@ public class LockFreeStack<T> extends IStructure<T> {
 				try {
 					backoff.backoff();
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					return;
 				}
 			}
 		}
@@ -90,7 +90,7 @@ public class LockFreeStack<T> extends IStructure<T> {
 				try {
 					backoff.backoff();
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					return null;
 				}
 			}
 		}
