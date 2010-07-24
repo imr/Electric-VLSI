@@ -55,7 +55,7 @@ public class AStarOpenListCheapList<T extends AStarNodeBase<T>> implements AStar
    * Reinitializes the CheapList. Either sort the openList in O(n log n) or run
    * through it <code>CHEAPLIST_INIT_SIZE</code> times to find (and remove) the
    * best ones. Then insert the found elements into the CheapList in O(
-   * <code>CHEAPLIST_INIT_SIZE</code>²)
+   * <code>CHEAPLIST_INIT_SIZE</code>&sup2;)
    * 
    * @param fillingSize number of elements to be move to CheapList.
    */
