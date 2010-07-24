@@ -26,13 +26,13 @@
 	</target>
 
 	<target name="compile">
-		<javac srcdir="${dir.src}" destdir="${dir.out}">
+		<javac srcdir="${dir.src}" destdir="${dir.out}" debug="true">
 			<classpath refid="extjar" />
 			<include name="**/*.java" />
 			<patternset refid="exclusion3D" />
 		</javac>
 
-		<javac srcdir="${dir.test}" destdir="${dir.out}">
+		<javac srcdir="${dir.test}" destdir="${dir.out}" debug="true">
 			<classpath refid="extjar" />
 			<include name="**/*.java" />
 		</javac>
@@ -55,9 +55,9 @@
 
 	<target name="run">
 		<java jar="${jar.name}" fork="true">
-			<arg id="threads" value="--threads=2" />
-			<arg id="size" value="--size=100" />
-			<arg id="grain" value="--grain=128" />
+			<arg id="threads" value="--threads=16" />
+			<arg id="size" value="--size=1" />
+			<arg id="grain" value="--grain=1" />
 			<arg id="out" value="--outfile=test.csv" />
 			<arg id="scheduler" value="--scheduler=queue" />
 		</java>
