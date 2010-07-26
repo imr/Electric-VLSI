@@ -23,14 +23,14 @@
  */
 package com.sun.electric.tool.simulation;
 
-import java.util.HashMap;
-
 /**
  * A Signal to which one may add and remove samples.
  */
-public abstract class MutableSignal<SS extends Sample> extends Signal<SS> {
+public abstract class MutableSignal<SS extends Sample> extends Signal<SS>
+{
 
-    public MutableSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext, boolean digital) {
+    public MutableSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext, boolean digital)
+    {
         super(sc, sd, signalName, signalContext, digital);
     }
 

@@ -33,13 +33,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  *  This class represents a set of simulation *inputs* -- that is,
  *  "force" and "release" events -- in contrast to Signal, which
  *  represents simulation *outputs*.
  */
-public class Stimuli {
+public class Stimuli
+{
 	// logic levels and signal strengths for digital signals
 	public static final int LOGIC         =  03;
 	public static final int LOGIC_LOW     =   0;
@@ -57,9 +59,9 @@ public class Stimuli {
 	/** the cell attached to this Stimuli information */		private Cell cell;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
 	/** the separator character that breaks names */			private char separatorChar;
-	/** the analyses in this Stimuli */							private HashMap<String,SignalCollection> scMap;
-	/** the list of analyses in this Stimuli */					private List<SignalCollection> scList;
-	/** control points when signals are selected */				private HashMap<Signal<?>,Double[]> controlPointMap;
+	/** the SignalCollections in this Stimuli */				private Map<String,SignalCollection> scMap;
+	/** the list of SignalCollections in this Stimuli */		private List<SignalCollection> scList;
+	/** control points when signals are selected */				private Map<Signal<?>,Double[]> controlPointMap;
     /** Cached version of net delimiter**/                      private String delim;
 
     /**
@@ -100,11 +102,9 @@ public class Stimuli {
 		return an;
 	}
 
-    public void setNetDelimiter(String d) { delim = d;}
+    public void setNetDelimiter(String d) { delim = d; }
 
-    public String getNetDelimiter() { return delim;}
-
-    public int getNumAnalyses() { return scList.size(); }
+    public String getNetDelimiter() { return delim; }
 
 	public Iterator<SignalCollection> getSignalCollections() { return scList.iterator(); }
 
@@ -249,31 +249,29 @@ public class Stimuli {
 		controlPointMap.put(sig, newCP);
 	}
 
-	/**
-	 * Method to compute the time and value bounds of this simulation data.
-	 * @return a Rectangle2D that has time bounds in the X part and
-	 * value bounds in the Y part.
-	 */
-    /*
-	public Rectangle2D getBounds()
-	{
-		// determine extent of the data
-		Rectangle2D bounds = null;
-		for(SignalCollection sc : scList)
-		{
-			Rectangle2D scBounds = sc.getBounds();
-			if (scBounds == null) continue;
-			if (bounds == null)
-			{
-				bounds = new Rectangle2D.Double(scBounds.getMinX(), scBounds.getMinY(), scBounds.getWidth(), scBounds.getHeight());
-			} else
-			{
-				Rectangle2D.union(bounds, scBounds, bounds);
-			}
-		}
-		return bounds;
-	}
-    */
+//	/**
+//	 * Method to compute the time and value bounds of this simulation data.
+//	 * @return a Rectangle2D that has time bounds in the X part and
+//	 * value bounds in the Y part.
+//	 */
+//	public Rectangle2D getBounds()
+//	{
+//		// determine extent of the data
+//		Rectangle2D bounds = null;
+//		for(SignalCollection sc : scList)
+//		{
+//			Rectangle2D scBounds = sc.getBounds();
+//			if (scBounds == null) continue;
+//			if (bounds == null)
+//			{
+//				bounds = new Rectangle2D.Double(scBounds.getMinX(), scBounds.getMinY(), scBounds.getWidth(), scBounds.getHeight());
+//			} else
+//			{
+//				Rectangle2D.union(bounds, scBounds, bounds);
+//			}
+//		}
+//		return bounds;
+//	}
 
 	/**
 	 * Method to return the leftmost X coordinate of this Stimuli.
@@ -284,16 +282,22 @@ public class Stimuli {
 	public double getMinTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(SignalCollection sc : scList) {
-            for (Signal<?> sig : sc.getSignals()) {
-                if (leftEdge == rightEdge) {
-                        leftEdge = sig.getMinTime();
-                        rightEdge = sig.getMaxTime();
-                } else {
-                    if (leftEdge < rightEdge) {
+		for(SignalCollection sc : scList)
+		{
+            for (Signal<?> sig : sc.getSignals())
+            {
+                if (leftEdge == rightEdge)
+                {
+                    leftEdge = sig.getMinTime();
+                    rightEdge = sig.getMaxTime();
+                } else
+                {
+                    if (leftEdge < rightEdge)
+                    {
                         leftEdge = Math.min(leftEdge, sig.getMinTime());
                         rightEdge = Math.max(rightEdge, sig.getMaxTime());
-                    } else {
+                    } else
+                    {
                         leftEdge = Math.max(leftEdge, sig.getMinTime());
                         rightEdge = Math.min(rightEdge, sig.getMaxTime());
                     }
@@ -312,16 +316,22 @@ public class Stimuli {
 	public double getMaxTime()
 	{
 		double leftEdge = 0, rightEdge = 0;
-		for(SignalCollection sc : scList) {
-            for (Signal<?> sig : sc.getSignals()) {
-                if (leftEdge == rightEdge) {
-                        leftEdge = sig.getMinTime();
-                        rightEdge = sig.getMaxTime();
-                } else {
-                    if (leftEdge < rightEdge) {
+		for(SignalCollection sc : scList)
+		{
+            for (Signal<?> sig : sc.getSignals())
+            {
+                if (leftEdge == rightEdge)
+                {
+                    leftEdge = sig.getMinTime();
+                    rightEdge = sig.getMaxTime();
+                } else
+                {
+                    if (leftEdge < rightEdge)
+                    {
                         leftEdge = Math.min(leftEdge, sig.getMinTime());
                         rightEdge = Math.max(rightEdge, sig.getMaxTime());
-                    } else {
+                    } else
+                    {
                         leftEdge = Math.max(leftEdge, sig.getMinTime());
                         rightEdge = Math.min(rightEdge, sig.getMaxTime());
                     }

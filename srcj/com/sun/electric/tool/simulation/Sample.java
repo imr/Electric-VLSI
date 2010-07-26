@@ -29,8 +29,8 @@ import java.io.Serializable;
  *  A Sample is the data assigned to each point in time by a
  *  Signal.  Subclasses of Sample MUST BE IMMUTABLE.
  */
-public interface Sample extends Serializable {
-
+public interface Sample extends Serializable
+{
     /** returns true iff this sample is "X" (unknown) */
     public boolean isLogicX();
 
@@ -52,7 +52,5 @@ public interface Sample extends Serializable {
      *  rather than a linear order.
      */
     public Sample glb(Sample s);
-
 }
-
 

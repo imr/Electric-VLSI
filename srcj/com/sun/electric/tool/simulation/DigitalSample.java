@@ -34,7 +34,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -46,8 +45,8 @@ import java.util.List;
  *  only ever one instance of DigitalSample with any given
  *  value/strength, so == can be used for equality tests.
  */
-public class DigitalSample implements Sample {
-
+public class DigitalSample implements Sample
+{
     // no need for more than one instance of each...
     public static final DigitalSample LOGIC_0;
     public static final DigitalSample LOGIC_1;
@@ -56,7 +55,8 @@ public class DigitalSample implements Sample {
 
     private static DigitalSample[][] cache;
 
-    static {
+    static
+    {
         cache = new DigitalSample[4][];
         for(int i=0; i<4; i++) cache[i] = new DigitalSample[8];
         for(Value value : Value.values())
@@ -69,7 +69,8 @@ public class DigitalSample implements Sample {
         LOGIC_Z = getSample(Value.Z,    Strength.HIGH_IMPEDANCE);
     }
 
-    public static DigitalSample getSample(Value value, Strength strength) {
+    public static DigitalSample getSample(Value value, Strength strength)
+    {
         if ((value == Value.Z) ^ (strength == Strength.HIGH_IMPEDANCE))
             throw new RuntimeException("Logic=Z and Strength=HIGH_IMPEDANCE may only be used together");
         return cache[value.v+1][strength.v];
@@ -78,7 +79,8 @@ public class DigitalSample implements Sample {
     private Value value;
     private Strength strength;
 
-    private DigitalSample(Value value, Strength strength) {
+    private DigitalSample(Value value, Strength strength)
+    {
         if ((value == Value.Z) ^ (strength == Strength.HIGH_IMPEDANCE))
             throw new RuntimeException("Logic=Z and Strength=HIGH_IMPEDANCE may only be used together");
         this.value = value;
@@ -88,7 +90,8 @@ public class DigitalSample implements Sample {
     /** 
      *  Possible signal values.
      */
-    public static enum Value {
+    public static enum Value
+    {
         HIGH(1),
         X(0),
         LOW(-1),
@@ -102,7 +105,8 @@ public class DigitalSample implements Sample {
      *  they weren't just arbitrarily made up; sort order is
      *  weak-to-strong.
      */
-    public static enum Strength {
+    public static enum Strength
+    {
         SUPPLY_DRIVE(7),
         STRONG_PULL(6),         // IEEE standard says "STRONG_PULL" is the default
         PULL_DRIVE(5),
@@ -118,7 +122,8 @@ public class DigitalSample implements Sample {
     public boolean equals(Object o) { return this==o; }
     public int hashCode() { return getByteRepresentation() & 0xff; }
 
-    public Sample lub(Sample s) {
+    public Sample lub(Sample s)
+    {
         if (!(s instanceof DigitalSample)) throw new RuntimeException("tried to call DigitalSample.lub("+s.getClass().getName()+")");
         DigitalSample ds = (DigitalSample)s;
         if (ds.value.v >= value.v && ds.strength.v >= strength.v) return ds;
@@ -126,7 +131,8 @@ public class DigitalSample implements Sample {
         return cache[Math.max(ds.value.v, value.v)+1][Math.max(ds.strength.v, strength.v)+1];
     }
 
-    public Sample glb(Sample s) {
+    public Sample glb(Sample s)
+    {
         if (!(s instanceof DigitalSample)) throw new RuntimeException("tried to call DigitalSample.glb("+s.getClass().getName()+")");
         DigitalSample ds = (DigitalSample)s;
         if (ds.value.v >= value.v && ds.strength.v >= strength.v) return this;
@@ -142,21 +148,25 @@ public class DigitalSample implements Sample {
     private byte getByteRepresentation() { return (byte)(((value.v+1) << 3) | strength.v); }
     private static DigitalSample fromByteRepresentation(byte b) { return cache[(b >> 3) & 3][b & 7]; }
 
-    public static final Unboxed<DigitalSample> unboxer = new Unboxed<DigitalSample>() {
+    public static final Unboxed<DigitalSample> unboxer = new Unboxed<DigitalSample>()
+    {
         public int getSize() { return 1; }
         public DigitalSample deserialize(byte[] buf, int ofs) { return fromByteRepresentation(buf[ofs]); }
         public void serialize(DigitalSample v, byte[] buf, int ofs) { buf[ofs] = v.getByteRepresentation(); }
     };
 
     private static final LatticeOperation<DigitalSample> latticeOp =
-        new LatticeOperation<DigitalSample>(unboxer) {
-        public void lub(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs) {
+        new LatticeOperation<DigitalSample>(unboxer)
+    {
+        public void lub(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs)
+        {
             if (((buf1[ofs1]&0xff)-(buf2[ofs2]&0xff)) < 0)
                 System.arraycopy(buf2, ofs2, dest, dest_ofs, unboxer.getSize());
             else
                 System.arraycopy(buf1, ofs1, dest, dest_ofs, unboxer.getSize());
         }
-        public void glb(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs) {
+        public void glb(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs)
+        {
             if (((buf1[ofs1]&0xff)-(buf2[ofs2]&0xff)) < 0)
                 System.arraycopy(buf1, ofs1, dest, dest_ofs, unboxer.getSize());
             else

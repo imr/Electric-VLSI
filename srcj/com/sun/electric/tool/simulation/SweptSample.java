@@ -31,7 +31,6 @@ import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TreeMap;

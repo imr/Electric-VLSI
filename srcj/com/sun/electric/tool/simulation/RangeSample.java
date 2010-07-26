@@ -28,8 +28,8 @@ package com.sun.electric.tool.simulation;
  *  a Signal<RangeSample<S>> gives the bounds of a Signal<S> over a
  *  period of time.  Signal.View<RangeSample<S>> is a very useful type.
  */
-public class RangeSample<S extends Sample> implements Sample {
-
+public class RangeSample<S extends Sample> implements Sample
+{
     private final S min;
     private final S max;
 
@@ -38,15 +38,14 @@ public class RangeSample<S extends Sample> implements Sample {
     public S getMin() { return min; }
     public S getMax() { return max; }
 
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (o==null || !(o instanceof RangeSample<?>)) return false;
         RangeSample<?> rs = (RangeSample<?>)o;
         return rs.min.equals(min) && rs.max.equals(max);
     }
 
-    public int hashCode() {
-        return min.hashCode() ^ max.hashCode();
-    }
+    public int hashCode() { return min.hashCode() ^ max.hashCode(); }
 
     public boolean isLogicX() { return false; }
     public boolean isLogicZ() { return false; }
@@ -57,7 +56,8 @@ public class RangeSample<S extends Sample> implements Sample {
      *  is the intersection, but that's not likely to be very useful
      *  in practice.
      */
-    public Sample lub(Sample s) {
+    public Sample lub(Sample s)
+    {
         throw new RuntimeException("not implemented");
     }
 
@@ -67,7 +67,8 @@ public class RangeSample<S extends Sample> implements Sample {
      *  is the intersection, but that's not likely to be very useful
      *  in practice.
      */
-    public Sample glb(Sample s) {
+    public Sample glb(Sample s)
+    {
         throw new RuntimeException("not implemented");
     }
 

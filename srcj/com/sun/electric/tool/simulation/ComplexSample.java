@@ -34,19 +34,19 @@ import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
 import java.util.List;
 
 /**
  *  An implementation of Sample for complex data.  Holds 
  *  two doubles internally: real and imaginary.
  */
-public class ComplexSample extends ScalarSample implements Sample {
-
+public class ComplexSample extends ScalarSample implements Sample
+{
     private double real;
     private double imag;
 
-    public ComplexSample(double real, double imag) {
+    public ComplexSample(double real, double imag)
+    {
         super(Math.hypot(real, imag));
         this.real = real;
         this.imag = imag;
@@ -55,13 +55,15 @@ public class ComplexSample extends ScalarSample implements Sample {
     public double getReal() { return real; }
     public double getImag() { return imag; }
 
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (o==null || !(o instanceof ComplexSample)) return false;
         ComplexSample cs = (ComplexSample)o;
         return cs.real==real && cs.imag==imag;
     }
 
-    public int hashCode() {
+    public int hashCode()
+    {
         long l = Double.doubleToLongBits(real) ^ Double.doubleToLongBits(imag);
         return ((int)(l & 0xffffffff)) ^ ((int)((l >> 32) & 0xffffffff));
     }
@@ -69,7 +71,8 @@ public class ComplexSample extends ScalarSample implements Sample {
     public boolean isLogicX() { return false; }
     public boolean isLogicZ() { return false; }
 
-    public Sample lub(Sample s) {
+    public Sample lub(Sample s)
+    {
         if (!(s instanceof ComplexSample))
             throw new RuntimeException("tried to call ComplexSample.lub("+s.getClass().getName()+")");
         ComplexSample cs = (ComplexSample)s;
@@ -78,7 +81,8 @@ public class ComplexSample extends ScalarSample implements Sample {
         return new ComplexSample(Math.max(real, cs.real), Math.max(imag, cs.imag));
     }
 
-    public Sample glb(Sample s) {
+    public Sample glb(Sample s)
+    {
         if (!(s instanceof ComplexSample))
             throw new RuntimeException("tried to call ComplexSample.glb("+s.getClass().getName()+")");
         ComplexSample cs = (ComplexSample)s;
@@ -87,32 +91,39 @@ public class ComplexSample extends ScalarSample implements Sample {
         return new ComplexSample(Math.min(real, cs.real), Math.min(imag, cs.imag));
     }
 
-    public static final Unboxed<ComplexSample> unboxer = new Unboxed<ComplexSample>() {
+    public static final Unboxed<ComplexSample> unboxer = new Unboxed<ComplexSample>()
+    {
         public int getSize() { return UnboxedHalfDouble.instance.getSize()*2; }
-        public ComplexSample deserialize(byte[] buf, int ofs) {
+        public ComplexSample deserialize(byte[] buf, int ofs)
+        {
             return new ComplexSample(UnboxedHalfDouble.instance.deserialize(buf, ofs),
                                      UnboxedHalfDouble.instance.deserialize(buf, ofs+UnboxedHalfDouble.instance.getSize()));
         }
-        public void serialize(ComplexSample v, byte[] buf, int ofs) {
+        public void serialize(ComplexSample v, byte[] buf, int ofs)
+        {
             UnboxedHalfDouble.instance.serialize(v.real, buf, ofs);
             UnboxedHalfDouble.instance.serialize(v.imag, buf, ofs+UnboxedHalfDouble.instance.getSize());
         }
     };
 
     private static final LatticeOperation<ComplexSample> latticeOp =
-        new LatticeOperation<ComplexSample>(unboxer) {
+        new LatticeOperation<ComplexSample>(unboxer)
+    {
         private final int sz = UnboxedHalfDouble.instance.getSize();
-        public void glb(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs) {
+        public void glb(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs)
+        {
             ScalarSample.latticeOp.glb(buf1, ofs1,    buf2, ofs2,    dest, dest_ofs);
             ScalarSample.latticeOp.glb(buf1, ofs1+sz, buf2, ofs2+sz, dest, dest_ofs+sz);
         }
-        public void lub(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs) {
+        public void lub(byte[] buf1, int ofs1, byte[] buf2, int ofs2, byte[] dest, int dest_ofs)
+        {
             ScalarSample.latticeOp.lub(buf1, ofs1,    buf2, ofs2,    dest, dest_ofs);
             ScalarSample.latticeOp.lub(buf1, ofs1+sz, buf2, ofs2+sz, dest, dest_ofs+sz);
         }
     };
 
-    public static Signal<ComplexSample> createComplexSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext) {
+    public static Signal<ComplexSample> createComplexSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext)
+    {
     	/**
     	 *  Adam says: This class is an _anonymous_ inner class for a reason.  Although XXXSample.createSignal() returns a
     	 *  Signal<XXXSample>, it is important that other code does not assume this is the only way such signals might
@@ -122,7 +133,8 @@ public class ComplexSample extends ScalarSample implements Sample {
     	 *  instanceof checks.
     	 */
         Signal<ComplexSample> ret =
-            new BTreeSignal<ComplexSample>(sc, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp)) {
+            new BTreeSignal<ComplexSample>(sc, sd, signalName, signalContext, false, BTreeSignal.getTree(unboxer, latticeOp))
+        {
             public void plot(Panel panel, Graphics g, WaveSignal ws, Color light, List<PolyBase> forPs,
             	Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal)
             {

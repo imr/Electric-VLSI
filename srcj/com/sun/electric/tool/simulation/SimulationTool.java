@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.simulation;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
@@ -40,6 +41,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
+import com.sun.electric.tool.UserInterfaceExec;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
@@ -71,7 +73,8 @@ import javax.swing.JTextField;
 /**
  * This is the Simulation Interface tool.
  */
-public class SimulationTool extends Tool {
+public class SimulationTool extends Tool
+{
 	/** the Simulation tool. */							private static SimulationTool tool = new SimulationTool();
 
 	/** key of Variable holding rise time. */			public static final Variable.Key RISE_DELAY_KEY = Variable.newKey("SIM_rise_delay");
@@ -152,32 +155,47 @@ public class SimulationTool extends Tool {
 			case IRSIM_ENGINE:
 				if (!IRSIM.hasIRSIM()) return;
 				new RunIRSIM(cell, context, fileName);
-//                IRSIM.runIRSIM(cell, context, fileName);
 				break;
 		}
 	}
 
-	private static class RunIRSIM extends Job
+	private static class RunIRSIM extends Thread
 	{
 		private Cell cell;
 		private VarContext context;
 		private String fileName;
         private IRSIMPreferences ip;
+        private final Environment launcherEnvironment;
+        private final UserInterfaceExec userInterface;
 
 		public RunIRSIM(Cell cell, VarContext context, String fileName)
 		{
-			super("Start IRSIM simulation", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.context = context;
 			this.fileName = fileName;
             ip = new IRSIMPreferences(true);
-			startJob();
+
+            launcherEnvironment = Environment.getThreadEnvironment();
+            userInterface = new UserInterfaceExec();
+            if (fileName != null)
+            {
+            	// when reading a file, do it in a new thread so that progress bars work
+	            start();
+            } else
+            {
+            	// when simulating a Cell, do it directly so that environments work
+            	IRSIM.runIRSIM(cell, context, fileName, ip);
+            }
 		}
 
-		public boolean doIt()
+		public void run()
 		{
+            if (Thread.currentThread() == this)
+            {
+                Environment.setThreadEnvironment(launcherEnvironment);
+                Job.setUserInterface(userInterface);
+            }
 			IRSIM.runIRSIM(cell, context, fileName, ip);
-			return true;
 		}
 	}
 

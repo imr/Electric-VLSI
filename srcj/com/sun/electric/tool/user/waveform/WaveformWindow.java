@@ -166,7 +166,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the list of panels. */								private JComboBox signalNameList;
-	/** mapping from analysis to entries in "SIGNALS" tree*/private Map<Signal<?>,TreePath> treePathFromSignal = new HashMap<Signal<?>,TreePath>();
+	/** mapping from Signals to entries in "SIGNALS" tree*/	private Map<Signal<?>,TreePath> treePathFromSignal = new HashMap<Signal<?>,TreePath>();
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** left panel: the signal names */						private JPanel left;
@@ -2060,7 +2060,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
     public void loadTechnologies() {
     }
     
-	private DefaultMutableTreeNode getSignalsForExplorer(SignalCollection sc, TreePath parentPath, String analysis)
+	private DefaultMutableTreeNode getSignalsForExplorer(SignalCollection sc, TreePath parentPath, String collectionName)
 	{
 		Iterable<Signal<?>> signalsi = sc.getSignals();
         ArrayList<Signal<?>> signals = new ArrayList<Signal<?>>();
@@ -2077,12 +2077,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         for(Signal<?> s : signalsi)
         	if (!busMembers.contains(s)) signals.add(s);
         if (signals.size()==0) return null;
-		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
-		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
+		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(collectionName);
+		TreePath collectionPath = parentPath.pathByAddingChild(signalsExplorerTree);
         for (Signal<?> s : sc.getSignals())
-            treePathFromSignal.put(s, analysisPath);
+            treePathFromSignal.put(s, collectionPath);
 		Map<String,TreePath> contextMap = new HashMap<String,TreePath>();
-		contextMap.put("", analysisPath);
+		contextMap.put("", collectionPath);
 		Collections.sort(signals, new SignalsByName());
 
 		// add branches first
@@ -2112,7 +2112,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// add all signals to the tree
 		for(Signal<?> sSig : signals)
 		{
-			TreePath thisTree = analysisPath;
+			TreePath thisTree = collectionPath;
 
 			String nodeName = sSig.getSignalContext();
 			String nodeNameStr = nodeName;
@@ -3245,7 +3245,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			oldXAxisSignalAll = xAxisSignalAll;
 			xAxisSignalAll = null;
 
-			SignalCollection sc = sd.findSignalCollection(oldXAxisSignalAll.getSignalCollectionName());
+			SignalCollection sc = oldXAxisSignalAll.getSignalCollection();
 			for(Signal<?> newSs : sc.getSignals())
 			{
 				String newSigName = newSs.getFullName();
@@ -3272,7 +3272,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				wp.setXAxisSignal(null);
 
 				String oldSigName = oldSig.getFullName();
-				SignalCollection sc = sd.findSignalCollection(oldSig.getSignalCollectionName());
+				SignalCollection sc = oldSig.getSignalCollection();
 				for(Signal<?> newSs : sc.getSignals())
 				{
 					String newSigName = newSs.getFullName();
@@ -3294,7 +3294,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Signal<?> ss = ws.getSignal();
 				String oldSigName = ss.getFullName();
 				ws.setSignal(null);
-				SignalCollection sc = sd.findSignalCollection(ss.getSignalCollectionName());
+				SignalCollection sc = ss.getSignalCollection();
 				for(Signal<?> newSs : sc.getSignals())
 				{
 					String newSigName = newSs.getFullName();
@@ -3563,13 +3563,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					{
 						// header
 						first = false;
-						String analysisName = "";
-						//if (wp.getAnalysisType() != null) analysisName = " " + wp.getAnalysisType();
+						String collectionName = "";
+						//if (wp.getAnalysisType() != null) collectionName = " " + wp.getAnalysisType();
 						String log = "";
 						if (wp.isPanelLogarithmicHorizontally()) log = " xlog";
 						if (wp.isPanelLogarithmicVertically()) log += " ylog";
 						if (i > 0) printWriter.println();
-						printWriter.println("panel" + analysisName + log);
+						printWriter.println("panel" + collectionName + log);
 						printWriter.println("zoom " + wp.getYAxisLowValue() + " " + wp.getYAxisHighValue() +
 							" " + wp.getMinXAxis() + " " + wp.getMaxXAxis());
 						Signal<?> signalInX = ww.xAxisSignalAll;
@@ -3708,7 +3708,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * The format of the string is as follows:
 	 * Each panel in the waveform window is terminated by "\n", so for example two panels would look like this:<BR>
 	 *   <PanelInfo> \n <PanelInfo> \n<BR>
-	 * Each PanelInfo section starts with information about the analysis in that panel,
+	 * Each PanelInfo section starts with information about the SignalCollection in that panel,
 	 * and then lists the signals in that panel.  The format is:<BR>
 	 *    \t [<SignalCollectionName>] [(<HorizontalSignal>)] <SignalList><BR>
 	 * Where <SignalList> is one or more of this:<BR>
@@ -3717,7 +3717,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Example:<BR>
 	 *    \t\t1:net_198 {255,0,0}\n<BR>
 	 * This has just one \n in it so it defines a single panel.
-	 * The first \t introduces the analysis type which is blank, meaning that it is
+	 * The first \t introduces the SignalCollection which is blank, meaning that it is
 	 * a Transient analysis and has Time as the horizontal axis.
 	 * There is just one signal listed (1:net_198) and its color is red (255,0,0).
 	 */
@@ -4237,7 +4237,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							sSig = ws.getSignal();
 							break;
 						}
-						signalCollectionName = sSig.getSignalCollectionName();
+						signalCollectionName = sSig.getSignalCollection().getName();
 					}
 				} else
 				{

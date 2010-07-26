@@ -28,7 +28,6 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
 
 import java.awt.Color;
@@ -37,7 +36,6 @@ import java.awt.Graphics;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.TreeMap;

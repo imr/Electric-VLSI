@@ -1846,6 +1846,7 @@ public class Panel extends JPanel
 		for(WaveSignal ws : waveSignals.values())
 		{
 			Signal<Sample> sig = (Signal<Sample>)ws.getSignal();
+			if (sig.isDigital()) continue;
 			allViews.add(sig.getRasterView(sig.getMinTime(), sig.getMaxTime(), sz.width));
 		}
 

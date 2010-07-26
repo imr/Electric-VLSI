@@ -176,7 +176,7 @@ public class Analyzer extends Engine
 
 	/** the simulation engine */					private Sim            theSim;
 	/** the waveform window */						private WaveformWindow ww;
-	/** the analysis data being displayed */		private SignalCollection sigCollection;
+	/** the SignalCollection being displayed */		private SignalCollection sigCollection;
 	/** the cell being simulated */					private Cell           cell;
 	/** the context for the cell being simulated */	private VarContext     context;
 	/** the name of the file being simulated */		private String         fileName;

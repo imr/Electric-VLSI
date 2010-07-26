@@ -32,7 +32,6 @@ import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -46,24 +45,26 @@ import java.util.List;
  * one asks for a View of the signal.  Views offer access to the
  * simulation data in various summarized forms.
  *
- * Subsequent enhancements are likely to include the
+ * Subsequent enhancements could include the
  * ability to invoke methods on the class while the streaming
  * conversion is taking place; attempts to invoke methods which
  * require data not yet read will simply block until that part of the
  * stream is processed.
  */
-public abstract class Signal<SS extends Sample> {
-
-    public Signal(SignalCollection sc, Stimuli sd, String signalName, String signalContext, boolean digital) {
+public abstract class Signal<SS extends Sample>
+{
+    public Signal(SignalCollection sc, Stimuli sd, String signalName, String signalContext, boolean digital)
+    {
 		this.signalName = signalName;
 		this.signalContext = signalContext;
-        this.signalCollectionName = sc==null ? "SIGNALS" : sc.getName();
+        this.signalCollection = sc;
         this.fullSignalName = signalContext==null
             ? signalName
             : signalContext + (sc==null ? '.' : sd.getSeparatorChar()) + signalName;
         this.digital = digital;
         this.stimuli = sd;
-        if (sc!=null) {
+        if (sc != null)
+        {
             String name = TextUtils.canonicString(fullSignalName);
             // simulators may strip off last "_"
             if (name.indexOf('_') >= 0 && !name.endsWith("_"))
@@ -76,7 +77,7 @@ public abstract class Signal<SS extends Sample> {
 	/** the name of this signal */										private final String signalName;
 	/** the context of this signal (qualifications to name) */			private final String signalContext;
 	/** full name (with context) */										private final String fullSignalName;
-    /** the name of theSignalCollection to which this signal belongs */	private final String signalCollectionName;
+    /** the SignalCollection to which this signal belongs */			private final SignalCollection signalCollection;
     /** true if the signal is digital */                    			private final boolean digital;
     /** the stimuli to which this signal belongs */						private final Stimuli stimuli;
 
@@ -86,7 +87,7 @@ public abstract class Signal<SS extends Sample> {
     public void addControlPoint(double time) { stimuli.addControlPoint(this, time); }
     public Double[] getControlPoints() { return stimuli.getControlPoints(this); }
 	public final boolean isDigital() { return digital; }
-	public final String getSignalCollectionName() { return signalCollectionName; }
+	public final SignalCollection getSignalCollection() { return signalCollection; }
 
 	/** method to return the sub-signals in this bus (null if not a bus) */
     public Signal<?>[] getBusMembers() { return null; }
@@ -117,7 +118,8 @@ public abstract class Signal<SS extends Sample> {
      *  getTimeNumerator(i)==i.  Instances returned by other methods
      *  do not offer this guarantee.
      */
-    public static interface View<SS extends Sample> {
+    public static interface View<SS extends Sample>
+    {
         /** the number of indices ("events") in this view */            int    getNumEvents();
         /** the absolute time of the event in question */               double getTime(int event);
         /** the absolute value of the event in question */              SS     getSample(int event);
@@ -153,7 +155,8 @@ public abstract class Signal<SS extends Sample> {
     public abstract void plot(Panel panel, Graphics g, WaveSignal ws, Color light, List<PolyBase> forPs,
                               Rectangle2D bounds, List<WaveSelection> selectedObjects, Signal<?> xAxisSignal);
 
-    public String getBaseNameFromExtractedNet(String signalFullName) {
+    public String getBaseNameFromExtractedNet(String signalFullName)
+    {
         String delim = stimuli.getNetDelimiter();
         int hashPos = signalFullName.indexOf(delim);
         return hashPos > 0 ? signalFullName.substring(0, hashPos) : signalFullName;
