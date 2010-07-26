@@ -1444,27 +1444,34 @@ public class FileMenu {
 	    // Special case for PNG format
 	    if (type == FileType.PNG)
 	    {
-            new ExportImage(cell.toString(), wnd, filePath);
+            new ExportImage(cell.toString(), wnd, filePath, false);
 			return;
 	    }
 
         Output.exportCellCommand(cell, context, filePath, type, override);
     }
 
-    private static class ExportImage extends Job
+    public static class ExportImage extends Job
 	{
     	private String filePath;
 		private WindowContent wc;
         ElectricPrinter ep;
 
-		public ExportImage(String description, WindowContent wc, String filePath)
+		public ExportImage(String description, WindowContent wc, String filePath, boolean doNow)
 		{
 			super("Export "+description+" ("+FileType.PNG+")", User.getUserTool(), Job.Type.CLIENT_EXAMINE, null, null, Job.Priority.USER);
 			this.wc = wc;
 			this.filePath = filePath;
 			PrinterJob pj = PrinterJob.getPrinterJob();
 			this.ep = getOutputPreferences(wc, pj);
-			startJob();
+			if (doNow)
+			{
+				try
+				{
+					doIt();
+				} catch (JobException e) {}
+			} else
+				startJob();
 		}
 		public boolean doIt() throws JobException
         {

@@ -308,7 +308,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		overall.add(addPanel, gbc);
 		addPanel.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { makeNewPanel(); }
+			public void actionPerformed(ActionEvent evt) { makeNewPanel(-1); }
 		});
 
 		showPoints = new JButton(iconLineOnPointOff);
@@ -1338,10 +1338,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to create a new panel with an X range similar to others on the display.
 	 * @return the newly created Panel.
 	 */
-	public Panel makeNewPanel()
+	public Panel makeNewPanel(int panelSize)
 	{
-		int panelSize = User.getWaveformDigitalPanelHeight();
-		if (sd.isAnalog()) panelSize = User.getWaveformAnalogPanelHeight();
+		if (panelSize < 0)
+		{
+			if (sd.isAnalog()) panelSize = User.getWaveformAnalogPanelHeight(); else
+				panelSize = User.getWaveformDigitalPanelHeight();
+		}
 
 		// determine the X and Y ranges
 		double leftEdge, rightEdge;
@@ -2255,7 +2258,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Signal<?> sSig : found) {
 			// add the signal
 			if (newPanel) {
-				wp = makeNewPanel();
+				wp = makeNewPanel(-1);
                 wp.fitToSignal(sSig);
                 newPanel = false;
 				if (!xAxisLocked)
@@ -3498,7 +3501,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/**
 	 * Method to remove all panels from the display.
 	 */
-	private void clearAllPanels()
+	public void clearAllPanels()
 	{
 		List<Panel> closeList = new ArrayList<Panel>();
 		for(Panel wp : wavePanels)
@@ -3887,7 +3890,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         if (!found)
         {
             // create a new panel for the signal
-            Panel wp = makeNewPanel();
+            Panel wp = makeNewPanel(-1);
             wp.fitToSignal(as);
             if (!xAxisLocked)
                 wp.setXAxisRange(as.getMinTime(), as.getMaxTime());
@@ -4388,7 +4391,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 
 				// add this signal in a new panel
-				panel = ww.makeNewPanel();
+				panel = ww.makeNewPanel(-1);
 				panel.fitToSignal(sSig);
 				new WaveSignal(panel, sSig);
 			}

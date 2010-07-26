@@ -40,6 +40,7 @@ import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
@@ -102,7 +103,7 @@ import javax.swing.SwingConstants;
 public class Panel extends JPanel
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
-	/** Use VolatileImage for offscreen buffer */           private static final boolean USE_VOLATILE_IMAGE = true;
+	/** Use VolatileImage for offscreen buffer */           private static final boolean USE_VOLATILE_IMAGE = false;
 	/** Use anti-aliasing for lines */                      private static final boolean USE_ANTIALIASING = false;
 
 	/** the main waveform window this is part of */			private WaveformWindow waveWindow;
@@ -643,7 +644,7 @@ public class Panel extends JPanel
 			waveWindow.stopEditing();
 			for(Signal<?> subSig : bussedSignals)
 			{
-				Panel wp = waveWindow.makeNewPanel();
+				Panel wp = waveWindow.makeNewPanel(-1);
 				WaveSignal wsig = new WaveSignal(wp, subSig);
 
 				// remove the panels and put them in the right place
@@ -892,6 +893,8 @@ public class Panel extends JPanel
 
 	private boolean needRepaintOffscreenImage;
 	private Image offscreen;
+
+	public Image getWaveImage() { return offscreen; }
 
 	/**
 	 * Method to repaint this Panel.
@@ -2350,5 +2353,4 @@ public class Panel extends JPanel
 	}
 
 	public void mouseMovedPan(MouseEvent evt) {}
-
 }

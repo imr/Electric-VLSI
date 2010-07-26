@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+IMP: (7/26/10, SMR) Added initial waveform window regression tests (Bug #2861).
+
 BUG: (7/26/10, GVG) Exception in Gerber reader because it tries to read wrong file? (Bug #2859)
 FIX: Extra filtering of files. Fixed unnecessary concatenation of file path. Removed  topDirName
 from gerberfiles.

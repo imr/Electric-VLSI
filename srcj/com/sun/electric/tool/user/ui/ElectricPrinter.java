@@ -80,10 +80,11 @@ public class ElectricPrinter implements Printable, ImageObserver
 	/** text printing: the remembered page  */								private int startPageNumber;
 	/** text printing: context for getting text width */					private FontRenderContext frc;
 
-
 	public ElectricPrinter(WindowContent context, PageFormat pageFormat, PrinterJob printJob)
 	{
-		this.wnd = new EditWindowSmall(EditWindow.getCurrent());
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd != null)
+			this.wnd = new EditWindowSmall(wnd);
 		this.context = context;
 		this.pageFormat = pageFormat;
 		this.printJob = printJob;
