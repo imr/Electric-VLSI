@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+BUG: (7/26/10, FS) MultipleQueues + FCQueue not possible
+FIX: PJob didn't use all queues for work distribution
+
 BUG: (7/24/10, FS) German umlauts cause compiler warnings
 FIX: Use international translation of German umlauts
 
