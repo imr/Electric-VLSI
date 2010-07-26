@@ -28,12 +28,11 @@ import java.util.Map;
 
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
-import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class MultipleQueuesStructure<T> extends IStructure<T> implements IWorkStealing {
@@ -59,7 +58,7 @@ public class MultipleQueuesStructure<T> extends IStructure<T> implements IWorkSt
 
 		for (long i = 0; i < numOfThreads; i++) {
 			freeInternalIds.add(i);
-			dataQueues.put(i, new FCQueue<T>());
+			dataQueues.put(i, new LockFreeQueue<T>());
 		}
 	}
 

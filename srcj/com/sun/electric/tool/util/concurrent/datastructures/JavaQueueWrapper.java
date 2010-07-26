@@ -31,7 +31,7 @@ import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class JavaQueueWrapper<T> extends IStructure<T> {

@@ -184,6 +184,15 @@ public class ThreadPool {
 	public void add(PTask item) {
 		taskPool.add(item);
 	}
+	
+	/**
+	 * add a task to the pool
+	 * 
+	 * @param item
+	 */
+	public void add(PTask item, int threadId) {
+		taskPool.add(item, threadId);
+	}
 
 	/**
 	 * 

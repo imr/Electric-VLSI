@@ -81,7 +81,8 @@ public class PJob {
 	 * Wait for the job while not finishing.
 	 */
 	public void join() {
-		while (!barrier.isTerminated());
+		while (!barrier.isTerminated())
+			;
 	}
 
 	/**
@@ -93,7 +94,7 @@ public class PJob {
 	public void add(PTask task, int threadID) {
 		if (pool != null) {
 			barrier.setActive(false);
-			pool.add(task);
+			pool.add(task, threadID);
 		} else {
 			throw new PoolNotInitializedException();
 		}

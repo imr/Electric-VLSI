@@ -26,7 +26,7 @@ package com.sun.electric.tool.util;
 import com.sun.electric.database.text.TextUtils;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class Timer {
