@@ -210,7 +210,7 @@ public class Gerber extends Input<Object>
 
 			// determine the current directory
 			String topDirName = TextUtils.getFilePath(lib.getLibFile());
-			gerberfiles.add(topDirName);
+//			gerberfiles.add(topDirName);
 
 			// find all files that end with ".gbr" and include them in the search
 			File topDir = new File(topDirName);
@@ -218,17 +218,17 @@ public class Gerber extends Input<Object>
 			for(int i=0; i<fileList.length; i++)
 			{
 				if (!fileList[i].endsWith(".gbr")) continue;
-				String fileName = topDirName + fileList[i];
+                String fileName = topDirName + fileList[i];
 				gerberfiles.add(fileName);
 			}
 
 			// read the file
 			try
 			{
-				for(String fileName : fileList)
+				for(String fileName : gerberfiles)
 				{
-			        System.out.println("Reading: "+topDirName + fileName);
-			        URL fileURL = TextUtils.makeURLToFile(topDirName + fileName);
+			        System.out.println("Reading: " + fileName);
+			        URL fileURL = TextUtils.makeURLToFile(fileName);
 					if (openTextInput(fileURL)) return null;
 					readFile(lineReader);
 					closeInput();
@@ -299,7 +299,9 @@ public class Gerber extends Input<Object>
 				if (astPos < 0) astPos = line.length();
 				String layerName = line.substring(3, astPos);
 				currentLayer = GerberLayer.findLayer(layerName);
-				continue;
+                if (currentLayer != null)
+                    System.out.println("Importing with layer name '" + layerName + "'");
+                continue;
 			}
 			if (line.startsWith("%LP"))
 			{
