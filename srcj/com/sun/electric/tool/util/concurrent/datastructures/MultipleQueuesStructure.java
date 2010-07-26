@@ -59,6 +59,7 @@ public class MultipleQueuesStructure<T> extends IStructure<T> implements IWorkSt
 		for (long i = 0; i < numOfThreads; i++) {
 			freeInternalIds.add(i);
 			dataQueues.put(i, new LockFreeQueue<T>());
+			dataQueues.put(i, new FCQueue<T>());
 		}
 	}
 
