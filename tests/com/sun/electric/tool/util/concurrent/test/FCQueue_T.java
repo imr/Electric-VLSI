@@ -26,19 +26,21 @@ package com.sun.electric.tool.util.concurrent.test;
 import org.junit.Test;
 
 import com.sun.electric.tool.util.CollectionFactory;
+import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.Timer;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
-import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class FCQueue_T {
@@ -60,11 +62,24 @@ public class FCQueue_T {
 		this.fcQueue();
 
 	}
+	
+	@Test
+	public void testMatrixMultMultQueues() throws UnknownSchedulerException {
+		matA = TestHelper.createMatrix(size, size, 100);
+		matB = TestHelper.createMatrix(size, size, 100);
+		matCParFC = TestHelper.createMatrixIntegerNull(size, size, 100);
+		matCParWS = TestHelper.createMatrixIntegerNull(size, size, 100);
+		
+		//this.workStealing();
+		this.fcQueueMultQueues();
+
+	}
 
 	private void workStealing() {
 
 		try {
-			ThreadPool.initialize(WorkStealingStructure.createForThreadPool(2), 2);
+			IStructure<PTask> tasks = CollectionFactory.createLockFreeQueue();
+			ThreadPool.initialize(tasks, 2);
 		} catch (PoolExistsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -72,7 +87,7 @@ public class FCQueue_T {
 
 		Timer time = Timer.createInstance();
 		time.start();
-		Parallel.For(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask(size,
+		Parallel.For(new BlockedRange2D(0, size, 128, 0, size, 128), new MatrixMultTask(size,
 				matCParWS));
 		time.end();
 		time.print("Work stealing: ");
@@ -85,17 +100,36 @@ public class FCQueue_T {
 
 		FCQueue<PTask> tasks = CollectionFactory.createFCQueue();
 		try {
-			ThreadPool.initialize(tasks, 2);
+			ThreadPool.initialize(tasks, 2, true);
 		} catch (PoolExistsException e) {
 			e.printStackTrace();
 		}
 
 		Timer time = Timer.createInstance();
 		time.start();
-		Parallel.For(new BlockedRange2D(0, size, 10, 0, size, 10), new MatrixMultTask(size,
+		Parallel.For(new BlockedRange2D(0, size, 128, 0, size, 129), new MatrixMultTask(size,
 				matCParFC));
 		time.end();
 		time.print("FCQueue: ");
+
+		ThreadPool.killPool();
+
+	}
+	
+	private void fcQueueMultQueues() throws UnknownSchedulerException {
+
+		try {
+			ThreadPool.initialize(SchedulingStrategy.multipleQueues, 2, true);
+		} catch (PoolExistsException e) {
+			e.printStackTrace();
+		}
+
+		Timer time = Timer.createInstance();
+		time.start();
+		Parallel.For(new BlockedRange2D(0, size, 128, 0, size, 128), new MatrixMultTask(size,
+				matCParFC));
+		time.end();
+		time.print("FCQueue Multiple: ");
 
 		ThreadPool.killPool();
 

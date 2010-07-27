@@ -24,7 +24,7 @@
 package com.sun.electric.tool.util.concurrent.test.blackScholes;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class OptionData {

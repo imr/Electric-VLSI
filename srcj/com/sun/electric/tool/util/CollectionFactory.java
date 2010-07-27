@@ -24,6 +24,7 @@
 package com.sun.electric.tool.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -115,8 +116,8 @@ public class CollectionFactory {
 	/**
 	 * Create a new double ended queue (concurrent).
 	 */
-	public static <T> UnboundedDEQueue<T> createUnboundedDoubleEndedQueue(Class<T> clazz) {
-		return new UnboundedDEQueue<T>(clazz, LOG_CAPACITY);
+	public static <T> UnboundedDEQueue<T> createUnboundedDoubleEndedQueue() {
+		return new UnboundedDEQueue<T>(LOG_CAPACITY);
 	}
 
 	/**
@@ -186,7 +187,7 @@ public class CollectionFactory {
 	public static <T> Set<T> copySet(Set<T> source) {
 		Set<T> result = CollectionFactory.createHashSet();
 
-		doCopySet(source, result);
+		doCopyCollection(source, result);
 
 		return result;
 	}
@@ -200,23 +201,23 @@ public class CollectionFactory {
 	public static <T> Set<T> copySetToConcurrent(Set<T> source) {
 		Set<T> result = CollectionFactory.createConcurrentHashSet();
 
-		doCopySet(source, result);
+		doCopyCollection(source, result);
 
 		return result;
 	}
 
-	/**
-	 * 
-	 * @param <T>
-	 * @param source
-	 * @param dest
-	 */
-	private static <T> void doCopySet(Set<T> source, Set<T> dest) {
+	public static <T> Set<T> copyListToSet(List<T> source) {
+		Set<T> result = CollectionFactory.createHashSet();
+		
+		doCopyCollection(source, result);
 
+		return result;
+	}
+
+	private static <T> void doCopyCollection(Collection<T> source, Collection<T> dest) {
 		for (Iterator<T> it = source.iterator(); it.hasNext();) {
 			dest.add(it.next());
 		}
-
 	}
 
 }

@@ -37,7 +37,6 @@ public class CircularArray<T> extends IStructure<T> {
 
 	private int logCapacity;
 	private T[] currentElements;
-	private Class<T> clazz;
 
 	/**
 	 * @param clazz
@@ -50,10 +49,9 @@ public class CircularArray<T> extends IStructure<T> {
 	 *            capacity of the initial array
 	 */
 	@SuppressWarnings("unchecked")
-	public CircularArray(Class<T> clazz, int logCapacity) {
+	public CircularArray(int logCapacity) {
 		this.logCapacity = logCapacity;
-		this.clazz = clazz;
-		this.currentElements = (T[]) Array.newInstance(clazz, 1 << logCapacity);
+		this.currentElements = (T[]) new Object[1 << logCapacity];
 	}
 
 	public int getCapacity() {
@@ -81,7 +79,7 @@ public class CircularArray<T> extends IStructure<T> {
 	}
 
 	public CircularArray<T> resize(int bottom, int top) {
-		CircularArray<T> newArray = new CircularArray<T>(clazz, logCapacity + 1);
+		CircularArray<T> newArray = new CircularArray<T>(logCapacity + 1);
 		for (int i = top; i < bottom; i++) {
 			newArray.add(get(i), i);
 		}

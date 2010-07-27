@@ -62,7 +62,7 @@ public class CollectionTests_T {
 
 	@Test
 	public void testCircularArray() {
-		testIStructureCircular(new CircularArray<Integer>(Integer.class, 4));
+		testIStructureCircular(new CircularArray<Integer>(4));
 	}
 
 	@Test
@@ -84,7 +84,7 @@ public class CollectionTests_T {
 
 	@Test
 	public void testUnboundedDEQueue() {
-		testIDEStructure(new UnboundedDEQueue<Integer>(Integer.class, 4));
+		testIDEStructure(new UnboundedDEQueue<Integer>(4));
 	}
 
 	@Test
@@ -126,7 +126,7 @@ public class CollectionTests_T {
 	@Test
 	public void testCircularArrayMore() {
 		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-		CircularArray<Integer> intQueue = new CircularArray<Integer>(Integer.class, 4);
+		CircularArray<Integer> intQueue = new CircularArray<Integer>(4);
 		for (int i = 0; i < testData.length; i++)
 			intQueue.add(testData[i], i);
 
@@ -179,7 +179,7 @@ public class CollectionTests_T {
 	@Test
 	public void testUnboundedDEQueueMore() {
 		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-		UnboundedDEQueue<Integer> intStack = new UnboundedDEQueue<Integer>(Integer.class, 4);
+		UnboundedDEQueue<Integer> intStack = new UnboundedDEQueue<Integer>(4);
 		for (int i = 0; i < testData.length; i++)
 			intStack.add(testData[i]);
 
@@ -187,7 +187,7 @@ public class CollectionTests_T {
 		for (int i = testData.length - 1; i >= 0; i--)
 			Assert.assertEquals(new Integer(testData[i]), intStack.remove());
 
-		UnboundedDEQueue<Integer> intQueue = new UnboundedDEQueue<Integer>(Integer.class, 4);
+		UnboundedDEQueue<Integer> intQueue = new UnboundedDEQueue<Integer>(4);
 		for (int i = 0; i < testData.length; i++)
 			intQueue.add(testData[i], i);
 
@@ -210,7 +210,7 @@ public class CollectionTests_T {
 	@Test
 	public void testUnboundedQueueWithResize() {
 		int[] testData = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-		UnboundedDEQueue<Integer> intStack = new UnboundedDEQueue<Integer>(Integer.class, 4);
+		UnboundedDEQueue<Integer> intStack = new UnboundedDEQueue<Integer>(4);
 		for (int j = 0; j < 10; j++) {
 			for (int i = 0; i < testData.length; i++)
 				intStack.add(testData[i]);

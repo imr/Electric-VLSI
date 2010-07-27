@@ -47,7 +47,7 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.test.blackScholes.OptionData.OptionType;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class Main {

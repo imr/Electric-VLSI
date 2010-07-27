@@ -41,8 +41,8 @@ public class UnboundedDEQueue<T> extends IDEStructure<T> {
 	/**
 	 * Constructor
 	 */
-	public UnboundedDEQueue(Class<T> clazz, int LOG_CAPACITY) {
-		elements = new CircularArray<T>(clazz, LOG_CAPACITY);
+	public UnboundedDEQueue(int LOG_CAPACITY) {
+		elements = new CircularArray<T>(LOG_CAPACITY);
 		top = new AtomicInteger(0);
 		bottom = new AtomicInteger(0);
 	}

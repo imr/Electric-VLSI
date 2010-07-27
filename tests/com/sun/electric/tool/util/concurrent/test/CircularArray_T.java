@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: GlobalVars.java
+ * File: CircularArray_T.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,15 +21,23 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent.test.blackScholes;
+package com.sun.electric.tool.util.concurrent.test;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class GlobalVars {
+public class CircularArray_T {
 
-	public final static float inv_sqrt_2xPI = 0.39894228040143270286f;
-	public final static int NUM_RUNS = 100;
+	@Test
+	public void testIndexCalculation() {
+		for(int i = 0; i < 32; i++) {
+			System.out.println(1 << i);
+			Assert.assertTrue((1 << i) >= 0);
+		}
+	}
 
 }
