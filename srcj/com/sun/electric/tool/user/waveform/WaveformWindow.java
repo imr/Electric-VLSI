@@ -672,7 +672,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 				rowNo++;
 			}
-System.out.println("TABLE AT "+row+"/"+col+" IS NULL!!!");
 			return null;
 		}
 
