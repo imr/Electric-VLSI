@@ -105,6 +105,7 @@ public class Panel extends JPanel
 {
 	/** Use VolatileImage for offscreen buffer */           private static final boolean USE_VOLATILE_IMAGE = false;
 	/** Use anti-aliasing for lines */                      private static final boolean USE_ANTIALIASING = false;
+	/** Spacing above and below each panel */               private static final int PANELGAP = 2;
 
 	/** the main waveform window this is part of */			private WaveformWindow waveWindow;
 	/** the size of the window (in pixels) */				private Dimension sz;
@@ -195,25 +196,25 @@ public class Panel extends JPanel
 		// a drop target for the signal panel
 		new DropTarget(leftHalf, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
 
-		// a separator at the top
-		JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0;       gbc.gridy = 0;
-		gbc.gridwidth = 5;   gbc.gridheight = 1;
-		gbc.weightx = 1;     gbc.weighty = 0;
-		gbc.anchor = GridBagConstraints.NORTH;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.insets = new Insets(4, 0, 4, 0);
-		leftHalf.add(sep, gbc);
+//		// a separator at the top
+//		JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
+//		GridBagConstraints gbc = new GridBagConstraints();
+//		gbc.gridx = 0;       gbc.gridy = 0;
+//		gbc.gridwidth = 5;   gbc.gridheight = 1;
+//		gbc.weightx = 1;     gbc.weighty = 0;
+//		gbc.anchor = GridBagConstraints.NORTH;
+//		gbc.fill = GridBagConstraints.HORIZONTAL;
+//		gbc.insets = new Insets(4, 0, 4, 0);
+//		leftHalf.add(sep, gbc);
 
 		// the name of this panel
 		panelTitle = new DragButton("" + Integer.toString(panelNumber), panelNumber);
 		panelTitle.setToolTipText("Identification number of this waveform panel (drag the number to rearrange panels)");
-		gbc = new GridBagConstraints();
-		gbc.gridx = 0;       gbc.gridy = 1;
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;      gbc.gridy = 1;
 		gbc.weightx = 1;    gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.WEST;
-		gbc.insets = new Insets(0, 4, 0, 1);
+		gbc.insets = new Insets(2, 4, 2, 1);
 		panelTitle.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { panelTitleClicked(evt); }
@@ -314,15 +315,15 @@ public class Panel extends JPanel
 		// a drop target for the signal panel
 		new DropTarget(this, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
 
-		// a separator at the top
-		sep = new JSeparator(SwingConstants.HORIZONTAL);
-		gbc = new GridBagConstraints();
-		gbc.gridx = 0;       gbc.gridy = 0;
-		gbc.weightx = 1;     gbc.weighty = 0;
-		gbc.anchor = GridBagConstraints.NORTH;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.insets = new Insets(4, 0, 4, 0);
-		rightHalf.add(sep, gbc);
+//		// a separator at the top
+//		sep = new JSeparator(SwingConstants.HORIZONTAL);
+//		gbc = new GridBagConstraints();
+//		gbc.gridx = 0;       gbc.gridy = 0;
+//		gbc.weightx = 1;     gbc.weighty = 0;
+//		gbc.anchor = GridBagConstraints.NORTH;
+//		gbc.fill = GridBagConstraints.HORIZONTAL;
+//		gbc.insets = new Insets(4, 0, 4, 0);
+//		rightHalf.add(sep, gbc);
 
 		// the horizontal ruler (if separate rulers in each panel)
 		if (!waveWindow.isXAxisLocked())
@@ -334,7 +335,7 @@ public class Panel extends JPanel
 		gbc.weightx = 1;     gbc.weighty = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = GridBagConstraints.BOTH;
-		gbc.insets = new Insets(0, 0, 0, 0);
+		gbc.insets = new Insets(PANELGAP, 0, PANELGAP, 0);
 		rightHalf.add(this, gbc);
 
 		// add to list of wave panels
@@ -1311,16 +1312,27 @@ public class Panel extends JPanel
 		for(WaveSignal ws : waveSignals.values())
 		{
             Signal<?> as = ws.getSignal();
-            for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++)
+            Signal.View<?> waveform = ((Signal<?>)as).getExactView();
+            int numEvents = waveform.getNumEvents();
+            for(int i=0; i<numEvents; i++)
             {
-                pw.println();
-                Signal<?> wave = as;
-                Signal.View<?> pref = ((Signal<?>)wave).getExactView();
-                Signal.View<?> waveform = pref /* FIXME */;
-                int numEvents = waveform.getNumEvents();
-                for(int i=0; i<numEvents; i++)
-                    pw.println("\"" + waveform.getTime(i) + "\",\"" + waveform.getSample(i) + "\"");
+        		Sample samp = waveform.getSample(i);
+        		double time = waveform.getTime(i);
+			    if (samp instanceof SweptSample<?>)
+			    {
+			    	SweptSample<?> sws = (SweptSample<?>)samp;
+			    	for(int s=0; s<sws.getWidth(); s++)
+			    	{
+			    		Sample ss = sws.getSweep(s);
+                        pw.println("\"" + time + "\",\"" + s + "\",\"" + ((ScalarSample)ss).getValue() + "\"");
+			    	}
+			    } else
+			    {
+			    	ScalarSample ss = (ScalarSample)samp;
+                    pw.println("\"" + time + "\",\"" + ss.getValue() + "\"");
+			    }
             }
+            pw.println();
         }
     }
 
@@ -1353,7 +1365,7 @@ public class Panel extends JPanel
                 pw.println();
                 Signal<?> wave = as;//as.getWaveform(s);
                 Signal.View<?> pref = ((Signal<?>)wave).getExactView();
-                Signal.View<?> waveform = pref /* FIXME */;
+                Signal.View<?> waveform = pref /* TODO: FIXME */;
                 int numEvents = waveform.getNumEvents();
                 for(int i=0; i<numEvents; i++) {
                     if (waveform.getTime(i) < min || waveform.getTime(i) > max) continue;

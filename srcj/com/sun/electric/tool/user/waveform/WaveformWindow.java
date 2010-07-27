@@ -672,6 +672,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 				rowNo++;
 			}
+System.out.println("TABLE AT "+row+"/"+col+" IS NULL!!!");
 			return null;
 		}
 
@@ -3419,20 +3420,25 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					entries[i] = "";
 					Signal<?> sig = dumpSignals.get(i-1);
 	                Signal.View<?> view = sig.getExactView();
-                    if (j < view.getNumEvents()) {
+                    if (j < view.getNumEvents())
+                    {
                         Sample sample = view.getSample(j);
-                        if (sample == null) {
-                        } else if (sample instanceof ScalarSample) {
-                            double t = view.getTime(j);
-                            double v = ((ScalarSample)sample).getValue();
-							if (entries[0] == null) entries[0] = "" + t;
-							entries[i] = "" + v;
-							haveData = true;
-						} else if (sample instanceof DigitalSample) {
-							if (entries[0] == null) entries[0] = "" + view.getTime(j);
-							entries[i] = "" + DigitalSample.getState((Signal.View<DigitalSample>)view, j);
-							haveData = true;
-						}
+                        if (sample != null)
+                        {
+	                        if (sample instanceof ScalarSample)
+	                        {
+	                            double t = view.getTime(j);
+	                            double v = ((ScalarSample)sample).getValue();
+								if (entries[0] == null) entries[0] = "" + t;
+								entries[i] = "" + v;
+								haveData = true;
+							} else if (sample instanceof DigitalSample)
+							{
+								if (entries[0] == null) entries[0] = "" + view.getTime(j);
+								entries[i] = "" + DigitalSample.getState((Signal.View<DigitalSample>)view, j);
+								haveData = true;
+							}
+                        }
 					}
 				}
 				if (!haveData) break;

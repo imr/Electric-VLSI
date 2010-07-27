@@ -207,11 +207,53 @@ public class SweptSample<S extends Sample> implements Sample
 
             public Signal.View<SweptSample<SS>> getExactView()
             {
+                final Signal.View<SS>[] subviews = new Signal.View[subsignals.length];
+                for(int i=0; i<subviews.length; i++) subviews[i] = subsignals[i].getExactView();
+
+                // the subviews' getRasterView() methods might have differing getNumEvents() values or different
+                // getTime() values for a given index.  Therefore, we must "collate" them.  By using a sorted treemap
+                // here we ensure that this takes only O(n log n) time.
+                
+                // INVARIANT: tm.get(t).contains(i) ==> (exists j such that subviews[i].getTime(j)==t)
+                TreeMap<Double,HashSet<Integer>> tm = new TreeMap<Double,HashSet<Integer>>();
+                for (int i=0; i<subviews.length; i++)
+                {
+                    Signal.View<SS> view = subviews[i];
+                    for(int j=0; j<view.getNumEvents(); j++)
+                    {
+                        double t = view.getTime(j);
+                        HashSet<Integer> hs = tm.get(t);
+                        if (hs==null) tm.put(t, hs = new HashSet<Integer>());
+                        hs.add(i);
+                    }
+                }
+
+                // now we know, for each point in time, which signals changed at that point
+                final double[] times = new double[tm.size()];
+                final SweptSample<SS>[] vals = new SweptSample[tm.size()];
+                int i = 0;
+                int[] event = new int[subviews.length];
+                SS[] sampleVals = (SS[])new Sample[subviews.length];
+                for(double t : tm.keySet())
+                {
+                	times[i] = t;
+                    HashSet<Integer> hs = tm.get(t);
+                    for(int v : hs)
+                    {
+                        assert subviews[v].getTime(event[v])==t;  // sanity check
+                        SS rs = subviews[v].getSample(event[v]);
+						if (rs != null) sampleVals[v] = rs;
+                        event[v]++;
+                    }
+                    vals[i] = new SweptSample<SS>(sampleVals);
+                    i++;
+                }
+
                 return new Signal.View<SweptSample<SS>>()
                 {
-                    public int             getNumEvents() { throw new RuntimeException("not implemented"); }
-                    public double          getTime(int event) { throw new RuntimeException("not implemented"); }
-                    public SweptSample<SS> getSample(int event) { throw new RuntimeException("not implemented"); }
+                    public int             getNumEvents() { return times.length; }
+                    public double          getTime(int event) { return times[event]; }
+                    public SweptSample<SS> getSample(int event) { return vals[event]; }
                 };
             }
 
