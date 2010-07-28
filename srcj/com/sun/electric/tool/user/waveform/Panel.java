@@ -1307,7 +1307,7 @@ public class Panel extends JPanel
 		}
 	}
 
-	void dumpDataCSV(PrintWriter pw)
+	public void dumpDataCSV(PrintWriter pw)
 	{
 		for(WaveSignal ws : waveSignals.values())
 		{
@@ -1341,9 +1341,13 @@ public class Panel extends JPanel
 	void dumpDataForGnuplot(PrintWriter pw, double min, double max, String sep) {
         boolean first = true;
         int linetype = 1;
-		for(WaveSignal ws : waveSignals.values()) {
+		for(WaveSignal ws : waveSignals.values())
+		{
             boolean used = false;
-            for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
+            String [] sweepNames = ws.getSignal().getSignalCollection().getSweepNames();
+            int numSweeps = (sweepNames == null) ? 1 : sweepNames.length;
+            for (int s = 0; s < numSweeps; s++)
+            {
                 if (!first) pw.print(sep);
                 pw.print(" \'-\' with lines ");
                 Color c = ws.getColor();
@@ -1359,17 +1363,30 @@ public class Panel extends JPanel
             }
             if (used) linetype++;
         }
-		for(WaveSignal ws : waveSignals.values()) {
+		for(WaveSignal ws : waveSignals.values())
+		{
             Signal<?> as = ws.getSignal();
-            for (int s = 0, numSweeps = /*as.getNumSweeps()*/1; s < numSweeps; s++) {
+            String [] sweepNames = ws.getSignal().getSignalCollection().getSweepNames();
+            int numSweeps = (sweepNames == null) ? 1 : sweepNames.length;
+            Signal.View<?> waveform = ((Signal<?>)as).getExactView();
+            int numEvents = waveform.getNumEvents();
+            for (int s = 0; s < numSweeps; s++)
+            {
                 pw.println();
-                Signal<?> wave = as;//as.getWaveform(s);
-                Signal.View<?> pref = ((Signal<?>)wave).getExactView();
-                Signal.View<?> waveform = pref /* TODO: FIXME */;
-                int numEvents = waveform.getNumEvents();
-                for(int i=0; i<numEvents; i++) {
-                    if (waveform.getTime(i) < min || waveform.getTime(i) > max) continue;
-                    pw.println(waveform.getTime(i) + " " + waveform.getSample(i));
+                for(int i=0; i<numEvents; i++)
+                {
+            		Sample samp = waveform.getSample(i);
+            		double time = waveform.getTime(i);
+                    if (time < min || time > max) continue;
+    			    if (samp instanceof SweptSample<?>)
+    			    {
+    			    	SweptSample<?> sws = (SweptSample<?>)samp;
+			    		Sample ss = sws.getSweep(s);
+                        pw.println(time + " " + ss);
+    			    } else
+    			    {
+                        pw.println(time + " " + samp);
+    			    }
                 }
                 pw.println("e");
                 pw.println();

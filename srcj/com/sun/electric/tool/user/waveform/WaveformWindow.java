@@ -3983,23 +3983,35 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		// accumulate bounds for all displayed panels
 		double leftEdge=0, rightEdge=0;
+		Map<Panel,Double> panelLefts = new HashMap<Panel,Double>();
+		Map<Panel,Double> panelRights = new HashMap<Panel,Double>();
 		for(Panel wp : wavePanels)
 		{
-			if (wp.getXAxisSignal() != null) continue;
+			double panelLeft = 0, panelRight = 0;
 			for(WaveSignal ws : wp.getSignals())
 			{
-				if (leftEdge == rightEdge)
+				if (panelLeft == panelRight)
 				{
-					leftEdge  = ws.getSignal().getMinTime();
-					rightEdge = ws.getSignal().getMaxTime();
+					panelLeft  = ws.getSignal().getMinTime();
+					panelRight = ws.getSignal().getMaxTime();
 				} else
 				{
-					leftEdge  = Math.min(leftEdge,  ws.getSignal().getMinTime());
-					rightEdge = Math.max(rightEdge, ws.getSignal().getMaxTime());
+					panelLeft  = Math.min(panelLeft,  ws.getSignal().getMinTime());
+					panelRight = Math.max(panelRight, ws.getSignal().getMaxTime());
 				}
 			}
+			panelLefts.put(wp, new Double(panelLeft));
+			panelRights.put(wp, new Double(panelRight));
+			if (leftEdge == rightEdge)
+			{
+				leftEdge  = panelLeft;
+				rightEdge = panelRight;
+			} else
+			{
+				leftEdge  = Math.min(leftEdge,  panelLeft);
+				rightEdge = Math.max(rightEdge, panelRight);
+			}
 		}
-
 		// if there is an overriding signal on the X axis, use its bounds
 		if (xAxisLocked && xAxisSignalAll != null)
 		{
@@ -4010,10 +4022,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Panel wp : wavePanels)
 		{
             if (!xAxisLocked && !wp.isSelected()) continue;
+            double useLeft = leftEdge, useRight = rightEdge;
+			if (!xAxisLocked)
+			{
+				useLeft = panelLefts.get(wp).doubleValue();
+				useRight = panelRights.get(wp).doubleValue();
+			}
             if ((how&2)!=0) wp.fitToSignal(null);
-            if (leftEdge != rightEdge && (wp.getMinXAxis() != leftEdge || wp.getMaxXAxis() != rightEdge) && (how&1) != 0)
+            if (useLeft != useRight && (wp.getMinXAxis() != useLeft || wp.getMaxXAxis() != useRight) && (how&1) != 0)
             {
-                wp.setXAxisRange(leftEdge, rightEdge);
+                wp.setXAxisRange(useLeft, useRight);
                 wp.repaintWithRulers();
             }
         }
