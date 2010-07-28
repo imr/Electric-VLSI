@@ -117,7 +117,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 //    private static final EventListenerList undoRedoListenerList = new EventListenerList();
     private static EventListenerList listenerList = new EventListenerList();
     private static Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
-    private static GraphicsPreferences currentGraphicsPreferences = new GraphicsPreferences(true);
+    private static GraphicsPreferences currentGraphicsPreferences = new GraphicsPreferences(true, currentSnapshot.getTechPool());
 //    private static EDatabase database = EDatabase.clientDatabase();
 	/** The progress during input. */						protected static Progress progress = null;
 
