@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+BUG: (7/28/10, FS) ArrayIndexOutOfBoundsException in matrix example
+FIX: Data Race on bottom index pointer in UnboundedDEQueue
+
 IMP: (7/27/10, GVG) DRC Warnings reported more than once (Bug #2865)
 
 IMP: (7/17/10, GVG) Getting Waveform script working in regression (Bug #2864)
