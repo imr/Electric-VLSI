@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+IMP: (7/27/10, GVG) DRC Warnings reported more than once (Bug #2865)
+
 IMP: (7/17/10, GVG) Getting Waveform script working in regression (Bug #2864)
 
 IMP: (7/26/10, SMR) Added initial waveform window regression tests (Bug #2861).
