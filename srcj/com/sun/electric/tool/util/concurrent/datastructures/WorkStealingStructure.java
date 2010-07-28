@@ -73,7 +73,7 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 			freeInternalIds.add(i);
 			// dataQueues.put(i, CollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
 			//dataQueues.put(i, new DEListWrapper<T>());
-			dataQueues.put(i, new UnboundedDEQueue<T>(10));
+			dataQueues.put(i, new UnboundedDEQueue<T>(4));
 		}
 
 		this.debug = debug;
