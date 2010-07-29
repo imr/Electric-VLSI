@@ -122,6 +122,7 @@ public class BookshelfNets {
 		for (BookshelfNode bn : BookshelfNode.getAllNodes()) {
 			Job.getUserInterface().setProgressValue(counter * 100 / allNodesNum);
 			String bnName = bn.getWidth() + "X" + bn.getHeight();
+			bnName += "Y" + Boolean.toString(bn.isTerminal());
 			Set<String> ports = nodePorts.get(bn);
 			if (ports != null) {
 				for (String portName : ports)
@@ -144,7 +145,8 @@ public class BookshelfNets {
 			Job.getUserInterface().setProgressValue(counter * 100 / allNodesNum);
 			List<BookshelfNode> nodes = nodesBySize.get(desc);
 			String[] parts = desc.split("/");
-			String[] size = parts[0].split("X");
+			String[] size = parts[0].split("Y")[0].split("X");
+			String terminal = parts[0].split("Y")[1];
 			double width = TextUtils.atof(size[0]);
 			double height = TextUtils.atof(size[1]);
 			Cell cell = Cell.makeInstance(lib, "Cell" + cellNumber + "{lay}");
@@ -152,7 +154,10 @@ public class BookshelfNets {
 				bn.setPrototype(cell);
 			cellNumber++;
 			NodeProto np = Artwork.tech().boxNode;
-			NodeInst.makeInstance(np, new EPoint(0, 0), width, height, cell);
+			NodeInst nInst = NodeInst.makeInstance(np, new EPoint(0, 0), width, height, cell);
+			if (terminal.equals(Boolean.toString(true))) {
+				nInst.setLocked();
+			}
 			int portNum = 1;
 			for (int i = 1; i < parts.length; i++) {
 				String[] xy = parts[i].split(",");
@@ -172,8 +177,8 @@ public class BookshelfNets {
 		Collection<BookshelfNode> allNodes = BookshelfNode.getAllNodes();
 		for (BookshelfNode bn : allNodes) {
 			Cell np = bn.getPrototype();
-			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(bn.getX(), bn.getY()), bn
-					.getWidth(), bn.getHeight(), mainCell, Orientation.IDENT, bn.getName());
+			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(bn.getX(), bn.getY()), bn.getWidth(), bn
+					.getHeight(), mainCell, Orientation.IDENT, bn.getName());
 			bn.setInstance(ni);
 		}
 
@@ -192,8 +197,7 @@ public class BookshelfNets {
 					// find the exports
 					BookshelfNode bn1 = BookshelfNode.findNode(lastPin.getNodeName());
 					BookshelfNode bn2 = BookshelfNode.findNode(bp.getNodeName());
-					EPoint ep1 = new EPoint(lastPin.getLocation().getX(), lastPin.getLocation()
-							.getY());
+					EPoint ep1 = new EPoint(lastPin.getLocation().getX(), lastPin.getLocation().getY());
 					EPoint ep2 = new EPoint(bp.getLocation().getX(), bp.getLocation().getY());
 
 					// find the proper pin
@@ -201,8 +205,7 @@ public class BookshelfNets {
 					for (Iterator<Export> it = bn1.getPrototype().getExports(); it.hasNext();) {
 						Export e = it.next();
 						NodeInst ni = e.getOriginalPort().getNodeInst();
-						if (ni.getAnchorCenterX() == ep1.getX()
-								&& ni.getAnchorCenterY() == ep1.getY()) {
+						if (ni.getAnchorCenterX() == ep1.getX() && ni.getAnchorCenterY() == ep1.getY()) {
 							pi1 = bn1.getInstance().findPortInstFromProto(e);
 							break;
 						}
@@ -213,33 +216,33 @@ public class BookshelfNets {
 					for (Iterator<Export> it = bn2.getPrototype().getExports(); it.hasNext();) {
 						Export e = it.next();
 						NodeInst ni = e.getOriginalPort().getNodeInst();
-						if (ni.getAnchorCenterX() == ep2.getX()
-								&& ni.getAnchorCenterY() == ep2.getY()) {
+						if (ni.getAnchorCenterX() == ep2.getX() && ni.getAnchorCenterY() == ep2.getY()) {
 							pi2 = bn2.getInstance().findPortInstFromProto(e);
 							break;
 						}
 					}
 					if (pi1 == null) {
-						System.out.println("UNABLE TO FIND PORT AT ("
-								+ lastPin.getLocation().getX() + "," + lastPin.getLocation().getY()
-								+ ") ON INSTANCE " + bn1.getName() + " (CELL "
+						System.out.println("UNABLE TO FIND PORT AT (" + lastPin.getLocation().getX() + ","
+								+ lastPin.getLocation().getY() + ") ON INSTANCE " + bn1.getName() + " (CELL "
 								+ bn1.getPrototype().describe(false) + ")");
 						continue;
 					}
 					if (pi2 == null) {
-						System.out.println("UNABLE TO FIND PORT AT (" + bp.getLocation().getX()
-								+ "," + bp.getLocation().getY() + ") ON INSTANCE " + bn2.getName()
-								+ " (CELL " + bn2.getPrototype().describe(false) + ")");
+						System.out.println("UNABLE TO FIND PORT AT (" + bp.getLocation().getX() + ","
+								+ bp.getLocation().getY() + ") ON INSTANCE " + bn2.getName() + " (CELL "
+								+ bn2.getPrototype().describe(false) + ")");
 						continue;
 					}
-                    EPoint p1 = EPoint.fromLambda(bn1.getX() + ep1.getLambdaX(), bn1.getY() + ep1.getLambdaY());
-                    EPoint p2 = EPoint.fromLambda(bn2.getX() + ep2.getLambdaX(), bn2.getY() + ep2.getLambdaY());
-//                    if (!pi1.getCenter().equals(p1)) {
-//                        System.out.println("pi1=" + pi1.getCenter() + " p1=" + p1);
-//                    }
-//                    if (!pi2.getCenter().equals(p2)) {
-//                        System.out.println("pi2=" + pi2.getCenter() + " p2=" + p2);
-//                    }
+					EPoint p1 = EPoint.fromLambda(bn1.getX() + ep1.getLambdaX(), bn1.getY() + ep1.getLambdaY());
+					EPoint p2 = EPoint.fromLambda(bn2.getX() + ep2.getLambdaX(), bn2.getY() + ep2.getLambdaY());
+					// if (!pi1.getCenter().equals(p1)) {
+					// System.out.println("pi1=" + pi1.getCenter() + " p1=" +
+					// p1);
+					// }
+					// if (!pi2.getCenter().equals(p2)) {
+					// System.out.println("pi2=" + pi2.getCenter() + " p2=" +
+					// p2);
+					// }
 					ArcProto ap = Generic.tech().unrouted_arc;
 					newInstance(mainCell, ap, bn.name, pi1, pi2, p1, p2, 0, 0, 0);
 				}
@@ -250,36 +253,35 @@ public class BookshelfNets {
 		}
 	}
 
-	public static void newInstance(Cell parent, ArcProto protoType, String name, PortInst headPort,
-			PortInst tailPort, EPoint headPt, EPoint tailPt, long gridExtendOverMin, int angle,
-			int flags) {
-        if (true) {
-            ArcInst.newInstance(parent, protoType, name, null, headPort, tailPort, headPt, tailPt,
-                    gridExtendOverMin, angle, flags);
-        } else {
-            ArcInst.makeInstance(protoType, headPort, tailPort);
-            // // make sure the arc can connect to these ports
-            // PortProto headProto = headPort.getPortProto();
-            // PortProto tailProto = tailPort.getPortProto();
-            // Name nameKey = Name.findName(name);
-            // TextDescriptor nameDescriptor =
-            // TextDescriptor.getArcTextDescriptor();
-            //
-            // // search for spare arcId
-            // CellId parentId = parent.getId();
-            // int arcId;
-            // do {
-            // arcId = parentId.newArcId();
-            // } while (parent.getArcById(arcId) != null);
-            // ImmutableArcInst d = ImmutableArcInst.newInstance(arcId,
-            // protoType.getId(), nameKey, nameDescriptor,
-            // tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
-            // headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
-            // gridExtendOverMin, angle, flags);
-            // Topology topology = parent.getTopology();
-            // ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
-            // topology.addArc(ai);
-        }
+	public static void newInstance(Cell parent, ArcProto protoType, String name, PortInst headPort, PortInst tailPort,
+			EPoint headPt, EPoint tailPt, long gridExtendOverMin, int angle, int flags) {
+		if (true) {
+			ArcInst.newInstance(parent, protoType, name, null, headPort, tailPort, headPt, tailPt, gridExtendOverMin,
+					angle, flags);
+		} else {
+			ArcInst.makeInstance(protoType, headPort, tailPort);
+			// // make sure the arc can connect to these ports
+			// PortProto headProto = headPort.getPortProto();
+			// PortProto tailProto = tailPort.getPortProto();
+			// Name nameKey = Name.findName(name);
+			// TextDescriptor nameDescriptor =
+			// TextDescriptor.getArcTextDescriptor();
+			//
+			// // search for spare arcId
+			// CellId parentId = parent.getId();
+			// int arcId;
+			// do {
+			// arcId = parentId.newArcId();
+			// } while (parent.getArcById(arcId) != null);
+			// ImmutableArcInst d = ImmutableArcInst.newInstance(arcId,
+			// protoType.getId(), nameKey, nameDescriptor,
+			// tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
+			// headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
+			// gridExtendOverMin, angle, flags);
+			// Topology topology = parent.getTopology();
+			// ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
+			// topology.addArc(ai);
+		}
 	}
 
 	private BookshelfPin parsePin(String line, BookshelfNet net) {

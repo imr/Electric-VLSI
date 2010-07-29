@@ -54,9 +54,9 @@ public class BookshelfNodes {
 	}
 
 	public void parse() throws IOException {
-		
+
 		Job.getUserInterface().setProgressNote("Parse Nodes File");
-		
+
 		File file = new File(this.nodesFile);
 		FileReader freader = new FileReader(file);
 		BufferedReader rin = new BufferedReader(freader);
@@ -69,6 +69,7 @@ public class BookshelfNodes {
 				String name = "";
 				double height = 0;
 				double width = 0;
+				boolean isTerminal = false;
 				while (tokenizer.hasMoreTokens()) {
 					if (i == 0) {
 						name = tokenizer.nextToken();
@@ -76,26 +77,30 @@ public class BookshelfNodes {
 						width = TextUtils.atof(tokenizer.nextToken());
 					} else if (i == 2) {
 						height = TextUtils.atof(tokenizer.nextToken());
+					} else if (i == 3) {
+						if (tokenizer.nextToken().toLowerCase() == "terminal") {
+							isTerminal = true;
+						}
 					} else {
 						tokenizer.nextToken();
 					}
 					i++;
 				}
-				new BookshelfNode(name, width, height);
+				new BookshelfNode(name, width, height, isTerminal);
 			}
 		}
 	}
-	
 
 	public static class BookshelfNode {
 		private String name;
 		private double width;
 		private double height;
 		private double x, y;
+		private boolean terminal;
 		private List<BookshelfPin> pins;
 		private Cell prototype;
 		private NodeInst instance;
-		private static Map<String,BookshelfNode> nodeMap = new HashMap<String,BookshelfNode>();
+		private static Map<String, BookshelfNode> nodeMap = new HashMap<String, BookshelfNode>();
 
 		/**
 		 * @return the name
@@ -157,8 +162,10 @@ public class BookshelfNodes {
 		}
 
 		/**
-		 * @param x the X coordinate to set
-		 * @param y the Y coordinate to set
+		 * @param x
+		 *            the X coordinate to set
+		 * @param y
+		 *            the Y coordinate to set
 		 */
 		public void setLocation(double x, double y) {
 			this.x = x;
@@ -173,7 +180,8 @@ public class BookshelfNodes {
 		}
 
 		/**
-		 * @param cell the Cell prototype
+		 * @param cell
+		 *            the Cell prototype
 		 */
 		public void setInstance(NodeInst instance) {
 			this.instance = instance;
@@ -187,7 +195,8 @@ public class BookshelfNodes {
 		}
 
 		/**
-		 * @param cell the Cell prototype
+		 * @param cell
+		 *            the Cell prototype
 		 */
 		public void setPrototype(Cell prototype) {
 			this.prototype = prototype;
@@ -198,31 +207,33 @@ public class BookshelfNodes {
 		 * @param width
 		 * @param height
 		 */
-		public BookshelfNode(String name, double width, double height) {
+		public BookshelfNode(String name, double width, double height, boolean terminal) {
 			this.name = name;
 			this.width = width;
 			this.height = height;
 			this.x = this.y = 0;
+			this.setTerminal(terminal);
 			this.pins = CollectionFactory.createArrayList();
 			nodeMap.put(name, this);
 		}
 
 		/**
 		 * Find a BookshelfNode from its name.
-		 * @param name the name of the BookshelfNode.
+		 * 
+		 * @param name
+		 *            the name of the BookshelfNode.
 		 * @return the BookshelfNode with that name (null if not found).
 		 */
-		public static BookshelfNode findNode(String name)
-		{
+		public static BookshelfNode findNode(String name) {
 			return nodeMap.get(name);
 		}
 
 		/**
 		 * Return a list of all BookshelfNodes.
+		 * 
 		 * @return a list of all BookshelfNodes.
 		 */
-		public static Collection<BookshelfNode> getAllNodes()
-		{
+		public static Collection<BookshelfNode> getAllNodes() {
 			return nodeMap.values();
 		}
 
@@ -239,6 +250,20 @@ public class BookshelfNodes {
 		 */
 		public List<BookshelfPin> getPins() {
 			return pins;
+		}
+
+		/**
+		 * @param terminal the terminal to set
+		 */
+		public void setTerminal(boolean terminal) {
+			this.terminal = terminal;
+		}
+
+		/**
+		 * @return the terminal
+		 */
+		public boolean isTerminal() {
+			return terminal;
 		}
 	}
 
@@ -288,7 +313,8 @@ public class BookshelfNodes {
 		}
 
 		/**
-		 * @param nodeName the nodeName to set
+		 * @param nodeName
+		 *            the nodeName to set
 		 */
 		public void setNodeName(String nodeName) {
 			this.nodeName = nodeName;
