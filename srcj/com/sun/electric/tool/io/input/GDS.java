@@ -438,8 +438,8 @@ public class GDS extends Input<Object>
 
     private static class CellBuilder
     {
-		private static Map<Cell,CellBuilder> allBuilders;
-		private static Set<Cell>        cellsTooComplex;
+		private static Map<CellId,CellBuilder> allBuilders;
+		private static Set<CellId>        cellsTooComplex;
 		private GDSPreferences localPrefs;
 		private Technology tech;
 		private Cell cell;
@@ -451,7 +451,7 @@ public class GDS extends Input<Object>
             this.cell = cell;
             this.tech = tech;
             this.localPrefs = localPrefs;
-            allBuilders.put(cell, this);
+            allBuilders.put(cell.getId(), this);
         }
 
 		private void makeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei,
@@ -520,8 +520,8 @@ public class GDS extends Input<Object>
 
 		private static void init()
 		{
-			allBuilders = new HashMap<Cell,CellBuilder>();
-			cellsTooComplex = new HashSet<Cell>();
+			allBuilders = new HashMap<CellId,CellBuilder>();
+			cellsTooComplex = new HashSet<CellId>();
 		}
 
 		private static void term()
@@ -530,15 +530,56 @@ public class GDS extends Input<Object>
 			if (cellsTooComplex.size() > 0)
 			{
 				System.out.print("THESE CELLS WERE TOO COMPLEX AND NOT FULLY READ:");
-				for(Cell cell : cellsTooComplex) System.out.print(" " + cell.describe(false));
+				for(CellId cellId : cellsTooComplex) System.out.print(" " + cellId/*.describe(false)*/);
 				System.out.println();
 			}
 		}
 
-		private void makeInstances(Set<Cell> builtCells)
+		private void makeInstances(Set<CellId> builtCells)
 		{
-            if (builtCells.contains(cell)) return;
-            builtCells.add(cell);
+            if (builtCells.contains(cell.getId())) return;
+            builtCells.add(cell.getId());
+
+            // Traverse all subcells
+			for(MakeInstance mi : insts)
+			{
+                if (mi.proto instanceof Cell) {
+                    Cell subCell = (Cell)mi.proto;
+                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
+                    if (cellBuilder != null)
+                        cellBuilder.makeInstances(builtCells);
+                }
+			}
+			for(List<MakeInstance> errorList: allErrorInsts.values())
+			{
+				for(MakeInstance mi : errorList)
+				{
+					if (mi == null) continue;
+	                if (mi.proto instanceof Cell) {
+	                    Cell subCell = (Cell)mi.proto;
+	                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
+	                    if (cellBuilder != null)
+	                        cellBuilder.makeInstances(builtCells);
+	                }
+				}
+			}
+			for(MakeInstanceArray mia : instArrays)
+			{
+                if (mia.proto instanceof Cell) {
+                    Cell subCell = (Cell)mia.proto;
+                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
+                    if (cellBuilder != null)
+                        cellBuilder.makeInstances(builtCells);
+                }
+			}
+
+            makeInstances();
+
+			assert builtCells.contains(this.cell.getId());
+        }
+
+        private void makeInstances()
+        {
 			boolean countOff = false;
 			if (SHOWPROGRESS || IGNOREIMMENSECELLS)
 			{
@@ -553,7 +594,7 @@ public class GDS extends Input<Object>
 					// ignore internal contents when cell is very large (for testing only)
 					if (IGNOREIMMENSECELLS)
 					{
-						cellsTooComplex.add(cell);
+						cellsTooComplex.add(cell.getId());
 						MakeInstance ll = null, ul = null, lr = null, ur = null;
 						for(MakeInstance mi : insts)
 						{
@@ -597,12 +638,12 @@ public class GDS extends Input<Object>
 				if (mi.exportName != null) continue;
 				if (countOff && ((++count % 1000) == 0))
 					System.out.println("        Made " + count + " instances");
-                if (mi.proto instanceof Cell) {
-                    Cell subCell = (Cell)mi.proto;
-                    CellBuilder cellBuilder = allBuilders.get(subCell);
-                    if (cellBuilder != null)
-                        cellBuilder.makeInstances(builtCells);
-                }
+//                if (mi.proto instanceof Cell) {
+//                    Cell subCell = (Cell)mi.proto;
+//                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
+//                    if (cellBuilder != null)
+//                        cellBuilder.makeInstances(builtCells);
+//                }
 
 				// make the instance
                 if (mi.instantiate(this.cell, exportUnify, exportNames, null)) renamed++;
@@ -614,12 +655,12 @@ public class GDS extends Input<Object>
 				if (mi.exportName == null) continue;
 				if (countOff && ((++count % 1000) == 0))
 					System.out.println("        Made " + count + " instances");
-                if (mi.proto instanceof Cell) {
-                    Cell subCell = (Cell)mi.proto;
-                    CellBuilder cellBuilder = allBuilders.get(subCell);
-                    if (cellBuilder != null)
-                        cellBuilder.makeInstances(builtCells);
-                }
+//                if (mi.proto instanceof Cell) {
+//                    Cell subCell = (Cell)mi.proto;
+//                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
+//                    if (cellBuilder != null)
+//                        cellBuilder.makeInstances(builtCells);
+//                }
 
                 if (localPrefs.cadenceCompatibility)
                 {
@@ -700,12 +741,12 @@ public class GDS extends Input<Object>
 					if (mi == null) continue;
 					if (countOff && ((++count % 1000) == 0))
 						System.out.println("        Made " + count + " instances");
-	                if (mi.proto instanceof Cell) {
-	                    Cell subCell = (Cell)mi.proto;
-	                    CellBuilder cellBuilder = allBuilders.get(subCell);
-	                    if (cellBuilder != null)
-	                        cellBuilder.makeInstances(builtCells);
-	                }
+//	                if (mi.proto instanceof Cell) {
+//	                    Cell subCell = (Cell)mi.proto;
+//	                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
+//	                    if (cellBuilder != null)
+//	                        cellBuilder.makeInstances(builtCells);
+//	                }
 
 					// make the instance
 	                if (mi.instantiate(this.cell, exportUnify, exportNames, instantiated)) renamed++;
@@ -723,12 +764,12 @@ public class GDS extends Input<Object>
 			{
 				if (countOff && ((++count % 1000) == 0))
 					System.out.println("        Made " + count + " instances");
-                if (mia.proto instanceof Cell) {
-                    Cell subCell = (Cell)mia.proto;
-                    CellBuilder cellBuilder = allBuilders.get(subCell);
-                    if (cellBuilder != null)
-                        cellBuilder.makeInstances(builtCells);
-                }
+//                if (mia.proto instanceof Cell) {
+//                    Cell subCell = (Cell)mia.proto;
+//                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
+//                    if (cellBuilder != null)
+//                        cellBuilder.makeInstances(builtCells);
+//                }
 
 				// make the instance array
                 mia.instantiate(this, this.cell, massiveMerge);
@@ -768,7 +809,7 @@ public class GDS extends Input<Object>
 			}
             if (localPrefs.simplifyCells)
                 simplifyNodes(this.cell, tech);
-			builtCells.add(this.cell);
+//			builtCells.add(this.cell.getId());
 		}
 
         /** Method to see if existing primitive nodes could be merged and define more complex nodes
@@ -975,7 +1016,7 @@ public class GDS extends Input<Object>
 
 		private static void buildInstances()
 		{
-			Set<Cell> builtCells = new HashSet<Cell>();
+			Set<CellId> builtCells = new HashSet<CellId>();
 			for(CellBuilder cellBuilder : allBuilders.values())
 				cellBuilder.makeInstances(builtCells);
 		}
