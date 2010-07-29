@@ -69,6 +69,8 @@ import com.sun.electric.tool.placement.metrics.boundingbox.BBMetric;
 import com.sun.electric.tool.placement.metrics.mst.MSTMetric;
 import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing;
 import com.sun.electric.tool.placement.simulatedAnnealing2.PlacementSimulatedAnnealing;
+import com.sun.electric.tool.placement.simulatedAnnealingFelix.SimulatedAnnealingFelix;
+import com.sun.electric.tool.util.CollectionFactory;
 
 /**
  * Class to define a framework for Placement algorithms. To make Placement
@@ -102,17 +104,14 @@ public abstract class PlacementFrame {
 	 * Static list of all Placement algorithms. When you create a new algorithm,
 	 * add it to the following list.
 	 */
-	private static PlacementFrame[] placementAlgorithms = {
-			new SimulatedAnnealing(), // team
+	private static PlacementFrame[] placementAlgorithms = { new SimulatedAnnealing(), // team
 			// 2
 			new PlacementSimulatedAnnealing(), // team 6
 			new GeneticPlacement(), // team 3
 			new PlacementGenetic(), // team 4
 			new PlacementForceDirectedTeam5(), // team 5
 			new PlacementForceDirectedStaged(), // team 7
-			new PlacementMinCut(), new PlacementSimple(), new PlacementRandom()//,
-			//new SimulatedAnnealingFelix() 
-			};
+			new PlacementMinCut(), new PlacementSimple(), new PlacementRandom(), new SimulatedAnnealingFelix() };
 
 	public static boolean USE_GUIPARAMETER = true;
 	protected int numOfThreads;
@@ -139,8 +138,7 @@ public abstract class PlacementFrame {
 	 * @param cellName
 	 *            the name of the cell being placed.
 	 */
-	protected void runPlacement(List<PlacementNode> nodesToPlace,
-			List<PlacementNetwork> allNetworks, String cellName) {
+	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName) {
 	}
 
 	/**
@@ -187,24 +185,21 @@ public abstract class PlacementFrame {
 			this.title = title;
 			type = TYPEINTEGER;
 			tempValueSet = false;
-			pref = Pref.makeIntPref(getAlgorithmName() + "-" + name,
-					Placement.getPlacementTool().prefs, factory);
+			pref = Pref.makeIntPref(getAlgorithmName() + "-" + name, Placement.getPlacementTool().prefs, factory);
 		}
 
 		public PlacementParameter(String name, String title, String factory) {
 			this.title = title;
 			type = TYPESTRING;
 			tempValueSet = false;
-			pref = Pref.makeStringPref(getAlgorithmName() + "-" + name, Placement
-					.getPlacementTool().prefs, factory);
+			pref = Pref.makeStringPref(getAlgorithmName() + "-" + name, Placement.getPlacementTool().prefs, factory);
 		}
 
 		public PlacementParameter(String name, String title, double factory) {
 			this.title = title;
 			type = TYPEDOUBLE;
 			tempValueSet = false;
-			pref = Pref.makeDoublePref(getAlgorithmName() + "-" + name, Placement
-					.getPlacementTool().prefs, factory);
+			pref = Pref.makeDoublePref(getAlgorithmName() + "-" + name, Placement.getPlacementTool().prefs, factory);
 		}
 
 		public String getName() {
@@ -303,6 +298,7 @@ public abstract class PlacementFrame {
 		private Orientation orient;
 		private Map<Key, Object> addedVariables;
 		private Object userObject;
+		private boolean terminal;
 
 		public Object getUserObject() {
 			return userObject;
@@ -330,15 +326,17 @@ public abstract class PlacementFrame {
 		 * @param pps
 		 *            a list of PlacementPort on the PlacementNode, indicating
 		 *            connection locations.
+		 * @param terminal
 		 */
-		public PlacementNode(NodeProto type, String name, int tBits, double wid, double hei,
-				List<PlacementPort> pps) {
+		public PlacementNode(NodeProto type, String name, int tBits, double wid, double hei, List<PlacementPort> pps,
+				boolean terminal) {
 			original = type;
 			nodeName = name;
 			techBits = tBits;
 			width = wid;
 			height = hei;
 			ports = pps;
+			this.terminal = terminal;
 		}
 
 		/**
@@ -474,6 +472,21 @@ public abstract class PlacementFrame {
 			if (techBits != 0)
 				name += "(" + techBits + ")";
 			return name;
+		}
+
+		/**
+		 * @param terminal
+		 *            the terminal to set
+		 */
+		public void setTerminal(boolean terminal) {
+			this.terminal = terminal;
+		}
+
+		/**
+		 * @return the terminal
+		 */
+		public boolean isTerminal() {
+			return terminal;
 		}
 	}
 
@@ -723,9 +736,9 @@ public abstract class PlacementFrame {
 
 		// convert nodes in the Cell into PlacementNode objects
 		NodeProto iconToPlace = null;
-		List<PlacementNode> nodesToPlace = new ArrayList<PlacementNode>();
-		Map<NodeInst, Map<PortProto, PlacementPort>> convertedNodes = new HashMap<NodeInst, Map<PortProto, PlacementPort>>();
-		List<PlacementExport> exportsToPlace = new ArrayList<PlacementExport>();
+		List<PlacementNode> nodesToPlace = CollectionFactory.createArrayList();
+		Map<NodeInst, Map<PortProto, PlacementPort>> convertedNodes = CollectionFactory.createHashMap();
+		List<PlacementExport> exportsToPlace = CollectionFactory.createArrayList();
 		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
 			NodeInst ni = it.next();
 			if (ni.isIconOfParent()) {
@@ -736,8 +749,7 @@ public abstract class PlacementFrame {
 			if (!validNode) {
 				if (ni.getProto().getTechnology() != Generic.tech()) {
 					PrimitiveNode.Function fun = ni.getFunction();
-					if (fun != PrimitiveNode.Function.CONNECT
-							&& fun != PrimitiveNode.Function.CONTACT && !fun.isPin())
+					if (fun != PrimitiveNode.Function.CONNECT && fun != PrimitiveNode.Function.CONTACT && !fun.isPin())
 						validNode = true;
 				}
 				if (ni.hasExports())
@@ -752,8 +764,7 @@ public abstract class PlacementFrame {
 					for (Iterator<Export> eIt = ((Cell) np).getExports(); eIt.hasNext();) {
 						Export e = eIt.next();
 						Poly poly = e.getPoly();
-						PlacementPort plPort = new PlacementPort(poly.getCenterX(), poly
-								.getCenterY(), e);
+						PlacementPort plPort = new PlacementPort(poly.getCenterX(), poly.getCenterY(), e);
 						pl.add(plPort);
 						placedPorts.put(e, plPort);
 					}
@@ -774,8 +785,7 @@ public abstract class PlacementFrame {
 				for (Iterator<Export> eIt = ni.getExports(); eIt.hasNext();) {
 					Export e = eIt.next();
 					PlacementPort plPort = placedPorts.get(e.getOriginalPort().getPortProto());
-					PlacementExport plExport = new PlacementExport(plPort, e.getName(), e
-							.getCharacteristic());
+					PlacementExport plExport = new PlacementExport(plPort, e.getName(), e.getCharacteristic());
 					exportsToPlace.add(plExport);
 				}
 
@@ -783,8 +793,9 @@ public abstract class PlacementFrame {
 				String name = ni.getName();
 				if (ni.getNameKey().isTempname())
 					name = null;
-				PlacementNode plNode = new PlacementNode(np, name, ni.getTechSpecific(), np
-						.getDefWidth(), np.getDefHeight(), pl);
+				PlacementNode plNode = new PlacementNode(np, name, ni.getTechSpecific(), np.getDefWidth(), np
+						.getDefHeight(), pl, ni.isLocked());
+
 				nodesToPlace.add(plNode);
 				for (PlacementPort plPort : pl)
 					plPort.setPlacementNode(plNode);
@@ -830,8 +841,8 @@ public abstract class PlacementFrame {
 		}
 
 		// do the placement from the shadow objects
-		Cell newCell = doPlacement(cell.getLibrary(), cell.noLibDescribe(), nodesToPlace,
-				allNetworks, exportsToPlace, iconToPlace);
+		Cell newCell = doPlacement(cell.getLibrary(), cell.noLibDescribe(), nodesToPlace, allNetworks, exportsToPlace,
+				iconToPlace);
 
 		return newCell;
 	}
@@ -856,11 +867,10 @@ public abstract class PlacementFrame {
 	 * @return the newly created Cell.
 	 */
 	public Cell doPlacement(Library lib, String cellName, List<PlacementNode> nodesToPlace,
-			List<PlacementNetwork> allNetworks, List<PlacementExport> exportsToPlace,
-			NodeProto iconToPlace) {
+			List<PlacementNetwork> allNetworks, List<PlacementExport> exportsToPlace, NodeProto iconToPlace) {
 		long startTime = System.currentTimeMillis();
-		System.out.println("Running placement on cell '" + cellName + "' using the '"
-				+ getAlgorithmName() + "' algorithm");
+		System.out.println("Running placement on cell '" + cellName + "' using the '" + getAlgorithmName()
+				+ "' algorithm");
 
 		// do the real work of placement
 		runPlacement(nodesToPlace, allNetworks, cellName);
@@ -878,8 +888,8 @@ public abstract class PlacementFrame {
 			try {
 				// Create a new file output stream
 				// connected to "myfile.txt"
-				out = new FileOutputStream("/home/Felix Schmidt/work/" + this.getAlgorithmName()
-						+ "-" + cellName + "-" + this.runtime + "-" + this.numOfThreads + ".txt");
+				out = new FileOutputStream("/home/Felix Schmidt/work/" + this.getAlgorithmName() + "-" + cellName + "-"
+						+ this.runtime + "-" + this.numOfThreads + ".txt");
 
 				// Connect print stream to the output stream
 				p = new PrintStream(out);
@@ -912,9 +922,8 @@ public abstract class PlacementFrame {
 				xPos -= centerOffset.getX();
 				yPos -= centerOffset.getY();
 			}
-			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(xPos, yPos), np
-					.getDefWidth(), np.getDefHeight(), newCell, orient, plNode.nodeName,
-					plNode.techBits);
+			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(xPos, yPos), np.getDefWidth(),
+					np.getDefHeight(), newCell, orient, plNode.nodeName, plNode.techBits);
 			if (ni == null)
 				System.out.println("Placement failed to create node");
 			else
@@ -924,17 +933,16 @@ public abstract class PlacementFrame {
 					Object value = plNode.addedVariables.get(key);
 					Variable var = ni.newDisplayVar(key, value);
 					if (key == Schematics.SCHEM_RESISTANCE) {
-						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(0, 0.5)
-								.withDispPart(TextDescriptor.DispPos.VALUE));
-					} else if (key == Schematics.ATTR_WIDTH) {
-						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(0.5, -1)
-								.withRelSize(1).withDispPart(TextDescriptor.DispPos.VALUE));
-					} else if (key == Schematics.ATTR_LENGTH) {
-						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(-0.5, -1)
-								.withRelSize(0.5).withDispPart(TextDescriptor.DispPos.VALUE));
-					} else {
-						ni.setTextDescriptor(key, var.getTextDescriptor().withDispPart(
+						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(0, 0.5).withDispPart(
 								TextDescriptor.DispPos.VALUE));
+					} else if (key == Schematics.ATTR_WIDTH) {
+						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(0.5, -1).withRelSize(1).withDispPart(
+								TextDescriptor.DispPos.VALUE));
+					} else if (key == Schematics.ATTR_LENGTH) {
+						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(-0.5, -1).withRelSize(0.5)
+								.withDispPart(TextDescriptor.DispPos.VALUE));
+					} else {
+						ni.setTextDescriptor(key, var.getTextDescriptor().withDispPart(TextDescriptor.DispPos.VALUE));
 					}
 				}
 			}
@@ -943,11 +951,9 @@ public abstract class PlacementFrame {
 		// place an icon if requested
 		if (iconToPlace != null) {
 			ERectangle bounds = newCell.getBounds();
-			EPoint center = new EPoint(bounds.getMaxX() + iconToPlace.getDefWidth(), bounds
-					.getMaxY()
+			EPoint center = new EPoint(bounds.getMaxX() + iconToPlace.getDefWidth(), bounds.getMaxY()
 					+ iconToPlace.getDefHeight());
-			NodeInst.makeInstance(iconToPlace, center, iconToPlace.getDefWidth(), iconToPlace
-					.getDefHeight(), newCell);
+			NodeInst.makeInstance(iconToPlace, center, iconToPlace.getDefWidth(), iconToPlace.getDefHeight(), newCell);
 		}
 
 		// place exports in the new cell
@@ -962,8 +968,7 @@ public abstract class PlacementFrame {
 			Export.newInstance(newCell, portToExport, exportName, plExport.getCharacteristic());
 		}
 
-		ImmutableArcInst a = Generic.tech().unrouted_arc.getDefaultInst(newCell
-				.getEditingPreferences());
+		ImmutableArcInst a = Generic.tech().unrouted_arc.getDefaultInst(newCell.getEditingPreferences());
 		long gridExtend = a.getGridExtendOverMin();
 		for (PlacementNetwork plNet : allNetworks) {
 			PlacementPort lastPp = null;
@@ -975,13 +980,12 @@ public abstract class PlacementFrame {
 				if (newNi != null) {
 					PlacementPort thisPp = plPort;
 					PortInst thisPi = newNi.findPortInstFromProto(thisPp.getPortProto());
-					EPoint thisPt = new EPoint(plNode.getPlacementX() + plPort.getRotatedOffX(),
-							plNode.getPlacementY() + plPort.getRotatedOffY());
+					EPoint thisPt = new EPoint(plNode.getPlacementX() + plPort.getRotatedOffX(), plNode.getPlacementY()
+							+ plPort.getRotatedOffY());
 					if (lastPp != null) {
 						// connect them
-						ArcInst.newInstance(newCell, Generic.tech().unrouted_arc, null, null,
-								lastPi, thisPi, lastPt, thisPt, gridExtend, ArcInst.DEFAULTANGLE,
-								a.flags);
+						ArcInst.newInstance(newCell, Generic.tech().unrouted_arc, null, null, lastPi, thisPi, lastPt,
+								thisPt, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
 					}
 					lastPp = thisPp;
 					lastPi = thisPi;

@@ -317,7 +317,7 @@ public class Spice extends Input
 				PortInst piDrain = niDummy.getTransistorDrainPort();
 				ports.add(addPlacementPort(niDummy, piDrain, td.drain, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
 
-				PlacementNode plNode = new PlacementNode(np, "m" + td.name, bits, np.getDefWidth(), np.getDefHeight(), ports);
+				PlacementNode plNode = new PlacementNode(np, "m" + td.name, bits, np.getDefWidth(), np.getDefHeight(), ports, false);
 				nodesToPlace.add(plNode);
 				for(PlacementPort plPort : ports)
 					plPort.setPlacementNode(plNode);
@@ -338,7 +338,7 @@ public class Spice extends Input
 				PortInst piGate = niDummy.getPortInst(1);
 				ports.add(addPlacementPort(niDummy, piGate, rd.right, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
 
-				PlacementNode plNode = new PlacementNode(np, "r" + rd.name, 0, np.getDefWidth(), np.getDefHeight(), ports);
+				PlacementNode plNode = new PlacementNode(np, "r" + rd.name, 0, np.getDefWidth(), np.getDefHeight(), ports, false);
 				nodesToPlace.add(plNode);
 				for(PlacementPort plPort : ports)
 					plPort.setPlacementNode(plNode);
@@ -356,7 +356,7 @@ public class Spice extends Input
 				PortInst piGate = niDummy.getPortInst(1);
 				ports.add(addPlacementPort(niDummy, piGate, cd.bottom, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
 
-				PlacementNode plNode = new PlacementNode(np, "c" + cd.name, 0, np.getDefWidth(), np.getDefHeight(), ports);
+				PlacementNode plNode = new PlacementNode(np, "c" + cd.name, 0, np.getDefWidth(), np.getDefHeight(), ports, false);
 				nodesToPlace.add(plNode);
 				for(PlacementPort plPort : ports)
 					plPort.setPlacementNode(plNode);
@@ -392,7 +392,7 @@ public class Spice extends Input
 					ports.add(addPlacementPort(niDummy, pi, sigName, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
 				}
 
-				PlacementNode plNode = new PlacementNode(np, id.name.replace('@', '_'), 0, np.getDefWidth(), np.getDefHeight(), ports);
+				PlacementNode plNode = new PlacementNode(np, id.name.replace('@', '_'), 0, np.getDefWidth(), np.getDefHeight(), ports, false);
 				nodesToPlace.add(plNode);
 				for(PlacementPort plPort : ports)
 					plPort.setPlacementNode(plNode);
@@ -409,7 +409,7 @@ public class Spice extends Input
 				PortInst pi = niDummy.getPortInst(0);
 				ports.add(addPlacementPort(niDummy, pi, export, allNetworks, sd.exports, sd.usedExports, exportsToPlace));
 
-				PlacementNode plNode = new PlacementNode(np, null, 0, np.getDefWidth(), np.getDefHeight(), ports);
+				PlacementNode plNode = new PlacementNode(np, null, 0, np.getDefWidth(), np.getDefHeight(), ports, false);
 				nodesToPlace.add(plNode);
 				for(PlacementPort plPort : ports)
 					plPort.setPlacementNode(plNode);
