@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+BUG: (7/29/10, FS) Add "terminal-flag" to electric (Bug #2867)
+FIX: Set terminal cells as locked (bookshelf) + propagate terminals to placement nodes
+     But: no placement tool uses this information at the moment
+
 IMP: (7/29/10, DN) Skip non-manhattan layers in MANHATTAN mode of DRC area check.
 
 BUG: (7/28/10, FS) ArrayIndexOutOfBoundsException in matrix example
