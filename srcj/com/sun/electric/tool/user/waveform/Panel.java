@@ -1278,7 +1278,7 @@ public class Panel extends JPanel
 						if (textSkipPos <= 0)
 						{
 							textSkipPos = textSkip;
-							String yValue = TextUtils.convertToEngineeringNotation(value, null);
+							String yValue = TextUtils.convertToEngineeringNotation(value, null, ss.getStepScale()+3);
 							if (polys != null)
 							{
 								Poly poly = new Poly(new Point2D[] { new Point2D.Double(vertAxisPos-12, y) });

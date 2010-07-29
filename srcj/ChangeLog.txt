@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+BUG: (7/29/10, SMR) Vertical waveform axis zero value drawn badly (Bug #2870).
+FIX: Fixed in Panel.drawPanelContents().
+
 IMP: (7/29/10, SMR) Added import regressions (Bug #2869).
 
 BUG: (7/29/10, FS) Add "terminal-flag" to electric (Bug #2867)
