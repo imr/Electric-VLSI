@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.UserInterfaceExec;
@@ -152,6 +153,7 @@ public final class SimulationData {
 				if (sd == null) return;
                 sd.setFileURL(fileURL);
                 final Stimuli sdx = sd;
+                assert cell.getDatabase() == EDatabase.clientDatabase();
                 SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
                             if (ww==null)
