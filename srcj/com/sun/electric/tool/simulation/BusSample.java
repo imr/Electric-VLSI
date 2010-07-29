@@ -105,6 +105,22 @@ public class BusSample<S extends Sample> implements Sample
         return new BusSample<DigitalSample>(ret);
     }
 
+    public double getMinValue()
+    {
+    	double min = Double.MAX_VALUE;
+    	for(int i=0; i<vals.length; i++)
+    		min = Math.min(min, vals[i].getMinValue());
+    	return min;
+    }
+
+    public double getMaxValue()
+    {
+    	double max = Double.MIN_VALUE;
+    	for(int i=0; i<vals.length; i++)
+    		max = Math.max(max, vals[i].getMaxValue());
+    	return max;
+    }
+
     /** create a MutableSignal<BusSample<SS>> */
     public static <SS extends Sample> Signal<BusSample<SS>> createSignal(SignalCollection sc, Stimuli sd, String signalName,
     	String signalContext, int width)
@@ -218,6 +234,20 @@ public class BusSample<S extends Sample> implements Sample
             {
                 double max = Double.MIN_VALUE;
                 for(Signal<SS> sig : subsignals) max = Math.max(max, sig.getMaxTime());
+                return max;
+            }
+
+            public double getMinValue()
+            {
+                double min = Double.MAX_VALUE;
+                for(Signal<SS> sig : subsignals) min = Math.min(min, sig.getMinValue());
+                return min;
+            }
+
+            public double getMaxValue()
+            {
+                double max = Double.MIN_VALUE;
+                for(Signal<SS> sig : subsignals) max = Math.max(max, sig.getMaxValue());
                 return max;
             }
 

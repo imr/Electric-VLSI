@@ -89,6 +89,10 @@ public class ScalarSample implements Sample, Comparable<Object>
         return value > ((ScalarSample)s).value ? this : s;
     }
 
+    public double getMinValue() { return value; }
+
+    public double getMaxValue() { return value; }
+
     public static final UnboxedComparable<ScalarSample> unboxer = new UnboxedComparable<ScalarSample>()
     {
         public int getSize() { return UnboxedHalfDouble.instance.getSize(); }

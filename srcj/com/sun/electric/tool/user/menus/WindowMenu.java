@@ -360,6 +360,8 @@ public class WindowMenu {
                          true,
                          new Signal[] { s1 }) {
                         public boolean isEmpty() { return false; }
+                        public double getMinValue() { return 0; }
+                        public double getMaxValue() { return 1; }
                         public RangeSample<DigitalSample> getDerivedRange(RangeSample<ScalarSample>[] s) {
                             if (s[0]==null) return null;
                             double min = s[0].getMin().getValue();

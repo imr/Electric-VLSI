@@ -40,27 +40,34 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S>
     private Signal.View<S> exactView = null;
     private final BTree<Double,S,Pair<S,S>> tree;
     private double minTime = 0, maxTime = 0;
+    private double minValue = 0, maxValue = 0;
     public static int misses = 0;
     public static int steps = 0;
     public static int numLookups = 0;
 
     public BTreeSignal(SignalCollection sc, Stimuli sd, String signalName, String signalContext,
-                       boolean digital, BTree<Double,S,Pair<S,S>> tree)
+    	boolean digital, BTree<Double,S,Pair<S,S>> tree)
     {
         super(sc, sd, signalName, signalContext, digital);
-        if (tree==null) throw new RuntimeException();
+        if (tree == null) throw new RuntimeException();
         this.tree = tree;
         this.exactView = new Signal.View<S>()
         {
             public int getNumEvents() { return BTreeSignal.this.tree.size(); }
-            public double getTime(int index) {
+            public double getTime(int index)
+            {
                 Double d = BTreeSignal.this.tree.getKeyFromOrd(index);
-                if (d==null) throw new RuntimeException("index out of bounds");
+                if (d == null)
+                	throw new RuntimeException("Entry " + index + " not valid (tree size is " +
+                		BTreeSignal.this.tree.size() + ")");
                 return d.doubleValue();
             }
-            public S       getSample(int index) {
+            public S getSample(int index)
+            {
                 S ret = BTreeSignal.this.tree.getValFromOrd(index);
-                if (ret==null) throw new RuntimeException("index out of bounds");
+                if (ret == null)
+                	throw new RuntimeException("Entry " + index + " not valid (tree size is " +
+                		BTreeSignal.this.tree.size() + ")");
                 return ret;
             }
         };
@@ -72,12 +79,16 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S>
     	tree.insert(time, sample);
     	minTime = Math.min(minTime, time);
     	maxTime = Math.max(maxTime, time);
+    	minValue = Math.min(minValue, sample.getMinValue());
+    	maxValue = Math.max(maxValue, sample.getMaxValue());
     }
     public void replaceSample(double time, S sample)
     {
     	tree.replace(time, sample);
     	minTime = Math.min(minTime, time);
     	maxTime = Math.max(maxTime, time);
+    	minValue = Math.min(minValue, sample.getMinValue());
+    	maxValue = Math.max(maxValue, sample.getMaxValue());
     }
 
     public Signal.View<S> getExactView() { return exactView; }
@@ -93,12 +104,18 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S>
 //		return tree.size()==0 ? 0 : getExactView().getTime(0);
 		return minTime;
 	}
+
 	public double getMaxTime()
 	{
 //		return tree.size()==0 ? 0 : getExactView().getTime(getExactView().getNumEvents()-1);
 		return maxTime;
 	}
-    protected Pair<S,S> getSummaryFromKeys(Double t1, Double t2) {
+
+	public double getMinValue() { return minValue; }
+
+	public double getMaxValue() { return maxValue; }
+
+	protected Pair<S,S> getSummaryFromKeys(Double t1, Double t2) {
         return tree.getSummaryFromKeys(t1, t2);
     }
 

@@ -140,6 +140,9 @@ public class DigitalSample implements Sample
         return cache[Math.min(ds.value.v, value.v)+1][Math.min(ds.strength.v, strength.v)+1];
     }
 
+    public double getMinValue() { return 0; }
+    public double getMaxValue() { return 1; }
+
     public boolean isLogic0() { return value==Value.LOW; }
     public boolean isLogic1() { return value==Value.HIGH; }
     public boolean isLogicX() { return value==Value.X; }

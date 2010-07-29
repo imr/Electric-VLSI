@@ -91,6 +91,10 @@ public class ComplexSample extends ScalarSample implements Sample
         return new ComplexSample(Math.min(real, cs.real), Math.min(imag, cs.imag));
     }
 
+    public double getMinValue() { return Math.min(real, imag); }
+
+    public double getMaxValue() { return Math.max(real, imag); }
+
     public static final Unboxed<ComplexSample> unboxer = new Unboxed<ComplexSample>()
     {
         public int getSize() { return UnboxedHalfDouble.instance.getSize()*2; }

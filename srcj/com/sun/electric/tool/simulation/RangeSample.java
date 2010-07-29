@@ -72,6 +72,10 @@ public class RangeSample<S extends Sample> implements Sample
         throw new RuntimeException("not implemented");
     }
 
+    public double getMinValue() { return min.getMinValue(); }
+
+    public double getMaxValue() { return max.getMaxValue(); }
+
 }
 
 

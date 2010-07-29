@@ -37,6 +37,10 @@ public interface Sample extends Serializable
     /** returns true iff this sample is "Z" (unconnected) */
     public boolean isLogicZ();
 
+    public double getMinValue();
+
+    public double getMaxValue();
+
     /**
      *  Return the least upper bound of this and s.  This is sort of
      *  like max(this,s) except that the result might be greater than

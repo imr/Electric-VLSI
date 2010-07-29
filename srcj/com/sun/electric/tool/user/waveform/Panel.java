@@ -700,31 +700,33 @@ public class Panel extends JPanel
         {
             Signal<Sample> sSig = (Signal<Sample>)wSig.getSignal();
             if (sig != null && sig != sSig) continue;
-            if (sSig.isDigital())
-            {
-            	lowValue = Math.min(lowValue, 0);
-            	highValue = Math.max(highValue, 1);
-            } else
-            {
-            	Signal.View<RangeSample<Sample>> view = sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), 2);
-	            for(int i=0; i<view.getNumEvents(); i++)
-	            {
-	                RangeSample<?> rs = view.getSample(i);
-	                if (rs==null) continue;
-	                Sample min = rs.getMin();
-	                if (min != null)
-	                {
-	                	if (min instanceof ScalarSample) lowValue = Math.min(lowValue, ((ScalarSample)min).getValue()); else
-	                		if (min instanceof SweptSample<?>) lowValue = Math.min(lowValue, ((SweptSample<ScalarSample>)min).getMin());
-	                }
-	                Sample max = rs.getMax();
-	                if (max != null)
-	                {
-	                	if (max instanceof ScalarSample) highValue = Math.max(highValue, ((ScalarSample)max).getValue()); else
-	                		if (max instanceof SweptSample<?>) highValue = Math.max(highValue, ((SweptSample<ScalarSample>)max).getMax());
-	                }
-	            }
-            }
+        	lowValue = Math.min(lowValue, sSig.getMinValue());
+        	highValue = Math.max(highValue, sSig.getMaxValue());
+//            if (sSig.isDigital())
+//            {
+//            	lowValue = Math.min(lowValue, 0);
+//            	highValue = Math.max(highValue, 1);
+//            } else
+//            {
+//            	Signal.View<RangeSample<Sample>> view = sSig.getRasterView(sSig.getMinTime(), sSig.getMaxTime(), 2);
+//	            for(int i=0; i<view.getNumEvents(); i++)
+//	            {
+//	                RangeSample<?> rs = view.getSample(i);
+//	                if (rs==null) continue;
+//	                Sample min = rs.getMin();
+//	                if (min != null)
+//	                {
+//	                	if (min instanceof ScalarSample) lowValue = Math.min(lowValue, ((ScalarSample)min).getValue()); else
+//	                		if (min instanceof SweptSample<?>) lowValue = Math.min(lowValue, ((SweptSample<ScalarSample>)min).getMin());
+//	                }
+//	                Sample max = rs.getMax();
+//	                if (max != null)
+//	                {
+//	                	if (max instanceof ScalarSample) highValue = Math.max(highValue, ((ScalarSample)max).getValue()); else
+//	                		if (max instanceof SweptSample<?>) highValue = Math.max(highValue, ((SweptSample<ScalarSample>)max).getMax());
+//	                }
+//	            }
+//            }
         }
         double range = highValue - lowValue;
         if (range == 0) range = 2;
