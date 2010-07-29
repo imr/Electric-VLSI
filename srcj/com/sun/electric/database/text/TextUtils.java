@@ -716,6 +716,11 @@ public class TextUtils {
         }
 
         if (precpower >= allRanges[rangePos].power) {
+            // if the value is too tiny, just call it zero
+            if (precpower - 4 > allRanges[rangePos].power) {
+                return "0" + unitPostfix;
+            }
+
             long timeleft = intTime / 1000;
             long timeright = intTime % 1000;
             if (timeright == 0) {
