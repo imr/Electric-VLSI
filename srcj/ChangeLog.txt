@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+IMP: (7/29/10, SMR) Added import regressions (Bug #2869).
+
 BUG: (7/29/10, FS) Add "terminal-flag" to electric (Bug #2867)
 FIX: Set terminal cells as locked (bookshelf) + propagate terminals to placement nodes
      But: no placement tool uses this information at the moment
