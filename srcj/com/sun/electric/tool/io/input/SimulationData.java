@@ -146,21 +146,21 @@ public final class SimulationData {
                 Job.setUserInterface(userInterface);
             }
 			try {
-				sd = new Stimuli();
-				sd.setNetDelimiter(netDelimeter);
-				sd.setCell(cell);
+                sd = new Stimuli();
+                sd.setNetDelimiter(netDelimeter);
+                sd.setCell(cell);
                 is.processInput(fileURL, cell, sd);
-				if (sd == null) return;
+                if (sd == null) return;
                 sd.setFileURL(fileURL);
                 final Stimuli sdx = sd;
                 assert cell.getDatabase() == EDatabase.clientDatabase();
                 SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            if (ww==null)
-                                WaveformWindow.showSimulationDataInNewWindow(sdx);
-                            else
-                                WaveformWindow.refreshSimulationData(sdx, ReadSimulationOutput.this.ww);
-                        }});
+                    public void run() {
+                        if (ww==null)
+                            WaveformWindow.showSimulationDataInNewWindow(sdx);
+                        else
+                            WaveformWindow.refreshSimulationData(sdx, ReadSimulationOutput.this.ww);
+                    }});
 			} catch (IOException e) {
 				System.out.println("End of file reached while reading " + fileURL);
 			}
@@ -171,5 +171,21 @@ public final class SimulationData {
         ReadSimulationOutput job = new ReadSimulationOutput(cell, url, null);
         job.run();
         return job.sd;
+    }
+
+	public static Stimuli processInput(Cell cell, URL url, String netDelimeter) {
+ 		Input<Stimuli> is = getInputForExtension(url.getPath());
+        if (is==null) throw new RuntimeException("unable to detect type");
+        Stimuli sd = new Stimuli();
+        sd.setNetDelimiter(netDelimeter);
+        sd.setCell(cell);
+        try {
+            is.processInput(url, cell, sd);
+        } catch (IOException e) {
+			System.out.println("End of file reached while reading " + url);
+            return null;
+        }
+        sd.setFileURL(url);
+        return sd;
     }
 }
