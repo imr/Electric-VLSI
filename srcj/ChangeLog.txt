@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+IMP: (7/29/10, DN) Skip non-manhattan layers in MANHATTAN mode of DRC area check.
+
 BUG: (7/28/10, FS) ArrayIndexOutOfBoundsException in matrix example
 FIX: Data Race on bottom index pointer in UnboundedDEQueue
 

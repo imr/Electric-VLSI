@@ -4496,6 +4496,10 @@ public class Quick
                 if (skipLayer(layer))
                     continue;
                 System.out.println("layer " + layer);
+                if (vce.isBadLayer(layer)) {
+                    System.out.println("IS NOT MANHATTAN !!");
+                    continue;
+                }
         		DRCTemplate minAreaRule = minAreaLayerMap.get(layer);
                 DRCTemplate encloseAreaRule = enclosedAreaLayerMap.get(layer);
                 DRCTemplate spacingRule = spacingLayerMap.get(layer);

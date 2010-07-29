@@ -67,6 +67,7 @@ public class VectorCache {
     private static final boolean WIPE_PINS = true;
 
     private Set<Layer> layers = new TreeSet<Layer>();
+    private Set<Layer> badLayers = new HashSet<Layer>();
     private final Snapshot snapshot;
     private final TechPool techPool;
     private HashMap<CellId, MyVectorCell> cells = new HashMap<CellId,MyVectorCell>();
@@ -135,6 +136,10 @@ public class VectorCache {
 
     public Collection<Layer> getLayers() {
         return new ArrayList<Layer>(layers);
+    }
+
+    public boolean isBadLayer(Layer layer) {
+        return badLayers.contains(layer);
     }
 
     public VectorCache(Snapshot snapshot) {
@@ -287,74 +292,23 @@ public class VectorCache {
             if (layer.isPseudoLayer()) {
                 return;
             }
-            throw new UnsupportedOperationException();
-//            Point2D.Double[] points = new Point2D.Double[numPoints];
-//            for (int i = 0; i < numPoints; i++) {
-//                points[i] = new Point2D.Double(doubleCoords[i * 2], doubleCoords[i * 2 + 1]);
-//            }
-//            Poly poly = new Poly(points);
-//            poly.setStyle(style);
-//            poly.setLayer(layer);
-//            poly.setGraphicsOverride(graphicsOverride);
-//            poly.gridToLambda();
-//            renderPoly(poly, vc, hideOnLowLevel, textType, false);
+            badLayer(layer);
         }
 
         @Override
         public void addDoubleTextPoly(int numPoints, Poly.Type style, Layer layer, PrimitivePort pp, String message, TextDescriptor descriptor) {
-            throw new UnsupportedOperationException();
-//            Point2D.Double[] points = new Point2D.Double[numPoints];
-//            for (int i = 0; i < numPoints; i++) {
-//                points[i] = new Point2D.Double(doubleCoords[i * 2], doubleCoords[i * 2 + 1]);
-//            }
-//            Poly poly = new Poly(points);
-//            poly.setStyle(style);
-//            poly.setLayer(layer);
-//            poly.gridToLambda();
-//            poly.setString(message);
-//            poly.setTextDescriptor(descriptor);
-//            renderPoly(poly, vc, hideOnLowLevel, textType, false);
+            badLayer(layer);
         }
 
         @Override
         public void addIntPoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
-            throw new UnsupportedOperationException();
-//            switch (style) {
-//                case OPENED:
-//                    addIntLine(0, layer, graphicsOverride);
-//                    break;
-//                case OPENEDT1:
-//                    addIntLine(1, layer, graphicsOverride);
-//                    break;
-//                case OPENEDT2:
-//                    addIntLine(2, layer, graphicsOverride);
-//                    break;
-//                case OPENEDT3:
-//                    addIntLine(3, layer, graphicsOverride);
-//                    break;
-//                default:
-//                    Point2D.Double[] points = new Point2D.Double[numPoints];
-//                    for (int i = 0; i < numPoints; i++) {
-//                        points[i] = new Point2D.Double(intCoords[i * 2], intCoords[i * 2 + 1]);
-//                    }
-//                    Poly poly = new Poly(points);
-//                    poly.setStyle(style);
-//                    poly.setLayer(layer);
-//                    poly.setGraphicsOverride(graphicsOverride);
-//                    poly.gridToLambda();
-//                    renderPoly(poly, vc, hideOnLowLevel, textType, false);
-//                    break;
-//            }
+            if (numPoints == 2)
+                return;
+            badLayer(layer);
         }
 
         private void addIntLine(int lineType, Layer layer, EGraphics graphicsOverride) {
-            throw new UnsupportedOperationException();
-//            int x1 = intCoords[0];
-//            int y1 = intCoords[1];
-//            int x2 = intCoords[2];
-//            int y2 = intCoords[3];
-//            VectorLine vl = new VectorLine(x1, y1, x2, y2, lineType, layer, graphicsOverride);
-//            vc.shapes.add(vl);
+            badLayer(layer);
         }
 
         @Override
@@ -376,6 +330,10 @@ public class VectorCache {
                 mvc.shapes.add(vm);
             }
         }
+    }
+
+    private void badLayer(Layer layer) {
+        badLayers.add(layer);
     }
 
     private static void putBox(int layerIndex, ArrayList<VectorManhattanBuilder> boxBuilders, int lX, int lY, int hX, int hY) {
