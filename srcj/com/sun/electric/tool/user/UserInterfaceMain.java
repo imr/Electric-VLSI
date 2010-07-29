@@ -79,11 +79,9 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -117,7 +115,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 //    private static final EventListenerList undoRedoListenerList = new EventListenerList();
     private static EventListenerList listenerList = new EventListenerList();
     private static Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
-    private static GraphicsPreferences currentGraphicsPreferences = new GraphicsPreferences(true, currentSnapshot.getTechPool());
+    private static GraphicsPreferences currentGraphicsPreferences = null;
 //    private static EDatabase database = EDatabase.clientDatabase();
 	/** The progress during input. */						protected static Progress progress = null;
 
