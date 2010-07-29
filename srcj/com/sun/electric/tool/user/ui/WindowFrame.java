@@ -959,6 +959,7 @@ public class WindowFrame extends Observable
 	 */
 	public void finished()
 	{
+        assert SwingUtilities.isEventDispatchThread();
         // if this was called from the code, instead of an event handler,
         // make sure we're not visible anymore
         if (TopLevel.isMDIMode()) {

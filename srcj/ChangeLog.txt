@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+BUG: (7/29/10, DN) NPE in WaveformTests using the GUI (Bug #2868).
+    I guess that WindowFrame.finished() should be called from SwingThread only.
+    Assertion is added to WindowFrame.finished() .
+
 BUG: (7/29/10, SMR) Vertical waveform axis zero value drawn badly (Bug #2870).
 FIX: Fixed in Panel.drawPanelContents().
 
