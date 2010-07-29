@@ -111,7 +111,7 @@ public abstract class PlacementFrame {
 			new PlacementGenetic(), // team 4
 			new PlacementForceDirectedTeam5(), // team 5
 			new PlacementForceDirectedStaged(), // team 7
-			new PlacementMinCut(), new PlacementSimple(), new PlacementRandom(), new SimulatedAnnealingFelix() };
+			new PlacementMinCut(), new PlacementSimple(), new PlacementRandom() };
 
 	public static boolean USE_GUIPARAMETER = true;
 	protected int numOfThreads;
