@@ -1433,7 +1433,7 @@ public class ClickZoomWireListener
     private void escapePressed(EditWindow wnd) {
         Highlighter highlighter = wnd.getHighlighter();
         if (modeRight == Mode.wiringConnect || modeRight == Mode.wiringFind ||
-            modeRight == Mode.stickyWiring)
+            modeRight == Mode.stickyWiring || modeRight == Mode.wiringToSpace)
             router.cancelInteractiveRoute();
         if (modeRight == Mode.zoomBox || modeRight == Mode.zoomBoxSingleShot || modeRight == Mode.zoomOut ||
             modeLeft == Mode.drawBox || modeLeft == Mode.selectBox)
