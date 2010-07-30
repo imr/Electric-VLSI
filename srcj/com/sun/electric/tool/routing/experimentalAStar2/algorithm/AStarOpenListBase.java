@@ -76,18 +76,18 @@ public interface AStarOpenListBase<T extends AStarNodeBase<T>>
    */
   public boolean isOpenListEmpty();
 
-  /**
-   * Empties the open list, and returns a collection of all nodes formerly
-   * contained in the open list.
-   * 
-   * @return All nodes formerly in the open list.
-   * 
-   * @deprecated As requested nodes are stored in the map permanently, and never
-   *             released, dumping all nodes into a list is not necessary any
-   *             more.
-   */
-  @Deprecated
-  public Collection<T> dumpOpenList();
+//  /**
+//   * Empties the open list, and returns a collection of all nodes formerly
+//   * contained in the open list.
+//   *
+//   * @return All nodes formerly in the open list.
+//   *
+//   * @deprecated As requested nodes are stored in the map permanently, and never
+//   *             released, dumping all nodes into a list is not necessary any
+//   *             more.
+//   */
+//  @Deprecated
+//  public Collection<T> dumpOpenList();
 
   /**
    * Removes all nodes from the open list.

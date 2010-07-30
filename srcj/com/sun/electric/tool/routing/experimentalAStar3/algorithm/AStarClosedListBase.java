@@ -61,18 +61,18 @@ public interface AStarClosedListBase<T extends AStarNodeBase<T>>
    */
   public T findClosedNode(int x, int y, int z);
 
-  /**
-   * Empties the closed list, and returns a collection of all nodes formerly
-   * contained in the closed list.
-   * 
-   * @return All nodes formerly in the closed list.
-   * 
-   * @deprecated As requested nodes are stored in the map permanently, and never
-   *             released, dumping all nodes into a list is not necessary any
-   *             more.
-   */
-  @Deprecated
-  public Collection<T> dumpClosedList();
+//  /**
+//   * Empties the closed list, and returns a collection of all nodes formerly
+//   * contained in the closed list.
+//   *
+//   * @return All nodes formerly in the closed list.
+//   *
+//   * @deprecated As requested nodes are stored in the map permanently, and never
+//   *             released, dumping all nodes into a list is not necessary any
+//   *             more.
+//   */
+//  @Deprecated
+//  public Collection<T> dumpClosedList();
 
   /**
    * Removes all nodes from the closed list.
