@@ -24,8 +24,6 @@
  */
 package com.sun.electric.tool.routing.experimentalAStar3.algorithm;
 
-import java.util.Collection;
-
 /**
  * @author Christian Harnisch
  * 

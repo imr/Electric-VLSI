@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+BUG: (7/30/10, JKG) Hitting escape to cancel a wiring tool action does not reset the highlights (Bug #2842)
+FIX: This case was missing in the code for 'escapePressed' in ClickZoomWireListener
+
 IMP: (7/29/10 GVG) Removing deprecated fuctions in experimental 2 and 3,
 new routers codes, Bug #2803
 
