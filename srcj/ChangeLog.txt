@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+IMP: (8/2/10, SMR) Gerber import alternates layer assignment (Bug #2860).
+
 BUG: (7/30/10, JKG) Hitting escape to cancel a wiring tool action does not reset the highlights (Bug #2842)
 FIX: This case was missing in the code for 'escapePressed' in ClickZoomWireListener
 
