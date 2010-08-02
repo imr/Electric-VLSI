@@ -413,7 +413,20 @@ public class EDIF extends Input<Object>
 		public IconParameters iconParameters = IconParameters.makeInstance(false);
 		public AutoStitch.AutoOptions autoParameters = new AutoStitch.AutoOptions();
 
-		public EDIFPreferences(boolean factory) { super(factory); }
+		public EDIFPreferences(boolean factory)
+		{
+			super(factory);
+			if (factory)
+			{
+				inputScale = IOTool.getFactoryEDIFInputScale();
+				acceptedParameters = IOTool.getFactoryEDIFAcceptedParameters();
+				configurationFile = IOTool.getFactoryEDIFConfigurationFile();
+				cadenceCompatibility = IOTool.isFactoryEDIFCadenceCompatibility();
+				showArcNames = IOTool.isFactoryEDIFShowArcNames();
+				showNodeNames = IOTool.isFactoryEDIFShowNodeNames();
+				autoParameters.createExports = false;
+			}
+		}
 
 		public void initFromUserDefaults()
 		{

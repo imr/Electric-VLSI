@@ -403,7 +403,14 @@ public class CIF extends Input<Object>
     {
 		public boolean squareWires;
 
-		public CIFPreferences(boolean factory) { super(factory); }
+		public CIFPreferences(boolean factory)
+		{
+			super(factory);
+			if (factory)
+			{
+				squareWires = IOTool.isFactoryCIFInSquaresWires();
+			}
+		}
 
 		public void initFromUserDefaults()
 		{

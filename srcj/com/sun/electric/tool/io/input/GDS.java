@@ -270,7 +270,22 @@ public class GDS extends Input<Object>
 		public int unknownLayerHandling;
 		public boolean cadenceCompatibility;
 
-		public GDSPreferences(boolean factory) { super(factory); }
+		public GDSPreferences(boolean factory)
+		{
+			super(factory);
+			if (factory)
+			{
+				inputScale = IOTool.getFactoryGDSInputScale();
+				simplifyCells = IOTool.isFactoryGDSInSimplifyCells();
+				arraySimplification = IOTool.getFactoryGDSArraySimplification();
+				instantiateArrays = IOTool.isFactoryGDSInInstantiatesArrays();
+				expandCells = IOTool.isFactoryGDSInExpandsCells();
+				mergeBoxes = IOTool.isFactoryGDSInMergesBoxes();
+				includeText = IOTool.isFactoryGDSInIncludesText();
+				unknownLayerHandling = IOTool.getFactoryGDSInUnknownLayerHandling();
+				cadenceCompatibility = IOTool.isFactoryGDSCadenceCompatibility();
+			}
+		}
 
 		public void initFromUserDefaults()
 		{

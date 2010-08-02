@@ -115,7 +115,16 @@ public class DXF extends Input<Object>
 		public boolean readAllLayers;
 		public int scale;
 
-		public DXFPreferences(boolean factory) { super(factory); }
+		public DXFPreferences(boolean factory)
+		{
+			super(factory);
+			if (factory)
+			{
+				flattenHierarchy = IOTool.isFactoryDXFInputFlattensHierarchy();
+				readAllLayers = IOTool.isFactoryDXFInputReadsAllLayers();
+				scale = IOTool.getFactoryDXFScale();
+			}
+		}
 
 		public void initFromUserDefaults()
 		{

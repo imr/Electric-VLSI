@@ -591,6 +591,11 @@ public class IOTool extends Tool
 	 */
 	public static double getGDSInputScale() { return getGDSInputScaleSetting().getDouble(); }
 	/**
+	 * Method to tell the scale to be applied when reading GDS, by default.
+	 * @return the scale to be applied when reading GDS, by default..
+	 */
+	public static double getFactoryGDSInputScale() { return getGDSInputScaleSetting().getDoubleFactoryValue(); }
+	/**
 	 * Method to set the scale to be applied when reading GDS.
 	 * @return the scale to be applied when reading GDS.
 	 */
@@ -1282,6 +1287,24 @@ public class IOTool extends Tool
 	 * @return the DXF scale.
 	 */
 	public static int getDXFScale() { return getDXFScaleSetting().getInt(); }
+	/**
+	 * Method to tell the DXF scale.
+	 * The DXF scale is:
+	 * <UL>
+	 * <LI>-3: GigaMeters
+	 * <LI>-2: MegaMeters
+	 * <LI>-1: KiloMeters
+	 * <LI>0: Meters
+	 * <LI>1: MilliMeters
+	 * <LI>2: MicroMeters
+	 * <LI>3: NanoMeters
+	 * <LI>4: PicoMeters
+	 * <LI>5: FemtoMeters
+	 * </UL>
+	 * The default is "2" (MicroMeters).
+	 * @return the DXF scale.
+	 */
+	public static int getFactoryDXFScale() { return getDXFScaleSetting().getIntFactoryValue(); }
 	/**
 	 * Returns project preferences to tell the DXF scale.
 	 * The DXF scale is:

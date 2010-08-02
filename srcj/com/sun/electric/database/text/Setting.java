@@ -514,6 +514,15 @@ public class Setting {
     public double getDoubleFactoryValue() {
         return ((Double) factoryObj).doubleValue();
     }
+
+    /**
+     * Method to get the factory-default int value of this Pref object.
+     * @return the factory-default int value of this Pref object.
+     */
+    public int getIntFactoryValue() {
+        return ((Integer) factoryObj).intValue();
+    }
+
     private static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting>() {
 
         public int compare(Setting s1, Setting s2) {
