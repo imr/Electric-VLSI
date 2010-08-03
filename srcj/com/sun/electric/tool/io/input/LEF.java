@@ -84,7 +84,10 @@ public class LEF extends LEFDEF
 
 	public static class LEFPreferences extends InputPreferences
     {
-		public LEFPreferences(boolean factory) { super(factory); }
+		public LEFPreferences(boolean factory)
+		{
+			super(factory);
+		}
 
         @Override
         public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)

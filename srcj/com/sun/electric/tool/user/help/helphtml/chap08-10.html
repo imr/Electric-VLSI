@@ -123,7 +123,7 @@ Inside of the &lt;technology&gt; element are these subelements:
 	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;scale value="200.0" relevant="true"/&gt;</FONT></CODE>
 </LI>
 <LI>
-    <B>&lt;resolution&gt;</B> defines the minimum resolution value in lambda used in DRC,
+    <B>&lt;resolution&gt;</B> defines the minimum resolution value in grid units used in DRC,
 	a parameter to determine which points are off-grid.<BR>
 	Example:<BR>
 	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;resolution value="2.0"/&gt;</FONT></CODE>
@@ -296,7 +296,7 @@ Inside of the &lt;layer&gt; element are these subelements:
          <B>&lt;oldName&gt;</B> if the pure-layer node has another name in older versions of the technology.
     </LI>
     <LI>
-         <B>&lt;lambda&gt;</B> the default width of this pure-layer-node when it is placed manually.
+         <B>&lt;lambda&gt;</B> the default width of this pure-layer-node (in grid units) when it is placed manually.
     </LI>
     <LI>
          <B>&lt;portArc&gt;</B> the list of arc names which can connect to this pure-layer node.
