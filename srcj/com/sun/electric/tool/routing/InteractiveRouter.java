@@ -818,9 +818,17 @@ public abstract class InteractiveRouter extends Router {
             }
         }
         if (alignment.getWidth() > 0 && alignment.getHeight() > 0) {
-            if (startPoint.getX() % alignment.getWidth() != 0 || endPoint.getX() % alignment.getWidth() != 0 ||
-                startPoint.getY() % alignment.getHeight() != 0 || endPoint.getY() % alignment.getHeight() != 0) {
-                System.out.println("start and end points not aligned");
+        	long sX = (long)(startPoint.getX() / alignment.getWidth());
+        	long sY = (long)(startPoint.getY() / alignment.getHeight());
+        	long eX = (long)(endPoint.getX() / alignment.getWidth());
+        	long eY = (long)(endPoint.getY() / alignment.getHeight());
+            if (sX * alignment.getWidth() != startPoint.getX() ||
+            	eX * alignment.getWidth() != endPoint.getX() ||
+                sY * alignment.getHeight() != startPoint.getY() ||
+                eY * alignment.getHeight() != endPoint.getY()) {
+                System.out.println("Start point (" + startPoint.getX() + "," + startPoint.getY() + ") and/or end point (" +
+                	endPoint.getX() + "," + endPoint.getY() + ") not aligned to alignment: (" + alignment.getWidth() +
+                	"," + alignment.getHeight() + ")");
             }
         }
     }

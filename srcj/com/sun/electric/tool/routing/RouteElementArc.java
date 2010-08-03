@@ -125,10 +125,10 @@ public class RouteElementArc extends RouteElement {
 	            	good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(arcExtendOverMin+layerExtend), headExtend, tailExtend);
 	        	}
 
-	        	// make it a Universal arc if it still doesn't fit
+	        	// make it zero-size if it still doesn't fit
 	        	if (!good)
 	        	{
-					ap = Generic.tech().universal_arc;
+//					ap = Generic.tech().universal_arc;
 	        		arcBaseWidth = 0;
 	        		break;
 	        	}

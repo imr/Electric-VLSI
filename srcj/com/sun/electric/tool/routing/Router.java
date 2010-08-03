@@ -252,7 +252,7 @@ public abstract class Router {
     protected static class CreateRouteJob extends Job {
 
         /** route to build */                       protected Route route;
-        /** print message on what was done */       private boolean verbose;
+//        /** print message on what was done */       private boolean verbose;
         /** cell in which to build route */         private Cell cell;
         /** port to highlight */                    private PortInst portToHighlight;
         /** true to beep */                         private boolean beep;
@@ -261,7 +261,7 @@ public abstract class Router {
         protected CreateRouteJob(String what, Route route, Cell cell, boolean verbose, Tool tool) {
             super(what, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.route = route;
-            this.verbose = verbose;
+//            this.verbose = verbose;
             this.cell = cell;
             beep = User.isPlayClickSoundsWhenCreatingArcs();
             startJob();

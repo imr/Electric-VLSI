@@ -164,6 +164,7 @@ public class Connectivity
         private final double scaledResolution;
 		private boolean approximateCuts;
 		private boolean flattenPcells;
+		private boolean usePureLayerNodes;
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchRectangles;
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchLines;
 		/** debugging: list of objects created */	private List<String> addedBatchNames;
@@ -185,6 +186,7 @@ public class Connectivity
 //            scaledResolution = new DRC.DRCPreferences(false).getResolution(tech);
 			approximateCuts = Extract.isApproximateCuts();
 			flattenPcells = Extract.isFlattenPcells();
+			usePureLayerNodes = Extract.isUsePureLayerNodes();
 			startJob();
 		}
 
@@ -217,7 +219,8 @@ public class Connectivity
 			if (recursive) c.totalCells = c.countExtracted(cell, pat, flattenPcells);
 			c.cellsExtracted = 0;
 
-			newCell = c.doExtract(cell, recursive, pat, flattenPcells, true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
+			newCell = c.doExtract(cell, recursive, pat, flattenPcells, usePureLayerNodes,
+				true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
 			if (newCell == null)
 				System.out.println("ERROR: Extraction of cell " + cell.describe(false) + " failed");
 
@@ -477,8 +480,8 @@ public class Connectivity
 	 * A new version of the cell is created that has real nodes (transistors, contacts) and arcs.
 	 * This cell should have pure-layer nodes which will be converted.
 	 */
-	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean flattenPcells, boolean top, Job job,
-		List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
+	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean flattenPcells, boolean usePureLayerNodes,
+		boolean top, Job job, List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
 	{
 		if (recursive)
 		{
@@ -496,7 +499,8 @@ public class Connectivity
 					Cell convertedCell = convertedCells.get(subCell);
 					if (convertedCell == null)
 					{
-						Cell result = doExtract(subCell, recursive, pat, flattenPcells, false, job, addedBatchRectangles, addedBatchLines, addedBatchNames);
+						Cell result = doExtract(subCell, recursive, pat, flattenPcells, usePureLayerNodes,
+							false, job, addedBatchRectangles, addedBatchLines, addedBatchNames);
 						if (result == null)
 							System.out.println("ERROR: Extraction of cell " + subCell.describe(false) + " failed");
 					}
@@ -542,19 +546,19 @@ public class Connectivity
 		// start by extracting vias
 		initDebugging();
 		if (!startSection(oldCell, "Extracting vias...")) return null; // aborted
-		if (!extractVias(merge, originalMerge, oldCell, newCell)) return null; // aborted
+		if (!extractVias(merge, originalMerge, oldCell, newCell, usePureLayerNodes)) return null; // aborted
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
 
 		// now extract transistors
 		initDebugging();
 		if (!startSection(oldCell, "Extracting transistors...")) return null; // aborted
-		extractTransistors(merge, originalMerge, newCell);
+		extractTransistors(merge, originalMerge, newCell, usePureLayerNodes);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Transistors");
 
-        if (Extract.isUsePureLayerNodes()) {
+        if (usePureLayerNodes) {
             // dump back in original routing layers
             if (!startSection(oldCell, "Adding in original routing layers...")) return null;
-            addInRoutingLayers(oldCell, newCell, merge, originalMerge);
+            addInRoutingLayers(oldCell, newCell, merge, originalMerge, usePureLayerNodes);
 
         } else {
 
@@ -562,27 +566,27 @@ public class Connectivity
     /*
             initDebugging();
             if (!startSection(oldCell, "Extracting extensions...")) return null; // aborted
-            extendGeometry(merge, originalMerge, newCell, true);
+            extendGeometry(merge, originalMerge, newCell, true, usePureLayerNodes);
             termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "StickOuts");
     */
 
             // look for wires and pins
             initDebugging();
             if (!startSection(oldCell, "Extracting wires...")) return null; // aborted
-            if (makeWires(merge, originalMerge, newCell)) return newCell;
+            if (makeWires(merge, originalMerge, newCell, usePureLayerNodes)) return newCell;
             termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Wires");
 
             // convert any geometry that connects two networks
             initDebugging();
             if (!startSection(oldCell, "Extracting connections...")) return null; // aborted
-            extendGeometry(merge, originalMerge, newCell, false);
+            extendGeometry(merge, originalMerge, newCell, false, usePureLayerNodes);
             termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Bridges");
         }
 
         // dump any remaining layers back in as extra pure layer nodes
         initDebugging();
         if (!startSection(oldCell, "Extracting leftover geometry...")) return null; // aborted
-        convertAllGeometry(merge, originalMerge, newCell);
+        convertAllGeometry(merge, originalMerge, newCell, usePureLayerNodes);
         termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Pures");
 
         // reexport any that were there before
@@ -613,19 +617,29 @@ public class Connectivity
 		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, true, prefs, !recursive, alignment);
 
         // check all the arcs that auto-stitching added, and replace them by universal arcs if they are off-grid
-        if (alignment != null && (alignment.getWidth() > 0 || alignment.getHeight() > 0)) {
-            for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); ) {
+        if (alignment != null && (alignment.getWidth() > 0 || alignment.getHeight() > 0))
+        {
+            for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
+            {
                 ArcInst ai = it.next();
                 if (allArcs.contains(ai)) continue; 
                 Rectangle2D bounds = ai.getBounds();
-                if (bounds.getMinX() % alignment.getWidth() != 0 || bounds.getMinY() % alignment.getHeight() != 0 ||
-                    bounds.getMaxX() % alignment.getWidth() != 0 || bounds.getMaxY() % alignment.getHeight() != 0) {
+                long lX = (long)(bounds.getMinX() / alignment.getWidth());
+                long hX = (long)(bounds.getMaxX() / alignment.getWidth());
+                long lY = (long)(bounds.getMinY() / alignment.getHeight());
+                long hY = (long)(bounds.getMaxY() / alignment.getHeight());
+                if (lX * alignment.getWidth() != bounds.getMinX() ||
+                	lY * alignment.getHeight() != bounds.getMinY() ||
+                	hX * alignment.getWidth() != bounds.getMaxX() ||
+                	hY * alignment.getHeight() != bounds.getMaxY())
+                {
                     // replace
                     Connection head = ai.getHead();
                     Connection tail = ai.getTail();
                     ArcInst newAi = ArcInst.makeInstanceBase(Generic.tech().universal_arc, 0, head.getPortInst(), tail.getPortInst(),
                             head.getLocation(), tail.getLocation(), null);
-                    if (newAi != null) {
+                    if (newAi != null)
+                    {
                         newAi.setHeadExtended(false);
                         newAi.setTailExtended(false);
                         ai.kill();
@@ -1131,7 +1145,7 @@ public class Connectivity
 	 * @param newCell the new Cell in which wires are placed.
 	 * @return true on error.
 	 */
-	private boolean makeWires(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private boolean makeWires(PolyMerge merge, PolyMerge originalMerge, Cell newCell, boolean usePureLayerNodes)
 	{
 		// make a list of polygons that could be turned into wires
 		int totPolys = 0;
@@ -1249,7 +1263,7 @@ public class Connectivity
                     }
 					// create the wire
 					ArcInst ai = realizeArc(ap, pi1, pi2, loc1Unscaled, loc2Unscaled, cl.width / SCALEFACTOR,
-						!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+						!headExtend.booleanValue(), !tailExtend.booleanValue(), usePureLayerNodes, merge);
 					if (ai == null)
 					{
 						String msg = "Cell " + newCell.describe(false) + ": Failed to run arc " + ap.getName() +
@@ -1434,7 +1448,7 @@ public class Connectivity
 				}
 				PortInst pi1 = wantConnectingNodeAt(loc1, ap, width / SCALEFACTOR, newCell);
 				PortInst pi2 = wantConnectingNodeAt(loc2, ap, width / SCALEFACTOR, newCell);
-				realizeArc(ap, pi1, pi2, loc1, loc2, width / SCALEFACTOR, true, true, merge);
+				realizeArc(ap, pi1, pi2, loc1, loc2, width / SCALEFACTOR, true, true, usePureLayerNodes, merge);
 			}
 		}
 		return false;
@@ -2219,7 +2233,7 @@ public class Connectivity
 	 * @param newCell the Cell where new geometry is being created.
 	 * @return false if the job was aborted.
 	 */
-	private boolean extractVias(PolyMerge merge, PolyMerge originalMerge, Cell oldCell, Cell newCell)
+	private boolean extractVias(PolyMerge merge, PolyMerge originalMerge, Cell oldCell, Cell newCell, boolean usePureLayerNodes)
 	{
 		// make a list of all via/cut layers in the technology and count the number of vias/cuts
 		int totalCuts = 0;
@@ -2484,7 +2498,7 @@ public class Connectivity
 							TextUtils.formatDouble(mw/SCALEFACTOR)+"x"+TextUtils.formatDouble(mh/SCALEFACTOR)+" NODE");
 						badLayer = realizeBiggestContact(pv.pNp, Technology.NodeLayer.MULTICUT_CENTERED,
 							contactBound.getCenterX(), contactBound.getCenterY(), mw, mh,
-							pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, cutsInArea);
+							pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, usePureLayerNodes, cutsInArea);
 						if (badLayer == null)
 						{
 							for(PolyBase cutFound : cutsInArea)
@@ -2497,7 +2511,7 @@ public class Connectivity
 						{
 							Layer spreadBadLayer = realizeBiggestContact(pv.pNp, Technology.NodeLayer.MULTICUT_SPREAD,
 								contactBound.getCenterX(), contactBound.getCenterY(), mw, mh,
-								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, cutsInArea);
+								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, usePureLayerNodes, cutsInArea);
 							if (spreadBadLayer == null)
 							{
 								for(PolyBase cutFound : cutsInArea)
@@ -2509,7 +2523,7 @@ public class Connectivity
 
 							spreadBadLayer = realizeBiggestContact(pv.pNp, Technology.NodeLayer.MULTICUT_CORNER,
 								contactBound.getCenterX(), contactBound.getCenterY(), mw, mh,
-								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, cutsInArea);
+								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, usePureLayerNodes, cutsInArea);
 							if (spreadBadLayer == null)
 							{
 								for(PolyBase cutFound : cutsInArea)
@@ -2533,7 +2547,7 @@ public class Connectivity
 					{
 						// it fits: create it
 						realizeNode(pv.pNp, Technology.NodeLayer.MULTICUT_CENTERED, cutBox.getCenterX(), cutBox.getCenterY(),
-							pv.minWidth, pv.minHeight, pv.rotation*10, null, originalMerge, newCell, contactNodes);
+							pv.minWidth, pv.minHeight, pv.rotation*10, null, originalMerge, newCell, contactNodes, usePureLayerNodes);
 						cInfo.removeCut(cut);
 						foundCut = true;
 						break;
@@ -2569,7 +2583,7 @@ public class Connectivity
 			root = RTNode.linkGeom(null, root, ni);
 
 		// recursively scan the R-Tree, merging geometry on created nodes and removing them from the main merge
-        if (!Extract.isUsePureLayerNodes())
+        if (!usePureLayerNodes)
         {
             PolyMerge subtractMerge = new PolyMerge();
 		    extractContactNodes(root, merge, subtractMerge, 0, contactNodes.size());
@@ -2688,7 +2702,8 @@ public class Connectivity
 	 * @return null if successful, otherwise the polygon that could not be matched.
 	 */
 	private Layer realizeBiggestContact(PrimitiveNode pNp, int cutVariation, double x, double y, double sX, double sY, int rot,
-		PolyMerge merge, Cell newCell, List<NodeInst> contactNodes, boolean activeCut, boolean polyCut, Set<PolyBase> cutsInArea)
+		PolyMerge merge, Cell newCell, List<NodeInst> contactNodes, boolean activeCut, boolean polyCut, boolean usePureLayerNodes,
+		Set<PolyBase> cutsInArea)
 	{
 //boolean debug = pNp.getName().equals("Z-Metal-1-N-Diff-Con");
 //if (debug) System.out.println("LOOKING FOR LARGEST CUT...");
@@ -2795,7 +2810,7 @@ public class Connectivity
 				sY = Math.floor(sY / scale) * scale;
 			}
 		}
-		realizeNode(pNp, cutVariation, x, y, sX, sY, rot, null, merge, newCell, contactNodes);
+		realizeNode(pNp, cutVariation, x, y, sX, sY, rot, null, merge, newCell, contactNodes, usePureLayerNodes);
 		return null;
 	}
 
@@ -3406,7 +3421,7 @@ public class Connectivity
 
 	/********************************************** TRANSISTOR EXTRACTION **********************************************/
 
-	private void extractTransistors(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private void extractTransistors(PolyMerge merge, PolyMerge originalMerge, Cell newCell, boolean usePureLayerNodes)
 	{
 		// must have a poly layer
 		if (polyLayer == null || tempLayer1 == null) return;
@@ -3471,17 +3486,18 @@ public class Connectivity
 		{
 			for(PrimitiveNode pNp : nTransistors) pTransistors.add(pNp);
 			if (pTransistors.size() > 0)
-				findTransistors(pTransistors, pActiveLayer, merge, originalMerge, newCell);
+				findTransistors(pTransistors, pActiveLayer, merge, originalMerge, newCell, usePureLayerNodes);
 		} else
 		{
 			if (nTransistors.size() > 0)
-				findTransistors(nTransistors, nActiveLayer, merge, originalMerge, newCell);
+				findTransistors(nTransistors, nActiveLayer, merge, originalMerge, newCell, usePureLayerNodes);
 			if (pTransistors.size() > 0)
-				findTransistors(pTransistors, pActiveLayer, merge, originalMerge, newCell);
+				findTransistors(pTransistors, pActiveLayer, merge, originalMerge, newCell, usePureLayerNodes);
 		}
 	}
 
-	private void findTransistors(List<PrimitiveNode> transistors, Layer activeLayer, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private void findTransistors(List<PrimitiveNode> transistors, Layer activeLayer, PolyMerge merge,
+		PolyMerge originalMerge, Cell newCell, boolean usePureLayerNodes)
 	{
 		originalMerge.intersectLayers(polyLayer, activeLayer, tempLayer1);
 //System.out.print("CONSIDERING THESE TRANSISTORS:");
@@ -3507,7 +3523,7 @@ public class Connectivity
 				if (transBox == null)
 				{
 					// complex polygon: extract angled or serpentine transistor
-					extractNonManhattanTransistor(poly, transistors.get(0), merge, originalMerge, newCell);
+					extractNonManhattanTransistor(poly, transistors.get(0), merge, originalMerge, newCell, usePureLayerNodes);
 				} else
 				{
 					List<String> errors = new ArrayList<String>();
@@ -3566,7 +3582,7 @@ public class Connectivity
 						if (msg != null) { errors.add(msg);   continue; }
 
 						realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, cX, cY,
-							width, height, angle, null, merge, newCell, null);
+							width, height, angle, null, merge, newCell, null, usePureLayerNodes);
 						errors.clear();
 						break;
 					}
@@ -3634,7 +3650,8 @@ public class Connectivity
 	 * @param originalMerge the original geometry collection (for examination).
 	 * @param newCell the cell in which to create the extracted transistor
 	 */
-	private void extractNonManhattanTransistor(PolyBase poly, PrimitiveNode transistor, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private void extractNonManhattanTransistor(PolyBase poly, PrimitiveNode transistor, PolyMerge merge,
+		PolyMerge originalMerge, Cell newCell, boolean usePureLayerNodes)
 	{
 		// determine minimum width of polysilicon
 		SizeOffset so = transistor.getProtoSizeOffset();
@@ -3654,7 +3671,8 @@ public class Connectivity
 			double cY = (cl.start.getY() + cl.end.getY()) / 2;
 			double sX = polySize + scaleUp(so.getLowXOffset() + so.getHighXOffset());
 			double sY = activeSize + scaleUp(so.getLowYOffset() + so.getHighYOffset());
-			realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, cX, cY, sX, sY, cl.angle, null, merge, newCell, null);
+			realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, cX, cY, sX, sY,
+				cl.angle, null, merge, newCell, null, usePureLayerNodes);
 			return;
 		}
 
@@ -3736,7 +3754,8 @@ public class Connectivity
 		double cY = (lY + hY) / 2;
 		for(int i=0; i<points.length; i++)
 			points[i] = new EPoint((points[i].getX()) / SCALEFACTOR, (points[i].getY()) / SCALEFACTOR);
-		realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, cX, cY, hX - lX, hY - lY, 0, points, merge, newCell, null);
+		realizeNode(transistor, Technology.NodeLayer.MULTICUT_CENTERED, cX, cY, hX - lX, hY - lY, 0,
+			points, merge, newCell, null, usePureLayerNodes);
 	}
 
 	/********************************************** CONVERT CONNECTING GEOMETRY **********************************************/
@@ -3744,7 +3763,7 @@ public class Connectivity
 	/**
 	 * Method to look for opportunities to place arcs that connect to existing geometry.
 	 */
-	private void extendGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell, boolean justExtend)
+	private void extendGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell, boolean justExtend, boolean usePureLayerNodes)
 	{
 		// make a list of layers that can be extended
 		List<Layer> extendableLayers = new ArrayList<Layer>();
@@ -3801,7 +3820,7 @@ public class Connectivity
 				if (objectsToConnect.size() == 1)
 				{
 					// touches just 1 object: see if that object can be extended to cover the polygon
-					extendObject((ElectricObject)objectsToConnect.get(0), poly, layer, ap, merge, originalMerge, newCell);
+					extendObject((ElectricObject)objectsToConnect.get(0), poly, layer, ap, merge, originalMerge, newCell, usePureLayerNodes);
 					continue;
 				}
 
@@ -3854,7 +3873,7 @@ public class Connectivity
 
 						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 						originalMerge.arcPolyFits(layer, pt1, pt2, arcLayerWidth, headExtend, tailExtend);
-						realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+						realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), usePureLayerNodes, merge);
 						continue;
 					}
 					if (polyBounds1.getMinY() <= polyBounds2.getMaxY() && polyBounds1.getMaxY() >= polyBounds2.getMinY())
@@ -3873,7 +3892,7 @@ public class Connectivity
 
 						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 						originalMerge.arcPolyFits(layer, pt1, pt2, arcLayerWidth, headExtend, tailExtend);
-						realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+						realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), usePureLayerNodes, merge);
 						continue;
 					}
 
@@ -3893,11 +3912,11 @@ public class Connectivity
 
 						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 						originalMerge.arcPolyFits(layer, pt1, containsIt, arcLayerWidth, headExtend, tailExtend);
-						realizeArc(ap, pi1, pi, pt1, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+						realizeArc(ap, pi1, pi, pt1, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), usePureLayerNodes, merge);
 
 						headExtend.setValue(true);   tailExtend.setValue(true);
 						originalMerge.arcPolyFits(layer, pt2, containsIt, arcLayerWidth, headExtend, tailExtend);
-						realizeArc(ap, pi2, pi, pt2, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+						realizeArc(ap, pi2, pi, pt2, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), usePureLayerNodes, merge);
 					}
 				}
 			}
@@ -3914,7 +3933,8 @@ public class Connectivity
 	 * @param originalMerge the original merge area being covered.
 	 * @param newCell the Cell in which to place the new arc.
 	 */
-	private void extendObject(ElectricObject obj, PolyBase poly, Layer layer, ArcProto ap, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private void extendObject(ElectricObject obj, PolyBase poly, Layer layer, ArcProto ap, PolyMerge merge,
+		PolyMerge originalMerge, Cell newCell, boolean usePureLayerNodes)
 	{
 		// can only handle rectangles now
 		Rectangle2D polyBounds = poly.getBox();
@@ -3976,9 +3996,9 @@ public class Connectivity
 				NodeInst ni1 = createNode(np, pinPt1, size, size, null, newCell);
 				NodeInst ni2 = createNode(np, pinPt2, size, size, null, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt1, objPt,
-					polyBounds.getHeight() / SCALEFACTOR, false, false, merge);
+					polyBounds.getHeight() / SCALEFACTOR, false, false, usePureLayerNodes, merge);
 				realizeArc(ap, ni2.getOnlyPortInst(), pi, pinPt2, objPt,
-					polyBounds.getHeight() / SCALEFACTOR, false, false, merge);
+					polyBounds.getHeight() / SCALEFACTOR, false, false, usePureLayerNodes, merge);
 			} else
 			{
 				// taller area, make vertical arcs
@@ -3992,9 +4012,9 @@ public class Connectivity
 				NodeInst ni1 = createNode(np, pinPt1, size, size, null, newCell);
 				NodeInst ni2 = createNode(np, pinPt2, size, size, null, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt1, objPt,
-					polyBounds.getWidth() / SCALEFACTOR, false, false, merge);
+					polyBounds.getWidth() / SCALEFACTOR, false, false, usePureLayerNodes, merge);
 				realizeArc(ap, ni2.getOnlyPortInst(), pi, pinPt2, objPt,
-					polyBounds.getWidth() / SCALEFACTOR, false, false, merge);
+					polyBounds.getWidth() / SCALEFACTOR, false, false, usePureLayerNodes, merge);
 			}
 			return;
 		}
@@ -4036,7 +4056,7 @@ public class Connectivity
 				double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
 				NodeInst ni1 = createNode(np, pinPtNormal, size, size, null, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal, wid / SCALEFACTOR,
-					!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+					!headExtend.booleanValue(), !tailExtend.booleanValue(), usePureLayerNodes, merge);
 			}
 			return;
 		}
@@ -4078,7 +4098,7 @@ public class Connectivity
 				double size = Math.min(polyBounds.getWidth(), polyBounds.getHeight()) / SCALEFACTOR;
 				NodeInst ni1 = createNode(np, pinPtNormal, size, size, null, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal,
-					wid / SCALEFACTOR, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+					wid / SCALEFACTOR, !headExtend.booleanValue(), !tailExtend.booleanValue(), usePureLayerNodes, merge);
 			}
 		}
 	}
@@ -4953,7 +4973,7 @@ public class Connectivity
 	 * Method to scan the geometric information and convert it all to pure layer nodes in the new cell.
 	 * When all other extractions are done, this is done to preserve any geometry that is unaccounted-for.
 	 */
-	private void convertAllGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private void convertAllGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell, boolean usePureLayerNodes)
 	{
 		MutableInteger numIgnored = new MutableInteger(0);
 		for (Layer layer : merge.getKeySet())
@@ -5016,7 +5036,7 @@ public class Connectivity
             
             for(PolyBase poly : polyList)
 			{
-                if (Extract.isUsePureLayerNodes()) ap = null;
+                if (usePureLayerNodes) ap = null;
 				// special case: a rectangle on a routable layer: make it an arc
                 if (ap != null)
 				{
@@ -5062,7 +5082,7 @@ public class Connectivity
                                 NodeInst ni1 = createNode(np, end1, size, size, null, newCell);
 								NodeInst ni2 = createNode(np, end2, size, size, null, newCell);
 								realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2,
-									size, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+									size, !headExtend.booleanValue(), !tailExtend.booleanValue(), usePureLayerNodes, merge);
 							} else {
                                 System.out.println("Arc "+layer.getName()+" did not fit at "+polyBounds.getMinX()/SCALEFACTOR+","+polyBounds.getMinY()/SCALEFACTOR);
                             }
@@ -5126,7 +5146,7 @@ public class Connectivity
 					{
 						Poly tPortPoly = bestTPi.getPoly();
 						Point2D tLoc = tPortPoly.closestPoint(tPortPoly.getCenter());
-						ArcInst ai = realizeArc(ap, fPi, bestTPi, bestFLoc, tLoc, 0, false, false, merge);
+						ArcInst ai = realizeArc(ap, fPi, bestTPi, bestFLoc, tLoc, 0, false, false, usePureLayerNodes, merge);
 						if (ai != null) ai.setFixedAngle(false);
 					} else
 					{
@@ -5158,7 +5178,7 @@ public class Connectivity
      * @param merge the remaining layers to create
      * @param originalMerge the original set of layers
      */
-    private void addInRoutingLayers(Cell oldCell, Cell newCell, PolyMerge merge, PolyMerge originalMerge)
+    private void addInRoutingLayers(Cell oldCell, Cell newCell, PolyMerge merge, PolyMerge originalMerge, boolean usePureLayerNodes)
     {
         Map<Layer,List<NodeInst>> newNodes = new HashMap<Layer,List<NodeInst>>();
 
@@ -5318,7 +5338,8 @@ public class Connectivity
                         if (fun.isDiff()) {
                             ap = findArcProtoForPoly(layer, poly1Scaled, originalMerge);
                         }
-                        if (ap == null) ap = Generic.tech().universal_arc;
+                        if (ap == null)
+                        	ap = Generic.tech().universal_arc;
                         
                         double width = ap.getDefaultLambdaBaseWidth();
                         ArcProto arcProto = ap;
@@ -5332,7 +5353,7 @@ public class Connectivity
                             if (isOnGrid(test1) && originalMerge.contains(layer, test1))
                             {
                                 realizeArc(arcProto, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), connectionPoint,
-                                        connectionPoint, width, false, false, merge);
+                                        connectionPoint, width, false, false, usePureLayerNodes, merge);
                                 continue;
                             }
                             arcProto = Generic.tech().universal_arc;
@@ -5340,7 +5361,7 @@ public class Connectivity
                             //System.out.println("Using universal arc to connect "+ni1.describe(false)+" at "+connectionPoint+" to "+ni2.describe(false));
                         }
                         realizeArc(arcProto, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), connectionPoint,
-                                connectionPoint, width, false, false, merge);
+                                connectionPoint, width, false, false, usePureLayerNodes, merge);
                     }
                 }
             }
@@ -5738,7 +5759,7 @@ public class Connectivity
 	 * If not null, add to the list but DO NOT remove the realized node's geometry from the merge.
 	 */
 	private void realizeNode(PrimitiveNode pNp, int cutVariation, double centerX, double centerY, double width, double height,
-		int angle, Point2D [] points, PolyMerge merge, Cell newCell, List<NodeInst> realizedNodes)
+		int angle, Point2D [] points, PolyMerge merge, Cell newCell, List<NodeInst> realizedNodes, boolean usePureLayerNodes)
 	{
 		Orientation orient = Orientation.fromAngle(angle);
 		double cX = centerX / SCALEFACTOR;
@@ -5791,7 +5812,7 @@ public class Connectivity
 				layer = geometricLayer(layer);
 
 				poly.transform(trans);
-				if (Extract.isUsePureLayerNodes() && (layer.getFunction().isPoly() || layer.getFunction().isMetal())) continue;
+				if (usePureLayerNodes && (layer.getFunction().isPoly() || layer.getFunction().isMetal())) continue;
                 removePolyFromMerge(merge, layer, poly);
 			}
 		}
@@ -5811,7 +5832,7 @@ public class Connectivity
      * @return the arc inst created
 	 */
 	private ArcInst realizeArc(ArcProto ap, PortInst pi1, PortInst pi2, Point2D pt1, Point2D pt2, double width,
-		boolean noHeadExtend, boolean noTailExtend, PolyMerge merge)
+		boolean noHeadExtend, boolean noTailExtend, boolean usePureLayerNodes, PolyMerge merge)
 	{
 		if (alignment != null)
 		{
@@ -5853,7 +5874,7 @@ public class Connectivity
 			// make sure the geometric database is made up of proper layers
 			layer = geometricLayer(layer);
 
-			if (!Extract.isUsePureLayerNodes())
+			if (!usePureLayerNodes)
                 removePolyFromMerge(merge, layer, poly);
 		}
 		return ai;

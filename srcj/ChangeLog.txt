@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00k: ******************************
 
+BUG: (8/3/10, SMR) Node extraction creates DRC errors (Bug #2829).
+FIX: In Connectivity.doExtract() detect off-grid better.
+     In RouteElementArc.newArc() avoid using universal arcs
+
 IMP: (8/2/10, SMR) Gerber import alternates layer assignment (Bug #2860).
 
 BUG: (7/30/10, JKG) Hitting escape to cancel a wiring tool action does not reset the highlights (Bug #2842)
