@@ -529,7 +529,7 @@ public class VerticalRoute {
         searchNumber++;
         Technology tech = startArc.getTechnology();
 
-        PrimitivePort pp = User.getUserTool().getCurrentContactPortProto(startArc, endArc);
+        PrimitivePort pp = User.getUserTool().getPreferredContactPortProto(startArc, endArc);
         if (pp != null)
         {
             if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" connects between "+startArc+" and "+endArc);
