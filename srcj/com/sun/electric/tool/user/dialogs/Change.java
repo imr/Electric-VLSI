@@ -1680,7 +1680,7 @@ public class Change extends EModelessDialog implements HighlightListener
         	if (arcMap == null) connectionMap.put(ap1, arcMap = new HashMap<ArcProto,PrimitivePort>());
         	if (arcMap.get(ap2) == null)
         	{
-        		PrimitivePort pp = User.getUserTool().getCurrentContactPortProto(ap1, ap2);
+        		PrimitivePort pp = User.getUserTool().getPreferredContactPortProto(ap1, ap2);
 if (pp == null) System.out.println("NULL PORT CONNECTING "+ap1.describe()+" AND "+ap2.describe());
         		arcMap.put(ap2, pp);
         	}
