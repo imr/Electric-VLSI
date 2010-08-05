@@ -66,6 +66,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -475,11 +476,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		popup.setEnabled(false);
 
 		// see if this node has outline information
-		Point2D [] outline = ni.getTrace();
-		if (outline != null)
-		{
-			sizeEditable = false;
-		}
+//		Point2D [] outline = ni.getTrace();
+//		if (outline != null)
+//		{
+//			sizeEditable = false;
+//		}
 
 		// if there is outline information on a transistor, remember that
 		initialTextField1 = initialTextField2 = null;
@@ -1294,6 +1295,24 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				!DBMath.doublesEqual(currYSize, initYSize) ||
 				dOrient != Orientation.IDENT || changed)
 			{
+				Point2D [] points = ni.getTrace();
+				if (points != null)
+				{
+					double percX = currXSize / initXSize;
+					double percY = currYSize / initYSize;
+					AffineTransform trans = ni.pureRotateOut();
+					Point2D [] newPoints = new Point2D[points.length];
+					for(int i=0; i<points.length; i++)
+					{
+						if (points[i] == null) continue;
+						Point2D newPoint = new Point2D.Double(points[i].getX() * percX, points[i].getY() * percY);
+						trans.transform(newPoint, newPoint);
+						newPoint.setLocation(newPoint.getX() + currentXPos, newPoint.getY() + currentYPos);
+						newPoints[i] = newPoint;
+					}
+					ni.setTrace(newPoints);
+					dOrient = Orientation.IDENT;
+				}
 				ni.modifyInstance(DBMath.round(currentXPos - initialXPos), DBMath.round(currentYPos - initialYPos),
 					DBMath.round(currXSize - initXSize),
 					DBMath.round(currYSize - initYSize), dOrient);

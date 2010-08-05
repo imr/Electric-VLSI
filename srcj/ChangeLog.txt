@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00l: ******************************
 
+IMP: (8/5/10, SMR) Can now use Node Properties to resize a node with outline data (Bug #2873).
+
 BUG: (8/5/10, SMR) Textual HSpice import fails (Bug #2874).
 FIX: Fixed reader to handle Text and Binary.
 
