@@ -213,6 +213,8 @@ public class FileMenu {
                     exportCommand(FileType.LEF, false); }},
                 new EMenuItem("_L...") { public void run() {
                     exportCommand(FileType.L, false); }},
+                new EMenuItem("_Bookshelf ...") { public void run() {
+                    exportCommand(FileType.BOOKSHELF, false); }},
                 IOTool.hasSkill() ? new EMenuItem("S_kill (Cadence Commands)...") {	public void run() {
                     exportCommand(FileType.SKILL, false); }} : null,
                 IOTool.hasSkill() ? new EMenuItem("Skill Exports _Only (Cadence Commands)...") { public void run() {
