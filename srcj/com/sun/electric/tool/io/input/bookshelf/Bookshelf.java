@@ -88,8 +88,8 @@ public class Bookshelf extends Input<Object> {
 		 * com.sun.electric.tool.Job)
 		 */
 		@Override
-		public Library doInput(URL fileURL, Library lib, Technology tech,
-				Map<Library, Cell> currentCells, Map<CellId, BitSet> nodesToExpand, Job job) {
+		public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library, Cell> currentCells,
+				Map<CellId, BitSet> nodesToExpand, Job job) {
 			Bookshelf bookshelf = new Bookshelf(this);
 
 			this.fileUrl = fileURL;
@@ -110,7 +110,7 @@ public class Bookshelf extends Input<Object> {
 	@Override
 	protected Library importALibrary(Library lib, Technology tech, Map<Library, Cell> currentCells) {
 
-		try {			
+		try {
 			BookshelfAux auxParser = new BookshelfAux(preferences.fileUrl.getFile());
 			Map<BookshelfFiles, String> files = auxParser.parse();
 			String auxDir = auxParser.getAuxDir();
@@ -122,6 +122,10 @@ public class Bookshelf extends Input<Object> {
 			// add in placement information
 			BookshelfPlacement pl = new BookshelfPlacement(auxDir + files.get(BookshelfFiles.pl));
 			pl.parse();
+
+			// add weights information
+			BookshelfWeights wts = new BookshelfWeights(auxDir + files.get(BookshelfFiles.wts));
+			wts.parse();
 
 			BookshelfNets nets = new BookshelfNets(auxDir + files.get(BookshelfFiles.nets), lib);
 			nets.parse();

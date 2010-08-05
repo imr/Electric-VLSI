@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: BookshelfAux.java
+ * File: BookshelfWeights.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -23,56 +23,66 @@
  */
 package com.sun.electric.tool.io.input.bookshelf;
 
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
-import com.sun.electric.tool.util.CollectionFactory;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
 import java.util.StringTokenizer;
 
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
+
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
-public class BookshelfAux implements BookshelfInputParser<Map<BookshelfFiles, String>> {
+public class BookshelfWeights implements BookshelfInputParser<Void> {
 
-	private String auxFile = null;
+	private String nodesFile;
 
-	public BookshelfAux(String auxFile) {
-		this.auxFile = auxFile;
+	public BookshelfWeights(String nodesFile) {
+		this.nodesFile = nodesFile;
 	}
 
-	public Map<BookshelfFiles, String> parse() throws IOException {
-		Job.getUserInterface().setProgressNote("Parse Aux File");
-		
-		Map<BookshelfFiles, String> result = CollectionFactory.createHashMap();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sun.electric.tool.io.input.bookshelf.BookshelfInputParser#parse()
+	 */
+	public Void parse() throws IOException {
 
-		File file = new File(this.auxFile);
+		// Job.getUserInterface().setProgressNote("Parse Weights File");
+		File file = new File(this.nodesFile);
 		FileReader freader = new FileReader(file);
 		BufferedReader rin = new BufferedReader(freader);
-		
+
 		String line;
-		while((line = rin.readLine()) != null) {
-			StringTokenizer tokenizer = new StringTokenizer(line, " ");
-			while(tokenizer.hasMoreTokens()) {
-				String token = tokenizer.nextToken();
-				BookshelfFiles type = BookshelfFiles.getFileType(token);
-				if(type != null) {
-					result.put(type, token);
+		while ((line = rin.readLine()) != null) {
+			if (line.startsWith("   ")) {
+				StringTokenizer tokenizer = new StringTokenizer(line, " ");
+				int i = 0;
+				String node = null;
+				int weight = 1;
+				while (tokenizer.hasMoreElements()) {
+					if (i == 0) {
+						node = tokenizer.nextToken();
+					} else if (i == 2) {
+						weight = Integer.parseInt(tokenizer.nextToken());
+					} else {
+						tokenizer.nextToken();
+					}
 				}
+
+				BookshelfNode bn = BookshelfNode.findNode(node);
+
+				if (bn != null)
+					bn.setWeight(weight);
 			}
 		}
-		
-		return result;
-	}
-	
-	public String getAuxDir() {
-		File file = new File(this.auxFile);
-		return file.getParent() + File.separator;
+
+		return null;
 	}
 
 }

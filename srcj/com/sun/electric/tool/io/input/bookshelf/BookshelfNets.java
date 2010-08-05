@@ -47,6 +47,9 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.Variable.Key;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -59,7 +62,7 @@ import com.sun.electric.tool.util.CollectionFactory;
  * @author fschmidt
  * 
  */
-public class BookshelfNets {
+public class BookshelfNets implements BookshelfInputParser<Void> {
 
 	private String fileName;
 	private Library lib;
@@ -70,7 +73,7 @@ public class BookshelfNets {
 		this.lib = lib;
 	}
 
-	public void parse() throws IOException {
+	public Void parse() throws IOException {
 
 		Job.getUserInterface().setProgressNote("Parse Net List File: Step 1/4");
 
@@ -251,6 +254,7 @@ public class BookshelfNets {
 			}
 
 		}
+		return null;
 	}
 
 	public static void newInstance(Cell parent, ArcProto protoType, String name, PortInst headPort, PortInst tailPort,

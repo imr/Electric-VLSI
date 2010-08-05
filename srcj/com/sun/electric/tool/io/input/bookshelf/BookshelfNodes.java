@@ -45,7 +45,7 @@ import java.util.StringTokenizer;
  * @author fschmidt
  * 
  */
-public class BookshelfNodes {
+public class BookshelfNodes implements BookshelfInputParser<Void> {
 
 	private String nodesFile;
 
@@ -53,7 +53,7 @@ public class BookshelfNodes {
 		this.nodesFile = nodesFile;
 	}
 
-	public void parse() throws IOException {
+	public Void parse() throws IOException {
 
 		Job.getUserInterface().setProgressNote("Parse Nodes File");
 
@@ -78,7 +78,7 @@ public class BookshelfNodes {
 					} else if (i == 2) {
 						height = TextUtils.atof(tokenizer.nextToken());
 					} else if (i == 3) {
-						if (tokenizer.nextToken().toLowerCase() == "terminal") {
+						if (tokenizer.nextToken().toLowerCase().equals("terminal")) {
 							isTerminal = true;
 						}
 					} else {
@@ -89,6 +89,7 @@ public class BookshelfNodes {
 				new BookshelfNode(name, width, height, isTerminal);
 			}
 		}
+		return null;
 	}
 
 	public static class BookshelfNode {
@@ -101,6 +102,7 @@ public class BookshelfNodes {
 		private Cell prototype;
 		private NodeInst instance;
 		private static Map<String, BookshelfNode> nodeMap = new HashMap<String, BookshelfNode>();
+		private int weight;
 
 		/**
 		 * @return the name
@@ -253,7 +255,8 @@ public class BookshelfNodes {
 		}
 
 		/**
-		 * @param terminal the terminal to set
+		 * @param terminal
+		 *            the terminal to set
 		 */
 		public void setTerminal(boolean terminal) {
 			this.terminal = terminal;
@@ -264,6 +267,40 @@ public class BookshelfNodes {
 		 */
 		public boolean isTerminal() {
 			return terminal;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			
+			//object_name        width         height        terminal
+			builder.append(this.name + " ");
+			builder.append(String.valueOf(this.width) + " ");
+			builder.append(String.valueOf(this.height));
+			if(this.terminal) {
+				builder.append(" terminal");	
+			}
+
+			return builder.toString();
+		}
+
+		/**
+		 * @param weight the weight to set
+		 */
+		public void setWeight(int weight) {
+			this.weight = weight;
+		}
+
+		/**
+		 * @return the weight
+		 */
+		public int getWeight() {
+			return weight;
 		}
 	}
 
