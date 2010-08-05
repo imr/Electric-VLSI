@@ -426,6 +426,18 @@ public class HSpiceOut extends Input<Stimuli>
 		// get number of nodes
 		int nodcnt = getHSpiceInt();
 
+		// switch to text reading if the file is text
+		if (!isTRACDCBinary)
+		{
+			closeInput();
+			if (openTextInput(fileURL)) return;
+			eofReached = false;
+			resetBinaryTRACDCReader();
+			int nodcntTxt = getHSpiceInt();
+			if (nodcnt != nodcntTxt)
+				System.out.println("WARNING: Binary interpretation saw " + nodcnt + " nodes but text sees " + nodcntTxt);
+		}
+
 		// get number of special items
 		int numnoi = getHSpiceInt();
 
@@ -462,7 +474,7 @@ public class HSpiceOut extends Input<Stimuli>
 		{
 			int k = getByteFromFile();
 			line.append((char)k);
-			if (!isTRACDCBinary && k == '\n') j--;
+			if (!isTRACDCBinary && (k == '\n' || k == '\r')) j--;
 		}
 
 		// ignore the date/time information (16 characters)
@@ -475,7 +487,7 @@ public class HSpiceOut extends Input<Stimuli>
 		{
 			int k = getByteFromFile();
 			line.append((char)k);
-			if (!isTRACDCBinary && k == '\n') j--;
+			if (!isTRACDCBinary && (k == '\n' || k == '\r')) j--;
 		}
 
 		// get number of sweeps
@@ -490,7 +502,7 @@ public class HSpiceOut extends Input<Stimuli>
 		{
 			int k = getByteFromFile();
 			line.append((char)k);
-			if (!isTRACDCBinary && k == '\n') j--;
+			if (!isTRACDCBinary && (k == '\n' || k == '\r')) j--;
 		}
 
 		// get the type of each signal
@@ -503,7 +515,7 @@ public class HSpiceOut extends Input<Stimuli>
 			{
 				int l = getByteFromFile();
 				line.append((char)l);
-				if (!isTRACDCBinary && l == '\n') j--;
+				if (!isTRACDCBinary && (l == '\n' || l == '\r')) j--;
 			}
 			if (k == 0) continue;
 			int l = k - nodcnt;
@@ -518,7 +530,7 @@ public class HSpiceOut extends Input<Stimuli>
 			for(;;)
 			{
 				int l = getByteFromFile();
-				if (l == '\n') continue;
+				if (l == '\n' || l == '\r') continue;
 				if (l == ' ')
 				{
 					if (line.length() != 0) break;
@@ -542,7 +554,7 @@ public class HSpiceOut extends Input<Stimuli>
 			for(; j<l; j++)
 			{
 				int i = getByteFromFile();
-				if (!isTRACDCBinary && i == '\n') { j--;   continue; }
+				if (!isTRACDCBinary && (i == '\n' || i == '\r')) { j--;   continue; }
 			}
 			if (k == 0) continue;
 
@@ -598,7 +610,7 @@ public class HSpiceOut extends Input<Stimuli>
 				if (lastDot >= 0)
 				{
 					StringBuffer newSB = new StringBuffer();
-					if (parenPrefix.equalsIgnoreCase("v("))
+					if (parenPrefix.equalsIgnoreCase("v(") && line.charAt(line.length()-1) == ')')
 					{
 						// just ignore the V()
 						newSB.append(line.substring(openPos+1, lastDot+1));
@@ -611,7 +623,7 @@ public class HSpiceOut extends Input<Stimuli>
 						newSB.append(line.substring(lastDot+1));
 					}
 					line = newSB;
-				} else if (parenPrefix.equalsIgnoreCase("v("))
+				} else if (parenPrefix.equalsIgnoreCase("v(") && line.charAt(line.length()-1) == ')')
 				{
 					StringBuffer newSB = new StringBuffer();
 					// just ignore the V()
@@ -632,7 +644,7 @@ public class HSpiceOut extends Input<Stimuli>
 			for(;;)
 			{
 				int l = getByteFromFile();
-				if (l == '\n') continue;
+				if (l == '\n' || l == '\r') continue;
 				if (l == ' ') break;
 				line.append((char)l);
 				j++;
@@ -642,7 +654,7 @@ public class HSpiceOut extends Input<Stimuli>
 			for(; j<l; j++)
 			{
 				int i = getByteFromFile();
-				if (!isTRACDCBinary && i == '\n') { j--;   continue; }
+				if (!isTRACDCBinary && (i == '\n' || i == '\r')) { j--;   continue; }
 			}
 			if (DEBUGCONDITIONS)
 				System.out.println("CONDITION "+(c+1)+" IS "+line.toString());
@@ -656,8 +668,8 @@ public class HSpiceOut extends Input<Stimuli>
 			for(int j=0; ; j++)
 			{
 				int l = getByteFromFile();
-				if (l == '\n') break;
-				if (j < 4) line.append(l);
+				if (l == '\n' || l == '\r') break;
+				if (j < 4) line.append((char)l);
 			}
 		} else
 		{
@@ -989,7 +1001,7 @@ public class HSpiceOut extends Input<Stimuli>
 					eofReached = true;   return 0;
 				}
 				line.append((char)l);
-				if (l == '\n') j--;
+				if (l == '\n' || l == '\r') j--;
 			}
 			String result = line.toString();
 			if (testEOFValue && result.equals("0.10000E+31")) { eofReached = true;   return 0; }
