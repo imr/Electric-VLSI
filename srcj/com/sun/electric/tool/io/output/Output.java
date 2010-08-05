@@ -48,6 +48,7 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.output.bookshelf.BookshelfOutput;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.User;
@@ -157,6 +158,7 @@ public class Output
 		if (type == FileType.TEGAS) return new Tegas.TegasPreferences(factory);
 		if (type == FileType.VERILOG) return new Verilog.VerilogPreferences(factory, false);
 		if (type == FileType.VERILOGA) return new Verilog.VerilogPreferences(factory, true);
+		if (type == FileType.BOOKSHELF) return new BookshelfOutput.BookshelfOutputPreferences(factory);
         return null;
     }
 
