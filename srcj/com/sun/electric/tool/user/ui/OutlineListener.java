@@ -229,7 +229,7 @@ public class OutlineListener
 
 		// standard click-and-drag: see if cursor is over anything
 		Point2D pt = wnd.screenToDatabase(x, y);
-		Highlight found = highlighter.findObject(pt, wnd, true, false, false, false, true, false, false);
+		Highlight found = highlighter.findObject(pt, wnd, true, false, false, false, true, true, false);
 		doingMotionDrag = false;
 		if (found != null)
 		{

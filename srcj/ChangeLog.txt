@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00l: ******************************
 
+BUG: (8/5/10, SMR) Cannot outline-edit hard-to-select nodes (Bug #2875).
+FIX: In OutlineListener.mousePressed() set "findSpecial" to true.
+
 IMP: (8/5/10, SMR) Can now use Node Properties to resize a node with outline data (Bug #2873).
 
 BUG: (8/5/10, SMR) Textual HSpice import fails (Bug #2874).
