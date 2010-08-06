@@ -176,20 +176,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param protoName the name of this Export.
      * It may not have unprintable characters, spaces, or tabs in it.
      * @param characteristic the characteristic (input, output) of this Export.
-     * @return the newly created Export.
-     */
-    public static Export newInstance(Cell parent, PortInst portInst, String protoName,
-            PortCharacteristic characteristic, IconParameters iconParameters) {
-        return newInstance(parent, portInst, protoName, characteristic, true);
-    }
-
-    /**
-     * Method to create an Export with the specified values.
-     * @param parent the Cell in which this Export resides.
-     * @param portInst the PortInst to export
-     * @param protoName the name of this Export.
-     * It may not have unprintable characters, spaces, or tabs in it.
-     * @param characteristic the characteristic (input, output) of this Export.
      * @param createOnIcon true to create an equivalent export on any associated icon.
      * @return the newly created Export.
      */

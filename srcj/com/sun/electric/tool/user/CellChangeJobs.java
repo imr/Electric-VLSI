@@ -701,7 +701,7 @@ public class CellChangeJobs
 						if (subLibs == null) libraryDependencies.put(lib, subLibs = new HashSet<Library>());
 						subLibs.add(subLib);
 						cgn.leafLibrary = false;
-					}				
+					}
 				}
 			}
 
@@ -920,7 +920,7 @@ public class CellChangeJobs
 				{
 					Export pp = it.next();
 					PortInst pi = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
-					Export newPp = Export.newInstance(cell, pi, pp.getName(), pp.getCharacteristic(), iconParameters);
+					Export newPp = Export.newInstance(cell, pi, pp.getName(), pp.getCharacteristic());
 					if (newPp != null)
 					{
 						newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);

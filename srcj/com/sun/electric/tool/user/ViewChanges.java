@@ -407,7 +407,7 @@ public class ViewChanges
 
 			// export the port from the node
 			PortInst newPi = newNi.findPortInstFromProto(bottomPp);
-			Export npp = Export.newInstance(skeletonCell, newPi, pp.getName(), pp.getCharacteristic(), iconParameters);
+			Export npp = Export.newInstance(skeletonCell, newPi, pp.getName(), pp.getCharacteristic());
 			if (npp == null)
 			{
 				System.out.println("Could not create port " + pp.getName());
@@ -793,8 +793,7 @@ public class ViewChanges
 					PortInst schemPI = convertPort(mosNI, mosPP.getOriginalPort().getPortProto(), schemNI);
 					if (schemPI == null) continue;
 
-					Export schemPP = Export.newInstance(newCell, schemPI, mosPP.getName(), mosPP.getCharacteristic(),
-                        iconParameters);
+					Export schemPP = Export.newInstance(newCell, schemPI, mosPP.getName(), mosPP.getCharacteristic());
 					if (schemPP != null)
 					{
 						schemPP.copyTextDescriptorFrom(mosPP, Export.EXPORT_NAME);
@@ -1429,8 +1428,7 @@ public class ViewChanges
 							// create export if name matches
 							if (exportName != null && nextPi.getPortProto().getName().equals(exportName))
 							{
-								Export pp2 = Export.newInstance(newCell, nextPi, exportName, e.getCharacteristic(),
-                                    iconParameters);
+								Export pp2 = Export.newInstance(newCell, nextPi, exportName, e.getCharacteristic());
 								pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
 								pp2.copyVarsFrom(e);
 								exportName = null;
@@ -1438,7 +1436,7 @@ public class ViewChanges
 						}
 						if (exportName != null)
 						{
-							Export pp2 = Export.newInstance(newCell, pi, exportName, e.getCharacteristic(), iconParameters);
+							Export pp2 = Export.newInstance(newCell, pi, exportName, e.getCharacteristic());
 							pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
 							pp2.copyVarsFrom(e);
 							exportName = null;
@@ -1489,8 +1487,8 @@ public class ViewChanges
 				// special case again: one-port capacitors are OK
 				PrimitiveNode.Function oldFun = schConn.no.getNodeInst().getFunction();
 				PrimitiveNode.Function newFun = layNi.getFunction();
-				if (oldFun.isCapacitor() && newFun.isCapacitor()) 
-//				if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC) 
+				if (oldFun.isCapacitor() && newFun.isCapacitor())
+//				if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC)
 					return layNi.getPortInst(0);
 
 				// association has failed: assume the first port
@@ -1804,8 +1802,7 @@ public class ViewChanges
 						PortProto pp = convertPortName(ni, newNi, portName);
 						if (pp == null) continue;
 						PortInst pi = newNi.findPortInstFromProto(pp);
-						Export pp2 = Export.newInstance(newCell, pi, exportName.toString(), e.getCharacteristic(),
-                            iconParameters);
+						Export pp2 = Export.newInstance(newCell, pi, exportName.toString(), e.getCharacteristic());
 						if (pp2 == null) continue;
 						pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
 						pp2.copyVarsFrom(e);

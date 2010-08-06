@@ -573,7 +573,7 @@ public class VerilogReader extends Input<Object>
                 ignoreUntilEndOfStatement(endStatement); // either ; or end
                 continue;
             }
-            
+
             if (key.equals("tranif1")) // transistors
             {
                 // reading gates
@@ -895,7 +895,7 @@ public class VerilogReader extends Input<Object>
                         cell, Orientation.IDENT, pinName);
                 if (addExport)
                 {
-                    Export.newInstance(cell, ni.getOnlyPortInst(), pinName, portType, localPrefs.iconParameters);
+                    Export.newInstance(cell, ni.getOnlyPortInst(), pinName, portType);
                 }
             }
             else
@@ -975,8 +975,8 @@ public class VerilogReader extends Input<Object>
 
 	                ArcInst.makeInstanceBase(Schematics.tech().wire_arc, 0.0,
 	                    ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
-	
-	                Export.newInstance(cell, ni.getOnlyPortInst(), name, portType, localPrefs.iconParameters);
+
+	                Export.newInstance(cell, ni.getOnlyPortInst(), name, portType);
 	            }
 	            else
 	                System.out.println("Skipping this characteristic?");

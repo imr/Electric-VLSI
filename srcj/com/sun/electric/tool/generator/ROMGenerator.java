@@ -4051,7 +4051,7 @@ highX -= 64*lambda;
 	private static void makeCStyleExport(Cell parent, NodeInst ni, PortProto pp, String name, PortCharacteristic exporttype)
 	{
 		PortInst pi = ni.findPortInstFromProto(pp);
-		Export.newInstance(parent, pi, name, exporttype, iconParameters);
+		Export.newInstance(parent, pi, name, exporttype);
 	}
 
 	/**

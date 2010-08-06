@@ -849,7 +849,7 @@ public class Sue extends Input<Object>
 				if (ni == null) continue;
 
 				PortInst pi = ni.getOnlyPortInst();
-				Export ppt = Export.newInstance(cell, pi, parP.theName, parP.type, localPrefs.iconParameters);
+				Export ppt = Export.newInstance(cell, pi, parP.theName, parP.type);
 				if (ppt == null)
 				{
 					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
@@ -1120,7 +1120,7 @@ public class Sue extends Input<Object>
 			Export ppt = (Export)cell.findPortProto(portName);
 			if (ppt == null)
 			{
-				return Export.newInstance(cell, pi, portName, pc, localPrefs.iconParameters);
+				return Export.newInstance(cell, pi, portName, pc);
 			}
 
 			// make space for modified name

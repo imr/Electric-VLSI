@@ -380,7 +380,7 @@ if (userDefaults) initFromUserDefaults();
 
         // export the port that should be on this pin
         PortInst pi = pinNi.getOnlyPortInst();
-        Export port = Export.newInstance(np, pi, pp.getName(), pp.getCharacteristic(), null);
+        Export port = Export.newInstance(np, pi, pp.getName(), pp.getCharacteristic());
         if (port != null)
         {
             TextDescriptor td = port.getTextDescriptor(Export.EXPORT_NAME);
