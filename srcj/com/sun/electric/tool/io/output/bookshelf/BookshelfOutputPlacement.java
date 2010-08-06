@@ -27,13 +27,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
-import org.python.antlr.op.Or;
 
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
-import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
 
 /**
  * @author Felix Schmidt
