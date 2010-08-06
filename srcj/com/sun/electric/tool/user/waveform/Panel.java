@@ -29,11 +29,13 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.RangeSample;
 import com.sun.electric.tool.simulation.Sample;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.SweptSample;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
@@ -1328,6 +1330,34 @@ public class Panel extends JPanel
 			    		Sample ss = sws.getSweep(s);
                         pw.println("\"" + time + "\",\"" + s + "\",\"" + ((ScalarSample)ss).getValue() + "\"");
 			    	}
+			    } else if (samp instanceof DigitalSample)
+			    {
+			    	DigitalSample ds = (DigitalSample)samp;
+			    	String value;
+			        if (ds.isLogic0()) value = "0"; else
+			        if (ds.isLogic1()) value = "1"; else
+			        if (ds.isLogicX()) value = "X"; else
+			        if (ds.isLogicZ()) value = "Z"; else
+			        	value = "?";
+                    pw.println("\"" + time + "\",\"" + value + "\"");
+			    } else if (samp instanceof BusSample<?>)
+			    {
+			    	BusSample<?> bs = (BusSample<?>)samp;
+			    	boolean isX = false, isZ = false;
+			    	StringBuffer sb = new StringBuffer();
+			    	for(int j=0; j<bs.getWidth(); j++)
+			    	{
+			    		DigitalSample ds = (DigitalSample)bs.getTrace(j);
+				        if (ds.isLogicX()) { isX = true;   break; }
+				        if (ds.isLogicZ()) { isZ = true;   break; }
+				        if (ds.isLogic0()) sb.append("0"); else
+					        if (ds.isLogic1()) sb.append("1"); else
+					        	sb.append("?");
+			    	}
+			    	String number = sb.toString();
+			    	if (isX) number = "X"; else
+			    		if (isZ) number = "Z";
+                    pw.println("\"" + time + "\",\"" + number + "\"");
 			    } else
 			    {
 			    	ScalarSample ss = (ScalarSample)samp;

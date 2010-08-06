@@ -272,7 +272,7 @@ public class SweptSample<S extends Sample> implements Sample
                     {
                         double t = view.getTime(j);
                         HashSet<Integer> hs = tm.get(t);
-                        if (hs==null) tm.put(t, hs = new HashSet<Integer>());
+                        if (hs == null) tm.put(t, hs = new HashSet<Integer>());
                         hs.add(i);
                     }
                 }
