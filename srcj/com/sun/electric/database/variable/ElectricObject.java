@@ -970,7 +970,7 @@ public abstract class ElectricObject implements Serializable {
      * @param fromRight true to increment multidimensional arrays starting at the rightmost index.
      * @return a unique name for that class in that Cell.
      */
-    public static String uniqueObjectName(String name, Cell cell, Class cls, Set already,
+    public static String uniqueObjectName(String name, Cell cell, Class cls, Set<String> already,
     	Map<String, GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues, boolean fromRight)
     {
         String newName = name;

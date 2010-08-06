@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -43,12 +44,16 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -462,11 +467,21 @@ public class GDS extends Input<Object>
         private Map<UnknownLayerMessage,List<MakeInstance>> allErrorInsts = new HashMap<UnknownLayerMessage,List<MakeInstance>>();
         private List<MakeInstanceArray> instArrays = new ArrayList<MakeInstanceArray>();
 
+        private Map<String,ImmutableExport> exportsByName = new HashMap<String,ImmutableExport>();
+		private Set<String> alreadyExports = exportsByName.keySet();
+		Map<String,GenMath.MutableInteger> nextExportPlainIndex = new HashMap<String,GenMath.MutableInteger>();
+
+
         private CellBuilder(Cell cell, Technology tech, GDSPreferences localPrefs) {
             this.cell = cell;
             this.tech = tech;
             this.localPrefs = localPrefs;
             allBuilders.put(cell.getId(), this);
+            // sanity
+            Set<Export> exportsToKill = new HashSet<Export>();
+            for (Iterator<Export> it = cell.getExports(); it.hasNext(); )
+                exportsToKill.add(it.next());
+            cell.killExports(exportsToKill);
         }
 
 		private void makeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei,
@@ -475,7 +490,7 @@ public class GDS extends Input<Object>
 			MakeInstance mi = null;
 			if (proto != null)
 			{
-	            mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null, localPrefs);
+	            mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null);
 				if (ulm == null)
 				{
 					insts.add(mi);
@@ -503,7 +518,7 @@ public class GDS extends Input<Object>
 			{
 				double wid = proto.getDefWidth();
 				double hei = proto.getDefHeight();
-	            mi = new MakeInstance(proto, loc, orient, wid, hei, null, exportName, null, localPrefs);
+	            mi = new MakeInstance(proto, loc, orient, wid, hei, null, exportName, null);
 				if (ulm == null)
 				{
 		            insts.add(mi);
@@ -521,7 +536,7 @@ public class GDS extends Input<Object>
 			MakeInstance mi = null;
 			if (proto != null)
 			{
-				mi = new MakeInstance(proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text), localPrefs);
+				mi = new MakeInstance(proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text));
 				if (ulm == null)
 				{
 					insts.add(mi);
@@ -632,16 +647,16 @@ public class GDS extends Input<Object>
             nameInstances(countOff);
            	Collections.sort(insts);
 
-           	// make a set of export names
-           	Set<String> exportNames = new HashSet<String>();
-			for(MakeInstance mi : insts)
-				if (mi.exportName != null) exportNames.add(mi.exportName);
-			for(UnknownLayerMessage ulm : allErrorInsts.keySet())
-			{
-				List<MakeInstance> errorList = allErrorInsts.get(ulm);
-				for(MakeInstance mi : errorList)
-					if (mi != null && mi.exportName != null) exportNames.add(mi.exportName);
-			}
+//           	// make a set of export names
+//           	Set<String> exportNames = new HashSet<String>();
+//			for(MakeInstance mi : insts)
+//				if (mi.exportName != null) exportNames.add(mi.exportName);
+//			for(UnknownLayerMessage ulm : allErrorInsts.keySet())
+//			{
+//				List<MakeInstance> errorList = allErrorInsts.get(ulm);
+//				for(MakeInstance mi : errorList)
+//					if (mi != null && mi.exportName != null) exportNames.add(mi.exportName);
+//			}
 
 			int count = 0;
 			int renamed = 0;
@@ -661,7 +676,7 @@ public class GDS extends Input<Object>
 //                }
 
 				// make the instance
-                if (mi.instantiate(this.cell, exportUnify, exportNames, null)) renamed++;
+                if (mi.instantiate(this, exportUnify, null)) renamed++;
 			}
 
 			// next make the exports
@@ -744,7 +759,7 @@ public class GDS extends Input<Object>
                 }
 
                 // make the instance
-                if (mi.instantiate(this.cell, exportUnify, exportNames, null)) renamed++;
+                if (mi.instantiate(this, exportUnify, null)) renamed++;
 			}
 
 			for(UnknownLayerMessage ulm : allErrorInsts.keySet())
@@ -764,7 +779,7 @@ public class GDS extends Input<Object>
 //	                }
 
 					// make the instance
-	                if (mi.instantiate(this.cell, exportUnify, exportNames, instantiated)) renamed++;
+	                if (mi.instantiate(this, exportUnify, instantiated)) renamed++;
 				}
 				String msg = "Cell " + this.cell.noLibDescribe() + ": " + ulm.message;
 				Set<Cell> cellsWithError = cellLayerErrors.get(ulm);
@@ -787,7 +802,7 @@ public class GDS extends Input<Object>
 //                }
 
 				// make the instance array
-                mia.instantiate(this, this.cell, massiveMerge);
+                mia.instantiate(this, massiveMerge);
 			}
 			List<NodeProto> mergeNodeSet = new ArrayList<NodeProto>();
 			for(NodeProto np : massiveMerge.keySet()) mergeNodeSet.add(np);
@@ -797,6 +812,8 @@ public class GDS extends Input<Object>
 				List<EPoint> points = massiveMerge.get(np);
 				buildComplexNode(points, np, this.cell);
 			}
+            cell.addExports(exportsByName.values());
+
 			if (renamed > 0)
 			{
 				System.out.println("Cell " + this.cell.describe(false) + ": Renamed and NCC-unified " + renamed +
@@ -1065,8 +1082,9 @@ public class GDS extends Input<Object>
          * Method to instantiate an array of cell instances.
          * @param parent the Cell in which to create the geometry.
          */
-        private void instantiate(CellBuilder theCell, Cell parent, Map<NodeProto,List<EPoint>> massiveMerge)
+        private void instantiate(CellBuilder theCell, Map<NodeProto,List<EPoint>> massiveMerge)
         {
+            Cell parent = theCell.cell;
         	int arraySimplification = localPrefs.arraySimplification;
             NodeInst subNi = null;
             Cell subCell = (Cell)proto;
@@ -1184,10 +1202,9 @@ public class GDS extends Input<Object>
         private String exportName; // export
         private Name nodeName; // text
         private String origNodeName; // original text with invalid name
-        private GDSPreferences localPrefs;
 
         private MakeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points,
-        	String exportName, Name nodeName, GDSPreferences localPrefs)
+        	String exportName, Name nodeName)
 		{
 			this.proto = proto;
 			this.loc = loc;
@@ -1213,7 +1230,6 @@ public class GDS extends Input<Object>
             	}
             }
             this.nodeName = nodeName;
-            this.localPrefs = localPrefs;
 		}
 
         public int compareTo(MakeInstance that) {
@@ -1227,8 +1243,9 @@ public class GDS extends Input<Object>
          * @param saveHere a list of Geometrics to save this instance in.
          * @return true if the export had to be renamed.
          */
-        private boolean instantiate(Cell parent, Map<String,String> exportUnify, Set<String> exportNames, List<Geometric> saveHere)
+        private boolean instantiate(CellBuilder cb, Map<String,String> exportUnify, List<Geometric> saveHere)
         {
+            Cell parent = cb.cell;
         	String name = null;
         	if (nodeName != null) name = nodeName.toString();
             NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name);
@@ -1262,9 +1279,11 @@ public class GDS extends Input<Object>
             {
             	if (exportName.endsWith(":"))
             		exportName = exportName.substring(0, exportName.length()-1);
+                exportName = exportName.replace(':', '_');
         		if (parent.findExport(exportName) != null)
         		{
-                    String newName = ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true, true);
+                    String newName = ElectricObject.uniqueObjectName(exportName, parent, Export.class,
+                            cb.alreadyExports, cb.nextExportPlainIndex, true, true);
 //                	while (exportNames.contains(newName))
 //                	{
 //                		int lastUnder = newName.lastIndexOf('_');
@@ -1282,7 +1301,24 @@ public class GDS extends Input<Object>
                     exportName = newName;
                     renamed = true;
         		}
-                Export.newInstance(parent, ni.getPortInst(0), exportName);
+
+                // Create ImmutableExport
+                ExportId exportId = parent.getD().cellId.newPortId(exportName);
+                boolean busNamesAllowed = false;
+                Name exportNameKey = ImmutableExport.validExportName(exportName, busNamesAllowed);
+                TextDescriptor nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
+                int nodeId = ni.getD().nodeId;
+                PortProtoId portProtoId = ni.getPortInst(0).getPortProto().getId();
+                boolean alwaysDrawn = false;
+                boolean bodyOnly = false;
+                assert parent.findExport(exportName) == null;
+                PortCharacteristic characteristic = PortCharacteristic.UNKNOWN;
+                ImmutableExport d = ImmutableExport.newInstance(exportId, exportNameKey, nameTextDescriptor,
+                    nodeId, portProtoId, alwaysDrawn, bodyOnly, characteristic);
+
+                // Put ImmutableExport ti the CellBuiler.
+                // This also modifies the cb.alreadyExports
+                cb.exportsByName.put(exportName, d);
             }
             return renamed;
         }

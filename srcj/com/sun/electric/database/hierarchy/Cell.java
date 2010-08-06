@@ -88,8 +88,11 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -2328,13 +2331,32 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
 
     /****************************** EXPORTS ******************************/
     /**
-     * Add a PortProto to this NodeProto.
-     * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
-     * @param export the PortProto to add to this NodeProto.
+     * Add Exports to this Cell.
+     * @param exports the ImmutableExport to add to this Cell.
      */
-    void addExport(Export export) {
+    public void addExports(Collection<ImmutableExport> exports) {
+        ImmutableExport[] a = exports.toArray(new ImmutableExport[exports.size()]);
+        Arrays.sort(a, new Comparator<ImmutableExport>() {
+            public int compare(ImmutableExport e1, ImmutableExport e2) {
+                return TextUtils.STRING_NUMBER_ORDER.compare(e1.name.toString(), e2.name.toString());
+            }
+        });
+        for (ImmutableExport e: a)
+            addExport(e);
+    }
+
+    /**
+     * Add an Export to this Cell.
+     * @param e the ImmutableExport to add to this Cell.
+     */
+    public Export addExport(ImmutableExport e) {
+        if (e.exportId.parentId != getId() || getExportChron(e.exportId.chronIndex) != null ||
+                e.nameDescriptor == null ||
+                getPortInst(e.originalNodeId, e.originalPortId) == null)
+            throw new IllegalArgumentException();
         checkChanging();
         setContentsModified();
+        Export export = new Export(e, this);
 
         int portIndex = -searchExport(export.getName()) - 1;
         assert portIndex >= 0;
@@ -2353,30 +2375,28 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         System.arraycopy(exports, 0, newExports, 0, portIndex);
         newExports[portIndex] = export;
         for (int i = portIndex; i < exports.length; i++) {
-            Export e = exports[i];
-            e.setPortIndex(i + 1);
-            newExports[i + 1] = e;
+            Export ex = exports[i];
+            ex.setPortIndex(i + 1);
+            newExports[i + 1] = ex;
         }
         exports = newExports;
 
         // create a PortInst for every instance of this Cell
-        if (getId().numUsagesOf() == 0) {
-            return;
+        if (getId().numUsagesOf() != 0) {
+            int[] pattern = new int[exports.length];
+            for (int i = 0; i < portIndex; i++) {
+                pattern[i] = i;
+            }
+            pattern[portIndex] = -1;
+            for (int i = portIndex + 1; i < exports.length; i++) {
+                pattern[i] = i - 1;
+            }
+            updatePortInsts(pattern);
         }
-        int[] pattern = new int[exports.length];
-        for (int i = 0; i < portIndex; i++) {
-            pattern[i] = i;
-        }
-        pattern[portIndex] = -1;
-        for (int i = portIndex + 1; i < exports.length; i++) {
-            pattern[i] = i - 1;
-        }
-        updatePortInsts(pattern);
-//        for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
-//            NodeInst ni = it.next();
-//            ni.addPortInst(export);
-//            assert ni.getNumPortInsts() == exports.length;
-//        }
+        // handle change control, constraint, and broadcast
+        export.getOriginalPort().getNodeInst().redoGeometric();
+        Constraints.getCurrent().newObject(export);
+        return export;
     }
 
     /**
@@ -3128,13 +3148,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return true if the name is unique in the Cell.  False if it already exists.
      */
     public boolean isUniqueName(Name name, Class cls, ElectricObject exclude) {
-//		name = name.canonic();
-        if (cls == PortProto.class) {
-            PortProto pp = findExport(name);
-            if (pp == null || exclude == pp) {
-                return true;
-            }
-            return false;
+        if (cls == Export.class) {
+            Export e = findExport(name);
+            return (e == null || exclude == e);
         }
         if (cls == NodeInst.class) {
             NodeInst ni = findNode(name.toString());

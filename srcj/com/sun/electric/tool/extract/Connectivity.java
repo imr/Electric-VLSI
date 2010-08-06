@@ -622,7 +622,7 @@ public class Connectivity
             for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
             {
                 ArcInst ai = it.next();
-                if (allArcs.contains(ai)) continue; 
+                if (allArcs.contains(ai)) continue;
                 Rectangle2D bounds = ai.getBounds();
                 long lX = (long)(bounds.getMinX() / alignment.getWidth());
                 long hX = (long)(bounds.getMaxX() / alignment.getWidth());
@@ -1305,7 +1305,7 @@ public class Connectivity
                         if (oNi.getProto() != pin) continue;
                         // make sure center of pin is in bounds
                         if (!DBMath.pointInsideRect(oNi.getAnchorCenter(), searchBound)) continue;
-                        
+
                         // replace arcs that end on pin to end on pure layer node
                         for (Iterator<Connection> cit = oNi.getConnections(); cit.hasNext(); ) {
                             Connection conn = cit.next();
@@ -2189,7 +2189,7 @@ public class Connectivity
 						}
 						boolean genFakeName = (exportName == null);
 						if (genFakeName) exportName = "E";
-						exportName = ElectricObject.uniqueObjectName(exportName, subCell, PortProto.class, true, true);
+						exportName = ElectricObject.uniqueObjectName(exportName, subCell, Export.class, true, true);
 						Export e = Export.newInstance(subCell, pi, exportName);
 						if (genFakeName)
                             generatedExports.add(e);
@@ -5033,7 +5033,7 @@ public class Connectivity
 				}
 			}
 			*/
-            
+
             for(PolyBase poly : polyList)
 			{
                 if (usePureLayerNodes) ap = null;
@@ -5217,7 +5217,7 @@ public class Connectivity
                             GeometryHandler thisMerge = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
                             thisMerge.add(layer, poly);
                             thisMerge.postProcess(true);
-    
+
                             Collection<PolyBase> set = ((PolySweepMerge)thisMerge).getPolyPartition(layer);
                             for(PolyBase simplePoly : set)
                             {
@@ -5340,7 +5340,7 @@ public class Connectivity
                         }
                         if (ap == null)
                         	ap = Generic.tech().universal_arc;
-                        
+
                         double width = ap.getDefaultLambdaBaseWidth();
                         ArcProto arcProto = ap;
                         if (arcProto != Generic.tech().universal_arc)
@@ -5470,7 +5470,7 @@ public class Connectivity
 				layer = realNActiveLayer;
 			if (layer.getPureLayerNode() == null) layer = poly.getLayer();
 		}
-		
+
 		PrimitiveNode pNp = layer.getPureLayerNode();
 		if (pNp == null)
 		{
@@ -5681,7 +5681,7 @@ public class Connectivity
 			}
 			if (exportName != null)
 			{
-				exportName = ElectricObject.uniqueObjectName(exportName, cell, PortProto.class, true, true);
+				exportName = ElectricObject.uniqueObjectName(exportName, cell, Export.class, true, true);
 				e.rename(exportName);
 			}
 		}

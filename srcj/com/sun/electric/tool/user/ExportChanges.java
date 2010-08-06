@@ -967,7 +967,7 @@ public final class ExportChanges
 	 * Ignored if null.
 	 * @return the number of ports exported
 	 */
-	public static int reExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean wiredPorts, 
+	public static int reExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean wiredPorts,
                                     boolean unwiredPorts, boolean onlyPowerGround, boolean fromRight,
                                     Map<PortInst,Export> originalExports)
 	{
@@ -1058,7 +1058,7 @@ public final class ExportChanges
 
 			// get unique name here so Export.newInstance doesn't print message
 			String protoNameString = protoName.toString();
-			protoNameString = ElectricObject.uniqueObjectName(protoNameString, cell, PortProto.class, already,
+			protoNameString = ElectricObject.uniqueObjectName(protoNameString, cell, Export.class, already,
 				nextPlainIndex, false, fromRight);
 
 			// create export
