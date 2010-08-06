@@ -39,8 +39,8 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S>
 {
     private Signal.View<S> exactView = null;
     private final BTree<Double,S,Pair<S,S>> tree;
-    private double minTime = 0, maxTime = 0;
-    private double minValue = 0, maxValue = 0;
+    private double minTime = Double.MAX_VALUE, maxTime = -Double.MAX_VALUE;
+    private double minValue = Double.MAX_VALUE, maxValue = -Double.MAX_VALUE;
     public static int misses = 0;
     public static int steps = 0;
     public static int numLookups = 0;
@@ -99,17 +99,9 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S>
 
     public boolean isEmpty() { return tree.size()==0; }
 
-	public double getMinTime()
-	{
-//		return tree.size()==0 ? 0 : getExactView().getTime(0);
-		return minTime;
-	}
+	public double getMinTime() { return minTime; }
 
-	public double getMaxTime()
-	{
-//		return tree.size()==0 ? 0 : getExactView().getTime(getExactView().getNumEvents()-1);
-		return maxTime;
-	}
+	public double getMaxTime() { return maxTime; }
 
 	public double getMinValue() { return minValue; }
 

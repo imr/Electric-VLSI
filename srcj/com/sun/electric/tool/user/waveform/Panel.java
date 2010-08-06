@@ -695,7 +695,7 @@ public class Panel extends JPanel
 	public void fitToSignal(Signal<?> sig)
 	{
         double lowValue = Double.MAX_VALUE;
-        double highValue = Double.MIN_VALUE;
+        double highValue = -Double.MAX_VALUE;
         for(WaveSignal wSig : getSignals())
         {
             Signal<Sample> sSig = (Signal<Sample>)wSig.getSignal();
@@ -1339,7 +1339,7 @@ public class Panel extends JPanel
     }
 
     private static String pad2(String s) { return s.length()>=2 ? s : pad2("0"+s); }
-	void dumpDataForGnuplot(PrintWriter pw) { dumpDataForGnuplot(pw, Double.MIN_VALUE, Double.MAX_VALUE, ""); }
+	void dumpDataForGnuplot(PrintWriter pw) { dumpDataForGnuplot(pw, -Double.MAX_VALUE, Double.MAX_VALUE, ""); }
 	void dumpDataForGnuplot(PrintWriter pw, double min, double max, String sep) {
         boolean first = true;
         int linetype = 1;

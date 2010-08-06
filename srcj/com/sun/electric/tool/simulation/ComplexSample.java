@@ -44,10 +44,12 @@ public class ComplexSample extends ScalarSample implements Sample
 {
     private double real;
     private double imag;
+    private double hypot;
 
     public ComplexSample(double real, double imag)
     {
         super(Math.hypot(real, imag));
+    	hypot = Math.hypot(real, imag);
         this.real = real;
         this.imag = imag;
     }
@@ -91,9 +93,9 @@ public class ComplexSample extends ScalarSample implements Sample
         return new ComplexSample(Math.min(real, cs.real), Math.min(imag, cs.imag));
     }
 
-    public double getMinValue() { return Math.min(real, imag); }
+    public double getMinValue() { return hypot; /*Math.min(real, imag);*/ }
 
-    public double getMaxValue() { return Math.max(real, imag); }
+    public double getMaxValue() { return hypot; /*Math.max(real, imag);*/ }
 
     public static final Unboxed<ComplexSample> unboxer = new Unboxed<ComplexSample>()
     {

@@ -948,7 +948,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         try {
             String commands = "";
             double min = Double.MAX_VALUE;
-            double max = Double.MIN_VALUE;
+            double max = -Double.MAX_VALUE;
             int numPanels = 0;
             int maxWidth = 0;
             int height = 0;

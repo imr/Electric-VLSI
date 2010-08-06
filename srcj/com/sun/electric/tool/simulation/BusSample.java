@@ -115,7 +115,7 @@ public class BusSample<S extends Sample> implements Sample
 
     public double getMaxValue()
     {
-    	double max = Double.MIN_VALUE;
+    	double max = -Double.MAX_VALUE;
     	for(int i=0; i<vals.length; i++)
     		max = Math.max(max, vals[i].getMaxValue());
     	return max;
@@ -232,7 +232,7 @@ public class BusSample<S extends Sample> implements Sample
 
             public double getMaxTime()
             {
-                double max = Double.MIN_VALUE;
+                double max = -Double.MAX_VALUE;
                 for(Signal<SS> sig : subsignals) max = Math.max(max, sig.getMaxTime());
                 return max;
             }
@@ -246,7 +246,7 @@ public class BusSample<S extends Sample> implements Sample
 
             public double getMaxValue()
             {
-                double max = Double.MIN_VALUE;
+                double max = -Double.MAX_VALUE;
                 for(Signal<SS> sig : subsignals) max = Math.max(max, sig.getMaxValue());
                 return max;
             }

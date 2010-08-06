@@ -81,7 +81,7 @@ public abstract class DerivedSignal<SNew extends Sample, SOld extends Sample> ex
 
 	public double getMinTime()
 	{
-        double min = Double.MIN_VALUE;
+        double min = -Double.MAX_VALUE;
         for(int i=0; i<sources.length; i++)
             min = Math.max(min, sources[i].getMinTime());
         return min;
