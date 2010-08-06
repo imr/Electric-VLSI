@@ -925,8 +925,11 @@ public abstract class PlacementFrame {
 					np.getDefHeight(), newCell, orient, plNode.nodeName, plNode.techBits);
 			if (ni == null)
 				System.out.println("Placement failed to create node");
-			else
+			else {
+				if(plNode.isTerminal())
+					ni.setLocked();
 				placedNodes.put(plNode, ni);
+			}
 			if (plNode.addedVariables != null) {
 				for (Key key : plNode.addedVariables.keySet()) {
 					Object value = plNode.addedVariables.get(key);
