@@ -308,7 +308,7 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 
 		String[] splited = line.split(" ");
 		result.elements = Integer.parseInt(splited[2]);
-		result.netName = splited[4];
+		result.netName = splited[splited.length - 1];
 
 		return result;
 	}
