@@ -42,7 +42,7 @@ public class BookshelfOutput extends Output {
 		 * 
 		 */
 		public BookshelfOutputPreferences(boolean factory) {
-			// TODO Auto-generated constructor stub
+			super(factory);
 		}
 
 		/*

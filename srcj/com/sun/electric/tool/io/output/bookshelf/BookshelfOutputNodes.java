@@ -23,13 +23,11 @@
  */
 package com.sun.electric.tool.io.output.bookshelf;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
