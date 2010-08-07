@@ -53,7 +53,6 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -1280,7 +1279,7 @@ public class GDS extends Input<Object>
             	if (exportName.endsWith(":"))
             		exportName = exportName.substring(0, exportName.length()-1);
                 exportName = exportName.replace(':', '_');
-        		if (parent.findExport(exportName) != null)
+        		if (cb.alreadyExports.contains(exportName))
         		{
                     String newName = ElectricObject.uniqueObjectName(exportName, parent, Export.class,
                             cb.alreadyExports, cb.nextExportPlainIndex, true, true);
