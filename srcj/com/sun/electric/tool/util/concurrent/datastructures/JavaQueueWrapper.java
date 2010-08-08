@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.IStructure;
-import com.sun.electric.tool.util.concurrent.patterns.PTask;
 
 /**
  * @author Felix Schmidt

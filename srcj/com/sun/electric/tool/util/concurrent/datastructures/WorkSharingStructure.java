@@ -37,8 +37,8 @@ public class WorkSharingStructure<T> extends WorkStealingStructure<T> {
 	 * @param numOfThreads
 	 * @param clazz
 	 */
-	public WorkSharingStructure(int numOfThreads, Class<T> clazz) {
-		super(numOfThreads, clazz);
+	public WorkSharingStructure(int numOfThreads) {
+		super(numOfThreads);
 	}
 
 	/*

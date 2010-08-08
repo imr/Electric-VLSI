@@ -52,20 +52,18 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	// free internal ids are used for assigning operating system thread IDs to
 	// data queues
 	private List<Long> freeInternalIds;
-	private Class<T> clazz;
 	protected MultiThreadedRandomizer randomizer;
 	private StealTracker stealTracker;
 	private boolean debug;
 
-	public WorkStealingStructure(int numOfThreads, Class<T> clazz) {
-		this(numOfThreads, clazz, false);
+	public WorkStealingStructure(int numOfThreads) {
+		this(numOfThreads, false);
 	}
 
-	public WorkStealingStructure(int numOfThreads, Class<T> clazz, boolean debug) {
+	public WorkStealingStructure(int numOfThreads,  boolean debug) {
 		dataQueues = CollectionFactory.createConcurrentHashMap();
 		dataQueuesMapping = CollectionFactory.createConcurrentHashMap();
 		freeInternalIds = CollectionFactory.createConcurrentList();
-		this.clazz = clazz;
 		this.randomizer = new MultiThreadedRandomizer(numOfThreads);
 		stealTracker = StealTracker.getInstance();
 
@@ -210,6 +208,6 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	 * @return initialized WorkStealingStructure
 	 */
 	public static WorkStealingStructure<PTask> createForThreadPool(int numOfThreads) {
-		return new WorkStealingStructure<PTask>(numOfThreads, PTask.class, Job.getDebug());
+		return new WorkStealingStructure<PTask>(numOfThreads, Job.getDebug());
 	}
 }

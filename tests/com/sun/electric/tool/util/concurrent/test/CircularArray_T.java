@@ -34,9 +34,20 @@ public class CircularArray_T {
 
 	@Test
 	public void testIndexCalculation() {
-		for(int i = 0; i < 32; i++) {
-			System.out.println(1 << i);
-			Assert.assertTrue((1 << i) >= 0);
+		// for (int i = 0; i < 32; i++) {
+		// System.out.println(1 << i);
+		// Assert.assertTrue((1 << i) >= 0);
+		// }
+	}
+
+	@Test
+	public void testModuloOp() {
+
+		Integer[][] values = { { 7, 3 }, { 7, -3 }, { -7, 3 }, { -7, -3 } };
+
+		for (Integer[] value : values) {
+			int rest = value[0] % value[1];
+			System.out.println(value[0] + " % " + value[1] + " = " + rest);
 		}
 	}
 

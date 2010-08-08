@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.util.concurrent.datastructures;
 
-import java.lang.reflect.Array;
-
 import com.sun.electric.tool.util.IStructure;
 
 /**
