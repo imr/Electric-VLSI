@@ -3081,9 +3081,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
     public int getUniqueNameIndex(String prefix, Class cls, int startingIndex) {
         int len = prefix.length();
         int uniqueIndex = startingIndex;
-        if (cls == PortProto.class) {
-            for (Iterator<PortProto> it = getPorts(); it.hasNext();) {
-                PortProto pp = it.next();
+        if (cls == Export.class) {
+            for (Iterator<Export> it = getExports(); it.hasNext();) {
+                Export pp = it.next();
                 if (pp.getName().startsWith(prefix)) //				if (TextUtils.startsWithIgnoreCase(pp.getName(), prefix))
                 {
                     String restOfName = pp.getName().substring(len);
