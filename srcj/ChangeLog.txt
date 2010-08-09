@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00l: ******************************
 
+IMP: (8/6/10, DN) Cell.getUniqueNameIndex considers both prefix and suffix.
+
 IMP: (8/6/10, DN) Methods Cell.addExport and Cell.addExports with ImmutableExport args.
 
 BUG: (8/5/10, SMR) Cannot outline-edit hard-to-select nodes (Bug #2875).

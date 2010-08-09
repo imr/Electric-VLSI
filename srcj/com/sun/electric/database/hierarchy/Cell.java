@@ -3074,19 +3074,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * Method to determine the index value which, when appended to a given string,
      * will generate a unique name in this Cell.
      * @param prefix the start of the string.
+     * @param suffix the end of the string.
      * @param cls the type of object being examined.
      * @param startingIndex the starting value to append to the string.
      * @return a value that, when appended to the prefix, forms a unique name in the cell.
      */
-    public int getUniqueNameIndex(String prefix, Class cls, int startingIndex) {
-        int len = prefix.length();
+    public int getUniqueNameIndex(String prefix, String suffix, Class cls, int startingIndex) {
+        int prefixLen = prefix.length();
+        int suffixLen = suffix.length();
         int uniqueIndex = startingIndex;
         if (cls == Export.class) {
             for (Iterator<Export> it = getExports(); it.hasNext();) {
                 Export pp = it.next();
-                if (pp.getName().startsWith(prefix)) //				if (TextUtils.startsWithIgnoreCase(pp.getName(), prefix))
+                String name = pp.getName();
+                if (name.startsWith(prefix) && name.endsWith(suffix)) //				if (TextUtils.startsWithIgnoreCase(pp.getName(), prefix))
                 {
-                    String restOfName = pp.getName().substring(len);
+                    String restOfName = name.substring(prefixLen, name.length() - suffixLen);
                     if (TextUtils.isANumber(restOfName)) {
                         int indexVal = TextUtils.atoi(restOfName);
                         if (indexVal >= uniqueIndex) {
@@ -3098,9 +3101,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         } else if (cls == NodeInst.class) {
             for (Iterator<NodeInst> it = getNodes(); it.hasNext();) {
                 NodeInst ni = it.next();
-                if (ni.getName().startsWith(prefix)) //				if (TextUtils.startsWithIgnoreCase(ni.getName(), prefix))
+                String name = ni.getName();
+                if (name.startsWith(prefix) && name.endsWith(suffix)) //				if (TextUtils.startsWithIgnoreCase(ni.getName(), prefix))
                 {
-                    String restOfName = ni.getName().substring(len);
+                    String restOfName = name.substring(prefixLen, name.length() - suffixLen);
                     if (TextUtils.isANumber(restOfName)) {
                         int indexVal = TextUtils.atoi(restOfName);
                         if (indexVal >= uniqueIndex) {
@@ -3112,9 +3116,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
         } else if (cls == ArcInst.class) {
             for (Iterator<ArcInst> it = getArcs(); it.hasNext();) {
                 ArcInst ai = it.next();
-                if (ai.getName().startsWith(prefix)) //				if (TextUtils.startsWithIgnoreCase(ai.getName(), prefix))
+                String name = ai.getName();
+                if (name.startsWith(prefix) && name.endsWith(suffix)) //				if (TextUtils.startsWithIgnoreCase(ai.getName(), prefix))
                 {
-                    String restOfName = ai.getName().substring(len);
+                    String restOfName = name.substring(prefixLen, name.length() - suffixLen);
                     if (TextUtils.isANumber(restOfName)) {
                         int indexVal = TextUtils.atoi(restOfName);
                         if (indexVal >= uniqueIndex) {

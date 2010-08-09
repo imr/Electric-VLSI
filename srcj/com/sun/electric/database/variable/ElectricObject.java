@@ -1356,19 +1356,20 @@ public abstract class ElectricObject implements Serializable {
 
                 // find the unique index to use
                 String prefix = base.substring(0, startPos) + localSepString;
+                String suffix = base.substring(endPos);
+                if (an.indexPart != null)
+                    suffix += an.indexPart;
                 if (nextPlainIndex != null) {
-                    String prefixAndSuffix = prefix + '0' + base.substring(endPos);
-                    if (an.indexPart != null)
-                        prefixAndSuffix += an.indexPart;
+                    String prefixAndSuffix = prefix + '0' + suffix;
                     GenMath.MutableInteger nxt = nextPlainIndex.get(prefixAndSuffix);
                     if (nxt == null) {
-                        nxt = new GenMath.MutableInteger(cell.getUniqueNameIndex(prefix, cls, nextIndex));
+                        nxt = new GenMath.MutableInteger(cell.getUniqueNameIndex(prefix, suffix, cls, nextIndex));
                         nextPlainIndex.put(prefixAndSuffix, nxt);
                     }
                     nextIndex = nxt.intValue();
                     nxt.increment();
                 } else {
-                    nextIndex = cell.getUniqueNameIndex(prefix, cls, nextIndex);
+                    nextIndex = cell.getUniqueNameIndex(prefix, suffix, cls, nextIndex);
                 }
                 an.baseName = prefix + nextIndex + base.substring(endPos);
             }
