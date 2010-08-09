@@ -25,6 +25,7 @@ package com.sun.electric.technology.technologies.utils;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
@@ -314,51 +315,72 @@ public class MOSRules implements DRCRules {
     /**
 	 * Method to find the worst spacing distance in the design rules.
 	 * Finds the largest spacing rule in the Technology.
-	 * @return the largest spacing distance in the Technology. Zero if nothing found
-     * @param lastMetal
+	 * @param lastMetal last metal to check if only metal values are requested
+     * @param worstDistance the largest spacing distance in the Technology. Zero if nothing found
+	 * @return true if a value was found
      */
-	public double getWorstSpacingDistance(int lastMetal)
+	public boolean getWorstSpacingDistance(int lastMetal, GenMath.MutableDouble worstDistance)
 	{
         assert(lastMetal == -1); // not implemented for only metals yet
-        double worstInteractionDistance = 0;
+        worstDistance.setValue(0);
+        boolean worstDistanceFound = false;
 
-		for(int i = 0; i < uTSize; i++)
+        for(int i = 0; i < uTSize; i++)
 		{
 			double dist = unConList[i];
-			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
+			if (dist > worstDistance.doubleValue())
+            {
+                worstDistance.setValue(dist); worstDistanceFound = true;
+            }
 			dist = unConListWide[i];
-			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
+			if (dist > worstDistance.doubleValue())
+            {
+                worstDistance.setValue(dist); worstDistanceFound = true;
+            }
 			dist = unConListMulti[i];
-			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
+			if (dist > worstDistance.doubleValue())
+            {
+                worstDistance.setValue(dist); worstDistanceFound = true;
+            }
 		}
-		return worstInteractionDistance;
+		return worstDistanceFound;
 	}
 
     /**
 	 * Method to find the maximum design-rule distance around a layer.
 	 * @param layer the Layer to examine.
-	 * @return the maximum design-rule distance around the layer. -1 if nothing found.
+     * @param maxSize the maximum design-rule distance around the layer. worstLayerRule is-1 if nothing found.
+	 * @return true if a value was found
 	 */
-	public double getMaxSurround(Layer layer, double maxSize)
+	public boolean getMaxSurround(Layer layer, double maxSize, GenMath.MutableDouble worstLayerRule)
 	{
-		double worstLayerRule = -1;
+//		double worstLayerRule = -1;
 		int layerIndex = layer.getIndex();
 		int tot = tech.getNumLayers();
 	    double wide = wideLimit;
+        boolean worstValueFound = false;
 
-		for(int i=0; i<tot; i++)
+        for(int i=0; i<tot; i++)
 		{
 			int pIndex = getRuleIndex(layerIndex, i);
 			double dist = unConList[pIndex];
-			if (dist > worstLayerRule) worstLayerRule = dist;
+			if (dist > worstLayerRule.doubleValue())
+            {
+                worstLayerRule.setValue(dist);
+                worstValueFound = true;
+            }
 			if (maxSize > wide)
 			{
 				dist = unConListWide[pIndex];
-				if (dist > worstLayerRule) worstLayerRule = dist;
+				if (dist > worstLayerRule.doubleValue())
+                {
+                    worstLayerRule.setValue(dist);
+                    worstValueFound = true;
+                }
 			}
 		}
 
-		return worstLayerRule;
+		return worstValueFound;
 	}
     
     /**

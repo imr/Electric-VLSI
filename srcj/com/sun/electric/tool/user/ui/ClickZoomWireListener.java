@@ -27,6 +27,7 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -51,7 +52,6 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.EditMenu;
 
 import java.awt.event.ActionEvent;
@@ -829,9 +829,12 @@ public class ClickZoomWireListener
     		double widRule = Math.min(xS, yS);
     		double lenRule = Math.max(xS, yS);
 			int multiCut = -1;
-			double surround = DRC.getMaxSurround(lay, Double.MAX_VALUE);
+            GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+            boolean found = DRC.getMaxSurround(lay, Double.MAX_VALUE, mutableDist);
+            if (!found) return;
+            double surround = mutableDist.doubleValue();
 
-    		// search up to 5 times the design-rule distance away
+            // search up to 5 times the design-rule distance away
     		double worstInteractionDistance = surround * 5;
     		Rectangle2D searchBounds = new Rectangle2D.Double(
     			bounds.getMinX()-worstInteractionDistance,

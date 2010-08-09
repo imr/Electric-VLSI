@@ -1423,22 +1423,27 @@ public class DRC extends Listener
 		DRCRules rules = getRules(tech);
 		if (rules == null)
             return 0;
-		return (rules.getWorstSpacingDistance(lastMetal));
-	}
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+        boolean found = rules.getWorstSpacingDistance(lastMetal, mutableDist);
+        if (!found)
+            System.out.println("Not found in DRC.getWorstSpacingDistance");
+        return mutableDist.doubleValue();
+    }
 
     /**
 	 * Method to find the maximum design-rule distance around a layer.
 	 * @param layer the Layer to examine.
 	 * @return the maximum design-rule distance around the layer. -1 if nothing found.
 	 */
-	public static double getMaxSurround(Layer layer, double maxSize)
+	public static boolean getMaxSurround(Layer layer, double maxSize, GenMath.MutableDouble mutableDist)
 	{
 		Technology tech = layer.getTechnology();
-        if (tech == null) return -1; // case when layer is a Graphics
+        mutableDist.setValue(-1);
+        if (tech == null) return false; // case when layer is a Graphics
 		DRCRules rules = getRules(tech);
-		if (rules == null) return -1;
+		if (rules == null) return false;
 
-        return (rules.getMaxSurround(layer, maxSize));
+        return (rules.getMaxSurround(layer, maxSize, mutableDist));
 	}
 
 	/**

@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.geometry.GenMath;
 
 import java.util.*;
 import java.io.Serializable;
@@ -34,6 +35,7 @@ public class XMLRules implements DRCRules, Serializable
 {
 
 	/** Hash map to store rules per matrix index */                     public HashMap<XMLRules.XMLRule, XMLRules.XMLRule>[] matrix;
+    /** Layers with spacing rules to speed up the process */            public HashMap<Layer, Set<Layer>> layersWithRules;
     /** To remeber the technology */                                    private Technology tech;
 
     public XMLRules (Technology t)
@@ -43,6 +45,7 @@ public class XMLRules implements DRCRules, Serializable
         int uTSize = (numLayers * numLayers + numLayers) / 2 + numLayers + tech.getNumNodes();
 
         this.matrix = new HashMap[uTSize];
+        this.layersWithRules = new HashMap<Layer, Set<Layer>>();
     }
 
     /**
@@ -60,14 +63,11 @@ public class XMLRules implements DRCRules, Serializable
 	 * @param index2 the second layer/node index.
 	 * @return the index in the array that corresponds to these two layers/nodes.
 	 */
-	public int getRuleIndex(int index1, int index2)
+    public int getRuleIndex(int index1, int index2)
 	{
-        return tech.getRuleIndex(index1, index2);
-//		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
-//		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
-//		pIndex = index2 + (tech.getNumLayers()) * index1 - pIndex;
-//		return tech.getNumLayers() + tech.getNumNodes() + pIndex;
-	}
+        int index = tech.getRuleIndex(index1, index2);
+        return index;
+    }
 
      /**
       * Method to find the edge spacing rule between two layer.
@@ -416,6 +416,7 @@ public class XMLRules implements DRCRules, Serializable
     {
         new Error("Not implemented");
     }
+
     /**
 	 * Method to add a rule based on template
 	 * @param index
@@ -450,14 +451,32 @@ public class XMLRules implements DRCRules, Serializable
 //        addRule(index, rule.ruleName, rule.value1, internalType, rule.maxWidth, rule.minLength, rule.multiCuts, rule.when, list, rule.nodeName);
 	}
 
+    /**
+     * Method to add relationship between layers with spacing rules.
+     */
+    public void addRelationship(Layer lay1, Layer lay2)
+    {
+        assert(lay1 != null && lay2 != null);
+
+        Set<Layer> l = layersWithRules.get(lay1);
+        // not found
+        if (l == null)
+        {
+            l = new HashSet<Layer>();
+            layersWithRules.put(lay1, l);
+        }
+        l.add(lay2);
+    }
+
      /**
       * Method to return min value rule depending on type and wire length
       */
-    private double getMinRule(int index, DRCTemplate.DRCRuleType type, double maxW)
+    private boolean getMinRule(int index, DRCTemplate.DRCRuleType type, double maxW, GenMath.MutableDouble maxValue)
     {
         HashMap<XMLRules.XMLRule, XMLRules.XMLRule> map = matrix[index];
-        if (map == null) return (0.0);
-        double maxValue = 0.0; // get the largest value among the valid ones. It doesn't select the first
+        boolean found = false;
+        if (map == null) return found;
+        maxValue.setValue(0.0); // get the largest value among the valid ones. It doesn't select the first
         // found only
 
         for (XMLRule rule : map.values())
@@ -467,12 +486,15 @@ public class XMLRules implements DRCRules, Serializable
             if (rule.maxWidth > maxW)
                 continue;
             double val = rule.getValue(0);
-            if (maxValue < val)
-                maxValue = val;
+            if (maxValue.doubleValue() < val)
+            {
+                maxValue.setValue(val);
+                found = true;
 //            if (rule.ruleType == type && rule.maxWidth <= maxW)
 //                return (rule.getValue(0));
+            }
         }
-        return (maxValue);
+        return (found);
     }
 
 	/**
@@ -615,12 +637,15 @@ public class XMLRules implements DRCRules, Serializable
     /**
 	 * Method to find the worst spacing distance in the design rules.
 	 * Finds the largest spacing rule in the Technology.
-	 * @return the largest spacing distance in the Technology. Zero if nothing found
      * @param lastMetal last metal to check if only metal values are requested
+     * @param worstDistance the largest spacing distance in the Technology. Zero if nothing found
+	 * @return true if a value was found
      */
-    public double getWorstSpacingDistance(int lastMetal)
+    public boolean getWorstSpacingDistance(int lastMetal, GenMath.MutableDouble worstDistance)
 	{
-		double worstDistance = 0;
+        boolean worstDistanceFound = false;
+        worstDistance.setValue(0);
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
 
         if (lastMetal != -1)
         {
@@ -642,8 +667,13 @@ public class XMLRules implements DRCRules, Serializable
                 for (int j = i; j < numM; j++) // starts from i so metal1-metal2(default one) can be checked
                 {
                     int index = getRuleIndex(l1.getIndex(), layers.get(j).getIndex());
-                    double worstValue = getMinRule(index, DRCTemplate.DRCRuleType.UCONSPA, Double.MAX_VALUE);
-                    if (worstValue > worstDistance) worstDistance = worstValue;
+                    boolean found = getMinRule(index, DRCTemplate.DRCRuleType.UCONSPA, Double.MAX_VALUE, mutableDist);
+                    double worstValue = mutableDist.doubleValue();
+                    if (found && worstValue > worstDistance.doubleValue())
+                    {
+                        worstDistance.setValue(worstValue);
+                        worstDistanceFound = true;
+                    }
                 }
             }
         }
@@ -651,32 +681,72 @@ public class XMLRules implements DRCRules, Serializable
         {
             for(int i = 0; i < matrix.length; i++)
             {
-                double worstValue = getMinRule(i, DRCTemplate.DRCRuleType.UCONSPA, Double.MAX_VALUE);
-                if (worstValue > worstDistance) worstDistance = worstValue;
+                boolean found = getMinRule(i, DRCTemplate.DRCRuleType.UCONSPA, Double.MAX_VALUE, mutableDist);
+                double worstValue = mutableDist.doubleValue();
+                if (found && worstValue > worstDistance.doubleValue())
+                {
+                    worstDistance.setValue(worstValue);
+                    worstDistanceFound = true;
+                }
             }
         }
-        return worstDistance;
+        return worstDistanceFound;
 	}
 
     /**
 	 * Method to find the maximum design-rule distance around a layer.
 	 * @param layer the Layer to examine.
-	 * @return the maximum design-rule distance around the layer. -1 if nothing found.
+     * @param maxSize the maximum design-rule distance around the layer. worstLayerRule is-1 if nothing found.
+	 * @return true if a value was found
 	 */
-	public double getMaxSurround(Layer layer, double maxSize)
+	public boolean getMaxSurround(Layer layer, double maxSize, GenMath.MutableDouble worstLayerRule)
 	{
-		double worstLayerRule = -1;
-		int layerIndex = layer.getIndex();
+//		double worstLayerRule = -1;
+        worstLayerRule.setValue(-1);
+        boolean worstValueFound = false;
+        int layerIndex = layer.getIndex();
 		int tot = tech.getNumLayers();
 
-		for(int i=0; i<tot; i++)
-		{
-			int pIndex = getRuleIndex(layerIndex, i);
-            double dist = getMinRule(pIndex, DRCTemplate.DRCRuleType.UCONSPA, maxSize);
-			if (dist > worstLayerRule) worstLayerRule = dist;
-		}
+        // Need of marking layers which have actually spacing rules!
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(-1);
 
-		return worstLayerRule;
+        Set<Layer> set = layersWithRules.get(layer);
+        // Check if there is any spacing rule for this layer
+        if (set == null)
+        {
+            return worstValueFound;
+        }
+        // get the real list of layers
+//        GenMath.MutableDouble mutableDist1 = new GenMath.MutableDouble(-1);
+//        GenMath.MutableDouble worstLayerRule1 = new GenMath.MutableDouble(-1);
+//        boolean worstValueFound1 = false;
+        for (Layer l : set)
+        {
+			int pIndex = getRuleIndex(layerIndex, l.getIndex());
+            boolean found = getMinRule(pIndex, DRCTemplate.DRCRuleType.UCONSPA, maxSize, mutableDist);
+            double worstValue = mutableDist.doubleValue();
+            if (found && worstValue > worstLayerRule.doubleValue())
+            {
+                worstLayerRule.setValue(worstValue);
+                worstValueFound = true;
+            }
+        }
+
+//        // Check if layer has any rule at all!
+//        for(int i=0; i<tot; i++)
+//		{
+//			int pIndex = getRuleIndex(layerIndex, i);
+//            boolean found = getMinRule(pIndex, DRCTemplate.DRCRuleType.UCONSPA, maxSize, mutableDist);
+//            double worstValue = mutableDist.doubleValue();
+//            if (found && worstValue > worstLayerRule.doubleValue())
+//            {
+//                worstLayerRule.setValue(worstValue);
+//                worstValueFound = true;
+//            }
+//		}
+//
+//        assert(worstValueFound == worstValueFound1 && worstLayerRule.doubleValue() == worstLayerRule1.doubleValue());
+        return worstValueFound;
 	}
 
     /**
@@ -1052,6 +1122,8 @@ public class XMLRules implements DRCRules, Serializable
             case UCONSPA:
             case UCONSPA2D:
                 addRule(index, theRule);
+                addRelationship(lay1, lay2);
+                addRelationship(lay2, lay1);
                 break;
             case CUTSURX:
                 specValues = nty.getSpecialValues();

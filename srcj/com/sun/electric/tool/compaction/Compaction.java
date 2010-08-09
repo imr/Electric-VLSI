@@ -39,7 +39,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -436,14 +435,16 @@ if (--limitLoops <= 0) change = false;
 			int nIndex = nPolys.networkNum;
 
 			// see how far around the box it is necessary to search
-			double bound = DRC.getMaxSurround(nLayer, Double.MAX_VALUE);
+            GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+            boolean found = DRC.getMaxSurround(nLayer, Double.MAX_VALUE, mutableDist);
 
 			// if there is no separation, allow them to sit on top of each other
-			if (bound < 0) return DEFAULT_VAL;
+			if (!found) return DEFAULT_VAL;
 
 			// can only handle orthogonal rectangles for now
 			Rectangle2D nbox = nPoly.getBox();
-			if (nbox == null) return bound;
+            double bound = mutableDist.doubleValue();
+            if (nbox == null) return bound;
 
 			double bestMotion = DEFAULT_VAL;
 			double geomLow = object.lowy;

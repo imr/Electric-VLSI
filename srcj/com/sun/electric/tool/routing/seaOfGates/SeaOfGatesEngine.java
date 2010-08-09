@@ -774,8 +774,12 @@ public abstract class SeaOfGatesEngine {
 
         // compute design rule spacings
         worstMetalSurround = new double[numMetalLayers];
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
         for (int i = 0; i < numMetalLayers; i++)
-            worstMetalSurround[i] = DRC.getMaxSurround(metalLayers[i], Double.MAX_VALUE);
+        {
+            if (DRC.getMaxSurround(metalLayers[i], Double.MAX_VALUE, mutableDist)) // only when found
+                worstMetalSurround[i] = mutableDist.doubleValue();
+        }
         viaSurround = new double[numMetalLayers - 1];
         for (int i = 0; i < numMetalLayers - 1; i++) {
             Layer lay = viaLayers[i];

@@ -1064,8 +1064,9 @@ public class MTDRCLayoutTool extends MTDRCTool
         {
             // see how far around the box it is necessary to search
             double maxSize = poly.getMaxSize();
-            double bound = currentRules.getMaxSurround(layer, maxSize);
-            if (bound < 0) return false;
+            GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+            boolean found = currentRules.getMaxSurround(layer, maxSize, mutableDist);
+		    if (!found) return false;
 
             // get bounds
             Rectangle2D bounds = new Rectangle2D.Double();
@@ -1081,6 +1082,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             int localIndex = topGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
             // search in the area surrounding the box
+            double bound = mutableDist.doubleValue();
             bounds.setRect(bounds.getMinX() - bound, bounds.getMinY() - bound, bounds.getWidth() + bound * 2, bounds.getHeight() + bound * 2);
             return (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, (Cell) oNi.getProto(), localIndex,
                 oNi.getParent(), topGlobalIndex, upTrans, multiCutData, false));
@@ -1101,8 +1103,9 @@ public class MTDRCLayoutTool extends MTDRCTool
         {
             // see how far around the box it is necessary to search
             double maxSize = poly.getMaxSize();
-            double bound = this.currentRules.getMaxSurround(layer, maxSize);
-            if (bound < 0) return false;
+            GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+            boolean found = currentRules.getMaxSurround(layer, maxSize, mutableDist);
+            if (!found) return false;
 
             // get bounds
             Rectangle2D bounds = new Rectangle2D.Double();
@@ -1114,6 +1117,7 @@ public class MTDRCLayoutTool extends MTDRCTool
 //                baseMulti = tech.isMultiCutCase((NodeInst) geom);
 
             // search in the area surrounding the box
+            double bound = mutableDist.doubleValue();
             bounds.setRect(bounds.getMinX() - bound, bounds.getMinY() - bound, bounds.getWidth() + bound * 2, bounds.getHeight() + bound * 2);
             return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, cell, globalIndex,
                 cell, globalIndex, DBMath.MATID, multiCutData, true);
@@ -1979,6 +1983,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
             // examine the polygons on this node
+            GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
             for (int j = 0; j < tot; j++)
             {
                 Poly poly = nodeInstPolyList[j];
@@ -1987,8 +1992,8 @@ public class MTDRCLayoutTool extends MTDRCTool
 
                 // see how far around the box it is necessary to search
                 double maxSize = poly.getMaxSize();
-                double bound = this.currentRules.getMaxSurround(polyLayer, maxSize);
-                if (bound < 0) continue;
+                boolean found = currentRules.getMaxSurround(polyLayer, maxSize, mutableDist);
+			    if (!found) continue;
 
                 // determine network for this polygon
                 int net;
@@ -2005,6 +2010,7 @@ public class MTDRCLayoutTool extends MTDRCTool
 
                 // determine area to search inside of cell to check this layer
                 Rectangle2D polyBounds = poly.getBounds2D();
+                double bound = mutableDist.doubleValue();
                 Rectangle2D subBounds = new Rectangle2D.Double(polyBounds.getMinX() - bound,
                     polyBounds.getMinY() - bound, polyBounds.getWidth() + bound * 2, polyBounds.getHeight() + bound * 2);
                 AffineTransform tempTrans = ni.rotateIn();

@@ -1099,8 +1099,10 @@ public class Quick
 	{
 		// see how far around the box it is necessary to search
 		double maxSize = poly.getMaxSize();
-		double bound = DRC.getMaxSurround(layer, maxSize);
-		if (bound < 0) return false;
+
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+        boolean found = DRC.getMaxSurround(layer, maxSize, mutableDist);
+		if (!found) return false;
 
 		// get bounds
 		Rectangle2D bounds = new Rectangle2D.Double();
@@ -1124,7 +1126,8 @@ public class Quick
 //        boolean baseMulti = tech.isMultiCutInTechnology(multiCutData);
 
 		// search in the area surrounding the box
-		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
+        double bound = mutableDist.doubleValue();
+        bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
 		return (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, (Cell)oNi.getProto(), localIndex,
                 oNi.getParent(), topGlobalIndex, upTrans, multiCutData, false));
         // true in this case you don't want to check Geometric.objectsTouch(nGeom, geom) if nGeom and geom are in the
@@ -1144,15 +1147,17 @@ public class Quick
 	{
 		// see how far around the box it is necessary to search
 		double maxSize = poly.getMaxSize();
-		double bound = DRC.getMaxSurround(layer, maxSize);
-		if (bound < 0) return false;
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+        boolean found = DRC.getMaxSurround(layer, maxSize, mutableDist);
+		if (!found) return false;
 
 		// get bounds
 		Rectangle2D bounds = new Rectangle2D.Double();
 		bounds.setRect(poly.getBounds2D());
 
         // search in the area surrounding the box
-		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
+        double bound = mutableDist.doubleValue();
+        bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
 		return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, cell, globalIndex,
 			    cell, globalIndex, DBMath.MATID, multiCutData, true);
 	}
@@ -2026,6 +2031,7 @@ public class Quick
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 		// examine the polygons on this node
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
 		for(int j=0; j<tot; j++)
 		{
 			Poly poly = nodeInstPolyList[j];
@@ -2034,8 +2040,8 @@ public class Quick
 
 			// see how far around the box it is necessary to search
 			double maxSize = poly.getMaxSize();
-			double bound = DRC.getMaxSurround(polyLayer, maxSize);
-			if (bound < 0) continue;
+			boolean found = DRC.getMaxSurround(polyLayer, maxSize, mutableDist);
+			if (!found) continue;
 
 			// determine network for this polygon
 			int net;
@@ -2052,7 +2058,8 @@ public class Quick
 
 			// determine area to search inside of cell to check this layer
 			Rectangle2D polyBounds = poly.getBounds2D();
-			Rectangle2D subBounds = new Rectangle2D.Double(polyBounds.getMinX() - bound,
+            double bound = mutableDist.doubleValue();
+            Rectangle2D subBounds = new Rectangle2D.Double(polyBounds.getMinX() - bound,
 				polyBounds.getMinY()-bound, polyBounds.getWidth()+bound*2, polyBounds.getHeight()+bound*2);
 			AffineTransform tempTrans = ni.rotateIn();
 			AffineTransform tTransI = ni.translateIn();
@@ -2135,10 +2142,8 @@ public class Quick
 	 */
 	private boolean findInteraction(InstanceInter dii)
 	{
-//		for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
         for (InstanceInter thisII : instanceInteractionList)
 		{
-//			InstanceInter thisII = (InstanceInter)it.next();
 			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
 				thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
 				thisII.dx == dii.dx && thisII.dy == dii.dy &&

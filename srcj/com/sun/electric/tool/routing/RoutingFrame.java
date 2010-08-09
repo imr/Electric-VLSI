@@ -25,6 +25,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -812,14 +813,16 @@ public class RoutingFrame
 		Map<Layer,RoutingLayer> routingLayers = new HashMap<Layer,RoutingLayer>();
 		List<RoutingLayer> allLayers = new ArrayList<RoutingLayer>();
 		Technology tech = cell.getTechnology();
-		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+        for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
 			if (!ap.getFunction().isMetal()) continue;
 			Layer layer = ap.getLayer(0);
 			double minWidth = ap.getDefaultLambdaBaseWidth();
-			double maxSurround = DRC.getMaxSurround(layer, Double.MAX_VALUE);
-			RoutingLayer rl = new RoutingLayer(layer, ap, minWidth, maxSurround);
+			DRC.getMaxSurround(layer, Double.MAX_VALUE, mutableDist);
+            double maxSurround = mutableDist.doubleValue();
+            RoutingLayer rl = new RoutingLayer(layer, ap, minWidth, maxSurround);
 			routingLayers.put(layer, rl);
 			allLayers.add(rl);
 		}
@@ -828,7 +831,8 @@ public class RoutingFrame
 			Layer layer = it.next();
 			if (!layer.getFunction().isContact()) continue;
 			if (layer.getFunction().getLevel() == 0) continue;
-			double maxSurround = DRC.getMaxSurround(layer, Double.MAX_VALUE);
+			DRC.getMaxSurround(layer, Double.MAX_VALUE, mutableDist);
+			double maxSurround = mutableDist.doubleValue();
 			RoutingLayer rl = new RoutingLayer(layer, null, 0, maxSurround);
 			routingLayers.put(layer, rl);
 			allLayers.add(rl);

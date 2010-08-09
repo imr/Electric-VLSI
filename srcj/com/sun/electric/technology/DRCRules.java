@@ -24,6 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.geometry.GenMath;
 
 import java.util.List;
 
@@ -34,8 +35,8 @@ public interface DRCRules
 {
     public Technology getTechnology();
     public int getRuleIndex(int index1, int index2);
-    public double getWorstSpacingDistance(int lastMetal);
-    public double getMaxSurround(Layer layer, double maxSize);
+    public boolean getWorstSpacingDistance(int lastMetal, GenMath.MutableDouble worstLayerRule);
+    public boolean getMaxSurround(Layer layer, double maxSize, GenMath.MutableDouble worstLayerRule);
     public DRCTemplate getEdgeRule(Layer layer1, Layer layer2);
     public DRCTemplate getSpacingRule(Layer layer1, Geometric geo1,
                                       Layer layer2, Geometric geo2, boolean connected,
