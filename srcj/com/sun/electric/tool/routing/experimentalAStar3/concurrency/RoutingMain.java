@@ -540,7 +540,7 @@ public class RoutingMain // implements Runnable
 
     finishedJob.routeJob.localRouteJobsCompleted.add(finishedJob);
 
-    if (finishedJob.routeJob.localRouteJobs.size() != finishedJob.routeJob.localRouteJobsCompleted.size())
+    if (finishedJob.routeJob.localRouteJobsList.size() != finishedJob.routeJob.localRouteJobsCompleted.size())
     {
       // System.out.println("RoutingMain: Not complete yet");
       return;
@@ -759,7 +759,8 @@ public class RoutingMain // implements Runnable
         // localRoute.region = regions.getAt(rn.getX(), rn.getY());
         localRoute.regionalNode = rn;
         localRoute.numberInGlobalPath = i;
-        localRoute.routeJob.localRouteJobs.push(localRoute);
+//        localRoute.routeJob.localRouteJobs.push(localRoute);
+        localRoute.routeJob.localRouteJobsList.add(localRoute);
         localCompletionService.submit(localRoute);
       }
     }

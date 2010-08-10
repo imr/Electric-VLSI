@@ -103,7 +103,7 @@ public class RoutingMain
    */
   public int getProgress()
   {
-    return (int) Math.min((completedRouteJobCount * 100) / routeJobCount, 100);
+    return Math.min((completedRouteJobCount * 100) / routeJobCount, 100);
   }
 
   public void setMaxRuntimeMillis(long maxRuntimeMillis)
@@ -282,7 +282,7 @@ public class RoutingMain
 
     finishedJob.routeJob.localRouteJobsCompleted.add(finishedJob);
 
-    if (finishedJob.routeJob.localRouteJobs.size() != finishedJob.routeJob.localRouteJobsCompleted.size())
+    if (finishedJob.routeJob.localRouteJobsList.size() != finishedJob.routeJob.localRouteJobsCompleted.size())
     {
       // System.out.println("RoutingMain: Not complete yet");
       return;
@@ -442,7 +442,8 @@ public class RoutingMain
         // localRoute.region = regions.getAt(rn.getX(), rn.getY());
         localRoute.regionalNode = rn;
         localRoute.numberInGlobalPath = i;
-        localRoute.routeJob.localRouteJobs.push(localRoute);
+//        localRoute.routeJob.localRouteJobs.push(localRoute);
+        localRoute.routeJob.localRouteJobsList.add(localRoute);
         localCompletionService.submit(localRoute);
       }
     }

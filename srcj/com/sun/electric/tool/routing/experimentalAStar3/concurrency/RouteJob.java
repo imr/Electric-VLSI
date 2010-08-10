@@ -24,9 +24,9 @@
  */
 package com.sun.electric.tool.routing.experimentalAStar3.concurrency;
 
-import java.util.ArrayDeque;
+//import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
+//import java.util.Deque;
 import java.util.List;
 
 import com.sun.electric.tool.routing.RoutingFrame.RoutingSegment;
@@ -42,7 +42,8 @@ public class RouteJob
 
   public List<Point3D> path; // the result
 
-  public Deque<LocalRouteJob> localRouteJobs = new ArrayDeque<LocalRouteJob>();
+//  public Deque<LocalRouteJob> localRouteJobs = new ArrayDeque<LocalRouteJob>();
+  public List<LocalRouteJob> localRouteJobsList = new ArrayList<LocalRouteJob>();
 
   public List<LocalRouteJob> localRouteJobsCompleted = new ArrayList<LocalRouteJob>();
 
