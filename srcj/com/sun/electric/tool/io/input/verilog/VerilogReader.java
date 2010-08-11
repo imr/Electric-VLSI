@@ -396,17 +396,24 @@ public class VerilogReader extends Input<Object>
     /**
      * Method to ignore certain amount of lines. Useful for begin/end blocks and tables
      * @param endString
+     * @param nestedLoop
      * @throws IOException
      */
-    private void ignoreUntilEndOfStatement(String endString) throws IOException
+    private void ignoreUntilEndOfStatement(String endString, int nestedLoop) throws IOException
     {
         String key = (endString != null) ? endString : ";";  // endString != null for table for example
 
         for (;;)
         {
             String input = getRestOfLine();
-            if (endString == null && input.contains("begin")) // swtch to end only if it is not a table
-                key = "end";
+            if (/*endString == null &&*/ input.contains("begin")) // swtch to end only if it is not a table
+            {
+                //key = "end";
+                // ignore the next nested loop
+               ignoreUntilEndOfStatement("end", nestedLoop+1);
+               if (nestedLoop == 0)
+                   return; // stop in the outest loop
+            }
             if (input.contains(key))
                 return; // finish
         }
@@ -561,16 +568,20 @@ public class VerilogReader extends Input<Object>
 
             // ignoring some elements
             if (key.equals("assign") || key.startsWith("always") || key.startsWith("initial")
-                    || key.startsWith("reg") || key.startsWith("table") || key.startsWith("specify"))
+                || key.startsWith("reg") || key.startsWith("table") || key.startsWith("specify")
+                || key.startsWith("begin"))
             {
                 if (Job.getDebug())
                     System.out.println("Ignoring " + key);
                 String endStatement = null;
+                int nestedLoopAllowed = 0;
                 if (key.startsWith("table"))
                     endStatement = "endtable";
                 else if (key.startsWith("specify"))
                     endStatement = "endspecify";
-                ignoreUntilEndOfStatement(endStatement); // either ; or end
+                else if (key.startsWith("always")) // It is always defined in a begin-end block
+                    endStatement = "end";
+                ignoreUntilEndOfStatement(endStatement, nestedLoopAllowed); // either ; or end
                 continue;
             }
 

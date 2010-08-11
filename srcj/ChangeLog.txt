@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00l: ******************************
 
+BUG: (8/11/10, GVG) NPE in Verilog parser (Bug #2881)
+FIX: Added handling of nested loops in always statement.
+
 IMP: (8/9/10, GVG) Working on "DRC slow for the tfc chip" (Bug #2851).
 Reducing # of calls of Technology.getRuleIndex.
 
