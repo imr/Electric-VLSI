@@ -96,11 +96,11 @@ public class SimulationTool extends Tool
 	/**
 	 * Method to invoke a simulation engine.
 	 * @param engine the simulation engine to run.
-	 * @param forceDeck true to force simulation from a user-specified netlist file.
+	 * @param deckFile netlist file (null to use netlist in current cell, "" to prompt user for file name).
 	 * @param prevCell the previous cell being simulated (null for a new simulation).
 	 * @param prevEngine the previous simulation engine running (null for a new simulation).
 	 */
-	public static void startSimulation(int engine, boolean forceDeck, Cell prevCell, Engine prevEngine)
+	public static void startSimulation(int engine, String deckFile, Cell prevCell, Engine prevEngine, boolean doNow)
 	{
 		Cell cell = null;
 		VarContext context = null;
@@ -108,10 +108,13 @@ public class SimulationTool extends Tool
 		if (prevCell != null) cell = prevCell; else
 		{
 			UserInterface ui = Job.getUserInterface();
-			if (forceDeck)
+			if (deckFile != null)
 			{
-				fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
-				if (fileName == null) return;
+				if (deckFile.length() > 0) fileName = deckFile; else
+				{
+					fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
+					if (fileName == null) return;
+				}
 				cell = ui.getCurrentCell();
 			} else
 			{
@@ -154,7 +157,7 @@ public class SimulationTool extends Tool
 
 			case IRSIM_ENGINE:
 				if (!IRSIM.hasIRSIM()) return;
-				new RunIRSIM(cell, context, fileName);
+				new RunIRSIM(cell, context, fileName, doNow);
 				break;
 		}
 	}
@@ -168,7 +171,7 @@ public class SimulationTool extends Tool
         private final Environment launcherEnvironment;
         private final UserInterfaceExec userInterface;
 
-		public RunIRSIM(Cell cell, VarContext context, String fileName)
+		public RunIRSIM(Cell cell, VarContext context, String fileName, boolean doNow)
 		{
 			this.cell = cell;
 			this.context = context;
@@ -177,14 +180,14 @@ public class SimulationTool extends Tool
 
             launcherEnvironment = Environment.getThreadEnvironment();
             userInterface = new UserInterfaceExec();
-            if (fileName != null)
+            if (fileName != null && !doNow)
             {
             	// when reading a file, do it in a new thread so that progress bars work
 	            start();
             } else
             {
             	// when simulating a Cell, do it directly so that environments work
-            	IRSIM.runIRSIM(cell, context, fileName, ip);
+            	IRSIM.runIRSIM(cell, context, fileName, ip, doNow);
             }
 		}
 
@@ -195,7 +198,7 @@ public class SimulationTool extends Tool
                 Environment.setThreadEnvironment(launcherEnvironment);
                 Job.setUserInterface(userInterface);
             }
-			IRSIM.runIRSIM(cell, context, fileName, ip);
+			IRSIM.runIRSIM(cell, context, fileName, ip, false);
 		}
 	}
 
@@ -303,12 +306,13 @@ public class SimulationTool extends Tool
 
 	/**
 	 * Method to restore the current stimuli information from disk.
+	 * @param fileName the file to read (null to prompt for one).
 	 */
-	public static void restoreStimuli()
+	public static void restoreStimuli(String fileName)
 	{
 		Engine engine = findEngine();
 		if (engine == null) return;
-		engine.restoreStimuli();
+		engine.restoreStimuli(fileName);
 	}
 
 	/**

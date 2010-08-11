@@ -215,7 +215,7 @@ public class NewRStep extends Eval
 			Event ev = n.events;
 			if (((ev == null) ? n.nPot : ev.eval) != Sim.X)
 			{
-				if ((theSim.irDebug & Sim.DEBUG_EV) != 0 && (n.nFlags & Sim.WATCHED) != 0)
+				if ((theAnalyzer.localPrefs.irDebug & Sim.DEBUG_EV) != 0 && (n.nFlags & Sim.WATCHED) != 0)
 					System.out.println("  decay transition for " + n.nName + " @ " +
 						Sim.deltaToNS(theSim.curDelta + theSim.tDecay)+ "ns");
 				enqueueEvent(n, Sim.DECAY, theSim.tDecay, theSim.tDecay);
@@ -289,7 +289,7 @@ public class NewRStep extends Eval
 			enqueueEvent(nd, fVal, delta, Sim.psToDelta(tau));
 			queued = true;
 		}
-		if ((theSim.irDebug & Sim.DEBUG_EV) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
+		if ((theAnalyzer.localPrefs.irDebug & Sim.DEBUG_EV) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
 			printFinal(nd, queued, tau, delta);
 	}
 
@@ -311,7 +311,7 @@ public class NewRStep extends Eval
 		if (chDelta == 0) chDelta = 1;
 		if (drDelta == 0) drDelta = 1;
 
-		if ((theSim.irDebug & Sim.DEBUG_EV) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
+		if ((theAnalyzer.localPrefs.irDebug & Sim.DEBUG_EV) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
 			printSpike(nd, spk, chDelta, drDelta);
 
 		// no zero delay spikes, done
@@ -329,12 +329,12 @@ public class NewRStep extends Eval
 			Sim.Thev r = null;
 			for(Sim.Node nd = domPot[dom].nd; nd != null; nd = r.getN())
 			{
-				incLevel = ((theSim.irDebug & (Sim.DEBUG_TAU | Sim.DEBUG_TW)) == (Sim.DEBUG_TAU | Sim.DEBUG_TW) &&
+				incLevel = ((theAnalyzer.localPrefs.irDebug & (Sim.DEBUG_TAU | Sim.DEBUG_TW)) == (Sim.DEBUG_TAU | Sim.DEBUG_TW) &&
 					(nd.nFlags & Sim.WATCHED) != 0) ? 1 : 0;
 
 				r = getTau(nd, (Sim.Trans) null, dom, incLevel);
 
-                if (incLevel == 0 && ((theSim.irDebug & Sim.DEBUG_TAU) == Sim.DEBUG_TAU &&
+                if (incLevel == 0 && ((theAnalyzer.localPrefs.irDebug & Sim.DEBUG_TAU) == Sim.DEBUG_TAU &&
                     (nd.nFlags & Sim.WATCHED) != 0))
                         printTau(nd, r, -1);
 
@@ -411,7 +411,7 @@ public class NewRStep extends Eval
 					r = nd.getThev();
 					if ((r.flags & T_SPIKE) == 0) continue;
 
-					incLevel = ((theSim.irDebug & (Sim.DEBUG_TAUP | Sim.DEBUG_TW)) == (Sim.DEBUG_TAUP | Sim.DEBUG_TW) &&
+					incLevel = ((theAnalyzer.localPrefs.irDebug & (Sim.DEBUG_TAUP | Sim.DEBUG_TW)) == (Sim.DEBUG_TAUP | Sim.DEBUG_TW) &&
 						(nd.nFlags & Sim.WATCHED) != 0) ? 1 : 0;
 
 					r.tauP = getTauP(nd, (Sim.Trans) null, dom, incLevel);
@@ -434,7 +434,7 @@ public class NewRStep extends Eval
 		double tauP = 0.0;
 		for(Sim.Node nd = nList; nd != null; nd = nd.nLink)
 		{
-			incLevel = ((theSim.irDebug & (Sim.DEBUG_TAU | Sim.DEBUG_TW)) == (Sim.DEBUG_TAU | Sim.DEBUG_TW) &&
+			incLevel = ((theAnalyzer.localPrefs.irDebug & (Sim.DEBUG_TAU | Sim.DEBUG_TW)) == (Sim.DEBUG_TAU | Sim.DEBUG_TW) &&
 				(nd.nFlags & Sim.WATCHED) != 0) ? 1 : 0;
 
 			r = getTau(nd, (Sim.Trans) null, dom, incLevel);
@@ -493,7 +493,7 @@ public class NewRStep extends Eval
 		boolean anyChange = false;
 		for(Sim.Node thisOne = nList; thisOne != null; thisOne = thisOne.nLink)
 		{
-			incLevel = ((theSim.irDebug & (Sim.DEBUG_DC | Sim.DEBUG_TW)) == (Sim.DEBUG_DC | Sim.DEBUG_TW) &&
+			incLevel = ((theAnalyzer.localPrefs.irDebug & (Sim.DEBUG_DC | Sim.DEBUG_TW)) == (Sim.DEBUG_DC | Sim.DEBUG_TW) &&
 				(thisOne.nFlags & Sim.WATCHED) != 0) ? 1 : 0;
 
 			Sim.Thev r = getDCVal(thisOne, null);
@@ -557,7 +557,7 @@ public class NewRStep extends Eval
 			if (r.finall != thisOne.nPot)
 				anyChange = true;
 
-			if (((theSim.irDebug & Sim.DEBUG_DC) == Sim.DEBUG_DC &&
+			if (((theAnalyzer.localPrefs.irDebug & Sim.DEBUG_DC) == Sim.DEBUG_DC &&
 				(thisOne.nFlags & Sim.WATCHED) != 0))
 					printFVal(thisOne, r);
 		}
@@ -1132,7 +1132,7 @@ public class NewRStep extends Eval
 	{
 		if (r.tauP <= Sim.SMALL)		// no capacitance, no spike
 		{
-			if ((theSim.irDebug & Sim.DEBUG_SPK) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
+			if ((theAnalyzer.localPrefs.irDebug & Sim.DEBUG_SPK) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
 				System.out.println(" spike(" + nd.nName + ") ignored (taup=0)");
 			return null;
 		}
@@ -1172,7 +1172,7 @@ public class NewRStep extends Eval
 		{
 			if (spk.peak <= nd.vLow)		// spike is too small
 			{
-				if ((theSim.irDebug & Sim.DEBUG_SPK) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
+				if ((theAnalyzer.localPrefs.irDebug & Sim.DEBUG_SPK) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
 					printSpk(nd, r, tabIndex, dom, alpha, beta, spk, false);
 				return null;
 			}
@@ -1181,7 +1181,7 @@ public class NewRStep extends Eval
 		{
 			if (spk.peak <= 1.0 - nd.vHigh)
 			{
-				if ((theSim.irDebug & Sim.DEBUG_SPK) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
+				if ((theAnalyzer.localPrefs.irDebug & Sim.DEBUG_SPK) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
 					printSpk(nd, r, tabIndex, dom, alpha, beta, spk, false);
 				return null;
 			}
@@ -1195,7 +1195,7 @@ public class NewRStep extends Eval
 		else
 			spk.drDelay = r.rDom * r.cA;
 
-		if ((theSim.irDebug & Sim.DEBUG_SPK) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
+		if ((theAnalyzer.localPrefs.irDebug & Sim.DEBUG_SPK) != 0 && (nd.nFlags & Sim.WATCHED) != 0)
 			printSpk(nd, r, tabIndex, dom, alpha, beta, spk, true);
 		return spk;
 	}

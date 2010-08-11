@@ -15,7 +15,6 @@
  * software for any purpose.  It is provided "as is" without
  * express or implied warranty.
  */
-
 package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.text.TextUtils;
@@ -28,7 +27,6 @@ import com.sun.electric.tool.extract.RCPBucket;
 import com.sun.electric.tool.extract.TransistorPBucket;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.SimulationTool;
 
 import java.io.File;
 import java.io.IOException;
@@ -494,7 +492,6 @@ public class Sim
 	private List<Node> nodeList;
 	private int      nodeIndexCounter;
 	private boolean  warnVdd, warnGnd;
-	public  int      irDebug;
 	public  int      tReport = 0;
 
 	private Eval     theModel;
@@ -504,20 +501,18 @@ public class Sim
 	public Sim(Analyzer analyzer)
 	{
 		theAnalyzer = analyzer;
-		irDebug = SimulationTool.getIRSIMDebugging();
 
 		// initialize the model
-		String steppingModel = SimulationTool.getIRSIMStepModel();
-		if (steppingModel.equals("Linear")) theModel = new SStep(analyzer, this); else
+		if (theAnalyzer.localPrefs.steppingModel.equals("Linear")) theModel = new SStep(analyzer, this); else
 		{
-			if (!steppingModel.equals("RC"))
-				System.out.println("Unknown stepping model: " + steppingModel + " using RC");
+			if (!theAnalyzer.localPrefs.steppingModel.equals("RC"))
+				System.out.println("Unknown stepping model: " + theAnalyzer.localPrefs.steppingModel + " using RC");
 			theModel = new NewRStep(analyzer, this);
 		}
 
 		// read the configuration file
 		theConfig = new Config();
-		String parameterFile = SimulationTool.getIRSIMParameterFile().trim();
+		String parameterFile = theAnalyzer.localPrefs.parameterFile.trim();
 		if (parameterFile.length() > 0)
 		{
 			File pf = new File(parameterFile);

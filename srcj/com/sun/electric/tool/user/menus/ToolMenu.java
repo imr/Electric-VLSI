@@ -261,16 +261,16 @@ public class ToolMenu
 			// mnemonic keys available:  B       JK  N PQ      XYZ
             new EMenu("Simulation (Built-in)",
                 IRSIM.hasIRSIM() ? new EMenuItem("IRSI_M: Simulate Current Cell") { public void run() {
-				    SimulationTool.startSimulation(SimulationTool.IRSIM_ENGINE, false, null, null); }} : null,
+				    SimulationTool.startSimulation(SimulationTool.IRSIM_ENGINE, null, null, null, false); }} : null,
 			    IRSIM.hasIRSIM() ? new EMenuItem("IRSIM: _Write Deck...") { public void run() {
 				    FileMenu.exportCommand(FileType.IRSIM, true); }} : null,
 			    IRSIM.hasIRSIM() ? new EMenuItem("_IRSIM: Simulate Deck...") { public void run() {
-				    SimulationTool.startSimulation(SimulationTool.IRSIM_ENGINE, true, null, null); }} : null,
+				    SimulationTool.startSimulation(SimulationTool.IRSIM_ENGINE, "", null, null, false); }} : null,
 
                 IRSIM.hasIRSIM() ? SEPARATOR : null,
 
 		        new EMenuItem("_ALS: Simulate Current Cell") { public void run() {
-                    SimulationTool.startSimulation(SimulationTool.ALS_ENGINE, false, null, null); }},
+                    SimulationTool.startSimulation(SimulationTool.ALS_ENGINE, null, null, null, false); }},
 
                 SEPARATOR,
 
@@ -304,7 +304,7 @@ public class ToolMenu
 		        new EMenuItem("_Save Stimuli to Disk...") { public void run() {
                     SimulationTool.saveStimuli(); }},
 		        new EMenuItem("_Restore Stimuli from Disk...") { public void run() {
-                    SimulationTool.restoreStimuli(); }}),
+                    SimulationTool.restoreStimuli(null); }}),
 
 		//------------------- Simulation (SPICE)
 

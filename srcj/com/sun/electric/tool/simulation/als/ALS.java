@@ -445,7 +445,7 @@ public class ALS extends Engine
 		stimuliList = getStimuliToSave();
 
 		// restart everything
-		SimulationTool.startSimulation(SimulationTool.ALS_ENGINE, false, getStimuli().getCell(), this);
+		SimulationTool.startSimulation(SimulationTool.ALS_ENGINE, null, getStimuli().getCell(), this, false);
 	}
 
 	/**
@@ -747,10 +747,13 @@ public class ALS extends Engine
 	/**
 	 * Method to restore the current stimuli information from disk.
 	 */
-	public void restoreStimuli()
+	public void restoreStimuli(String stimuliFileName)
 	{
-		String stimuliFileName = OpenFile.chooseInputFile(FileType.ALSVECTOR, "ALS Vector file");
-		if (stimuliFileName == null) return;
+		if (stimuliFileName == null)
+		{
+			stimuliFileName = OpenFile.chooseInputFile(FileType.ALSVECTOR, "ALS Vector file");
+			if (stimuliFileName == null) return;
+		}
 		List<String> stimuliList = new ArrayList<String>();
 		URL url = TextUtils.makeURLToFile(stimuliFileName);
 		try

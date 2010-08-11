@@ -45,6 +45,7 @@ import com.sun.electric.tool.extract.ParasiticGenerator;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.extract.RCPBucket;
 import com.sun.electric.tool.extract.TransistorPBucket;
+import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.User;
 
 import java.util.Date;
@@ -67,7 +68,12 @@ public class IRSIM extends Output implements ParasiticGenerator
 		Technology layoutTech = Schematics.getDefaultSchematicTechnology();
 		Technology schematicTech = User.getSchematicTechnology();
 
-        public IRSIMPreferences(boolean factory) { super(factory); }
+		// run preferences
+		public int irDebug = SimulationTool.getIRSIMDebugging();
+		public String steppingModel = SimulationTool.getIRSIMStepModel();
+		public String parameterFile = SimulationTool.getIRSIMParameterFile();
+
+		public IRSIMPreferences(boolean factory) { super(factory); }
 
         @Override
         public Output doOutput(Cell cell, VarContext context, String filePath)

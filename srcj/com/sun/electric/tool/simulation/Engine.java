@@ -88,5 +88,5 @@ public class Engine
 	/**
 	 * Method to restore the current stimuli information from disk.
 	 */
-	public void restoreStimuli() {}
+	public void restoreStimuli(String fileName) {}
 }

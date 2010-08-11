@@ -36,6 +36,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *  An implementation of Sample for scalar data.  Holds a
@@ -98,11 +100,11 @@ public class ScalarSample implements Sample, Comparable<Object>
         public int getSize() { return UnboxedHalfDouble.instance.getSize(); }
         public ScalarSample deserialize(byte[] buf, int ofs)
         {
-            return new ScalarSample(UnboxedHalfDouble.instance.deserialize(buf, ofs));
+            return new ScalarSample(UnboxedHalfDouble.instance.deserialize(buf, ofs).doubleValue());
         }
         public void serialize(ScalarSample v, byte[] buf, int ofs)
         {
-            UnboxedHalfDouble.instance.serialize(v.value, buf, ofs);
+            UnboxedHalfDouble.instance.serialize(new Double(v.value), buf, ofs);
         }
         public int compare(byte[] buf1, int ofs1, byte[] buf2, int ofs2)
         {
@@ -148,18 +150,27 @@ public class ScalarSample implements Sample, Comparable<Object>
 				panel.convertXScreenToData(0), panel.convertXScreenToData(sz.width), sz.width);
 		int lastX = 0, lastLY = 0, lastHY = 0;
 		boolean first = true;
+//System.out.println("PLOTTING SIGNAL "+sig.getFullName()+" WITH "+waveform.getNumEvents()+" POINTS, SCREEN IS "+sz.width+" WIDE");
+//Set<Integer> allTimesInt = new TreeSet<Integer>();
+//for(int i=0; i<waveform.getNumEvents(); i++)
+//{
+//    RangeSample<ScalarSample> samp = waveform.getSample(i);
+//    if (samp == null) continue;
+//	allTimesInt.add(new Integer(panel.convertXDataToScreen(waveform.getTime(i))));
+//}
+//System.out.print("FOUND "+allTimesInt.size()+" TIME:");
+//for(Integer ii : allTimesInt) System.out.print(" "+ii.intValue()); System.out.println();
 		for(int i=0; i<waveform.getNumEvents(); i++)
 		{
-		    RangeSample<ScalarSample> samp = (RangeSample<ScalarSample>)waveform.getSample(i);
+		    RangeSample<ScalarSample> samp = waveform.getSample(i);
 		    if (samp == null) continue;
 		    int lowY = panel.convertYDataToScreen(samp.getMin().getValue());
 		    int highY = panel.convertYDataToScreen(samp.getMax().getValue());
-
 		    int x = panel.convertXDataToScreen(waveform.getTime(i));
 		    if (xWaveform != null)
 		    {
 		    	int xEventNum = waveform.getNumEvents() * i / xWaveform.getNumEvents();
-			    RangeSample<ScalarSample> xSampRange = (RangeSample<ScalarSample>)xWaveform.getSample(xEventNum);
+			    RangeSample<ScalarSample> xSampRange = xWaveform.getSample(xEventNum);
 			    Sample xSamp = xSampRange.getMin();
 			    if (xSamp instanceof SweptSample<?>) xSamp = ((SweptSample<?>)xSamp).getSweep(0);
 		    	x = panel.convertXDataToScreen(((ScalarSample)xSamp).getValue());

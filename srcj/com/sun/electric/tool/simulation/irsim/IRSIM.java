@@ -30,10 +30,10 @@ import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
 import java.lang.reflect.Method;
 
 /**
- * IRSIM
+ * Class for interfacing to the IRSIM simulator by reflection.
  */
-public class IRSIM {
-
+public class IRSIM
+{
     private static boolean irsimChecked = false;
     private static Class<?> irsimClass = null;
     private static Method irsimSimulateMethod;
@@ -47,30 +47,30 @@ public class IRSIM {
     public static boolean hasIRSIM()
     {
         if (!irsimChecked)
+        {
+            irsimChecked = true;
+
+            // find the IRSIM class
+            try
             {
-                irsimChecked = true;
-
-                // find the IRSIM class
-                try
-                    {
-                        irsimClass = Class.forName("com.sun.electric.plugins.irsim.Analyzer");
-                    } catch (ClassNotFoundException e)
-                    {
-                        irsimClass = null;
-                        return false;
-                    }
-
-                // find the necessary methods on the IRSIM class
-                try
-                    {
-                        irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class,
-                        	VarContext.class, String.class, IRSIMPreferences.class});
-                    } catch (NoSuchMethodException e)
-                    {
-                        irsimClass = null;
-                        return false;
-                    }
+                irsimClass = Class.forName("com.sun.electric.plugins.irsim.Analyzer");
+            } catch (ClassNotFoundException e)
+            {
+                irsimClass = null;
+                return false;
             }
+
+            // find the necessary methods on the IRSIM class
+            try
+            {
+                irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class,
+                	VarContext.class, String.class, IRSIMPreferences.class, Boolean.class});
+            } catch (NoSuchMethodException e)
+            {
+                irsimClass = null;
+                return false;
+            }
+        }
 
         // if already initialized, return
         if (irsimClass == null) return false;
@@ -85,17 +85,16 @@ public class IRSIM {
      * @param fileName the name of the file with the netlist.  If this is null, simulate the cell.
      * If this is not null, ignore the cell and simulate the file.
      */
-    public static void runIRSIM(Cell cell, VarContext context, String fileName, IRSIMPreferences ip)
+    public static void runIRSIM(Cell cell, VarContext context, String fileName, IRSIMPreferences ip, boolean doNow)
     {
         try
-            {
-                irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName, ip});
-                return;
-            } catch (Exception e)
-            {
-                System.out.println("Unable to run the IRSIM simulator");
-                e.printStackTrace(System.out);
-            }
+        {
+            irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName, ip, Boolean.valueOf(doNow)});
+            return;
+        } catch (Exception e)
+        {
+            System.out.println("Unable to run the IRSIM simulator");
+            e.printStackTrace(System.out);
+        }
     }
-
 }

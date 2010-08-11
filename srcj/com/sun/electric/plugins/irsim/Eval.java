@@ -157,7 +157,7 @@ public class Eval
 		System.out.print(" @ " + Sim.deltaToNS(e.nTime) + "ns " + n.nName + ": " +
 			Sim.vChars.charAt(n.nPot) + " -> " + Sim.vChars.charAt(e.eval));
 
-		int tmp = (theSim.irDebug & Sim.DEBUG_EV) != 0 ? (Sim.REPORT_TAU | Sim.REPORT_DELAY) : theSim.tReport;
+		int tmp = (theAnalyzer.localPrefs.irDebug & Sim.DEBUG_EV) != 0 ? (Sim.REPORT_TAU | Sim.REPORT_DELAY) : theSim.tReport;
 		switch (tmp & (Sim.REPORT_TAU | Sim.REPORT_DELAY))
 		{
 			case Sim.REPORT_TAU:

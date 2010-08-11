@@ -167,27 +167,29 @@ public class Analyzer extends Engine
 
 	private List<Sim.Node>  [] listTbl = new List[5];
 
-	/** list of nodes to be driven high */			public List<Sim.Node>  hInputs = new ArrayList<Sim.Node>();
-	/** list of nodes to be driven low */			public List<Sim.Node>  lIinputs = new ArrayList<Sim.Node>();
-	/** list of nodes to be driven X */				public List<Sim.Node>  uInputs = new ArrayList<Sim.Node>();
-	/** list of nodes to be removed from input */	public List<Sim.Node>  xInputs = new ArrayList<Sim.Node>();
+	/** list of nodes to be driven high */			public List<Sim.Node>   hInputs = new ArrayList<Sim.Node>();
+	/** list of nodes to be driven low */			public List<Sim.Node>   lIinputs = new ArrayList<Sim.Node>();
+	/** list of nodes to be driven X */				public List<Sim.Node>   uInputs = new ArrayList<Sim.Node>();
+	/** list of nodes to be removed from input */	public List<Sim.Node>   xInputs = new ArrayList<Sim.Node>();
 
-	/** set when analyzer is running */				public boolean  analyzerON;
+	/** set when analyzer is running */				public boolean          analyzerON;
+	/** simulation preferences */					public IRSIMPreferences localPrefs;
 
-	/** the simulation engine */					private Sim            theSim;
-	/** the waveform window */						private WaveformWindow ww;
+	/** the simulation engine */					private Sim             theSim;
+	/** the waveform window */						private WaveformWindow  ww;
 	/** the SignalCollection being displayed */		private SignalCollection sigCollection;
-	/** the cell being simulated */					private Cell           cell;
-	/** the context for the cell being simulated */	private VarContext     context;
-	/** the name of the file being simulated */		private String         fileName;
-	/** the name of the last vector file read */	private String         vectorFileName;
+	/** the cell being simulated */					private Cell            cell;
+	/** the context for the cell being simulated */	private VarContext      context;
+	/** the name of the file being simulated */		private String          fileName;
+	/** the name of the last vector file read */	private String          vectorFileName;
 	/** mapping from signals to nodes */			private HashMap<Signal<?>,Sim.Node> nodeMap;
 
 	/************************** ELECTRIC INTERFACE **************************/
 
     private Stimuli sd;
-	Analyzer()
+	Analyzer(IRSIMPreferences ip)
 	{
+		localPrefs = ip;
         sd = new Stimuli();
 		theSim = new Sim(this);
 	}
@@ -197,16 +199,16 @@ public class Analyzer extends Engine
 	 * @param cell the cell to simulate.
 	 * @param fileName the file with the input deck (null to generate one)
 	 */
-	public static void simulateCell(Cell cell, VarContext context, String fileName, IRSIMPreferences ip)
+	public static void simulateCell(Cell cell, VarContext context, String fileName, IRSIMPreferences ip, Boolean doNow)
 	{
-		Analyzer theAnalyzer = new Analyzer();
+		Analyzer theAnalyzer = new Analyzer(ip);
 		theAnalyzer.cell = cell;
 		theAnalyzer.context = context;
 		theAnalyzer.fileName = fileName;
-		startIrsim(theAnalyzer, ip);
+		startIrsim(theAnalyzer, doNow.booleanValue());
 	}
 
-	private static void startIrsim(final Analyzer analyzer, IRSIMPreferences ip)
+	private static void startIrsim(final Analyzer analyzer, boolean doNow)
 	{
 		synchronized(analyzer)
 		{
@@ -216,29 +218,32 @@ public class Analyzer extends Engine
 			analyzer.initRSim();
 
 			// Load network
-			if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
+			if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell.noLibDescribe() + "..."); else
 				System.out.println("Loading netlist for file " + analyzer.fileName + "...");
-			analyzer.loadCircuit(ip);
+			analyzer.loadCircuit();
 			final Stimuli sd = analyzer.getStimuli();
 
-			SwingUtilities.invokeLater(new Runnable() { public void run()
+			// make a waveform window
+			if (doNow)
 			{
-				// make a waveform window
 				WaveformWindow.showSimulationDataInNewWindow(sd);
 				analyzer.ww = sd.getWaveformWindow();
 				analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
 				analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
 				analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
 				analyzer.init();
-			}});
-
-			// make a waveform window
-//			WaveformWindow.showSimulationDataInNewWindow(sd);
-//			analyzer.ww = sd.getWaveformWindow();
-//			analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
-//			analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
-//			analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
-//			analyzer.init();
+			} else
+			{
+				SwingUtilities.invokeLater(new Runnable() { public void run()
+				{
+					WaveformWindow.showSimulationDataInNewWindow(sd);
+					analyzer.ww = sd.getWaveformWindow();
+					analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
+					analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
+					analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+					analyzer.init();
+				}});
+			}
 		}
 	}
 
@@ -264,7 +269,7 @@ public class Analyzer extends Engine
 		updateWindow(theSim.curDelta);
 	}
 
-	private void loadCircuit(IRSIMPreferences ip)
+	private void loadCircuit()
 	{
 		// Load network
 		List<Object> components = null;
@@ -272,7 +277,7 @@ public class Analyzer extends Engine
 		if (fileName == null)
 		{
 			// generate the components directly
-			components = IRSIM.getIRSIMComponents(cell, context, ip);
+			components = IRSIM.getIRSIMComponents(cell, context, localPrefs);
 		} else
 		{
 			// get a pointer to to the file with the network (.sim file)
@@ -515,10 +520,13 @@ public class Analyzer extends Engine
 	/**
 	 * Method to restore the current stimuli information from disk.
 	 */
-	public void restoreStimuli()
+	public void restoreStimuli(String fileName)
 	{
-		vectorFileName = OpenFile.chooseInputFile(FileType.IRSIMVECTOR, "IRSIM Vector file");
-		if (vectorFileName == null) return;
+		if (fileName != null) vectorFileName = fileName; else
+		{
+			vectorFileName = OpenFile.chooseInputFile(FileType.IRSIMVECTOR, "IRSIM Vector file");
+			if (vectorFileName == null) return;
+		}
 		loadVectorFile();
 	}
 
@@ -735,7 +743,7 @@ public class Analyzer extends Engine
 			lineReader.close();
 		} catch (IOException e)
 		{
-			System.out.println("Error reading " + vectorFileName);
+			System.out.println("Error reading " + vectorFileName + "(" + e.getMessage() + ")");
 			return;
 		}
 	}
@@ -1204,7 +1212,7 @@ public class Analyzer extends Engine
 				for(Sim.Trans t : n.nTermList)
 				{
 					infstr += "  ";
-					if (theSim.irDebug == 0)
+					if (localPrefs.irDebug == 0)
 					{
 						String drive = null;
 						Sim.Node rail = (t.drain.nFlags & Sim.POWER_RAIL) != 0 ? t.drain : t.source;
@@ -1419,47 +1427,47 @@ public class Analyzer extends Engine
 
 	private void doDebug(SimVector sv)
 	{
-		if (sv.parameters.length <= 0) theSim.irDebug = 0; else
+		if (sv.parameters.length <= 0) localPrefs.irDebug = 0; else
 		{
 			for(int i=0; i<sv.parameters.length; i++)
 			{
 				if (sv.parameters[i].equalsIgnoreCase("ev"))
 				{
-					theSim.irDebug |= Sim.DEBUG_EV;
+					localPrefs.irDebug |= Sim.DEBUG_EV;
 				} else if (sv.parameters[i].equalsIgnoreCase("dc"))
 				{
-					theSim.irDebug |= Sim.DEBUG_DC;
+					localPrefs.irDebug |= Sim.DEBUG_DC;
 				} else if (sv.parameters[i].equalsIgnoreCase("tau"))
 				{
-					theSim.irDebug |= Sim.DEBUG_TAU;
+					localPrefs.irDebug |= Sim.DEBUG_TAU;
 				} else if (sv.parameters[i].equalsIgnoreCase("taup"))
 				{
-					theSim.irDebug |= Sim.DEBUG_TAUP;
+					localPrefs.irDebug |= Sim.DEBUG_TAUP;
 				} else if (sv.parameters[i].equalsIgnoreCase("spk"))
 				{
-					theSim.irDebug |= Sim.DEBUG_SPK;
+					localPrefs.irDebug |= Sim.DEBUG_SPK;
 				} else if (sv.parameters[i].equalsIgnoreCase("tw"))
 				{
-					theSim.irDebug |= Sim.DEBUG_TW;
+					localPrefs.irDebug |= Sim.DEBUG_TW;
 				} else if (sv.parameters[i].equalsIgnoreCase("all"))
 				{
-					theSim.irDebug = Sim.DEBUG_EV | Sim.DEBUG_DC | Sim.DEBUG_TAU | Sim.DEBUG_TAUP | Sim.DEBUG_SPK | Sim.DEBUG_TW;
+					localPrefs.irDebug = Sim.DEBUG_EV | Sim.DEBUG_DC | Sim.DEBUG_TAU | Sim.DEBUG_TAUP | Sim.DEBUG_SPK | Sim.DEBUG_TW;
 				} else if (sv.parameters[i].equalsIgnoreCase("off"))
 				{
-					theSim.irDebug = 0;
+					localPrefs.irDebug = 0;
 				}
 			}
 		}
 
 		System.out.print("Debugging");
-		if (theSim.irDebug == 0) System.out.println(" OFF"); else
+		if (localPrefs.irDebug == 0) System.out.println(" OFF"); else
 		{
-			if ((theSim.irDebug&Sim.DEBUG_EV) != 0) System.out.print(" event-scheduling");
-			if ((theSim.irDebug&Sim.DEBUG_DC) != 0) System.out.print(" final-value-computation");
-			if ((theSim.irDebug&Sim.DEBUG_TAU) != 0) System.out.print(" tau/delay-computation");
-			if ((theSim.irDebug&Sim.DEBUG_TAUP) != 0) System.out.print(" tauP-computation");
-			if ((theSim.irDebug&Sim.DEBUG_SPK) != 0) System.out.print(" spike-analysis");
-			if ((theSim.irDebug&Sim.DEBUG_TW) != 0) System.out.print(" tree-walk");
+			if ((localPrefs.irDebug&Sim.DEBUG_EV) != 0) System.out.print(" event-scheduling");
+			if ((localPrefs.irDebug&Sim.DEBUG_DC) != 0) System.out.print(" final-value-computation");
+			if ((localPrefs.irDebug&Sim.DEBUG_TAU) != 0) System.out.print(" tau/delay-computation");
+			if ((localPrefs.irDebug&Sim.DEBUG_TAUP) != 0) System.out.print(" tauP-computation");
+			if ((localPrefs.irDebug&Sim.DEBUG_SPK) != 0) System.out.print(" spike-analysis");
+			if ((localPrefs.irDebug&Sim.DEBUG_TW) != 0) System.out.print(" tree-walk");
 			System.out.println();
 		}
 	}
@@ -2452,7 +2460,7 @@ public class Analyzer extends Engine
 	private String pGValue(Sim.Trans t)
 	{
 		String infstr = "";
-		if (theSim.irDebug != 0)
+		if (localPrefs.irDebug != 0)
 			infstr += "[" + Sim.states[t.state] + "] ";
 		if ((t.tType & Sim.GATELIST) != 0)
 		{
