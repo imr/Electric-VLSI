@@ -464,7 +464,10 @@ public class VerilogReader extends Input<Object>
                 VerilogData.VerilogPort export = module.findPort(name);
                 // input a, b, c, d, c got problems to parse
                 if (Job.getDebug())
-                    assert(export != null);
+                {
+                    System.out.println("Error: export name '" + name + " 'doesn't match with module signature");
+//                    assert(export != null);
+                }
                 if (export != null)
                 {
                     // except for clk!!

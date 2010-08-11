@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00l: ******************************
 
+IMP: (8/11/10, GVG) Improve error message in Verilog when encoutering signature problem (Bug #2882)
+
 BUG: (8/11/10, GVG) NPE in Verilog parser (Bug #2881)
 FIX: Added handling of nested loops in always statement.
 
