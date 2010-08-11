@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
@@ -125,10 +124,6 @@ public class CollectionFactory {
 	 */
 	public static <T, K> ConcurrentHashMap<T, K> createConcurrentHashMap() {
 		return new ConcurrentHashMap<T, K>();
-	}
-
-	public static <T> ConcurrentSkipListSet<T> createConcurrentSkipList() {
-		return new ConcurrentSkipListSet<T>();
 	}
 
 	/**
