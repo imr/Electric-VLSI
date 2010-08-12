@@ -152,7 +152,7 @@ public class SimulationTool extends Tool
 				}
 
 				// now schedule the simulation work
-				new ALS.DoALSActivity(cell, convert, compile, originalCell, prevEngine, tool);
+				new ALS.DoALSActivity(cell, convert, compile, originalCell, prevEngine, tool, doNow);
 				break;
 
 			case IRSIM_ENGINE:

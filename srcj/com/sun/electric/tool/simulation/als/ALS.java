@@ -255,7 +255,7 @@ public class ALS extends Engine
 		double          delta;
 		double          linear;
 		double          exp;
-		double          abs;    /* absolute delay for back annotation */
+		double          abs;    // absolute delay for back annotation
 		double          random;
 		Object          userPtr;
 	};
@@ -311,7 +311,7 @@ public class ALS extends Engine
 		 *	nodeHead = pointer to the node data structure to be updated
 		 *	operatr  = char indicating operation to be performed on node
 		 *	state    = integer value representing the state of the node
-		 *	strength = integer value representing the logic stregth of the signal
+		 *	strength = integer value representing the logic strength of the signal
 		 *	time     = double value representing the time the change is to take place
 		 */
 		protected void scheduleNodeUpdate(Model primHead, ALSExport exHead, int operatr,
@@ -349,7 +349,7 @@ public class ALS extends Engine
 		 *
 		 * Calling Arguments:
 		 *	primHead    = pointer to current bidirectional element
-		 *	side[]      = pointers to nodes on each side of the bidir element
+		 *	side[]      = pointers to nodes on each side of the bidirectional element
 		 *  outStrength = output strength
 		 */
 		private Node  targetNode;
@@ -881,7 +881,7 @@ public class ALS extends Engine
 	}
 
 	/**
-	 * Method to insert a data element into a linklist that is sorted
+	 * Method to insert a data element into a linked list that is sorted
 	 * by time and then priority.  This link list is used to schedule events
 	 * for the simulation.
 	 *
@@ -940,8 +940,7 @@ public class ALS extends Engine
 	}
 
 	/**
-	 * Method to clear all test vectors (even the power and ground vectors if "pwrGnd"
-	 * is true).
+	 * Method to clear all test vectors (even the power and ground vectors if "pwrGnd" is true).
 	 */
 	private void clearAllVectors(boolean pwrGnd)
 	{
@@ -1173,7 +1172,7 @@ public class ALS extends Engine
 	}
 
 	/**
-	 * Method to processe the string specified by the calling argument
+	 * Method to process the string specified by the calling argument
 	 * and fragments it into a series of smaller character strings, each of which
 	 * is terminated by a null character.  Returns true on error.
 	 *
@@ -1325,7 +1324,7 @@ public class ALS extends Engine
 
 	/**
 	 * Method to read a netlist description of the logic network
-	 * to be analysed in other procedures.  Returns true on error.
+	 * to be analyzed in other procedures.  Returns true on error.
 	 */
 	private boolean readNetDesc(Cell cell)
 	{
@@ -1444,7 +1443,7 @@ public class ALS extends Engine
 	 */
 	private boolean parseGate()
 	{
-		// init delay transition name
+		// initialize delay transition name
 		delay = "XX";
 
 		deltaDef = linearDef = expDef = randomDef = absDef = 0;
@@ -2262,26 +2261,37 @@ public class ALS extends Engine
 		private Cell cell, originalCell;
         private boolean convert;
         private boolean compile;
+        private boolean doNow;
 		private transient Engine prevEngine;
 		private List<Cell> textCellsToRedraw;
         private GenerateVHDL.VHDLPreferences vp = new GenerateVHDL.VHDLPreferences(false);
 
-		public DoALSActivity(Cell cell, boolean convert, boolean compile, Cell originalCell, Engine prevEngine, SimulationTool tool)
+		public DoALSActivity(Cell cell, boolean convert, boolean compile, Cell originalCell, Engine prevEngine, SimulationTool tool,
+			boolean doNow)
 		{
 			super("ALS Simulation", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
             this.convert = convert;
             this.compile = compile;
+            this.doNow = doNow;
 			this.originalCell = originalCell;
 			this.prevEngine = prevEngine;
-			startJob();
+			if (doNow)
+			{
+				try {
+					doIt();
+				} catch (JobException e) {}
+			} else
+			{
+				startJob();
+			}
 		}
 
 		public boolean doIt() throws JobException
 		{
 			Library destLib = cell.getLibrary();
 			textCellsToRedraw = new ArrayList<Cell>();
-			fieldVariableChanged("textCellsToRedraw");
+			if (!doNow) fieldVariableChanged("textCellsToRedraw");
 			if (convert)
 			{
 				// convert Schematic to VHDL
@@ -2305,7 +2315,7 @@ public class ALS extends Engine
 				textCellsToRedraw.add(vhdlCell);
 				System.out.println(" Done, created " + vhdlCell);
 				cell = vhdlCell;
-				fieldVariableChanged("cell");
+				if (!doNow) fieldVariableChanged("cell");
 			}
 
             if (compile)
@@ -2337,7 +2347,7 @@ public class ALS extends Engine
 				textCellsToRedraw.add(netlistCell);
 				System.out.println(" Done, created " + netlistCell);
 				cell = netlistCell;
-				fieldVariableChanged("cell");
+				if (!doNow) fieldVariableChanged("cell");
 			}
 			return true;
 		}

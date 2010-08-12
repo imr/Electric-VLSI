@@ -113,7 +113,7 @@ public class User extends Listener
 		setIncremental();
 
 //		if (Job.getRunMode() != Job.Mode.CLIENT)
-//			Clipboard.clear(); // To initialize Clibpoard Cell
+//			Clipboard.clear(); // To initialize clipboard Cell
 	}
 
 	/**
@@ -176,7 +176,7 @@ public class User extends Listener
 	}
 
 	/**
-	 * Reloading oe renaming libraries has the side affect that any EditWindows
+	 * Reloading or renaming libraries has the side affect that any EditWindows
 	 * containing cells that were reloaded now point to old, unlinked
 	 * cells instead of the new ones. This method checks for this state
 	 * and fixes it.
@@ -905,37 +905,37 @@ public class User extends Listener
 
 	private static Pref cacheDraggingMustEncloseObjects = Pref.makeBooleanPref("DraggingMustEncloseObjects", tool.prefs, false);
 	/**
-	 * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them.
+	 * Method to tell whether dragging a selection rectangle must completely enclose objects in order to select them.
 	 * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
-	 * @return true if dragging a selection rectangle must completely encose objects in order to select them.
+	 * @return true if dragging a selection rectangle must completely enclose objects in order to select them.
 	 */
 	public static boolean isDraggingMustEncloseObjects() { return cacheDraggingMustEncloseObjects.getBoolean(); }
 	/**
-	 * Method to set whether dragging a selection rectangle must completely encose objects in order to select them.
-	 * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
+	 * Method to set whether dragging a selection rectangle must completely enclose objects in order to select them.
+	 * @param on true if dragging a selection rectangle must completely enclose objects in order to select them.
 	 */
 	public static void setDraggingMustEncloseObjects(boolean on) { cacheDraggingMustEncloseObjects.setBoolean(on); }
 	/**
-	 * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them, by default.
-	 * @return true if dragging a selection rectangle must completely encose objects in order to select them, by default.
+	 * Method to tell whether dragging a selection rectangle must completely enclose objects in order to select them, by default.
+	 * @return true if dragging a selection rectangle must completely enclose objects in order to select them, by default.
 	 */
 	public static boolean isFactoryDraggingMustEncloseObjects() { return cacheDraggingMustEncloseObjects.getBooleanFactoryValue(); }
 
 	private static Pref cacheMouseOverHighlighting = Pref.makeBooleanPref("UseMouseOverHighlighting", tool.prefs, true);
 	/**
-	 * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them.
+	 * Method to tell whether dragging a selection rectangle must completely enclose objects in order to select them.
 	 * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
-	 * @return true if dragging a selection rectangle must completely encose objects in order to select them.
+	 * @return true if dragging a selection rectangle must completely enclose objects in order to select them.
 	 */
 	public static boolean isMouseOverHighlightingEnabled() { return cacheMouseOverHighlighting.getBoolean(); }
 	/**
-	 * Method to set whether dragging a selection rectangle must completely encose objects in order to select them.
-	 * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
+	 * Method to set whether dragging a selection rectangle must completely enclose objects in order to select them.
+	 * @param on true if dragging a selection rectangle must completely enclose objects in order to select them.
 	 */
 	public static void setMouseOverHighlightingEnabled(boolean on) { cacheMouseOverHighlighting.setBoolean(on); }
 	/**
-	 * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them, by default.
-	 * @return true if dragging a selection rectangle must completely encose objects in order to select them, by default.
+	 * Method to tell whether dragging a selection rectangle must completely enclose objects in order to select them, by default.
+	 * @return true if dragging a selection rectangle must completely enclose objects in order to select them, by default.
 	 */
 	public static boolean isFactoryMouseOverHighlightingEnabled() { return cacheMouseOverHighlighting.getBooleanFactoryValue(); }
 
