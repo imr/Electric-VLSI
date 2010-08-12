@@ -56,9 +56,11 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.routing.AutoStitch;
+import com.sun.electric.tool.routing.AutoStitch.AutoOptions;
+import com.sun.electric.tool.user.IconParameters;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -127,6 +129,12 @@ public class Sue extends Input<Object>
 		new SueExtraWire("b",  0, -1.75)
 	};
 
+	private SueExtraWire [] inductorWires =
+	{
+		new SueExtraWire("a", 0,  3),
+		new SueExtraWire("b", 0, -3)
+	};
+
 	private SueExtraWire [] twoPortWires =
 	{
 		new SueExtraWire("a", -11.25,  3.625),
@@ -173,7 +181,7 @@ public class Sue extends Input<Object>
 		new SueEquiv("nmos",       Schematics.tech().transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
 		new SueEquiv("capacitor",  Schematics.tech().capacitorNode,  false,   0,false,  0,    0,     null,                           capacitorWires),
 		new SueEquiv("resistor",   Schematics.tech().resistorNode,   false, 900,false,  0,    0,     null,                           resistorWires),
-		new SueEquiv("inductor",   Schematics.tech().inductorNode,   false,   0,false,  0,    0,     null,                           null),
+		new SueEquiv("inductor",   Schematics.tech().inductorNode,   false,   0,false,  0,    0,     null,                           inductorWires),
 		new SueEquiv("cccs",       Schematics.tech().twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    twoPortWires),
 		new SueEquiv("ccvs",       Schematics.tech().twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    twoPortWires),
 		new SueEquiv("vcvs",       Schematics.tech().twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    twoPortWires),
@@ -191,7 +199,7 @@ public class Sue extends Input<Object>
 		new SueEquiv("nmos",       Schematics.tech().transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
 		new SueEquiv("capacitor",  Schematics.tech().capacitorNode,   false,   0,false,  0,    0,     null,                           capacitorWires),
 		new SueEquiv("resistor",   Schematics.tech().resistorNode,    false, 900,false,  0,    0,     null,                           resistorWires),
-		new SueEquiv("inductor",   Schematics.tech().inductorNode,    false,   0,false,  0,    0,     null,                           null),
+		new SueEquiv("inductor",   Schematics.tech().inductorNode,    false,   0,false,  0,    0,     null,                           inductorWires),
 		new SueEquiv("cccs",       Schematics.tech().twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    twoPortWires),
 		new SueEquiv("ccvs",       Schematics.tech().twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    twoPortWires),
 		new SueEquiv("vcvs",       Schematics.tech().twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    twoPortWires),
@@ -221,47 +229,49 @@ public class Sue extends Input<Object>
 		private String   label;
 	};
 
-	private String       sueLastLine;
-	private String       lastLineRead;
-	private List<String> sueDirectories;
+	private String         sueLastLine;
+	private String         lastLineRead;
+	private List<String>   sueDirectories;
 	private SuePreferences localPrefs;
-	private Technology   curTech;
+	private Job            sueJob;
+	private Technology     curTech;
 
 	public static class SuePreferences extends InputPreferences
-    {
+	{
 		public boolean use4PortTransistors;
 		public boolean convertExpressions;
-        public IconParameters iconParameters = IconParameters.makeInstance(false);
+		public IconParameters iconParameters = IconParameters.makeInstance(false);
 
-        public SuePreferences(boolean factory) { super(factory); }
+		public SuePreferences(boolean factory) { super(factory); }
 
 		public void initFromUserDefaults()
 		{
 			use4PortTransistors = IOTool.isSueUses4PortTransistors();
 			convertExpressions = IOTool.isSueConvertsExpressions();
-            iconParameters.initFromUserDefaults();
-        }
+			iconParameters.initFromUserDefaults();
+		}
 
-        @Override
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
-        {
-        	Sue in = new Sue(this);
+		@Override
+		public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells,
+			Map<CellId,BitSet> nodesToExpand, Job job)
+		{
+			Sue in = new Sue(this, job);
 			if (in.openTextInput(fileURL)) return null;
 			lib = in.importALibrary(lib, tech, currentCells);
 			in.closeInput();
 			return lib;
-        }
-    }
+		}
+	}
 
 	/**
 	 * Creates a new instance of Sue.
 	 */
-	Sue(SuePreferences ap) { localPrefs = ap; }
+	Sue(SuePreferences ap, Job job) { localPrefs = ap;    sueJob = job;   }
 
 	/**
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
-     * @param currentCells this map will be filled with currentCells in Libraries found in library file
+	 * @param currentCells this map will be filled with currentCells in Libraries found in library file
 	 * @return the created library (null on error).
 	 */
 	protected Library importALibrary(Library lib, Technology tech, Map<Library,Cell> currentCells)
@@ -309,8 +319,8 @@ public class Sue extends Input<Object>
 		try
 		{
 			Cell topCell = readFile(lib, cellName, lineReader);
-            if (topCell == null) return null;
-            currentCells.put(lib, topCell);
+			if (topCell == null) return null;
+			currentCells.put(lib, topCell);
 		} catch (IOException e)
 		{
 			System.out.println("ERROR reading Sue libraries");
@@ -445,7 +455,7 @@ public class Sue extends Input<Object>
 				if (keyword1.equalsIgnoreCase("inout"))
 				{
 					proto = Schematics.tech().offpageNode;
-                    AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
+					AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 					Point2D offPt = new Point2D.Double(2, 0);
 					trans.transform(offPt, offPt);
 					xOff = offPt.getX();   yOff = offPt.getY();
@@ -453,7 +463,7 @@ public class Sue extends Input<Object>
 				} else if (keyword1.equalsIgnoreCase("input"))
 				{
 					proto = Schematics.tech().offpageNode;
-                    AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
+					AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 					Point2D offPt = new Point2D.Double(-2, 0);
 					trans.transform(offPt, offPt);
 					xOff = offPt.getX();   yOff = offPt.getY();
@@ -461,7 +471,7 @@ public class Sue extends Input<Object>
 				} else if (keyword1.equalsIgnoreCase("output"))
 				{
 					proto = Schematics.tech().offpageNode;
-                    AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
+					AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 					Point2D offPt = new Point2D.Double(2, 0);
 					trans.transform(offPt, offPt);
 					xOff = offPt.getX();   yOff = offPt.getY();
@@ -478,7 +488,7 @@ public class Sue extends Input<Object>
 						proto = Schematics.tech().wirePinNode;
 						if (parP.theName.equalsIgnoreCase("gnd"))
 						{
-                            AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
+							AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 							Point2D offPt = new Point2D.Double(0, -2);
 							trans.transform(offPt, offPt);
 							xOff = offPt.getX();   yOff = offPt.getY();
@@ -495,7 +505,7 @@ public class Sue extends Input<Object>
 				{
 					proto = Schematics.tech().wireConNode;
 					xShrink = -2;
-                    AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
+					AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 					Point2D offPt = new Point2D.Double(1.25, 0);
 					trans.transform(offPt, offPt);
 					xOff = offPt.getX();   yOff = offPt.getY();
@@ -515,7 +525,7 @@ public class Sue extends Input<Object>
 						invertOutput = curEquivs[i].netateOutput;
 						rotation = curEquivs[i].rotation;
 						transpose = curEquivs[i].transpose;
-                        AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
+						AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
 						Point2D offPt = new Point2D.Double(curEquivs[i].xOffset, curEquivs[i].yOffset);
 						trans.transform(offPt, offPt);
 						xOff = offPt.getX();   yOff = offPt.getY();
@@ -579,8 +589,6 @@ public class Sue extends Input<Object>
 					or, null, detailFunct);
 				if (ni == null) continue;
 				if (invertOutput) invertNodeOutput.add(ni);
-//				if (proto instanceof Cell && ((Cell)proto).isIcon())
-//					lib.getDatabase().addToNodes(nodesToExpand, ni);
 
 				// add any extra wires to the node
 				if (extraWires != null)
@@ -621,7 +629,7 @@ public class Sue extends Input<Object>
 				// handle names assigned to the node
 				if (parP.theName != null)
 				{
-					// export a port if this is an input, output, inout
+					// export a port if this is an input, output, bidirectional
 					if (proto == Schematics.tech().offpageNode && parP.theName != null)
 					{
 						Iterator<PortInst> it = ni.getPortInsts();
@@ -736,90 +744,51 @@ public class Sue extends Input<Object>
 							}
 						}
 						if (newObject == null)
-						{
 							newObject = parseExpression(pt);
-						}
 					}
 
 					// see if the string should be Java code
 					boolean makeJava = false;
 					if (newObject instanceof String)
-					{
 						makeJava = EvalJavaBsh.evalJavaBsh.isValidJava((String)newObject);
-//						if (((String)newObject).indexOf('@') >= 0 ||
-//							((String)newObject).indexOf("p(") >= 0) makeJava = true;
-					}
 
-                    Variable.Key varKey = Variable.newKey(sueVarName);
-                    MutableTextDescriptor mtd = MutableTextDescriptor.getNodeTextDescriptor();
-                    varIndex++;
-                    mtd.setOff(xpos, ypos);
-                    if (halveSize) {
-                        if (mtd.getSize().isAbsolute())
-                            mtd.setAbsSize((int)(mtd.getSize().getSize() / 2)); else
-                                mtd.setRelSize(mtd.getSize().getSize() / 2);
-                    }
-                    if (isParam) {
-                        mtd.setParam(true);
-                        mtd.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-                    }
-                    Object instObject = newObject;
-                    if (makeJava) {
-                        instObject = Variable.withCode(newObject, CodeExpression.Code.JAVA);
-                    }
+					Variable.Key varKey = Variable.newKey(sueVarName);
+					MutableTextDescriptor mtd = MutableTextDescriptor.getNodeTextDescriptor();
+					varIndex++;
+					mtd.setOff(xpos, ypos);
+					if (halveSize)
+					{
+						if (mtd.getSize().isAbsolute())
+							mtd.setAbsSize((int)(mtd.getSize().getSize() / 2)); else
+								mtd.setRelSize(mtd.getSize().getSize() / 2);
+					}
+					if (isParam)
+					{
+						mtd.setParam(true);
+						mtd.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+					}
+					Object instObject = newObject;
+					if (makeJava)
+						instObject = Variable.withCode(newObject, CodeExpression.Code.JAVA);
 					ni.newVar(varKey, instObject, TextDescriptor.newTextDescriptor(mtd));
 
-                    // make sure the parameter exists in the cell definition
-                    NodeProto np = ni.getProto();
-                    if (isParam && ni.isCellInstance()) {
-                        Cell cnp = ((Cell)np).contentsView();
-                        if (cnp == null) cnp = (Cell)np;
-                        Variable contentsVar = cnp.getParameterOrVariable(varKey);
-                        if (contentsVar == null) {
-                        	// really wanted: VTDISPLAYNAMEVALINH
-                            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withParam(true).
-                            	withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-                            newObject = Variable.withCode(newObject, CodeExpression.Code.SPICE);
-                            cnp.getCellGroup().addParam(Variable.newInstance(varKey, newObject, td));
-                        }
-                    }
-//					Variable var = ni.newDisplayVar(Variable.newKey(sueVarName), newObject);
-//					if (var != null)
-//					{
-////						var.setDisplay(true);
-//						if (makeJava) var.setCode(TextDescriptor.Code.JAVA);
-//						varIndex++;
-//						var.setOff(xpos, ypos);
-//						if (halveSize)
-//						{
-//							if (var.getSize().isAbsolute())
-//								var.setAbsSize((int)(var.getSize().getSize() / 2)); else
-//									var.setRelSize(var.getSize().getSize() / 2);
-//						}
-//						if (isParam)
-//						{
-//							var.setParam(true);
-//							var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-//
-//							// make sure the parameter exists in the cell definition
-//							NodeProto np = ni.getProto();
-//							if (ni.isCellInstance())
-//							{
-//								Cell cnp = ((Cell)np).contentsView();
-//								if (cnp == null) cnp = (Cell)np;
-//								var = cnp.getVar(sueVarName);
-//								if (var == null)
-//								{
-//									var = cnp.newVar(sueVarName, newObject);
-//									if (var != null)
-//									{
-//										var.setParam(true);
-//										var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
-//									}
-//								}
-//							}
-//						}
-//					}
+					// make sure the parameter exists in the cell definition
+					NodeProto np = ni.getProto();
+					if (isParam && ni.isCellInstance())
+					{
+						Cell cnp = ((Cell)np).contentsView();
+						if (cnp == null) cnp = (Cell)np;
+						Variable contentsVar = cnp.getParameterOrVariable(varKey);
+						if (contentsVar == null)
+						{
+							// really wanted: VTDISPLAYNAMEVALINH
+							TextDescriptor td = TextDescriptor.getCellTextDescriptor().withParam(true).
+								withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+							newObject = Variable.withCode(newObject, CodeExpression.Code.SPICE);
+							Variable newVar = Variable.newInstance(varKey, newObject, td).withInherit(true);
+							cnp.getCellGroup().addParam(newVar);
+						}
+					}
 				}
 				continue;
 			}
@@ -1055,7 +1024,7 @@ public class Sue extends Input<Object>
 				if (parP.theText.startsWith("^"))
 				{
 					ni.newVar(Spice.SPICE_CARD_KEY, parP.theText.substring(1),
-	                    TextDescriptor.getAnnotationTextDescriptor().withColorIndex(EGraphics.BLUE));
+						TextDescriptor.getAnnotationTextDescriptor().withColorIndex(EGraphics.BLUE));
 				} else
 				{
 					ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theText);
@@ -1081,13 +1050,13 @@ public class Sue extends Input<Object>
 			Rectangle2D bounds = iconCell.getBounds();
 			double wid = bounds.getWidth();
 			double hei = bounds.getHeight();
-			NodeInst ni = NodeInst.makeInstance(iconCell, iconPt, wid, hei, schemCell);
-//			if (ni != null) lib.getDatabase().addToNodes(nodesToExpand, ni);
+			NodeInst.makeInstance(iconCell, iconPt, wid, hei, schemCell);
 		}
 
 		// make warnings about duplicate names
 		for(String name : duplicateNames.keySet())
 		{
+			if (name.equalsIgnoreCase("vdd") || name.equalsIgnoreCase("gnd")) continue;
 			List<NodeInst> dups = duplicateNames.get(name);
 			System.out.print("Cell " + cell.getName() + " has multiple nodes with the same Sue name (" +
 				name + "):");
@@ -1101,6 +1070,10 @@ public class Sue extends Input<Object>
 		{
 			placeWires(sueWires, sueNets, cell, invertNodeOutput);
 			placeNets(sueNets, cell);
+
+			// autostitch the cell to connect nodes to nodes
+			AutoOptions prefs = new AutoOptions();
+			AutoStitch.runAutoStitch(cell, null, null, sueJob, null, null, false, false, prefs, false, null);
 		}
 
 		// return the cell
@@ -1109,7 +1082,11 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to create a port called "thename" on port "pp" of node "ni" in cell "cell".
+	 * Method to create an export in a Cell.
+	 * @param cell the cell in which to make an export.
+	 * @param pi the PortInst inside the Cell to export.
+	 * @param theName the name of the export.
+	 * @param pc the characteristics of the export.
 	 * The name is modified if it already exists.
 	 */
 	private Export newExport(Cell cell, PortInst pi, String theName, PortCharacteristic pc)
@@ -1133,7 +1110,7 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to find the pin at (x, y) and return it.
+	 * Method to find the pin at a given coordinate.
 	 */
 	private PortInst findPinNode(double x, double y, Cell cell)
 	{
@@ -1156,8 +1133,10 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to find the SUE file "name" on disk, and read it into library "lib".
-	 * Returns NONODEPROTO if the file is not found or not read properly.
+	 * Method to read a SUE library.
+	 * @param lib the Library to place the SUE.
+	 * @param name the disk file of the SUE.
+	 * Returns null if the file is not found or not read properly.
 	 */
 	private NodeProto readFromDisk(Library lib, String name)
 	{
@@ -1198,14 +1177,16 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to find cell "protoname" in library "lib".
+	 * Method to find an icon cell.
+	 * @param lib the Library to search.
+	 * @param protoName the name of the Cell.
 	 */
-	private NodeProto getNodeProto(Library lib, String protoname)
+	private NodeProto getNodeProto(Library lib, String protoName)
 	{
 		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = it.next();
-			if (cell.getName().equalsIgnoreCase(protoname))
+			if (cell.getName().equalsIgnoreCase(protoName))
 			{
 				Cell icon = cell.iconView();
 				if (icon != null) return icon;
@@ -1217,7 +1198,6 @@ public class Sue extends Input<Object>
 
 	private static class ParseParameters
 	{
-		int count;
 		Point2D pt;
 		int rot;
 		boolean trn;
@@ -1299,7 +1279,7 @@ public class Sue extends Input<Object>
 	/**
 	 * Method to place all SUE wires into the cell.
 	 */
-	private void placeWires(List<SueWire> sueWires, List<SueNet> sueNets, Cell cell, Set invertNodeOutput)
+	private void placeWires(List<SueWire> sueWires, List<SueNet> sueNets, Cell cell, Set<NodeInst> invertNodeOutput)
 	{
 		// mark all wire ends as "unassigned", all wire types as unknown
 		for(SueWire sw : sueWires)
@@ -1463,7 +1443,6 @@ public class Sue extends Input<Object>
 		for(SueWire sw : sueWires)
 		{
 			if (sw.proto == null) sw.proto = Schematics.tech().wire_arc;
-//			double wid = sw.proto.getDefaultLambdaFullWidth();
 
 			// if this is a bus, make sure it can connect */
 			if (sw.proto == Schematics.tech().bus_arc)
@@ -1482,7 +1461,6 @@ public class Sue extends Input<Object>
 						if (ni == null) break;
 						PortInst pi = ni.getOnlyPortInst();
 						ArcInst ai = ArcInst.makeInstanceBase(Generic.tech().unrouted_arc, 0, pi, sw.pi[i]);
-//						ArcInst ai = ArcInst.makeInstanceFull(Generic.tech.unrouted_arc, Generic.tech.unrouted_arc.getDefaultLambdaFullWidth(), pi, sw.pi[i]);
 						if (ai == null)
 						{
 							System.out.println("Error making fake connection");
@@ -1495,7 +1473,6 @@ public class Sue extends Input<Object>
 			}
 
 			ArcInst ai = ArcInst.makeInstance(sw.proto, sw.pi[0], sw.pi[1], sw.pt[0], sw.pt[1], null);
-//			ArcInst ai = ArcInst.makeInstanceFull(sw.proto, wid, sw.pi[0], sw.pi[1], sw.pt[0], sw.pt[1], null);
 			if (ai == null)
 			{
 				System.out.println(cell + ": Could not run a wire from " + sw.pi[0].getNodeInst().describe(true) + " to " +
@@ -1550,8 +1527,6 @@ public class Sue extends Input<Object>
 					}
 
 					ArcInst.makeInstance(ap, pi, oPi);
-//					double wid = ap.getDefaultLambdaFullWidth();
-//					ArcInst.makeInstanceFull(ap, wid, pi, oPi);
 					wired = true;
 					break;
 				}
@@ -1561,7 +1536,7 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to find the node at (x, y) and return it.
+	 * Method to find the node at a given coordinate.
 	 */
 	private PortInst findNode(Point2D pt, Point2D oPt, Cell cell, PortInst notThisPort)
 	{
@@ -1620,8 +1595,11 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to find the port on node "ni" that attaches to the wire from (x,y) to (ox,oy).
-	 * Returns NOPORTPROTO if not found.
+	 * Method to find the port on a node that attaches to the wire with given ends.
+	 * @param ni the node to check.
+	 * @param pt the end coordinate of the wire which must be on the node.
+	 * @param oPt the other end of the wire.
+	 * Returns null if not found.
 	 */
 	private PortInst wiredPort(NodeInst ni, Point2D pt, Point2D oPt)
 	{
@@ -1653,8 +1631,8 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to place all SUE nets into the cell (they are in a linked
-	 * list headed by "sueNets").
+	 * Method to place all SUE nets into the cell.
+	 * @param sueNets the list of nets to add.
 	 */
 	private void placeNets(List<SueNet> sueNets, Cell cell)
 	{
@@ -1698,8 +1676,6 @@ public class Sue extends Input<Object>
 					double cy = (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
 					Point2D ctr = new Point2D.Double(cx, cy);
 					double dist = ctr.distance(sn.pt);
-
-					// LINTED "bestdist" used in proper order
 					if (bestAi == null || dist < bestDist)
 					{
 						bestAi = ai;
@@ -1734,8 +1710,7 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to start at "ai" and search all wires until it finds a named bus.
-	 * Returns zero if no bus name is found.
+	 * Method to start at an ArcInst and search all wires until it finds a named bus.
 	 */
 	private String findBusName(ArcInst ai)
 	{
@@ -1801,8 +1776,7 @@ public class Sue extends Input<Object>
 
 	/**
 	 * Method to read the next line from file and break
-	 * it up into space-separated keywords.  Returns the number
-	 * of keywords (-1 on EOF)
+	 * it up into space-separated keywords.  Returns the keywords (null on EOF)
 	 */
 	private List<String> getNextLine(LineNumberReader lr)
 		throws IOException
@@ -1902,7 +1876,7 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to convert SUE X coordinate "x" to Electric coordinates
+	 * Method to convert SUE X coordinate to Electric coordinate.
 	 */
 	private static double convertXCoord(double x)
 	{
@@ -1910,7 +1884,7 @@ public class Sue extends Input<Object>
 	}
 
 	/**
-	 * Method to convert SUE Y coordinate "y" to Electric coordinates
+	 * Method to convert SUE Y coordinate to Electric coordinate.
 	 */
 	private static double convertYCoord(double y)
 	{

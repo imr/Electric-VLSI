@@ -405,7 +405,10 @@ public class AutoStitch
 					rNi.getAnchorCenterY() - ySize/2, xSize, ySize);
 				DBMath.transformRect(bounds, trans);
 				if (!oqt.add(pi, bounds))
-					System.out.println("ERROR: Failed to construct quad-tree with port " + pp.getName() + " of node " + ni.describe(false));
+					System.out.println("ERROR: Cell " + cell.describe(false) + ", node " + ni.describe(false) +
+						", port " + pp.getName() + " could not be added to quad-tree (bounds are " +
+						bounds.getMinX() + "<=X<=" + bounds.getMaxX() + " and " +
+						bounds.getMinY() + "<=Y<=" + bounds.getMaxY() + ")");
 			}
 			nodePortBounds.put(ni, oqt);
 		}
