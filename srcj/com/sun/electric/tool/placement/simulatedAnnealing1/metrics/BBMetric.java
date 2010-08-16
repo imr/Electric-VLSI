@@ -61,9 +61,9 @@ public class BBMetric {
 		if (l.size() == 0) return 0;
 		double xMin, xMax, yMin, yMax;
 		xMin = Double.MAX_VALUE;
-		xMax = Double.MIN_VALUE;
+		xMax = -Double.MAX_VALUE;
 		yMin = Double.MAX_VALUE;
-		yMax = Double.MIN_VALUE;
+		yMax = -Double.MAX_VALUE;
 		
 		for (PlacementPort p: l) {			
 			PlacementNode originalPlacementNode = p.getPlacementNode();

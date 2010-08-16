@@ -58,8 +58,8 @@ public class BBMetricTask extends PReduceTask<Double> {
 		List<PlacementPort> portsOnNet = net.getPortsOnNet();
 
 		double leftmost = Double.MAX_VALUE;
-		double rightmost = Double.MIN_VALUE;
-		double uppermost = Double.MIN_VALUE;
+		double rightmost = -Double.MAX_VALUE;
+		double uppermost = -Double.MAX_VALUE;
 		double undermost = Double.MAX_VALUE;
 
 		for (PlacementPort port : portsOnNet) {

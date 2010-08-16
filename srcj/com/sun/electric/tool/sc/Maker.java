@@ -211,9 +211,9 @@ public class Maker
 		data.power = null;
 		data.ground = null;
 		data.minX = Double.MAX_VALUE;
-		data.maxX = Double.MIN_VALUE;
+		data.maxX = -Double.MAX_VALUE;
 		data.minY = Double.MAX_VALUE;
-		data.maxY = Double.MIN_VALUE;
+		data.maxY = -Double.MAX_VALUE;
 
 		// create Maker Channel and Track data structures
 		double rowToTrack = (localPrefs.viaSize / 2) + localPrefs.minMetalSpacing;
@@ -322,9 +322,9 @@ public class Maker
 			mRow.number = row.rowNum;
 			mRow.members = null;
 			mRow.minX = Double.MAX_VALUE;
-			mRow.maxX = Double.MIN_VALUE;
+			mRow.maxX = -Double.MAX_VALUE;
 			mRow.minY = Double.MAX_VALUE;
-			mRow.maxY = Double.MIN_VALUE;
+			mRow.maxY = -Double.MAX_VALUE;
 			mRow.flags = 0;
 			mRow.next = null;
 			mRow.last = lastMRow;
@@ -338,7 +338,7 @@ public class Maker
 			lastMRow = mRow;
 
 			// determine permissible top and bottom overlap
-			double tOffset = Double.MIN_VALUE;
+			double tOffset = -Double.MAX_VALUE;
 			double bOffset = Double.MAX_VALUE;
 			for (Place.NBPlace place = row.start; place != null; place = place.next)
 			{

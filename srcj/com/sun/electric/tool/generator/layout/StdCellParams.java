@@ -1148,7 +1148,7 @@ public class StdCellParams {
 	public static void addEssentialBoundsFromChildren(Cell cell, TechType tech) {
 		double loX, loY, hiX, hiY;
 		loX = loY = Double.MAX_VALUE;
-		hiX = hiY = Double.MIN_VALUE;
+		hiX = hiY = -Double.MAX_VALUE;
 		for (Iterator<NodeInst> it=cell.getNodes(); it.hasNext();) {
 			Rectangle2D b = it.next().getBounds();
 			loX = Math.min(loX, b.getMinX());

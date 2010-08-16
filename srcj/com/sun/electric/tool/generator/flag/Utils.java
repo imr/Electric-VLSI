@@ -70,7 +70,7 @@ public class Utils {
 	public static Rectangle2D findBounds(Cell c) {
 		double minX, minY, maxX, maxY;
 		minX = minY = Double.MAX_VALUE;
-		maxX = maxY = Double.MIN_VALUE;
+		maxX = maxY = -Double.MAX_VALUE;
 		for (Iterator<NodeInst> niIt=c.getNodes(); niIt.hasNext();) {
 			NodeInst ni = niIt.next();
 			if (!ni.isCellInstance()) continue;

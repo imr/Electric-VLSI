@@ -504,7 +504,7 @@ public class River
 	private void calculateBB(List<RDESC> right, List<RDESC> left)
 	{
 		routBoundLX = routBoundLY = Double.MAX_VALUE;
-		routBoundHX = routBoundHY = Double.MIN_VALUE;
+		routBoundHX = routBoundHY = -Double.MAX_VALUE;
 		for(RDESC rRight : right)
 		{
 			for(RPOINT rvp = rRight.path.pathDesc; rvp != null; rvp = rvp.next)
@@ -1253,7 +1253,7 @@ public class River
 		return ccInit;
 	}
 
-	private boolean isInterestingArc(ArcInst ai, Set arcsSeen)
+	private boolean isInterestingArc(ArcInst ai, Set<ArcInst> arcsSeen)
 	{
 		// skip arcs already considered
 		if (arcsSeen.contains(ai)) return false;

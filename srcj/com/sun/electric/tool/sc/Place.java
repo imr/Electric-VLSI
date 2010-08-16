@@ -1082,7 +1082,7 @@ public class Place
 			for (NBTrunk nTrunk = nChan.trunks; nTrunk != null; nTrunk = nTrunk.next)
 			{
 				nTrunk.minX = Double.MAX_VALUE;
-				nTrunk.maxX = Double.MIN_VALUE;
+				nTrunk.maxX = -Double.MAX_VALUE;
 			}
 		}
 
