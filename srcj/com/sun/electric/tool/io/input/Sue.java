@@ -1805,6 +1805,7 @@ public class Sue extends Input<Object>
 		// parse the line
 		boolean inBlank = true;
 		List<String> keywords = new ArrayList<String>();
+		if (lastLineRead.startsWith("#")) return keywords;
 		int startIndex = 0;
 		int len = lastLineRead.length();
 		int curlyDepth = 0;
