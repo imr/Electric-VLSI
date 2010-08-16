@@ -1926,7 +1926,7 @@ public class Schematics extends Technology
 			}
 			int totalLayers = 0;
 			if (busDiscSize > 0) totalLayers++;
-			if (wireDiscSize > 0) totalLayers++;
+			if (wireDiscSize >= 0) totalLayers++;
 			Technology.NodeLayer [] busPinLayers = new Technology.NodeLayer[totalLayers];
 			totalLayers = 0;
 			if (busDiscSize > 0)
@@ -1935,7 +1935,7 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeCenter(), new EdgeV(busDiscSize, 0))});
 			}
-			if (wireDiscSize > 0)
+			if (wireDiscSize >= 0)
 			{
 				busPinLayers[totalLayers++] = new Technology.NodeLayer(arc_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),

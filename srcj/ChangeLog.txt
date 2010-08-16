@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+BUG: (8/16/10, DN) Node bounds is incorrect (Bug #2884).
+FIX: Let busPinNode always has NodeLayers.
+
 BUG: (8/12/10, SMR) SUE import fails (Bug #2883).
 FIX: Fixed importing to make parameters have inheritance and to autostitch when done.
 
