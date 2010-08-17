@@ -694,6 +694,16 @@ public class XMLRules implements DRCRules, Serializable
 	}
 
     /**
+     * Fast method to know if a layer has any DRC rule associated with it
+     * @param layer Layer object to analyze
+     * @return True if there is at least one DRC rule
+     */
+    public boolean hasLayerRules(Layer layer)
+    {
+        return layersWithRules.get(layer) != null;
+    }
+    
+    /**
 	 * Method to find the maximum design-rule distance around a layer.
 	 * @param layer the Layer to examine.
      * @param maxSize the maximum design-rule distance around the layer. worstLayerRule is-1 if nothing found.
@@ -701,7 +711,6 @@ public class XMLRules implements DRCRules, Serializable
 	 */
 	public boolean getMaxSurround(Layer layer, double maxSize, GenMath.MutableDouble worstLayerRule)
 	{
-//		double worstLayerRule = -1;
         worstLayerRule.setValue(-1);
         boolean worstValueFound = false;
         int layerIndex = layer.getIndex();
@@ -713,13 +722,8 @@ public class XMLRules implements DRCRules, Serializable
         Set<Layer> set = layersWithRules.get(layer);
         // Check if there is any spacing rule for this layer
         if (set == null)
-        {
             return worstValueFound;
-        }
         // get the real list of layers
-//        GenMath.MutableDouble mutableDist1 = new GenMath.MutableDouble(-1);
-//        GenMath.MutableDouble worstLayerRule1 = new GenMath.MutableDouble(-1);
-//        boolean worstValueFound1 = false;
         for (Layer l : set)
         {
 			int pIndex = getRuleIndex(layerIndex, l.getIndex());
@@ -731,21 +735,6 @@ public class XMLRules implements DRCRules, Serializable
                 worstValueFound = true;
             }
         }
-
-//        // Check if layer has any rule at all!
-//        for(int i=0; i<tot; i++)
-//		{
-//			int pIndex = getRuleIndex(layerIndex, i);
-//            boolean found = getMinRule(pIndex, DRCTemplate.DRCRuleType.UCONSPA, maxSize, mutableDist);
-//            double worstValue = mutableDist.doubleValue();
-//            if (found && worstValue > worstLayerRule.doubleValue())
-//            {
-//                worstLayerRule.setValue(worstValue);
-//                worstValueFound = true;
-//            }
-//		}
-//
-//        assert(worstValueFound == worstValueFound1 && worstLayerRule.doubleValue() == worstLayerRule1.doubleValue());
         return worstValueFound;
 	}
 

@@ -35,6 +35,7 @@ public interface DRCRules
 {
     public Technology getTechnology();
     public int getRuleIndex(int index1, int index2);
+    public boolean hasLayerRules(Layer layer);
     public boolean getWorstSpacingDistance(int lastMetal, GenMath.MutableDouble worstLayerRule);
     public boolean getMaxSurround(Layer layer, double maxSize, GenMath.MutableDouble worstLayerRule);
     public DRCTemplate getEdgeRule(Layer layer1, Layer layer2);

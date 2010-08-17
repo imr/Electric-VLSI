@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+IMP: (8/17/10, GVG) More changes for "DRC slow for the tfc chip" (Bug #2851).
+Looking for way to reduce getShapeOfNode() for only layers with rules.
+
 BUG: (8/16/10, DN) Node bounds is incorrect (Bug #2884).
 FIX: Let busPinNode always has NodeLayers.
 

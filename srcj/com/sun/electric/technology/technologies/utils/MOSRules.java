@@ -346,6 +346,12 @@ public class MOSRules implements DRCRules {
 		return worstDistanceFound;
 	}
 
+    public boolean hasLayerRules(Layer layer)
+    {
+        assert (false); // not implemented yet
+        return false;
+    }
+
     /**
 	 * Method to find the maximum design-rule distance around a layer.
 	 * @param layer the Layer to examine.
@@ -354,7 +360,6 @@ public class MOSRules implements DRCRules {
 	 */
 	public boolean getMaxSurround(Layer layer, double maxSize, GenMath.MutableDouble worstLayerRule)
 	{
-//		double worstLayerRule = -1;
 		int layerIndex = layer.getIndex();
 		int tot = tech.getNumLayers();
 	    double wide = wideLimit;

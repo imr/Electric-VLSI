@@ -714,12 +714,21 @@ public class Quick
 //            }
 //        }
 
+        // get layers from the NodeInst. Not a cell at this point.
         // get all of the polygons on this node
-		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
+		Poly [] nodeInstPolyList = getShapeOfNodeBasedOnRules(tech, ni);
+//		Poly [] nodeInstPolyListOLD = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
         boolean isTransistor =  np.getFunction().isTransistor();
         Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
+
+//        if (tot != nodeInstPolyListOLD.length)
+//        {
+//            System.out.println("IMprove here");
+//            tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, setFunction);
+//            DRC.getLayersWithRulesOnly((PrimitiveNode)np);
+//        }
 
         // examine the polygons on this node
 		for(int j=0; j<tot; j++)
@@ -773,12 +782,6 @@ public class Quick
 				if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
-//            ret = checkExtensionRule(ni, layer, poly, cell);
-//            if (ret)
-//			{
-//				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
-//				errorsFound = true;
-//			}
             if (validLayers.isABadLayer(tech, layer.getIndex()))
 			{
 				DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
@@ -830,9 +833,16 @@ public class Quick
 				errorsFound = true;
         }
 
-        // get all of the polygons on this arc
 		Technology tech = ai.getProto().getTechnology();
-		Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+        // get layers from the NodeInst. Not a cell at this point.
+        Layer.Function.Set setFunction = DRC.getOnlyLayersWithRulesFromArc(ai.getProto(), tech);
+
+        // get all of the polygons on this arc
+		Poly [] arcInstPolyList = tech.getShapeOfArc(ai, setFunction);
+        Poly [] arcInstPolyListOLD = tech.getShapeOfArc(ai);
+
+        if (arcInstPolyList.length != arcInstPolyListOLD.length)
+             System.out.println("IMprove Arc here");
 
         // Check resolution before cropping the
         for(Poly poly : arcInstPolyList)
@@ -1017,8 +1027,9 @@ public class Quick
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
 					Technology tech = np.getTechnology();
-					Poly [] primPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
-					convertPseudoLayers(ni, primPolyList);
+//					Poly [] primPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
+                    Poly [] primPolyList = getShapeOfNodeBasedOnRules(tech, ni);
+                    convertPseudoLayers(ni, primPolyList);
 					int tot = primPolyList.length;
                     Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
 
@@ -1253,8 +1264,9 @@ public class Quick
 					rTrans.preConcatenate(upTrans);
 
 					// get the shape of each nodeinst layer
-					Poly [] subPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
-					convertPseudoLayers(ni, subPolyList);
+//					Poly [] subPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
+                    Poly [] subPolyList = getShapeOfNodeBasedOnRules(tech, ni);
+                    convertPseudoLayers(ni, subPolyList);
 					int tot = subPolyList.length;
 					for(int i=0; i<tot; i++)
 						subPolyList[i].transform(rTrans);
@@ -1988,7 +2000,22 @@ public class Quick
 		return false;
 	}
 
-	/**
+    private static int countSkip = 0;
+
+    private Poly [] getShapeOfNodeBasedOnRules(Technology tech, NodeInst ni)
+    {
+        // get layers from the NodeInst. Not a cell at this point.
+        Layer.Function.Set setFunction = DRC.getOnlyLayersWithRulesFromPrimitive(ni.getProto(), tech);
+
+        // get all of the polygons on this node
+		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, setFunction);
+//		Poly [] nodeInstPolyListOLD = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
+//        if (nodeInstPolyList.length != nodeInstPolyListOLD.length)
+//             System.out.println("IMprove here " + countSkip++);
+        return nodeInstPolyList;
+    }
+
+    /**
 	 * Method to check primitive object "geom" (an arcinst or primitive nodeinst) against cell instance "ni".
 	 * Returns TRUE if there are design-rule violations in their interaction.
 	 */
@@ -2013,7 +2040,7 @@ public class Quick
 
 			tech = oNi.getProto().getTechnology();
 			trans = oNi.rotateOut();
-			nodeInstPolyList = tech.getShapeOfNode(oNi, true, reportInfo.ignoreCenterCuts, null);
+			nodeInstPolyList = getShapeOfNodeBasedOnRules(tech, oNi);
 			convertPseudoLayers(oNi, nodeInstPolyList);
             multiCutData = tech.getMultiCutData(oNi);
 //            baseMulti = tech.isMultiCutCase(oNi);
@@ -2909,7 +2936,8 @@ public class Quick
 				Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                 // and poly.polySame(poly1) will never be true. CONTRADICTION!
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, null);
+                // Gilda Aug10: This can be improved!!! since you need only polygons with same layers????
+                Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, null);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
@@ -3870,6 +3898,7 @@ public class Quick
 	{
 		Technology tech = ni.getProto().getTechnology();
         assert(!ni.getProto().getFunction().isPin());
+        // Gilda Aug10: optimize the function call using Layer.Function.Set!!!
         Poly [] cropNodePolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
 		convertPseudoLayers(ni, cropNodePolyList);
 		int tot = cropNodePolyList.length;
@@ -3976,6 +4005,7 @@ public class Quick
 //                }
 //            }
 //            else
+            // Gilda Aug10: optimize function call using Layer.Function.Set????
                 cropArcPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, null);
 			int tot = cropArcPolyList.length;
 			for(int j=0; j<tot; j++)

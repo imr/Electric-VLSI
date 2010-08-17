@@ -1446,7 +1446,54 @@ public class DRC extends Listener
         return (rules.getMaxSurround(layer, maxSize, mutableDist));
 	}
 
-	/**
+    /**
+     * Method to retrieve only the layer functions with rules in a node.
+     * A Layer.Function.Set object is needed to pass it to tech.getShapeOfNode()
+     * @param pn
+     * @return
+     */
+    public static Layer.Function.Set getOnlyLayersWithRulesFromPrimitive(NodeProto np, Technology tech)
+    {
+        // Cell case
+        if (!(np instanceof PrimitiveNode)) return null;
+
+        PrimitiveNode pn = (PrimitiveNode)np;
+		DRCRules rules = getRules(tech);
+		if (rules == null) return null;
+
+        // In this case, no need of checking the electrical layers
+        // since we want the valid layers from the DRC perspective, not the geometry yet
+        Layer.Function.Set functionSet = new Layer.Function.Set();
+        Technology.NodeLayer[] layers = pn.getNodeLayers();
+        if (pn.getElectricalLayers() != null)
+            layers = pn.getElectricalLayers();
+        for (Technology.NodeLayer layer : layers)
+        {
+            Layer l = layer.getLayer();
+            if (rules.hasLayerRules(l))
+                functionSet.add(l);
+        }
+        return functionSet;
+    }
+
+    public static Layer.Function.Set getOnlyLayersWithRulesFromArc(ArcProto ap, Technology tech)
+    {
+        DRCRules rules = getRules(tech);
+		if (rules == null) return null;
+
+        // in case the arc has valid electric layers
+        Layer.Function.Set functionSet = new Layer.Function.Set();
+        Technology.ArcLayer[] layers = ap.getArcLayers();
+        for (Technology.ArcLayer layer : layers)
+        {
+            Layer l = layer.getLayer();
+            if (rules.hasLayerRules(l))
+                functionSet.add(l);
+        }
+        return functionSet;
+    }
+
+    /**
 	 * Method to find the edge spacing rule between two layer.
 	 * @param layer1 the first layer.
 	 * @param layer2 the second layer.

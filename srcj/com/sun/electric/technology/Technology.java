@@ -158,7 +158,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Each ArcProto is composed of a number of ArcLayer descriptors.
 	 * A descriptor converts a specific ArcInst into a polygon that describe this particular layer.
 	 */
-	protected static class ArcLayer
+	public static class ArcLayer
 	{
 		private final Layer layer;
 		private final Poly.Type style;
