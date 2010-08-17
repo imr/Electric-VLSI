@@ -119,7 +119,7 @@ IMP: (7/17/10, DN) Laze allocaltion of "sons" in PolyBase.PolyBaseTree ..
 
 IMP: (7/16/10, DN) Fast path for grid-aligned boxes in AbstractShapeBuilder.pushPoly .
 
-IMP/MAN: (7/15/10, SMR) Added Spice Opus output format (Bug #2848).
+IMP: (7/15/10, SMR) Added Spice Opus output format (Bug #2848).
 
 BUG: (7/15/10, SMR) Going up hierarchy can duplicate selection (Bug #2843).
 FIX: In WindowFrame.setCellByHistory() and in EditWindow.upHierarchy()
@@ -223,7 +223,7 @@ BUG: (6/27/10, AM) Waveform window exception at different places (Bug #2824)
 FIX: Deal in a more robust manner with Signals having fewer than two samples.
      Also improve error reporting if things go wrong.
 
-IMP/MAN: (6/26/10, GVG) highlight the outline of the geometry in ERC errors (Bug #2752)
+IMP: (6/26/10, GVG) highlight the outline of the geometry in ERC errors (Bug #2752)
 
 BUG: (6/25/10, AM) Waveform window pans wildly when Command-5 is pressed
 FIX: Make WaveformWindow.centerCursor() center on the "main" cursor instead
