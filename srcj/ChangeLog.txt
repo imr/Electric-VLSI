@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+IMP: (8/18/10, FS) Bookshelf Weights + Bookshelf Header per file (export) + 
+Speedup export (net list)
+
 BUG: (8/18/10, FS) Simulated Annealing 2 eats up memory without running the tool (Bug #2886)
 FIX: create all arrays at execution time of the placement tool (while calling runPlacement)
 
