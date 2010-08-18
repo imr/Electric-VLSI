@@ -61,12 +61,12 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 
 	// Temperature control
 	private int iterationsPerTemperatureStep; // if maximum runtime is > 0 this
-												// is calculated each
-												// temperature step
+	// is calculated each
+	// temperature step
 	private double startingTemperature = 0;
 	private double temperature;
 	private int temperatureSteps = 0; // how often will the temperature be
-										// decreased
+	// decreased
 	private int temperatureStep;
 
 	private int perturbations_tried;
@@ -89,20 +89,18 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 
 	private int accepts = 0; // moves accepted
 	private int conflicts = 0; // moves that were accepted but not made because
-								// of interference from other threads
+	// of interference from other threads
 
-	double[] lengthLog = new double[1000000]; // TODO: write a class that
-												// collects performance data
-	double[] overlapLog = new double[1000000]; // TODO: allocate with
-												// appropriate size
-												// (temperatureSteps)
-	double[] timestampLog = new double[1000000];
-	double[] temperatureLog = new double[1000000];
-	double[] areaLog = new double[1000000];
-	double[] stepsizeLog = new double[1000000];
-	double[] acceptLog = new double[1000000];
-	double[] conflictLog = new double[1000000];
-	double[] stepdurationLog = new double[1000000];
+	double[] lengthLog; // TODO: write a class that collects performance data
+	double[] overlapLog; // TODO: allocate with appropriate size
+	// (temperatureSteps)
+	double[] timestampLog;
+	double[] temperatureLog;
+	double[] areaLog;
+	double[] stepsizeLog;
+	double[] acceptLog;
+	double[] conflictLog;
+	double[] stepdurationLog;
 	int stepsPerUpdate = 50;
 
 	// Tweaking Parameter
@@ -175,14 +173,14 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 	 * @param cellName
 	 *            the name of the cell being placed.
 	 */
-	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
-			String cellName) {
+	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName) {
 		if (USE_GUIPARAMETER) {
 			this.setParamterValues(this.numThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
 		} else {
-			this.setParamterValues(this.numThreadsParam.getTempIntValue(), this.maxRuntimeParam
-					.getTempIntValue());
+			this.setParamterValues(this.numThreadsParam.getTempIntValue(), this.maxRuntimeParam.getTempIntValue());
 		}
+
+		this.initializeParameters();
 
 		timestampStart = System.currentTimeMillis();
 
@@ -264,6 +262,18 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 		if (performance_log) {
 			writeLog(performance_log_filename);
 		}
+	}
+
+	private void initializeParameters() {
+		lengthLog = new double[1000000];
+		overlapLog = new double[1000000];
+		timestampLog = new double[1000000];
+		temperatureLog = new double[1000000];
+		areaLog = new double[1000000];
+		stepsizeLog = new double[1000000];
+		acceptLog = new double[1000000];
+		conflictLog = new double[1000000];
+		stepdurationLog = new double[1000000];
 	}
 
 	/**
@@ -523,14 +533,15 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 			List<ProxyNode> ct = new ArrayList<ProxyNode>();
 
 			for (ProxyNode node : co)
-				if ((node.compareTo(nodes[i]) < 0 && node != nodes[i]) || node.finalized) ct.add(node);
+				if ((node.compareTo(nodes[i]) < 0 && node != nodes[i]) || node.finalized)
+					ct.add(node);
 
 			// move the node outwards depending on how big the overlap is until
 			// the overlap is gone
 			double overlap = 0;
 			while ((overlap = metric.overlap(nodes[i], ct)) != 0) {
-				double d = Math.sqrt(nodes[i].getPlacementX() * nodes[i].getPlacementX()
-						+ nodes[i].getPlacementY() * nodes[i].getPlacementY());
+				double d = Math.sqrt(nodes[i].getPlacementX() * nodes[i].getPlacementX() + nodes[i].getPlacementY()
+						* nodes[i].getPlacementY());
 				double x = nodes[i].getPlacementX() / d * Math.sqrt(overlap) * 0.1;
 				double y = nodes[i].getPlacementY() / d * Math.sqrt(overlap) * 0.1;
 
@@ -539,7 +550,8 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 				// Overlapping with nodes that are finalized is never allowed
 				List<ProxyNode> co2 = posIndex.getPossibleOverlaps(nodes[i]);
 				for (ProxyNode node : co2)
-					if (node.finalized && ct.contains(node) == false) ct.add(node);
+					if (node.finalized && ct.contains(node) == false)
+						ct.add(node);
 
 			}
 			nodes[i].finalized = true;
@@ -573,9 +585,9 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 			FileWriter f = new FileWriter(filename);
 
 			for (int i = 0; i < temperatureStep; i++)
-				f.append((long) timestampLog[i] + "," + (int) lengthLog[i] + "," + (int) temperatureLog[i]
-						+ "," + (int) overlapLog[i] + "," + areaLog[i] + "," + stepsizeLog[i] + ","
-						+ acceptLog[i] + "," + conflictLog[i] + "," + stepdurationLog[i] + "\n");
+				f.append((long) timestampLog[i] + "," + (int) lengthLog[i] + "," + (int) temperatureLog[i] + ","
+						+ (int) overlapLog[i] + "," + areaLog[i] + "," + stepsizeLog[i] + "," + acceptLog[i] + ","
+						+ conflictLog[i] + "," + stepdurationLog[i] + "\n");
 			f.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -618,9 +630,8 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 		private static final int MUTATIONORIENTATE = 3;
 
 		Orientation[] orientations = { Orientation.IDENT, Orientation.R, Orientation.RR, Orientation.RRR,
-				Orientation.X, Orientation.XR, Orientation.XRR, Orientation.XRRR, Orientation.Y,
-				Orientation.YR, Orientation.YRR, Orientation.YRRR, Orientation.XY, Orientation.XYR,
-				Orientation.XYRR, Orientation.XYRRR };
+				Orientation.X, Orientation.XR, Orientation.XRR, Orientation.XRRR, Orientation.Y, Orientation.YR,
+				Orientation.YRR, Orientation.YRRR, Orientation.XY, Orientation.XYR, Orientation.XYRR, Orientation.XYRRR };
 
 		Random rand = new Random(); // TODO: thread-aware seed
 
@@ -648,13 +659,12 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 		 *            the resulting individual net lengths
 		 * @return the sum of the net lengths
 		 */
-		private double metricForDummy(ProxyNode original, ProxyNode dummy,
-				HashMap<PlacementNetwork, Double> lengths) {
+		private double metricForDummy(ProxyNode original, ProxyNode dummy, HashMap<PlacementNetwork, Double> lengths) {
 			double sum = 0;
 
 			for (PlacementNetwork net : dummy.getNets()) {
-				double length = metric.netLength(net, proxyMap, new ProxyNode[] { original },
-						new ProxyNode[] { dummy });
+				double length = metric
+						.netLength(net, proxyMap, new ProxyNode[] { original }, new ProxyNode[] { dummy });
 				lengths.put(dummy.getOriginalNet(net), new Double(length));
 				sum += length;
 			}
@@ -687,7 +697,8 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 			// create a set of nets connected to one of these nodes
 			for (int i = 0; i < originals.length; i++)
 				for (PlacementNetwork net : originals[i].getNets())
-					if (!nets.contains(net)) nets.add(net);
+					if (!nets.contains(net))
+						nets.add(net);
 
 			// sum up the net lengths
 			for (PlacementNetwork net : nets) {
@@ -714,7 +725,8 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 			// in the list of nodes in the proximity of the dummy,
 			// we remove node that the dummy replaced an then calculate the
 			List<ProxyNode> candidates = posIndex.getPossibleOverlaps(dummy);
-			while (candidates.remove(original));
+			while (candidates.remove(original))
+				;
 			return metric.overlap(dummy, candidates);
 		}
 
@@ -730,8 +742,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 		 *            replacement of <original2>
 		 * @return
 		 */
-		private double overlapForDummy(ProxyNode original1, ProxyNode original2, ProxyNode dummy1,
-				ProxyNode dummy2) {
+		private double overlapForDummy(ProxyNode original1, ProxyNode original2, ProxyNode dummy1, ProxyNode dummy2) {
 			double overlap = 0;
 			List<ProxyNode> candidates1 = null;
 			List<ProxyNode> candidates2 = null;
@@ -743,16 +754,20 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 			// we remove the nodes that are replaced and add
 			// the other dummy
 			candidates1.add(dummy2);
-			while (candidates1.remove(original1));
-			while (candidates1.remove(original2));
+			while (candidates1.remove(original1))
+				;
+			while (candidates1.remove(original2))
+				;
 			overlap += metric.overlap(dummy1, candidates1);
 
 			// in the list of nodes in the proximity of dummy2,
 			// we remove the nodes that are replaced and add
 			// the other dummy
 			candidates2.add(dummy1);
-			while (candidates2.remove(original1));
-			while (candidates2.remove(original2));
+			while (candidates2.remove(original1))
+				;
+			while (candidates2.remove(original2))
+				;
 			overlap += metric.overlap(dummy2, candidates2);
 
 			return overlap;
@@ -791,19 +806,20 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 					// Find and swap two nodes
 					case MUTATIONSWAP:
 						node1 = getRandomNode();
-						while ((node2 = getRandomNode()) == node1);
+						while ((node2 = getRandomNode()) == node1)
+							;
 
 						networkMetricBefore = metricForNodes(node1, node2);
 						overlapMetricBefore = metric.overlap(node1, posIndex.getPossibleOverlaps(node1))
 								+ metric.overlap(node2, posIndex.getPossibleOverlaps(node2)); // TODO
-																								// Overlap
-																								// of
-																								// 1
-																								// and
-																								// 2
-																								// is
-																								// counted
-																								// twice
+						// Overlap
+						// of
+						// 1
+						// and
+						// 2
+						// is
+						// counted
+						// twice
 
 						// Create two dummies of the nodes that have the same
 						// size
@@ -816,8 +832,8 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 
 						// calculate the metrics for a layout where
 						// the two nodes are replaced by the dummies
-						networkMetricAfter = metricForDummies(new ProxyNode[] { node1, node2 },
-								new ProxyNode[] { dummy1, dummy2 }, newNetLengths);
+						networkMetricAfter = metricForDummies(new ProxyNode[] { node1, node2 }, new ProxyNode[] {
+								dummy1, dummy2 }, newNetLengths);
 						overlapMetricAfter = overlapForDummy(node1, node2, dummy1, dummy2);
 						areaMetricAfter = area.areaForDummy(node1, node2, dummy1, dummy2);
 						break;
@@ -972,7 +988,8 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 			if (nets.size() > 0) {
 				for (PlacementNetwork net : nets) {
 					double metric = netLengths.get(net).doubleValue();
-					if (metric > maxBoundingBox) maxBoundingBox = metric;
+					if (metric > maxBoundingBox)
+						maxBoundingBox = metric;
 				}
 			} else {
 				maxBoundingBox = maxChipLength;
@@ -996,8 +1013,10 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 
 			// TODO: replace with variables
 			// THIS IS TWEAKING DATA
-			if (r < 10) return MUTATIONSWAP;
-			if (r < 90) return MUTATIONMOVE;
+			if (r < 10)
+				return MUTATIONSWAP;
+			if (r < 90)
+				return MUTATIONMOVE;
 
 			return MUTATIONORIENTATE;
 		}
@@ -1017,7 +1036,8 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 			// are calculated in different ways for the same data
 			double metric = metricForNode(n1) + metricForNode(n2);
 			for (PlacementNetwork p : n1.getNets())
-				if (n2.getNets().contains(p)) metric -= netLengths.get(p).doubleValue();
+				if (n2.getNets().contains(p))
+					metric -= netLengths.get(p).doubleValue();
 
 			return metric;
 		}
