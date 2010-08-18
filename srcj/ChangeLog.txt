@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+IMP: (8/18/10, FS) Add immutable list
+
+IMP: (8/18/10, FS) Test of private methods: Annotation TestByReflection
+
 IMP: (8/17/10, GVG) More changes for "DRC slow for the tfc chip" (Bug #2851).
 Looking for way to reduce getShapeOfNode() for only layers with rules.
 
