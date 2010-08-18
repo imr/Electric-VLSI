@@ -40,6 +40,7 @@ import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 import com.sun.electric.tool.util.concurrent.datastructures.UnboundedDEQueue;
+import com.sun.electric.tool.util.datastructures.ImmutableList;
 
 /**
  * This class provides factory methods for creating data structures. The
@@ -203,10 +204,18 @@ public class CollectionFactory {
 
 	public static <T> Set<T> copyListToSet(List<T> source) {
 		Set<T> result = CollectionFactory.createHashSet();
-		
+
 		doCopyCollection(source, result);
 
 		return result;
+	}
+
+	public static <T> ImmutableList<T> copyListToImmutableList(List<T> source) {
+		ImmutableList<T> immutableList = null;
+		for (T element : source) {
+			immutableList = ImmutableList.add(immutableList, element);
+		}
+		return immutableList;
 	}
 
 	private static <T> void doCopyCollection(Collection<T> source, Collection<T> dest) {
