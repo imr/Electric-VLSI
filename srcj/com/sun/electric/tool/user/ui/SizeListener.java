@@ -418,9 +418,6 @@ public class SizeListener
 
 				// setup outline of node with standard offset
 				Poly nodePoly = ni.getBaseShape();
-//				AffineTransform transIn = ni.transformIn();
-//				pt = transIn.transform(pt, null);
-//				nodePoly.transform(transIn);
 
 				// determine the closest point on the outline
 				Point2D [] points = nodePoly.getPoints();
@@ -554,11 +551,11 @@ public class SizeListener
 					newSize = getNewNodeSize(evt, newCenter, ni);
 				} else
                 {
-                    newSize = new Point2D.Double(ni.getLambdaBaseXSize(), ni.getLambdaBaseYSize());
                     newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+                    newSize = new Point2D.Double(ni.getLambdaBaseXSize(), ni.getLambdaBaseYSize());
                 }
 
-                Poly stretchedPoly = ni.getBaseShape(EPoint.snap(newCenter), newSize.getX(), newSize.getY());
+				Poly stretchedPoly = ni.getBaseShape(EPoint.snap(newCenter), newSize.getX(), newSize.getY());
 				Point2D [] stretchedPoints = stretchedPoly.getPoints();
 				for(int i=0; i<stretchedPoints.length; i++)
 				{
@@ -613,6 +610,7 @@ public class SizeListener
 	{
 		NodeInst selNode = selectedNode;
 		if (selNode == null) selNode = desiredNI;
+		boolean selNodeSideways = selNode.getAngle() == 900 || selNode.getAngle() == 2700;
 
 		// get the coordinates of the cursor in database coordinates
 		EditWindow wnd = (EditWindow)evt.getSource();
@@ -624,15 +622,13 @@ public class SizeListener
 		double growthRatioX = 1, growthRatioY = 1;
 		Point2D closest = (closestCorner != null ? closestCorner : closestEdge);
 		Point2D farthest = (farthestCorner != null ? farthestCorner : farthestEdge);
+
 		// grid-align the growth amount
 		long x = Math.round((pt.getX()-closest.getX()) / User.getAlignmentToGrid().getWidth());
         double newX = x * User.getAlignmentToGrid().getWidth() + closest.getX();
         long y = Math.round((pt.getY()-closest.getY()) / User.getAlignmentToGrid().getHeight());
         double newY = y * User.getAlignmentToGrid().getHeight() + closest.getY();
         pt.setLocation(newX, newY);
-
-//		AffineTransform transIn = selNode.transformIn();
-//		transIn.transform(pt, pt);
 
 		// if SHIFT and CONTROL is held, use center-based sizing
 		boolean centerBased = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
@@ -667,7 +663,6 @@ public class SizeListener
 				if (closestToFarthestY != 0) growthRatioY = ptToFarthestY / closestToFarthestY;
 			}
 		}
-//		int direction = -1; // both X and Y
 		if (singleAxis)
 		{
 			// constrain to single-axis stretching
@@ -681,31 +676,31 @@ public class SizeListener
 			{
 				if (gry == 0) gry = 9999; else gry = 1/gry;
 			}
-			if (grx > gry)
-			{
-				growthRatioY = 1;
-//				direction = 0; // Y
-			} else
-			{
+			if (grx > gry) growthRatioY = 1; else
 				growthRatioX = 1;
-//				direction = 1; // X
-			}
 		}
 
 		if (square)
 		{
 			if (Math.abs(growthRatioX) > Math.abs(growthRatioY))
-				growthRatioY = growthRatioX;
-			else
-				growthRatioX = growthRatioY;
+				growthRatioY = growthRatioX; else
+					growthRatioX = growthRatioY;
 		}
 
 		// compute the new node size
+		if (selNodeSideways)
+		{
+			double swap = growthRatioX;   growthRatioX = growthRatioY;   growthRatioY = swap;
+		}
 		double newXSize = selNode.getLambdaBaseXSize() * growthRatioX;
 		double newYSize = selNode.getLambdaBaseYSize() * growthRatioY;
 		double signX = newXSize < 0 ? -1 : 1;
 		double signY = newYSize < 0 ? -1 : 1;
 		Point2D newSize = new Point2D.Double(Math.abs(newXSize), Math.abs(newYSize));
+		if (selNodeSideways)
+		{
+			newXSize = newSize.getY();   newYSize = newSize.getX();
+		}
 
 		// grid align the new node size
 //		EditWindow.gridAlignSize(newSize, direction);
@@ -719,11 +714,9 @@ public class SizeListener
 				double closestY = closest.getY();
 				double farthestX = farthest.getX();
 				double farthestY = farthest.getY();
-				double newClosestX = (closestX == farthestX ? closestX : farthestX + newSize.getX()*signX*(closestX > farthestX ? 1 : -1));
-				double newClosestY = (closestY == farthestY ? closestY : farthestY + newSize.getY()*signY*(closestY > farthestY ? 1 : -1));
-
+				double newClosestX = (closestX == farthestX ? closestX : farthestX + newXSize*signX*(closestX > farthestX ? 1 : -1));
+				double newClosestY = (closestY == farthestY ? closestY : farthestY + newYSize*signY*(closestY > farthestY ? 1 : -1));
 				newCenter.setLocation((farthestX + newClosestX) / 2, (farthestY + newClosestY) / 2);
-//				selNode.transformOut().transform(newCenter, newCenter);
 			} else
 			{
 				newCenter.setLocation(desiredNI.getAnchorCenterX(), desiredNI.getAnchorCenterY());
@@ -736,7 +729,6 @@ public class SizeListener
 			double offY = newCenter.getY() - selNode.getAnchorCenterY();
 			newCenter.setLocation(desiredNI.getAnchorCenterX() + offX, desiredNI.getAnchorCenterY() + offY);
 
-			boolean selNodeSideways = (selNode.getAngle() == 900 || selNode.getAngle() == 2700);
 			boolean desiredNodeSideways = (desiredNI.getAngle() == 900 || desiredNI.getAngle() == 2700);
 			offX = newSize.getX() - selNode.getXSizeWithoutOffset();
 			offY = newSize.getY() - selNode.getYSizeWithoutOffset();
