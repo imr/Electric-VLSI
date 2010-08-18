@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.sun.corba.se.impl.orbutil.LogKeywords;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -182,6 +183,10 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 			Cell np = bn.getPrototype();
 			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(bn.getX(), bn.getY()), bn.getWidth(), bn
 					.getHeight(), mainCell, Orientation.IDENT, bn.getName());
+			Key key = Variable.newKey("weight");
+			Variable var = Variable.newInstance(key, bn.getWeight(), TextDescriptor.getNodeTextDescriptor());
+			ni.addVar(var);
+			
 			bn.setInstance(ni);
 		}
 

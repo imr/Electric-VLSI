@@ -24,9 +24,13 @@
 package com.sun.electric.tool.io.output.bookshelf;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
 import com.sun.electric.tool.io.output.Output;
 
 /**
@@ -78,12 +82,14 @@ public class BookshelfOutput extends Output {
 	@Override
 	protected boolean writeCell(Cell cell, VarContext context) {
 		boolean result = true;
+		
+		Job.getUserInterface().startProgressDialog("Export Bookshelf", null);
 
 		String genericFileName = this.filePath.substring(0, this.filePath.indexOf("."));
 
 		BookshelfOutputWriter[] writers = new BookshelfOutputWriter[] { new BookshelfOutputAux(genericFileName),
 				new BookshelfOutputNodes(genericFileName, cell), new BookshelfOutputPlacement(genericFileName, cell),
-				new BookshelfOutputNets(genericFileName, cell) };
+				new BookshelfOutputNets(genericFileName, cell), new BookshelfOutputWeights(genericFileName, cell) };
 
 		int sortKey = 0;
 		for (BookshelfOutputWriter writer : writers) {
@@ -94,7 +100,33 @@ public class BookshelfOutput extends Output {
 				sortKey++;
 			}
 		}
+		
+		Job.getUserInterface().stopProgressDialog();
 
 		return result;
+	}
+
+	public static String createBookshelfHeader(BookshelfFiles fileType) {
+		StringBuilder builder = new StringBuilder();
+
+		builder.append("Electric ");
+		builder.append(fileType.toString());
+		builder.append("\n");
+
+		builder.append("# Created     : ");
+		builder.append(DateFormat.getDateInstance(DateFormat.LONG).format(new Date(System.currentTimeMillis())));
+		builder.append("\n");
+		
+		builder.append("# User        : ");
+		builder.append(System.getProperty("user.name"));
+		builder.append("\n");
+		
+		builder.append("# Platform    : ");
+		builder.append(System.getProperty("os.name") + " ");
+		builder.append(System.getProperty("os.arch") + " ");
+		builder.append(System.getProperty("os.version"));
+		builder.append("\n");
+
+		return builder.toString();
 	}
 }

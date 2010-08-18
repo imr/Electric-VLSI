@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: BookshelfOutputNodes.java
+ * File: BookshelfOutputWeights.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -29,24 +29,25 @@ import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
-import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class BookshelfOutputNodes extends BookshelfOutputWriter {
+public class BookshelfOutputWeights extends BookshelfOutputWriter {
 
-	private static final BookshelfFiles fileType = BookshelfFiles.nodes;
+	private static final BookshelfFiles fileType = BookshelfFiles.wts;
 
 	private Cell cell;
 
 	/**
-	 * 
+	 * @param genericFileName
+	 * @param fileType
 	 */
-	public BookshelfOutputNodes(String genericFileName, Cell cell) {
+	public BookshelfOutputWeights(String genericFileName, Cell cell) {
 		super(genericFileName, fileType);
 		this.cell = cell;
 	}
@@ -60,18 +61,22 @@ public class BookshelfOutputNodes extends BookshelfOutputWriter {
 	@Override
 	public void write() throws IOException {
 		
-		Job.getUserInterface().setProgressNote("Nodes File: " + this.fileName);
+		Job.getUserInterface().setProgressNote("Weights File" + this.fileName);
 
 		PrintWriter writer = new PrintWriter(this.fileName);
-
+		
 		writer.println(BookshelfOutput.createBookshelfHeader(fileType));
 
 		for (Iterator<NodeInst> ini = cell.getNodes(); ini.hasNext();) {
 			NodeInst ni = ini.next();
-			BookshelfNode node = new BookshelfNode(ni.getName(), ni.getProto().getDefWidth(), ni.getProto()
-					.getDefHeight(), ni.isLocked());
+			String name = ni.getName();
+			int weight = 1;
 
-			writer.println("   " + node.toString());
+			Variable var = ni.getVar("weight");
+			if (var != null) {
+				weight = (Integer) var.getObject();
+				writer.println("   " + name + "   " + weight);
+			}
 		}
 
 		writer.flush();

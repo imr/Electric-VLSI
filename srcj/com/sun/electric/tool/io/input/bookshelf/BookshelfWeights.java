@@ -68,11 +68,12 @@ public class BookshelfWeights implements BookshelfInputParser<Void> {
 				while (tokenizer.hasMoreElements()) {
 					if (i == 0) {
 						node = tokenizer.nextToken();
-					} else if (i == 2) {
+					} else if (i == 1) {
 						weight = Integer.parseInt(tokenizer.nextToken());
 					} else {
 						tokenizer.nextToken();
 					}
+					i++;
 				}
 
 				BookshelfNode bn = BookshelfNode.findNode(node);

@@ -31,6 +31,7 @@ import java.util.Iterator;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
 
 /**
@@ -55,7 +56,11 @@ public class BookshelfOutputPlacement extends BookshelfOutputWriter {
 	 */
 	@Override
 	public void write() throws IOException {
+		Job.getUserInterface().setProgressNote("Placement File: " + this.fileName);
+		
 		PrintWriter writer = new PrintWriter(this.fileName);
+		
+		writer.println(BookshelfOutput.createBookshelfHeader(fileType));
 
 		for (Iterator<NodeInst> ini = cell.getNodes(); ini.hasNext();) {
 			NodeInst ni = ini.next();

@@ -30,6 +30,7 @@ import java.util.Iterator;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
 
 /**
@@ -59,10 +60,19 @@ public class BookshelfOutputNets extends BookshelfOutputWriter {
 	 */
 	@Override
 	public void write() throws IOException {
+		
+		Job.getUserInterface().setProgressNote("Nets File: " + this.fileName);
 
 		PrintWriter writer = new PrintWriter(this.fileName);
+		
+		writer.println(BookshelfOutput.createBookshelfHeader(fileType));
+		
+		int size = cell.getNetlist().getNumNetworks();
 
+		int counter = 0;
 		for (Iterator<Network> inet = cell.getNetlist().getNetworks(); inet.hasNext();) {
+			if(counter % 20 == 0)
+				Job.getUserInterface().setProgressValue((int)(((double)counter/(double)size) * 100.0));
 			Network net = inet.next();
 			writer.println("NetDegree : " + net.getPortsList().size() + "  " + net.getName());
 			for (PortInst pi : net.getPortsList()) {
@@ -72,9 +82,10 @@ public class BookshelfOutputNets extends BookshelfOutputWriter {
 				writer.print(String.valueOf(x) + " ");
 				writer.println(String.valueOf(y));
 			}
-			writer.flush();
+			counter++;
 		}
 
+		writer.flush();
 		writer.close();
 
 	}

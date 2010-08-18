@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
 
 /**
@@ -53,6 +54,8 @@ public class BookshelfOutputAux extends BookshelfOutputWriter {
 	 */
 	@Override
 	public void write() throws IOException {
+		
+		Job.getUserInterface().setProgressNote("Aux File: " + this.fileName);
 		
 		File file = new File(fileName);
 		String genericFileName = file.getName().substring(0, file.getName().indexOf("."));
