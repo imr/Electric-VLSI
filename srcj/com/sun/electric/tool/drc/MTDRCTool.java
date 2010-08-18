@@ -71,6 +71,7 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
         for (String layerS : layers)
         {
             Layer layer = tech.findLayer(layerS);
+            assert (layer != null); // it should always be a valid layer
             startTask(layer.getName(), layer);
         }
         if (!checkArea())

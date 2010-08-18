@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+BUG: (8/18/10, GVG) NPE in Multi-threaded DRC (Bug #2889)
+FIX: Detecting properly non-layout layers (Universal from generic in the particular desing)
+
 BUG: (8/18/10, SMR) Rotated nodes do not interactively resize correctly (Bug #2887).
 FIX: Fixed in SizeListener.getNewNodeSize().
 

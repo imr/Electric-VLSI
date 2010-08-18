@@ -2411,6 +2411,7 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
         Map<NodeProto, NodeProto> tempNodeMap = new HashMap<NodeProto, NodeProto>();
         Map<ArcProto, ArcProto> tempArcMap = new HashMap<ArcProto, ArcProto>();
         Set<String> set = new HashSet<String>();
+        Technology tech = cell.getTechnology();
 
         // Nodes
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
@@ -2431,6 +2432,7 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
                 PrimitiveNode pNp = (PrimitiveNode) np;
                 for (Technology.NodeLayer nLayer : pNp.getNodeLayers()) {
                     Layer layer = nLayer.getLayer();
+                    if (tech.findLayer(layer.getName()) == null) continue;
                     set.add(layer.getName());
                 }
             }
@@ -2445,6 +2447,7 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
             tempArcMap.put(ap, ap);
             for (int i = 0; i < ap.getNumArcLayers(); i++) {
                 Layer layer = ap.getLayer(i);
+                if (tech.findLayer(layer.getName()) == null) continue;
                 set.add(layer.getName());
             }
         }
