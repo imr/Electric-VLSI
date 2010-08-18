@@ -59,7 +59,7 @@ import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfPin;
 import com.sun.electric.tool.util.CollectionFactory;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class BookshelfNets implements BookshelfInputParser<Void> {

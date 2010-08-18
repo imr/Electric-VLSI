@@ -35,7 +35,7 @@ import java.util.BitSet;
 import java.util.Map;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class Bookshelf extends Input<Object> {
