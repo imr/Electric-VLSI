@@ -67,6 +67,7 @@ public class Bookshelf extends Input<Object> {
 		this.preferences = preferences;
 	}
 
+	@SuppressWarnings("serial")
 	public static class BookshelfPreferences extends InputPreferences {
 
 		private URL fileUrl = null;

@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.sun.corba.se.impl.orbutil.LogKeywords;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -267,8 +266,8 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 		if (true) {
 			ArcInst.newInstance(parent, protoType, name, null, headPort, tailPort, headPt, tailPt, gridExtendOverMin,
 					angle, flags);
-		} else {
-			ArcInst.makeInstance(protoType, headPort, tailPort);
+		} //else {
+			//ArcInst.makeInstance(protoType, headPort, tailPort);
 			// // make sure the arc can connect to these ports
 			// PortProto headProto = headPort.getPortProto();
 			// PortProto tailProto = tailPort.getPortProto();
@@ -290,7 +289,7 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 			// Topology topology = parent.getTopology();
 			// ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
 			// topology.addArc(ai);
-		}
+		//}
 	}
 
 	private BookshelfPin parsePin(String line, BookshelfNet net) {

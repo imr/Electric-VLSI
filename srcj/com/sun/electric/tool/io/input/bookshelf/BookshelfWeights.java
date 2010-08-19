@@ -29,8 +29,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
 
 /**
