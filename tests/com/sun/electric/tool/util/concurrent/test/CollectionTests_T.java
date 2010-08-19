@@ -24,7 +24,6 @@
 package com.sun.electric.tool.util.concurrent.test;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.electric.tool.util.IDEStructure;
@@ -34,7 +33,6 @@ import com.sun.electric.tool.util.concurrent.datastructures.CircularArray;
 import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.JavaQueueWrapper;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
-import com.sun.electric.tool.util.concurrent.datastructures.LockFreeSkipList;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 import com.sun.electric.tool.util.concurrent.datastructures.UnboundedDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
@@ -69,12 +67,6 @@ public class CollectionTests_T {
 	public void testJavaQueueWrapper() {
 		JavaQueueWrapper<Integer> queue = JavaQueueWrapper.createConcurrentQueue();
 		testIStructure(queue);
-	}
-
-	@Ignore
-	@Test
-	public void testLockFreeSkipList() {
-		testIStructure(new LockFreeSkipList<Integer>());
 	}
 
 	@Test
