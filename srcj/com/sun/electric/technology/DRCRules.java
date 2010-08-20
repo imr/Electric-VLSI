@@ -27,6 +27,7 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.geometry.GenMath;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Interface for abstracting design rules.
@@ -37,6 +38,7 @@ public interface DRCRules
     public int getRuleIndex(int index1, int index2);
     public boolean hasLayerRules(Layer layer);
     public boolean getWorstSpacingDistance(int lastMetal, GenMath.MutableDouble worstLayerRule);
+    public boolean getWorstSpacingDistance(Set<Layer> layers, GenMath.MutableDouble worstDistance);
     public boolean getMaxSurround(Layer layer, double maxSize, GenMath.MutableDouble worstLayerRule);
     public DRCTemplate getEdgeRule(Layer layer1, Layer layer2);
     public DRCTemplate getSpacingRule(Layer layer1, Geometric geo1,

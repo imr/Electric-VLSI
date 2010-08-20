@@ -694,6 +694,32 @@ public class XMLRules implements DRCRules, Serializable
 	}
 
     /**
+	 * Method to find the worst spacing distance in the design rules.
+	 * Finds the largest spacing rule in the Technology.
+     * @param lastMetal last metal to check if only metal values are requested
+     * @param worstDistance the largest spacing distance in the Technology. Zero if nothing found
+	 * @return true if a value was found
+     */
+    public boolean getWorstSpacingDistance(Set<Layer> layers, GenMath.MutableDouble worstDistance)
+	{
+        boolean worstDistanceFound = false;
+        worstDistance.setValue(0);
+        GenMath.MutableDouble worstValue = new GenMath.MutableDouble(0);
+
+        for (Layer l : layers)
+        {
+            boolean found = getMaxSurround(l, 0, worstValue);
+            if (found && worstValue.doubleValue() > worstDistance.doubleValue())
+            {
+                worstDistance.setValue(worstValue.doubleValue());
+                worstDistanceFound = true;
+            }
+        }
+
+        return worstDistanceFound;
+	}
+
+    /**
      * Fast method to know if a layer has any DRC rule associated with it
      * @param layer Layer object to analyze
      * @return True if there is at least one DRC rule
@@ -706,7 +732,8 @@ public class XMLRules implements DRCRules, Serializable
     /**
 	 * Method to find the maximum design-rule distance around a layer.
 	 * @param layer the Layer to examine.
-     * @param maxSize the maximum design-rule distance around the layer. worstLayerRule is-1 if nothing found.
+     * @param maxSize the maximum design-rule distance around the layer.
+     * @param worstLayerRule -1 if nothing found.
 	 * @return true if a value was found
 	 */
 	public boolean getMaxSurround(Layer layer, double maxSize, GenMath.MutableDouble worstLayerRule)

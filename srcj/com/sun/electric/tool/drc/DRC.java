@@ -232,7 +232,10 @@ public class DRC extends Listener
                     // sameLayer test required to check if Active layer is not identical to thick active layer
                     if (!tech.sameLayer(poly.getLayer(), layer))
                     {
-                        assert(false);
+                        // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                        if (Job.getDebug())
+                            System.out.println("DRC: Wrong Function.Set with " + layer.getName() + " and " + poly.getLayer().getName());
+//                        assert(false);
                         continue;
                     }
 
@@ -266,6 +269,9 @@ public class DRC extends Listener
                     // sameLayer test required to check if Active layer is not identical to thich actice layer
                     if (!tech.sameLayer(poly.getLayer(), layer))
                     {
+                        // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                        if (Job.getDebug())
+                            System.out.println("DRC: Wrong Function.Set with " + layer.getName() + " and " + poly.getLayer().getName());
                         continue;
                     }
                     poly.transform(moreTrans);  // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
@@ -420,6 +426,9 @@ public class DRC extends Listener
                     // sameLayer test required to check if Active layer is not identical to thich actice layer
                     if (!tech.sameLayer(poly.getLayer(), layer))
                     {
+                        // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                        if (Job.getDebug())
+                            System.out.println("DRC: Wrong Function.Set with " + layer.getName() + " and " + poly.getLayer().getName());
                         continue;
                     }
 
@@ -450,6 +459,9 @@ public class DRC extends Listener
                     // sameLayer test required to check if Active layer is not identical to thich actice layer
                     if (!tech.sameLayer(poly.getLayer(), layer))
                     {
+                        // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                        if (Job.getDebug())
+                            System.out.println("DRC: Wrong Function.Set with " + layer.getName() + " and " + poly.getLayer().getName());
                         continue;
                     }
 
@@ -1465,6 +1477,25 @@ public class DRC extends Listener
         if (!found)
             System.out.println("Not found in DRC.getWorstSpacingDistance");
         return mutableDist.doubleValue();
+    }
+
+    /**
+	 * Method to find the worst spacing distance in the design rules for a given list of layers.
+	 * Finds the largest spacing rule in the Technology for those layers.
+	 * @param tech the Technology to examine.
+     * @param layers List of layers to check
+     * @return the largest spacing distance in the Technology for the given layers. Zero if nothing found
+	 */
+	public static double getWorstSpacingDistance(Technology tech, Set<Layer> layers)
+	{
+		DRCRules rules = getRules(tech);
+		if (rules == null)
+            return 0;
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+        boolean found = rules.getWorstSpacingDistance(layers, mutableDist);
+        if (!found)
+            System.out.println("Not found in DRC.getWorstSpacingDistance");
+        return mutableDist.doubleValue();             //Set<Layer> layers, GenMath.MutableDouble worstDistance
     }
 
     /**
