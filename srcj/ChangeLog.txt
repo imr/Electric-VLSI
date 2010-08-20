@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+BUG: (8/20/10, DN) Round-off errors in NodeInst.setTrace (Bug #2893)
+FIX: Use EPoints in NodeInst.setTrace.
+
 IMP: (8/19/10, GVG) Remove class MOSRules (Bug #2880)
 
 BUG: (8/18/10, GVG) NPE in Multi-threaded DRC (Bug #2889)

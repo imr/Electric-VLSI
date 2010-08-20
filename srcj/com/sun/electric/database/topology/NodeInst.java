@@ -2268,23 +2268,37 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 hY = y;
             }
         }
-        double newCX = (lX + hX) / 2;
-        double newCY = (lY + hY) / 2;
-        double newSX = hX - lX;
-        double newSY = hY - lY;
+        EPoint newAnchor = EPoint.fromLambda((lX + hX) / 2, (lY + hY) / 2);
+        long newSX = 0;
+        long newSY = 0;
         EPoint[] newPoints = new EPoint[points.length];
         for (int i = 0; i < newPoints.length; i++) {
             if (points[i] != null) {
-                newPoints[i] = new EPoint(points[i].getX() - newCX, points[i].getY() - newCY);
+                EPoint p = EPoint.fromLambda(points[i].getX() - newAnchor.getLambdaX(), points[i].getY() - newAnchor.getLambdaY());
+                newSX = Math.max(newSX, Math.abs(p.getGridX()));
+                newSY = Math.max(newSY, Math.abs(p.getGridY()));
+                newPoints[i] = p;
             }
         }
+//        double newCX = (lX + hX) / 2;
+//        double newCY = (lY + hY) / 2;
+//        double newSX = hX - lX;
+//        double newSY = hY - lY;
+//        EPoint[] newPoints = new EPoint[points.length];
+//        for (int i = 0; i < newPoints.length; i++) {
+//            if (points[i] != null) {
+//                newPoints[i] = new EPoint(points[i].getX() - newCX, points[i].getY() - newCY);
+//            }
+//        }
 
         // update the points
         newVar(NodeInst.TRACE, newPoints);
 
         // Force instance to have IDENT Orientation
-        modifyInstance(newCX - getAnchorCenterX(), newCY - getAnchorCenterY(), newSX - getXSize(),
-                newSY - getYSize(), getOrient().inverse());
+        modifyInstance(newAnchor.getLambdaX() - getAnchorCenterX(), newAnchor.getLambdaY() - getAnchorCenterY(),
+                DBMath.gridToLambda(newSX) - getXSize(),
+                DBMath.gridToLambda(newSY) - getYSize(),
+                getOrient().inverse());
     }
 
     /**
