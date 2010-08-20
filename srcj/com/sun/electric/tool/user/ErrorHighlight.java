@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -143,6 +144,10 @@ public abstract class ErrorHighlight implements Serializable {
         if (geom instanceof NodeInst)
             return new ErrorHighNode(cont, (NodeInst)geom);
         return new ErrorHighArc(cont, (ArcInst)geom);
+    }
+
+    public static ErrorHighlight newInstance(CellId cellId, ImmutableNodeInst n) {
+        return new ErrorHighNode(cellId, n.nodeId);
     }
 
     public static ErrorHighlight newInstance(Cell cell, Point2D p1, Point2D p2) {

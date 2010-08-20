@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+IMP: (8/20/10, DN) ErrorLogger knows about ImmutableNodeInsts.
+
 BUG: (8/20/10, DN) Round-off errors in NodeInst.setTrace (Bug #2893)
 FIX: Use EPoints in NodeInst.setTrace.
 

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -50,6 +51,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -555,37 +557,41 @@ public class ErrorLogger implements Serializable
     /**
      * Factory method to log an error or warning message.
      * @param message the string to display.
-     * @param list a list of nodes, arcs, exports or polygons, points to display. Must be no null.
+     * @param objs a collection of nodes, arcs, exports or polygons, points to display. Must be no null.
      * @param cell the cell in which this message applies.
      * @param sortKey the sorting order of this message.
      * @param isErrorMsg true if an error message is logged
      */
-    public synchronized void logMessage(String message, List<?> list, Cell cell, int sortKey, boolean isErrorMsg)
+    public synchronized void logMessage(String message, Collection<?> objs, Cell cell, int sortKey, boolean isErrorMsg)
     {
-        logMessageWithLines(message, list, null, cell, sortKey, isErrorMsg);
+        logMessageWithLines(message, objs, null, cell, sortKey, isErrorMsg);
     }
 
     /**
      * Factory method to log an error or warning message with extra lines.
      * @param message the string to display.
-     * @param list a list of nodes, arcs, exports or polygons, points to display. Must be no null.
-     * @param lineList a list of points defining a set of lines (may be null)
+     * @param objs a objs of nodes, arcs, exports or polygons, points to display. Must be no null.
+     * @param lineList a collection of points defining a set of lines (may be null)
      * @param cell the cell in which this message applies.
      * @param sortKey the sorting order of this message.
      * @param isErrorMsg true if an error message is logged
      */
-    public synchronized void logMessageWithLines(String message, List<?> list, List<EPoint> lineList,
+    public synchronized void logMessageWithLines(String message, Collection<?> objs, List<EPoint> lineList,
                                                  Cell cell, int sortKey, boolean isErrorMsg)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
 
-        if (list != null)
+        if (objs != null)
         {
-            for (Object obj : list)
+            for (Object obj : objs)
             {
                 if (obj instanceof Geometric)
                 {
                      h.add(ErrorHighlight.newInstance(null, (Geometric)obj));
+                }
+                else if (obj instanceof ImmutableNodeInst)
+                {
+                    h.add(ErrorHighlight.newInstance(cell.getId(), (ImmutableNodeInst)obj));
                 }
                 else if (obj instanceof Export)
                 {
