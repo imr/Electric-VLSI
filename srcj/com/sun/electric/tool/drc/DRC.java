@@ -78,15 +78,7 @@ public class DRC extends Listener
     /** to temporary store DRC dates for area checking */    private static Map<Cell,StoreDRCInfo> storedAreaDRCDate = new HashMap<Cell,StoreDRCInfo>();
 
     static final double TINYDELTA = DBMath.getEpsilon()*1.1;
-    /** key of Variable holding DRC Cell annotations. */	static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");
-
-    static Layer.Function.Set getMultiLayersSet(Layer layer)
-    {
-        Layer.Function.Set thisLayerFunction = (layer.getFunction().isPoly()) ?
-        new Layer.Function.Set(Layer.Function.POLY1, Layer.Function.GATE) :
-        new Layer.Function.Set(layer);
-        return thisLayerFunction;
-    }
+    /** key of Variable holding DRC Cell annotations. */	static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");  
 
     /*********************************** Annotations ***********************************/
     public static void makeDRCAnnotation()
@@ -121,6 +113,7 @@ public class DRC extends Listener
         Rectangle2D polyBounds = poly.getBox();
         if (polyBounds == null) return;
         polyBounds = new Rectangle2D.Double(polyBounds.getMinX(), polyBounds.getMinY(), polyBounds.getWidth(), polyBounds.getHeight());
+        Layer.Function.Set set = Layer.getMultiLayersSet(poly.getLayer());
 
         // search for adjoining transistor in the cell
         boolean cropped = false;
@@ -134,8 +127,10 @@ public class DRC extends Listener
             // crop the arc against this transistor
             AffineTransform trans = ni.rotateOut();
             Technology tech = ni.getProto().getTechnology();
-            Poly [] activeCropPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+            Poly [] activeCropPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, set);
+
             int nTot = activeCropPolyList.length;
+
             for(int k=0; k<nTot; k++)
             {
                 Poly nPoly = activeCropPolyList[k];
@@ -180,11 +175,13 @@ public class DRC extends Listener
      * If all locations are found, returns true.
      */
     static boolean lookForLayerCoverage(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
-                                   Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
-                                   Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
-                                   boolean overlap, Layer.Function.Set layerFunction, boolean ignoreSameGeometry,
-                                   boolean ignoreCenterCuts)
+                                        Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
+                                        Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
+                                        boolean overlap, Layer.Function.Set layerFunction, boolean ignoreSameGeometry,
+                                        boolean ignoreCenterCuts)
     {
+        assert(layerFunction != null);
+
         int j;
         Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
 
@@ -226,14 +223,16 @@ public class DRC extends Listener
                 Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                 // and poly.polySame(poly1) will never be true. CONTRADICTION!
-                Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction); // consistent change!);
+                Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction);
                 int tot = layerLookPolyList.length;
+                
                 for (int i = 0; i < tot; i++)
                 {
                     Poly poly = layerLookPolyList[i];
                     // sameLayer test required to check if Active layer is not identical to thick active layer
                     if (!tech.sameLayer(poly.getLayer(), layer))
                     {
+                        assert(false);
                         continue;
                     }
 
@@ -258,7 +257,8 @@ public class DRC extends Listener
             {
                 ArcInst ai = (ArcInst) g;
                 Technology tech = ai.getProto().getTechnology();
-                Poly[] layerLookPolyList = tech.getShapeOfArc(ai, layerFunction); // consistent change!);
+                Poly[] layerLookPolyList = tech.getShapeOfArc(ai, layerFunction);
+
                 int tot = layerLookPolyList.length;
                 for (int i = 0; i < tot; i++)
                 {
@@ -298,6 +298,7 @@ public class DRC extends Listener
                                                DRCTemplate minWidthRule, int dir, boolean onlyOne, boolean reportError,
                                                Layer.Function.Set layerFunction, ReportInfo reportInfo)
     {
+        assert(layerFunction != null);
         double actual = 0;
         Point2D left1, left2, left3, right1, right2, right3;
         //if (bounds.getWidth() < minWidthRule.value)
@@ -377,6 +378,7 @@ public class DRC extends Listener
                                 Rectangle2D bounds, Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
                                 Layer.Function.Set layerFunction, boolean ignoreCenterCuts)
     {
+        assert(layerFunction != null);
         int j;
         boolean skip = false;
         Rectangle2D newBounds = new Rectangle2D.Double();  // sept 30
@@ -409,9 +411,9 @@ public class DRC extends Listener
                 AffineTransform bound = ni.rotateOut();
                 bound.preConcatenate(moreTrans);
                 Technology tech = ni.getProto().getTechnology();
-                Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction); // consistent change!
-//                layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+                Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction);
                 int tot = layerLookPolyList.length;
+
                 for (int i = 0; i < tot; i++)
                 {
                     Poly poly = layerLookPolyList[i];
@@ -439,8 +441,9 @@ public class DRC extends Listener
             {
                 ArcInst ai = (ArcInst) g;
                 Technology tech = ai.getProto().getTechnology();
-                Poly[] layerLookPolyList = tech.getShapeOfArc(ai, layerFunction); // consistent change!);
+                Poly[] layerLookPolyList = tech.getShapeOfArc(ai, layerFunction);
                 int tot = layerLookPolyList.length;
+                
                 for (int i = 0; i < tot; i++)
                 {
                     Poly poly = layerLookPolyList[i];
@@ -470,7 +473,7 @@ public class DRC extends Listener
                 return true;
             }
         }
-        if (skip) System.out.println("This case in lookForLayerNew antes");
+        if (skip) System.out.println("This case in lookForLayerNew before");
 
         return false;
     }
@@ -479,6 +482,7 @@ public class DRC extends Listener
                                           DRCTemplate minWidthRule, boolean reportError,
                                           Layer.Function.Set layerFunction, ReportInfo reportInfo)
     {
+        assert(layerFunction != null);
         Cell cell = geom.getParent();
         if (minWidthRule == null) return false;
 
@@ -524,7 +528,7 @@ public class DRC extends Listener
             boolean [] pointsFound = new boolean[3];
             pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
             boolean found = lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID,  poly.getBounds2D(),
-                from, to, center, pointsFound, true, null, true, reportInfo.ignoreCenterCuts);
+                from, to, center, pointsFound, true, layerFunction, true, reportInfo.ignoreCenterCuts);
             if (found) return false; // no error, flat element covered by othe elements.
 
             if (reportError)
@@ -742,6 +746,39 @@ public class DRC extends Listener
         return notOk;
     }
 
+    /**
+     * Method to retrieve only Polys from a NodeInst associated with layers with rules.
+     * @param tech
+     * @param reportInfo
+     * @param ni
+     * @return
+     */
+    static Poly [] getShapeOfNodeBasedOnRules(Technology tech, ReportInfo reportInfo, NodeInst ni)
+    {
+        // get layers from the NodeInst. Not a cell at this point.
+        Layer.Function.Set setFunction = getOnlyLayersWithRulesFromPrimitive(ni.getProto(), tech);
+
+        // get all of the polygons on this node
+		return tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, setFunction);
+    }
+
+    /**
+     * Method to retrieve only Polyss from an ArcInst associated with layers with rules.
+     * @param tech
+     * @param ai
+     * @return
+     */
+    static Poly[] getShapeOfArcBasedOnRules(Technology tech, ArcInst ai)
+    {
+                // get layers from the NodeInst. Not a cell at this point.
+        Layer.Function.Set setFunction = getOnlyLayersWithRulesFromArc(ai.getProto(), tech);
+
+        // get all of the polygons on this arc
+		Poly [] arcInstPolyList = tech.getShapeOfArc(ai, setFunction);
+//        Poly [] arcInstPolyListOLD = tech.getShapeOfArc(ai);
+        return arcInstPolyList;
+    }
+
     /*********************************** QUICK DRC ERROR REPORTING ***********************************/
     public static enum DRCErrorType
     {
@@ -775,7 +812,7 @@ public class DRC extends Listener
             this.dp = dp;
             interactiveLogger = dp.interactiveLog;
             activeSpacingBits = DRC.getActiveBits(tech, dp);
-            worstInteractionDistance = DRC.getWorstSpacingDistance(tech, -1);
+            worstInteractionDistance = getWorstSpacingDistance(tech, -1);
             // minimim resolution different from zero if flag is on otherwise stays at zero (default)
             minAllowedResolution = dp.getResolution(tech);
             ignoreCenterCuts = dp.ignoreCenterCuts;

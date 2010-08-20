@@ -191,7 +191,7 @@ public class MTDRCAreaTool extends MTDRCTool
             this.topCell = topC;
             this.reportInfo = rI;
             this.theLayer = layer;
-            this.thisLayerFunction = DRC.getMultiLayersSet(theLayer);
+            this.thisLayerFunction = Layer.getMultiLayersSet(theLayer);
             this.mode = m;
             cellsMap = new HashMap<Cell,GeometryHandlerLayerBucket>();
             nodesList = new ArrayList<PrimitiveNode>();

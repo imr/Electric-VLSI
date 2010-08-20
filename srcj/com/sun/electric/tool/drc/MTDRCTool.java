@@ -41,7 +41,6 @@ import java.util.*;
  * Date: Dec 12, 2007
  */
 public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResult, MTDRCTool.MTDRCResult>
-//public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResult, MTDRCTool.MTDRCResult>
 {
     protected DRC.DRCPreferences dp;
     protected Cell topCell;
@@ -72,7 +71,11 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
         {
             Layer layer = tech.findLayer(layerS);
             assert (layer != null); // it should always be a valid layer
-            startTask(layer.getName(), layer);
+            if (rules.hasLayerRules(layer))
+                startTask(layer.getName(), layer);
+            // might not be very efficient if print is done here.
+//            else
+//                System.out.println("Skping Layer '" + layer.getName() + "' since it has no rules");
         }
         if (!checkArea())
             startTask("Node Min Size.", null);

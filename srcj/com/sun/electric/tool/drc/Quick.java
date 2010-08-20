@@ -716,26 +716,22 @@ public class Quick
 
         // get layers from the NodeInst. Not a cell at this point.
         // get all of the polygons on this node
-		Poly [] nodeInstPolyList = getShapeOfNodeBasedOnRules(tech, ni);
-//		Poly [] nodeInstPolyListOLD = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
+		Poly [] nodeInstPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, ni);
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
         boolean isTransistor =  np.getFunction().isTransistor();
         Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
-
-//        if (tot != nodeInstPolyListOLD.length)
-//        {
-//            System.out.println("IMprove here");
-//            tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, setFunction);
-//            DRC.getLayersWithRulesOnly((PrimitiveNode)np);
-//        }
 
         // examine the polygons on this node
 		for(int j=0; j<tot; j++)
 		{
 			Poly poly = nodeInstPolyList[j];
 			Layer layer = poly.getLayer();
-			if (layer == null) continue;
+			if (layer == null)
+            {
+                assert(false); // should this happen?
+                continue;
+            }
 
             if (coverByExclusion(poly, cell))
                 continue;
@@ -834,15 +830,8 @@ public class Quick
         }
 
 		Technology tech = ai.getProto().getTechnology();
-        // get layers from the NodeInst. Not a cell at this point.
-        Layer.Function.Set setFunction = DRC.getOnlyLayersWithRulesFromArc(ai.getProto(), tech);
-
         // get all of the polygons on this arc
-		Poly [] arcInstPolyList = tech.getShapeOfArc(ai, setFunction);
-        Poly [] arcInstPolyListOLD = tech.getShapeOfArc(ai);
-
-        if (arcInstPolyList.length != arcInstPolyListOLD.length)
-             System.out.println("IMprove Arc here");
+		Poly [] arcInstPolyList = DRC.getShapeOfArcBasedOnRules(tech, ai);
 
         // Check resolution before cropping the
         for(Poly poly : arcInstPolyList)
@@ -1027,8 +1016,7 @@ public class Quick
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
 					Technology tech = np.getTechnology();
-//					Poly [] primPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
-                    Poly [] primPolyList = getShapeOfNodeBasedOnRules(tech, ni);
+                    Poly [] primPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, ni);
                     convertPseudoLayers(ni, primPolyList);
 					int tot = primPolyList.length;
                     Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
@@ -1039,6 +1027,7 @@ public class Quick
 						Layer layer = poly.getLayer();
 						if (layer == null)
                         {
+                            assert(false); // should this happen?
                             if (Job.LOCALDEBUGFLAG) System.out.println("When is this case?");
                             continue;
                         }
@@ -1069,8 +1058,9 @@ public class Quick
 					continue;
 				}
 
-				Poly [] arcPolyList = tech.getShapeOfArc(ai);
-				int tot = arcPolyList.length;
+//				Poly [] arcPolyList = tech.getShapeOfArc(ai);
+                Poly [] arcPolyList = DRC.getShapeOfArcBasedOnRules(tech, ai);
+                int tot = arcPolyList.length;
 				for(int j=0; j<tot; j++)
 					arcPolyList[j].transform(upTrans);
 				DRC.cropActiveArc(ai, reportInfo.ignoreCenterCuts, arcPolyList);
@@ -1079,7 +1069,11 @@ public class Quick
 					Poly poly = arcPolyList[j];
 					Layer layer = poly.getLayer();
 					if (layer == null) continue;
-					if (layer.isNonElectrical()) continue;
+					if (layer.isNonElectrical())
+                    {
+                        assert(false); // should this happen?
+                        continue;
+                    }
 					Network jNet = netlist.getNetwork(ai, 0);
 					int net = -1;
 					if (jNet != null)
@@ -1264,8 +1258,7 @@ public class Quick
 					rTrans.preConcatenate(upTrans);
 
 					// get the shape of each nodeinst layer
-//					Poly [] subPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
-                    Poly [] subPolyList = getShapeOfNodeBasedOnRules(tech, ni);
+                    Poly [] subPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, ni);
                     convertPseudoLayers(ni, subPolyList);
 					int tot = subPolyList.length;
 					for(int i=0; i<tot; i++)
@@ -1303,7 +1296,11 @@ public class Quick
 					{
 						Poly npoly = subPolyList[j];
 						Layer nLayer = npoly.getLayer();
-						if (nLayer == null) continue;
+						if (nLayer == null)
+                        {
+                            assert(false); // should this happen?
+                            continue;
+                        }
 
                         if (coverByExclusion(npoly, nGeom.getParent()))
                             continue;
@@ -1419,8 +1416,9 @@ public class Quick
 //				if (con && touch) continue;
 
                 // get the shape of each arcinst layer
-				Poly [] subPolyList = tech.getShapeOfArc(ai);
-				int tot = subPolyList.length;
+//				Poly [] subPolyList = tech.getShapeOfArc(ai);
+                Poly [] subPolyList = DRC.getShapeOfArcBasedOnRules(tech, ai);
+                int tot = subPolyList.length;
 				for(int i=0; i<tot; i++)
 					subPolyList[i].transform(upTrans);
 				DRC.cropActiveArc(ai, reportInfo.ignoreCenterCuts, subPolyList);
@@ -1641,8 +1639,9 @@ public class Quick
         }
         // looking if points around the overlapping area are inside another region
         // to avoid the error
+        Layer.Function.Set set = Layer.getMultiLayersSet(layer1);
         DRC.lookForLayerCoverage(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1d, pt2d, null, pointsFound, false, null, false, reportInfo.ignoreCenterCuts);
+                pt1d, pt2d, null, pointsFound, false, set, false, reportInfo.ignoreCenterCuts);
         // Nothing found
         if (!pointsFound[0] && !pointsFound[1])
         {
@@ -1725,8 +1724,7 @@ public class Quick
             }
             if (geom1IsNode)
 			{
-				if (cropNodeInst((NodeInst)geom1, globalIndex1, trans1,
-				        layer2, net2, geom2, trueBox2))
+				if (cropNodeInst((NodeInst)geom1, globalIndex1, trans1, layer2, net2, geom2, trueBox2))
 					return errorFound;
 //			} else
 //			{
@@ -1735,8 +1733,7 @@ public class Quick
 			}
 			if (geom2 instanceof NodeInst)
 			{
-				if (cropNodeInst((NodeInst)geom2, globalIndex2, trans2,
-				        layer1, net1, geom1, trueBox1))
+				if (cropNodeInst((NodeInst)geom2, globalIndex2, trans2, layer1, net1, geom1, trueBox1))
 					return errorFound;
 //			} else
 //			{
@@ -2000,21 +1997,6 @@ public class Quick
 		return false;
 	}
 
-    private static int countSkip = 0;
-
-    private Poly [] getShapeOfNodeBasedOnRules(Technology tech, NodeInst ni)
-    {
-        // get layers from the NodeInst. Not a cell at this point.
-        Layer.Function.Set setFunction = DRC.getOnlyLayersWithRulesFromPrimitive(ni.getProto(), tech);
-
-        // get all of the polygons on this node
-		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, setFunction);
-//		Poly [] nodeInstPolyListOLD = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
-//        if (nodeInstPolyList.length != nodeInstPolyListOLD.length)
-//             System.out.println("IMprove here " + countSkip++);
-        return nodeInstPolyList;
-    }
-
     /**
 	 * Method to check primitive object "geom" (an arcinst or primitive nodeinst) against cell instance "ni".
 	 * Returns TRUE if there are design-rule violations in their interaction.
@@ -2040,7 +2022,7 @@ public class Quick
 
 			tech = oNi.getProto().getTechnology();
 			trans = oNi.rotateOut();
-			nodeInstPolyList = getShapeOfNodeBasedOnRules(tech, oNi);
+			nodeInstPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, oNi);
 			convertPseudoLayers(oNi, nodeInstPolyList);
             multiCutData = tech.getMultiCutData(oNi);
 //            baseMulti = tech.isMultiCutCase(oNi);
@@ -2049,7 +2031,8 @@ public class Quick
 			ArcInst oAi = (ArcInst)geom;
 			tech = oAi.getProto().getTechnology();
 			nodeInstPolyList = tech.getShapeOfArc(oAi);
-		}
+//            nodeInstPolyList = DRC.getShapeOfArcBasedOnRules(tech, oAi);
+        }
 		if (nodeInstPolyList == null) return false;
 		int tot = nodeInstPolyList.length;
 
@@ -2063,7 +2046,11 @@ public class Quick
 		{
 			Poly poly = nodeInstPolyList[j];
 			Layer polyLayer = poly.getLayer();
-			if (polyLayer == null) continue;
+			if (polyLayer == null)
+            {
+                assert(false); // should this happen?
+                continue;
+            }
 
 			// see how far around the box it is necessary to search
 			double maxSize = poly.getMaxSize();
@@ -2364,8 +2351,7 @@ public class Quick
      * @param ignoreCenterCuts
      * @return true if conditional layers are found for the test points
      */
-    private boolean searchForCondLayer(Geometric geom, Poly poly, Layer layer, Cell cell,
-                                       boolean ignoreCenterCuts)
+    private boolean searchForCondLayer(Geometric geom, Poly poly, Layer layer, Cell cell, boolean ignoreCenterCuts)
     {
         Rectangle2D polyBnd = poly.getBounds2D();
         double midPointX = (polyBnd.getMinX() + polyBnd.getMaxX())/2;
@@ -2381,9 +2367,11 @@ public class Quick
         // to avoid the error
         boolean [] pointsFound = new boolean[3];
 		pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+
+        Layer.Function.Set set = Layer.getMultiLayersSet(layer);
         // Test first with a vertical line
         boolean found = DRC.lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, pt3,
-                pointsFound, true, null, false, ignoreCenterCuts);
+                pointsFound, true, set, false, ignoreCenterCuts);
         if (!found)
             return found; // no need of checking horizontal line if the vertical test was not positive
         pt1.setLocation(polyBnd.getMinX(), midPointY);
@@ -2391,7 +2379,7 @@ public class Quick
         pointsFound[0] = pointsFound[1] = false;
         pointsFound[2] = true; // no testing pt3 again
         found = DRC.lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, null,
-                pointsFound, true, null, false, ignoreCenterCuts);
+                pointsFound, true, set, false, ignoreCenterCuts);
         return found;
     }
 
@@ -2404,12 +2392,13 @@ public class Quick
     private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
     {
         DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID);
+        Layer.Function.Set set = Layer.getMultiLayersSet(layer);
         boolean errorDefault = false;
 
         // Only if there is one default size
         if (minWidthRule != null)
         {
-            errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false, null, reportInfo);
+            errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false, set, reportInfo);
             if (!errorDefault) return false; // the default condition is the valid one.
         }
 
@@ -2419,7 +2408,7 @@ public class Quick
         {
             // Now the error is reporte. Not very efficient
             if (errorDefault)
-                DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, null, reportInfo);
+                DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, set, reportInfo);
             return errorDefault;
         }
 
@@ -2437,9 +2426,9 @@ public class Quick
         }
         // If condition is met then the new rule applied.
         if (found)
-           errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true, null, reportInfo);
+           errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true, set, reportInfo);
         else if (errorDefault) // report the errors here in case of default values
-            DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, null, reportInfo);
+            DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, set, reportInfo);
         return errorDefault;
     }
 
@@ -2878,8 +2867,9 @@ public class Quick
 		// search the cell for geometry that fills the notch
 		boolean [] pointsFound = new boolean[2];
 		pointsFound[0] = pointsFound[1] = false;
-		boolean allFound = DRC.lookForLayerCoverage(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-		        pt1, pt2, null, pointsFound, overlap, null, false, reportInfo.ignoreCenterCuts);
+        Layer.Function.Set set = Layer.getMultiLayersSet(layer);
+        boolean allFound = DRC.lookForLayerCoverage(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
+		        pt1, pt2, null, pointsFound, overlap, set, false, reportInfo.ignoreCenterCuts);
 
 		return allFound;
 	}
@@ -2899,8 +2889,9 @@ public class Quick
 
         int j;
         Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
+        Layer.Function.Set set = Layer.getMultiLayersSet(layer);
 
-		for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
+        for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
 		{
 			RTBounds g = it.next();
 
@@ -2927,7 +2918,7 @@ public class Quick
 					AffineTransform trans = ni.translateOut(ni.rotateOut());
 					trans.preConcatenate(moreTrans);
 					if (lookForLayerWithPoints(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
-                            pts, pointsFound, length, overlap))
+                        pts, pointsFound, length, overlap))
 							return true;
 					continue;
 				}
@@ -2936,13 +2927,21 @@ public class Quick
 				Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                 // and poly.polySame(poly1) will never be true. CONTRADICTION!
-                // Gilda Aug10: This can be improved!!! since you need only polygons with same layers????
-                Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, null);
-				int tot = layerLookPolyList.length;
-				for(int i=0; i<tot; i++)
+                Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, set);
+                int tot = layerLookPolyList.length;
+
+                for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+                    // Gilda Aug10: This condition should be removed if we don't get these errors!
+                    if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                        if (Job.getDebug())
+                            System.out.println("Wrong Function.Set with " + layer.getName() + " and " + poly.getLayer().getName());
+//                        assert(false); // should this happen?
+                        continue;
+                    }
 
                     // Should be the transform before?
 					poly.transform(bound);
@@ -2971,7 +2970,14 @@ public class Quick
 				for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+                    // Gilda Aug10: This condition should be removed if we don't get these errors!
+                    if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                        if (Job.getDebug())
+                            System.out.println("Wrong Function.Set with " + layer.getName() + " and " + poly.getLayer().getName());
+                        continue;
+                    }
 					poly.transform(moreTrans);
 
                     for (j = 0; j < length; j++)
@@ -3898,14 +3904,12 @@ public class Quick
 	{
 		Technology tech = ni.getProto().getTechnology();
         assert(!ni.getProto().getFunction().isPin());
-        // Gilda Aug10: optimize the function call using Layer.Function.Set!!!
-        Poly [] cropNodePolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
-		convertPseudoLayers(ni, cropNodePolyList);
+        Layer.Function.Set set = Layer.getMultiLayersSet(nLayer);
+        Poly [] cropNodePolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, set);
+
+        convertPseudoLayers(ni, cropNodePolyList);
 		int tot = cropNodePolyList.length;
 		if (tot < 0) return false;
-        // Change #1
-//		for(int j=0; j<tot; j++)
-//			cropNodePolyList[j].transform(trans);
         boolean [] rotated = new boolean[tot];
         Arrays.fill(rotated, false);
 		boolean isConnected = false;
@@ -3913,7 +3917,13 @@ public class Quick
 		for(int j=0; j<tot; j++)
 		{
 			Poly poly = cropNodePolyList[j];
-			if (!tech.sameLayer(poly.getLayer(), nLayer)) continue;
+            if (!tech.sameLayer(poly.getLayer(), nLayer))
+            {
+                // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                if (Job.getDebug())
+                    System.out.println("Wrong Function.Set with " + nLayer.getName() + " and " + poly.getLayer().getName());
+                continue;
+            }
             //only transform when poly is valid
             poly.transform(trans); // change 1
             rotated[j] = true;
@@ -3935,7 +3945,14 @@ public class Quick
         for(int j=0; j<tot; j++)
         {
             Poly poly = cropNodePolyList[j];
-            if (!tech.sameLayer(poly.getLayer(), nLayer)) continue;
+            if (!tech.sameLayer(poly.getLayer(), nLayer))
+            {
+                // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                if (Job.getDebug())
+                    System.out.println("Wrong Function.Set with " + nLayer.getName() + " and " + poly.getLayer().getName());
+//                assert(false); // should this happen?
+                continue;
+            }
 
             if (!rotated[j]) poly.transform(trans); // change 1
 
@@ -4005,13 +4022,21 @@ public class Quick
 //                }
 //            }
 //            else
-            // Gilda Aug10: optimize function call using Layer.Function.Set????
-                cropArcPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, null);
-			int tot = cropArcPolyList.length;
+            Layer.Function.Set set = Layer.getMultiLayersSet(lay);
+            cropArcPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, set);
+
+            int tot = cropArcPolyList.length;
 			for(int j=0; j<tot; j++)
 			{
 				Poly poly = cropArcPolyList[j];
-				if (!tech.sameLayer(poly.getLayer(), lay)) continue;
+                if (!tech.sameLayer(poly.getLayer(), lay))
+                {
+                    // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                    if (Job.getDebug())
+                        System.out.println("Wrong Function.Set with " + lay.getName() + " and " + poly.getLayer().getName());
+//                    assert(false); // should this happen?
+                    continue;
+                }
 				poly.transform(trans);
 
 				// warning: does not handle arbitrary polygons, only boxes
@@ -4140,7 +4165,9 @@ public class Quick
 	 * Method to recursively scan cell "cell" (transformed with "trans") searching
 	 * for DRC Exclusion nodes.  Each node is added to the global list "exclusionList".
 	 */
-	private void accumulateExclusion(Cell cell)
+    private NodeProto drcNodeProto = Generic.tech().drcNode;
+
+    private void accumulateExclusion(Cell cell)
 	{
         Area area = null;
 
@@ -4148,7 +4175,7 @@ public class Quick
 		{
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
-			if (np == Generic.tech().drcNode)
+			if (np == drcNodeProto) //Generic.tech().drcNode)
 			{
                 // Must get polygon from getNodeShape otherwise it will miss
                 // rings

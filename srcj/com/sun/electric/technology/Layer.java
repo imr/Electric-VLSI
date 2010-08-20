@@ -79,6 +79,19 @@ public class Layer implements Serializable, Comparable
     private static final LayerNumbers polyLayers = new LayerNumbers();
     private static List<Function> allFunctions;
 
+    /**
+     * Get Function Set associated to a given Layer
+     * @param layer
+     * @return
+     */
+    public static Function.Set getMultiLayersSet(Layer layer)
+    {
+        Function.Set thisLayerFunction = (layer.getFunction().isPoly()) ?
+        new Function.Set(Function.POLY1, Function.GATE) :
+        new Function.Set(layer);
+        return thisLayerFunction;
+    }
+
     private static class LayerNumbers
     {
     	private final ArrayList<Function> list;

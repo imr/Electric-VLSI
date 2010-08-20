@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+IMP: (8/9/10, GVG) Working on "DRC slow for the tfc chip" (Bug #2851).
+More ways to reduce getShapeOfNode() for only layers with rules.
+
+BUG: (8/20/10, GVG) MDT DRC not properly skipping layers without rules (Bug #2991)
+FIX: Aplying rules filter during task creation
+
 IMP: (8/20/10, DN) ErrorLogger knows about ImmutableNodeInsts.
 
 BUG: (8/20/10, DN) Round-off errors in NodeInst.setTrace (Bug #2893)

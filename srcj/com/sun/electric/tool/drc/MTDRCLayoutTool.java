@@ -157,7 +157,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             if (taskKey != null)
             {
                 name = "Layer " + taskKey.getName();
-                this.thisLayerFunction = DRC.getMultiLayersSet(taskKey);
+                this.thisLayerFunction = Layer.getMultiLayersSet(taskKey);
             } else
             {
                 name = "Node Min. Size";
@@ -879,6 +879,8 @@ public class MTDRCLayoutTool extends MTDRCTool
             // look for other instances surrounding this one
             Rectangle2D nodeBounds = ni.getBounds();
             double worstInteractionDistance = reportInfo.worstInteractionDistance;
+            // Gilda AUG10: Should be the worstInteractionDistance based on current layers in NI?
+            
             Rectangle2D searchBounds = new Rectangle2D.Double(
                 nodeBounds.getMinX() - worstInteractionDistance,
                 nodeBounds.getMinY() - worstInteractionDistance,
@@ -1033,7 +1035,11 @@ public class MTDRCLayoutTool extends MTDRCTool
                         Poly poly = arcPolyList[j];
                         Layer layer = poly.getLayer();
                         if (layer == null) continue;
-                        if (layer.isNonElectrical()) continue;
+                        if (layer.isNonElectrical())
+                        {
+                            assert(false); // should this happen?
+                            continue;
+                        }
                         Network jNet = netlist.getNetwork(ai, 0);
                         int net = -1;
                         if (jNet != null)
@@ -1214,7 +1220,8 @@ public class MTDRCLayoutTool extends MTDRCTool
                         rTrans.preConcatenate(upTrans);
 
                         // get the shape of each nodeinst layer
-                        Poly[] subPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
+//                        Poly[] subPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
+                        Poly [] subPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, ni);
                         convertPseudoLayers(ni, subPolyList);
                         int tot = subPolyList.length;
                         for (int i = 0; i < tot; i++)
@@ -2098,10 +2105,8 @@ public class MTDRCLayoutTool extends MTDRCTool
          */
         private boolean findInteraction(InstanceInter dii)
         {
-//		for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
             for (InstanceInter thisII : instanceInteractionList)
             {
-//			InstanceInter thisII = (InstanceInter)it.next();
                 if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
                     thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
                     thisII.dx == dii.dx && thisII.dy == dii.dy &&
@@ -2596,7 +2601,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             boolean[] pointsFound = new boolean[2];
             pointsFound[0] = pointsFound[1] = false;
             boolean allFound = DRC.lookForLayerCoverage(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-                pt1, pt2, null, pointsFound, overlap, this.thisLayerFunction, false, reportInfo.ignoreCenterCuts);
+                pt1, pt2, null, pointsFound, overlap, thisLayerFunction, false, reportInfo.ignoreCenterCuts);
 
             return allFound;
         }
@@ -2662,8 +2667,12 @@ public class MTDRCLayoutTool extends MTDRCTool
                     {
                         Poly poly = layerLookPolyList[i];
                         // sameLayer test required to check if Active layer is not identical to thich actice layer
-                        if (!tech.sameLayer(poly.getLayer(), layer))
+                         if (!tech.sameLayer(poly.getLayer(), layer))
                         {
+                            // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                            if (Job.getDebug())
+                                System.out.println("Wrong Function.Set with " + layer.getName() + " and " + poly.getLayer().getName());
+//                            assert(false); // should this happen?
                             continue;
                         }
 
@@ -2697,6 +2706,10 @@ public class MTDRCLayoutTool extends MTDRCTool
                         // sameLayer test required to check if Active layer is not identical to thich actice layer
                         if (!tech.sameLayer(poly.getLayer(), layer))
                         {
+                            // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                            if (Job.getDebug())
+                                System.out.println("Wrong Function.Set with " + layer.getName() + " and " + poly.getLayer().getName());
+//                            assert(false); // should this happen?
                             continue;
                         }
                         poly.transform(moreTrans);
@@ -3567,13 +3580,13 @@ public class MTDRCLayoutTool extends MTDRCTool
                                      Layer nLayer, int nNet, Geometric nGeom, Rectangle2D bound)
         {
             Technology tech = ni.getProto().getTechnology();
-            Poly[] cropNodePolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
+            assert(!ni.getProto().getFunction().isPin());
+            Layer.Function.Set set = Layer.getMultiLayersSet(nLayer);
+            Poly[] cropNodePolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, set);
+
             convertPseudoLayers(ni, cropNodePolyList);
             int tot = cropNodePolyList.length;
             if (tot < 0) return false;
-            // Change #1
-//		for(int j=0; j<tot; j++)
-//			cropNodePolyList[j].transform(trans);
             boolean[] rotated = new boolean[tot];
             Arrays.fill(rotated, false);
             boolean isConnected = false;
@@ -3581,7 +3594,14 @@ public class MTDRCLayoutTool extends MTDRCTool
             for (int j = 0; j < tot; j++)
             {
                 Poly poly = cropNodePolyList[j];
-                if (!tech.sameLayer(poly.getLayer(), nLayer)) continue;
+                if (!tech.sameLayer(poly.getLayer(), nLayer))
+                {
+                    // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                    if (Job.getDebug())
+                        System.out.println("Wrong Function.Set with " + nLayer.getName() + " and " + poly.getLayer().getName());
+//                    assert(false); // should this happen?
+                    continue;
+                }
                 //only transform when poly is valid
                 poly.transform(trans); // change 1
                 rotated[j] = true;
@@ -3603,7 +3623,14 @@ public class MTDRCLayoutTool extends MTDRCTool
             for (int j = 0; j < tot; j++)
             {
                 Poly poly = cropNodePolyList[j];
-                if (!tech.sameLayer(poly.getLayer(), nLayer)) continue;
+                if (!tech.sameLayer(poly.getLayer(), nLayer))
+                {
+                    // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                    if (Job.getDebug())
+                        System.out.println("Wrong Function.Set with " + nLayer.getName() + " and " + poly.getLayer().getName());
+//                    assert(false); // should this happen?
+                    continue;
+                }
 
                 if (!rotated[j]) poly.transform(trans); // change 1
 
@@ -3637,9 +3664,12 @@ public class MTDRCLayoutTool extends MTDRCTool
             {
                 // find the primitive nodeinst at the true end of the portinst
                 PortInst pi = ai.getPortInst(i);
-
                 PortOriginal fp = new PortOriginal(pi, inTrans);
                 NodeInst ni = fp.getBottomNodeInst();
+
+                if (NodeInst.isSpecialNode(ni))
+                    continue; // Dec 08 -> is a pin so ignore it
+
                 NodeProto np = ni.getProto();
                 AffineTransform trans = fp.getTransformToTop();
 
@@ -3674,12 +3704,20 @@ public class MTDRCLayoutTool extends MTDRCTool
 //                }
 //            }
 //            else
-                cropArcPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, null);
+                Layer.Function.Set set = Layer.getMultiLayersSet(lay);
+                cropArcPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, set);
+
                 int tot = cropArcPolyList.length;
                 for (int j = 0; j < tot; j++)
                 {
                     Poly poly = cropArcPolyList[j];
-                    if (!tech.sameLayer(poly.getLayer(), lay)) continue;
+                    if (!tech.sameLayer(poly.getLayer(), lay))
+                    {
+                        // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
+                        if (Job.getDebug())
+                            System.out.println("Wrong Function.Set with " + lay.getName() + " and " + poly.getLayer().getName());
+                        continue;
+                    }
                     poly.transform(trans);
 
                     // warning: does not handle arbitrary polygons, only boxes
