@@ -4557,9 +4557,9 @@ public class Quick
             for (Layer layer: vce.getLayers()) {
                 if (skipLayer(layer))
                     continue;
-                System.out.println("layer " + layer);
+//                System.out.println("layer " + layer);
                 if (vce.isBadLayer(layer)) {
-                    System.out.println("IS NOT MANHATTAN !!");
+                    System.out.println(layer + " IS NOT MANHATTAN !!");
                     continue;
                 }
         		DRCTemplate minAreaRule = minAreaLayerMap.get(layer);
