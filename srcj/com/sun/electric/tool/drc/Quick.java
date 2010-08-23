@@ -908,6 +908,15 @@ public class Quick
         if (!thisCell.isLayout())
             return false; // skips non-layout cells.
 
+        // look for other instances surrounding this one
+		Rectangle2D nodeBounds = ni.getBounds();
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+        if (!cellLayersCon.getWorstSpacingDistance(thisCell, mutableDist))
+        {
+            if (Job.getDebug())
+            System.out.println("No worst spacing distance found in Quick:checkCellInst");
+            return false;
+        }
         // get transformation out of the instance
         AffineTransform upTrans = ni.translateOut(ni.rotateOut());
 
@@ -916,18 +925,8 @@ public class Quick
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
         boolean errorFound = false;
 
-        // look for other instances surrounding this one
-		Rectangle2D nodeBounds = ni.getBounds();
-        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
-        if (!cellLayersCon.getWorstSpacingDistance(thisCell, mutableDist))
-        {
-            System.out.println("No worst spacing distance found in Quick:checkCellInst");
-            return false;
-        }
         double worstInteractionDistance = mutableDist.doubleValue();
 //        double worstInteractionDistance = reportInfo.worstInteractionDistance;
-//        if (anotherVal != worstInteractionDistance)
-//            System.out.println("How far " + anotherVal + " " + worstInteractionDistance);
 
         Rectangle2D searchBounds = new Rectangle2D.Double(
 			nodeBounds.getMinX()-worstInteractionDistance,
@@ -954,11 +953,11 @@ public class Quick
 
 			// found other instance "oNi", look for everything in "ni" that is near it
 			Rectangle2D nearNodeBounds = oNi.getBounds();
-//            double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
 //            double worstInteractionDistanceLocal = worstInteractionDistance;
             if (!cellLayersCon.getWorstSpacingDistance(oNi.getProto(), mutableDist))
             {
-                System.out.println("No worst spacing distance found in Quick:checkThisCellPlease");
+                if (Job.getDebug())
+                System.out.println("No worst spacing distance found in Quick:checkCellInst");
                 continue;
             }
             double worstInteractionDistanceLocal = mutableDist.doubleValue();
@@ -988,7 +987,10 @@ public class Quick
 		if (job != null && job.checkAbort()) return true;
 
 		Cell cell = (Cell)thisNi.getProto();
-		boolean logsFound = false;
+        if (!cell.isLayout())
+            System.out.println("Why not skipping non-layout cells");
+
+        boolean logsFound = false;
 		Netlist netlist = getCheckProto(cell).netlist;
 		Technology cellTech = cell.getTechnology();
 
@@ -1037,13 +1039,17 @@ public class Quick
 					}
 				} else
 				{
-					AffineTransform rTrans = ni.rotateOut();
-					rTrans.preConcatenate(upTrans);
 					Technology tech = np.getTechnology();
                     Poly [] primPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, ni);
                     convertPseudoLayers(ni, primPolyList);
 					int tot = primPolyList.length;
+
+                    if (tot == 0)
+                        continue;
+
                     Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
+                    AffineTransform rTrans = ni.rotateOut();
+					rTrans.preConcatenate(upTrans);
 
                     for(int j=0; j<tot; j++)
 					{
@@ -1085,7 +1091,11 @@ public class Quick
 //				Poly [] arcPolyList = tech.getShapeOfArc(ai);
                 Poly [] arcPolyList = DRC.getShapeOfArcBasedOnRules(tech, ai);
                 int tot = arcPolyList.length;
-				for(int j=0; j<tot; j++)
+
+                if (tot == 0)
+                    System.out.println("Skip crop?");
+
+                for(int j=0; j<tot; j++)
 					arcPolyList[j].transform(upTrans);
 				DRC.cropActiveArc(ai, reportInfo.ignoreCenterCuts, arcPolyList);
 				for(int j=0; j<tot; j++)
@@ -1277,19 +1287,28 @@ public class Quick
                     // because they might below to the same cell but in different instances
 					boolean touch = sameInstance && nGeom.isConnected(geom);
 
+					// get the shape of each nodeinst layer
+                    Poly [] subPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, ni);
+					int tot = subPolyList.length;
+
+                    if (tot == 0)
+                        System.out.println("Should i skup this one?");
+
+                    convertPseudoLayers(ni, subPolyList);
+
 					// prepare to examine every layer in this nodeinst
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
-
-					// get the shape of each nodeinst layer
-                    Poly [] subPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, ni);
-                    convertPseudoLayers(ni, subPolyList);
-					int tot = subPolyList.length;
 					for(int i=0; i<tot; i++)
 						subPolyList[i].transform(rTrans);
-					    /* Step 1 */
+
+                    /* Step 1 */
 					boolean multi = baseMulti;
                     Technology.MultiCutData niMCD = tech.getMultiCutData(ni);
+
+                    if (tot==0 && niMCD != null)
+                      assert(false); // does it happen?
+
                     // in case it is one via against many from another contact (3-contact configuration)
                     if (!multi && isLayerAContact && niMCD != null)
                     {
@@ -2963,18 +2982,21 @@ public class Quick
 							return true;
 					continue;
 				}
-				AffineTransform bound = ni.rotateOut();
-				bound.preConcatenate(moreTrans);
 				Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                 // and poly.polySame(poly1) will never be true. CONTRADICTION!
                 Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, set);
                 int tot = layerLookPolyList.length;
 
+                if (tot == 0)
+                    continue;
+
+				AffineTransform bound = ni.rotateOut();
+				bound.preConcatenate(moreTrans);
+
                 for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
-                    // Gilda Aug10: This condition should be removed if we don't get these errors!
                     if (!tech.sameLayer(poly.getLayer(), layer))
                     {
                         // This happens when you have implant with VTH implant, Function.Set doesn't distinguish them
@@ -3950,7 +3972,8 @@ public class Quick
 
         convertPseudoLayers(ni, cropNodePolyList);
 		int tot = cropNodePolyList.length;
-		if (tot < 0) return false;
+		if (tot <= 0) return false;
+
         boolean [] rotated = new boolean[tot];
         Arrays.fill(rotated, false);
 		boolean isConnected = false;

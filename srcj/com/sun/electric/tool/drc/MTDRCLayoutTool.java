@@ -868,14 +868,6 @@ public class MTDRCLayoutTool extends MTDRCTool
             if (!thisCell.isLayout())
                 return false; // skips non-layout cells.
 
-            // get transformation out of the instance
-            AffineTransform upTrans = ni.translateOut(ni.rotateOut());
-
-            // get network numbering for the instance
-            CheckInst ci = checkInsts.get(ni);
-            int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
-            boolean errorFound = false;
-
             // look for other instances surrounding this one
             Rectangle2D nodeBounds = ni.getBounds();
 //            double worstInteractionDistance = reportInfo.worstInteractionDistance;
@@ -885,6 +877,15 @@ public class MTDRCLayoutTool extends MTDRCTool
                 System.out.println("No worst spacing distance found in MTDRCLayoutTool:checkCellInst");
                 return false;
             }
+
+            // get transformation out of the instance
+            AffineTransform upTrans = ni.translateOut(ni.rotateOut());
+
+            // get network numbering for the instance
+            CheckInst ci = checkInsts.get(ni);
+            int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
+            boolean errorFound = false;
+
             double worstInteractionDistance = mutableDist.doubleValue();
             
             Rectangle2D searchBounds = new Rectangle2D.Double(
@@ -944,6 +945,9 @@ public class MTDRCLayoutTool extends MTDRCTool
             if (checkAbort()) return true;
 
             Cell cell = (Cell) thisNi.getProto();
+            if (!cell.isLayout())
+                System.out.println("Why not skipping non-layout cells");
+
             boolean logsFound = false;
             Netlist netlist = getCheckProto(cell).netlist;
             Technology cellTech = cell.getTechnology();
@@ -993,13 +997,17 @@ public class MTDRCLayoutTool extends MTDRCTool
                         }
                     } else
                     {
-                        AffineTransform rTrans = ni.rotateOut();
-                        rTrans.preConcatenate(upTrans);
                         Technology tech = np.getTechnology();
                         Poly[] primPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, thisLayerFunction);
                         convertPseudoLayers(ni, primPolyList);
                         int tot = primPolyList.length;
+
+                        if (tot == 0)
+                            continue;
+
                         Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
+                        AffineTransform rTrans = ni.rotateOut();
+                        rTrans.preConcatenate(upTrans);
 
                         for (int j = 0; j < tot; j++)
                         {
@@ -1227,20 +1235,27 @@ public class MTDRCLayoutTool extends MTDRCTool
                         // because they might below to the same cell but in different instances
                         boolean touch = sameInstance && nGeom.isConnected(geom);
 
+                        // get the shape of each nodeinst layer
+                        Poly [] subPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, ni);
+                        int tot = subPolyList.length;
+
+                        if (tot == 0)
+                            System.out.println("Should i skup this one?");
+
                         // prepare to examine every layer in this nodeinst
                         AffineTransform rTrans = ni.rotateOut();
                         rTrans.preConcatenate(upTrans);
-
-                        // get the shape of each nodeinst layer
-//                        Poly[] subPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
-                        Poly [] subPolyList = DRC.getShapeOfNodeBasedOnRules(tech, reportInfo, ni);
                         convertPseudoLayers(ni, subPolyList);
-                        int tot = subPolyList.length;
                         for (int i = 0; i < tot; i++)
                             subPolyList[i].transform(rTrans);
+
                         /* Step 1 */
                         boolean multi = baseMulti;
                         Technology.MultiCutData niMCD = tech.getMultiCutData(ni);
+
+                        if (tot==0 && niMCD != null)
+                            assert(false); // does it happen?
+
                         // in case it is one via against many from another contact (3-contact configuration)
                         if (!multi && isLayerAContact && niMCD != null)
                         {

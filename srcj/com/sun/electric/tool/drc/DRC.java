@@ -98,6 +98,9 @@ public class DRC extends Listener
         // look for an active layer in this arc
         int tot = pList.length;
         int diffPoly = -1;
+        if (tot == 0)
+            System.out.println("return here");
+        
         for(int j=0; j<tot; j++)
         {
             Poly poly = pList[j];
@@ -216,14 +219,18 @@ public class DRC extends Listener
                         return true;
                     continue;
                 }
-                AffineTransform bound = ni.rotateOut();
-                bound.preConcatenate(moreTrans);
                 Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                 // and poly.polySame(poly1) will never be true. CONTRADICTION!
                 Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction);
                 int tot = layerLookPolyList.length;
-                
+
+                if (tot == 0)
+                    continue;
+
+                AffineTransform bound = ni.rotateOut();
+                bound.preConcatenate(moreTrans);
+
                 for (int i = 0; i < tot; i++)
                 {
                     Poly poly = layerLookPolyList[i];
@@ -250,7 +257,8 @@ public class DRC extends Listener
                     if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
                     if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
                     for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
-                    if (j == pointsFound.length) return true;
+                    if (j == pointsFound.length)
+                        return true;
                     // No need of checking rest of the layers
                     break; // assuming only 1 polygon per layer (non-electrical)
                 }
@@ -277,7 +285,8 @@ public class DRC extends Listener
                     if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
                     if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
                     for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
-                    if (j == pointsFound.length) return true;
+                    if (j == pointsFound.length)
+                        return true;
                     // No need of checking rest of the layers
                     break;
                 }
@@ -410,11 +419,15 @@ public class DRC extends Listener
                         return true;
                     continue;
                 }
-                AffineTransform bound = ni.rotateOut();
-                bound.preConcatenate(moreTrans);
                 Technology tech = ni.getProto().getTechnology();
                 Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction);
                 int tot = layerLookPolyList.length;
+
+                if (tot == 0)
+                    continue;
+
+                AffineTransform bound = ni.rotateOut();
+                bound.preConcatenate(moreTrans);
 
                 for (int i = 0; i < tot; i++)
                 {
@@ -1490,8 +1503,6 @@ public class DRC extends Listener
             return false;
         boolean found = rules.getWorstSpacingDistance(layers, mutableDist);
         // false when cell has only pins for example
-        if (!found && Job.getDebug()) // for example cell has only pins
-            System.out.println("Not found in DRC.getWorstSpacingDistance 2");
         return found;
     }
 
