@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+BUG: (8/23/10, SMR) Array command gives preference access errors (Bug #2890).
+FIX: Made pref class for the creation job.
+
 IMP: (8/23/10, SMR) Improved "Manipulate Exports" dialog to change many
      characteristics at once (Bug #2895).
 

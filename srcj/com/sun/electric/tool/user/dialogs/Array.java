@@ -42,7 +42,12 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.drc.Quick;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.ExportChanges;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MeasureListener;
 import com.sun.electric.tool.user.ui.ToolBar;
@@ -62,6 +67,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -104,6 +110,38 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 	private static Double lastEdgeOverlapX = null, lastEdgeOverlapY = null;
 	private static Double lastCenterlineX = null, lastCenterlineY = null;
 
+	private static class ArrayPrefs implements Serializable
+	{
+		boolean linearDiagonal;
+		boolean addNames;
+		boolean DRCGood;
+		boolean transpose;
+		boolean xFlip;
+		boolean yFlip;
+		boolean xStagger;
+		boolean yStagger;
+		boolean xCenter;
+		boolean yCenter;
+		int xRepeat;
+		int yRepeat;
+
+		public ArrayPrefs()
+		{
+			linearDiagonal = prefLinearDiagonal.getBoolean();
+			addNames = prefAddNames.getBoolean();
+			DRCGood = prefDRCGood.getBoolean();
+			transpose = prefTranspose.getBoolean();
+			xFlip = prefXFlip.getBoolean();
+			yFlip = prefYFlip.getBoolean();
+			xStagger = prefXStagger.getBoolean();
+			yStagger = prefYStagger.getBoolean();
+			xCenter = prefXCenter.getBoolean();
+			yCenter = prefYCenter.getBoolean();
+			xRepeat = prefXRepeat.getInt();
+			yRepeat = prefYRepeat.getInt();
+		}
+	}
+
 	/** amount when spacing by edge overlap */				private double spacingOverX, spacingOverY;
 	/** amount when spacing by centerline distance */		private double spacingCenterlineX, spacingCenterlineY;
 	/** amount when spacing by characteristic distance */	private double essentialBndX, essentialBndY;
@@ -128,7 +166,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 				"Cannot array: nothing is highlighted in this window.");
 			return;
 		}
-		List highs = highlighter.getHighlightedEObjs(true, true);
+		List<Geometric> highs = highlighter.getHighlightedEObjs(true, true);
 		if (highs.size() == 0)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -533,6 +571,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		private boolean arcsAutoIncrement, fromRight;
         private Cell cell;
         private DRC.DRCPreferences dp;
+        private ArrayPrefs ap;
 
         protected ArrayStuff(Cell c, List<NodeInst> nodeList, List<ArcInst> arcList, List<Export> exportList,
 			int xRepeat, int yRepeat, double xOverlap, double yOverlap, double cX, double cY, boolean arcsAutoIncrement)
@@ -551,6 +590,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			this.arcsAutoIncrement = arcsAutoIncrement;
 			this.fromRight = User.isIncrementRightmostIndex();
             this.dp = new DRC.DRCPreferences(false);
+            this.ap = new ArrayPrefs();
             startJob();
 		}
 
@@ -562,7 +602,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			Geometric [] geomsToCheck = null;
 			boolean [] validity = null;
 			int checkNodeCount = 0;
-			if (prefDRCGood.getBoolean())
+			if (ap.DRCGood)
 			{
 				geomsToCheck = new NodeInst[xRepeat * yRepeat];
 				validity = new boolean[xRepeat * yRepeat];
@@ -577,17 +617,17 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			{
 				int x = index % xRepeat;
 				int y = index / xRepeat;
-				if (prefTranspose.getBoolean())
+				if (ap.transpose)
 				{
 					y = index % yRepeat;
 					x = index / yRepeat;
 				}
 				int xIndex = x;
 				int yIndex = y;
-				if (prefXCenter.getBoolean()) xIndex = x - (xRepeat-1)/2;
-				if (prefYCenter.getBoolean()) yIndex = y - (yRepeat-1)/2;
-				if (prefXRepeat.getInt() < 0) xIndex = -xIndex;
-				if (prefYRepeat.getInt() < 0) yIndex = -yIndex;
+				if (ap.xCenter) xIndex = x - (xRepeat-1)/2;
+				if (ap.yCenter) yIndex = y - (yRepeat-1)/2;
+				if (ap.xRepeat < 0) xIndex = -xIndex;
+				if (ap.yRepeat < 0) yIndex = -yIndex;
 				if (xIndex == 0 && yIndex == 0)
 				{
 					originalX = x;
@@ -601,20 +641,20 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 				for(NodeInst ni : nodeList)
 				{
 					double xPos = cX + xOverlap * xIndex;
-					if (prefLinearDiagonal.getBoolean() && xRepeat == 1) xPos = cX + xOverlap * yIndex;
+					if (ap.linearDiagonal && xRepeat == 1) xPos = cX + xOverlap * yIndex;
 					double yPos = cY + yOverlap * yIndex;
-					if (prefLinearDiagonal.getBoolean() && yRepeat == 1) yPos = cY + yOverlap * xIndex;
+					if (ap.linearDiagonal && yRepeat == 1) yPos = cY + yOverlap * xIndex;
 					double xOff = ni.getAnchorCenterX() - cX;
 					double yOff = ni.getAnchorCenterY() - cY;
-					if ((xIndex&1) != 0 && prefXStagger.getBoolean()) yPos += yOverlap/2;
-					if ((yIndex&1) != 0 && prefYStagger.getBoolean()) xPos += xOverlap/2;
+					if ((xIndex&1) != 0 && ap.xStagger) yPos += yOverlap/2;
+					if ((yIndex&1) != 0 && ap.yStagger) xPos += xOverlap/2;
 					boolean flipX = false, flipY = false;
-					if ((xIndex&1) != 0 && prefXFlip.getBoolean())
+					if ((xIndex&1) != 0 && ap.xFlip)
 					{
 						flipX = true;
 						xOff = -xOff;
 					}
-					if ((yIndex&1) != 0 && prefYFlip.getBoolean())
+					if ((yIndex&1) != 0 && ap.yFlip)
 					{
 						flipY = true;
 						yOff = -yOff;
@@ -630,7 +670,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					if (ni.isHardSelect()) newNi.setHardSelect(); else newNi.clearHardSelect();
 					newNi.setTechSpecific(ni.getTechSpecific());
 					newNi.copyVarsFrom(ni);
-					if (prefAddNames.getBoolean())
+					if (ap.addNames)
 					{
 						setNewName(newNi, x, y);
 					} else
@@ -644,7 +684,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					}
 
 					nodeMap.put(ni, newNi);
-					if (prefDRCGood.getBoolean() && firstNode)
+					if (ap.DRCGood && firstNode)
 					{
 						geomsToCheck[checkNodeCount++] = newNi;
 						firstNode = false;
@@ -664,12 +704,12 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					double xOff1 = ai.getTailLocation().getX() - cX1;
 					double yOff1 = ai.getTailLocation().getY() - cY1;
 
-					if ((xIndex&1) != 0 && prefXFlip.getBoolean())
+					if ((xIndex&1) != 0 && ap.xFlip)
 					{
 						xOff0 = -xOff0;
 						xOff1 = -xOff1;
 					}
-					if ((yIndex&1) != 0 && prefYFlip.getBoolean())
+					if ((yIndex&1) != 0 && ap.yFlip)
 					{
 						yOff0 = -yOff0;
 						yOff1 = -yOff1;
@@ -690,7 +730,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					if (newAi == null) continue;
 					newAi.copyPropertiesFrom(ai);
 
-					if (prefAddNames.getBoolean())
+					if (ap.addNames)
 					{
 						setNewName(newAi, x, y);
 					} else
@@ -723,7 +763,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			}
 
 			// rename the replicated objects
-			if (prefAddNames.getBoolean())
+			if (ap.addNames)
 			{
 				for(NodeInst ni : nodeList)
 				{
@@ -736,7 +776,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			}
 
 			// if only arraying where DRC valid, check them now and delete what is not valid
-			if (prefDRCGood.getBoolean())
+			if (ap.DRCGood)
 			{
 				Quick.checkDesignRules(dp, cell, geomsToCheck, validity).termLogging(true);
 				for(int i=1; i<checkNodeCount; i++)
@@ -763,7 +803,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					objName = geomName.toString();
 			}
 			String totalName = objName + x + "-" + y;
-			if (Math.abs(prefXRepeat.getInt()) <= 1 || Math.abs(prefYRepeat.getInt()) <= 1)
+			if (Math.abs(ap.xRepeat) <= 1 || Math.abs(ap.yRepeat) <= 1)
 				totalName = objName + (x+y);
 			if (geom instanceof NodeInst) {
 				NodeInst ni = (NodeInst)geom;
