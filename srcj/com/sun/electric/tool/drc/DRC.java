@@ -1479,18 +1479,20 @@ public class DRC extends Listener
 	 * Finds the largest spacing rule in the Technology for those layers.
 	 * @param tech the Technology to examine.
      * @param layers List of layers to check
-     * @return the largest spacing distance in the Technology for the given layers. Zero if nothing found
+     * @param mutableDist the largest spacing distance in the Technology for the given layers. Zero if nothing found
+     * @return true if a valid value was found
 	 */
-    public static double getWorstSpacingDistance(Technology tech, Set<Layer> layers)
+    public static boolean getWorstSpacingDistance(Technology tech, Set<Layer> layers, GenMath.MutableDouble mutableDist)
 	{
+        mutableDist.setValue(0);
 		DRCRules rules = getRules(tech);
 		if (rules == null)
-            return 0;
-        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+            return false;
         boolean found = rules.getWorstSpacingDistance(layers, mutableDist);
+        // false when cell has only pins for example
         if (!found && Job.getDebug()) // for example cell has only pins
-            System.out.println("Not found in DRC.getWorstSpacingDistance");
-        return mutableDist.doubleValue();             //Set<Layer> layers, GenMath.MutableDouble worstDistance
+            System.out.println("Not found in DRC.getWorstSpacingDistance 2");
+        return found;
     }
 
     /**
@@ -2410,46 +2412,36 @@ public class DRC extends Listener
  **************************************************************************************************************/
 class CellLayersContainer implements Serializable
 {
-    private Map<NodeProto, Set<String>> cellLayersMap;
+    private Map<NodeProto, Set<Layer>> cellLayersMap;
 
     CellLayersContainer() {
-        cellLayersMap = new HashMap<NodeProto, Set<String>>();
+        cellLayersMap = new HashMap<NodeProto, Set<Layer>>();
     }
 
-    Set<String> getLayersSet(NodeProto cell) {
+    Set<Layer> getLayersSet(NodeProto cell) {
         return cellLayersMap.get(cell);
     }
 
-    double getWorstSpacingDistance(NodeProto cell)
+    boolean getWorstSpacingDistance(NodeProto cell, GenMath.MutableDouble mutableDist)
     {
-        Collection<String> layerNames = getLayersSet(cell);
-        Set<Layer> layers = new HashSet<Layer>(layerNames.size());
+        Set<Layer> layers = getLayersSet(cell);
         Technology tech = cell.getTechnology();
-
-        for (String layerS : layerNames)
-        {
-            Layer l = tech.findLayer(layerS);
-            if (l != null)
-               layers.add(l);
-            else
-                System.out.println("Can it be null?");
-        }
-        return DRC.getWorstSpacingDistance(tech, layers);
+        return DRC.getWorstSpacingDistance(tech, layers, mutableDist);
     }
 
-    void addCellLayers(Cell cell, Set<String> set) {
+    void addCellLayers(Cell cell, Set<Layer> set) {
         cellLayersMap.put(cell, set);
     }
 
     boolean addCellLayers(Cell cell, Layer layer) {
-        Set<String> set = cellLayersMap.get(cell);
+        Set<Layer> set = cellLayersMap.get(cell);
 
         // first time the cell is accessed
         if (set == null) {
-            set = new HashSet<String>(1);
+            set = new HashSet<Layer>(1);
             cellLayersMap.put(cell, set);
         }
-        return set.add(layer.getName());
+        return set.add(layer);
     }
 }
 
@@ -2487,10 +2479,10 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
         return true;
     }
 
-    private Set<String> getLayersInCell(Cell cell) {
+    private Set<Layer> getLayersInCell(Cell cell) {
         Map<NodeProto, NodeProto> tempNodeMap = new HashMap<NodeProto, NodeProto>();
         Map<ArcProto, ArcProto> tempArcMap = new HashMap<ArcProto, ArcProto>();
-        Set<String> set = new HashSet<String>();
+        Set<Layer> set = new HashSet<Layer>();
         Technology tech = cell.getTechnology();
 
         // Nodes
@@ -2498,7 +2490,7 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
             NodeInst ni = it.next();
             NodeProto np = ni.getProto();
             if (ni.isCellInstance()) {
-                Set<String> s = cellLayersCon.getLayersSet(np);
+                Set<Layer> s = cellLayersCon.getLayersSet(np);
                 set.addAll(s);
                 assert (s != null); // it must have layers? unless is empty
             } else {
@@ -2513,7 +2505,7 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
                 for (Technology.NodeLayer nLayer : pNp.getNodeLayers()) {
                     Layer layer = nLayer.getLayer();
                     if (tech.findLayer(layer.getName()) == null) continue;
-                    set.add(layer.getName());
+                    set.add(layer);
                 }
             }
         }
@@ -2528,7 +2520,7 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
             for (int i = 0; i < ap.getNumArcLayers(); i++) {
                 Layer layer = ap.getLayer(i);
                 if (tech.findLayer(layer.getName()) == null) continue;
-                set.add(layer.getName());
+                set.add(layer);
             }
         }
         return set;
@@ -2536,7 +2528,7 @@ class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
 
     public void exitCell(HierarchyEnumerator.CellInfo info) {
         Cell cell = info.getCell();
-        Set<String> set = getLayersInCell(cell);
+        Set<Layer> set = getLayersInCell(cell);
         assert (cellLayersCon.getLayersSet(cell) == null);
         cellLayersCon.addCellLayers(cell, set);
     }

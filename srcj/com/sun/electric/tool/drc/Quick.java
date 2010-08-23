@@ -918,7 +918,13 @@ public class Quick
 
         // look for other instances surrounding this one
 		Rectangle2D nodeBounds = ni.getBounds();
-        double worstInteractionDistance = cellLayersCon.getWorstSpacingDistance(thisCell);
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+        if (!cellLayersCon.getWorstSpacingDistance(thisCell, mutableDist))
+        {
+            System.out.println("No worst spacing distance found in Quick:checkCellInst");
+            return false;
+        }
+        double worstInteractionDistance = mutableDist.doubleValue();
 //        double worstInteractionDistance = reportInfo.worstInteractionDistance;
 //        if (anotherVal != worstInteractionDistance)
 //            System.out.println("How far " + anotherVal + " " + worstInteractionDistance);
@@ -948,12 +954,14 @@ public class Quick
 
 			// found other instance "oNi", look for everything in "ni" that is near it
 			Rectangle2D nearNodeBounds = oNi.getBounds();
-            double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
+//            double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
 //            double worstInteractionDistanceLocal = worstInteractionDistance;
-
-//            if (anotherVal != worstInteractionDistanceLocal)
-//                System.out.println("How far 2 " + anotherVal + " " + worstInteractionDistanceLocal);
-
+            if (!cellLayersCon.getWorstSpacingDistance(oNi.getProto(), mutableDist))
+            {
+                System.out.println("No worst spacing distance found in Quick:checkThisCellPlease");
+                continue;
+            }
+            double worstInteractionDistanceLocal = mutableDist.doubleValue();
             Rectangle2D subBounds = new Rectangle2D.Double(
 				nearNodeBounds.getMinX()-worstInteractionDistanceLocal,
 				nearNodeBounds.getMinY()-worstInteractionDistanceLocal,
@@ -1973,7 +1981,14 @@ public class Quick
 		// look for other objects surrounding this one
 		Rectangle2D nodeBounds = ni.getBounds();
 //        double worstInteractionDistance = reportInfo.worstInteractionDistance;
-        double worstInteractionDistance = cellLayersCon.getWorstSpacingDistance(cell);
+        GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+        if (!cellLayersCon.getWorstSpacingDistance(cell, mutableDist))
+        {
+            System.out.println("No worst spacing distance found in Quick:checkThisCellPlease");
+            return false;
+        }
+        double worstInteractionDistance = mutableDist.doubleValue();
+
         Rectangle2D searchBounds = new Rectangle2D.Double(
 			nodeBounds.getMinX() - worstInteractionDistance,
 			nodeBounds.getMinY() - worstInteractionDistance,
@@ -2002,11 +2017,20 @@ public class Quick
 
 			// found other instance "oNi", look for everything in "ni" that is near it
 			Rectangle2D subNodeBounds = oNi.getBounds();
-			Rectangle2D subBounds = new Rectangle2D.Double(
-				subNodeBounds.getMinX() - worstInteractionDistance,
-				subNodeBounds.getMinY() - worstInteractionDistance,
-				subNodeBounds.getWidth() + worstInteractionDistance*2,
-				subNodeBounds.getHeight() + worstInteractionDistance*2);
+
+            //            double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
+            if (!cellLayersCon.getWorstSpacingDistance(oNi.getProto(), mutableDist))
+            {
+                System.out.println("No worst spacing distance found in Quick:checkThisCellPlease");
+                continue;
+            }
+            double worstInteractionDistanceLocal = mutableDist.doubleValue();
+
+            Rectangle2D subBounds = new Rectangle2D.Double(
+				subNodeBounds.getMinX() - worstInteractionDistanceLocal,
+				subNodeBounds.getMinY() - worstInteractionDistanceLocal,
+				subNodeBounds.getWidth() + worstInteractionDistanceLocal*2,
+				subNodeBounds.getHeight() + worstInteractionDistanceLocal*2);
 
 			// recursively search instance "ni" in the vicinity of "oNi"
 			if (checkCellInstContents(subBounds, ni, upTrans, localIndex, oNi, null, globalIndex, null)) return true;

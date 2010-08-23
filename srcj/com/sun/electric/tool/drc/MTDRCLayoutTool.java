@@ -879,7 +879,13 @@ public class MTDRCLayoutTool extends MTDRCTool
             // look for other instances surrounding this one
             Rectangle2D nodeBounds = ni.getBounds();
 //            double worstInteractionDistance = reportInfo.worstInteractionDistance;
-            double worstInteractionDistance = cellLayersCon.getWorstSpacingDistance(thisCell);
+            GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+            if (!cellLayersCon.getWorstSpacingDistance(thisCell, mutableDist))
+            {
+                System.out.println("No worst spacing distance found in MTDRCLayoutTool:checkCellInst");
+                return false;
+            }
+            double worstInteractionDistance = mutableDist.doubleValue();
             
             Rectangle2D searchBounds = new Rectangle2D.Double(
                 nodeBounds.getMinX() - worstInteractionDistance,
@@ -906,7 +912,12 @@ public class MTDRCLayoutTool extends MTDRCTool
 
                 // found other instance "oNi", look for everything in "ni" that is near it
                 Rectangle2D nearNodeBounds = oNi.getBounds();
-                double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
+                if (!cellLayersCon.getWorstSpacingDistance(oNi.getProto(), mutableDist))
+                {
+                    System.out.println("No worst spacing distance found in Quick:checkThisCellPlease");
+                    continue;
+                }
+                double worstInteractionDistanceLocal = mutableDist.doubleValue();
                 Rectangle2D subBounds = new Rectangle2D.Double(
                     nearNodeBounds.getMinX() - worstInteractionDistanceLocal,
                     nearNodeBounds.getMinY() - worstInteractionDistanceLocal,
@@ -1906,7 +1917,14 @@ public class MTDRCLayoutTool extends MTDRCTool
             // look for other objects surrounding this one
             Rectangle2D nodeBounds = ni.getBounds();
 //            double worstInteractionDistance = reportInfo.worstInteractionDistance;
-            double worstInteractionDistance = cellLayersCon.getWorstSpacingDistance(cell);
+            GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
+            if (!cellLayersCon.getWorstSpacingDistance(cell, mutableDist))
+            {
+                System.out.println("No worst spacing distance found in Quick:checkThisCellPlease");
+                return false;
+            }
+            double worstInteractionDistance = mutableDist.doubleValue();
+
             Rectangle2D searchBounds = new Rectangle2D.Double(
                 nodeBounds.getMinX() - worstInteractionDistance,
                 nodeBounds.getMinY() - worstInteractionDistance,
@@ -1935,7 +1953,13 @@ public class MTDRCLayoutTool extends MTDRCTool
 
                 // found other instance "oNi", look for everything in "ni" that is near it
                 Rectangle2D subNodeBounds = oNi.getBounds();
-                double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
+                //            double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
+                if (!cellLayersCon.getWorstSpacingDistance(oNi.getProto(), mutableDist))
+                {
+                    System.out.println("No worst spacing distance found in Quick:checkThisCellPlease");
+                    continue;
+                }
+                double worstInteractionDistanceLocal = mutableDist.doubleValue();
                 Rectangle2D subBounds = new Rectangle2D.Double(
                     subNodeBounds.getMinX() - worstInteractionDistanceLocal,
                     subNodeBounds.getMinY() - worstInteractionDistanceLocal,

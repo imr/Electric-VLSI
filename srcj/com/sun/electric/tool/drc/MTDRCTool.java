@@ -65,11 +65,10 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
         cellLayersCon = new CellLayersContainer();
         CheckCellLayerEnumerator layerCellCheck = new CheckCellLayerEnumerator(cellLayersCon);
         HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, layerCellCheck);
-        Collection<String> layers = cellLayersCon.getLayersSet(topCell);
+        Collection<Layer> layers = cellLayersCon.getLayersSet(topCell);
         globalStartTime = System.currentTimeMillis();
-        for (String layerS : layers)
+        for (Layer layer : layers)
         {
-            Layer layer = tech.findLayer(layerS);
             assert (layer != null); // it should always be a valid layer
             if (rules.hasLayerRules(layer))
                 startTask(layer.getName(), layer);
