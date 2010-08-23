@@ -180,8 +180,6 @@ public class DRC extends Listener
                                         boolean overlap, Layer.Function.Set layerFunction, boolean ignoreSameGeometry,
                                         boolean ignoreCenterCuts)
     {
-        assert(layerFunction != null);
-
         int j;
         Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
 
@@ -304,7 +302,6 @@ public class DRC extends Listener
                                                DRCTemplate minWidthRule, int dir, boolean onlyOne, boolean reportError,
                                                Layer.Function.Set layerFunction, ReportInfo reportInfo)
     {
-        assert(layerFunction != null);
         double actual = 0;
         Point2D left1, left2, left3, right1, right2, right3;
         //if (bounds.getWidth() < minWidthRule.value)
@@ -384,7 +381,6 @@ public class DRC extends Listener
                                 Rectangle2D bounds, Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
                                 Layer.Function.Set layerFunction, boolean ignoreCenterCuts)
     {
-        assert(layerFunction != null);
         int j;
         boolean skip = false;
         Rectangle2D newBounds = new Rectangle2D.Double();  // sept 30
@@ -494,7 +490,6 @@ public class DRC extends Listener
                                           DRCTemplate minWidthRule, boolean reportError,
                                           Layer.Function.Set layerFunction, ReportInfo reportInfo)
     {
-        assert(layerFunction != null);
         Cell cell = geom.getParent();
         if (minWidthRule == null) return false;
 
@@ -1474,7 +1469,7 @@ public class DRC extends Listener
             return 0;
         GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
         boolean found = rules.getWorstSpacingDistance(lastMetal, mutableDist);
-        if (!found)
+        if (!found && Job.getDebug())
             System.out.println("Not found in DRC.getWorstSpacingDistance");
         return mutableDist.doubleValue();
     }
@@ -1486,14 +1481,14 @@ public class DRC extends Listener
      * @param layers List of layers to check
      * @return the largest spacing distance in the Technology for the given layers. Zero if nothing found
 	 */
-	public static double getWorstSpacingDistance(Technology tech, Set<Layer> layers)
+    public static double getWorstSpacingDistance(Technology tech, Set<Layer> layers)
 	{
 		DRCRules rules = getRules(tech);
 		if (rules == null)
             return 0;
         GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
         boolean found = rules.getWorstSpacingDistance(layers, mutableDist);
-        if (!found)
+        if (!found && Job.getDebug()) // for example cell has only pins
             System.out.println("Not found in DRC.getWorstSpacingDistance");
         return mutableDist.doubleValue();             //Set<Layer> layers, GenMath.MutableDouble worstDistance
     }
@@ -2423,6 +2418,23 @@ class CellLayersContainer implements Serializable
 
     Set<String> getLayersSet(NodeProto cell) {
         return cellLayersMap.get(cell);
+    }
+
+    double getWorstSpacingDistance(NodeProto cell)
+    {
+        Collection<String> layerNames = getLayersSet(cell);
+        Set<Layer> layers = new HashSet<Layer>(layerNames.size());
+        Technology tech = cell.getTechnology();
+
+        for (String layerS : layerNames)
+        {
+            Layer l = tech.findLayer(layerS);
+            if (l != null)
+               layers.add(l);
+            else
+                System.out.println("Can it be null?");
+        }
+        return DRC.getWorstSpacingDistance(tech, layers);
     }
 
     void addCellLayers(Cell cell, Set<String> set) {

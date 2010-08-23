@@ -878,8 +878,8 @@ public class MTDRCLayoutTool extends MTDRCTool
 
             // look for other instances surrounding this one
             Rectangle2D nodeBounds = ni.getBounds();
-            double worstInteractionDistance = reportInfo.worstInteractionDistance;
-            // Gilda AUG10: Should be the worstInteractionDistance based on current layers in NI?
+//            double worstInteractionDistance = reportInfo.worstInteractionDistance;
+            double worstInteractionDistance = cellLayersCon.getWorstSpacingDistance(thisCell);
             
             Rectangle2D searchBounds = new Rectangle2D.Double(
                 nodeBounds.getMinX() - worstInteractionDistance,
@@ -906,11 +906,12 @@ public class MTDRCLayoutTool extends MTDRCTool
 
                 // found other instance "oNi", look for everything in "ni" that is near it
                 Rectangle2D nearNodeBounds = oNi.getBounds();
+                double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
                 Rectangle2D subBounds = new Rectangle2D.Double(
-                    nearNodeBounds.getMinX() - worstInteractionDistance,
-                    nearNodeBounds.getMinY() - worstInteractionDistance,
-                    nearNodeBounds.getWidth() + worstInteractionDistance * 2,
-                    nearNodeBounds.getHeight() + worstInteractionDistance * 2);
+                    nearNodeBounds.getMinX() - worstInteractionDistanceLocal,
+                    nearNodeBounds.getMinY() - worstInteractionDistanceLocal,
+                    nearNodeBounds.getWidth() + worstInteractionDistanceLocal * 2,
+                    nearNodeBounds.getHeight() + worstInteractionDistanceLocal * 2);
 
                 // recursively search instance "ni" in the vicinity of "oNi"
                 boolean ret = checkCellInstContents(subBounds, ni, upTrans, localIndex, oNi, null, globalIndex, null);
@@ -1904,7 +1905,8 @@ public class MTDRCLayoutTool extends MTDRCTool
 
             // look for other objects surrounding this one
             Rectangle2D nodeBounds = ni.getBounds();
-            double worstInteractionDistance = reportInfo.worstInteractionDistance;
+//            double worstInteractionDistance = reportInfo.worstInteractionDistance;
+            double worstInteractionDistance = cellLayersCon.getWorstSpacingDistance(cell);
             Rectangle2D searchBounds = new Rectangle2D.Double(
                 nodeBounds.getMinX() - worstInteractionDistance,
                 nodeBounds.getMinY() - worstInteractionDistance,
@@ -1933,11 +1935,12 @@ public class MTDRCLayoutTool extends MTDRCTool
 
                 // found other instance "oNi", look for everything in "ni" that is near it
                 Rectangle2D subNodeBounds = oNi.getBounds();
+                double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
                 Rectangle2D subBounds = new Rectangle2D.Double(
-                    subNodeBounds.getMinX() - worstInteractionDistance,
-                    subNodeBounds.getMinY() - worstInteractionDistance,
-                    subNodeBounds.getWidth() + worstInteractionDistance * 2,
-                    subNodeBounds.getHeight() + worstInteractionDistance * 2);
+                    subNodeBounds.getMinX() - worstInteractionDistanceLocal,
+                    subNodeBounds.getMinY() - worstInteractionDistanceLocal,
+                    subNodeBounds.getWidth() + worstInteractionDistanceLocal * 2,
+                    subNodeBounds.getHeight() + worstInteractionDistanceLocal * 2);
 
                 // recursively search instance "ni" in the vicinity of "oNi"
                 if (checkCellInstContents(subBounds, ni, upTrans, localIndex, oNi, null, globalIndex, null))

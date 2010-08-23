@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
-IMP: (8/9/10, GVG) Working on "DRC slow for the tfc chip" (Bug #2851).
+IMP: (8/23/10, GVG) Working on "DRC slow for the tfc chip" (Bug #2851).
+Work done with worstInteractionDistance values.
+
+IMP: (8/21/10, GVG) Working on "DRC slow for the tfc chip" (Bug #2851).
 More ways to reduce getShapeOfNode() for only layers with rules.
 
 BUG: (8/20/10, GVG) MDT DRC not properly skipping layers without rules (Bug #2991)

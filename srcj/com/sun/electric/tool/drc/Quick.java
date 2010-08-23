@@ -100,7 +100,8 @@ import java.util.*;
 
 public class Quick
 {
-	private HashMap<NodeInst,CheckInst> checkInsts = null;
+    private CellLayersContainer cellLayersCon = new CellLayersContainer(); // check layers in each cell with valid DRC rules
+    private HashMap<NodeInst,CheckInst> checkInsts = null;
     private HashMap<Cell,CheckProto> checkProtos = null;
 	private HashMap<Network,Integer[]> networkLists = null;
 	private HashMap<Layer,DRCTemplate> minAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For minimum area checking
@@ -156,7 +157,7 @@ public class Quick
 	 * @param onlyArea
 	 */
 	public static void checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                               Rectangle2D bounds, DRC.CheckDRCJob drcJob, DRC.DRCPreferences dp, GeometryHandler.GHMode mode, boolean onlyArea)
+                                        Rectangle2D bounds, DRC.CheckDRCJob drcJob, DRC.DRCPreferences dp, GeometryHandler.GHMode mode, boolean onlyArea)
 	{
 		Quick q = new Quick(drcJob, dp, mode);
         q.doCheck(errorLog, cell, geomsToCheck, validity, bounds, onlyArea);
@@ -164,7 +165,7 @@ public class Quick
 
     // returns the number of errors found
 	private void doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                Rectangle2D bounds, boolean onlyArea)
+                         Rectangle2D bounds, boolean onlyArea)
 	{
 		// Check if there are DRC rules for particular tech
         Technology tech = cell.getTechnology();
@@ -189,9 +190,6 @@ public class Quick
 
 		// clean out the cache of instances
 	    instanceInteractionList.clear();
-
-		// determine maximum DRC interaction distance
-//		worstInteractionDistance = DRC.getWorstSpacingDistance(tech, -1);
 
 	    // determine if min area must be checked (if any layer got valid data)
 	    minAreaLayerMap.clear();
@@ -253,7 +251,15 @@ public class Quick
 		reportInfo.checkTimeStamp = 0;
 		checkEnumerateInstances(cell);
 
-		// now allocate space for hierarchical network arrays
+        long startTime = System.currentTimeMillis();
+        System.out.print("Checking again hierarchy");
+        // Another hierarchy traverse ....
+        CheckCellLayerEnumerator layerCellCheck = new CheckCellLayerEnumerator(cellLayersCon);
+        HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, layerCellCheck);
+        long endTime = System.currentTimeMillis();
+        System.out.println(" .... (" + TextUtils.getElapsedTime(endTime - startTime)+ ")");
+
+        // now allocate space for hierarchical network arrays
 		//int totalNetworks = 0;
 		networkLists = new HashMap<Network,Integer[]>();
         for (Map.Entry<Cell,CheckProto> e : checkProtos.entrySet())
@@ -912,13 +918,17 @@ public class Quick
 
         // look for other instances surrounding this one
 		Rectangle2D nodeBounds = ni.getBounds();
-        double worstInteractionDistance = reportInfo.worstInteractionDistance;
+        double worstInteractionDistance = cellLayersCon.getWorstSpacingDistance(thisCell);
+//        double worstInteractionDistance = reportInfo.worstInteractionDistance;
+//        if (anotherVal != worstInteractionDistance)
+//            System.out.println("How far " + anotherVal + " " + worstInteractionDistance);
+
         Rectangle2D searchBounds = new Rectangle2D.Double(
 			nodeBounds.getMinX()-worstInteractionDistance,
 			nodeBounds.getMinY()-worstInteractionDistance,
 			nodeBounds.getWidth() + worstInteractionDistance*2,
 			nodeBounds.getHeight() + worstInteractionDistance*2);
-
+        
         instanceInteractionList.clear(); // part3
 		for(Iterator<RTBounds> it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
 		{
@@ -938,11 +948,17 @@ public class Quick
 
 			// found other instance "oNi", look for everything in "ni" that is near it
 			Rectangle2D nearNodeBounds = oNi.getBounds();
-			Rectangle2D subBounds = new Rectangle2D.Double(
-				nearNodeBounds.getMinX()-worstInteractionDistance,
-				nearNodeBounds.getMinY()-worstInteractionDistance,
-				nearNodeBounds.getWidth() + worstInteractionDistance*2,
-				nearNodeBounds.getHeight() + worstInteractionDistance*2);
+            double worstInteractionDistanceLocal = cellLayersCon.getWorstSpacingDistance(oNi.getProto());
+//            double worstInteractionDistanceLocal = worstInteractionDistance;
+
+//            if (anotherVal != worstInteractionDistanceLocal)
+//                System.out.println("How far 2 " + anotherVal + " " + worstInteractionDistanceLocal);
+
+            Rectangle2D subBounds = new Rectangle2D.Double(
+				nearNodeBounds.getMinX()-worstInteractionDistanceLocal,
+				nearNodeBounds.getMinY()-worstInteractionDistanceLocal,
+				nearNodeBounds.getWidth() + worstInteractionDistanceLocal*2,
+				nearNodeBounds.getHeight() + worstInteractionDistanceLocal*2);
 
 			// recursively search instance "ni" in the vicinity of "oNi"
 			boolean ret = checkCellInstContents(subBounds, ni, upTrans, localIndex, oNi, null, globalIndex, null);
@@ -1956,7 +1972,8 @@ public class Quick
 
 		// look for other objects surrounding this one
 		Rectangle2D nodeBounds = ni.getBounds();
-        double worstInteractionDistance = reportInfo.worstInteractionDistance;
+//        double worstInteractionDistance = reportInfo.worstInteractionDistance;
+        double worstInteractionDistance = cellLayersCon.getWorstSpacingDistance(cell);
         Rectangle2D searchBounds = new Rectangle2D.Double(
 			nodeBounds.getMinX() - worstInteractionDistance,
 			nodeBounds.getMinY() - worstInteractionDistance,
