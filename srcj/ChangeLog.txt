@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+IMP: (8/23/10, SMR) Improved "Manipulate Exports" dialog to change many
+     characteristics at once (Bug #2895).
+
 IMP: (8/23/10, GVG) Working on "DRC slow for the tfc chip" (Bug #2851).
 Work done with worstInteractionDistance values.
 

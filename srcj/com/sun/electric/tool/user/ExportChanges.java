@@ -360,7 +360,7 @@ public final class ExportChanges
 	 * Helper method to add all marked arc prototypes to the infinite string.
 	 * Marking is done by having the "temp1" field be nonzero.
 	 */
-	private static String addPossibleArcConnections(String infstr, Set arcsSeen)
+	private static String addPossibleArcConnections(String infstr, Set<ArcProto> arcsSeen)
 	{
 		int i = 0;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
@@ -1013,7 +1013,6 @@ public final class ExportChanges
 		{
 			Export e = (Export)it.next();
 			already.add(e.getNameKey().toString());
-//			already.add(e.getNameKey().canonicString());
 		}
 
 		// export the ports
@@ -1081,7 +1080,6 @@ public final class ExportChanges
 				}
 				total++;
 				already.add(newPp.getNameKey().toString());
-//				already.add(newPp.getNameKey().canonicString());
 			}
 		}
 
@@ -1378,7 +1376,7 @@ public final class ExportChanges
 
 		public ChangeExportCharacteristic(Export pp, PortCharacteristic newCh)
 		{
-			super("Change Export Characteristics" + pp.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Export Characteristics " + pp.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pp = pp;
 			this.newCh = newCh;
 			startJob();
@@ -1387,6 +1385,29 @@ public final class ExportChanges
 		public boolean doIt() throws JobException
 		{
 			pp.setCharacteristic(newCh);
+			return true;
+		}
+	}
+
+	/**
+	 * Class to change the body-only flag of an export in a new thread.
+	 */
+	public static class ChangeExportBodyOnly extends Job
+	{
+		private Export pp;
+		private boolean bo;
+
+		public ChangeExportBodyOnly(Export pp, boolean bo)
+		{
+			super("Change Export Body-Only " + pp.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pp = pp;
+			this.bo = bo;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			pp.setBodyOnly(bo);
 			return true;
 		}
 	}
