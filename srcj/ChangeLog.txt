@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+BUG: (8/23/10, DN) Natural sort order of NodeInst is not consistent with order of NodeInsts in a Cell.
+FIX: Use TextUtil.STRING_NUMBER_ORDER in NodeInst.compareTo .
+
 IMP: (8/23/10, DN) Methods Cell.addNodes with ImmutableNodeInst args.
 
 BUG: (8/23/10, SMR) Array command gives preference access errors (Bug #2894).
