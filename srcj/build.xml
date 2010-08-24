@@ -74,7 +74,6 @@
     <path id="externalClassPath">
         <pathelement location="../packaging/bsh-2.0b2.jar"/>
         <pathelement location="../packaging/AppleJavaExtensions.jar"/>
-    	<pathelement location="../packaging/junit-4.5.jar"/>
     </path>
 
     <!-- Path for prefuse libraries -->
