@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+BUG: (8/24/10, SMR) Going down-hierarchy into arrayed schematic node
+     doesn't show the path in the status bar (Bug #2890).
+FIX: Fixed EditWindow.showCoordinates().
+
 BUG: (8/23/10, DN) Natural sort order of NodeInst is not consistent with order of NodeInsts in a Cell.
 FIX: Use TextUtil.STRING_NUMBER_ORDER in NodeInst.compareTo .
 
@@ -22,7 +26,7 @@ IMP: (8/21/10, GVG) Working on "DRC slow for the tfc chip" (Bug #2851).
 More ways to reduce getShapeOfNode() for only layers with rules.
 
 BUG: (8/20/10, GVG) MDT DRC not properly skipping layers without rules (Bug #2991)
-FIX: Aplying rules filter during task creation
+FIX: Applying rules filter during task creation
 
 IMP: (8/20/10, DN) ErrorLogger knows about ImmutableNodeInsts.
 
@@ -32,7 +36,7 @@ FIX: Use EPoints in NodeInst.setTrace.
 IMP: (8/19/10, GVG) Remove class MOSRules (Bug #2880)
 
 BUG: (8/18/10, GVG) NPE in Multi-threaded DRC (Bug #2889)
-FIX: Detecting properly non-layout layers (Universal from generic in the particular desing)
+FIX: Detecting properly non-layout layers (Universal from generic in the particular design)
 
 BUG: (8/18/10, SMR) Rotated nodes do not interactively resize correctly (Bug #2887).
 FIX: Fixed in SizeListener.getNewNodeSize().
@@ -58,7 +62,7 @@ FIX: Fixed importing to make parameters have inheritance and to autostitch when 
 
 ************************* Version 9.00l: ******************************
 
-IMP: (8/11/10, GVG) Improve error message in Verilog when encoutering signature problem (Bug #2882)
+IMP: (8/11/10, GVG) Improve error message in Verilog when encountering signature problem (Bug #2882)
 
 BUG: (8/11/10, GVG) NPE in Verilog parser (Bug #2881)
 FIX: Added handling of nested loops in always statement.
@@ -94,7 +98,7 @@ IMP: (8/2/10, SMR) Gerber import alternates layer assignment (Bug #2860).
 BUG: (7/30/10, JKG) Hitting escape to cancel a wiring tool action does not reset the highlights (Bug #2842)
 FIX: This case was missing in the code for 'escapePressed' in ClickZoomWireListener
 
-IMP: (7/29/10 GVG) Removing deprecated fuctions in experimental 2 and 3,
+IMP: (7/29/10 GVG) Removing deprecated functions in experimental 2 and 3,
 new routers codes, Bug #2803
 
 BUG: (7/29/10, DN) NPE in WaveformTests using the GUI (Bug #2868).
@@ -123,7 +127,7 @@ IMP: (7/26/10, SMR) Added initial waveform window regression tests (Bug #2861).
 
 BUG: (7/26/10, GVG) Exception in Gerber reader because it tries to read wrong file? (Bug #2859)
 FIX: Extra filtering of files. Fixed unnecessary concatenation of file path. Removed  topDirName
-from gerberfiles.
+from gerber files.
 
 BUG: (7/26/10, FS) MultipleQueues + FCQueue not possible
 FIX: PJob didn't use all queues for work distribution
@@ -146,14 +150,14 @@ IMP: (7/21/10, FS) Add Scheduler Factory to Parallel Infrastructure
 IMP: (7/20/10, FS) Add FCQueue proposed by Nir Shavit and integrated the queue
 	as a scheduler for the parallel infrastructure.
 
-IMP: (7/20/10, FS) Parallel metrics: bounding box - minimum spaning tree (MST)
+IMP: (7/20/10, FS) Parallel metrics: bounding box - minimum spanning tree (MST)
 
 BUG: (7/20/10, SMR) Canceling undo warning dialog with ESC fails (Bug #2852).
 FIX: Fixed ToolBar.undoCommand.run().
 
 IMP: (7/19/10, FS) Add progress bar to bookshelf import
 
-BUG: (7/19/10, DN) Database regression failes due to UnsupportedOperationException in testMakeGridPoly.
+BUG: (7/19/10, DN) Database regression fails due to UnsupportedOperationException in testMakeGridPoly.
 FOX: In ImmutableArcInstTest.MyBuilder implement addIntBox.
 
 IMP: (7/18/10, DN) The last argument of basicDRCTest specifies min area check algorithm.
@@ -161,7 +165,7 @@ IMP: (7/18/10, DN) The last argument of basicDRCTest specifies min area check al
 IMP: (7/18/10, DN) Add min area check algorithm DRCCheckMinArea.AREA_MANHATTAN .
     It is fast, but accepts only manhattan layout.
 
-IMP: (7/17/10, DN) Laze allocaltion of "sons" in PolyBase.PolyBaseTree ..
+IMP: (7/17/10, DN) Laze allocation of "sons" in PolyBase.PolyBaseTree ..
 
 IMP: (7/16/10, DN) Fast path for grid-aligned boxes in AbstractShapeBuilder.pushPoly .
 
@@ -214,7 +218,7 @@ BUG (6/30/10, FS) Force-Directed-1 do not terminate (Bug 2800)
 FIX: Kill barrier after termination
 
 BUG (6/30/10, FS) Add Placement Tools to Test Menu (Bug 2831)
-FIX: Added, each tool has the following paramters (#threads 2, runtime 10sec)
+FIX: Added, each tool has the following parameters (#threads 2, runtime 10sec)
 
 BUG: (6/30/10, GVG) Test -> TestPlacement -> Placement1 doesn't work (Bug #2832)
 FIX: Don't assume libraries have *.jelib extension. Fixed regression as well.
@@ -360,7 +364,7 @@ FIX: Correct the erroneous indexing in HSpiceOut.java.
 
 BUG: (6/16/10, AM) The waveform window comes up with no signals but it
      should have remembered the last ones (Bug #2798).
-FIX: Fix longstanding confusion between
+FIX: Fix long-standing confusion between
      WaveformWindow.showSimulationData() by splitting it into
      showSimulationDataInNewWindow() and refreshSimulationData().
 

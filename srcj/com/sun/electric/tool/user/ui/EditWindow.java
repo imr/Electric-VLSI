@@ -59,7 +59,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -462,34 +461,25 @@ public class EditWindow extends JPanel
 				{
 					Point2D ptPath = new Point2D.Double(pt.getX(), pt.getY());
 					VarContext vc = cellVarContext;
-					boolean validPath = true;
 					boolean first = true;
 					NodeInst ni = null;
 					path = "";
 					while (vc != VarContext.globalContext)
 					{
 						Nodable no = vc.getNodable();
-						if (!(no instanceof NodeInst))
-						{
-							validPath = false;
-							break;
-						}
-						ni = (NodeInst)no;
-						path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first? "" : " / ") + path;
+						ni = no.getNodeInst();
+						path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first ? "" : " / ") + path;
 						if (first) first = false;
 						AffineTransform trans = ni.translateOut(ni.rotateOut());
 						trans.transform(ptPath, ptPath);
 						vc = vc.pop();
 					}
-					if (validPath)
-					{
-						if (ni.getParent().isSchematic()) {
-							path = "Location is " + ni.getParent() + " / " + path;
-						} else {
-							path = "Location in " + ni.getParent() + " / " + path + " is (" +
-								TextUtils.formatDistance(ptPath.getX(), tech) + ", " + TextUtils.formatDistance(ptPath.getY(), tech) + ")";
-						}
-					} else path = null;
+					if (ni.getParent().isSchematic()) {
+						path = "Location is " + ni.getParent() + " / " + path;
+					} else {
+						path = "Location in " + ni.getParent() + " / " + path + " is (" +
+							TextUtils.formatDistance(ptPath.getX(), tech) + ", " + TextUtils.formatDistance(ptPath.getY(), tech) + ")";
+					}
 				}
 				StatusBar.setHierarchicalCoordinates(path, wnd.wf);
 			}
@@ -1058,7 +1048,7 @@ public class EditWindow extends JPanel
 	 */
 	public void setCell(Cell cell, VarContext context, WindowFrame.DisplayAttributes displayAttributes)
 	{
-		// by default record history and fillscreen
+		// by default record history and fill screen
 		// However, when navigating through history, don't want to record new history objects.
 		if (context == null) context = VarContext.globalContext;
 		boolean fillTheScreen = false;
@@ -1486,7 +1476,7 @@ public class EditWindow extends JPanel
     }
 
 	/**
-	 * Method requests that every EditWindow be redrawn, including a rerendering of its contents.
+	 * Method requests that every EditWindow be redrawn, including a re-rendering of its contents.
 	 */
 	public static void repaintAllContents()
 	{
@@ -1516,7 +1506,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Method requests that every EditWindow be redrawn, without rerendering the offscreen contents.
+	 * Method requests that every EditWindow be redrawn, without re-rendering the offscreen contents.
 	 */
 	public static void repaintAll()
 	{
@@ -1531,14 +1521,14 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
+	 * Method requests that this EditWindow be redrawn, including a re-rendering of the contents.
 	 */
 	public void fullRepaint() {
 		repaintContents(null, false);
 	}
 
 	/**
-	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
+	 * Method requests that this EditWindow be redrawn, including a re-rendering of the contents.
 	 * @param bounds the area to redraw (null to draw everything).
 	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
 	 */
@@ -1547,7 +1537,7 @@ public class EditWindow extends JPanel
     }
 
 	/**
-	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
+	 * Method requests that this EditWindow be redrawn, including a re-rendering of the contents.
 	 * @param bounds the area to redraw (null to draw everything).
 	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
 	 */
@@ -1598,7 +1588,7 @@ public class EditWindow extends JPanel
 
 	private final static String RENDER_JOB_CLASS_NAME = CLASS_NAME + ".RenderJob";
 	/**
-	 * This class queues requests to rerender a window.
+	 * This class queues requests to re-render a window.
 	 */
 	private static class RenderJob extends Job
 	{
@@ -2010,7 +2000,7 @@ public class EditWindow extends JPanel
 			return p;
 		}
 
-		private void searchTextNodes(Cell cell, String search, boolean caseSensitive, boolean regExp, Set whatToSearch,
+		private void searchTextNodes(Cell cell, String search, boolean caseSensitive, boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch,
 			CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr, Pattern pattern, Set<Geometric> examineThis)
 		{
 			boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
@@ -2034,7 +2024,7 @@ public class EditWindow extends JPanel
 			}
 		}
 
-		private void searchTextArcs(Cell cell, String search, boolean caseSensitive, boolean regExp, Set whatToSearch,
+		private void searchTextArcs(Cell cell, String search, boolean caseSensitive, boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch,
 			CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr, Pattern pattern, Set<Geometric> examineThis)
 		{
 			boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
@@ -2058,7 +2048,7 @@ public class EditWindow extends JPanel
 			}
 		}
 
-		private void searchTextExports(Cell cell, String search, boolean caseSensitive, boolean regExp, Set whatToSearch,
+		private void searchTextExports(Cell cell, String search, boolean caseSensitive, boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch,
 			CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr, Pattern pattern, Set<Geometric> examineThis)
 		{
 			WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_NAME);
@@ -2078,7 +2068,7 @@ public class EditWindow extends JPanel
 			}
 		}
 
-		private void searchTextCellVars(Cell cell, String search, boolean caseSensitive, boolean regExp, Set whatToSearch,
+		private void searchTextCellVars(Cell cell, String search, boolean caseSensitive, boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch,
 			CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr, Pattern pattern, Rectangle2D highBounds)
 		{
 			WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.CELL_VAR);
@@ -2438,7 +2428,7 @@ public class EditWindow extends JPanel
 			/*" name="+name+*/" line="+lineInVariable+" start="+startPosition+" end="+endPosition+" msg="+theLine; }
 	}
 
-	private static TextUtils.WhatToSearch get(Set whatToSearch, TextUtils.WhatToSearch what) {
+	private static TextUtils.WhatToSearch get(Set<TextUtils.WhatToSearch> whatToSearch, TextUtils.WhatToSearch what) {
 		if (whatToSearch.contains(what)) return what;
 		return null;
 	}
@@ -3746,7 +3736,7 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to find the size in database units for text of a given point size in this EditWindow.
-	 * The scale of this EditWindow is used to determine the acutal unit size.
+	 * The scale of this EditWindow is used to determine the actual unit size.
 	 * @param pointSize the size of the text in points.
 	 * @return the database size (in grid units) of the text.
 	 */
@@ -3757,7 +3747,7 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to find the size in points (actual screen units) for text of a given database size in this EditWindow.
-	 * The scale of this EditWindow is used to determine the acutal screen size.
+	 * The scale of this EditWindow is used to determine the actual screen size.
 	 * @param dbSize the size of the text in database grid-units.
 	 * @return the screen size (in points) of the text.
 	 */
@@ -3831,7 +3821,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Method to intialize for printing.
+	 * Method to initialize for printing.
 	 * @param ep the ElectricPrinter object.
 	 * @param pageFormat information about the print job.
 	 * @return Always true.
