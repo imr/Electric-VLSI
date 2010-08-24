@@ -31,10 +31,12 @@ import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
 import java.io.IOException;
+import java.util.Comparator;
 
 /**
  * Immutable class ImmutableExport represents an export.
@@ -68,6 +70,12 @@ public class ImmutableExport extends ImmutableElectricObject {
     public final boolean bodyOnly;
     /** PortCharacteristic of this ImmutableExport. */
     public final PortCharacteristic characteristic;
+
+    public static Comparator<ImmutableExport> NAME_ORDER = new Comparator<ImmutableExport>() {
+        public int compare(ImmutableExport e1, ImmutableExport e2) {
+            return TextUtils.STRING_NUMBER_ORDER.compare(e1.name.toString(), e2.name.toString());
+        }
+    };
 
     /**
      * The private constructor of ImmutableExport. Use the factory "newInstance" instead.

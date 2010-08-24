@@ -51,6 +51,7 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -370,29 +371,60 @@ public class Topology {
      * @param ni the NodeInst to be included in the cell.
      * @return true on failure
      */
-    public int addNode(NodeInst ni) {
+    public void addNodes(List<NodeInst> newNodes) {
         cell.checkChanging();
 
-//        // check to see if this instantiation would create a circular library dependency
-//        if (ni.isCellInstance()) {
-//            Cell instProto = (Cell) ni.getProto();
-//            if (instProto.getLibrary() != cell.getLibrary()) {
-//                // a reference will be created, check it
-//                Library.LibraryDependency libDep = cell.getLibrary().addReferencedLib(instProto.getLibrary());
-//                if (libDep != null) {
-//                    // addition would create circular dependency
-//                    if (!allowCirDep) {
-//                        System.out.println("ERROR: " + cell.libDescribe() + " cannot instantiate "
-//                                + instProto.libDescribe() + " because it would create a circular library dependence: ");
-//                        System.out.println(libDep.toString());
-//                        return true;
-//                    }
-//                    System.out.println("WARNING: " + cell.libDescribe() + " instantiates "
-//                            + instProto.libDescribe() + " which causes a circular library dependence: ");
-//                    System.out.println(libDep.toString());
-//                }
-//            }
-//        }
+        int oldI = nodes.size() - 1;
+        for (int i = 0; i < newNodes.size(); i++) {
+            nodes.add(null);
+        }
+        int newI = newNodes.size() - 1;
+        int outI = nodes.size() - 1;
+        while (oldI >= 0 && newI >= 0) {
+            int cmp = TextUtils.STRING_NUMBER_ORDER.compare(nodes.get(oldI).getName(), newNodes.get(newI).getName());
+            assert cmp != 0;
+            NodeInst ni = cmp > 0 ? nodes.get(oldI--) : newNodes.get(newI--);
+            ni.setNodeIndex(outI);
+            nodes.set(outI--, ni);
+        }
+        while (oldI >= 0) {
+            NodeInst ni = nodes.get(oldI--);
+            ni.setNodeIndex(outI);
+            nodes.set(outI--, ni);
+        }
+        while (newI >= 0) {
+            NodeInst ni = newNodes.get(newI--);
+            ni.setNodeIndex(outI);
+            nodes.set(outI--, ni);
+        }
+        assert oldI == -1 && newI == -1 && outI == -1;
+        for (int i = 1; i < nodes.size() - 1; i++) {
+            assert TextUtils.STRING_NUMBER_ORDER.compare(nodes.get(i - 1).getName(), nodes.get(i).getName()) < 0;
+        }
+        for (NodeInst ni: newNodes) {
+            int nodeId = ni.getD().nodeId;
+            while (chronNodes.size() <= nodeId) {
+                chronNodes.add(null);
+            }
+            assert chronNodes.get(nodeId) == null;
+            chronNodes.set(nodeId, ni);
+
+            updateMaxSuffix(ni);
+            
+            // make additional checks to keep circuit up-to-date
+            if (ni.getProto() == Generic.tech().essentialBoundsNode) {
+                essenBounds.add(ni);
+            }
+        }
+    }
+
+    /**
+     * Method to add a new NodeInst to the cell.
+     * @param ni the NodeInst to be included in the cell.
+     * @return true on failure
+     */
+    public int addNode(NodeInst ni) {
+        cell.checkChanging();
 
         addNodeName(ni);
         int nodeId = ni.getD().nodeId;
@@ -402,26 +434,10 @@ public class Topology {
         assert chronNodes.get(nodeId) == null;
         chronNodes.set(nodeId, ni);
 
-//        // expand status and count usage
-//        if (ni.isCellInstance()) {
-//            Cell subCell = (Cell) ni.getProto();
-//            expandedNodes.set(nodeId, subCell.isWantExpanded());   // TODO !!!!
-//            expandStatusModified = true;
-//
-//            CellUsage u = cell.getId().getUsageIn(subCell.getId());
-//            if (cellUsages.length <= u.indexInParent) {
-//                int[] newCellUsages = new int[u.indexInParent + 1];
-//                System.arraycopy(cellUsages, 0, newCellUsages, 0, cellUsages.length);
-//                cellUsages = newCellUsages;
-//            }
-//            cellUsages[u.indexInParent]++;
-//        }
-
         // make additional checks to keep circuit up-to-date
         if (ni.getProto() == Generic.tech().essentialBoundsNode) {
             essenBounds.add(ni);
         }
-//        setDirty();
 
         return nodeId;
     }

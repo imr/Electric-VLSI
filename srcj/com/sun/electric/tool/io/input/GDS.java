@@ -78,6 +78,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -110,7 +111,7 @@ public class GDS extends Input<Object>
 {
 	private static final boolean DEBUGALL = false;				/* true for debugging */
 	private static final boolean SHOWPROGRESS = false;			/* true for debugging */
-	private static final boolean IGNOREIMMENSECELLS = false;	/* true for debugging */
+//	private static final boolean IGNOREIMMENSECELLS = false;	/* true for debugging */
 	private static final boolean TALLYCONTENTS = false;			/* true for debugging */
 
 	// data declarations
@@ -459,7 +460,7 @@ public class GDS extends Input<Object>
     private static class CellBuilder
     {
 		private static Map<CellId,CellBuilder> allBuilders;
-		private static Set<CellId>        cellsTooComplex;
+//		private static Set<CellId>        cellsTooComplex;
 		private GDSPreferences localPrefs;
 		private Technology tech;
 		private Cell cell;
@@ -467,15 +468,23 @@ public class GDS extends Input<Object>
         private Map<UnknownLayerMessage,List<MakeInstance>> allErrorInsts = new LinkedHashMap<UnknownLayerMessage,List<MakeInstance>>();
         private List<MakeInstanceArray> instArrays = new ArrayList<MakeInstanceArray>();
 
+        private final TextDescriptor traceDescriptor;
+        private int nodeId;
+
+        private List<ImmutableNodeInst> nodesToCreate = new ArrayList<ImmutableNodeInst>();
         private Map<String,ImmutableExport> exportsByName = new HashMap<String,ImmutableExport>();
 		private Set<String> alreadyExports = exportsByName.keySet();
-		Map<String,GenMath.MutableInteger> nextExportPlainIndex = new HashMap<String,GenMath.MutableInteger>();
+		private Map<String,GenMath.MutableInteger> nextExportPlainIndex = new HashMap<String,GenMath.MutableInteger>();
 
+        private Map<String,GenMath.MutableInteger> maxSuffixes = new HashMap<String,GenMath.MutableInteger>();
+        private Set<String> userNames = new HashSet<String>();
+        private MutableInteger count = new MutableInteger(0);
 
         private CellBuilder(Cell cell, Technology tech, GDSPreferences localPrefs) {
             this.cell = cell;
             this.tech = tech;
             this.localPrefs = localPrefs;
+            traceDescriptor = cell.getEditingPreferences().getTextDescriptor(TextDescriptor.TextType.NODE, false);
             allBuilders.put(cell.getId(), this);
             // sanity
             Set<Export> exportsToKill = new HashSet<Export>();
@@ -490,16 +499,15 @@ public class GDS extends Input<Object>
 			MakeInstance mi = null;
 			if (proto != null)
 			{
-	            mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null);
-				if (ulm == null)
+	            mi = new MakeInstance(this, proto, loc, orient, wid, hei, points, null, null);
+				insts.add(mi);
+				if (ulm != null)
 				{
-					insts.add(mi);
-					return;
+                    List<MakeInstance> errorList = allErrorInsts.get(ulm);
+                    if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
+                    errorList.add(mi);
 				}
 			}
-			List<MakeInstance> errorList = allErrorInsts.get(ulm);
-			if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
-			errorList.add(mi);
         }
 
 		private void makeInstanceArray(NodeProto proto, int nCols, int nRows, Orientation orient,
@@ -518,16 +526,15 @@ public class GDS extends Input<Object>
 			{
 				double wid = proto.getDefWidth();
 				double hei = proto.getDefHeight();
-	            mi = new MakeInstance(proto, loc, orient, wid, hei, null, exportName, null);
-				if (ulm == null)
+	            mi = new MakeInstance(this, proto, loc, orient, wid, hei, null, exportName, null);
+		        insts.add(mi);
+				if (ulm != null)
 				{
-		            insts.add(mi);
-		            return;
+        			List<MakeInstance> errorList = allErrorInsts.get(ulm);
+                	if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
+                    errorList.add(mi);
 				}
 			}
-			List<MakeInstance> errorList = allErrorInsts.get(ulm);
-			if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
-			errorList.add(mi);
         }
 
 		private void makeText(NodeProto proto, Point2D loc, String text,
@@ -536,33 +543,32 @@ public class GDS extends Input<Object>
 			MakeInstance mi = null;
 			if (proto != null)
 			{
-				mi = new MakeInstance(proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text));
+				mi = new MakeInstance(this, proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text));
+				insts.add(mi);
 				if (ulm == null)
 				{
-					insts.add(mi);
-					return;
+                    List<MakeInstance> errorList = allErrorInsts.get(ulm);
+                    if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
+                    errorList.add(mi);
 				}
 			}
-			List<MakeInstance> errorList = allErrorInsts.get(ulm);
-			if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
-			errorList.add(mi);
         }
 
 		private static void init()
 		{
 			allBuilders = new HashMap<CellId,CellBuilder>();
-			cellsTooComplex = new HashSet<CellId>();
+//			cellsTooComplex = new HashSet<CellId>();
 		}
 
 		private static void term()
 		{
 			allBuilders = null;
-			if (cellsTooComplex.size() > 0)
-			{
-				System.out.print("THESE CELLS WERE TOO COMPLEX AND NOT FULLY READ:");
-				for(CellId cellId : cellsTooComplex) System.out.print(" " + cellId/*.describe(false)*/);
-				System.out.println();
-			}
+//			if (cellsTooComplex.size() > 0)
+//			{
+//				System.out.print("THESE CELLS WERE TOO COMPLEX AND NOT FULLY READ:");
+//				for(CellId cellId : cellsTooComplex) System.out.print(" " + cellId/*.describe(false)*/);
+//				System.out.println();
+//			}
 		}
 
 		private void makeInstances(Set<CellId> builtCells)
@@ -580,19 +586,19 @@ public class GDS extends Input<Object>
                         cellBuilder.makeInstances(builtCells);
                 }
 			}
-			for(List<MakeInstance> errorList: allErrorInsts.values())
-			{
-				for(MakeInstance mi : errorList)
-				{
-					if (mi == null) continue;
-	                if (mi.proto instanceof Cell) {
-	                    Cell subCell = (Cell)mi.proto;
-	                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
-	                    if (cellBuilder != null)
-	                        cellBuilder.makeInstances(builtCells);
-	                }
-				}
-			}
+//			for(List<MakeInstance> errorList: allErrorInsts.values())
+//			{
+//				for(MakeInstance mi : errorList)
+//				{
+//					if (mi == null) continue;
+//	                if (mi.proto instanceof Cell) {
+//	                    Cell subCell = (Cell)mi.proto;
+//	                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
+//	                    if (cellBuilder != null)
+//	                        cellBuilder.makeInstances(builtCells);
+//	                }
+//				}
+//			}
 			for(MakeInstanceArray mia : instArrays)
 			{
                 if (mia.proto instanceof Cell) {
@@ -611,7 +617,7 @@ public class GDS extends Input<Object>
         private void makeInstances()
         {
 			boolean countOff = false;
-			if (SHOWPROGRESS || IGNOREIMMENSECELLS)
+			if (SHOWPROGRESS /*|| IGNOREIMMENSECELLS*/)
 			{
 				int size = insts.size();
 				int arraySize = instArrays.size();
@@ -622,44 +628,29 @@ public class GDS extends Input<Object>
 					countOff = true;
 
 					// ignore internal contents when cell is very large (for testing only)
-					if (IGNOREIMMENSECELLS)
-					{
-						cellsTooComplex.add(cell.getId());
-						MakeInstance ll = null, ul = null, lr = null, ur = null;
-						for(MakeInstance mi : insts)
-						{
-							if (ll == null) ll = ul = lr = ur = mi;
-							if (mi.loc.getX() <= ll.loc.getX() && mi.loc.getY() <= ll.loc.getY()) ll = mi;
-							if (mi.loc.getX() <= ul.loc.getX() && mi.loc.getY() >= ul.loc.getY()) ul = mi;
-							if (mi.loc.getX() >= lr.loc.getX() && mi.loc.getY() <= lr.loc.getY()) lr = mi;
-							if (mi.loc.getX() >= ur.loc.getX() && mi.loc.getY() >= ur.loc.getY()) ur = mi;
-						}
-						insts.clear();
-						instArrays.clear();
-						insts.add(ll);
-						if (!insts.contains(ul)) insts.add(ul);
-						if (!insts.contains(lr)) insts.add(lr);
-						if (!insts.contains(ur)) insts.add(ur);
-					}
+//					if (IGNOREIMMENSECELLS)
+//					{
+//						cellsTooComplex.add(cell.getId());
+//						MakeInstance ll = null, ul = null, lr = null, ur = null;
+//						for(MakeInstance mi : insts)
+//						{
+//							if (ll == null) ll = ul = lr = ur = mi;
+//							if (mi.loc.getX() <= ll.loc.getX() && mi.loc.getY() <= ll.loc.getY()) ll = mi;
+//							if (mi.loc.getX() <= ul.loc.getX() && mi.loc.getY() >= ul.loc.getY()) ul = mi;
+//							if (mi.loc.getX() >= lr.loc.getX() && mi.loc.getY() <= lr.loc.getY()) lr = mi;
+//							if (mi.loc.getX() >= ur.loc.getX() && mi.loc.getY() >= ur.loc.getY()) ur = mi;
+//						}
+//						insts.clear();
+//						instArrays.clear();
+//						insts.add(ll);
+//						if (!insts.contains(ul)) insts.add(ul);
+//						if (!insts.contains(lr)) insts.add(lr);
+//						if (!insts.contains(ur)) insts.add(ur);
+//					}
 				}
 			}
 
-            nameInstances(countOff);
-           	Collections.sort(insts);
-
-//           	// make a set of export names
-//           	Set<String> exportNames = new HashSet<String>();
-//			for(MakeInstance mi : insts)
-//				if (mi.exportName != null) exportNames.add(mi.exportName);
-//			for(UnknownLayerMessage ulm : allErrorInsts.keySet())
-//			{
-//				List<MakeInstance> errorList = allErrorInsts.get(ulm);
-//				for(MakeInstance mi : errorList)
-//					if (mi != null && mi.exportName != null) exportNames.add(mi.exportName);
-//			}
-
 			int count = 0;
-			int renamed = 0;
 			Map<String,String> exportUnify = new HashMap<String,String>();
 
 			// first make the geometry and instances
@@ -668,16 +659,11 @@ public class GDS extends Input<Object>
 				if (mi.exportName != null) continue;
 				if (countOff && ((++count % 1000) == 0))
 					System.out.println("        Made " + count + " instances");
-//                if (mi.proto instanceof Cell) {
-//                    Cell subCell = (Cell)mi.proto;
-//                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
-//                    if (cellBuilder != null)
-//                        cellBuilder.makeInstances(builtCells);
-//                }
 
 				// make the instance
-                if (mi.instantiate(this, exportUnify, null)) renamed++;
+                mi.instantiate(this, exportUnify, null);
 			}
+            createNodes();
 
 			// next make the exports
 			for(MakeInstance mi : insts)
@@ -685,12 +671,6 @@ public class GDS extends Input<Object>
 				if (mi.exportName == null) continue;
 				if (countOff && ((++count % 1000) == 0))
 					System.out.println("        Made " + count + " instances");
-//                if (mi.proto instanceof Cell) {
-//                    Cell subCell = (Cell)mi.proto;
-//                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
-//                    if (cellBuilder != null)
-//                        cellBuilder.makeInstances(builtCells);
-//                }
 
                 if (localPrefs.cadenceCompatibility)
                 {
@@ -759,27 +739,22 @@ public class GDS extends Input<Object>
                 }
 
                 // make the instance
-                if (mi.instantiate(this, exportUnify, null)) renamed++;
+                mi.instantiate(this, exportUnify, null);
 			}
 
 			for(UnknownLayerMessage ulm : allErrorInsts.keySet())
 			{
-        		List<Geometric> instantiated = new ArrayList<Geometric>();
+        		List<ImmutableNodeInst> instantiated = new ArrayList<ImmutableNodeInst>();
 				List<MakeInstance> errorList = allErrorInsts.get(ulm);
 				for(MakeInstance mi : errorList)
 				{
 					if (mi == null) continue;
 					if (countOff && ((++count % 1000) == 0))
 						System.out.println("        Made " + count + " instances");
-//	                if (mi.proto instanceof Cell) {
-//	                    Cell subCell = (Cell)mi.proto;
-//	                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
-//	                    if (cellBuilder != null)
-//	                        cellBuilder.makeInstances(builtCells);
-//	                }
 
 					// make the instance
-	                if (mi.instantiate(this, exportUnify, instantiated)) renamed++;
+                    instantiated.add(mi.n);
+//	                mi.instantiate(this, exportUnify, instantiated);
 				}
 				String msg = "Cell " + this.cell.noLibDescribe() + ": " + ulm.message;
 				Set<Cell> cellsWithError = cellLayerErrors.get(ulm);
@@ -788,18 +763,13 @@ public class GDS extends Input<Object>
 //				System.out.println(msg);
 				errorLogger.logMessage(msg, instantiated, cell, -1, true);
 			}
+            createNodes();
 
 			Map<NodeProto,List<EPoint>> massiveMerge = new HashMap<NodeProto,List<EPoint>>();
 			for(MakeInstanceArray mia : instArrays)
 			{
 				if (countOff && ((++count % 1000) == 0))
 					System.out.println("        Made " + count + " instances");
-//                if (mia.proto instanceof Cell) {
-//                    Cell subCell = (Cell)mia.proto;
-//                    CellBuilder cellBuilder = allBuilders.get(subCell.getId());
-//                    if (cellBuilder != null)
-//                        cellBuilder.makeInstances(builtCells);
-//                }
 
 				// make the instance array
                 mia.instantiate(this, massiveMerge);
@@ -814,9 +784,9 @@ public class GDS extends Input<Object>
 			}
             cell.addExports(exportsByName.values());
 
-			if (renamed > 0)
+			if (!exportUnify.isEmpty())
 			{
-				System.out.println("Cell " + this.cell.describe(false) + ": Renamed and NCC-unified " + renamed +
+				System.out.println("Cell " + this.cell.describe(false) + ": Renamed and NCC-unified " + exportUnify.size() +
 					" exports with duplicate names");
 				Map<String,String> unifyStrings = new HashMap<String,String>();
 				Set<String> finalNames = exportUnify.keySet();
@@ -841,10 +811,14 @@ public class GDS extends Input<Object>
 			}
             if (localPrefs.simplifyCells)
                 simplifyNodes(this.cell, tech);
-//			builtCells.add(this.cell.getId());
 		}
 
-        /** Method to see if existing primitive nodes could be merged and define more complex nodes
+        private void createNodes() {
+            cell.addNodes(nodesToCreate);
+            nodesToCreate.clear();
+        }
+
+        /** Method to see if existing primitive nodesToCreate could be merged and define more complex nodesToCreate
          * such as contacts
          */
         private void simplifyNodes(Cell cell, Technology tech)
@@ -964,7 +938,7 @@ public class GDS extends Input<Object>
                             }
                             if (!found)
                             {
-                                break; // fail to find all nodes
+                                break; // fail to find all nodesToCreate
                             }
                         }
                         if (!found) // rolling back new node
@@ -989,61 +963,6 @@ public class GDS extends Input<Object>
                     }
                 }
             }
-        }
-
-        private void nameInstances(boolean countOff)
-        {
-            Map<String,GenMath.MutableInteger> maxSuffixes = new HashMap<String,GenMath.MutableInteger>();
-            Set<String> userNames = new HashSet<String>();
-            MutableInteger count = new MutableInteger(0);
-            for (MakeInstance mi: insts)
-            	nameInstance(mi, countOff, count, userNames, maxSuffixes);
-			for(UnknownLayerMessage ulm : allErrorInsts.keySet())
-			{
-				List<MakeInstance> errorList = allErrorInsts.get(ulm);
-				for(MakeInstance mi : errorList)
-	            	if (mi != null) nameInstance(mi, countOff, count, userNames, maxSuffixes);
-			}
-        }
-
-        private void nameInstance(MakeInstance mi, boolean countOff, MutableInteger count,
-        	Set<String> userNames, Map<String,GenMath.MutableInteger> maxSuffixes)
-        {
-        	count.increment();
-			if (countOff && ((count.intValue() % 2000) == 0))
-				System.out.println("        Named " + count + " instances");
-            if (mi.nodeName != null)
-            {
-                if (!validGdsNodeName(mi.nodeName))
-                {
-                    System.out.println("  Warning: Node name '" + mi.nodeName + "' in cell " + cell.describe(false) +
-                        " is bad (" + Name.checkName(mi.nodeName.toString()) + ")...ignoring the name");
-                } else if (!userNames.contains(mi.nodeName.toString()))
-                {
-                    userNames.add(mi.nodeName.toString());
-                    return;
-                }
-            }
-            Name baseName;
-            if (mi.proto instanceof Cell) baseName = ((Cell)mi.proto).getBasename(); else
-            {
-                PrimitiveNode np = (PrimitiveNode)mi.proto;
-                baseName = np.getFunction().getBasename();
-            }
-            String basenameString = baseName.toString();
-            GenMath.MutableInteger maxSuffix = maxSuffixes.get(basenameString);
-            if (maxSuffix == null)
-            {
-                maxSuffix = new GenMath.MutableInteger(-1);
-                maxSuffixes.put(basenameString, maxSuffix);
-            }
-            maxSuffix.increment();
-            mi.nodeName = baseName.findSuffixed(maxSuffix.intValue());
-        }
-
-        private boolean validGdsNodeName(Name name)
-        {
-            return name.isValid() && !name.hasEmptySubnames() && !name.isBus() || !name.isTempname();
         }
 
 		private static void buildInstances()
@@ -1192,18 +1111,19 @@ public class GDS extends Input<Object>
         }
     }
 
-    private static class MakeInstance implements Comparable<MakeInstance>
+    private static class MakeInstance
 	{
-		private NodeProto proto;
-		private Point2D loc;
-		private Orientation orient;
-        private double wid, hei;
-        private EPoint[] points; // trace
+		private final NodeProto proto;
+		private final Point2D loc;
+		private final Orientation orient;
+        private final double wid, hei;
+        private final EPoint[] points; // trace
         private String exportName; // export
-        private Name nodeName; // text
+        private final Name nodeName; // text
         private String origNodeName; // original text with invalid name
+        private ImmutableNodeInst n;
 
-        private MakeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points,
+        private MakeInstance(CellBuilder cb, NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points,
         	String exportName, Name nodeName)
 		{
 			this.proto = proto;
@@ -1229,52 +1149,98 @@ public class GDS extends Input<Object>
             		nodeName = null;
             	}
             }
-            this.nodeName = nodeName;
+            cb.count.increment();
+//                if (countOff && ((count.intValue() % 2000) == 0))
+//                    System.out.println("        Named " + count + " instances");
+            if (nodeName != null)
+            {
+                if (!validGdsNodeName(nodeName))
+                {
+                    System.out.println("  Warning: Node name '" + nodeName + "' in cell " + cb.cell.describe(false) +
+                        " is bad (" + Name.checkName(nodeName.toString()) + ")...ignoring the name");
+                } else if (!cb.userNames.contains(nodeName.toString()))
+                {
+                    cb.userNames.add(nodeName.toString());
+                    this.nodeName = nodeName;
+                    return;
+                }
+            }
+            Name baseName;
+            if (proto instanceof Cell) baseName = ((Cell)proto).getBasename(); else
+            {
+                PrimitiveNode np = (PrimitiveNode)proto;
+                baseName = np.getFunction().getBasename();
+            }
+            String basenameString = baseName.toString();
+            GenMath.MutableInteger maxSuffix = cb.maxSuffixes.get(basenameString);
+            if (maxSuffix == null)
+            {
+                maxSuffix = new GenMath.MutableInteger(-1);
+                cb.maxSuffixes.put(basenameString, maxSuffix);
+            }
+            maxSuffix.increment();
+            this.nodeName = baseName.findSuffixed(maxSuffix.intValue());
 		}
 
-        public int compareTo(MakeInstance that) {
-            return TextUtils.STRING_NUMBER_ORDER.compare(this.nodeName.toString(), that.nodeName.toString());
+        private boolean validGdsNodeName(Name name)
+        {
+            return name.isValid() && !name.hasEmptySubnames() && !name.isBus() || !name.isTempname();
         }
 
         /**
          * Method to instantiate a node/export in a Cell.
          * @param parent the Cell in which to create the geometry.
          * @param exportUnify a map that shows how renamed exports connect.
-         * @param saveHere a list of Geometrics to save this instance in.
+         * @param saveHere a list of ImmutableNodeInst to save this instance in.
          * @return true if the export had to be renamed.
          */
-        private boolean instantiate(CellBuilder cb, Map<String,String> exportUnify, List<Geometric> saveHere)
+        private void instantiate(CellBuilder cb, Map<String,String> exportUnify, List<ImmutableNodeInst> saveHere)
         {
             Cell parent = cb.cell;
-        	String name = null;
-        	if (nodeName != null) name = nodeName.toString();
-            NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name);
-            String errorMsg = null;
-            if (ni == null) return false;
-            if (saveHere != null) saveHere.add(ni);
-
-            if (ni.getNameKey() != nodeName)
-            {
-                errorMsg = "Cell " + parent.describe(false) + ": GDS name '" + name + "' renamed to '" + ni.getName() + "'";
+            assert parent.isLinked();
+            // search for spare nodeId
+            int nodeId = cb.nodeId++;
+            assert nodeName != null;
+        	String name = nodeName.toString();
+            assert parent.findNode(name) == null;
+            assert !NodeInst.checkNameKey(nodeName, parent) && !nodeName.isBus();
+            TextDescriptor nameDescriptor = TextDescriptor.getNodeTextDescriptor();
+            EPoint anchor = EPoint.snap(loc);
+            EPoint size = EPoint.ORIGIN;
+            if (proto instanceof PrimitiveNode) {
+                ERectangle full = ((PrimitiveNode) proto).getFullRectangle();
+                long gridWidth = DBMath.lambdaToSizeGrid(wid - full.getLambdaWidth());
+                long gridHeight = DBMath.lambdaToSizeGrid(hei - full.getLambdaHeight());
+                size = EPoint.fromGrid(gridWidth, gridHeight);
+            } else {
+                assert ((Cell)proto).isLinked();
             }
-            else if (origNodeName != null)
+            int flags = 0;
+            int techBits = 0;
+            TextDescriptor protoDescriptor = TextDescriptor.getInstanceTextDescriptor();
+            n = ImmutableNodeInst.newInstance(nodeId, proto.getId(), nodeName, nameDescriptor,
+                orient, anchor, size, flags, techBits, protoDescriptor);
+            if (points != null && GenMath.getAreaOfPoints(points) != wid*hei) {
+                n = n.withTrace(points, cb.traceDescriptor);
+            }
+            cb.nodesToCreate.add(n);
+//            NodeInst ni = NodeInst.newInstance(parent, n);
+            String errorMsg = null;
+//            if (ni == null) return;
+            if (saveHere != null) saveHere.add(n);
+
+//            assert ni.getNameKey() == nodeName;
+            if (origNodeName != null)
             {
            		errorMsg = "Cell " + parent.describe(false) + ": Original GDS name of '" + name + "' was '" + origNodeName + "'";
             }
 
             if (errorMsg != null)
             {
-                List<Geometric> geomList = new ArrayList<Geometric>(1);
-                geomList.add(ni);
-                errorLogger.logMessage(errorMsg, geomList, parent, -1, false);
+                errorLogger.logMessage(errorMsg, Collections.singleton(n), parent, -1, false);
                 System.out.println(errorMsg);
             }
 
-//            if (localPrefs.expandCells && ni.isCellInstance())
-//                ni.setExpanded(true);
-            if (points != null && GenMath.getAreaOfPoints(points) != wid*hei)
-                ni.setTrace(points);
-            boolean renamed = false;
             if (exportName != null)
             {
             	if (exportName.endsWith(":"))
@@ -1299,7 +1265,6 @@ public class GDS extends Input<Object>
 //	parent.describe(false) + " (renamed to " + newName + ")");
                     exportUnify.put(newName, exportName);
                     exportName = newName;
-                    renamed = true;
         		}
 
                 // Create ImmutableExport
@@ -1307,8 +1272,7 @@ public class GDS extends Input<Object>
                 boolean busNamesAllowed = false;
                 Name exportNameKey = ImmutableExport.validExportName(exportName, busNamesAllowed);
                 TextDescriptor nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
-                int nodeId = ni.getD().nodeId;
-                PortProtoId portProtoId = ni.getPortInst(0).getPortProto().getId();
+                PortProtoId portProtoId = proto.getPort(0).getId();
                 boolean alwaysDrawn = false;
                 boolean bodyOnly = false;
                 assert parent.findExport(exportName) == null;
@@ -1320,7 +1284,6 @@ public class GDS extends Input<Object>
                 // This also modifies the cb.alreadyExports
                 cb.exportsByName.put(exportName, d);
             }
-            return renamed;
         }
 	}
 

@@ -52,6 +52,7 @@ import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
@@ -494,55 +495,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), nameKey, nameDescriptor,
                 orient, anchor, size, flags, techBits, protoDescriptor);
 
-        NodeInst ni = newInstance(parent, d);
+        NodeInst ni = parent.addNode(d);
         if (ni != null && msg != null && errorLogger != null) {
             errorLogger.logError(msg, ni, parent, null, 1);
-        }
-        return ni;
-    }
-
-    /**
-     * Method to create a NodeInst by ImmutableNodeInst.
-     * @param parent the Cell in which this NodeInst will reside.
-     * @param d ImmutableNodeInst of new NodeInst
-     * @return the newly created NodeInst, or null on error.
-     */
-    public static NodeInst newInstance(Cell parent, ImmutableNodeInst d) {
-        if (d.protoId instanceof CellId) {
-            Cell subCell = parent.getDatabase().getCell((CellId) d.protoId);
-            if (Cell.isInstantiationRecursive(subCell, parent)) {
-                System.out.println("Cannot create instance of " + subCell + " in " + parent
-                        + " because it would be a recursive case");
-                return null;
-            }
-            subCell.getTechnology();
-        }
-
-        if (ImmutableNodeInst.isCellCenter(d.protoId) && parent.alreadyCellCenter()) {
-            System.out.println("Can only be one cell-center in " + parent + ": new one ignored");
-            return null;
-        }
-
-        if (parent.findNode(d.name.toString()) != null) {
-            System.out.println(parent + " already has NodeInst with name \"" + d.name + "\"");
-            return null;
-        }
-
-        NodeInst ni = lowLevelNewInstance(parent.getTopology(), d);
-
-        if (ni.checkAndRepair(true, null, null) > 0) {
-            return null;
-        }
-
-        // add to linked lists
-        if (parent.addNode(ni)) {
-            return null;
-        }
-
-        // handle change control, constraint, and broadcast
-        Constraints.getCurrent().newObject(ni);
-        if (ImmutableNodeInst.isCellCenter(d.protoId)) {
-            parent.adjustReferencePoint(d.anchor.getX(), d.anchor.getY());
         }
         return ni;
     }
@@ -3039,27 +2994,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param key the Variable key that has changed on this NodeInst.
      */
     public void checkPossibleVariableEffects(Variable.Key key) {
-        if (key == TRACE && protoType instanceof PrimitiveNode) {
-            PrimitiveNode pn = (PrimitiveNode) protoType;
-            if (ImmutableNodeInst.SIMPLE_TRACE_SIZE) {
-                lowLevelModify(d);
-            } else if (pn.isHoldsOutline() && getTrace() != null) {
-                Poly[] polys = pn.getTechnology().getShapeOfNode(this);
-                Rectangle2D bounds = new Rectangle2D.Double();
-                for (int i = 0; i < polys.length; i++) {
-                    Poly poly = polys[i];
-                    if (i == 0) {
-                        bounds.setRect(poly.getBounds2D());
-                    } else {
-                        Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
-                    }
-                }
-                ERectangle full = pn.getFullRectangle();
-                double lambdaX = bounds.getWidth() - full.getLambdaWidth();
-                double lambdaY = bounds.getHeight() - full.getLambdaHeight();
-                lowLevelModify(d.withSize(EPoint.fromLambda(lambdaX, lambdaY)));
-            }
-        } else if (key == Artwork.ART_DEGREES) {
+        if (key == TRACE && protoType instanceof PrimitiveNode || key == Artwork.ART_DEGREES) {
             lowLevelModify(d);
         }
     }
@@ -3206,7 +3141,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 return cmp;
             }
         }
-        cmp = this.getName().compareTo(that.getName());
+        cmp = TextUtils.STRING_NUMBER_ORDER.compare(this.getName(), that.getName());
+//        cmp = this.getName().compareTo(that.getName());
         if (cmp != 0) {
             return cmp;
         }
@@ -3560,10 +3496,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * Method to check and repair data structure errors in this NodeInst.
      */
     public int checkAndRepair(boolean repair, List<Geometric> list, ErrorLogger errorLogger) {
-        int errorCount = 0;
-//		int warningCount = 0;
-        double width = getXSize();
-        double height = getYSize();
         Cell parent = topology != null ? topology.cell : null;
         if (protoType instanceof Cell) {
             Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
@@ -3579,7 +3511,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     errorLogger.logWarning(nccMsg, this, parent, null, 1);
                 }
             }
-            return errorCount;
+            return 0;
         }
         PrimitiveNode pn = (PrimitiveNode) protoType;
         if (pn.getTechnology().cleanUnusedNodesInLibrary(this, list)) {
@@ -3603,58 +3535,17 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 return 1;
             }
         }
-        String sizeMsg = null;
-        if (getTrace() != null) {
-            if (pn.isHoldsOutline()) {
-                Rectangle2D bounds = new Rectangle2D.Double();
-                if (!ImmutableNodeInst.SIMPLE_TRACE_SIZE) {
-                    Poly[] polys = pn.getTechnology().getShapeOfNode(this);
-                    for (int i = 0; i < polys.length; i++) {
-                        Poly poly = polys[i];
-                        if (i == 0) {
-                            bounds.setRect(poly.getBounds2D());
-                        } else {
-                            Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
-                        }
-                    }
-                    width = DBMath.round(bounds.getWidth());
-                    height = DBMath.round(bounds.getHeight());
-                    if (width != getXSize() || height != getYSize()) {
-                        sizeMsg = " but has outline of size ";
-                    }
-                }
-            } else {
-                String msg = parent + ", " + this + " has unexpected outline";
-                System.out.println(msg);
-                if (errorLogger != null) {
-                    errorLogger.logError(msg, this, parent, null, 1);
-                }
-                if (repair) {
-                    delVar(TRACE);
-                }
-            }
-        }
-        if (sizeMsg != null) {
-            assert !ImmutableNodeInst.SIMPLE_TRACE_SIZE;
-            sizeMsg = parent + ", " + this
-                    + " is " + getXSize() + "x" + getYSize() + sizeMsg + width + "x" + height;
-            if (repair) {
-                checkChanging();
-                sizeMsg += " (REPAIRED)";
-            }
-            System.out.println(sizeMsg);
+        if (getTrace() != null && !pn.isHoldsOutline()) {
+            String msg = parent + ", " + this + " has unexpected outline";
+            System.out.println(msg);
             if (errorLogger != null) {
-                errorLogger.logWarning(sizeMsg, this, parent, null, 1);
+                errorLogger.logError(msg, this, parent, null, 1);
             }
             if (repair) {
-                ERectangle full = pn.getFullRectangle();
-                double lambdaX = width - full.getLambdaWidth();
-                double lambdaY = height - full.getLambdaHeight();
-                lowLevelModify(d.withSize(EPoint.fromLambda(lambdaX, lambdaY)));
+                delVar(TRACE);
             }
-//			warningCount++;
         }
-        return errorCount;
+        return 0;
     }
 
     /**

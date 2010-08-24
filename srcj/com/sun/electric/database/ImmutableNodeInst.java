@@ -49,6 +49,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -59,8 +60,6 @@ import java.util.NoSuchElementException;
  * @promise "requiresColor (DBChanger | DBExaminer | AWT);" for check()
  */
 public class ImmutableNodeInst extends ImmutableElectricObject {
-
-    public static final boolean SIMPLE_TRACE_SIZE = true;
 
     /**
      * Class to access user bits of ImmutableNodeInst.
@@ -162,6 +161,12 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public final TextDescriptor protoDescriptor;
     /** Variables on PortInsts. */
     final ImmutablePortInst[] ports;
+
+    public static Comparator<ImmutableNodeInst> NAME_ORDER = new Comparator<ImmutableNodeInst>() {
+        public int compare(ImmutableNodeInst n1, ImmutableNodeInst n2) {
+            return TextUtils.STRING_NUMBER_ORDER.compare(n1.name.toString(), n2.name.toString());
+        }
+    };
 
     /**
      * The private constructor of ImmutableNodeInst. Use the factory "newInstance" instead.
@@ -504,7 +509,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             return this;
         }
         EPoint size = this.size;
-        if (SIMPLE_TRACE_SIZE && var.getKey() == NodeInst.TRACE &&
+        if (var.getKey() == NodeInst.TRACE &&
                 protoId instanceof PrimitiveNodeId && !isCellCenter(protoId)) {
             Object value = var.getObject();
             if (value instanceof EPoint[]) {
@@ -916,7 +921,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         assert orient != null;
         assert anchor != null;
         assert size != null;
-        if (SIMPLE_TRACE_SIZE && protoId instanceof PrimitiveNodeId && !isCellCenter(protoId)) {
+        if (protoId instanceof PrimitiveNodeId && !isCellCenter(protoId)) {
             EPoint[] trace = getTrace();
             if (trace != null) {
                 assert calcTraceSize(trace).equals(size);
