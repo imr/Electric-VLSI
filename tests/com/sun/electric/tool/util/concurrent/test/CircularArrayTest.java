@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: AbstractJunitTest_T.java
+ * File: CircularArrayTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,31 +21,33 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.test;
+package com.sun.electric.tool.util.concurrent.test;
 
-import org.junit.Assert;
 import org.junit.Test;
-
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class AbstractJunitTest_T extends AbstractJunitTest {
+public class CircularArrayTest {
 
 	@Test
-	public void testLoadLibrary() throws Exception {
-		Library lib = this.loadLibrary("PlacementTest", "W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib");
-
-		Assert.assertNotNull(lib);
+	public void testIndexCalculation() {
+		// for (int i = 0; i < 32; i++) {
+		// System.out.println(1 << i);
+		// Assert.assertTrue((1 << i) >= 0);
+		// }
 	}
-	
+
 	@Test
-	public void testLoadCell() throws Exception {
-		Cell cell = this.loadCell("PlacementTest", "PlacementTest4", "W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib");
-		Assert.assertNotNull(cell);
+	public void testModuloOp() {
+
+		Integer[][] values = { { 7, 3 }, { 7, -3 }, { -7, 3 }, { -7, -3 } };
+
+		for (Integer[] value : values) {
+			int rest = value[0] % value[1];
+			System.out.println(value[0] + " % " + value[1] + " = " + rest);
+		}
 	}
 
 }

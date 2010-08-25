@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TestJunitCase.java
+ * File: PlacementTools.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,42 +21,22 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.test;
-
-import junit.framework.Assert;
+package com.sun.electric.tool.placement;
 
 import org.junit.Test;
-
-import com.sun.electric.tool.util.test.TestHelpers;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class TestJunitCase {
+public class PlacementToolsTest {
 
 	@Test
-	public void testTestByReflection() throws Exception {
-
-		Object testClass = new TestClass();
-
-		TestHelpers.invokePrivateMethod("testMethod", testClass);
-	}
-
-	@Test
-	public void testTestByReflection2() throws Exception {
-		Object testClass = new TestClass();
-		String result = (String) TestHelpers.invokePrivateMethod("testMethod2", testClass);
-
-		Assert.assertEquals(TestClass.testString, result);
-	}
-
-	@Test
-	public void testTestByReflection3() throws Exception {
-		Object testClass = new TestClass();
-		String result = (String) TestHelpers.invokePrivateMethod("testMethod3", testClass, TestClass.testString);
-
-		Assert.assertEquals(TestClass.testString, result);
+	public void getAvailablePlacementTools() {
+		PlacementFrame[] tools = PlacementFrame.getPlacementAlgorithms();
+		for(PlacementFrame tool: tools) {
+			System.out.println(tool.getAlgorithmName());
+		}
 	}
 
 }

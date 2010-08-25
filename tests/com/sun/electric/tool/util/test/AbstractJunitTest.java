@@ -23,93 +23,29 @@
  */
 package com.sun.electric.tool.util.test;
 
-import java.net.URL;
-import java.util.Iterator;
-import java.util.Map;
+import org.junit.Assert;
+import org.junit.Test;
 
-import org.junit.Before;
-
-import com.sun.electric.Main.UserInterfaceDummy;
-import com.sun.electric.database.EditingPreferences;
-import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.id.IdManager;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.TechPool;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.LibraryFiles;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public abstract class AbstractJunitTest {
+public class AbstractJunitTest extends AbstractJunitBaseClass {
 
-	public AbstractJunitTest() {
+	@Test
+	public void testLoadLibrary() throws Exception {
+		Library lib = this.loadLibrary("PlacementTest", "W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib");
 
+		Assert.assertNotNull(lib);
+	}
+	
+	@Test
+	public void testLoadCell() throws Exception {
+		Cell cell = this.loadCell("PlacementTest", "PlacementTest4", "W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib");
+		Assert.assertNotNull(cell);
 	}
 
-	@Before
-	public void initElectric() {
-		TextDescriptor.cacheSize();
-		Tool.initAllTools();
-		Pref.lockCreation();
-		this.initDatabase();
-		this.initEnvironment();
-		this.initTech();
-	}
-
-	protected Library loadLibrary(String libName, String fileName) throws Exception {
-		EDatabase.serverDatabase().lowLevelBeginChanging(null);
-
-		URL fileURL = TextUtils.makeURLToFile(fileName);
-		Library rootLib = Library.findLibrary(libName);
-		if (rootLib == null) // attempt to read a JELIB if extension is missing
-			rootLib = LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
-		if (rootLib == null) {
-			System.out.println("Can't upload the library '" + libName + "'"); // error
-			return null;
-		}
-		return rootLib;
-	}
-
-	protected Cell loadCell(String libName, String cellName, String fileName) throws Exception {
-		Library lib = this.loadLibrary(libName, fileName);
-		for (Iterator<Cell> cellIt = lib.getCells(); cellIt.hasNext();) {
-			Cell cell = cellIt.next();
-			if(cell.getName().equals(cellName)) {
-				return cell;
-			}
-		}
-		return null;
-	}
-
-	private void initTech() {
-		EDatabase.serverDatabase().lowLevelSetCanUndoing(true);
-		Map<String, Object> paramValuesByXmlPath = Technology.getParamValuesByXmlPath();
-		Technology.initPreinstalledTechnologies(EDatabase.serverDatabase(), paramValuesByXmlPath);
-	}
-
-	private void initDatabase() {
-		EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "clientDB");
-		EDatabase.setClientDatabase(database);
-		Job.setUserInterface(new UserInterfaceDummy());
-		EDatabase.setServerDatabase(database);
-		EDatabase.serverDatabase().lock(true);
-	}
-
-	private void initEnvironment() {
-		Environment env = new Environment(IdManager.stdIdManager);
-		Environment.setThreadEnvironment(env);
-		EditingPreferences ep = new EditingPreferences(true, TechPool.getThreadTechPool());
-		EditingPreferences.setThreadEditingPreferences(ep);
-
-	}
 }

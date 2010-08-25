@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: CollectionTests.java
+ * File: CollectionTestsTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -41,7 +41,7 @@ import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructur
  * @author Felix Schmidt
  * 
  */
-public class CollectionTests_T {
+public class CollectionTestsTest {
 
 	@Test
 	public void testLockFreeQueue() {

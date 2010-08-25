@@ -49,8 +49,6 @@ public class TestHelper {
     public static Integer[][] createMatrixIntegerNull(int sizeX, int sizeY, int maximumValue) {
         Integer[][] result = new Integer[sizeY][sizeX];
 
-        Random rand = new Random(System.currentTimeMillis());
-
         for (int i = 0; i < sizeY; i++)
             for (int j = 0; j < sizeX; j++)
                 result[i][j] = 0;
@@ -104,6 +102,6 @@ public class TestHelper {
 
     @Test(expected = Exception.class)
     public void testExtractValueFromArgError() throws Exception {
-        Integer result = extractValueFromArgInteger("test1");
+        extractValueFromArgInteger("test1");
     }
 }

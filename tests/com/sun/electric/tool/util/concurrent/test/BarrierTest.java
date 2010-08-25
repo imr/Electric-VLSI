@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Barrier_T.java
+ * File: BarrierTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -38,7 +38,7 @@ import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
  * @author Felix Schmidt
  * 
  */
-public class Barrier_T {
+public class BarrierTest {
 
 	private static final int TEST_NUM = 10;
 	
@@ -54,7 +54,7 @@ public class Barrier_T {
 	private void testBarrier(Barrier barrier, int n) throws InterruptedException {
 		Thread[] threads = new Thread[n];
 		for (int i = 0; i < n; i++) {
-			threads[i] = new BarrierTest(barrier);
+			threads[i] = new BarrierTestThread(barrier);
 			threads[i].start();
 		}
 
@@ -67,11 +67,11 @@ public class Barrier_T {
 
 	}
 
-	private class BarrierTest extends Thread {
+	private class BarrierTestThread extends Thread {
 
 		private Barrier barrier;
 
-		public BarrierTest(Barrier barrier) {
+		public BarrierTestThread(Barrier barrier) {
 			this.barrier = barrier;
 		}
 

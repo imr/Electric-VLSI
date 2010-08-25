@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Parallel.java
+ * File: ParallelTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -35,15 +35,15 @@ import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
-import com.sun.electric.tool.util.concurrent.test.PForJob_T.TestForTask;
-import com.sun.electric.tool.util.concurrent.test.PReduceJob_T.PITask;
-import com.sun.electric.tool.util.concurrent.test.PWhileJob_T.WhileTestTask;
+import com.sun.electric.tool.util.concurrent.test.PForJobTest.TestForTask;
+import com.sun.electric.tool.util.concurrent.test.PReduceJobTest.PITask;
+import com.sun.electric.tool.util.concurrent.test.PWhileJobTest.WhileTestTask;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class Parallel_T {
+public class ParallelTest {
 
 	@Test
 	public void testParallelFor() throws InterruptedException, PoolExistsException {

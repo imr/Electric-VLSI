@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: CircularArray_T.java
+ * File: TestJunitCaseTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,34 +21,42 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.concurrent.test;
+package com.sun.electric.tool.util.test;
 
-import org.junit.Assert;
+import junit.framework.Assert;
+
 import org.junit.Test;
+
+import com.sun.electric.tool.util.test.TestHelpers;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class CircularArray_T {
+public class TestJunitCaseTest {
 
 	@Test
-	public void testIndexCalculation() {
-		// for (int i = 0; i < 32; i++) {
-		// System.out.println(1 << i);
-		// Assert.assertTrue((1 << i) >= 0);
-		// }
+	public void testTestByReflection() throws Exception {
+
+		Object testClass = new TestClass();
+
+		TestHelpers.invokePrivateMethod("testMethod", testClass);
 	}
 
 	@Test
-	public void testModuloOp() {
+	public void testTestByReflection2() throws Exception {
+		Object testClass = new TestClass();
+		String result = (String) TestHelpers.invokePrivateMethod("testMethod2", testClass);
 
-		Integer[][] values = { { 7, 3 }, { 7, -3 }, { -7, 3 }, { -7, -3 } };
+		Assert.assertEquals(TestClass.testString, result);
+	}
 
-		for (Integer[] value : values) {
-			int rest = value[0] % value[1];
-			System.out.println(value[0] + " % " + value[1] + " = " + rest);
-		}
+	@Test
+	public void testTestByReflection3() throws Exception {
+		Object testClass = new TestClass();
+		String result = (String) TestHelpers.invokePrivateMethod("testMethod3", testClass, TestClass.testString);
+
+		Assert.assertEquals(TestClass.testString, result);
 	}
 
 }

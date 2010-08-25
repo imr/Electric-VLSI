@@ -70,7 +70,7 @@ public class Main {
 		String outtest = null;
 		String scheduler = args[5];
 		try {
-			SchedulingStrategy strategy = SchedulingStrategy.valueOf(scheduler);
+			SchedulingStrategy.valueOf(scheduler);
 		} catch (Exception ex) {
 			System.out.println("No scheduler " + scheduler + " available. Use: "
 					+ Scheduler.getAvailableScheduler());

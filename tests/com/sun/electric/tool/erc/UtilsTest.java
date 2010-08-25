@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ERCWellCheck_T.java
+ * File: UtilsTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -28,5 +28,6 @@ package com.sun.electric.tool.erc;
  * @author Felix Schmidt
  * 
  */
-public class ERCWellCheck_T  {
+public class UtilsTest {
+
 }

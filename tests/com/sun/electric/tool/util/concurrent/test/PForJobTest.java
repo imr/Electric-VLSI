@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: PForJob_T.java
+ * File: PForJobTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -47,7 +47,7 @@ import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrateg
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
-public class PForJob_T {
+public class PForJobTest {
 
 	@Test
 	public void testParallelFor() throws PoolExistsException, InterruptedException, UnknownSchedulerException {
@@ -92,7 +92,7 @@ public class PForJob_T {
 		matCPar = TestHelper.createMatrixIntegerNull(size, size, 100);
 		matCSer = TestHelper.createMatrixIntegerNull(size, size, 100);
 
-		ThreadPool pool = ThreadPool.initialize(new FCQueue<PTask>(), 8);
+		ThreadPool.initialize(new FCQueue<PTask>(), 8);
 
 		long start = System.currentTimeMillis();
 		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10),

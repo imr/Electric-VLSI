@@ -27,8 +27,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses( { ThreadPool_T.class, PForJob_T.class, PReduceJob_T.class, Parallel_T.class,
-		PWhileJob_T.class, CollectionTests_T.class })
+@Suite.SuiteClasses( { ThreadPoolTest.class, PForJobTest.class, PReduceJobTest.class, ParallelTest.class,
+		PWhileJobTest.class, CollectionTestsTest.class })
 public class ConcurrencyTestSuite {
 
 }

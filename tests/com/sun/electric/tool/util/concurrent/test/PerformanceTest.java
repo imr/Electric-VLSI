@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Performance_T.java
+ * File: PerformanceTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -34,7 +34,6 @@ import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
@@ -45,12 +44,11 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
  * @author Felix Schmidt
  * 
  */
-public class Performance_T {
+public class PerformanceTest {
 
 	private double[] data;
 	private static final int size = 1000000000 / 2;
 	private float[][] matA;
-	private float[][] matB;
 	private static final int matSize = 20000;
 
 	@Test
@@ -141,7 +139,7 @@ public class Performance_T {
 
 	public static void main(String[] args) throws InterruptedException, PoolExistsException, IOException {
 
-		Performance_T test = new Performance_T();
+		PerformanceTest test = new PerformanceTest();
 
 		System.in.read();
 

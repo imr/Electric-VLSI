@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Pipeline_t.java
+ * File: PipelineTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -35,7 +35,7 @@ import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.St
  * @author Felix Schmidt
  * 
  */
-public class Pipeline_T {
+public class PipelineTest {
 
     @Ignore
     @Test

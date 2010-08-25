@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Scheduling_T.java
+ * File: SchedulingTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -46,7 +46,7 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
  * @author Felix Schmidt
  * 
  */
-public class Scheduling_T {
+public class SchedulingTest {
 
 	private static int[][] matA;
 	private static int[][] matB;
@@ -103,8 +103,7 @@ public class Scheduling_T {
 		System.out.println("Stealing: " + TextUtils.getElapsedTime(stealing));
 	}
 
-	private long runMatrixMultiplication(IStructure<PTask> structure) throws PoolExistsException,
-			InterruptedException {
+	private long runMatrixMultiplication(IStructure<PTask> structure) throws PoolExistsException, InterruptedException {
 		ThreadPool pool = ThreadPool.initialize(structure, numOfThreads, Job.getDebug());
 		long start = System.currentTimeMillis();
 		Parallel.For(new BlockedRange2D(0, size, 64, 0, size, 64), new MatrixMultTask(size));
@@ -138,10 +137,10 @@ public class Scheduling_T {
 		}
 
 	}
-	
+
 	@Test
 	public void testGetSchedulers() {
-	    System.out.println(Scheduler.getAvailableScheduler());
+		System.out.println(Scheduler.getAvailableScheduler());
 	}
 
 }

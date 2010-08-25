@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: PReduceJob.java
+ * File: PReduceJobTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -38,7 +38,7 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
  * 
  * @author Felix Schmidt
  */
-public class PReduceJob_T {
+public class PReduceJobTest {
 
 	@Test
 	public void testPReduce() throws PoolExistsException, InterruptedException, CloneNotSupportedException {

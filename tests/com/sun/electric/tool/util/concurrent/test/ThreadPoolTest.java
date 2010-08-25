@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ThreadPool_T.java
+ * File: ThreadPoolTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -40,7 +40,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolState;
 
-public class ThreadPool_T {
+public class ThreadPoolTest {
 
 	@Test
 	public void testThreadPool() throws PoolExistsException, InterruptedException {

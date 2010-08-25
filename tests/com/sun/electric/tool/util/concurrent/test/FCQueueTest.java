@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: FCQueue_T.java
+ * File: FCQueueTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -43,7 +43,7 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
  * @author Felix Schmidt
  * 
  */
-public class FCQueue_T {
+public class FCQueueTest {
 
 	private static int[][] matA;
 	private static int[][] matB;
