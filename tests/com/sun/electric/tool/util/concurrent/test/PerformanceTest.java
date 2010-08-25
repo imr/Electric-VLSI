@@ -50,6 +50,7 @@ public class PerformanceTest {
 	private static final int size = 1000000000 / 2;
 	private float[][] matA;
 	private static final int matSize = 20000;
+    private static final int NUMBER_OF_THREADS = 8;
 
 	@Test
 	public void testSum() throws InterruptedException, PoolExistsException {
@@ -82,15 +83,16 @@ public class PerformanceTest {
 
 		System.out.println("parallel ...");
 
-		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(8), 8, true);
+		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(NUMBER_OF_THREADS), NUMBER_OF_THREADS, true);
 
 		start = System.currentTimeMillis();
 
-		Integer parsum = Parallel.Reduce(new BlockedRange1D(0, size, size / 8), new SumTask());
+		Integer parsum = Parallel.Reduce(new BlockedRange1D(0, size, size / NUMBER_OF_THREADS), new SumTask());
 
 		long par = System.currentTimeMillis() - start;
 
 		ThreadPool.getThreadPool().shutdown();
+        data = null;
 
 		Assert.assertEquals(sersum, parsum);
 
@@ -119,7 +121,7 @@ public class PerformanceTest {
 
 		ThreadPool.getThreadPool().shutdown();
 
-		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(8), 8, true);
+		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(NUMBER_OF_THREADS), NUMBER_OF_THREADS, true);
 
 		System.out.println("parallel ...");
 		start = System.currentTimeMillis();
@@ -129,6 +131,7 @@ public class PerformanceTest {
 		long par = System.currentTimeMillis() - start;
 
 		ThreadPool.getThreadPool().shutdown();
+        matA = null;
 
 		System.out.println(" ser time   : " + ser);
 		System.out.println(" par time   : " + par);
