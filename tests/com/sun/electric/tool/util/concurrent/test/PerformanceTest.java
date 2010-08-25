@@ -47,9 +47,9 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 public class PerformanceTest {
 
 	private double[] data;
-	private static final int size = 1000000000 / 2;
+	private static final int size = 1000000000 / 8;
 	private float[][] matA;
-	private static final int matSize = 20000;
+	private static final int matSize = 15000;
     private static final int NUMBER_OF_THREADS = 8;
 
 	@Test
