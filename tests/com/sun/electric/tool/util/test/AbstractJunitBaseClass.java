@@ -29,7 +29,6 @@ import java.util.Map;
 
 import org.junit.Before;
 
-import com.sun.electric.Main.UserInterfaceDummy;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
@@ -52,6 +51,10 @@ import com.sun.electric.tool.io.input.LibraryFiles;
  */
 public abstract class AbstractJunitBaseClass {
 
+	public enum LoadLibraryType {
+		resource, fileSystem;
+	}
+
 	public AbstractJunitBaseClass() {
 
 	}
@@ -67,11 +70,19 @@ public abstract class AbstractJunitBaseClass {
 	}
 
 	protected Library loadLibrary(String libName, String fileName) throws Exception {
+		return this.loadLibrary(libName, fileName, LoadLibraryType.resource);
+	}
+
+	protected Library loadLibrary(String libName, String fileName, LoadLibraryType type) throws Exception {
 		EDatabase.serverDatabase().lowLevelBeginChanging(null);
 
-        URL fileURL = Object.class.getResource(fileName);
+		URL fileURL = null;
+		if (type.equals(LoadLibraryType.resource)) {
+			fileURL = Object.class.getResource(fileName);
+		} else {
+			fileURL = TextUtils.makeURLToFile(fileName);
+		}
 
-//		URL fileURL = TextUtils.makeURLToFile(fileName);
 		Library rootLib = Library.findLibrary(libName);
 		if (rootLib == null) // attempt to read a JELIB if extension is missing
 			rootLib = LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
@@ -81,9 +92,13 @@ public abstract class AbstractJunitBaseClass {
 		}
 		return rootLib;
 	}
-
+	
 	protected Cell loadCell(String libName, String cellName, String fileName) throws Exception {
-		Library lib = this.loadLibrary(libName, fileName);
+		return this.loadCell(libName, cellName, fileName, LoadLibraryType.resource);
+	}
+
+	protected Cell loadCell(String libName, String cellName, String fileName, LoadLibraryType type) throws Exception {
+		Library lib = this.loadLibrary(libName, fileName, type);
 		for (Iterator<Cell> cellIt = lib.getCells(); cellIt.hasNext();) {
 			Cell cell = cellIt.next();
 			if (cell.getName().equals(cellName)) {
@@ -101,12 +116,7 @@ public abstract class AbstractJunitBaseClass {
 
 	private void initDatabase() {
 		EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "serverDB");
-		Job.setUserInterface(new UserInterfaceDummy() {
-			@Override
-			public EDatabase getDatabase() {
-				return EDatabase.serverDatabase();
-			}
-		});
+		Job.setUserInterface(new TestUserInterface());
 		EDatabase.setServerDatabase(database);
 		EDatabase.serverDatabase().lock(true);
 	}
