@@ -28,7 +28,6 @@ import java.util.concurrent.Semaphore;
 import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
-import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
 
 /**
  * 

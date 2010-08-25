@@ -27,6 +27,7 @@ package com.sun.electric.tool.util.concurrent.exceptions;
  * @author fs239085
  * 
  */
+@SuppressWarnings("serial")
 public class PoolNotInitializedException extends Error {
 
 	/**

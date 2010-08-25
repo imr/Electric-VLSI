@@ -28,6 +28,7 @@ package com.sun.electric.tool.util;
  * Exception: Throw this if the data structure is empty
  *
  */
+@SuppressWarnings("serial")
 public class EmptyException extends Exception {
 
 

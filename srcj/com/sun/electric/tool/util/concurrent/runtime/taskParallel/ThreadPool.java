@@ -210,7 +210,6 @@ public class ThreadPool {
 
 		private ThreadPool pool;
 		private PoolWorkerStrategy strategy;
-		private Thread thisThread;
 
 		public Worker(ThreadPool pool) {
 			this.pool = pool;

@@ -30,6 +30,7 @@ package com.sun.electric.tool.util.concurrent.exceptions;
  * @author Felix Schmidt
  *
  */
+@SuppressWarnings("serial")
 public class PoolExistsException extends Exception {
 
 }

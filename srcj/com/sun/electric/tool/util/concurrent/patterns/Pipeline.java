@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.util.concurrent.patterns;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime;
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.StageImpl;
 
@@ -50,8 +48,8 @@ public class Pipeline<PipeIn, PipeOut> {
 
     public static class PipelineJob<PipeIn, PipeOut> {
         
-        private AtomicInteger added = new AtomicInteger(0);
-        private AtomicInteger processed = new AtomicInteger(0);
+       // private AtomicInteger added = new AtomicInteger(0);
+       // private AtomicInteger processed = new AtomicInteger(0);
 
     }
 

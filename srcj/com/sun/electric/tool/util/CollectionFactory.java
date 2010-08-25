@@ -210,6 +210,14 @@ public class CollectionFactory {
 		return result;
 	}
 
+	public static <T> List<T> copySetToList(Set<T> source) {
+		List<T> result = CollectionFactory.createArrayList();
+
+		doCopyCollection(source, result);
+
+		return result;
+	}
+
 	public static <T> ImmutableList<T> copyListToImmutableList(List<T> source) {
 		ImmutableList<T> immutableList = null;
 		for (T element : source) {
