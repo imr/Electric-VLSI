@@ -37,14 +37,14 @@ public class AbstractJunitTest extends AbstractJunitBaseClass {
 
 	@Test
 	public void testLoadLibrary() throws Exception {
-		Library lib = this.loadLibrary("PlacementTest", "W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib");
+		Library lib = this.loadLibrary("testLib", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
 
 		Assert.assertNotNull(lib);
 	}
 	
 	@Test
 	public void testLoadCell() throws Exception {
-		Cell cell = this.loadCell("PlacementTest", "PlacementTest4", "W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib");
+		Cell cell = this.loadCell("testLib", "testCell", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
 		Assert.assertNotNull(cell);
 	}
 
