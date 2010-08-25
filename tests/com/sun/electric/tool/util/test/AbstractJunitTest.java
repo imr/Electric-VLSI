@@ -43,9 +43,17 @@ public class AbstractJunitTest extends AbstractJunitBaseClass {
 	}
 	
 	@Test
-	public void testLoadCell() throws Exception {
+	public void testLoadCellLayout() throws Exception {
 		Cell cell = this.loadCell("testLib", "testCell", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
 		Assert.assertNotNull(cell);
 	}
+	
+	@Test
+	public void testLoadCellSchematic() throws Exception {
+		Cell cell = this.loadCell("testLib", "testSch", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
+		Assert.assertNotNull(cell);
+	}
+	
+	
 
 }
