@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 
 /**
  * @author Felix Schmidt
@@ -41,19 +42,20 @@ public class AbstractJunitTest extends AbstractJunitBaseClass {
 
 		Assert.assertNotNull(lib);
 	}
-	
+
 	@Test
 	public void testLoadCellLayout() throws Exception {
-		Cell cell = this.loadCell("testLib", "testCell", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
+		Cell cell = this
+				.loadCell("testLib", "testCell", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
 		Assert.assertNotNull(cell);
+		Assert.assertTrue(cell.getView().equals(View.LAYOUT));
 	}
-	
+
 	@Test
 	public void testLoadCellSchematic() throws Exception {
 		Cell cell = this.loadCell("testLib", "testSch", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
 		Assert.assertNotNull(cell);
+		Assert.assertTrue(cell.getView().equals(View.SCHEMATIC));
 	}
-	
-	
 
 }
