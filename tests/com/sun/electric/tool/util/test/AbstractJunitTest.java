@@ -38,7 +38,7 @@ public class AbstractJunitTest extends AbstractJunitBaseClass {
 
 	@Test
 	public void testLoadLibrary() throws Exception {
-		Library lib = this.loadLibrary("testLib", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
+		Library lib = this.loadLibrary("testLib", "/com/sun/electric/tool/util/test/testData/testLib.jelib");
 
 		Assert.assertNotNull(lib);
 	}
@@ -46,14 +46,14 @@ public class AbstractJunitTest extends AbstractJunitBaseClass {
 	@Test
 	public void testLoadCellLayout() throws Exception {
 		Cell cell = this
-				.loadCell("testLib", "testCell", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
+				.loadCell("testLib", "testCell", "/com/sun/electric/tool/util/test/testData/testLib.jelib");
 		Assert.assertNotNull(cell);
 		Assert.assertTrue(cell.getView().equals(View.LAYOUT));
 	}
 
 	@Test
 	public void testLoadCellSchematic() throws Exception {
-		Cell cell = this.loadCell("testLib", "testSch", "tests/com/sun/electric/tool/util/test/testData/testLib.jelib");
+		Cell cell = this.loadCell("testLib", "testSch", "/com/sun/electric/tool/util/test/testData/testLib.jelib");
 		Assert.assertNotNull(cell);
 		Assert.assertTrue(cell.getView().equals(View.SCHEMATIC));
 	}

@@ -69,7 +69,9 @@ public abstract class AbstractJunitBaseClass {
 	protected Library loadLibrary(String libName, String fileName) throws Exception {
 		EDatabase.serverDatabase().lowLevelBeginChanging(null);
 
-		URL fileURL = TextUtils.makeURLToFile(fileName);
+        URL fileURL = Object.class.getResource(fileName);
+
+//		URL fileURL = TextUtils.makeURLToFile(fileName);
 		Library rootLib = Library.findLibrary(libName);
 		if (rootLib == null) // attempt to read a JELIB if extension is missing
 			rootLib = LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
