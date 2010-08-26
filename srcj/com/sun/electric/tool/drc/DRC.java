@@ -98,8 +98,8 @@ public class DRC extends Listener
         // look for an active layer in this arc
         int tot = pList.length;
         int diffPoly = -1;
-        if (tot == 0)
-            System.out.println("return here");
+        // note: arcs would never have tot=0 since they are only defined to wire elements with valid rules
+        assert(tot!=0);
         
         for(int j=0; j<tot; j++)
         {
@@ -798,6 +798,129 @@ public class DRC extends Listener
 //        Poly [] arcInstPolyListOLD = tech.getShapeOfArc(ai);
         return arcInstPolyList;
     }
+
+    /**
+	 * Method to look for an interaction between instances "ni1" and "ni2".  If it is found,
+     * return TRUE.  If not found, add to the list and return FALSE.
+     */
+    static boolean checkInteraction(Map<NodeInst,List<InstanceInter>> instanceInteractionMap,
+                                    DRCCheckMode errorTypeSearch,
+                                    NodeInst ni1, NodeInst n1Parent, boolean n1cellParameterized,
+                                    NodeInst ni2, NodeInst n2Parent, boolean n2cellParameterized,
+                                    NodeInst triggerNi, Rectangle2D searchBnd)
+    {
+        if (errorTypeSearch == DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return false;
+
+        // must recheck parameterized instances always
+        if (n1cellParameterized || n2cellParameterized)
+            return false;
+
+//        CheckProto cp = getCheckProto((Cell)ni1.getProto());
+//		if (cp.cellParameterized) return false;
+//		cp = getCheckProto((Cell)ni2.getProto());
+//		if (cp.cellParameterized) return false;
+
+        // keep the instances in proper numeric order
+        InstanceInter dii = new InstanceInter();
+        if (ni1.getNodeIndex() < ni2.getNodeIndex())
+        {
+            NodeInst swapni = ni1;   ni1 = ni2;   ni2 = swapni;
+        } else if (ni1 == ni2)
+        {
+            int node1Orientation = ni1.getAngle();
+            if (ni1.isMirroredAboutXAxis()) node1Orientation += 3600;
+            if (ni1.isMirroredAboutYAxis()) node1Orientation += 7200;
+            int node2Orientation = ni2.getAngle();
+            if (ni2.isMirroredAboutXAxis()) node2Orientation += 3600;
+            if (ni2.isMirroredAboutYAxis()) node2Orientation += 7200;
+            if (node1Orientation < node2Orientation)
+            {
+                NodeInst swapNI = ni1;   ni1 = ni2;   ni2 = swapNI;
+                System.out.println("Check this case in Quick.checkInteraction");
+            }
+        }
+
+        // get essential information about their interaction
+        dii.cell1 = (Cell)ni1.getProto();
+        dii.or1 = ni1.getOrient();
+//        dii.bnd = searchBnd;
+
+        dii.cell2 = (Cell)ni2.getProto();
+        dii.or2 = ni2.getOrient();
+
+// This has to be calculated before the swap
+        dii.dx = ni2.getAnchorCenterX() - ni1.getAnchorCenterX();
+        dii.dy = ni2.getAnchorCenterY() - ni1.getAnchorCenterY();
+        dii.n1Parent = n1Parent;
+        dii.n2Parent = n2Parent;
+        dii.triggerNi = triggerNi;
+
+        // if found, stop now
+        // Find the interaction
+        if (findInteraction(instanceInteractionMap, dii))
+            return true;
+
+        // insert it now
+//		instanceInteractionList.add(dii);
+        List<InstanceInter> list = instanceInteractionMap.get(triggerNi);
+        assert (list != null); // if this is the first time looking, then list should be built in findInteraction
+        list.add(dii);
+        return false;
+    }
+
+    /**
+	 * Method to look for the instance-interaction in "dii" in the global list of instances interactions
+	 * that have already been checked.  Returns the entry if it is found, NOINSTINTER if not.
+	 */
+	private static boolean findInteraction(Map<NodeInst,List<InstanceInter>> instanceInteractionMap, InstanceInter dii)
+	{
+        List<InstanceInter> theList = null;
+
+        // new code
+        theList = instanceInteractionMap.get(dii.triggerNi);
+        if (theList == null) // first time
+        {
+            theList = new ArrayList<InstanceInter>();
+            // ni1 as a key should have been added in findInteraction. Big assumption though
+            instanceInteractionMap.put(dii.triggerNi, theList);
+        }
+
+        //
+//        boolean newValue = false;
+        for (InstanceInter thisII : theList)
+		{
+			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
+				thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
+				thisII.dx == dii.dx && thisII.dy == dii.dy &&
+                thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent)
+//                thisII.bnd == dii.bnd)
+            {
+                if (dii.triggerNi == thisII.triggerNi)
+                {
+//                    newValue = true;
+                    return true;
+                }
+            }
+		}
+
+//        for (InstanceInter thisII : instanceInteractionList)
+//		{
+//			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
+//				thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
+//				thisII.dx == dii.dx && thisII.dy == dii.dy &&
+//                thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent)
+////                thisII.bnd == dii.bnd)
+//            {
+//                if (dii.triggerNi == thisII.triggerNi)
+//                {
+//                    assert(newValue);
+//                    return true;
+//                }
+//            }
+//		}
+//        assert(!newValue);
+		return false;
+	}
 
     /*********************************** QUICK DRC ERROR REPORTING ***********************************/
     public static enum DRCErrorType

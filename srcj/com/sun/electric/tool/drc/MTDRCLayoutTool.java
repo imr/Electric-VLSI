@@ -104,13 +104,15 @@ public class MTDRCLayoutTool extends MTDRCTool
     private class Task {
 
         private HashMap<NodeInst,CheckInst> checkInsts;
-
         private HashMap<Cell,CheckProto> checkProtos;
+
         private HashMap<Network,Integer[]> networkLists;
         private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
         private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
-        private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();
+        private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();   
+//    private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();
+        private Map<NodeInst,List<InstanceInter>> instanceInteractionMap = new HashMap<NodeInst,List<InstanceInter>>();
 
         /**
          * The DRCExclusion object lists areas where Generic:DRC-Nodes exist to ignore errors.
@@ -121,8 +123,8 @@ public class MTDRCLayoutTool extends MTDRCTool
         /** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
         /** for tracking the time of good DRC. */					private HashSet<Cell> goodSpacingDRCDate = new HashSet<Cell>();
         /** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanSpacingDRCDate = new HashSet<Cell>();
-	/** for tracking the time of good DRC. */					private HashSet<Cell> goodAreaDRCDate = new HashSet<Cell>();
-	/** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
+	    /** for tracking the time of good DRC. */					private HashSet<Cell> goodAreaDRCDate = new HashSet<Cell>();
+	    /** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
         /** Miscellanous data for DRC */                            private DRC.ReportInfo reportInfo;
 
         // To speed up the layer process
@@ -874,7 +876,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
             if (!cellLayersCon.getWorstSpacingDistance(thisCell, mutableDist))
             {
-                System.out.println("No worst spacing distance found in MTDRCLayoutTool:checkCellInst");
+//                System.out.println("No worst spacing distance found in MTDRCLayoutTool:checkCellInst");
                 return false;
             }
 
@@ -885,6 +887,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             CheckInst ci = checkInsts.get(ni);
             int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
             boolean errorFound = false;
+            CheckProto cpNi = getCheckProto(thisCell);
 
             double worstInteractionDistance = mutableDist.doubleValue();
             
@@ -909,13 +912,18 @@ public class MTDRCLayoutTool extends MTDRCTool
                 if (!oNi.isCellInstance()) continue;
 
                 // see if this configuration of instances has already been done
-                if (checkInteraction(ni, null, oNi, null, null)) continue;
+                CheckProto cpoNi = getCheckProto((Cell)oNi.getProto()); // assume oNi is a cell
+                // see if this configuration of instances has already been done
+                if (DRC.checkInteraction(instanceInteractionMap, reportInfo.errorTypeSearch,
+                    ni, ni, cpNi.cellParameterized, oNi, oNi, cpoNi.cellParameterized, ni, searchBounds))
+                    continue;
+//                if (checkInteraction(ni, null, oNi, null, null)) continue;
 
                 // found other instance "oNi", look for everything in "ni" that is near it
                 Rectangle2D nearNodeBounds = oNi.getBounds();
                 if (!cellLayersCon.getWorstSpacingDistance(oNi.getProto(), mutableDist))
                 {
-                    System.out.println("No worst spacing distance found in Quick:checkThisCellPlease");
+//                    System.out.println("No worst spacing distance found in Quick:checkThisCellPlease");
                     continue;
                 }
                 double worstInteractionDistanceLocal = mutableDist.doubleValue();
@@ -946,8 +954,9 @@ public class MTDRCLayoutTool extends MTDRCTool
 
             Cell cell = (Cell) thisNi.getProto();
             if (!cell.isLayout())
-                System.out.println("Why not skipping non-layout cells");
+                return false; // skips non-layout cells.
 
+            CheckProto cpoNi = getCheckProto((Cell)oNi.getProto()); // assume oNi is a cell
             boolean logsFound = false;
             Netlist netlist = getCheckProto(cell).netlist;
             Technology cellTech = cell.getTechnology();
@@ -975,8 +984,11 @@ public class MTDRCLayoutTool extends MTDRCTool
 
                     if (ni.isCellInstance())
                     {
+                        CheckProto cpNi = getCheckProto((Cell)np);
                         // see if this configuration of instances has already been done
-                        if (checkInteraction(ni, thisNi, oNi, oNiParent, triggerNi)) continue;  // Jan 27'05. Removed on May'05
+                        if (DRC.checkInteraction(instanceInteractionMap, reportInfo.errorTypeSearch,
+                            ni, thisNi, cpNi.cellParameterized, oNi, oNiParent, cpoNi.cellParameterized, triggerNi, bb))
+                            continue;  // Jan 27'05. Removed on May'05
                         // You can't discard by interaction becuase two cells could be visited many times
                         // during this type of checking
 

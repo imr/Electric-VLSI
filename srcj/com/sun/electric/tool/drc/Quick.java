@@ -101,9 +101,14 @@ import java.util.*;
 public class Quick
 {
     private CellLayersContainer cellLayersCon = new CellLayersContainer(); // check layers in each cell with valid DRC rules
+
     private HashMap<NodeInst,CheckInst> checkInsts = null;
-    private HashMap<Cell,CheckProto> checkProtos = null;
-	private HashMap<Network,Integer[]> networkLists = null;
+    private HashMap<Cell,CheckProto> checkProtos = null;                         
+
+//    private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();
+    private Map<NodeInst,List<InstanceInter>> instanceInteractionMap = new HashMap<NodeInst,List<InstanceInter>>();
+
+    private HashMap<Network,Integer[]> networkLists = null;
 	private HashMap<Layer,DRCTemplate> minAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For minimum area checking
 	private HashMap<Layer,DRCTemplate> enclosedAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For enclosed area checking
     private HashMap<Layer,DRCTemplate> spacingLayerMap = new HashMap<Layer,DRCTemplate>();    // to detect holes using the area function
@@ -122,9 +127,7 @@ public class Quick
         this.mergeMode = mode;
 	}
 
-    private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();
-
-	/** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
+    /** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
 	/** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
 	/** for tracking the time of good DRC. */					private HashSet<Cell> goodSpacingDRCDate = new HashSet<Cell>();
 	/** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanSpacingDRCDate = new HashSet<Cell>();
@@ -189,9 +192,10 @@ public class Quick
         validLayers = new ValidationLayers(reportInfo.errorLogger, topCell, rules);
 
 		// clean out the cache of instances
-	    instanceInteractionList.clear();
+//	    instanceInteractionList.clear();
+        instanceInteractionMap.clear();
 
-	    // determine if min area must be checked (if any layer got valid data)
+        // determine if min area must be checked (if any layer got valid data)
 	    minAreaLayerMap.clear();
 	    enclosedAreaLayerMap.clear();
         spacingLayerMap.clear();
@@ -503,6 +507,9 @@ public class Quick
             else
                 cleanAreaDRCDate.add(cell);
         }
+
+//        instanceInteractionList.clear(); // part4
+        instanceInteractionMap.clear(); // part4
 
         for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
@@ -913,8 +920,7 @@ public class Quick
         GenMath.MutableDouble mutableDist = new GenMath.MutableDouble(0);
         if (!cellLayersCon.getWorstSpacingDistance(thisCell, mutableDist))
         {
-            if (Job.getDebug())
-            System.out.println("No worst spacing distance found in Quick:checkCellInst");
+//            System.out.println("No worst spacing distance found in Quick:checkCellInst");
             return false;
         }
         // get transformation out of the instance
@@ -924,6 +930,7 @@ public class Quick
 		CheckInst ci = checkInsts.get(ni);
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
         boolean errorFound = false;
+        CheckProto cpNi = getCheckProto(thisCell);
 
         double worstInteractionDistance = mutableDist.doubleValue();
 //        double worstInteractionDistance = reportInfo.worstInteractionDistance;
@@ -934,8 +941,9 @@ public class Quick
 			nodeBounds.getWidth() + worstInteractionDistance*2,
 			nodeBounds.getHeight() + worstInteractionDistance*2);
         
-        instanceInteractionList.clear(); // part3
-		for(Iterator<RTBounds> it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
+////        instanceInteractionList.clear(); // part3
+//        instanceInteractionMap.clear(); // part3. Doesn't help
+        for(Iterator<RTBounds> it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
 		{
 			RTBounds geom = it.next();
 
@@ -948,16 +956,18 @@ public class Quick
 			if (oNi.getNodeIndex() <= ni.getNodeIndex()) continue;
 			if (!oNi.isCellInstance()) continue;
 
-			// see if this configuration of instances has already been done
-			if (checkInteraction(ni, ni, oNi, oNi, ni, searchBounds)) continue;
+            CheckProto cpoNi = getCheckProto((Cell)oNi.getProto()); // assume oNi is a cell
+            // see if this configuration of instances has already been done
+			if (DRC.checkInteraction(instanceInteractionMap, reportInfo.errorTypeSearch,
+                ni, ni, cpNi.cellParameterized, oNi, oNi, cpoNi.cellParameterized, ni, searchBounds))
+                continue;
 
 			// found other instance "oNi", look for everything in "ni" that is near it
 			Rectangle2D nearNodeBounds = oNi.getBounds();
 //            double worstInteractionDistanceLocal = worstInteractionDistance;
             if (!cellLayersCon.getWorstSpacingDistance(oNi.getProto(), mutableDist))
             {
-                if (Job.getDebug())
-                System.out.println("No worst spacing distance found in Quick:checkCellInst");
+//                System.out.println("No worst spacing distance found in Quick:checkCellInst");
                 continue;
             }
             double worstInteractionDistanceLocal = mutableDist.doubleValue();
@@ -988,8 +998,9 @@ public class Quick
 
 		Cell cell = (Cell)thisNi.getProto();
         if (!cell.isLayout())
-            System.out.println("Why not skipping non-layout cells");
+            return false; // skips non-layout cells.
 
+        CheckProto cpoNi = getCheckProto((Cell)oNi.getProto()); // assume oNi is a cell
         boolean logsFound = false;
 		Netlist netlist = getCheckProto(cell).netlist;
 		Technology cellTech = cell.getTechnology();
@@ -1000,7 +1011,7 @@ public class Quick
 		AffineTransform downTrans = thisNi.transformIn();
 		DBMath.transformRect(bb, downTrans);
 
-		for(Iterator<RTBounds> it = cell.searchIterator(bb); it.hasNext(); )
+        for(Iterator<RTBounds> it = cell.searchIterator(bb); it.hasNext(); )
 		{
 			RTBounds geom = it.next();
 
@@ -1017,8 +1028,11 @@ public class Quick
 
 				if (ni.isCellInstance())
 				{
+                    CheckProto cpNi = getCheckProto((Cell)np);
                     // see if this configuration of instances has already been done
-                    if (checkInteraction(ni, thisNi, oNi, oNiParent, triggerNi, bb)) continue;  // Jan 27'05. Removed on May'05
+                    if (DRC.checkInteraction(instanceInteractionMap, reportInfo.errorTypeSearch,
+                        ni, thisNi, cpNi.cellParameterized, oNi, oNiParent, cpoNi.cellParameterized, triggerNi, bb))
+                        continue;  // Jan 27'05. Removed on May'05
                     // You can't discard by interaction becuase two cells could be visited many times
                     // during this type of checking
 
@@ -1091,9 +1105,6 @@ public class Quick
 //				Poly [] arcPolyList = tech.getShapeOfArc(ai);
                 Poly [] arcPolyList = DRC.getShapeOfArcBasedOnRules(tech, ai);
                 int tot = arcPolyList.length;
-
-                if (tot == 0)
-                    System.out.println("Skip crop?");
 
                 for(int j=0; j<tot; j++)
 					arcPolyList[j].transform(upTrans);
@@ -2151,89 +2162,7 @@ public class Quick
 
 	/*************************** QUICK DRC CACHE OF INSTANCE INTERACTIONS ***************************/
 
-	/**
-	 * Method to look for an interaction between instances "ni1" and "ni2".  If it is found,
-	 * return TRUE.  If not found, add to the list and return FALSE.
-	 */
-	private boolean checkInteraction(NodeInst ni1, NodeInst n1Parent, NodeInst ni2, NodeInst n2Parent,
-                                     NodeInst triggerNi, Rectangle2D searchBnd)
-	{
-        if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return false;
-
-		// must recheck parameterized instances always
-		CheckProto cp = getCheckProto((Cell)ni1.getProto());
-		if (cp.cellParameterized) return false;
-		cp = getCheckProto((Cell)ni2.getProto());
-		if (cp.cellParameterized) return false;
-
-		// keep the instances in proper numeric order
-		InstanceInter dii = new InstanceInter();
-		if (ni1.getNodeIndex() < ni2.getNodeIndex())
-		{
-			NodeInst swapni = ni1;   ni1 = ni2;   ni2 = swapni;
-		} else if (ni1 == ni2)
-		{
-			int node1Orientation = ni1.getAngle();
-			if (ni1.isMirroredAboutXAxis()) node1Orientation += 3600;
-			if (ni1.isMirroredAboutYAxis()) node1Orientation += 7200;
-			int node2Orientation = ni2.getAngle();
-			if (ni2.isMirroredAboutXAxis()) node2Orientation += 3600;
-			if (ni2.isMirroredAboutYAxis()) node2Orientation += 7200;
-			if (node1Orientation < node2Orientation)
-			{
-				NodeInst swapNI = ni1;   ni1 = ni2;   ni2 = swapNI;
-                System.out.println("Check this case in Quick.checkInteraction");
-			}
-		}
-
-		// get essential information about their interaction
-		dii.cell1 = (Cell)ni1.getProto();
-		dii.or1 = ni1.getOrient();
-//        dii.bnd = searchBnd;
-
-        dii.cell2 = (Cell)ni2.getProto();
-		dii.or2 = ni2.getOrient();
-
-        // This has to be calculated before the swap
-		dii.dx = ni2.getAnchorCenterX() - ni1.getAnchorCenterX();
-		dii.dy = ni2.getAnchorCenterY() - ni1.getAnchorCenterY();
-        dii.n1Parent = n1Parent;
-        dii.n2Parent = n2Parent;
-        dii.triggerNi = triggerNi;
-
-		// if found, stop now
-		if (findInteraction(dii)) return true;
-
-		// insert it now
-		instanceInteractionList.add(dii);
-
-		return false;
-	}
-
-	/**
-	 * Method to look for the instance-interaction in "dii" in the global list of instances interactions
-	 * that have already been checked.  Returns the entry if it is found, NOINSTINTER if not.
-	 */
-	private boolean findInteraction(InstanceInter dii)
-	{
-        for (InstanceInter thisII : instanceInteractionList)
-		{
-			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
-				thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
-				thisII.dx == dii.dx && thisII.dy == dii.dy &&
-                thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent)
-//                thisII.bnd == dii.bnd)
-            {
-                if (dii.triggerNi == thisII.triggerNi)
-                {
-                    return true;
-                }
-            }
-		}
-		return false;
-	}
-
-	/************************* QUICK DRC HIERARCHICAL NETWORK BUILDING *************************/
+    /************************* QUICK DRC HIERARCHICAL NETWORK BUILDING *************************/
 
 	/**
 	 * Method to recursively examine the hierarchy below cell "cell" and create

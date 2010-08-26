@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00m: ******************************
 
+IMP: (8/26/10, GVG) Working on "DRC slow for the tfc chip" (Bug #2851).
+Using map instead of list to check cell interactions.
+
 BUG: (8/24/10, SMR) Going down-hierarchy into arrayed schematic node
      doesn't show the path in the status bar (Bug #2890).
 FIX: Fixed EditWindow.showCoordinates().
