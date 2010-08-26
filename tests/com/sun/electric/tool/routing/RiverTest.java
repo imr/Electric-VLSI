@@ -23,36 +23,50 @@
  */
 package com.sun.electric.tool.routing;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.test.TestUserInterface;
 
 /**
  * @author Felix Schmidt
- *
+ * 
  */
 public class RiverTest extends AbstractRoutingBaseClass {
 
-	/* (non-Javadoc)
-	 * @see com.sun.electric.tool.routing.AbstractRoutingBaseClass#getRoutingFrame()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sun.electric.tool.routing.AbstractRoutingBaseClass#getRoutingFrame()
 	 */
 	@Override
 	protected RoutingFrame getRoutingFrame() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.sun.electric.tool.routing.AbstractRoutingBaseClass#testRouter()
 	 */
 	@Override
 	public void testRouter() throws Exception {
 		Cell cell = this.loadCell("PlacementTest", "PlacementTest4",
 				"W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib", LoadLibraryType.fileSystem);
-		
+
 		TestUserInterface testUI = (TestUserInterface) Job.getUserInterface();
 		testUI.setCurrentCell(cell);
-		
-		River.riverRoute();
+
+		River router = new River();
+		List<ArcInst> allArcs = new ArrayList<ArcInst>();
+		for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
+			allArcs.add(it.next());
+		router.river(cell, allArcs);
 	}
 }
