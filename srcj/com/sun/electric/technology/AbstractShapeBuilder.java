@@ -664,8 +664,7 @@ public abstract class AbstractShapeBuilder {
                 long hx = (long)dhx;
                 long ly = (long)dly;
                 long hy = (long)dhy;
-                if (dlx == lx && dhx == hx && dly == ly && dhy == hy &&
-                        lx < hx && ly < hy) {
+                if (dlx == lx && dhx == hx && dly == ly && dhy == hy) {
                     pointCount = 0;
                     intCoords[0] = (int)lx;
                     intCoords[1] = (int)ly;

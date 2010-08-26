@@ -30,8 +30,8 @@ import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableIconInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.CellId;
@@ -52,6 +52,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -87,10 +88,23 @@ public class VectorCache {
     private static class CellLayer {
         final Layer layer;
         int[] boxCoords = NULL_INT_ARRAY;
+        ERectangle localBounds;
         ArrayList<MyVectorPolygon> polys = new ArrayList<MyVectorPolygon>();
         
-        CellLayer(Layer layer) {
+        private CellLayer(Layer layer) {
             this.layer = layer;
+        }
+
+        private void setBoxCoords(int[] boxCoords) {
+            this.boxCoords = boxCoords;
+            int lX = Integer.MAX_VALUE, lY = Integer.MAX_VALUE, hX = Integer.MIN_VALUE, hY = Integer.MIN_VALUE;
+            for (int i = 0; i < boxCoords.length; i += 4) {
+                lX = Math.min(lX, boxCoords[i + 0]);
+                lY = Math.min(lY, boxCoords[i + 1]);
+                hX = Math.max(hX, boxCoords[i + 2]);
+                hY = Math.max(hY, boxCoords[i + 3]);
+            }
+            localBounds = ERectangle.fromGrid(lX, hY, hX - (long)lX, hY - (long)lY);
         }
     }
 
@@ -98,6 +112,7 @@ public class VectorCache {
         private final TechId techId;
         private final TreeMap<Layer,CellLayer> layers = new TreeMap<Layer,CellLayer>();
         private final ArrayList<ImmutableNodeInst> subCells = new ArrayList<ImmutableNodeInst>();
+        private final List<ImmutableNodeInst> unmodifiebleSubCells = Collections.unmodifiableList(subCells);
 
         MyVectorCell(CellId cellId) {
             CellBackup cellBackup = snapshot.getCell(cellId);
@@ -127,6 +142,9 @@ public class VectorCache {
             // draw all primitive nodes
             for (ImmutableNodeInst n: cellBackup.cellRevision.nodes) {
                 if (n.protoId instanceof CellId) {
+                    if (!n.orient.isManhattan()) {
+                        throw new IllegalArgumentException();
+                    }
                     subCells.add(n);
                 } else {
                     boolean hideOnLowLevel = n.is(ImmutableNodeInst.VIS_INSIDE) || n.protoId  == cellCenterId ||
@@ -161,6 +179,10 @@ public class VectorCache {
         return new ArrayList<Layer>(layers);
     }
 
+    public Collection<Layer> getBadLayers() {
+        return new ArrayList<Layer>(badLayers);
+    }
+
     public boolean isBadLayer(Layer layer) {
         return badLayers.contains(layer);
     }
@@ -176,6 +198,35 @@ public class VectorCache {
     public void scanLayers(CellId topCellId) {
         HashSet<CellId> visited = new HashSet<CellId>();
         scanLayers(topCellId, visited);
+    }
+
+    public List<ImmutableNodeInst> getSubcells(CellId cellId) {
+        return findVectorCell(cellId).unmodifiebleSubCells;
+    }
+    
+    public int getNumBoxes(CellId cellId, Layer layer) {
+        CellLayer cellLayer = findVectorCell(cellId).layers.get(layer);
+        return cellLayer != null ? cellLayer.boxCoords.length/4 : 0;
+    }
+
+    public ERectangle getLocalBounds(CellId cellId, Layer layer) {
+        CellLayer cellLayer = findVectorCell(cellId).layers.get(layer);
+        return cellLayer != null ? cellLayer.localBounds : null;
+    }
+
+    public void getBoxes(CellId cellId, Layer layer, int offset, int size, int[] result) {
+        CellLayer cellLayer = findVectorCell(cellId).layers.get(layer);
+        if (cellLayer == null || offset < 0 || size < 0 || offset + size >= cellLayer.boxCoords.length/4 || size >= result.length/4) {
+            throw new IndexOutOfBoundsException();
+        }
+        System.arraycopy(cellLayer.boxCoords, offset*4, result, 0, size*4);
+    }
+
+    public List<Rectangle> collectLayer(Layer layer, CellId cellId, boolean rotate) {
+        List<Rectangle> result = new ArrayList<Rectangle>();
+        Orientation orient = (rotate ? Orientation.XR : Orientation.IDENT).canonic();
+        collectLayer(layer, findVectorCell(cellId), new Point(0, 0), orient, result);
+        return result;
     }
 
     private void scanLayers(CellId cellId, HashSet<CellId> visited) {
@@ -196,13 +247,6 @@ public class VectorCache {
         return mvc;
     }
 
-    public List<Rectangle> collectLayer(Layer layer, CellId cellId, boolean rotate) {
-        List<Rectangle> result = new ArrayList<Rectangle>();
-        Orientation orient = (rotate ? Orientation.XR : Orientation.IDENT).canonic();
-        collectLayer(layer, findVectorCell(cellId), new Point(0, 0), orient, result);
-        return result;
-    }
-
     private void addBoxesFromBuilder(MyVectorCell vc, HashMap<Layer,VectorManhattanBuilder> boxBuilders) {
         for (Map.Entry<Layer,VectorManhattanBuilder> e: boxBuilders.entrySet()) {
             Layer layer = e.getKey();
@@ -212,36 +256,35 @@ public class VectorCache {
             }
             CellLayer cellLayer = vc.getCellLayer(layer);
             assert cellLayer.boxCoords.length == 0;
-            cellLayer.boxCoords = b.toArray();
+            cellLayer.setBoxCoords(b.toArray());
         }
     }
 
     private void collectLayer(Layer layer, MyVectorCell vc, Point anchor, Orientation orient, List<Rectangle> result) {
         int[] coords = new int[4];
         CellLayer cellLayer = vc.layers.get(layer);
-        if (cellLayer == null) {
-            return;
-        }
-        int[] boxCoords = cellLayer.boxCoords;
-        for (int i = 0; i < boxCoords.length; i += 4) {
-            coords[0] = boxCoords[i + 0];
-            coords[1] = boxCoords[i + 1];
-            coords[2] = boxCoords[i + 2];
-            coords[3] = boxCoords[i + 3];
-            orient.rectangleBounds(coords);
+        if (cellLayer != null) {
+            int[] boxCoords = cellLayer.boxCoords;
+            for (int i = 0; i < boxCoords.length; i += 4) {
+                coords[0] = boxCoords[i + 0];
+                coords[1] = boxCoords[i + 1];
+                coords[2] = boxCoords[i + 2];
+                coords[3] = boxCoords[i + 3];
+                orient.rectangleBounds(coords);
 
-            int lx = anchor.x + coords[0];
-            int ly = anchor.y + coords[1];
-            int hx = anchor.x + coords[2];
-            int hy = anchor.y + coords[3];
-            assert lx <= hx && ly <= hy;
+                int lx = anchor.x + coords[0];
+                int ly = anchor.y + coords[1];
+                int hx = anchor.x + coords[2];
+                int hy = anchor.y + coords[3];
+                assert lx <= hx && ly <= hy;
 
-            result.add(new Rectangle(lx, ly, hx - lx, hy - ly));
+                result.add(new Rectangle(lx, ly, hx - lx, hy - ly));
+//                if (result.size() % 1000000 == 0)
+//                    System.out.println(" " + result.size());
+            }
         }
         for (ImmutableNodeInst n: vc.subCells) {
-            if (!n.orient.isManhattan()) {
-                throw new IllegalArgumentException();
-            }
+            assert n.orient.isManhattan();
             coords[0] = (int)n.anchor.getGridX();
             coords[1] = (int)n.anchor.getGridY();
             orient.transformPoints(1, coords);
@@ -311,6 +354,8 @@ public class VectorCache {
 
         @Override
         public void addDoublePoly(int numPoints, Poly.Type style, Layer layer, EGraphics graphicsOverride, PrimitivePort pp) {
+            if (numPoints == 2)
+                return;
             if (layer.isPseudoLayer()) {
                 return;
             }
@@ -329,10 +374,6 @@ public class VectorCache {
             badLayer(layer);
         }
 
-        private void addIntLine(int lineType, Layer layer, EGraphics graphicsOverride) {
-            badLayer(layer);
-        }
-
         @Override
         public void addIntBox(int[] coords, Layer layer) {
             layers.add(layer);
@@ -346,7 +387,8 @@ public class VectorCache {
     }
 
     private void badLayer(Layer layer) {
-        badLayers.add(layer);
+        if (badLayers.add(layer))
+            layer = layer;
     }
 
     private static void putBox(Layer layer, HashMap<Layer,VectorManhattanBuilder> boxBuilders, int lX, int lY, int hX, int hY) {
@@ -355,7 +397,9 @@ public class VectorCache {
             b = new VectorManhattanBuilder();
             boxBuilders.put(layer, b);
         }
-        b.add(lX, lY, hX, hY);
+        assert lX <= hX && lY <= hY;
+        if (lX < hX && lY < hY)
+            b.add(lX, lY, hX, hY);
     }
     
     static class MyVectorPolygon {
@@ -368,10 +412,6 @@ public class VectorCache {
             this.style = style;
             this.points = points;
         }
-    }
-
-    private static int databaseToGrid(double lambdaValue) {
-        return (int) DBMath.lambdaToGrid(lambdaValue);
     }
 
     /**
