@@ -603,7 +603,7 @@ public class EDatabase {
      * @param snapshot snapshot to undo.
      */
     public void undo(Snapshot snapshot) {
-        long startTime = System.currentTimeMillis();
+//        long startTime = System.currentTimeMillis();
         Snapshot oldSnapshot = backup();
         if (oldSnapshot == snapshot) {
             return;
@@ -668,7 +668,7 @@ public class EDatabase {
             recoverCellGroups();
         }
         snapshotFresh = true;
-        long endTime = System.currentTimeMillis();
+//        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) {
 //            System.out.println("undo took: " + (endTime - startTime) + " msec");
 //            checkFresh(snapshot);
