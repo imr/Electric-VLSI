@@ -216,7 +216,7 @@ public class VectorCache {
 
     public void getBoxes(CellId cellId, Layer layer, int offset, int size, int[] result) {
         CellLayer cellLayer = findVectorCell(cellId).layers.get(layer);
-        if (cellLayer == null || offset < 0 || size < 0 || offset + size >= cellLayer.boxCoords.length/4 || size >= result.length/4) {
+        if (cellLayer == null || offset < 0 || size < 0 || offset + size > cellLayer.boxCoords.length/4 || size > result.length/4) {
             throw new IndexOutOfBoundsException();
         }
         System.arraycopy(cellLayer.boxCoords, offset*4, result, 0, size*4);
