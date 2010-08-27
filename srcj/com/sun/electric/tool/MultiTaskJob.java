@@ -24,6 +24,8 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.Environment;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -52,6 +54,13 @@ public abstract class MultiTaskJob<TaskKey, TaskResult, Result> extends Job {
     private transient int numberOfRunningThreads;
     private transient int numberOfFinishedThreads;
     private Consumer<Result> consumer;
+
+    private transient ThreadMXBean threadMX;
+    private transient long accumulatedCpuTime;
+    private transient long accumulatedUserTime;
+
+    private static final double MILLIS_IN_SEC = 1e3;
+    private static final double NANOS_IN_SEC = 1e9;
 
     /**
      * Constructor creates a new instance of MultiTaskJob.
@@ -101,6 +110,10 @@ public abstract class MultiTaskJob<TaskKey, TaskResult, Result> extends Job {
      */
     @Override
     public final boolean doIt() throws JobException {
+        threadMX = ManagementFactory.getThreadMXBean();
+        long startClockTime = System.currentTimeMillis();
+        long startCpuTime = threadMX.getCurrentThreadCpuTime();
+        long startUserTime = threadMX.getCurrentThreadUserTime();
         tasks = new LinkedHashMap<TaskKey, Task>();
         allTasks = new ArrayList<Task>();
         prepareTasks();
@@ -125,6 +138,11 @@ public abstract class MultiTaskJob<TaskKey, TaskResult, Result> extends Job {
         if (consumer != null) {
             consumer.consume(result);
         }
+        long endClockTime = System.currentTimeMillis();
+        accumulatedCpuTime += (threadMX.getCurrentThreadCpuTime() - startCpuTime);
+        accumulatedUserTime += (threadMX.getCurrentThreadCpuTime() - startUserTime);
+        System.out.println(this  + " took " +
+                (endClockTime - startClockTime)/MILLIS_IN_SEC + " sec, cpu=" + accumulatedCpuTime/NANOS_IN_SEC + " user=" + accumulatedUserTime/NANOS_IN_SEC);
         return true;
     }
 
@@ -170,7 +188,9 @@ public abstract class MultiTaskJob<TaskKey, TaskResult, Result> extends Job {
         }
     }
 
-    private synchronized void finishWorkingThread() {
+    private synchronized void finishWorkingThread(long cpuTime, long userTime) {
+        this.accumulatedCpuTime += cpuTime;
+        this.accumulatedUserTime += userTime;
         numberOfFinishedThreads++;
         notifyAll();
     }
@@ -199,21 +219,29 @@ public abstract class MultiTaskJob<TaskKey, TaskResult, Result> extends Job {
 
         @Override
         public void run() {
+            long accumulatedTime = 0;
             Environment.setThreadEnvironment(env);
             for (;;) {
                 Task t = getTask();
                 if (t == null) {
                     break;
                 }
+                ;
                 try {
+                    long startTime = System.currentTimeMillis();
                     t.taskResult = runTask(t.taskKey);
+                    long endTime = System.currentTimeMillis();
+                    accumulatedTime += (endTime - startTime);
                 } catch (Throwable e) {
                     e.getStackTrace();
                     e.printStackTrace(System.out);
                     e.printStackTrace();
                 }
             }
-            finishWorkingThread();
+            long cpuTime = threadMX.getCurrentThreadCpuTime();
+            long userTime = threadMX.getCurrentThreadUserTime();
+            System.out.println(this + " cpu=" + cpuTime/NANOS_IN_SEC + " user=" + userTime/NANOS_IN_SEC + " clock=" + accumulatedTime/MILLIS_IN_SEC);
+            finishWorkingThread(cpuTime, userTime);
         }
     }
 }
