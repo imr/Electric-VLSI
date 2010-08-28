@@ -5,7 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 9.00m: ******************************
 
 BUG: (8/26/10, DN) No time reporting in MTDRC (Bug #2897)
-FIX: Print time in MultiTaskJob.
+FIX: Print time in MultiTaskJob. Use startJobOnMyResult in DRCToolTest.basicMTDRCTest.
 
 IMP: (8/26/10, GVG) Working on "DRC slow for the tfc chip" (Bug #2851).
 Using map instead of list to check cell interactions.

@@ -135,14 +135,14 @@ public abstract class MultiTaskJob<TaskKey, TaskResult, Result> extends Job {
         tasks.clear();
         Result result = mergeTaskResults(taskResults);
         taskResults.clear();
-        if (consumer != null) {
-            consumer.consume(result);
-        }
         long endClockTime = System.currentTimeMillis();
         accumulatedCpuTime += (threadMX.getCurrentThreadCpuTime() - startCpuTime);
         accumulatedUserTime += (threadMX.getCurrentThreadCpuTime() - startUserTime);
         System.out.println(this  + " took " +
                 (endClockTime - startClockTime)/MILLIS_IN_SEC + " sec, cpu=" + accumulatedCpuTime/NANOS_IN_SEC + " user=" + accumulatedUserTime/NANOS_IN_SEC);
+        if (consumer != null) {
+            consumer.consume(result);
+        }
         return true;
     }
 
@@ -240,7 +240,7 @@ public abstract class MultiTaskJob<TaskKey, TaskResult, Result> extends Job {
             }
             long cpuTime = threadMX.getCurrentThreadCpuTime();
             long userTime = threadMX.getCurrentThreadUserTime();
-            System.out.println(this + " cpu=" + cpuTime/NANOS_IN_SEC + " user=" + userTime/NANOS_IN_SEC + " clock=" + accumulatedTime/MILLIS_IN_SEC);
+            System.out.println(getName() + " clock=" + accumulatedTime/MILLIS_IN_SEC + " cpu=" + cpuTime/NANOS_IN_SEC + " user=" + userTime/NANOS_IN_SEC);
             finishWorkingThread(cpuTime, userTime);
         }
     }
