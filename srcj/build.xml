@@ -32,6 +32,8 @@
         <property name="lucene" value="../packaging/lucene-1.4.3.jar"/>
         <property name="prefuse" value="../packaging/prefuse.jar"/>
         <property name="jython" value="../packaging/jython.jar"/>
+        <property name="scala" value="../packaging/scala-library.jar"/>
+        <property name="areacheck" value="../packaging/AreaCheck.jar"/>
     </target>
 
     <!-- Patternset for 3D dependencies -->
@@ -210,6 +212,8 @@
         <delete dir="junit"/>
         <delete dir="junit4.0"/>
         <delete dir="junit4.1"/>
+        <delete dir="scala"/>
+        <delete dir="com/sun/electric/scala"/>
         <delete file="acknowledgements.txt"/>
     </target>
 
@@ -303,10 +307,16 @@
         <unjar dest="." src="${lucene}"/>
         <unjar dest="." src="${prefuse}"/>
         <antcall target="unjarJython"></antcall>
+        <antcall target="unjarScala"></antcall>
     </target>
 
     <target name="unjarJython" unless="NOJYTHON" description="Extract Jython if used in Sun release">
         <unjar dest="." src="${jython}"/>
+    </target>
+    
+    <target name="unjarScala" unless="NOSCALA" description="Extract Scala if used in Sun release">
+        <unjar dest="." src="${scala}"/>
+        <unjar dest="." src="${areacheck}"/>
     </target>
     
     <target name="generalPurposeJar" depends="init,compile" description="Make Jar file with version">
@@ -368,6 +378,7 @@
             <antcall target="jarWithTests">
                 <param name="SUN" value="1"/>
                 <param name="NOJYTHON" value="1"/>
+                <param name="NOSCALA" value="1"/>
             </antcall>
     </target>
 
