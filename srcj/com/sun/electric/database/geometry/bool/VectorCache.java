@@ -48,7 +48,6 @@ import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -209,6 +208,10 @@ public class VectorCache {
         return cellLayer != null ? cellLayer.boxCoords.length/4 : 0;
     }
 
+    public int getNumFlatBoxes(CellId cellId, Layer layer) {
+        return getNumFlatBoxes(cellId, layer, new HashMap<CellId,Integer>());
+    }
+
     public ERectangle getLocalBounds(CellId cellId, Layer layer) {
         CellLayer cellLayer = findVectorCell(cellId).layers.get(layer);
         return cellLayer != null ? cellLayer.localBounds : null;
@@ -222,11 +225,13 @@ public class VectorCache {
         System.arraycopy(cellLayer.boxCoords, offset*4, result, 0, size*4);
     }
 
-    public List<Rectangle> collectLayer(Layer layer, CellId cellId, boolean rotate) {
-        List<Rectangle> result = new ArrayList<Rectangle>();
+    public static interface PutRectangle {
+        public void put(int lx, int ly, int hx, int hy);
+    }
+
+    public void collectLayer(Layer layer, CellId cellId, boolean rotate, PutRectangle putRectangle) {
         Orientation orient = (rotate ? Orientation.XR : Orientation.IDENT).canonic();
-        collectLayer(layer, findVectorCell(cellId), new Point(0, 0), orient, result);
-        return result;
+        collectLayer(layer, findVectorCell(cellId), new Point(0, 0), orient, putRectangle);
     }
 
     private void scanLayers(CellId cellId, HashSet<CellId> visited) {
@@ -247,6 +252,19 @@ public class VectorCache {
         return mvc;
     }
 
+    private int getNumFlatBoxes(CellId cellId, Layer layer, HashMap<CellId,Integer> numFlatBoxes) {
+        Integer num = numFlatBoxes.get(cellId);
+        if (num == null) {
+            int count = getNumBoxes(cellId, layer);
+            for (ImmutableNodeInst n: getSubcells(cellId)) {
+                count += getNumFlatBoxes((CellId)n.protoId, layer, numFlatBoxes);
+            }
+            num = Integer.valueOf(count);
+            numFlatBoxes.put(cellId, num);
+        }
+        return num.intValue();
+    }
+
     private void addBoxesFromBuilder(MyVectorCell vc, HashMap<Layer,VectorManhattanBuilder> boxBuilders) {
         for (Map.Entry<Layer,VectorManhattanBuilder> e: boxBuilders.entrySet()) {
             Layer layer = e.getKey();
@@ -260,7 +278,7 @@ public class VectorCache {
         }
     }
 
-    private void collectLayer(Layer layer, MyVectorCell vc, Point anchor, Orientation orient, List<Rectangle> result) {
+    private void collectLayer(Layer layer, MyVectorCell vc, Point anchor, Orientation orient, PutRectangle putRectangle) {
         int[] coords = new int[4];
         CellLayer cellLayer = vc.layers.get(layer);
         if (cellLayer != null) {
@@ -278,9 +296,7 @@ public class VectorCache {
                 int hy = anchor.y + coords[3];
                 assert lx <= hx && ly <= hy;
 
-                result.add(new Rectangle(lx, ly, hx - lx, hy - ly));
-//                if (result.size() % 1000000 == 0)
-//                    System.out.println(" " + result.size());
+                putRectangle.put(lx, ly, hx, hy);
             }
         }
         for (ImmutableNodeInst n: vc.subCells) {
@@ -290,7 +306,7 @@ public class VectorCache {
             orient.transformPoints(1, coords);
             Orientation subOrient = orient.concatenate(n.orient).canonic();
             MyVectorCell subCell = findVectorCell((CellId)n.protoId);
-            collectLayer(layer, subCell, new Point(anchor.x + coords[0], anchor.y + coords[1]), subOrient, result);
+            collectLayer(layer, subCell, new Point(anchor.x + coords[0], anchor.y + coords[1]), subOrient, putRectangle);
         }
     }
 

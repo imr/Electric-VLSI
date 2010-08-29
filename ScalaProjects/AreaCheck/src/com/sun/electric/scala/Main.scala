@@ -8,11 +8,8 @@ package com.sun.electric.scala
 import com.sun.electric.Main.UserInterfaceDummy
 import com.sun.electric.database.CellRevision
 import com.sun.electric.database.CellTree
-import com.sun.electric.database.ImmutableNodeInst
 import com.sun.electric.database.geometry.PolyBase
-import com.sun.electric.database.geometry.bool.DeltaMerge
 import com.sun.electric.database.geometry.bool.UnloadPolys
-import com.sun.electric.database.geometry.bool.VectorCache
 import com.sun.electric.database.hierarchy.Cell
 import com.sun.electric.database.hierarchy.EDatabase
 import com.sun.electric.database.hierarchy.Library
@@ -21,18 +18,21 @@ import com.sun.electric.database.id.IdManager
 import com.sun.electric.database.text.Pref
 import com.sun.electric.database.text.TextUtils
 import com.sun.electric.database.variable.TextDescriptor
-import com.sun.electric.technology.Layer
 import com.sun.electric.technology.Technology
 import com.sun.electric.tool.Job
 import com.sun.electric.tool.Tool
 import com.sun.electric.tool.io.FileType
 import com.sun.electric.tool.io.input.LibraryFiles
 
-import java.awt.Rectangle
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+
 import scala.collection.JavaConversions
 import scala.collection.mutable.LinkedHashMap
 import scala.collection.mutable.LinkedHashSet
@@ -95,59 +95,52 @@ object Main {
     result.toSeq
   }
 
-  def mergeLayer(vectorCache: VectorCache, cellId: CellId, layer: Layer) = {
-    val boxCoords = new Array[Int](4)
-    val numBoxes = vectorCache.getNumBoxes(cellId, layer)
-    val rectV = Vector.tabulate(numBoxes) { i =>
-      vectorCache.getBoxes(cellId, layer, i, 1, boxCoords)
-      val lx = boxCoords(0)
-      val ly = boxCoords(1)
-      val hx = boxCoords(2)
-      val hy = boxCoords(3)
-      new Rectangle(lx, ly, hx - lx, hy - ly)
-    }
-    val rectL = JavaConversions.asList(rectV)
-
-    val bout = new ByteArrayOutputStream
-    val out = new DataOutputStream(bout)
-    val dm = new DeltaMerge()
-    dm.loop(rectL, out)
-    val ba = bout.toByteArray
-    out.close
-
+  def byteArray2tree(ba: Array[Byte]): Iterable[PolyBase.PolyBaseTree] = {
     val inpS = new DataInputStream(new ByteArrayInputStream(ba))
     val up = new UnloadPolys();
-    val trees = up.loop(inpS, false);
+    val trees = up.loop(inpS, false)
     inpS.close
+    JavaConversions.asIterable(trees)
+  }
 
-    def countPoints(t: PolyBase.PolyBaseTree): Int = {
+  def treesSize(ts: Iterable[PolyBase.PolyBaseTree], localCount: PolyBase => Int): Int = {
+    def treeSize(t: PolyBase.PolyBaseTree): Int = {
       val l = t.getSons
-      val sonCount = if (l.isEmpty) 0 else {
-        JavaConversions.asIterable(l).map(st => countPoints(st)).sum
-      }
-      t.getPoly.getPoints.length + sonCount
+      val sonCount = treesSize(JavaConversions.asIterable(l), localCount)
+      localCount(t.getPoly) + sonCount
     }
+    ts.map(t => treeSize(t)).sum
+  }
 
-    val mergedPoints = JavaConversions.asIterable(trees).map(countPoints).sum
-//    println(cellId + " " + rectV.size*4 + " -> " + mergedPoints)
-    mergedPoints
+  def hugeFile = {
+    val file = File.createTempFile("Electric", "DRC", new File("."))
+    file.deleteOnExit
+    val out = new FileOutputStream(file)
+    val b = new Array[Byte](1 << 20)
+    for (val i <- 0 until 8000) out.write(b)
+    out.close
+    file.delete
   }
 
   /**
    * @param args the command line arguments
    */
   def main(args: Array[String]): Unit = {
+//    hugeFile
     initElectric
 
     val libPath = args(0)
     val topCellName = args(1)
     val topCell = loadCell(libPath, topCellName)
+    val layoutMerger = new LayoutMergerScalaImpl(topCell)
+
     val dt = downTop(topCell.tree)
+    assert(dt == layoutMerger.downTop(topCell.tree))
     println("downTop " + dt.size)
     for (val t <- dt) {
       println(t)
     }
-    val vectorCache = new VectorCache(topCell.getDatabase.backup)
+    val vectorCache = layoutMerger.vectorCache
     def countHier(localCount: CellRevision => Int): Int = {
       Main.countHier(topCell.tree, (t: CellTree) => localCount(t.top.cellRevision))
     }
@@ -169,35 +162,43 @@ object Main {
     vectorCache.scanLayers(topCell.getId)
     val layers = JavaConversions.asIterable(vectorCache.getLayers)
     for (val layer <- layers) {
+      println
       println(layer)
-      println(countHier(r => vectorCache.getNumBoxes(r.d.cellId, layer)) + " boxes")
-      println(countFlat(r => vectorCache.getNumBoxes(r.d.cellId, layer)) + " box insts")
-    }
-    val m1 = layers.find(l => l.getName == "Metal-1").get
-    println(m1)
-    println(countHier(r => vectorCache.getNumBoxes(r.d.cellId, m1))*4 + " points")
-    println(countFlat(r => vectorCache.getNumBoxes(r.d.cellId, m1))*4 + " box points")
-    val mergedCount = new LinkedHashMap[CellId,Int]()
-    for (val t <- dt) {
-      val cellId = t.top.cellRevision.d.cellId
-      val mergedC = mergeLayer(vectorCache, cellId, m1)
-      mergedCount.put(cellId, mergedC)
-    }
-    println(countHier(r => mergedCount(r.d.cellId)) + " merged points")
-    println(countFlat(r => mergedCount(r.d.cellId)) + " merged point insts")
+      println(countHier(r => vectorCache.getNumBoxes(r.d.cellId, layer)*4) + " points")
+      println(countFlat(r => vectorCache.getNumBoxes(r.d.cellId, layer)*4) + " point insts")
+      val mergedTrees = new LinkedHashMap[CellId,Iterable[PolyBase.PolyBaseTree]]()
+      val mergedCoords = new LinkedHashMap[CellId,Array[Int]]()
+      for (val t <- dt) {
+        val cellId = t.top.cellRevision.d.cellId
+        val ba = layoutMerger.mergeLocalLayerToByteArray(cellId, layer)
+        if (ba != null) {
+          mergedTrees.put(cellId, byteArray2tree(ba))
+          mergedCoords.put(cellId, layoutMerger.byteArray2coordArray(ba))
+        } else {
+          mergedTrees.put(cellId, Iterable.empty)
+          mergedCoords.put(cellId, Array.empty)
+        }
+      }
+      println(countHier(r => treesSize(mergedTrees(r.d.cellId), p => 1)) + " merged polygons")
+      println(countFlat(r => treesSize(mergedTrees(r.d.cellId), p => 1)) + " merged polygon insts")
+      println(countHier(r => treesSize(mergedTrees(r.d.cellId), p => p.getPoints.length)) + " merged points")
+      println(countFlat(r => treesSize(mergedTrees(r.d.cellId), p => p.getPoints.length)) + " merged point insts")
 
-    val via1 = layers.find(l => l.getName == "Via-1").get
-    println(via1)
-    println(countHier(r => vectorCache.getNumBoxes(r.d.cellId, via1))*4 + " points")
-    println(countFlat(r => vectorCache.getNumBoxes(r.d.cellId, via1))*4 + " box points")
-    val mergedCount2 = new LinkedHashMap[CellId,Int]()
-    for (val t <- dt) {
-      val cellId = t.top.cellRevision.d.cellId
-      val mergedC = mergeLayer(vectorCache, cellId, via1)
-      mergedCount2.put(cellId, mergedC)
+      val rotate = false
+      val fileName = layer.getName + ".dm"
+      val out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)))
+      out.writeBoolean(rotate)
+      layoutMerger.mergeLayer(mergedCoords, topCell.getId, layer, rotate, out)
+      out.close
+
+      val inpS = new DataInputStream(new BufferedInputStream(new FileInputStream(fileName)))
+      assert(inpS.readBoolean == rotate)
+      val up = new UnloadPolys
+      val trees: Iterable[PolyBase.PolyBaseTree] = JavaConversions.asIterable(up.loop(inpS, false))
+      println(treesSize(trees, p => 1) + " merged polygons")
+      println(treesSize(trees, p => p.getPoints.length) + " merged polygons")
+      inpS.close()
     }
-    println(countHier(r => mergedCount2(r.d.cellId)) + " merged points")
-    println(countFlat(r => mergedCount2(r.d.cellId)) + " merged point insts")
   }
 
 }

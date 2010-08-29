@@ -374,9 +374,7 @@ public class MTDRCAreaTool extends MTDRCTool
                 // Must run the real checking
                 if (!minPass)
                 {
-                    List<PolyBase.PolyBaseTree> roots = PolyBase.getTreesFromLoops(list);
-
-                    for (PolyBase.PolyBaseTree obj : roots)
+                    for (PolyBase.PolyBaseTree obj : PolyBase.getTreesFromLoops(list))
                     {
                         traversePolyTree(layer, obj, 0, cell, errorFound);
                     }
@@ -404,8 +402,7 @@ public class MTDRCAreaTool extends MTDRCTool
         private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level,
                                       Cell cell, GenMath.MutableInteger count)
         {
-            List<PolyBase.PolyBaseTree> sons = obj.getSons();
-            for (PolyBase.PolyBaseTree son : sons)
+            for (PolyBase.PolyBaseTree son : obj.getSons())
             {
                 traversePolyTree(layer, son, level+1, cell, count);
             }

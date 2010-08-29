@@ -26,9 +26,11 @@ package com.sun.electric.database.geometry.bool;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.PolyBase;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,20 +55,20 @@ public class UnloadPolys {
         Arc next;
         int[] y = new int[2];
         Arc[] b = new Arc[2], t = new Arc[2];
-        List<PolyBase.PolyBaseTree> sons;
+        List<PolyBase.PolyBaseTreeImpl> sons;
         Polys pol;
 
-        private void addSon(PolyBase.PolyBaseTree son) {
+        private void addSon(PolyBase.PolyBaseTreeImpl son) {
             if (sons == null)
-                sons = new ArrayList<PolyBase.PolyBaseTree>();
+                sons = new ArrayList<PolyBase.PolyBaseTreeImpl>();
             sons.add(son);
         }
 
-        private void addSons(List<PolyBase.PolyBaseTree> newSons) {
+        private void addSons(List<PolyBase.PolyBaseTreeImpl> newSons) {
             if (newSons == null || newSons.isEmpty())
                 return;
             if (sons == null)
-                sons = new ArrayList<PolyBase.PolyBaseTree>();
+                sons = new ArrayList<PolyBase.PolyBaseTreeImpl>();
             sons.addAll(newSons);
         }
     }
@@ -85,7 +87,8 @@ public class UnloadPolys {
 
     private boolean rotated;
 
-    public List<PolyBase.PolyBaseTree> loop(DataInputStream inpS, boolean rotated) throws IOException {
+    @SuppressWarnings("unchecked")
+    public Iterable<PolyBase.PolyBaseTree> loop(DataInputStream inpS, boolean rotated) throws IOException {
         this.rotated = rotated;
     	mainArc = newArc();
     	mainArc.y[IN] = Integer.MIN_VALUE;
@@ -98,9 +101,7 @@ public class UnloadPolys {
             scanLine();
         }
         assert mainArc.t[IN] == mainArc && mainArc.b[OUT] == mainArc;
-        List<PolyBase.PolyBaseTree> result = mainArc.sons;
-        if (result == null)
-            result = Collections.emptyList();
+        Collection result = mainArc.sons != null ? Collections.unmodifiableCollection(mainArc.sons) : Collections.emptyList();
         dispArc(mainArc);
         return result;
     }
@@ -224,7 +225,7 @@ public class UnloadPolys {
                 if (al == ar) {
                     assert al == top;
                     top.pol.x = x;
-                    PolyBase.PolyBaseTree t = outTree(top.pol);
+                    PolyBase.PolyBaseTreeImpl t = outTree(top.pol);
                     if (top.sons != null) {
                         for (PolyBase.PolyBaseTree s: top.sons)
                             t.addSonLowLevel(s);
@@ -237,7 +238,7 @@ public class UnloadPolys {
                     top.pol = CAT(top.pol, v, ar.pol);
                     REPLACE(ar,top,v);
                     arn = aln.t[nv];
-                    List<PolyBase.PolyBaseTree> sons = ar.sons;
+                    List<PolyBase.PolyBaseTreeImpl> sons = ar.sons;
                     dispArc(ar);
                     POP();
                     top.addSons(sons);
@@ -245,7 +246,7 @@ public class UnloadPolys {
                     top.pol = CAT(top.pol, nv, al.pol);
                     REPLACE(al, top, nv);
                     aln = arn.b[v];
-                    List<PolyBase.PolyBaseTree> sons = al.sons;
+                    List<PolyBase.PolyBaseTreeImpl> sons = al.sons;
                     dispArc(al);
                     POP();
                     top.addSons(sons);
@@ -253,7 +254,7 @@ public class UnloadPolys {
                     al.pol = CAT(al.pol, v, ar.pol);
                     REPLACE(ar, al, v);
                     arn = aln.t[nv];
-                    List<PolyBase.PolyBaseTree> sons = ar.sons;
+                    List<PolyBase.PolyBaseTreeImpl> sons = ar.sons;
                     dispArc(ar);
                     al.addSons(sons);
                     PUSH(al);
@@ -354,7 +355,7 @@ public class UnloadPolys {
         System.out.println();
     }
 
-    PolyBase.PolyBaseTree outTree(Polys pl) {
+    PolyBase.PolyBaseTreeImpl outTree(Polys pl) {
         Polys pg = pl;
         int n = 0;
     	do {
@@ -363,12 +364,13 @@ public class UnloadPolys {
         } while (pg != pl);
         EPoint[] pts = new EPoint[n*2];
         if (rotated) {
-            int k = 0;
+            int k = pts.length;
             do {
-                pts[k++] = EPoint.fromGrid(pg.y, pg.x);
-                pts[k++] = EPoint.fromGrid(pg.next.y, pg.x);
+                pts[--k] = EPoint.fromGrid(pg.y, pg.x);
+                pts[--k] = EPoint.fromGrid(pg.next.y, pg.x);
                 pg = pg.next;
             } while (pg != pl);
+            assert k == 0;
         } else {
             int k = 0;
             do {
@@ -376,9 +378,10 @@ public class UnloadPolys {
                 pts[k++] = EPoint.fromGrid(pg.x, pg.next.y);
                 pg = pg.next;
             } while (pg != pl);
+            assert k == pts.length;
         }
         PolyBase p = new PolyBase(pts);
-        return new PolyBase.PolyBaseTree(p);
+        return new PolyBase.PolyBaseTreeImpl(p);
     }
 
     private String prPoint(int x, int y) {

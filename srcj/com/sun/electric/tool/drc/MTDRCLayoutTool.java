@@ -2444,8 +2444,7 @@ public class MTDRCLayoutTool extends MTDRCTool
         private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level, DRCTemplate minAreaRule,
                                       DRCTemplate encloseAreaRule, DRCTemplate spacingRule, Cell cell, GenMath.MutableInteger count)
         {
-            List<PolyBase.PolyBaseTree> sons = obj.getSons();
-            for (PolyBase.PolyBaseTree son : sons)
+            for (PolyBase.PolyBaseTree son : obj.getSons())
             {
                 traversePolyTree(layer, son, level + 1, minAreaRule, encloseAreaRule, spacingRule, cell, count);
             }

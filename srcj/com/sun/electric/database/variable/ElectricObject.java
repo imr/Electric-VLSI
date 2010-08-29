@@ -105,7 +105,7 @@ public abstract class ElectricObject implements Serializable {
         if (var != null) {
             Object value = var.getObject();
             if (type.isInstance(value)) {
-                return (T) value;
+                return type.cast(value);
             }
         }
         return defaultValue; // null type means any type

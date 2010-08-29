@@ -2018,12 +2018,17 @@ if (Poly.NEWTEXTTREATMENT) return origType;
 	}
 
     // Creating a tree for finding the loops
-    public static class PolyBaseTree
+    public static interface PolyBaseTree {
+        public Iterable<PolyBaseTree> getSons();
+        public PolyBase getPoly();
+    }
+
+    public static class PolyBaseTreeImpl implements PolyBaseTree
     {
         List<PolyBaseTree> sons;
         PolyBase poly;
 
-        public PolyBaseTree(PolyBase p)
+        public PolyBaseTreeImpl(PolyBase p)
         {
             if (p == null)
                 throw new NullPointerException();
@@ -2031,7 +2036,7 @@ if (Poly.NEWTEXTTREATMENT) return origType;
 //            sons = new ArrayList<PolyBaseTree>();
         }
 
-        public List<PolyBaseTree> getSons() {
+        public Iterable<PolyBaseTree> getSons() {
             if (sons != null)
                 return sons;
             return Collections.emptyList();
@@ -2061,11 +2066,11 @@ if (Poly.NEWTEXTTREATMENT) return origType;
             level++;
             if (sons != null) {
                 for (PolyBaseTree t : sons)
-                    t.getLoops(level, stack);
+                    ((PolyBaseTreeImpl)t).getLoops(level, stack);
             }
         }
 
-        boolean add(PolyBaseTree t)
+        boolean add(PolyBaseTreeImpl t)
         {
             if (!poly.contains(t.poly.getPoints()[0]))
             {
@@ -2091,10 +2096,11 @@ if (Poly.NEWTEXTTREATMENT) return origType;
             {
                 for (PolyBaseTree b : sons)
                 {
-                    PolyBase pn = b.poly;
+                    PolyBaseTreeImpl bi = (PolyBaseTreeImpl)b;
+                    PolyBase pn = bi.poly;
                     if (pn.contains(t.poly.getPoints()[0]))
                     {
-                        return (b.add(t));
+                        return (bi.add(t));
                     }
                     // test very expensive.
                     else if (Job.getDebug() && t.poly.contains(pn.getPoints()[0]))
@@ -2131,13 +2137,13 @@ if (Poly.NEWTEXTTREATMENT) return origType;
         // Build the hierarchy with loops
         for (int i = list.size()-1; i > -1; i--)
         {
-            PolyBaseTree t = new PolyBaseTree(list.get(i));
+            PolyBaseTreeImpl t = new PolyBaseTreeImpl(list.get(i));
 
             // Check all possible roots
             boolean added = false;
             for (PolyBaseTree r : roots)
             {
-                if (r.add(t))
+                if (((PolyBaseTreeImpl)r).add(t))
                 {
                     added = true;
                     break;
@@ -2208,7 +2214,7 @@ if (Poly.NEWTEXTTREATMENT) return origType;
         {
             int count = 0;
             Stack<PolyBase> s = new Stack<PolyBase>();
-            r.getLoops(count, s);
+            ((PolyBaseTreeImpl)r).getLoops(count, s);
             list.addAll(s);
         }
         return list;

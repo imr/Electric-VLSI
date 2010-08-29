@@ -24,6 +24,7 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.database.geometry.bool.LayoutMerger;
 import com.sun.electric.technology.Layer;
 
 import java.awt.Shape;
@@ -36,7 +37,7 @@ import java.util.*;
  * and this interface would handle the implementation
  * @author  Gilda Garreton
  */
-public abstract class GeometryHandler {
+public abstract class GeometryHandler implements LayoutMerger {
     TreeMap<Layer,Object> layers;
     public enum GHMode // GH GeometryHandler mode
     {
@@ -142,6 +143,19 @@ public abstract class GeometryHandler {
     public void postProcess(boolean merge)
     {
         if (!merge) System.out.println("Error: postProcess not implemented for GeometryHandler subclass " + this.getClass().getName());
+    }
+
+    // Interface LayoutMerger
+    public Collection<Layer> getLayers() {
+        return getKeySet();
+    }
+
+    public boolean canMerge(Layer layer) {
+        return true;
+    }
+
+    public Iterable<PolyBase.PolyBaseTree> merge(Layer layer) {
+        return getTreeObjects(layer);
     }
 
     /**

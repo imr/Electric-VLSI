@@ -394,7 +394,76 @@ public class Orientation implements Serializable {
     }
 
     /**
-     * Calculate bounds of rectangle transformed by this Orientation.
+     * Calculate points transformed by this Orientation.
+     * @param numPoints
+     * @param srcCoords coordinates x, y of points.
+     */
+    public void transformPoints(int numPoints, int[] srcCoords, int[] dstCoords) {
+        if (srcCoords == dstCoords) {
+            transformPoints(numPoints, srcCoords);
+            return;
+        }
+        switch (manh) {
+            case MIDENT:
+                System.arraycopy(srcCoords, 0, dstCoords, 0, numPoints*2);
+                return;
+            case MR:
+                for (int i = 0; i < numPoints; i++) {
+                    int x = srcCoords[i*2 + 0];
+                    int y = srcCoords[i*2 + 1];
+                    dstCoords[i*2 + 0] = -y;
+                    dstCoords[i*2 + 1] =  x;
+                }
+                return;
+            case MRR:
+                for (int i = 0; i < numPoints; i++) {
+                    dstCoords[i*2 + 0] = -srcCoords[i*2 + 0];
+                    dstCoords[i*2 + 1] = -srcCoords[i*2 + 1];
+                }
+                return;
+            case MRRR:
+                for (int i = 0; i < numPoints; i++) {
+                    int x = srcCoords[i*2 + 0];
+                    int y = srcCoords[i*2 + 1];
+                    dstCoords[i*2 + 0] =  y;
+                    dstCoords[i*2 + 1] = -x;
+                }
+                return;
+            case MY:
+                for (int i = 0; i < numPoints; i++) {
+                    dstCoords[i*2 + 0] = srcCoords[i*2 + 0];
+                    dstCoords[i*2 + 1] = -srcCoords[i*2 + 1];
+                }
+                return;
+            case MYR:
+                for (int i = 0; i < numPoints; i++) {
+                    int x = srcCoords[i*2 + 0];
+                    int y = srcCoords[i*2 + 1];
+                    dstCoords[i*2 + 0] = -y;
+                    dstCoords[i*2 + 1] = -x;
+                }
+                return;
+            case MYRR:
+                for (int i = 0; i < numPoints; i++) {
+                    dstCoords[i*2 + 0] = -srcCoords[i*2 + 0];
+                    dstCoords[i*2 + 1] = srcCoords[i*2 + 1];
+                }
+                return;
+            case MYRRR:
+                for (int i = 0; i < numPoints; i++) {
+                    int x = srcCoords[i*2 + 0];
+                    int y = srcCoords[i*2 + 1];
+                    dstCoords[i*2 + 0] =  y;
+                    dstCoords[i*2 + 1] =  x;
+                }
+                return;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
+     * Calculate points transformed by this Orientation.
      * @param numPoints
      * @param coords coordinates x, y of points.
      */

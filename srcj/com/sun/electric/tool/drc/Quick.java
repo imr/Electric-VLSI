@@ -25,6 +25,8 @@ package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.geometry.bool.DeltaMerge;
+import com.sun.electric.database.geometry.bool.LayoutMerger;
+import com.sun.electric.database.geometry.bool.LayoutMergerFactory;
 import com.sun.electric.database.geometry.bool.UnloadPolys;
 import com.sun.electric.database.geometry.bool.VectorCache;
 import com.sun.electric.database.hierarchy.Cell;
@@ -48,7 +50,6 @@ import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
-import java.awt.Rectangle;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
@@ -64,6 +65,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -2497,8 +2499,7 @@ public class Quick
     private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level, DRCTemplate minAreaRule,
                                          DRCTemplate encloseAreaRule, DRCTemplate spacingRule, Cell cell, GenMath.MutableInteger count)
     {
-        List<PolyBase.PolyBaseTree> sons = obj.getSons();
-        for (PolyBase.PolyBaseTree son : sons)
+        for (PolyBase.PolyBaseTree son : obj.getSons())
         {
             traversePolyTree(layer, son, level+1, minAreaRule, encloseAreaRule, spacingRule, cell, count);
         }
@@ -2557,7 +2558,7 @@ public class Quick
         }
     }
 
-    private int checkMinAreaLayerWithTree(GeometryHandler merge, Cell cell, Layer layer)
+    private int checkMinAreaLayerWithTree(LayoutMerger merge, Cell cell, Layer layer)
 	{
 		DRCTemplate minAreaRule = minAreaLayerMap.get(layer);
 		DRCTemplate encloseAreaRule = enclosedAreaLayerMap.get(layer);
@@ -2566,11 +2567,9 @@ public class Quick
         // Layer doesn't have min areae
 		if (minAreaRule == null && encloseAreaRule == null && spacingRule == null) return 0;
 
-        Collection<PolyBase.PolyBaseTree> trees = merge.getTreeObjects(layer);
-
         GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
 
-        for (PolyBase.PolyBaseTree obj : trees)
+        for (PolyBase.PolyBaseTree obj : merge.merge(layer))
 		{
             traversePolyTree(layer, obj, 0, minAreaRule, encloseAreaRule, spacingRule, cell, errorFound);
         }
@@ -4536,22 +4535,19 @@ public class Quick
      */
     private class QuickAreaEnumeratorManhattan extends QuickAreaEnumerator
     {
-        private static final int TMP_FILE_THRESHOLD = 1000000;
-
         QuickAreaEnumeratorManhattan()
         {
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
-            VectorCache vce = new VectorCache(topCell.getDatabase().backup());
-            vce.scanLayers(topCell.getId());
+            LayoutMergerFactory layoutMergerFactory = LayoutMergerFactory.newInstance();
+            LayoutMerger layoutMerger = layoutMergerFactory.newMerger(topCell);
             boolean errorsFound = false;
-            for (Layer layer: vce.getLayers()) {
+            for (Layer layer: layoutMerger.getLayers()) {
                 if (skipLayer(layer))
                     continue;
-//                System.out.println("layer " + layer);
-                if (vce.isBadLayer(layer)) {
+                if (!layoutMerger.canMerge(layer)) {
                     System.out.println(layer + " IS NOT MANHATTAN !!");
                     continue;
                 }
@@ -4562,116 +4558,15 @@ public class Quick
                 // Layer doesn't have min areae
                 if (minAreaRule == null && encloseAreaRule == null && spacingRule == null) continue;
 
-                List<PolyBase.PolyBaseTree> trees = null;
-                try {
-                    List<Rectangle> rects = vce.collectLayer(layer, topCell.getId(), false);
-                    boolean inMemory = rects.size() < TMP_FILE_THRESHOLD;
-                    DataInputStream inpS;
-                    if (rects.size() <= TMP_FILE_THRESHOLD) {
-                        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                        DataOutputStream out = new DataOutputStream(bout);
-                        DeltaMerge dm = new DeltaMerge();
-                        dm.loop(rects, out);
-                        rects = null;
-                        byte[] ba = bout.toByteArray();
-                        out.close();
-                        dm = null;
-
-                        inpS = new DataInputStream(new ByteArrayInputStream(ba));
-                        UnloadPolys up = new UnloadPolys();
-                        trees = up.loop(inpS, false);
-                        inpS.close();
-                   } else {
-                        File file = File.createTempFile("Electric", "DRC");
-                        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
-                        DeltaMerge dm = new DeltaMerge();
-                        dm.loop(rects, out);
-                        rects = null;
-                        out.close();
-                        dm = null;
-
-                        inpS = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
-                        UnloadPolys up = new UnloadPolys();
-                        trees = up.loop(inpS, false);
-                        inpS.close();
-                        file.delete();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-//                System.out.println(trees.size() + " roots");
-//                for (PolyBase.PolyBaseTree r: trees) {
-//                    if (r.getSons().isEmpty())
-//                        continue;
-//                    int grandsons = 0;
-//                    int grandgrandsons = 0;
-//                    for (PolyBase.PolyBaseTree s: r.getSons()) {
-//                        for (PolyBase.PolyBaseTree gs: s.getSons()) {
-//                            grandsons++;
-//                            grandgrandsons += gs.getSons().size();
-//                        }
-//                    }
-//                    System.out.println(" " + r.getSons().size() + " sons " + grandsons + " grandsons " + grandgrandsons + " grandgrandsons");
-//                }
-
                 GenMath.MutableInteger errorFound = new GenMath.MutableInteger(0);
 
-                for (PolyBase.PolyBaseTree obj : trees)
+                for (PolyBase.PolyBaseTree obj : layoutMerger.merge(layer))
                 {
                     traversePolyTree(layer, obj, 0, minAreaRule, encloseAreaRule, spacingRule, topCell, errorFound);
                 }
                 errorsFound = errorsFound || errorFound.intValue() != 0;
             }
             return false;
-//            if (job != null && job.checkAbort()) return false;
-//            Cell cell = info.getCell();
-//            MTDRCAreaTool.GeometryHandlerLayerBucket bucket = cellsMap.get(cell);
-//            if (bucket == null)
-//            {
-//                bucket = new MTDRCAreaTool.GeometryHandlerLayerBucket(mode);
-//                cellsMap.put(cell, bucket);
-//            }
-//            else
-//            {
-//                assert(bucket.merged);
-//                return false; // done with this cell
-//            }
-//
-//            for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
-//            {
-//                ArcInst ai = it.next();
-//                Network aNet = info.getNetlist().getNetwork(ai, 0);
-//
-//                // aNet is null if ArcProto is Artwork
-//                if (aNet == null)
-//                {
-//                    continue;
-//                }
-//                Technology tech = ai.getProto().getTechnology();
-//                Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-//                int tot = arcInstPolyList.length;
-//                for(int i=0; i<tot; i++)
-//                {
-//                    Poly poly = arcInstPolyList[i];
-//                    Layer layer = poly.getLayer();
-//
-//                    // No area associated or already done
-//                    if (skipLayer(layer))
-//                        continue;
-//
-//                    // it has to take into account poly and transistor poly as one layer
-//                    if (layer.getFunction().isPoly())
-//                    {
-//                        if (polyLayer == null)
-//                            polyLayer = layer;
-//                        layer = polyLayer;
-//                    }
-//                    bucket.addElementLocal(poly, layer);
-//                }
-//            }
-//
-//            return true;
         }
 
         public void exitCell(HierarchyEnumerator.CellInfo info)

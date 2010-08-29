@@ -23,15 +23,9 @@
  */
 package com.sun.electric.database.geometry.bool;
 
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.Arrays;
 
 /**
  *
@@ -42,12 +36,6 @@ public class DeltaMerge {
         private Segment next;
         private int y; // begin of the segment
         private int val; // height at points below y
-    }
-
-    private static class NegativePoint extends Point {
-        private NegativePoint(int x, int y) {
-            super(x, y);
-        }
     }
 
     private static final Segment segLast = new Segment();
@@ -62,7 +50,8 @@ public class DeltaMerge {
     private int[] outA = new int[1];
     private int outC;
 
-    private List<Point> points = new ArrayList<Point>();
+    private int pointsSize;
+    private long[] points = new long[1];
 
     private int curPoint;
     private int x;
@@ -73,43 +62,48 @@ public class DeltaMerge {
         chain.y = Integer.MIN_VALUE;
     }
 
-    public void loop(Collection<Rectangle> rects, DataOutputStream out) throws IOException {
-        for (Rectangle rect: rects) {
-            put(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
-        }
-        Collections.sort(points, new Comparator<Point> () {
-            public int compare(Point p1, Point p2) {
-                if (p1.x < p2.x) {
-                    return -1;
-                } else if (p1.x > p2.x) {
-                    return 1;
-                } else if (p1.y < p2.y) {
-                    return -1;
-                } else if (p1.y > p2.y) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            }
-        });
+    public int loop(DataOutputStream out) throws IOException {
+        Arrays.sort(points, 0, pointsSize);
         curPoint = 0;
+        int totalOutPoints = 0;
         while (getLine()) {
             scanLine();
+            totalOutPoints += outC;
             printOut(out);
             printSegments();
         }
         out.writeBoolean(false);
+        return totalOutPoints;
     }
 
-    private void put(int lx, int ly, int hx, int hy) {
+    public void put(int lx, int ly, int hx, int hy) {
         put(lx, ly, true);
         put(lx, hy, false);
         put(hx, ly, false);
         put(hx, hy, true);
     }
 
-    private void put(int x, int y, boolean positive) {
-        points.add(positive ? new Point(x, y) : new NegativePoint(x, y));
+    public void put(int x, int y, boolean positive) {
+        if (pointsSize >= points.length) {
+            long[] newPoints = new long[points.length*2];
+            System.arraycopy(points, 0, newPoints, 0, points.length);
+            points = newPoints;
+        }
+        if (y < -0x40000000 || y > 0x3fffffff)
+            throw new IllegalArgumentException();
+        long p = ((long)x) << 32 | (((y + 0x40000000) << 1) & 0xfffffffeL);
+        if (positive)
+            p |= 1;
+        points[pointsSize++] = p;
+    }
+
+    public int size() {
+        return pointsSize;
+    }
+
+    public void clear() {
+        points = new long[1];
+        pointsSize = 0;
     }
 
     private void printOut(DataOutputStream out) throws IOException {
@@ -132,18 +126,20 @@ public class DeltaMerge {
 
     private boolean getLine() {
         resetInp();
-        if  (curPoint >= points.size()) {
+        if  (curPoint >= pointsSize) {
             return false;
         }
-        Point p = points.get(curPoint++);
-        x = p.x;
+        long p = points[curPoint++];
+        x = (int)(p >> 32);
         for (;;) {
-            putPointInp(p.y, p instanceof NegativePoint ? -1 : 1);
-            if (curPoint >= points.size()) {
+            int y = (0x80000000 + (int)(p&0xffffffff)) >> 1;
+            int sign = (p&1) != 0 ? 1 : -1;
+            putPointInp(y, sign);
+            if (curPoint >= pointsSize) {
                 break;
             }
-            p = points.get(curPoint);
-            if (p.x != x) {
+            p = points[curPoint];
+            if (x != (int)(p >> 32)) {
                 break;
             }
             curPoint++;
