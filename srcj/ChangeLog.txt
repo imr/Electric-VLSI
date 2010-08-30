@@ -2,10 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 9.00m: ******************************
+************************* Version 9.00n: ******************************
 
 BUG: (8/30/10, SMR) Need to warn users who request too much memory (Bug #2900).
 FIX: Improved the General Preferences dialog to advise on upper memory limits.
+
+************************* Version 9.00m: ******************************
 
 IMP: (8/28/10, DN) Add Scala LayoutMerger for area check.
 
