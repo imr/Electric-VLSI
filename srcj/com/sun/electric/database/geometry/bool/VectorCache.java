@@ -3,8 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: VectorCache.java
+ * Written by Dmitry Nadezhin, Sun Microsystems.
  *
- * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

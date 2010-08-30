@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: LayoutMerger.java
+ * Written by Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *

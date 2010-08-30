@@ -2,7 +2,8 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: LayoutMergerDefaultImpl.java
+ * File: LayoutMergerFactory.java
+ * Written by Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *

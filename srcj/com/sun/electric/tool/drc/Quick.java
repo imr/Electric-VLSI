@@ -24,11 +24,8 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.*;
-import com.sun.electric.database.geometry.bool.DeltaMerge;
 import com.sun.electric.database.geometry.bool.LayoutMerger;
 import com.sun.electric.database.geometry.bool.LayoutMergerFactory;
-import com.sun.electric.database.geometry.bool.UnloadPolys;
-import com.sun.electric.database.geometry.bool.VectorCache;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -55,17 +52,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**

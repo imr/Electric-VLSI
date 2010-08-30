@@ -214,6 +214,7 @@
         <delete dir="junit4.1"/>
         <delete dir="scala"/>
         <delete dir="com/sun/electric/scala"/>
+	<delete file="library.properties"/>
         <delete file="acknowledgements.txt"/>
     </target>
 

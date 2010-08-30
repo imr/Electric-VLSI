@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: LayoutMergerFactoryImpl.java
+ * File: LayoutMergerFactoryImpl.scala
  * Written by Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
@@ -27,13 +27,13 @@ package com.sun.electric.scala
 import com.sun.electric.database.CellTree
 import com.sun.electric.database.geometry.Orientation
 import com.sun.electric.database.geometry.PolyBase
-import com.sun.electric.database.geometry.bool.DeltaMerge
 import com.sun.electric.database.geometry.bool.LayoutMerger
 import com.sun.electric.database.geometry.bool.LayoutMergerFactory
 import com.sun.electric.database.geometry.bool.UnloadPolys
 import com.sun.electric.database.geometry.bool.VectorCache
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.CellId
+import com.sun.electric.database.text.TextUtils
 import com.sun.electric.technology.Layer
 
 import java.io.BufferedInputStream
@@ -82,19 +82,21 @@ class LayoutMergerScalaImpl(topCell: Cell) extends LayoutMerger {
     val numBoxes = vectorCache.getNumBoxes(cellId, layer)
     if (numBoxes == 0) null else {
       val boxCoords = new Array[Int](4)
-      val dm = new DeltaMerge
+      val ps = new PointsSorter
       for (val i <- 0 until numBoxes) {
         vectorCache.getBoxes(cellId, layer, i, 1, boxCoords)
         val lx = boxCoords(0)
         val ly = boxCoords(1)
         val hx = boxCoords(2)
         val hy = boxCoords(3)
-        dm.put(lx, ly, hx, hy)
+        ps.put(lx, ly, hx, hy)
       }
+      val get = ps.fix
 
+      val dm = new DeltaMerge
       val bout = new ByteArrayOutputStream
       val out = new DataOutputStream(bout)
-      dm.loop(out)
+      dm.loop(get, out)
       val ba = bout.toByteArray
       out.close
 
@@ -126,7 +128,7 @@ class LayoutMergerScalaImpl(topCell: Cell) extends LayoutMerger {
 
   def mergeLayer(mergedCoords: CellId => Array[Int], topCellId: CellId, layer: Layer, rotate: Boolean,
                  out: DataOutputStream) = {
-    val dm = new DeltaMerge
+    val ps = new PointsSorter
     var coordsBuf = new Array[Int](1024)
 
     def collectLayer(cellId: CellId, x: Int, y: Int, orient: Orientation): Unit = {
@@ -143,7 +145,7 @@ class LayoutMergerScalaImpl(topCell: Cell) extends LayoutMerger {
         var positive = !orientRot
         for (val i <- 0 until numPoints) {
           if (i*2 == numPoints) positive = !positive
-          dm.put(x + coordsBuf(i*2 + 0), y + coordsBuf(i*2 + 1), positive)
+          ps.put(x + coordsBuf(i*2 + 0), y + coordsBuf(i*2 + 1), positive)
         }
       }
       val subCells = vectorCache.getSubcells(cellId);
@@ -163,11 +165,14 @@ class LayoutMergerScalaImpl(topCell: Cell) extends LayoutMerger {
     val topOrient = (if (rotate) Orientation.XR else Orientation.IDENT).canonic
     val startTime1 = System.currentTimeMillis
     collectLayer(topCellId, 0, 0, topOrient)
+    val get = ps.fix
     val endTime1 = System.currentTimeMillis
-//    println("collectLayer=" + TextUtils.getElapsedTime(endTime1 - startTime1))
-//    println(dm.size + " inp points")
-    val outPoints = dm.loop(out)
-//    println(outPoints + " out points")
+    val dm = new DeltaMerge
+    val outPoints = dm.loop(get, out)
+    val endTime2 = System.currentTimeMillis
+    println(layer + " " + ps.size + "->" + outPoints + " points" +
+            ", merge=" + TextUtils.getElapsedTime(endTime1 - startTime1) + " sec" +
+            ", tree=" + TextUtils.getElapsedTime(endTime2 - endTime1) + " sec");
   }
 
   def flattenAndMergeLayer(layer: Layer, out: DataOutputStream) = {
