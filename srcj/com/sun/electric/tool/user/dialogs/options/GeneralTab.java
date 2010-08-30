@@ -25,8 +25,11 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Client;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.Frame;
@@ -34,6 +37,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Class to handle the "General" tab of the Preferences dialog.
@@ -93,13 +99,52 @@ public class GeneralTab extends PreferencePanel
 		generalMemoryUsage.setText("Current memory usage: " + Long.toString(maxMemLimit) + " megabytes");
 		generalMaxMem.setText(Long.toString(User.getMemorySize()));
 		generalMaxSize.setText(Long.toString(User.getPermSpace()));
+		generalMaxMem.getDocument().addDocumentListener(new MemoryDocumentListener());
 
 		// Database section
 		generalSnapshotLogging.setSelected(User.isSnapshotLogging());
 		generalLogClientServer.setSelected(User.isUseClientServer());
 	}
 
-    /**
+	/**
+	 * Class to handle special changes to changes to a CIF layer.
+	 */
+	private class MemoryDocumentListener implements DocumentListener
+	{
+		public void changedUpdate(DocumentEvent e) { memorySizeChanged(); }
+		public void insertUpdate(DocumentEvent e) { memorySizeChanged(); }
+		public void removeUpdate(DocumentEvent e) { memorySizeChanged(); }
+	}
+
+	private boolean warned = false;
+	/**
+	 * Method to warn the user if they are exceeding a sensible memory size.
+	 * On 32-bit JVMs there is a limit.
+	 * On 32-bit Windows systems you should not set it above 1500 (1.5 Gigabytes).
+	 * On 32-bit Linux or Macintosh system, you should not set it above 3600 (3.6 Gigabytes).
+	 */
+	private void memorySizeChanged()
+	{
+		if (warned) return;
+		int requestedSize = TextUtils.atoi(generalMaxMem.getText());
+		String size = System.getProperty("sun.arch.data.model");
+		if (size.equals("32"))
+		{
+			// could be a problem
+	        int limit = 3600;
+            if (Client.getOperatingSystem() == Client.OS.WINDOWS) limit = 1500;
+        	if (requestedSize > limit)
+        	{
+        		String msg = "WARNING!  Electric is running in a 32-bit JVM, and that means that your computer cannot request more than " +
+        			limit + " megabytes of memory.\n" + "Setting it to " + requestedSize +
+        			" may cause errors or even prevent Electric from starting.";
+        		Job.getUserInterface().showErrorMessage(msg, "Too Much Memory Requested");
+        		warned = true;
+        	}
+		}
+	}
+
+	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the General tab.
 	 */
