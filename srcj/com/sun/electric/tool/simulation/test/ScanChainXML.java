@@ -30,6 +30,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.Global;
 import com.sun.electric.tool.io.output.CellModelPrefs;
 
 import java.util.*;
@@ -59,6 +60,7 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
     private boolean optimize;
     private String chipTDI;
     private String chipTDO;
+    private boolean printIgnoredElements;
     private List<String> scanElementInstanceNames;
     private boolean generateScanDataNets;
     private HashMap<Cell,Integer> elementsFlatCount;          // flat usage count
@@ -79,6 +81,7 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
         optimize = true;
         chipTDI = "TDI";
         chipTDO = "TDO";
+        printIgnoredElements = true;
         scanElementInstanceNames = new ArrayList<String>();
         generateScanDataNets = true;
         elementsFlatCount = new HashMap<Cell,Integer>();
@@ -536,6 +539,15 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
         generateScanDataNets = generate;
     }
 
+    /**
+     * Set true to print any ignored instances, such as instances with grounded scan-in,
+     * or false to not print out any info messages.
+     * @param print true to print, false to not print. True by default.
+     */
+    public void setPrintIgnoredInstances(boolean print) {
+        printIgnoredElements = print;
+    }
+
     private String getNextChipName() {
         String name;
         if (currentChipName >= chipNames.size()) {
@@ -717,8 +729,8 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
                 // We are inside a ScanChainElement
                 // get the data net, and do not enumerate
                 ScanChainElement sc = (ScanChainElement)e;
-                mapDataNet(info, sc.getDataNet());
-                mapDataNet(info, sc.getDataNet2());
+                for (DataNet datanet : sc.getDataNets())
+                    mapDataNet(info, datanet);
                 scanChainElement = true;
             }
         }
@@ -726,6 +738,11 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
         return true;
     }
 
+    /**
+     * Map a data net from an element to a flat hierarchy name
+     * @param info
+     * @param dataNet
+     */
     private void mapDataNet(HierarchyEnumerator.CellInfo info, DataNet dataNet) {
         if (dataNet == null) return;
         Network net = getNetwork(info.getNetlist(), dataNet.getName());
@@ -816,59 +833,64 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
             NodeInst ni = it.next();
             if (!ni.isCellInstance()) continue;            // not a cell, continue
             if (ni.isIconOfParent()) continue;
-            Cell cell = (Cell)ni.getProto();
-            Cell contents = cell.contentsView();
-            if (contents != null) cell = contents;          // get contents view
+            Cell subcell = (Cell)ni.getProto();
+            Cell contents = subcell.contentsView();
+            if (contents != null) subcell = contents;          // get contents view
 
-            if (info.getCell().isSchematic() && enumerateLayoutView(cell)) {
-                Cell laycell = getLayoutView(cell);
-                if (laycell != null) cell = laycell;
+            if (info.getCell().isSchematic() && enumerateLayoutView(subcell)) {
+                Cell laycell = getLayoutView(subcell);
+                if (laycell != null) subcell = laycell;
             }
 
-            Set<TraceElement> traceElements = elements.get(cell);
+            Set<TraceElement> traceElements = elements.get(subcell);
             if (traceElements == null) continue;
 
             // Each cell could have several elements defined for it,
             // since an element is defined by a Cell + input port pair
+            boolean instOk = false;
             for (TraceElement e : traceElements) {
 
                 // Arrays here are handled for cells and pass throughs, but
                 // special cased for scan chain element so that we have one entry with
                 // a length > 1
-                boolean arrayHere = true;
-                if (e instanceof ScanChainElement) {
-                    ScanChainElement sc = (ScanChainElement)e;
-                    if (!sc.isPassThrough()) {
-                        arrayHere = false;
-                        flatCount += ni.getNameKey().busWidth();
-                    }
-                }
-                if (ni.getNameKey().busWidth() > 1 && arrayHere) {
+
+                // Expand arrays of non-scan-chain-element instances
+                if (ni.getNameKey().busWidth() > 1 && !(e instanceof ScanChainElement)) {
                     // expand arrayed nodeinsts that are not scan chain elements
                     for (int i=0; i<ni.getNameKey().busWidth(); i++) {
                         Nodable no = Netlist.getNodableFor(ni, i);
-                        createInstance(no, info, instancesByInput, instancesByOutput,
+                        instOk = createInstance(no, info, instancesByInput, instancesByOutput,
                                 instancesWithNoInput, e);
                     }
                 } else {
+                    // this is a scan chain element, or a single cell instance
                     // just create instance for the nodeinst
                     // but check if instanceName is set. If so, must match, otherwise, ignore
                     String instanceName = info.getContext().push(ni).getInstPath(".");
                     if (e.getInstanceName() != null) {
                         if (e.getInstanceName().equals(instanceName)) {
-                            createInstance(ni, info, instancesByInput, instancesByOutput,
+                            instOk = createInstance(ni, info, instancesByInput, instancesByOutput,
                                     instancesWithNoInput, e);
                             scanElementInstanceNames.remove(instanceName);
                         }
                         instanceElementPresent = true;
                     } else {
                         // no instance name means all instances should be recognized
-                        createInstance(ni, info, instancesByInput, instancesByOutput,
+                        instOk = createInstance(ni, info, instancesByInput, instancesByOutput,
                                 instancesWithNoInput, e);
+                    }
+                    // increment flat count for parent cell if scan chain element
+                    if (e instanceof ScanChainElement) {
+                        ScanChainElement sc = (ScanChainElement)e;
+                        if (!sc.isPassThrough()) {
+                            // add in count of scan chain elements
+                            if (instOk)
+                                flatCount += ni.getNameKey().busWidth();
+                        }
                     }
                 }
             }
-            Integer ii = elementsFlatCount.get(cell);
+            Integer ii = elementsFlatCount.get(subcell);
             if (ii != null) {
                 flatCount += (ii * ni.getNameKey().busWidth());
             }
@@ -941,8 +963,10 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
                     // not an ender (ends have null outport definitions), and not exported, must be error
                     String outnet = last.outnet == null ? null : last.outnet.getName();
                     if (inst.e.isPassThrough()) {
-                        System.out.println("Warning: pass-through instance "+last.no.getName()+" in cell "+info.getCell().describe(false)+
-                                " has nothing connected to its output port "+last.e.outport+"("+outnet+")");
+                        if (printIgnoredElements) {
+                            System.out.println("Warning: pass-through instance "+last.no.getName()+" in cell "+info.getCell().describe(false)+
+                                    " has nothing connected to its output port "+last.e.outport+"("+outnet+")");
+                        }
                     } else {
                         System.out.println("Error: instance "+last.no.getName()+" in cell "+info.getCell().describe(false)+
                                 " has nothing connected to its output port "+last.e.outport+"("+outnet+")");
@@ -967,8 +991,10 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
                     if (passThrough) {
                         String innet = inst.innet == null ? null : inst.innet.getName();
                         String outnet = last.outnet == null ? null : last.outnet.getName();
-                        System.out.println("Warning: Pass through chain of "+info.getCell().describe(false)+" from input net \""+
-                                innet+"\" to output net \""+outnet+"\" has both networks not exported, so I am ignoring it");
+                        if (printIgnoredElements) {
+                            System.out.println("Warning: Ignoring pass-through chain with both networks exported: "+info.getCell().describe(false)+" from input net \""+
+                                    innet+"\" to output net \""+outnet+"\"");
+                        }
                         continue;
                     }
                 }
@@ -977,8 +1003,10 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
                     // not a starter, and start network is not exported.  Must be error
                     String innet = inst.innet == null ? null : inst.innet.getName();
                     if (passThrough) {
-                        System.out.println("Warning: pass-through instance "+inst.no.getName()+" in cell "+info.getCell().describe(false)+
-                                " has nothing connected to its input port "+inst.e.inport+"("+innet+")");
+                        if (printIgnoredElements) {
+                            System.out.println("Warning: Ignoring pass-through instance with unconnected input port: "+inst.no.getName()+" in cell "+info.getCell().describe(false)+
+                                    ", inport "+inst.e.inport+"("+innet+")");
+                        }
                     } else {
                         System.out.println("Error: instance "+inst.no.getName()+" in cell "+info.getCell().describe(false)+
                                 " has nothing connected to its input port "+inst.e.inport+"("+innet+")");
@@ -989,8 +1017,10 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
                     // not an ender (ends have null outport definitions), and not exported, must be error
                     String outnet = last.outnet == null ? null : last.outnet.getName();
                     if (passThrough) {
-                        System.out.println("Warning: pass-through instance "+last.no.getName()+" in cell "+info.getCell().describe(false)+
-                                " has nothing connected to its output port "+last.e.outport+"("+outnet+")");
+                        if (printIgnoredElements) {
+                            System.out.println("Warning: Ignoring pass-through instance with unconnected output port: "+last.no.getName()+" in cell "+info.getCell().describe(false)+
+                                    ", outport "+last.e.outport+"("+outnet+")");
+                        }
                     } else {
                         System.out.println("Error: instance "+last.no.getName()+" in cell "+info.getCell().describe(false)+
                                 " has nothing connected to its output port "+last.e.outport+"("+outnet+")");
@@ -1013,7 +1043,7 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
 */
     }
 
-    private void createInstance(Nodable ni, HierarchyEnumerator.CellInfo info,
+    private boolean createInstance(Nodable ni, HierarchyEnumerator.CellInfo info,
                                 HashMap<String,Instance> instancesByInput,
                                 HashMap<String,Instance> instancesByOutput,
                                 List<Instance> instancesWithNoInput, TraceElement e) {
@@ -1026,12 +1056,20 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
             inno = Netlist.getNodableFor(nin, 0);
             outno = Netlist.getNodableFor(nin, nin.getNameKey().busWidth()-1);
         }
+        Network globalGnd = info.getNetlist().getNetwork(Global.ground);
         if (e.inport != null) {
             // hook up to predecessor instance
             Network innet = getNetwork(inno, info.getNetlist(), e.inport);
             Instance prev = null;
             if (innet != null) {
                 prev = instancesByOutput.get(innet.getName());
+                // ignore grounded sin, as long as it is not from a prev element
+                if (innet == globalGnd) {
+                    if (printIgnoredElements) {
+                       System.out.println("Warning: Ignoring instance with grounded sin: "+inst.getName()+" in cell "+info.getCell().describe(false));
+                    }
+                    return false;
+                }
                 if (prev != null) {
                     // make sure one inst not driving two insts
                     //checkBadFanout(prev, prev.next, inst);
@@ -1094,6 +1132,7 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
                 " in="+e.inport+"("+innet+")"+
                 " out="+e.outport+"("+outnet+") for element "+e.getKey());
         }
+        return true;
     }
 
 
@@ -1232,25 +1271,24 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
     private static class ScanChainElement extends TraceElement {
         private final String access;
         private final String clears;
-        private final DataNet dataport;
-        private final DataNet dataport2;
+        private final List<DataNet> dataports;
 
         private ScanChainElement(Cell cell, String access, String clears, String inport, String outport,
                                  boolean passThrough, String dataport, String dataport2, String hierInstanceName) {
             super(cell, inport, outport, passThrough, hierInstanceName);
             this.access = access;
             this.clears = clears;
-            if (dataport == null || dataport.equals(""))
-                this.dataport = null;
-            else
-                this.dataport = new DataNet(dataport);
-            if (dataport2 == null || dataport2.equals(""))
-                this.dataport2 = null;
-            else
-                this.dataport2 = new DataNet(dataport2);
+            dataports = new ArrayList<DataNet>();
+            if (dataport != null && !dataport.equals(""))
+                dataports.add(new DataNet(dataport));
+            if (dataport2 != null && !dataport2.equals(""))
+                dataports.add(new DataNet(dataport2));
         }
+        public List<DataNet> getDataNets() { return dataports; }
+/*
         public DataNet getDataNet() { return dataport; }
         public DataNet getDataNet2() { return dataport2; }
+*/
         public static String getDataNetPath(DataNet dataNet, VarContext context) {
             if (dataNet == null) return null;
             return context.getInstPath(".")+"."+dataNet.getName();
@@ -1669,11 +1707,15 @@ public class ScanChainXML extends HierarchyEnumerator.Visitor {
                     out.print(indent+"<datanet name=\""+subContext.getInstPath(".")+"\"");
 
 
-                    String flatName = getFlatDataNet(ele.getDataNet(), subContext, dataNetMap);
-                    String flatName2 = getFlatDataNet(ele.getDataNet2(), subContext, dataNetMap);
+                    if (ele.getDataNets().size() > 0) {
+                        String flatName = getFlatDataNet(ele.getDataNets().get(0), subContext, dataNetMap);
+                        if (flatName != null) out.print(" net=\""+flatName+"\"");
+                    }
+                    if (ele.getDataNets().size() > 1) {
+                        String flatName2 = getFlatDataNet(ele.getDataNets().get(1), subContext, dataNetMap);
+                        if (flatName2 != null) out.print(" net2=\""+flatName2+"\"");
+                    }
 
-                    if (flatName != null) out.print(" net=\""+flatName+"\"");
-                    if (flatName2 != null) out.print(" net2=\""+flatName2+"\"");
                     out.println(" />");
                 }
             }
