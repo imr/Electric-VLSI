@@ -43,6 +43,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.util.concurrent.debug.Debug;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -111,7 +112,7 @@ public abstract class Job implements Serializable {
 	 */
     public static boolean getDebug() { return GLOBALDEBUG; }
 
-    public static void setDebug(boolean f) { GLOBALDEBUG = f; }
+    public static void setDebug(boolean f) { GLOBALDEBUG = f; Debug.setDebug(GLOBALDEBUG); }
 
     // ---------------------------- public methods ---------------------------
 

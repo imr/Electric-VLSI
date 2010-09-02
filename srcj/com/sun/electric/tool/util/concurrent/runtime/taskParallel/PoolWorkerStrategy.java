@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime.taskParallel;
 
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
+import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
 
 /**
@@ -32,6 +34,7 @@ import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
 public abstract class PoolWorkerStrategy extends WorkerStrategy {
 	
 	protected volatile boolean pleaseWait = false;
+	private IStructure<PTask> taskPool = null;
 	
 	public void pleaseWait() {
 		this.pleaseWait = true;
@@ -51,6 +54,20 @@ public abstract class PoolWorkerStrategy extends WorkerStrategy {
 	
 	public void trigger() {
 
+	}
+	
+	/**
+	 * @param taskPool the taskPool to set
+	 */
+	protected void setTaskPool(IStructure<PTask> taskPool) {
+		this.taskPool = taskPool;
+	}
+
+	/**
+	 * @return the taskPool
+	 */
+	protected IStructure<PTask> getTaskPool() {
+		return taskPool;
 	}
 
 }

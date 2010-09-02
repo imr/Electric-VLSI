@@ -56,7 +56,7 @@ public class ThreadPool {
 	}
 
 	public enum ThreadPoolType {
-		simplePool, synchronizedPool
+		simplePool, synchronizedPool, userDefined
 	}
 
 	private IStructure<PTask> taskPool = null;
@@ -255,7 +255,7 @@ public class ThreadPool {
 	public static class PoolWorkerStrategyFactory {
 		private static Semaphore trigger = new Semaphore(0);
 
-		private static PoolWorkerStrategy userDefinedStrategy = null;
+		public static PoolWorkerStrategy userDefinedStrategy = null;
 
 		public static PoolWorkerStrategy createStrategy(IStructure<PTask> taskPool, ThreadPoolType type) {
 			if (type == ThreadPoolType.synchronizedPool)
@@ -266,6 +266,8 @@ public class ThreadPool {
 				if (userDefinedStrategy == null) {
 					return createStrategy(taskPool, ThreadPoolType.simplePool);
 				}
+
+				userDefinedStrategy.setTaskPool(taskPool);
 
 				return userDefinedStrategy;
 			}
@@ -279,32 +281,11 @@ public class ThreadPool {
 	 * 
 	 * @return initialized thread pool
 	 * @throws PoolExistsException
+	 * @throws UnknownSchedulerException 
 	 */
-	public static ThreadPool initialize() throws PoolExistsException {
-		return ThreadPool.initialize(false);
-	}
-
-	/**
-	 * initialize thread pool, default initialization
-	 * 
-	 * @return initialized thread pool
-	 * @throws PoolExistsException
-	 */
-	public static ThreadPool initialize(boolean debug) throws PoolExistsException {
-		return ThreadPool.initialize(ThreadPool.getNumOfThreads(), debug);
-	}
-
-	/**
-	 * initialize thread pool with number of threads
-	 * 
-	 * @param num
-	 *            of threads
-	 * @return initialized thread pool
-	 * @throws PoolExistsException
-	 */
-	public static ThreadPool initialize(int num, boolean debug) throws PoolExistsException {
-		IStructure<PTask> taskPool = ConcurrentCollectionFactory.createLockFreeQueue();
-		return ThreadPool.initialize(taskPool, num, debug);
+	public static ThreadPool initialize() throws PoolExistsException, UnknownSchedulerException {
+		IStructure<PTask> scheduler = Scheduler.createScheduler(SchedulingStrategy.workStealing, getNumOfThreads());
+		return ThreadPool.initialize(scheduler);
 	}
 
 	/**
@@ -317,19 +298,7 @@ public class ThreadPool {
 	 */
 	public static ThreadPool initialize(int num) throws PoolExistsException {
 		IStructure<PTask> taskPool = ConcurrentCollectionFactory.createLockFreeQueue();
-		return ThreadPool.initialize(taskPool, num, false);
-	}
-
-	/**
-	 * initialize thread pool with specific task pool
-	 * 
-	 * @param taskPool
-	 *            to be used
-	 * @return initialized thread pool
-	 * @throws PoolExistsException
-	 */
-	public static ThreadPool initialize(IStructure<PTask> taskPool, boolean debug) throws PoolExistsException {
-		return ThreadPool.initialize(taskPool, ThreadPool.getNumOfThreads(), debug);
+		return ThreadPool.initialize(taskPool, num);
 	}
 
 	/**
@@ -341,18 +310,19 @@ public class ThreadPool {
 	 * @throws PoolExistsException
 	 */
 	public static ThreadPool initialize(IStructure<PTask> taskPool) throws PoolExistsException {
-		return ThreadPool.initialize(taskPool, false);
+		return ThreadPool.initialize(taskPool);
 	}
 
 	public static synchronized ThreadPool initialize(SchedulingStrategy taskPool, int numOfThreads)
 			throws UnknownSchedulerException, PoolExistsException {
-		return ThreadPool.initialize(taskPool, numOfThreads, false);
+		IStructure<PTask> scheduler = Scheduler.createScheduler(taskPool, numOfThreads);
+		return ThreadPool.initialize(scheduler, numOfThreads);
 	}
 
-	public static synchronized ThreadPool initialize(SchedulingStrategy taskPool, int numOfThreads, boolean debug)
+	public static synchronized ThreadPool initialize(SchedulingStrategy taskPool, int numOfThreads, ThreadPoolType type)
 			throws UnknownSchedulerException, PoolExistsException {
-		IStructure<PTask> pool = Scheduler.createScheduler(taskPool, numOfThreads);
-		return ThreadPool.initialize(pool, numOfThreads, debug);
+		IStructure<PTask> scheduler = Scheduler.createScheduler(taskPool, numOfThreads);
+		return ThreadPool.initialize(scheduler, numOfThreads, type);
 	}
 
 	/**
@@ -366,21 +336,7 @@ public class ThreadPool {
 	 */
 	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads)
 			throws PoolExistsException {
-		return ThreadPool.initialize(taskPool, numOfThreads, false);
-	}
-
-	/**
-	 * initialize thread pool with specific task pool and number of threads
-	 * 
-	 * @param taskPool
-	 * @param numOfThreads
-	 * @param debug
-	 * @return
-	 * @throws PoolExistsException
-	 */
-	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads, boolean debug)
-			throws PoolExistsException {
-		return initialize(taskPool, numOfThreads, ThreadPoolType.simplePool);
+		return ThreadPool.initialize(taskPool, numOfThreads);
 	}
 
 	/**
@@ -392,8 +348,8 @@ public class ThreadPool {
 	 * @return initialized thread pool
 	 * @throws PoolExistsException
 	 */
-	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads,
-			ThreadPoolType type) throws PoolExistsException {
+	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads, ThreadPoolType type)
+			throws PoolExistsException {
 		if (ThreadPool.instance == null || instance.state != ThreadPoolState.Started) {
 			instance = new ThreadPool(taskPool, numOfThreads, type);
 			instance.start();
@@ -417,7 +373,7 @@ public class ThreadPool {
 	 * @return
 	 */
 	public static synchronized ThreadPool[] initialize(IStructure<PTask> taskPool1, int numOfThreads1,
-			ThreadPoolType type1, IStructure<PTask> taskPool2, int numOfThreads2, ThreadPoolType type2, boolean debug) {
+			ThreadPoolType type1, IStructure<PTask> taskPool2, int numOfThreads2, ThreadPoolType type2) {
 
 		ThreadPool[] result = new ThreadPool[2];
 
