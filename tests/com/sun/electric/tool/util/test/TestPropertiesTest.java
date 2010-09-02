@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TestClass.java
+ * File: TestPropertiesTest.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -23,31 +23,19 @@
  */
 package com.sun.electric.tool.util.test;
 
-import com.sun.electric.util.test.TestByReflection;
+import org.junit.Test;
+
+import com.sun.electric.util.test.TestProperties;
 
 /**
  * @author Felix Schmidt
- * 
+ *
  */
-public class TestClass {
-
-	public static final String testString = "TestString";
-
-	@SuppressWarnings("unused")
-	@TestByReflection(testMethodName = "testMethod")
-	private void testMethod() {
-
-	}
-
-	@SuppressWarnings("unused")
-	@TestByReflection(testMethodName = "testMethod2")
-	private String testMethod2() {
-		return testString;
-	}
+public class TestPropertiesTest {
 	
-	@SuppressWarnings("unused")
-	@TestByReflection(testMethodName = "testMethod3")
-	private String testMethod3(String value) {
-		return value;
+	@Test
+	public void getRegressionPath() {
+		System.out.println(TestProperties.getInstance().getRegressionPath());
 	}
+
 }

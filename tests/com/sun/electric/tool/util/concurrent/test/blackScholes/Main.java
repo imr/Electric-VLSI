@@ -33,7 +33,6 @@ import java.io.PrintWriter;
 import java.util.List;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
@@ -45,6 +44,7 @@ import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.test.blackScholes.OptionData.OptionType;
+import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt

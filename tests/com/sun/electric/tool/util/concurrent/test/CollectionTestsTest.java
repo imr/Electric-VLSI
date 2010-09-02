@@ -26,11 +26,11 @@ package com.sun.electric.tool.util.concurrent.test;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.sun.electric.tool.util.IDEStructure;
-import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.CircularArray;
 import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
+import com.sun.electric.tool.util.concurrent.datastructures.IDEStructure;
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.JavaQueueWrapper;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;

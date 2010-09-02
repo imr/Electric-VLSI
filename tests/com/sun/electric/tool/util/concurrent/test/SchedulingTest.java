@@ -29,9 +29,8 @@ import org.junit.Test;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.Parallel;
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
@@ -41,6 +40,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt

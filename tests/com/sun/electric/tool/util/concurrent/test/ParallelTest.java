@@ -27,9 +27,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.Parallel;
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
@@ -38,6 +37,7 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.test.PForJobTest.TestForTask;
 import com.sun.electric.tool.util.concurrent.test.PReduceJobTest.PITask;
 import com.sun.electric.tool.util.concurrent.test.PWhileJobTest.WhileTestTask;
+import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt

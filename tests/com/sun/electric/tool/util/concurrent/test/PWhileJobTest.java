@@ -25,13 +25,13 @@ package com.sun.electric.tool.util.concurrent.test;
 
 import org.junit.Test;
 
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob.PWhileTask;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt

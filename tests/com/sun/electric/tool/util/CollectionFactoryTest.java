@@ -32,6 +32,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.sun.electric.tool.util.datastructures.ImmutableList;
+import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt

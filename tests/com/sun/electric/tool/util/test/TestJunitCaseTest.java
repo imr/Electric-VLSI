@@ -27,7 +27,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.sun.electric.tool.util.test.TestHelpers;
+import com.sun.electric.util.test.TestHelpers;
 
 /**
  * @author Felix Schmidt
