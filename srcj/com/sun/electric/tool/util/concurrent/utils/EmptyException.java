@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UniqueIDGenerator.java
+ * File: EmptyException.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,29 +21,15 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util;
-
-import java.util.concurrent.atomic.AtomicInteger;
+package com.sun.electric.tool.util.concurrent.utils;
 
 /**
- * Thread safe unique id generator
+ * 
+ * Exception: Throw this if the data structure is empty
  *
  */
-public class UniqueIDGenerator {
+@SuppressWarnings("serial")
+public class EmptyException extends Exception {
 
-	private final int start;
-	private AtomicInteger current;
 
-	public UniqueIDGenerator(int start) {
-		this.start = start;
-		this.current = new AtomicInteger(this.start);
-	}
-
-	/**
-	 * Get unique identifier
-	 * @return
-	 */
-	public int getUniqueId() {
-		return this.current.incrementAndGet();
-	}
 }

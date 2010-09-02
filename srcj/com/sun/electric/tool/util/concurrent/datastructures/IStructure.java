@@ -21,12 +21,12 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util;
+package com.sun.electric.tool.util.concurrent.datastructures;
 
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.sun.electric.tool.util.concurrent.datastructures.IWorkStealing;
+import com.sun.electric.tool.util.concurrent.utils.FullException;
 
 /**
  * 

@@ -25,8 +25,7 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 
 import java.util.List;
 
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IDEStructure;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**
  * @author Felix Schmidt
@@ -34,7 +33,7 @@ import com.sun.electric.tool.util.IDEStructure;
  */
 public class DEListWrapper<T> extends IDEStructure<T> {
 
-	private List<T> data = CollectionFactory.createConcurrentList();
+	private List<T> data = ConcurrentCollectionFactory.createConcurrentList();
 
 	/*
 	 * (non-Javadoc)

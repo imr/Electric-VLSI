@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent.patterns;
 
-import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 
 /**
  * 

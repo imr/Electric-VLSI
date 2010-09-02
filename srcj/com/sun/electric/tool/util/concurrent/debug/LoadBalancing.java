@@ -23,13 +23,12 @@
  */
 package com.sun.electric.tool.util.concurrent.debug;
 
+import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.runtime.WorkerStrategy;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**
  * @author Felix Schmidt
@@ -41,7 +40,7 @@ public class LoadBalancing implements IDebug {
 	private Set<WorkerStrategy> workers;
 
 	private LoadBalancing() {
-		workers = CollectionFactory.createConcurrentHashSet();
+		workers = ConcurrentCollectionFactory.createConcurrentHashSet();
 	}
 
 	public static LoadBalancing getInstance() {
@@ -62,7 +61,7 @@ public class LoadBalancing implements IDebug {
 	 * @see com.sun.electric.tool.util.concurrent.debug.IDebug#printStatistics()
 	 */
 	public void printStatistics() {
-		Set<WorkerStrategy> workersLocalCopy = CollectionFactory.copySetToConcurrent(workers);
+		Set<WorkerStrategy> workersLocalCopy = ConcurrentCollectionFactory.copySetToConcurrent(workers);
 
 		int sum = 0;
 		for (Iterator<WorkerStrategy> it = workersLocalCopy.iterator(); it.hasNext();) {
@@ -78,19 +77,96 @@ public class LoadBalancing implements IDebug {
 			System.out.print(worker);
 			System.out.print(" - ");
 			varField[i] = (double) worker.getExecutedCounter() / (double) sum;
-			System.out.println(TextUtils.getPercentageString(varField[i]));
+			System.out.println(this.getPercentageString(varField[i]));
 			i++;
 		}
 
 		// double var = GenMath.varianceEqualDistribution(varField);
-		double dev = GenMath.standardDeviation(varField);
+		double dev = this.standardDeviation(varField);
 
 		System.out.print("mean value");
 		System.out.print(" - ");
-		System.out.println(TextUtils.getPercentageString(mean / (double) sum));
+		System.out.println(this.getPercentageString(mean / (double) sum));
 
 		System.out.print("deviation");
 		System.out.print(" - ");
-		System.out.println(TextUtils.getPercentageString(dev));
+		System.out.println(this.getPercentageString(dev));
+	}
+
+	/**
+	 * Calculate the variance of a given, equal distributed array of doubles.
+	 * 
+	 * @param values
+	 * @param mean
+	 * @return variance
+	 */
+	private double varianceEqualDistribution(double[] values, double mean) {
+		double var = 0.0;
+
+		for (int i = 0; i < values.length; i++) {
+			var += Math.pow((double) values[i] - mean, 2.0);
+		}
+
+		return var / (double) values.length;
+	}
+
+	/**
+	 * Calculate the variance of a given, equal distributed array of doubles.
+	 * 
+	 * @param values
+	 * @param mean
+	 * @return variance
+	 */
+	private double varianceEqualDistribution(double[] values) {
+		double mean = this.meanEqualDistribution(values);
+		return this.varianceEqualDistribution(values, mean);
+	}
+
+	/**
+	 * Calculate the mean of a given, equal distributed array of doubles.
+	 * 
+	 * @param values
+	 * @param mean
+	 * @return variance
+	 */
+	private double meanEqualDistribution(double[] values) {
+		double mean = 0.0;
+
+		for (int i = 0; i < values.length; i++) {
+			mean += values[i];
+		}
+
+		return mean / (double) values.length;
+	}
+
+	/**
+	 * Calculate the standard deviation of a given, equal distributed array of
+	 * doubles.
+	 * 
+	 * @param values
+	 * @param mean
+	 * @return variance
+	 */
+	private double standardDeviation(double[] values) {
+		double var = this.varianceEqualDistribution(values);
+		return Math.sqrt(var);
+	}
+
+	/**
+	 * Method to describe a percentage value as a String
+	 * 
+	 * @param value
+	 *            which should be described as a percentage string
+	 * @return percentage string
+	 */
+	private String getPercentageString(double value) {
+		StringBuilder builder = new StringBuilder();
+
+		DecimalFormat df2 = new DecimalFormat("##0.00");
+
+		builder.append(df2.format(value * 100.0));
+		builder.append("%");
+
+		return builder.toString();
 	}
 }

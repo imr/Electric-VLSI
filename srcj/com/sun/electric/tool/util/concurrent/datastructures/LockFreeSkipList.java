@@ -25,7 +25,6 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 
 import java.util.concurrent.atomic.AtomicMarkableReference;
 
-import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
 
 /**

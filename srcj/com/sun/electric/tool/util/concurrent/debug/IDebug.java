@@ -27,7 +27,7 @@ package com.sun.electric.tool.util.concurrent.debug;
  * @author Felix Schmidt
  *
  */
-public interface IDebug {
+public interface IDebug {	
 	
 	public void printStatistics();
 

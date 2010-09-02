@@ -26,10 +26,9 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**
  * @author Felix Schmidt
@@ -51,10 +50,10 @@ public class MultipleQueuesStructure<T> extends IStructure<T> implements IWorkSt
 	 * 
 	 */
 	public MultipleQueuesStructure(int numOfThreads) {
-		dataQueues = CollectionFactory.createConcurrentHashMap();
-		dataQueuesMapping = CollectionFactory.createConcurrentHashMap();
+		dataQueues = ConcurrentCollectionFactory.createConcurrentHashMap();
+		dataQueuesMapping = ConcurrentCollectionFactory.createConcurrentHashMap();
 		this.randomizer = new MultiThreadedRandomizer(numOfThreads);
-		freeInternalIds = CollectionFactory.createConcurrentList();
+		freeInternalIds = ConcurrentCollectionFactory.createConcurrentList();
 
 		for (long i = 0; i < numOfThreads; i++) {
 			freeInternalIds.add(i);

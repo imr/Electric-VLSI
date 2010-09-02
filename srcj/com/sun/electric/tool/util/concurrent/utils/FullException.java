@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: EmptyException.java
+ * File: FullException.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,15 +21,12 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util;
+package com.sun.electric.tool.util.concurrent.utils;
 
 /**
- * 
- * Exception: Throw this if the data structure is empty
- *
+ * Exception: If a bounded datastructure is full this exception will be thrown
  */
 @SuppressWarnings("serial")
-public class EmptyException extends Exception {
-
+public class FullException extends Exception {
 
 }

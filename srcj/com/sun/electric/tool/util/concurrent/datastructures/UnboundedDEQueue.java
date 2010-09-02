@@ -25,7 +25,6 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.sun.electric.tool.util.IDEStructure;
 
 /**
  * Unbounded double ended data structure - thread safe - unbounded

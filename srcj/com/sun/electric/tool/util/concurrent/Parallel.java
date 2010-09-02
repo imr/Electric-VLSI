@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent;
 
-import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;

@@ -27,13 +27,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IDEStructure;
-import com.sun.electric.tool.util.IStructure;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.MultiThreadedRandomizer;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**
  * This data structure is a wrapper for work stealing. Each worker has a own
@@ -61,15 +59,15 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	}
 
 	public WorkStealingStructure(int numOfThreads,  boolean debug) {
-		dataQueues = CollectionFactory.createConcurrentHashMap();
-		dataQueuesMapping = CollectionFactory.createConcurrentHashMap();
-		freeInternalIds = CollectionFactory.createConcurrentList();
+		dataQueues = ConcurrentCollectionFactory.createConcurrentHashMap();
+		dataQueuesMapping = ConcurrentCollectionFactory.createConcurrentHashMap();
+		freeInternalIds = ConcurrentCollectionFactory.createConcurrentList();
 		this.randomizer = new MultiThreadedRandomizer(numOfThreads);
 		stealTracker = StealTracker.getInstance();
 
 		for (long i = 0; i < numOfThreads; i++) {
 			freeInternalIds.add(i);
-			// dataQueues.put(i, CollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
+			// dataQueues.put(i, ConcurrentCollectionFactory.createUnboundedDoubleEndedQueue(this.clazz));
 			//dataQueues.put(i, new DEListWrapper<T>());
 			dataQueues.put(i, new UnboundedDEQueue<T>(4));
 		}

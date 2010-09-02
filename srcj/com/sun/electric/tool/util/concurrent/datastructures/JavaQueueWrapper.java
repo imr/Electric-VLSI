@@ -26,8 +26,7 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**
  * @author Felix Schmidt
@@ -72,7 +71,7 @@ public class JavaQueueWrapper<T> extends IStructure<T> {
 	}
 
 	public static <T> JavaQueueWrapper<T> createConcurrentQueue() {
-		ConcurrentLinkedQueue<T> tasks = CollectionFactory.createConcurrentLinkedQueue();
+		ConcurrentLinkedQueue<T> tasks = ConcurrentCollectionFactory.createConcurrentLinkedQueue();
 		return new JavaQueueWrapper<T>(tasks);
 	}
 

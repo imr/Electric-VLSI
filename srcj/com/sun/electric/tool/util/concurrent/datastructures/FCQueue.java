@@ -27,7 +27,6 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import com.sun.electric.tool.util.IStructure;
 
 /**
  * 

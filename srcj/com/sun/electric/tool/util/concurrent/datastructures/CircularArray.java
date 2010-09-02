@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.util.concurrent.datastructures;
 
-import com.sun.electric.tool.util.IStructure;
 
 /**
  * Circular Array - thread safe - resizable

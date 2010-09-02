@@ -26,8 +26,7 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicStampedReference;
 
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IDEStructure;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**
  * 
@@ -52,7 +51,7 @@ public class BDEQueue<T> extends IDEStructure<T> {
 	 *            of bounded double ended queue
 	 */
 	public BDEQueue(int capacity) {
-		objects = CollectionFactory.createArrayList();
+		objects = ConcurrentCollectionFactory.createArrayList();
 		top = new AtomicStampedReference<Integer>(0, 0);
 		this.capacity = capacity;
 		bottom = 0;

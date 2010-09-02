@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime;
 
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.MultipleQueuesStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**
  * @author fs239085
@@ -44,15 +44,15 @@ public class Scheduler {
 		IStructure<PTask> result = null;
 
 		if (strategy.equals(SchedulingStrategy.queue)) {
-			result = CollectionFactory.createLockFreeQueue();
+			result = ConcurrentCollectionFactory.createLockFreeQueue();
 		} else if (strategy.equals(SchedulingStrategy.stack)) {
-			result = CollectionFactory.createLockFreeStack();
+			result = ConcurrentCollectionFactory.createLockFreeStack();
 		} else if (strategy.equals(SchedulingStrategy.workStealing)) {
 			result = WorkStealingStructure.createForThreadPool(numOfThreads);
 		} else if (strategy.equals(SchedulingStrategy.multipleQueues)) {
 			result = new MultipleQueuesStructure<PTask>(numOfThreads);
 		} else if (strategy.equals(SchedulingStrategy.fcQueue)) {
-			result = CollectionFactory.createFCQueue();
+			result = ConcurrentCollectionFactory.createFCQueue();
 		} else {
 			throw new UnknownSchedulerException();
 		}

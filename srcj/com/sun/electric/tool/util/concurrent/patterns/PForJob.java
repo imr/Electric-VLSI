@@ -25,8 +25,8 @@ package com.sun.electric.tool.util.concurrent.patterns;
 
 import java.util.List;
 
-import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**
  * 
@@ -293,7 +293,7 @@ public class PForJob extends PJob {
 			if (current != null && current >= range.end)
 				return null;
 
-			List<BlockedRange> result = CollectionFactory.createArrayList();
+			List<BlockedRange> result = ConcurrentCollectionFactory.createArrayList();
 			for (int i = 0; i < step; i++) {
 				if (current == null)
 					current = range.start;
@@ -359,7 +359,7 @@ public class PForJob extends PJob {
 				return null;
 			}
 
-			List<BlockedRange> result = CollectionFactory.createArrayList();
+			List<BlockedRange> result = ConcurrentCollectionFactory.createArrayList();
 			for (int i = 0; i < step; i++) {
 				if (currentRow == null) {
 					currentRow = row.start;

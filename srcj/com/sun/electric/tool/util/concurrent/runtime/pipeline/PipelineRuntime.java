@@ -25,9 +25,9 @@ package com.sun.electric.tool.util.concurrent.runtime.pipeline;
 
 import java.util.List;
 
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.util.CollectionFactory;
-import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
+import com.sun.electric.tool.util.concurrent.debug.Debug;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 // TODO termination? Jobs?
 // TODO easy interface
@@ -39,7 +39,7 @@ import com.sun.electric.tool.util.IStructure;
  */
 public class PipelineRuntime<PipeIn, PipeOut> {
 
-	private List<Thread> threads = CollectionFactory.createLinkedList();
+	private List<Thread> threads = ConcurrentCollectionFactory.createLinkedList();
 
 	public static enum PipelineWorkerStrategyType {
 		simple;
@@ -48,7 +48,7 @@ public class PipelineRuntime<PipeIn, PipeOut> {
 	private List<Stage<?, ?>> stages;
 
 	public PipelineRuntime() {
-		stages = CollectionFactory.createLinkedList();
+		stages = ConcurrentCollectionFactory.createLinkedList();
 	}
 
 	public void input(PipeIn input) {
@@ -61,10 +61,9 @@ public class PipelineRuntime<PipeIn, PipeOut> {
 		Stage<Input, Output> stage = new Stage<Input, Output>(numOfWorkers);
 		for (int i = 0; i < numOfWorkers; i++) {
 			try {
-				PipelineWorkerStrategy strategy = createPipelineWorker(
-						PipelineWorkerStrategyType.simple, stage, (StageImpl<Input, Output>) impl
-								.clone());
-				Thread thread = new Thread(strategy, "StageID" + stages.size() + "_" +i);
+				PipelineWorkerStrategy strategy = createPipelineWorker(PipelineWorkerStrategyType.simple, stage,
+						(StageImpl<Input, Output>) impl.clone());
+				Thread thread = new Thread(strategy, "StageID" + stages.size() + "_" + i);
 				thread.start();
 				threads.add(thread);
 				stage.getWorkers().add(strategy);
@@ -76,8 +75,8 @@ public class PipelineRuntime<PipeIn, PipeOut> {
 		if (stages.size() > 1) {
 			stages.get(stages.size() - 2).next = (Stage<?, ?>) stage;
 		}
-		
-		if(Job.getDebug()) {
+
+		if (Debug.isDebug()) {
 			System.out.println("Stage added: " + (stages.size() - 1) + "/" + numOfWorkers);
 		}
 	}
@@ -91,7 +90,7 @@ public class PipelineRuntime<PipeIn, PipeOut> {
 			thread.join();
 		}
 
-		if (Job.getDebug()) {
+		if (Debug.isDebug()) {
 			System.out.println("Pipeline shutdown");
 		}
 	}
@@ -103,8 +102,8 @@ public class PipelineRuntime<PipeIn, PipeOut> {
 		private Stage<?, ?> next;
 
 		public Stage(int numOfWorkers) {
-			this.inputQueue = CollectionFactory.createLockFreeQueue();
-			this.workers = CollectionFactory.createLinkedList();
+			this.inputQueue = ConcurrentCollectionFactory.createLockFreeQueue();
+			this.workers = ConcurrentCollectionFactory.createLinkedList();
 		}
 
 		@SuppressWarnings("unchecked")
@@ -159,9 +158,8 @@ public class PipelineRuntime<PipeIn, PipeOut> {
 		}
 	}
 
-	public static <Input, Output> PipelineWorkerStrategy createPipelineWorker(
-			PipelineWorkerStrategyType type, Stage<Input, Output> stage,
-			StageImpl<Input, Output> impl) {
+	public static <Input, Output> PipelineWorkerStrategy createPipelineWorker(PipelineWorkerStrategyType type,
+			Stage<Input, Output> stage, StageImpl<Input, Output> impl) {
 		if (type == PipelineWorkerStrategyType.simple) {
 			return new SimplePipelineWorker<Input, Output>(stage, impl);
 		}

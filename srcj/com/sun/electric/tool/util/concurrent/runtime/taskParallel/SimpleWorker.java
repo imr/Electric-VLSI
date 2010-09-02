@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime.taskParallel;
 
-import com.sun.electric.tool.util.IStructure;
+import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 
