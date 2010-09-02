@@ -28,7 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNets.BookshelfNet;
-import com.sun.electric.tool.util.CollectionFactory;
+import com.sun.electric.util.CollectionFactory;
 
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;

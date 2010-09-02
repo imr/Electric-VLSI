@@ -25,7 +25,7 @@ package com.sun.electric.tool.io.input.bookshelf;
 
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
-import com.sun.electric.tool.util.CollectionFactory;
+import com.sun.electric.util.CollectionFactory;
 
 import java.io.BufferedReader;
 import java.io.File;

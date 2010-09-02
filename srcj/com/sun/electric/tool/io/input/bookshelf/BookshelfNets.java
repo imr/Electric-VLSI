@@ -56,7 +56,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfPin;
-import com.sun.electric.tool.util.CollectionFactory;
+import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt
