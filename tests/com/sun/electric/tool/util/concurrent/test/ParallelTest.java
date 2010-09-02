@@ -33,6 +33,7 @@ import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.test.PForJobTest.TestForTask;
 import com.sun.electric.tool.util.concurrent.test.PReduceJobTest.PITask;
@@ -46,7 +47,7 @@ import com.sun.electric.util.CollectionFactory;
 public class ParallelTest {
 
 	@Test
-	public void testParallelFor() throws InterruptedException, PoolExistsException {
+	public void testParallelFor() throws InterruptedException, PoolExistsException, UnknownSchedulerException {
 		ThreadPool pool = ThreadPool.initialize();
 		Parallel.For(new BlockedRange1D(0, 100, 4), new TestForTask());
 		pool.shutdown();
@@ -61,7 +62,7 @@ public class ParallelTest {
 	}
 	
 	@Test
-	public void testParallelReduce() throws InterruptedException, PoolExistsException {
+	public void testParallelReduce() throws InterruptedException, PoolExistsException, UnknownSchedulerException {
 		ThreadPool pool = ThreadPool.initialize();
 		int stepW = 1000000;
 		double step = 1.0 / stepW;
@@ -84,7 +85,7 @@ public class ParallelTest {
 	}
 	
 	@Test
-	public void testParallelWhile() throws PoolExistsException, InterruptedException {
+	public void testParallelWhile() throws PoolExistsException, InterruptedException, UnknownSchedulerException {
 		ThreadPool pool = ThreadPool.initialize();
 		IStructure<Integer> data = CollectionFactory.createLockFreeStack();
 		for(int i = 0; i < 10; i++)

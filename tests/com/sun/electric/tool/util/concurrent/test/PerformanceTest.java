@@ -83,7 +83,7 @@ public class PerformanceTest {
 
 		System.out.println("parallel ...");
 
-		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(NUMBER_OF_THREADS), NUMBER_OF_THREADS, true);
+		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(NUMBER_OF_THREADS), NUMBER_OF_THREADS);
 
 		start = System.currentTimeMillis();
 
@@ -110,7 +110,7 @@ public class PerformanceTest {
 		System.out.println("init ...");
 		matA = TestHelper.createMatrix(matSize, matSize);
 
-		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(1), 1, true);
+		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(1), 1);
 
 		System.out.println("serial ...");
 		long start = System.currentTimeMillis();
@@ -121,7 +121,7 @@ public class PerformanceTest {
 
 		ThreadPool.getThreadPool().shutdown();
 
-		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(NUMBER_OF_THREADS), NUMBER_OF_THREADS, true);
+		ThreadPool.initialize(WorkStealingStructure.createForThreadPool(NUMBER_OF_THREADS), NUMBER_OF_THREADS);
 
 		System.out.println("parallel ...");
 		start = System.currentTimeMillis();

@@ -104,7 +104,7 @@ public class SchedulingTest {
 	}
 
 	private long runMatrixMultiplication(IStructure<PTask> structure) throws PoolExistsException, InterruptedException {
-		ThreadPool pool = ThreadPool.initialize(structure, numOfThreads, Job.getDebug());
+		ThreadPool pool = ThreadPool.initialize(structure, numOfThreads);
 		long start = System.currentTimeMillis();
 		Parallel.For(new BlockedRange2D(0, size, 64, 0, size, 64), new MatrixMultTask(size));
 		long end = System.currentTimeMillis();

@@ -30,6 +30,7 @@ import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob.PWhileTask;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.util.CollectionFactory;
 
@@ -40,7 +41,7 @@ import com.sun.electric.util.CollectionFactory;
 public class PWhileJobTest {
 
 	@Test
-	public void testPWhileJob() throws PoolExistsException, InterruptedException {
+	public void testPWhileJob() throws PoolExistsException, InterruptedException, UnknownSchedulerException {
 		ThreadPool.initialize();
 
 		IStructure<Integer> data = CollectionFactory.createLockFreeStack();

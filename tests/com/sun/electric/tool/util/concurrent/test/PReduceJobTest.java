@@ -32,6 +32,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
 /**
@@ -41,7 +42,7 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 public class PReduceJobTest {
 
 	@Test
-	public void testPReduce() throws PoolExistsException, InterruptedException, CloneNotSupportedException {
+	public void testPReduce() throws PoolExistsException, InterruptedException, CloneNotSupportedException, UnknownSchedulerException {
 		ThreadPool pool = ThreadPool.initialize();
 		int stepW = 1000000;
 		double step = 1.0 / stepW;

@@ -100,7 +100,7 @@ public class FCQueueTest {
 
 		FCQueue<PTask> tasks = CollectionFactory.createFCQueue();
 		try {
-			ThreadPool.initialize(tasks, 2, true);
+			ThreadPool.initialize(tasks, 2);
 		} catch (PoolExistsException e) {
 			e.printStackTrace();
 		}
@@ -119,7 +119,7 @@ public class FCQueueTest {
 	private void fcQueueMultQueues() throws UnknownSchedulerException {
 
 		try {
-			ThreadPool.initialize(SchedulingStrategy.multipleQueues, 2, true);
+			ThreadPool.initialize(SchedulingStrategy.multipleQueues, 2);
 		} catch (PoolExistsException e) {
 			e.printStackTrace();
 		}
