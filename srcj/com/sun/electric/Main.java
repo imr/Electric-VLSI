@@ -23,6 +23,17 @@
  */
 package com.sun.electric;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.prefs.Preferences;
+
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
@@ -52,17 +63,8 @@ import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
-
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.prefs.Preferences;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.PoolWorkerStrategyFactory;
+import com.sun.electric.util.concurrent.ElectricWorkerStrategy;
 
 /**
  * This class initializes Electric and starts the system. How to run Electric:
@@ -275,8 +277,11 @@ public final class Main
             assert runMode == Mode.BATCH || runMode == Mode.SERVER;
             EDatabase.setServerDatabase(database);
             Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);
-
         }
+        
+        // initialize parallel stuff
+        ElectricWorkerStrategy electricWorker = new ElectricWorkerStrategy(null);
+        PoolWorkerStrategyFactory.userDefinedStrategy = electricWorker;
 	}
 
     public static class UserInterfaceDummy extends AbstractUserInterface
