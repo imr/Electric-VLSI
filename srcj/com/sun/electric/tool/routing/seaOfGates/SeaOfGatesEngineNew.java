@@ -109,7 +109,7 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 								.createForThreadPool(numberOfThreads), numberOfThreads, ThreadPoolType.simplePool, false);
 			} else {
 				ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
-						numberOfThreads, true, ThreadPoolType.synchronizedPool);
+						numberOfThreads, ThreadPoolType.synchronizedPool);
 				// ThreadPool.initialize(numberOfThreads, true);
 			}
 		} catch (PoolExistsException e1) {}

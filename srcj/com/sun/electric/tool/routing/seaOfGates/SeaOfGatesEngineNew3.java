@@ -37,7 +37,6 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.SeaOfGates.SeaOfGatesOptions;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
@@ -50,6 +49,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt
