@@ -45,6 +45,8 @@ import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolType;
 
@@ -67,20 +69,23 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 	 * com.sun.electric.database.EditingPreferences)
 	 */
 	@Override
-	protected void doRouting(List<NeededRoute> allRoutes, RouteBatches[] routeBatches, Job job,
-			Environment env, EditingPreferences ep) {
+	protected void doRouting(List<NeededRoute> allRoutes, RouteBatches[] routeBatches, Job job, Environment env,
+			EditingPreferences ep) {
 
 		try {
 			// ThreadPool.initialize(WorkStealingStructure.createForThreadPool(2),
 			// 2, true);
-			ThreadPool.initialize(2, true);
-		} catch (PoolExistsException e1) {}
+			ThreadPool.initialize(SchedulingStrategy.workStealing, 2, ThreadPoolType.userDefined);
+		} catch (PoolExistsException e1) {
+		} catch (UnknownSchedulerException e) {
+		}
 
 		super.doRouting(allRoutes, routeBatches, job, env, ep);
 
 		try {
 			ThreadPool.getThreadPool().shutdown();
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+		}
 	}
 
 	/*
@@ -94,8 +99,8 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 	 * com.sun.electric.database.EditingPreferences)
 	 */
 	@Override
-	protected void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes,
-			RouteBatches[] routeBatches, Environment env, EditingPreferences ep) {
+	protected void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes, RouteBatches[] routeBatches,
+			Environment env, EditingPreferences ep) {
 
 		if (Job.getDebug())
 			System.out.println("Do routing parallel with new parallel Infrastructure");
@@ -105,14 +110,15 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			if (parallelDij) {
 
 				pools = ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
-						numberOfThreads, ThreadPoolType.simplePool, WorkStealingStructure
-								.createForThreadPool(numberOfThreads), numberOfThreads, ThreadPoolType.simplePool, false);
+						numberOfThreads, ThreadPoolType.userDefined, WorkStealingStructure
+								.createForThreadPool(numberOfThreads), numberOfThreads, ThreadPoolType.userDefined);
 			} else {
-				ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads),
-						numberOfThreads, ThreadPoolType.synchronizedPool);
+				ThreadPool.initialize(WorkStealingStructure.createForThreadPool(numberOfThreads), numberOfThreads,
+						ThreadPoolType.synchronizedPool);
 				// ThreadPool.initialize(numberOfThreads, true);
 			}
-		} catch (PoolExistsException e1) {}
+		} catch (PoolExistsException e1) {
+		}
 
 		PJob seaOfGatesJob;
 		if (pools != null) {
@@ -202,7 +208,8 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			} else {
 				ThreadPool.getThreadPool().shutdown();
 			}
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+		}
 
 	}
 
@@ -280,12 +287,11 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			if (wf == null)
 				wf = nr.dir1;
 			if (wf.vertices == null) {
-				errorMsg = "Search too complex (exceeds complexity limit of " + nr.prefs.complexityLimit
-						+ " steps)";
+				errorMsg = "Search too complex (exceeds complexity limit of " + nr.prefs.complexityLimit + " steps)";
 			} else {
 				errorMsg = "Failed to route from port " + wf.from.getPortProto().getName() + " of node "
-						+ wf.from.getNodeInst().describe(false) + " to port "
-						+ wf.to.getPortProto().getName() + " of node " + wf.to.getNodeInst().describe(false);
+						+ wf.from.getNodeInst().describe(false) + " to port " + wf.to.getPortProto().getName()
+						+ " of node " + wf.to.getNodeInst().describe(false);
 			}
 			System.out.println("ERROR: " + errorMsg);
 			List<EPoint> lineList = new ArrayList<EPoint>();
@@ -376,8 +382,8 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			e.printStackTrace();
 		}
 
-		Parallel.For(new BlockedRange1D(0, numBatches, numBatches / 8), new ParallelListOfRoutes(
-				routeBatches, allRoutes, arcsToRoute, prefs, ep));
+		Parallel.For(new BlockedRange1D(0, numBatches, numBatches / 8), new ParallelListOfRoutes(routeBatches,
+				allRoutes, arcsToRoute, prefs, ep));
 
 		try {
 			ThreadPool.getThreadPool().shutdown();

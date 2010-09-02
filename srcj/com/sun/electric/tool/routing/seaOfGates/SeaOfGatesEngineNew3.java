@@ -49,6 +49,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolType;
 import com.sun.electric.util.CollectionFactory;
 
 /**
@@ -77,8 +78,8 @@ public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
         try {
             // ThreadPool.initialize(WorkStealingStructure.createForThreadPool(2),
             // 2, true);
-            ThreadPool.initialize(2, true);
-        } catch (PoolExistsException e1) {}
+            ThreadPool.initialize(SchedulingStrategy.workStealing, 2, ThreadPoolType.userDefined);
+        } catch (Exception e1) {}
 
         super.doRouting(allRoutes, routeBatches, job, env, ep);
 
@@ -102,10 +103,10 @@ public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
             RouteBatches[] routeBatches, Environment env, EditingPreferences ep) {
 
         if (Job.getDebug())
-            System.out.println("Do routing parallel with new parallel Infrastructure 2");
+            System.out.println("Do routing parallel with new parallel Infrastructure 3");
 
         try {
-            pools = ThreadPool.initialize(SchedulingStrategy.fcQueue, numberOfThreads * 2);
+            pools = ThreadPool.initialize(SchedulingStrategy.fcQueue, numberOfThreads * 2, ThreadPoolType.userDefined);
         } catch (PoolExistsException e1) {} catch (UnknownSchedulerException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
