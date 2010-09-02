@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.util.test.AbstractJunitBaseClass;
+import com.sun.electric.util.test.TestProperties;
 
 /**
  * @author Felix Schmidt
@@ -48,8 +49,8 @@ public abstract class AbstractRoutingBaseClass extends AbstractJunitBaseClass {
 
 	@Test
 	public void testRouter() throws Exception {
-		Cell cell = this.loadCell("PlacementTest", "PlacementTest4",
-				"W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib", LoadLibraryType.fileSystem);
+		Cell cell = this.loadCell("PlacementTest", "PlacementTest4", TestProperties.getInstance().getRegressionPath()
+				+ TestProperties.getInstance().getRoutingTestData(), LoadLibraryType.fileSystem);
 		this.testRoutingAlgorithm(getRoutingFrame(), cell);
 	}
 
