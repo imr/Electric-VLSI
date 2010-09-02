@@ -94,7 +94,6 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.util.CollectionFactory;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
@@ -103,6 +102,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.util.CollectionFactory;
 
 /**
  * This is the Electrical Rule Checker tool.
