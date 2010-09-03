@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+BUG: (9/3/10, FS) StackOverflowError in ERC regression (Parallel.ThreadPool.initialize) (Bug #2902)
+FIX: Solve infinite-recursion + added test case for this bug
+
+IMP: (9/2/10, FS) Refactoring of parallel infrastructure: no dependencies to other
+     electric packages 
+
 BUG: (8/30/10, SMR) Need to warn users who request too much memory (Bug #2900).
 FIX: Improved the General Preferences dialog to advise on upper memory limits.
 
