@@ -310,7 +310,7 @@ public class ThreadPool {
 	 * @throws PoolExistsException
 	 */
 	public static ThreadPool initialize(IStructure<PTask> taskPool) throws PoolExistsException {
-		return ThreadPool.initialize(taskPool);
+		return ThreadPool.initialize(taskPool, getNumOfThreads());
 	}
 
 	public static synchronized ThreadPool initialize(SchedulingStrategy taskPool, int numOfThreads)
@@ -336,7 +336,7 @@ public class ThreadPool {
 	 */
 	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads)
 			throws PoolExistsException {
-		return ThreadPool.initialize(taskPool, numOfThreads);
+		return ThreadPool.initialize(taskPool, numOfThreads, ThreadPoolType.simplePool);
 	}
 
 	/**

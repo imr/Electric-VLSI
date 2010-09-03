@@ -36,9 +36,11 @@ import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
+import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolState;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolType;
 import com.sun.electric.util.CollectionFactory;
 
 public class ThreadPoolTest {
@@ -126,6 +128,34 @@ public class ThreadPoolTest {
 
 		System.out.println("test took: " + TextUtils.getElapsedTime(total));
 
+	}
+	
+	@Test
+	public void testInitMethods() throws PoolExistsException, UnknownSchedulerException {
+		IStructure<PTask> scheduler = CollectionFactory.createLockFreeQueue();
+		
+		ThreadPool.initialize();
+		ThreadPool.killPool();
+		
+		ThreadPool.initialize(2);
+		ThreadPool.killPool();
+		
+		ThreadPool.initialize(scheduler);
+		ThreadPool.killPool();
+		
+		ThreadPool.initialize(scheduler, 2);
+		ThreadPool.killPool();
+		
+		ThreadPool.initialize(SchedulingStrategy.queue, 2);
+		ThreadPool.killPool();
+		
+		ThreadPool.initialize(scheduler, 2, ThreadPoolType.simplePool);
+		ThreadPool.killPool();
+		
+		ThreadPool.initialize(SchedulingStrategy.queue, 2, ThreadPoolType.simplePool);
+		ThreadPool.killPool();
+		
+		ThreadPool.initialize(scheduler, 2, ThreadPoolType.simplePool, scheduler, 2, ThreadPoolType.simplePool);
 	}
 
 	public static class CreateParallelJobs extends PTask {
