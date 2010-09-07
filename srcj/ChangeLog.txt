@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+BUG: (9/7/10, SMR) Cannot read simulation output that is broken into multiple
+     files (Bug #1413).
+FIX: Fixed HSpiceOut.java to read multiple .tr files.
+
 BUG: (9/3/10, FS) StackOverflowError in ERC regression (Parallel.ThreadPool.initialize) (Bug #2902)
 FIX: Solve infinite-recursion + added test case for this bug
 

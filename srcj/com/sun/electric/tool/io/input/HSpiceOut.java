@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -73,12 +74,15 @@ public class HSpiceOut extends Input<Stimuli>
 	/** true if tr/ac/sw file is binary */						private boolean isTRACDCBinary;
 	/** true if binary tr/ac/sw file has bytes swapped */		private boolean isTRACDCBinarySwapped;
 	/** the raw file base */									private String fileBase;
-	/** the "tr" file extension (tr0, tr1, ...): transient */	private String trExtension;
+	/** the "tr" files (X.tr0, X.tr1, ...): transient */		private List<String> trFiles;
 	/** the "sw" file extension (sw0, sw1, ...): DC */			private String swExtension;
 	/** the "ic" file extension (ic0, ic1, ...): old DC */		private String icExtension;
 	/** the "ac" file extension (ac0, ac1, ...): AC */			private String acExtension;
 	/** the "mt" file extension (mt0, mt1, ...): measurement */	private String mtExtension;
 	/** the "pa" file extension (pa0, pa1, ...): long names */	private String paExtension;
+	/** signal names in file (may be continued in next) */		private String [] signalNames;
+	/** signals created (may span multiple files) */			private Signal<?>[][] allSignals;
+	/** sweep names (may span multiple files) */				private String [] sweepNames;
 	private int binaryTRACDCSize, binaryTRACDCPosition;
 	private boolean eofReached;
 	private byte [] binaryTRACDCBuffer;
@@ -103,23 +107,36 @@ public class HSpiceOut extends Input<Stimuli>
 	protected Stimuli processInput(URL fileURL, Cell cell, Stimuli sd)
 		throws IOException
 	{
-		// figure out file names
-		fileBase = fileURL.getFile();
-		trExtension = "tr0";
+		// find all ".tr" files
+		trFiles = new ArrayList<String>();
+		String fileNameNoPath = TextUtils.getFileNameWithoutExtension(TextUtils.URLtoString(fileURL), true) +
+			".tr";
+		String filePath = TextUtils.getFilePath(fileURL);
+		String topDirName = TextUtils.getFilePath(fileURL);
+		File topDir = new File(topDirName);
+		String [] fileList = topDir.list();
+		for(int i=0; i<fileList.length; i++)
+		{
+			if (!fileList[i].startsWith(fileNameNoPath)) continue;
+			trFiles.add(filePath + fileList[i]);
+		}
+		Collections.sort(trFiles, TextUtils.STRING_NUMBER_ORDER);
+
+		// figure out other file names
 		swExtension = "sw0";
 		icExtension = "ic0";
 		acExtension = "ac0";
 		mtExtension = "mt0";
 		paExtension = "pa0";
+		fileBase = fileURL.getFile();
 		int dotPos = fileBase.lastIndexOf('.');
 		if (dotPos > 0)
 		{
 			String extension = fileBase.substring(dotPos+1);
 			fileBase = fileBase.substring(0, dotPos);
-			if (extension.startsWith("tr") || extension.startsWith("sw") || extension.startsWith("ic") ||
+			if (extension.startsWith("sw") || extension.startsWith("ic") ||
 				extension.startsWith("ac") || extension.startsWith("mt") || extension.startsWith("pa"))
 			{
-				trExtension = "tr" + extension.substring(2);
 				swExtension = "sw" + extension.substring(2);
 				icExtension = "ic" + extension.substring(2);
 				acExtension = "ac" + extension.substring(2);
@@ -127,6 +144,8 @@ public class HSpiceOut extends Input<Stimuli>
 				paExtension = "pa" + extension.substring(2);
 			}
 		}
+
+
 
 		// the .pa file has name information
 		List<PALine> paList = readPAFile(fileURL);
@@ -298,17 +317,22 @@ public class HSpiceOut extends Input<Stimuli>
 	private void addTRData(Stimuli sd, List<PALine> paList, URL fileURL)
 		throws IOException
 	{
-		// find the associated ".tr" name file
-		URL swURL = null;
-		try
+		int numFiles = trFiles.size();
+		for(int i=0; i<numFiles; i++)
 		{
-			swURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + trExtension);
-		} catch (java.net.MalformedURLException e) {}
-		if (swURL == null) return;
-		if (!TextUtils.URLExists(swURL)) return;
+			// find the ".tr" name file
+			String trFile = trFiles.get(i);
+			URL trURL = null;
+			try
+			{
+				trURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), trFile);
+			} catch (java.net.MalformedURLException e) {}
+			if (trURL == null) return;
+			if (!TextUtils.URLExists(trURL)) return;
 
-		// process the DC data
-		readTRDCACFile(sd, swURL, paList, "TRANS SIGNALS");
+			// process the DC data
+			readTRDCACFile(sd, trURL, paList, "TRANS SIGNALS", i, numFiles);
+		}
 	}
 
 	/**
@@ -329,7 +353,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (swURL != null && TextUtils.URLExists(swURL))
 		{
 			// process the DC data
-			readTRDCACFile(sd, swURL, paList, "DC SIGNALS");
+			readTRDCACFile(sd, swURL, paList, "DC SIGNALS", 0, 1);
 			return;
 		}
 
@@ -367,7 +391,7 @@ public class HSpiceOut extends Input<Stimuli>
 		if (!TextUtils.URLExists(acURL)) return;
 
 		// process the AC data
-		readTRDCACFile(sd, acURL, paList, "AC SIGNALS");
+		readTRDCACFile(sd, acURL, paList, "AC SIGNALS", 0, 1);
 	}
 
 	/**
@@ -412,16 +436,30 @@ public class HSpiceOut extends Input<Stimuli>
 		return paList;
 	}
 
-	private void readTRDCACFile(Stimuli sd, URL fileURL, List<PALine> paList, String analysisTitle)
+	private void readTRDCACFile(Stimuli sd, URL fileURL, List<PALine> paList, String analysisTitle, int fileNum, int numFiles)
 		throws IOException
 	{
 		if (openBinaryInput(fileURL)) return;
 		eofReached = false;
 		resetBinaryTRACDCReader();
 
-		SignalCollection sc = Stimuli.newSignalCollection(sd, analysisTitle);
+		SignalCollection sc;
+		if (fileNum == 0)
+		{
+			sc = Stimuli.newSignalCollection(sd, analysisTitle);
+		} else
+		{
+			sc = sd.findSignalCollection(analysisTitle);
+			if (sc == null) return;
+		}
 		startProgressDialog("HSpice " + analysisTitle + " analysis", fileURL.getFile());
-		System.out.println("Reading HSpice " + analysisTitle + " file: " + fileURL.getFile());
+		if (fileNum == 0)
+		{
+			System.out.println("Reading HSpice " + analysisTitle + " file: " + fileURL.getFile());
+		} else
+		{
+			System.out.println("Also reading file: " + fileURL.getFile());
+		}
 
 		// get number of nodes
 		int nodcnt = getHSpiceInt();
@@ -506,7 +544,20 @@ public class HSpiceOut extends Input<Stimuli>
 		}
 
 		// get the type of each signal
-		String [] signalNames = new String[numSignals];
+		if (fileNum == 0)
+		{
+			signalNames = new String[numSignals];
+		} else
+		{
+			if (numSignals != signalNames.length)
+			{
+				System.out.println("Error: file " + fileURL.getFile() + " has " + numSignals +
+					" in it, but previous files have " + signalNames.length);
+				closeInput();
+				stopProgressDialog();
+				return;				
+			}
+		}
 		int [] signalTypes = new int[numSignals];
 		for(int k=0; k<=numSignals; k++)
 		{
@@ -633,7 +684,21 @@ public class HSpiceOut extends Input<Stimuli>
 			}
 
 			if (k < nodcnt) l = k + numnoi - 1; else l = k - nodcnt;
-			signalNames[l] = line.toString();
+			String sigName = line.toString();
+			if (fileNum == 0)
+			{
+				signalNames[l] = sigName;
+			} else
+			{
+				if (!sigName.equals(signalNames[l]))
+				{
+					System.out.println("Error: file " + fileURL.getFile() + " signal " + (l+1) + " is '" + sigName +
+						"', but previous files call that signal '" + signalNames[l] + "'");
+					closeInput();
+					stopProgressDialog();
+					return;				
+				}
+			}
 		}
 
 		// read (and ignore) condition information
@@ -713,8 +778,12 @@ public class HSpiceOut extends Input<Stimuli>
 
 		boolean isComplex = analysisTitle.equals("AC SIGNALS");
 		int sweepUpper = (sweepcnt > 0) ? sweepcnt : 1;
-        Signal<?>[][] signals = new Signal[numSignals][sweepUpper];
-        String [] sweepNames = new String[sweepUpper];
+		if (numFiles > 1) sweepUpper = numFiles;
+		if (fileNum == 0)
+		{
+			allSignals = new Signal[numSignals][sweepUpper];
+	        sweepNames = new String[sweepUpper];
+		}
 
 		// setup the simulation information
 		int sweepCounter = sweepcnt;
@@ -737,8 +806,8 @@ public class HSpiceOut extends Input<Stimuli>
 					sweepName += "," + TextUtils.formatDouble(anotherSweepValue);
 					if (DEBUGCONDITIONS) System.out.println("  EXTRA SWEEP NUMBER: "+anotherSweepValue);
 				}
-                sweepNames[sweepIndex] = sweepName;
-			}
+                sweepNames[fileNum + sweepIndex] = sweepName;
+			} else if (numFiles > 1) sweepNames[fileNum] = (fileNum+1) + "";
 			for(int k=0; k<numSignals; k++)
 			{
 				String name = signalNames[k];
@@ -754,7 +823,7 @@ public class HSpiceOut extends Input<Stimuli>
 				if (sweepcnt > 0) name += "[" + sweepName + "]";
 				SignalCollection scToUse = sc;
 				if (sweepcnt > 0) scToUse = null;
-				signals[k][sweepIndex] = isComplex
+				allSignals[k][fileNum + sweepIndex] = isComplex
 	                ? ComplexSample.createComplexSignal(scToUse, sd, name, context)
 	                : ScalarSample.createSignal(scToUse, sd, name, context);
 			}
@@ -770,14 +839,14 @@ public class HSpiceOut extends Input<Stimuli>
 				{
 					if (isComplex)
 					{
-                        MutableSignal<ComplexSample> signal = (MutableSignal<ComplexSample>)signals[(k + numnoi) % numSignals][sweepIndex];
+                        MutableSignal<ComplexSample> signal = (MutableSignal<ComplexSample>)allSignals[(k + numnoi) % numSignals][fileNum + sweepIndex];
 						float realPart = getHSpiceFloat(false);
 						float imagPart = getHSpiceFloat(false);
                         if (signal.getSample(time) == null)
                             signal.addSample(time, new ComplexSample(realPart, imagPart));
 					} else
 					{
-                        MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)signals[(k + numnoi) % numSignals][sweepIndex];
+                        MutableSignal<ScalarSample> signal = (MutableSignal<ScalarSample>)allSignals[(k + numnoi) % numSignals][fileNum + sweepIndex];
                         double val = getHSpiceFloat(false);
                         if (signal.getSample(time) == null)
                             signal.addSample(time, new ScalarSample(val));
@@ -795,7 +864,7 @@ public class HSpiceOut extends Input<Stimuli>
 			sweepIndex++;
 			eofReached = false;
 		}
-		if (sweepcnt > 0)
+		if (sweepcnt > 0 || (numFiles > 1 && fileNum == numFiles-1))
 		{
 			for(int k=0; k<numSignals; k++)
 			{
@@ -811,14 +880,14 @@ public class HSpiceOut extends Input<Stimuli>
 				}
 
 				int total = 0;
-		        for(int i=0; i<signals[k].length; i++)
-		        	if (signals[k][i] != null) total++;
+		        for(int i=0; i<allSignals[k].length; i++)
+		        	if (allSignals[k][i] != null) total++;
 		        Signal<?>[] signalCopy = new Signal[total];
 		        int j = 0;
-		        for(int i=0; i<signals[k].length; i++)
+		        for(int i=0; i<allSignals[k].length; i++)
 		        {
-		        	if (signals[k][i] == null) continue;
-		        	signalCopy[j] = signals[k][i];
+		        	if (allSignals[k][i] == null) continue;
+		        	signalCopy[j] = allSignals[k][i];
 		        	j++;
 		        }
 		        
@@ -835,10 +904,11 @@ public class HSpiceOut extends Input<Stimuli>
 		closeInput();
 
 		stopProgressDialog();
-		System.out.println("Done reading " + analysisTitle + " analysis");
+		if (fileNum == numFiles-1)
+			System.out.println("Done reading " + analysisTitle + " analysis");
 	}
 
-	/**
+    /**
 	 * Method to reset the binary block pointer (done between the header and
 	 * the data).
 	 */
@@ -1065,4 +1135,3 @@ public class HSpiceOut extends Input<Stimuli>
 		return name;
 	}
 }
-
