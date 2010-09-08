@@ -26,10 +26,8 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -57,6 +55,8 @@ import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;

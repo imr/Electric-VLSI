@@ -23,7 +23,7 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;

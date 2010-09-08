@@ -27,7 +27,6 @@ import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -51,6 +50,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

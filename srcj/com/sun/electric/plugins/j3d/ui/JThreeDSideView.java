@@ -26,7 +26,7 @@ package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.tool.user.User;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.util.math.GenMath;
 import com.sun.electric.plugins.j3d.*;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;

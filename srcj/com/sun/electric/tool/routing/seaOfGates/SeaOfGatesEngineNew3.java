@@ -29,7 +29,6 @@ import java.util.List;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
@@ -51,6 +50,7 @@ import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerE
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolType;
 import com.sun.electric.util.CollectionFactory;
+import com.sun.electric.util.math.DBMath;
 
 /**
  * @author Felix Schmidt

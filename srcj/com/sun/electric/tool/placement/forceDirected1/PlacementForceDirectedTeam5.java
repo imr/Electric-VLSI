@@ -42,10 +42,10 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.forceDirected1.metric.BBMetric;
 import com.sun.electric.tool.placement.forceDirected1.metrics.PAMetric;
+import com.sun.electric.util.math.GenMath.MutableInteger;
 
 public class PlacementForceDirectedTeam5 extends PlacementFrame {
     // ------ Parameters from the standalone Placementframe -------------

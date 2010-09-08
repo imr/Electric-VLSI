@@ -24,12 +24,12 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.TechPool;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;

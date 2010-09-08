@@ -23,12 +23,12 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Color;
 import java.io.ByteArrayInputStream;

@@ -27,7 +27,6 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -49,6 +48,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;

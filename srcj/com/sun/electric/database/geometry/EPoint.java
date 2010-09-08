@@ -27,6 +27,9 @@ package com.sun.electric.database.geometry;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
 
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
+
 /**
  * The <code>EPoint</code> immutable class defines a point representing
  * a location in (x,&nbsp;y) coordinate space. This class extends abstract
@@ -269,8 +272,8 @@ final public class EPoint extends Point2D implements Serializable {
     /**
      * Returns true if both coordinates of this EPoint are "small ints".
      * @return true if both coordinates of this EPoint are "small ints".
-     * @see com.sun.electric.database.geometry.GenMath#MIN_SMALL_COORD
-     * @see com.sun.electric.database.geometry.GenMath#MAX_SMALL_COORD
+     * @see com.sun.electric.util.math.GenMath#MIN_SMALL_COORD
+     * @see com.sun.electric.util.math.GenMath#MAX_SMALL_COORD
      */
     public boolean isSmall() {
         // ---------- Flat implementation

@@ -26,19 +26,15 @@
 package com.sun.electric.tool.extract;
 
 import com.sun.electric.database.EditingPreferences;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolySweepMerge;
-import com.sun.electric.database.geometry.GenMath.MutableBoolean;
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
@@ -71,6 +67,10 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.GenMath.MutableBoolean;
+import com.sun.electric.util.math.GenMath.MutableInteger;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;

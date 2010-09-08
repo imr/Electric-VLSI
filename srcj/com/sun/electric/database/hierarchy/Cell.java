@@ -38,7 +38,6 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
@@ -78,6 +77,7 @@ import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.Dimension;
 import java.awt.geom.AffineTransform;

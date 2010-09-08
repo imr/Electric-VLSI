@@ -24,9 +24,7 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdReader;
@@ -42,6 +40,9 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
+
 import java.io.IOException;
 
 /**

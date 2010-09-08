@@ -21,11 +21,14 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database.geometry;
+package com.sun.electric.util.math;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+
+import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.Poly;
 
 /**
  * This class is a collection of math utilities used for

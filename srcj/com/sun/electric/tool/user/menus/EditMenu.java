@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.menus;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -98,6 +97,7 @@ import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;

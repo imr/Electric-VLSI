@@ -27,11 +27,9 @@ import static com.sun.electric.database.text.ArrayIterator.i2i;
 
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
@@ -74,6 +72,8 @@ import com.sun.electric.tool.user.ui.SizeListener;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

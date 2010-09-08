@@ -32,11 +32,11 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;

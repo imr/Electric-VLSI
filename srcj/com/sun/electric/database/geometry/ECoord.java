@@ -33,6 +33,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
+
 /**
  * The <code>ECoord</code> immutable class defines a point in Electric database.
  * Coordiates are snapped to grid according to <code>DBMath.round</code> method.

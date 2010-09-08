@@ -25,10 +25,10 @@ package com.sun.electric.database.id;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.util.math.GenMath;
 
 import java.io.IOException;
 import java.io.NotSerializableException;

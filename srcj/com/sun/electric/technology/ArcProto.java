@@ -27,7 +27,6 @@ import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
@@ -35,6 +34,8 @@ import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 
 import com.sun.electric.tool.erc.ERCAntenna;
+import com.sun.electric.util.math.DBMath;
+
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.InvalidObjectException;

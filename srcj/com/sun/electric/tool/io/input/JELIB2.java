@@ -37,7 +37,6 @@ import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -57,6 +56,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.net.URL;
 import java.util.ArrayList;

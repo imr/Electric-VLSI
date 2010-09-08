@@ -24,7 +24,6 @@
 package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
@@ -34,6 +33,7 @@ import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;

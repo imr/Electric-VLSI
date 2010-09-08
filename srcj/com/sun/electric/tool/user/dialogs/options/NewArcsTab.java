@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.technology.ArcProto;
@@ -36,6 +35,7 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

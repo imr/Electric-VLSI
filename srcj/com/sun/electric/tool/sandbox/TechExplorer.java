@@ -24,7 +24,6 @@
  */
 package com.sun.electric.tool.sandbox;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
@@ -35,6 +34,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;

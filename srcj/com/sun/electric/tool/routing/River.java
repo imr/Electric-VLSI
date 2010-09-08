@@ -26,7 +26,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
@@ -45,6 +44,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;

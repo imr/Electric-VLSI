@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
@@ -39,6 +38,7 @@ import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.GenMath;
 
 import java.io.BufferedReader;
 import java.io.File;

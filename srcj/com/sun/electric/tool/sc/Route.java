@@ -26,9 +26,9 @@
  */
 package com.sun.electric.tool.sc;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.util.math.GenMath;
 
 import java.util.List;
 

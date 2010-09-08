@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.erc;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
@@ -50,6 +49,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;

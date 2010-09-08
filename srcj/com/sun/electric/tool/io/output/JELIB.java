@@ -35,7 +35,6 @@ import com.sun.electric.database.ImmutableIconInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -58,6 +57,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.net.URL;
 import java.util.ArrayList;

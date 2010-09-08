@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -48,6 +46,8 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.Util;
 import com.sun.electric.tool.user.ui.ToolBar;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

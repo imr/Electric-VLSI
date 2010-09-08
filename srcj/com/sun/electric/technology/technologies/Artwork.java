@@ -27,7 +27,6 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
@@ -47,6 +46,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.Point2D;
 

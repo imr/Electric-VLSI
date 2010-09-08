@@ -26,7 +26,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
@@ -43,6 +42,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

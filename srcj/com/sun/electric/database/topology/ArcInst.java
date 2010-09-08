@@ -28,9 +28,7 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -50,6 +48,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

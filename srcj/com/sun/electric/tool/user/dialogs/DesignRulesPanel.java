@@ -23,9 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.technology.*;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

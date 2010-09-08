@@ -24,7 +24,6 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
@@ -45,6 +44,7 @@ import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;

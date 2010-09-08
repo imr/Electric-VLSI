@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -31,6 +30,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.math.DBMath;
 
 /**
  *

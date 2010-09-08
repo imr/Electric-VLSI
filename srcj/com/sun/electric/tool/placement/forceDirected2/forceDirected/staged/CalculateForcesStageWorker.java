@@ -28,7 +28,6 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.staged;
 
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
@@ -39,6 +38,7 @@ import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.Checkbo
 import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.Force2D;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.EmptyException;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.StageWorker;
+import com.sun.electric.util.math.GenMath.MutableInteger;
 
 import java.util.HashMap;
 import java.util.List;

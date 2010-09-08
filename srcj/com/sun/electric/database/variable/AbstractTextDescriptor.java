@@ -23,9 +23,9 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Font;
 import java.awt.font.FontRenderContext;

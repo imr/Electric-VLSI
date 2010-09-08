@@ -42,10 +42,8 @@ import java.util.concurrent.Semaphore;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
@@ -79,6 +77,8 @@ import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
 
 /**
  * Class to do sea-of-gates routing. This router replaces unrouted arcs with

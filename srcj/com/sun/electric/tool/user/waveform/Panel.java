@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.waveform;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -46,6 +45,7 @@ import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

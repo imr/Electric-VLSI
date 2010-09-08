@@ -9,7 +9,6 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -19,6 +18,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.TechPool;
+import com.sun.electric.util.math.DBMath;
 
 import java.io.Serializable;
 import java.util.*;

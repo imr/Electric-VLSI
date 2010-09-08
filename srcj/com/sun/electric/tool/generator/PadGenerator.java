@@ -24,7 +24,6 @@
 package com.sun.electric.tool.generator;
 
 import com.sun.electric.database.EditingPreferences;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
@@ -60,6 +59,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

@@ -48,6 +48,8 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;

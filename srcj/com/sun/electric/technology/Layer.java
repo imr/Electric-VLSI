@@ -25,13 +25,13 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.LayerId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Color;
 import java.io.IOException;

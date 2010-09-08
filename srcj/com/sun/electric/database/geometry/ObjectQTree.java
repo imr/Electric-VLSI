@@ -28,6 +28,9 @@ import java.util.HashSet;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
+
 /**
  * User: Gilda
  * Date: Feb 14, 2006

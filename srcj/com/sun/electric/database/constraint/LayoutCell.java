@@ -27,7 +27,6 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -47,6 +46,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

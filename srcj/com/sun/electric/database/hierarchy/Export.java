@@ -28,7 +28,6 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -54,6 +53,7 @@ import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.BusParameters;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

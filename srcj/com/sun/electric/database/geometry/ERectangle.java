@@ -25,6 +25,8 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
@@ -377,8 +379,8 @@ public class ERectangle extends Rectangle2D implements Serializable {
     /**
      * Returns true if all coordinates of this EPoint are "small ints".
      * @return true if all coordinates of this EPoint are "small ints".
-     * @see com.sun.electric.database.geometry.GenMath#MIN_SMALL_COORD
-     * @see com.sun.electric.database.geometry.GenMath#MAX_SMALL_COORD
+     * @see com.sun.electric.util.math.GenMath#MIN_SMALL_COORD
+     * @see com.sun.electric.util.math.GenMath#MAX_SMALL_COORD
      */
     public boolean isSmall() { return isSmall; }
     

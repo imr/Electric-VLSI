@@ -28,7 +28,6 @@ import com.sun.electric.database.CellTree;
 import com.sun.electric.database.EquivPorts;
 import com.sun.electric.database.EquivalentSchematicExports;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -45,6 +44,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.util.math.GenMath;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;

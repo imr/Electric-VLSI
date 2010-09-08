@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -48,6 +47,7 @@ import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.math.DBMath;
 
 
 /** The bottom of the PMOS well and the top of the NMOS well are at

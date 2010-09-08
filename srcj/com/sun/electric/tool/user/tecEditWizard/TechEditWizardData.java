@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.technology.*;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Color;
 import java.io.BufferedWriter;

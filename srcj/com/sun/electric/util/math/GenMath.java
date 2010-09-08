@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database.geometry;
+package com.sun.electric.util.math;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.io.Serializable;
+
 
 /**
  * General Math Functions. If you are working in Database Units, you
@@ -1768,8 +1769,8 @@ public class GenMath
      * @param len positive vector length
      * @param angle the angle in tenth-degrees in range [0..3600).
      * @return vector packed in a long value.
-     * @see com.sun.electric.database.geometry.GenMath#getX(long)
-     * @see com.sun.electric.database.geometry.GenMath#getY(long)
+     * @see com.sun.electric.util.math.GenMath#getX(long)
+     * @see com.sun.electric.util.math.GenMath#getY(long)
      */
     public static long polarToXY(int len, int angle) {
         if (len == 0) return 0;
@@ -1833,20 +1834,20 @@ public class GenMath
      * @param x x-coordinate
      * @param y y-coordinate
      * @return a long value with a packed pair of coordinates.
-     * @see com.sun.electric.database.geometry.GenMath#getX(long)
-     * @see com.sun.electric.database.geometry.GenMath#getY(long)
+     * @see com.sun.electric.util.math.GenMath#getX(long)
+     * @see com.sun.electric.util.math.GenMath#getY(long)
      */
     public static long packXY(int x, int y) { return (x & 0xFFFFFFFFL) | ((long)(y)) << 32; }
     
     /**
      * Returns x coordinate packed in a long value by <code>packXY</code>.
-     * @see com.sun.electric.database.geometry.GenMath#packXY(int, int)
+     * @see com.sun.electric.util.math.GenMath#packXY(int, int)
      */
     public static int getX(long xy) { return (int)xy; }
     
     /**
      * Returns y coordinate packed in a long value by <code>packXY</code>.
-     * @see com.sun.electric.database.geometry.GenMath#packXY(int, int)
+     * @see com.sun.electric.util.math.GenMath#packXY(int, int)
      */
     public static int getY(long xy) { return (int)(xy >> 32); }
     

@@ -25,6 +25,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.*;
 import java.awt.Shape;

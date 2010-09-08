@@ -25,7 +25,6 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -34,6 +33,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Color;
 import java.io.IOException;

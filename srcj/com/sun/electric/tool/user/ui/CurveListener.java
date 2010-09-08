@@ -24,8 +24,6 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
@@ -35,6 +33,8 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.Cursor;
 import java.awt.event.KeyEvent;

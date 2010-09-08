@@ -23,12 +23,9 @@
  */
 package com.sun.electric.tool.user.redisplay;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.GenMath.MutableDouble;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.id.CellId;
@@ -43,6 +40,9 @@ import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.GenMath.MutableDouble;
 
 import java.awt.Color;
 import java.awt.Dimension;

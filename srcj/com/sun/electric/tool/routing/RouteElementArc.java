@@ -27,10 +27,8 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
-import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.topology.ArcInst;
@@ -44,6 +42,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.GenMath.MutableBoolean;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

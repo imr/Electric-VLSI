@@ -26,7 +26,6 @@ package com.sun.electric.tool.generator.layout.gates;
 import com.sun.electric.database.EditingPreferences;
 import java.awt.geom.Rectangle2D;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.PortInst;
@@ -35,6 +34,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.util.math.DBMath;
 
 /** Create a ring in layers p1 and m1 - m5.  This ring is useful for
  * testing DRC correctness of my gate libraries.  I will draw a ring

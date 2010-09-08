@@ -24,9 +24,9 @@
  */
 package com.sun.electric.database.geometry.bool;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.util.math.DBMath;
 
 import java.io.DataInputStream;
 import java.io.IOException;

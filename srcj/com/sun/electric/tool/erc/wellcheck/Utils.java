@@ -27,12 +27,12 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
 import com.sun.electric.tool.erc.ERCWellCheck.WellBoundRecord;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath.MutableBoolean;
 
 /**
  * Utilities for ERC well check

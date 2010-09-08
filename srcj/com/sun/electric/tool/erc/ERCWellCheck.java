@@ -104,6 +104,7 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 /**
  * This is the Electrical Rule Checker tool.

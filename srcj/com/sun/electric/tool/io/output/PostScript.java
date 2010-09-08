@@ -46,6 +46,7 @@ import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User.ColorPrefType;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;

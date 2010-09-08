@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.project;
 
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
@@ -35,6 +34,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.math.GenMath.MutableInteger;
 
 import java.util.ArrayList;
 import java.util.HashMap;

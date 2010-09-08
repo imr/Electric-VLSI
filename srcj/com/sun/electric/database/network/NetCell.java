@@ -27,7 +27,6 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.CellTree;
 import com.sun.electric.database.EquivPorts;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -44,6 +43,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.util.math.GenMath;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

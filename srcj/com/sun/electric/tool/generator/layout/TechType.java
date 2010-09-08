@@ -1,6 +1,5 @@
 package com.sun.electric.tool.generator.layout;
 
-import com.sun.electric.database.geometry.DBMath;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -20,6 +19,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.math.DBMath;
 
 /** The TechType class holds technology dependent information for the layout
  * generators. Most of the information is available from public static methods.

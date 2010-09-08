@@ -26,8 +26,6 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -53,6 +51,8 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

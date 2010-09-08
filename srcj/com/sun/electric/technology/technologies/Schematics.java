@@ -27,7 +27,6 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutableExport;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
@@ -59,6 +58,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.math.DBMath;
+
 import static com.sun.electric.database.text.ArrayIterator.i2i;
 
 import java.awt.geom.Point2D;

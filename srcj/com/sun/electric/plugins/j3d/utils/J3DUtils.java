@@ -24,13 +24,13 @@
  */
 package com.sun.electric.plugins.j3d.utils;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.util.math.DBMath;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 import com.sun.j3d.utils.geometry.Cylinder;

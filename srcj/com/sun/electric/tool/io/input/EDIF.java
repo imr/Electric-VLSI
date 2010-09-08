@@ -27,7 +27,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -64,6 +63,7 @@ import com.sun.electric.tool.io.output.EDIFEquiv;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.GenMath;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

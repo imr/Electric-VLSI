@@ -23,11 +23,11 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

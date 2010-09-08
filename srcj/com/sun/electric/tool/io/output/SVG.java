@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
@@ -52,6 +51,7 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;

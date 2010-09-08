@@ -29,7 +29,6 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
@@ -43,6 +42,8 @@ import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
+import com.sun.electric.util.math.DBMath;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;

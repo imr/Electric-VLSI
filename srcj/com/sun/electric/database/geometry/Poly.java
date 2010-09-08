@@ -38,6 +38,7 @@ import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.Font;
 import java.awt.font.GlyphVector;

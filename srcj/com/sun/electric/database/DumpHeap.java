@@ -24,7 +24,7 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.util.math.GenMath;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;

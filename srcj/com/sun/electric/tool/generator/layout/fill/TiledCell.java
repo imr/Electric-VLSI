@@ -28,7 +28,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.prototype.PortProto;
@@ -36,6 +35,7 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.math.DBMath;
 
 import java.awt.geom.Rectangle2D;
 import java.util.*;

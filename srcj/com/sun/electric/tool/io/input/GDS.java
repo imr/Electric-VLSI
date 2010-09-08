@@ -28,17 +28,14 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolySweepMerge;
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -68,6 +65,9 @@ import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.GenMath.MutableInteger;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;

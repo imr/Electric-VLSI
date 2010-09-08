@@ -23,8 +23,10 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.GenMath.MutableBoolean;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;

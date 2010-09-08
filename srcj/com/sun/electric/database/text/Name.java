@@ -24,8 +24,8 @@
  */
 package com.sun.electric.database.text;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.GenMath;
 
 import java.util.ArrayList;
 import java.util.Arrays;
