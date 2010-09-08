@@ -36,7 +36,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
-import com.sun.electric.tool.util.concurrent.utils.Timer;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
 
 /**
@@ -85,7 +85,7 @@ public class FCQueueTest {
 			e.printStackTrace();
 		}
 
-		Timer time = Timer.createInstance();
+		ElapseTimer time = ElapseTimer.createInstance();
 		time.start();
 		Parallel.For(new BlockedRange2D(0, size, 128, 0, size, 128), new MatrixMultTask(size,
 				matCParWS));
@@ -105,7 +105,7 @@ public class FCQueueTest {
 			e.printStackTrace();
 		}
 
-		Timer time = Timer.createInstance();
+		ElapseTimer time = ElapseTimer.createInstance();
 		time.start();
 		Parallel.For(new BlockedRange2D(0, size, 128, 0, size, 129), new MatrixMultTask(size,
 				matCParFC));
@@ -124,7 +124,7 @@ public class FCQueueTest {
 			e.printStackTrace();
 		}
 
-		Timer time = Timer.createInstance();
+		ElapseTimer time = ElapseTimer.createInstance();
 		time.start();
 		Parallel.For(new BlockedRange2D(0, size, 128, 0, size, 128), new MatrixMultTask(size,
 				matCParFC));
