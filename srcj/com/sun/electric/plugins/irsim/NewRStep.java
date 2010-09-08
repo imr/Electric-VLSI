@@ -19,8 +19,8 @@
 package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.SimulationTool;
+import com.sun.electric.util.TextUtils;
 
 /**
  * Event-driven timing simulation step for irsim.

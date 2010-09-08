@@ -38,13 +38,13 @@ import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology.SizeCorrector;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;
 import java.net.URL;

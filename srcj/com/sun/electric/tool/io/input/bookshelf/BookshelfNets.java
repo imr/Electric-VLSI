@@ -43,7 +43,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -57,6 +56,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfPin;
 import com.sun.electric.util.CollectionFactory;
+import com.sun.electric.util.TextUtils;
 
 /**
  * @author Felix Schmidt

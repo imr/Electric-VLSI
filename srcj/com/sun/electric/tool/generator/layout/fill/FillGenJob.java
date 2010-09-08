@@ -27,8 +27,8 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.extract.LayerCoverageTool;
+import com.sun.electric.util.TextUtils;
 
 /**
  * User: gg151869

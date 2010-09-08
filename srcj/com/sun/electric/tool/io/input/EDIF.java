@@ -42,7 +42,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -64,6 +63,7 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.EDIFEquiv;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.IconParameters;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

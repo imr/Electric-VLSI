@@ -32,7 +32,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -56,6 +55,7 @@ import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 import java.awt.Dimension;

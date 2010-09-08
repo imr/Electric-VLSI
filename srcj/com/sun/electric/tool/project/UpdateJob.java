@@ -30,7 +30,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -38,6 +37,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.TextUtils;
 
 import java.io.File;
 import java.util.ArrayList;

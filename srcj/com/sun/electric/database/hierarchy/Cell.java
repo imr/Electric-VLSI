@@ -53,7 +53,6 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
@@ -78,6 +77,7 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Dimension;
 import java.awt.geom.AffineTransform;

@@ -29,7 +29,6 @@ import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
@@ -55,6 +54,7 @@ import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 import com.sun.electric.tool.user.ui.ToolBar.CursorMode;
 import com.sun.electric.tool.user.waveform.*;
 import com.sun.electric.tool.simulation.*;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 import java.awt.Dimension;

@@ -31,7 +31,6 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.VarContext;
@@ -45,6 +44,7 @@ import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.simulation.SimulationTool;
+import com.sun.electric.util.TextUtils;
 
 import java.util.*;
 import java.util.regex.Matcher;

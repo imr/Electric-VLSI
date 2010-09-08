@@ -26,7 +26,6 @@
 package com.sun.electric.tool.io.input.verilog;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
@@ -36,6 +35,7 @@ import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.DigitalSample.Strength;
 import com.sun.electric.tool.simulation.DigitalSample.Value;
+import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;
 import java.net.URL;

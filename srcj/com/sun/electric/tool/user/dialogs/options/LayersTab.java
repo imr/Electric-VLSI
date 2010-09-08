@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -33,6 +32,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 import java.awt.Frame;

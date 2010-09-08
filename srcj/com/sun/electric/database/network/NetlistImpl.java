@@ -28,7 +28,7 @@ import com.sun.electric.database.CellTree;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;

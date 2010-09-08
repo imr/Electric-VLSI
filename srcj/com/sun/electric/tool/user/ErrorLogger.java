@@ -35,10 +35,10 @@ import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.text.ArrayIterator;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

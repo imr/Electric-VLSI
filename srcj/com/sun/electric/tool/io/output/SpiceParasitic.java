@@ -29,7 +29,6 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -46,6 +45,7 @@ import com.sun.electric.tool.io.output.Topology.CellNetInfo;
 import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

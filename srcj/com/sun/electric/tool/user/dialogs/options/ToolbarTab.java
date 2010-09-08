@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.Resources;
@@ -34,6 +33,7 @@ import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ToolBar.EToolBarButton;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 import java.awt.Component;

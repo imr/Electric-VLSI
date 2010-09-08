@@ -35,7 +35,6 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -46,6 +45,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.logicaleffort.LENetlister.NetlisterConstants;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.util.TextUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

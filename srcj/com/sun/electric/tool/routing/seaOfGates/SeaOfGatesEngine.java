@@ -57,7 +57,6 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -79,6 +78,7 @@ import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
+import com.sun.electric.util.TextUtils;
 
 /**
  * Class to do sea-of-gates routing. This router replaces unrouted arcs with

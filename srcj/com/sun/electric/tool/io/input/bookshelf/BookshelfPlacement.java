@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.io.input.bookshelf;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
+import com.sun.electric.util.TextUtils;
 
 import java.io.BufferedReader;
 import java.io.File;

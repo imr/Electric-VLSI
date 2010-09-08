@@ -32,12 +32,12 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.RoutingFrame;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Dimension;
 import java.awt.Frame;

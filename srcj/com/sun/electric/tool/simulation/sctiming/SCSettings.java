@@ -24,7 +24,7 @@
  */
 package com.sun.electric.tool.simulation.sctiming;
 
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.util.List;
 import java.util.ArrayList;

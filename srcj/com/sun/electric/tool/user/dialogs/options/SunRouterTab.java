@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
 

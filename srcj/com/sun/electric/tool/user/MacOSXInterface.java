@@ -36,10 +36,10 @@ import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationAdapter;
 import com.apple.eawt.ApplicationEvent;
 import com.sun.electric.Main;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.HelpMenu;
+import com.sun.electric.util.TextUtils;
 
 import java.net.URL;
 import java.util.ArrayList;

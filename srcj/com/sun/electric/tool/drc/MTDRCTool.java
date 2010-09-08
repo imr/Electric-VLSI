@@ -27,13 +27,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.tool.Consumer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.MultiTaskJob;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.technology.*;
+import com.sun.electric.util.TextUtils;
 
 import java.util.*;
 

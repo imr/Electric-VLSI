@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Technology;
@@ -32,6 +31,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.dialogs.DesignRulesPanel;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.GridBagConstraints;
 import java.awt.Insets;

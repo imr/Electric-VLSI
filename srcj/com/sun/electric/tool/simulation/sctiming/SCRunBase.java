@@ -28,12 +28,12 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.TextUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

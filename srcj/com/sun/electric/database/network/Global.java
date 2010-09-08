@@ -27,7 +27,8 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Name;
 
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.HashMap;

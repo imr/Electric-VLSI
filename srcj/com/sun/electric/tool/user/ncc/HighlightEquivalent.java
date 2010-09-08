@@ -39,7 +39,6 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
@@ -54,6 +53,7 @@ import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.util.TextUtils;
 
 /** Called from Tool -> NCC -> Highlight Equivalent */
 public class HighlightEquivalent {

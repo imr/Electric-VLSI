@@ -26,7 +26,7 @@
  */
 package com.sun.electric.tool.generator.cmosPLA;
 
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

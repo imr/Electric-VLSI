@@ -25,7 +25,6 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -37,6 +36,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;

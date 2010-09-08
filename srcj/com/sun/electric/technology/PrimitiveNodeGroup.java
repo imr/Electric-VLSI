@@ -27,9 +27,9 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

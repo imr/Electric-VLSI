@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.waveform;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.simulation.BusSample;
@@ -46,6 +45,7 @@ import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

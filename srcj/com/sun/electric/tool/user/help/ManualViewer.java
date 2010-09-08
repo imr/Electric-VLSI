@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.help;
 import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -42,6 +41,7 @@ import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Dimension;
 import java.awt.Frame;

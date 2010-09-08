@@ -27,7 +27,6 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
@@ -39,6 +38,7 @@ import com.sun.electric.tool.io.input.bookshelf.Bookshelf;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.util.TextUtils;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;

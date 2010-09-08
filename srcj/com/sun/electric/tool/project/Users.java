@@ -25,8 +25,8 @@
  */
 package com.sun.electric.tool.project;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.TextUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;

@@ -24,10 +24,10 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.Panel.WaveSelection;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 import java.awt.Graphics;

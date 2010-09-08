@@ -26,11 +26,11 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;
 import java.net.URL;

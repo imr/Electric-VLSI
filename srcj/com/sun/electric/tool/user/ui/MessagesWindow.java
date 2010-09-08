@@ -23,13 +23,13 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.BorderLayout;
 import java.awt.Component;

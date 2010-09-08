@@ -33,7 +33,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Iterator;

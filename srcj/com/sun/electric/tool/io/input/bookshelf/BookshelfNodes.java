@@ -24,11 +24,11 @@
 package com.sun.electric.tool.io.input.bookshelf;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.BookshelfNets.BookshelfNet;
 import com.sun.electric.util.CollectionFactory;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;

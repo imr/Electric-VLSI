@@ -27,9 +27,9 @@
 package com.sun.electric.tool.simulation.als;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.als.ALS.IO;
 import com.sun.electric.tool.simulation.als.ALS.Stat;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Iterator;

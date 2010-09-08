@@ -23,7 +23,7 @@
  */
 package com.sun.electric.lib;
 
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.net.URL;
 import java.util.ArrayList;

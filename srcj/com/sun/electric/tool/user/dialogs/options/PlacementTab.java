@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.placement.Placement;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementParameter;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Component;
 import java.awt.Frame;

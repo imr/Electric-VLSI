@@ -37,7 +37,6 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.PrefPackage;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.variable.Variable;
@@ -52,6 +51,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;

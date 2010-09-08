@@ -24,11 +24,11 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
+import com.sun.electric.util.TextUtils;
 
 import javax.swing.JPanel;
 

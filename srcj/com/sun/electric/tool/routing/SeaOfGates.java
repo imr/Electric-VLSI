@@ -43,7 +43,6 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
@@ -55,6 +54,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngine;
 import com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngineFactory;
 import com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngineFactory.SeaOfGatesEngineType;
+import com.sun.electric.util.TextUtils;
 
 /**
  * Class to control sea-of-gates routing.

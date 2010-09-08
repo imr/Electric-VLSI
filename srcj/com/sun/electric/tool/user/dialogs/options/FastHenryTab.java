@@ -23,9 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

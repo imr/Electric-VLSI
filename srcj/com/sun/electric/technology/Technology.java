@@ -45,7 +45,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -63,6 +62,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;

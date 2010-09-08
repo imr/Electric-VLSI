@@ -29,8 +29,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.TextUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;

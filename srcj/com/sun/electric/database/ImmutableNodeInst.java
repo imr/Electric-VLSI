@@ -37,13 +37,14 @@ import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.util.TextUtils;
+
 import java.awt.geom.Point2D;
 
 import java.awt.geom.Rectangle2D;

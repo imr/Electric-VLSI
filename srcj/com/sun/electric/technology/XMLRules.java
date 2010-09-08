@@ -24,9 +24,9 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.util.TextUtils;
 
 import java.util.*;
 import java.io.Serializable;

@@ -29,7 +29,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.tool.user.User;
@@ -43,6 +42,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.util.TextUtils;
 
 import javax.swing.*;
 import java.io.*;

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;
 import java.io.StreamTokenizer;

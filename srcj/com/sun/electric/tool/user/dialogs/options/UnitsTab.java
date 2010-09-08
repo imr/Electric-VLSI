@@ -23,9 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.TextUtils.UnitScale;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.TextUtils.UnitScale;
 
 import java.awt.Frame;
 

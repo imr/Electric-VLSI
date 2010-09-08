@@ -25,11 +25,11 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.extract.Extract;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
+import com.sun.electric.util.TextUtils;
 
 import javax.swing.JPanel;
 

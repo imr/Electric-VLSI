@@ -25,8 +25,8 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import javax.swing.JPanel;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.erc.ERCWellCheck;
+import com.sun.electric.util.TextUtils;
 
 /**
  * Class to handle the "Well Check" tab of the Preferences dialog.

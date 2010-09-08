@@ -25,7 +25,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 /**
  * Holds the Width and Length of a PrimitiveNode that is a transistor.

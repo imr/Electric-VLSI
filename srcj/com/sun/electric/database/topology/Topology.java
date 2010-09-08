@@ -40,9 +40,9 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;

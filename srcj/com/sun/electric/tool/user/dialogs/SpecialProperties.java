@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -37,6 +36,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;

@@ -27,11 +27,11 @@
 
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
+import com.sun.electric.util.TextUtils;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -32,7 +32,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -47,6 +46,7 @@ import com.sun.electric.tool.placement.Placement;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;

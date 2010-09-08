@@ -39,7 +39,6 @@ import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
@@ -49,6 +48,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.BitSet;

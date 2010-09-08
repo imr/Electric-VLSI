@@ -25,7 +25,7 @@
 package com.sun.electric.database.network;
 
 import com.sun.electric.database.text.ArrayIterator;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

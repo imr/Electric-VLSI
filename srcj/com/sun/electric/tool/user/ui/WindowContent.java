@@ -24,11 +24,11 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Cursor;
 import java.awt.image.BufferedImage;

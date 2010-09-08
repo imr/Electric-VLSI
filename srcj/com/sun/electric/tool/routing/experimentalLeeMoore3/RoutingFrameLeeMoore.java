@@ -26,10 +26,10 @@ package com.sun.electric.tool.routing.experimentalLeeMoore3;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

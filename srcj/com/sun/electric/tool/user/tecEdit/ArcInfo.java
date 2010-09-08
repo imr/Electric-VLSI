@@ -29,10 +29,10 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;

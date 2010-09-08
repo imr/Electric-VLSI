@@ -46,7 +46,6 @@ import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.Consumer;
@@ -57,6 +56,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.util.TextUtils;
 
 import java.net.URL;
 import java.util.ArrayList;

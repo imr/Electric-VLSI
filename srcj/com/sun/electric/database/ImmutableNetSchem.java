@@ -35,7 +35,6 @@ import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -43,6 +42,7 @@ import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -23,9 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
 

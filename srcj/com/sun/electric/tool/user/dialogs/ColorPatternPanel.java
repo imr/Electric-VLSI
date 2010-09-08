@@ -26,10 +26,10 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EGraphics.Outline;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 import java.awt.Dimension;

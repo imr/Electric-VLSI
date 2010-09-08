@@ -30,10 +30,10 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.ncc.result.PortReport.PortReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.TextUtils;
 
 /** An NCC Port holds all the Export names associated with a single NCC
  * Wire. */ 

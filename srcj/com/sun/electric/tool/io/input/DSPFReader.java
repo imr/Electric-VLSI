@@ -2,12 +2,12 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.TextUtils;
 
 import java.net.URL;
 import java.util.*;

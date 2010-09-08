@@ -24,9 +24,9 @@
 package com.sun.electric.tool.extract;
 
 import com.sun.electric.database.geometry.*;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.util.TextUtils;
 
 import java.util.*;
 import java.awt.geom.Rectangle2D;

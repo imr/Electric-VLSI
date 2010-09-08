@@ -32,7 +32,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.PrefPackage;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -50,6 +49,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;

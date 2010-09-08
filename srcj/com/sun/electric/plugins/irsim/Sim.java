@@ -17,7 +17,6 @@
  */
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
@@ -27,6 +26,7 @@ import com.sun.electric.tool.extract.RCPBucket;
 import com.sun.electric.tool.extract.TransistorPBucket;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.util.TextUtils;
 
 import java.io.File;
 import java.io.IOException;

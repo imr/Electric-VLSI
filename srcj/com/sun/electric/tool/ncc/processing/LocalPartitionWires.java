@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.netlist.NetObject;
@@ -47,6 +46,7 @@ import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.Job;
+import com.sun.electric.util.TextUtils;
 
 /**
  * Partition Wires into equivalence classes based only upon

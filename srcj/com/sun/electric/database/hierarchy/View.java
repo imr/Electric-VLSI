@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

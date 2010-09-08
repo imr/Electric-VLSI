@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.LibId;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
@@ -52,6 +51,7 @@ import com.sun.electric.tool.io.output.bookshelf.BookshelfOutput;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;

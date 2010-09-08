@@ -28,7 +28,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -37,6 +36,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.io.input.Input.InputPreferences;
 import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.util.TextUtils;
 
 import java.lang.reflect.Method;
 import java.net.URL;

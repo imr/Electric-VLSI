@@ -29,7 +29,7 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.text.ArrayIterator;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;
 import java.io.Serializable;

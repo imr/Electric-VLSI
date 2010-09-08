@@ -35,9 +35,9 @@ import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;

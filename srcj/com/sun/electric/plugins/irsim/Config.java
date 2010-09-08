@@ -18,7 +18,7 @@
 
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;
 import java.io.InputStream;

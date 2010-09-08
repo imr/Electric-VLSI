@@ -34,7 +34,6 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -47,6 +46,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Point;
 import java.awt.geom.AffineTransform;

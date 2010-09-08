@@ -26,10 +26,10 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 

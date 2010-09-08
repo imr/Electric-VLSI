@@ -28,8 +28,8 @@
 package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Iterator;

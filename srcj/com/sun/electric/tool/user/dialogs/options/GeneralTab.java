@@ -24,13 +24,13 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
 import java.util.HashMap;

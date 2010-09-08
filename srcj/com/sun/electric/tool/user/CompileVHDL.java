@@ -29,9 +29,9 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.sc.SilComp;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Date;

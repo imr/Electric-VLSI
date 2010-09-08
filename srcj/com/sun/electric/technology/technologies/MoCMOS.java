@@ -26,7 +26,6 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -43,6 +42,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.TextUtils;
 
 import java.io.PrintWriter;
 import java.util.*;

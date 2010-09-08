@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
@@ -36,6 +35,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
 import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
+import com.sun.electric.util.TextUtils;
 
 /**
  * @author Felix Schmidt

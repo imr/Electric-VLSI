@@ -26,12 +26,12 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.io.output.Topology.CellNetInfo;
 import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.simulation.SimulationTool;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;

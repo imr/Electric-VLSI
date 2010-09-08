@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user.tecEditWizard2;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;

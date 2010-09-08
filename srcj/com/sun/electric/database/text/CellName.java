@@ -24,6 +24,7 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.util.TextUtils;
 
 /**
  * A CellName is a text-parsing object for Cell names.

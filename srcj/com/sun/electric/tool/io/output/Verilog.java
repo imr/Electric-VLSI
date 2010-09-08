@@ -39,7 +39,6 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -56,6 +55,7 @@ import com.sun.electric.tool.io.input.verilog.VerilogData;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.dialogs.BusParameters;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;

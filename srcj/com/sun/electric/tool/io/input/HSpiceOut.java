@@ -26,7 +26,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.ComplexSample;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.ScalarSample;
@@ -34,6 +33,7 @@ import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.SweptSample;
+import com.sun.electric.util.TextUtils;
 
 import java.io.File;
 import java.io.IOException;

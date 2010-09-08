@@ -25,11 +25,11 @@ package com.sun.electric.tool.user.waveform;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 import java.awt.Dimension;

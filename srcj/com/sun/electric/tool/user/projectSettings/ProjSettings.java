@@ -24,13 +24,13 @@
 package com.sun.electric.tool.user.projectSettings;
 
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.util.TextUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

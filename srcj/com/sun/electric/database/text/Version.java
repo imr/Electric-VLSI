@@ -24,6 +24,7 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.util.TextUtils;
 
 import java.io.File;
 import java.io.Serializable;

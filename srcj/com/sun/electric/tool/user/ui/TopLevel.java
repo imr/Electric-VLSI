@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -34,6 +33,7 @@ import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;

@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.user.tecEditWizard;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.Job;
@@ -34,6 +33,7 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.technology.*;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
 import java.io.BufferedWriter;

@@ -24,11 +24,11 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

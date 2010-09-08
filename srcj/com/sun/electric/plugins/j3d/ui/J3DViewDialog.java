@@ -23,7 +23,6 @@
  */
 package com.sun.electric.plugins.j3d.ui;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
@@ -31,6 +30,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -28,10 +28,10 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.util.TextUtils;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DSerialization;
-import com.sun.electric.database.text.TextUtils;
 
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;

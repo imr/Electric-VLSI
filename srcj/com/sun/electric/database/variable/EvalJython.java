@@ -25,11 +25,11 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
