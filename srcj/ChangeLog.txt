@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+IMP: (9/8/10, FS) Move GenMath and DBMath com.sun.electric.util.math
+
 IMP: (9/8/10, FS) Refactoring: ElapseTimer, use ElapseTimer instead of single
      timestamps. This refactoring removes the function: getElapsedTime, this is 
      solved inside the ElapsedTimer
