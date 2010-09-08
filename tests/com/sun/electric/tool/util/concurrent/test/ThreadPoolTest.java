@@ -41,6 +41,7 @@ import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerE
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolState;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolType;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
 
 public class ThreadPoolTest {
@@ -94,7 +95,8 @@ public class ThreadPoolTest {
 		ThreadPool pool = ThreadPool.initialize();
 		pool.start();
 
-		long startTime = System.currentTimeMillis();
+		ElapseTimer timer = ElapseTimer.createInstance();
+		timer.start();
 
 		PJob job = new PJob();
 		job.add(new TestTask(0, job), PJob.SERIAL);
@@ -120,13 +122,11 @@ public class ThreadPoolTest {
 		
 		Assert.assertEquals(ThreadPoolState.Started, pool.getState());
 
-		long endTime = System.currentTimeMillis();
+		timer.end();
 
 		pool.shutdown();
 
-		long total = endTime - startTime;
-
-		System.out.println("test took: " + TextUtils.getElapsedTime(total));
+		System.out.println("test took: " + timer.toString());
 
 	}
 	

@@ -44,6 +44,7 @@ import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.test.blackScholes.OptionData.OptionType;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
 
 /**
@@ -69,6 +70,9 @@ public class Main {
 		String outputFile = args[2];
 		String outtest = null;
 		String scheduler = args[5];
+		
+		ElapseTimer timer = ElapseTimer.createInstance();
+		
 		try {
 			SchedulingStrategy.valueOf(scheduler);
 		} catch (Exception ex) {
@@ -87,21 +91,21 @@ public class Main {
 
 		ThreadPool.initialize(new LockFreeStack<PTask>(), numOfThreads);
 
-		long start = System.currentTimeMillis();
+		timer.start();
 
 		Parallel.For(new BlockedRange1D(0, options.size(), grain), new BS_Task(options, false));
 
-		long end = System.currentTimeMillis();
+		timer.end();
 
 		ThreadPool.getThreadPool().shutdown();
 
-		System.out.println(TextUtils.getElapsedTime(end - start));
+		System.out.println(timer.toString());
 
 		Main.writeOutputFile(outputFile, options);
 
 		if (outtest != null) {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(outtest, true));
-			bw.write(numOfThreads + "," + grain + "," + String.valueOf(end - start));
+			bw.write(numOfThreads + "," + grain + "," + String.valueOf(timer.getTime()));
 			bw.newLine();
 			bw.flush();
 		}

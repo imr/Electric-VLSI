@@ -40,6 +40,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
 
 /**
@@ -79,37 +80,38 @@ public class SchedulingTest {
 		System.out.println("==                  Queue                   ==");
 
 		IStructure<PTask> structure = CollectionFactory.createLockFreeQueue();
-		long queue = this.runMatrixMultiplication(structure);
+		ElapseTimer tQueue = this.runMatrixMultiplication(structure);
 
 		System.out.println("==============================================");
 		System.out.println("==============================================");
 		System.out.println("==                  Stack                   ==");
 
 		structure = CollectionFactory.createLockFreeStack();
-		long stack = this.runMatrixMultiplication(structure);
+		ElapseTimer tStack = this.runMatrixMultiplication(structure);
 
 		System.out.println("==============================================");
 		System.out.println("==============================================");
 		System.out.println("==                Stealing                  ==");
 
 		structure = WorkStealingStructure.createForThreadPool(numOfThreads);
-		long stealing = this.runMatrixMultiplication(structure);
+		ElapseTimer tSteal = this.runMatrixMultiplication(structure);
 		System.out.println("steals: " + StealTracker.getInstance().getStealCounter());
 
 		System.out.println("==============================================");
 
-		System.out.println("Queue:    " + TextUtils.getElapsedTime(queue));
-		System.out.println("Stack:    " + TextUtils.getElapsedTime(stack));
-		System.out.println("Stealing: " + TextUtils.getElapsedTime(stealing));
+		System.out.println("Queue:    " + tQueue.toString());
+		System.out.println("Stack:    " + tStack.toString());
+		System.out.println("Stealing: " + tSteal.toString());
 	}
 
-	private long runMatrixMultiplication(IStructure<PTask> structure) throws PoolExistsException, InterruptedException {
+	private ElapseTimer runMatrixMultiplication(IStructure<PTask> structure) throws PoolExistsException, InterruptedException {
+		ElapseTimer timer = ElapseTimer.createInstance();
 		ThreadPool pool = ThreadPool.initialize(structure, numOfThreads);
-		long start = System.currentTimeMillis();
+		timer.start();
 		Parallel.For(new BlockedRange2D(0, size, 64, 0, size, 64), new MatrixMultTask(size));
-		long end = System.currentTimeMillis();
+		timer.end();
 		pool.shutdown();
-		return end - start;
+		return timer;
 	}
 
 	public static class MatrixMultTask extends PForTask {
