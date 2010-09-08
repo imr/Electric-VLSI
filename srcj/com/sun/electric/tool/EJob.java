@@ -29,6 +29,7 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.tool.Job.Type;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -98,10 +99,8 @@ public class EJob {
     public Job.Inform getInform() {
         boolean isChange = jobType == Type.CHANGE || jobType == Type.UNDO;
         String toString = jobName+" (waiting)";
-        long startTime = 0;
-        long endTime = 0;
         int finished = -1;
-        return new Job.Inform(jobKey, isChange, toString, startTime, endTime, finished);
+        return new Job.Inform(jobKey, isChange, toString, ElapseTimer.createInstance(), finished);
     }
 
     public boolean isExamine() {

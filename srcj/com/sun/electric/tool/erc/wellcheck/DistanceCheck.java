@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
 import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
 import com.sun.electric.tool.erc.ERCWellCheck.WellNet;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 /**
  * @author Felix Schmidt
@@ -93,7 +94,7 @@ public class DistanceCheck implements WellCheckAnalysisStrategy {
 	 */
 	public void execute() {
 		if (parameter.getWellPrefs().findWorstCaseWell) {
-			long startTime = System.currentTimeMillis();
+			ElapseTimer timer = ElapseTimer.createInstance().start();
 			worstPWellDist = 0;
 			worstPWellCon = null;
 			worstPWellEdge = null;
@@ -149,10 +150,9 @@ public class DistanceCheck implements WellCheckAnalysisStrategy {
 					}
 				}
 			}
-			long endTime = System.currentTimeMillis();
+			timer.end();
 			System.out.println("   Worst-case distance analysis took "
-					+ TextUtils.getElapsedTime(endTime - startTime));
-			startTime = endTime;
+					+ timer);
 		}
 
 	}

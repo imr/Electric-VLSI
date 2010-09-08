@@ -205,7 +205,7 @@ public class EditWindow extends JPanel
 	/** scheduled or running rendering job */				private static RenderJob runningNow = null;
 	/** Logger of this package. */							private static Logger logger = Logger.getLogger("com.sun.electric.tool.user.ui");
 	/** Class name for logging. */							private static String CLASS_NAME = EditWindow.class.getName();
-    /** Timer object for pulsating errors */                private Timer pulsatingTimer;
+    /** ElapseTimer object for pulsating errors */                private Timer pulsatingTimer;
     /** if true, repaint entire screen (not just errors) */ private boolean dirty;
 
 	private static final int SCROLLBARRESOLUTION = 200;

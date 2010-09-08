@@ -34,200 +34,229 @@ import java.util.List;
 
 import com.sun.electric.tool.routing.experimentalLeeMoore1.LeeMoore.RoutingArray;
 import com.sun.electric.tool.routing.experimentalLeeMoore1.LeeMoore.Tupel;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 public class yana extends BenchmarkRouter {
 
-    protected final boolean output = enableOutput.getBooleanValue();
-    
+	protected final boolean output = enableOutput.getBooleanValue();
+
 	/*
-     * GUI
-     */
-    private static int progressMax = 0;
-    private static int progress = 0;
-    private static UserInterface gui;
+	 * GUI
+	 */
+	private static int progressMax = 0;
+	private static int progress = 0;
+	private static UserInterface gui;
 
-    /*
-     * Parameters
-     */
-//    public RoutingParameter maxThreadsParameter = new RoutingParameter("threads", "Number of Threads to use:", 4);
-    public static int maxThreads;
-    public RoutingParameter numPartitionsParameter = new RoutingParameter("partitions", "Number of partitions to use:", Math.max(26,Math.max(Runtime.getRuntime().availableProcessors(),numThreads.getIntValue())));
-    //public RoutingParameter numPartitionsParameter = new RoutingParameter("partitions", "Number of partitions to use:", 5);
-    public static int numPartitions;
-    public RoutingParameter regionDivideMethodParameter = new RoutingParameter("region-generation-method", "Method used to devide the grid into regions:", 1);
-    public static int regionDivideMethod;
-    //1=optimal balanced in x and y direction
-    //2=simple stripes
-    //3=adapted so that regions have the same ratio than the grid dimensions
-    public RoutingParameter maxLayerUseParameter=new RoutingParameter("maxLayerUse", "Restrict number of layers to use", 5);
-    public static int maxLayerUse;
-    public RoutingParameter minimumRegionBorderLengthParameter = new RoutingParameter("minimumRegionBorderLength", "Minumum length the regions must have:", 20);
-    public static int minimumRegionBorderLength;
-    //public RoutingParameter widthWhereJustOneWireIsPermittedParameter = new RoutingParameter("widthWhereJustOneWireIsPermitted", "Wire-thickness + 2*spacing-length to next wire", 9);
-    public static int distanceBetweenWires; //should be = wirethickness + 2*requiredspacing
-    //if there are to much regions, so that this constraint cant be held, than the numpartitions will be reduced until this constraint is fulfilled
-    /*
-     * Others
-     */
-    public static CyclicBarrier barrierRouting;
-    public static CyclicBarrier barrierWiring;
-    public static ConcurrentHashMap<Integer, Boolean> unroutedNets=new ConcurrentHashMap<Integer, Boolean>();
+	/*
+	 * Parameters
+	 */
+	// public RoutingParameter maxThreadsParameter = new
+	// RoutingParameter("threads", "Number of Threads to use:", 4);
+	public static int maxThreads;
+	public RoutingParameter numPartitionsParameter = new RoutingParameter("partitions", "Number of partitions to use:",
+			Math.max(26, Math.max(Runtime.getRuntime().availableProcessors(), numThreads.getIntValue())));
+	// public RoutingParameter numPartitionsParameter = new
+	// RoutingParameter("partitions", "Number of partitions to use:", 5);
+	public static int numPartitions;
+	public RoutingParameter regionDivideMethodParameter = new RoutingParameter("region-generation-method",
+			"Method used to devide the grid into regions:", 1);
+	public static int regionDivideMethod;
+	// 1=optimal balanced in x and y direction
+	// 2=simple stripes
+	// 3=adapted so that regions have the same ratio than the grid dimensions
+	public RoutingParameter maxLayerUseParameter = new RoutingParameter("maxLayerUse",
+			"Restrict number of layers to use", 5);
+	public static int maxLayerUse;
+	public RoutingParameter minimumRegionBorderLengthParameter = new RoutingParameter("minimumRegionBorderLength",
+			"Minumum length the regions must have:", 20);
+	public static int minimumRegionBorderLength;
+	// public RoutingParameter widthWhereJustOneWireIsPermittedParameter = new
+	// RoutingParameter("widthWhereJustOneWireIsPermitted",
+	// "Wire-thickness + 2*spacing-length to next wire", 9);
+	public static int distanceBetweenWires; // should be = wirethickness +
+											// 2*requiredspacing
+	// if there are to much regions, so that this constraint cant be held, than
+	// the numpartitions will be reduced until this constraint is fulfilled
+	/*
+	 * Others
+	 */
+	public static CyclicBarrier barrierRouting;
+	public static CyclicBarrier barrierWiring;
+	public static ConcurrentHashMap<Integer, Boolean> unroutedNets = new ConcurrentHashMap<Integer, Boolean>();
 
-    /**
-     * Method to return the name of this routing algorithm.
-     * @return the name of this routing algorithm.
-     */
-    @Override
-    public String getAlgorithmName() {
-        return "Lee/Moore - 1";
-    }
+	/**
+	 * Method to return the name of this routing algorithm.
+	 * 
+	 * @return the name of this routing algorithm.
+	 */
+	@Override
+	public String getAlgorithmName() {
+		return "Lee/Moore - 1";
+	}
 
-    /**
-     * Method to return a list of parameters for this routing algorithm.
-     * @return a list of parameters for this routing algorithm.
-     */
-    @Override
-    public List<RoutingParameter> getParameters() {
-//        allParameters.add(maxThreadsParameter);
-        allParameters.add(numPartitionsParameter);
-        allParameters.add(regionDivideMethodParameter);
-        allParameters.add(minimumRegionBorderLengthParameter);
-        //allParams.add(widthWhereJustOneWireIsPermittedParameter);
-        allParameters.add(maxLayerUseParameter);
-        return allParameters;
-    }
+	/**
+	 * Method to return a list of parameters for this routing algorithm.
+	 * 
+	 * @return a list of parameters for this routing algorithm.
+	 */
+	@Override
+	public List<RoutingParameter> getParameters() {
+		// allParameters.add(maxThreadsParameter);
+		allParameters.add(numPartitionsParameter);
+		allParameters.add(regionDivideMethodParameter);
+		allParameters.add(minimumRegionBorderLengthParameter);
+		// allParams.add(widthWhereJustOneWireIsPermittedParameter);
+		allParameters.add(maxLayerUseParameter);
+		return allParameters;
+	}
 
-    /**
-     * Method to do Simple routing.
-     */
-    @Override
-    protected void runRouting(Cell cell, List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,
-            List<RoutingContact> allContacts, List<RoutingGeometry> blockages) {
+	/**
+	 * Method to do Simple routing.
+	 */
+	@Override
+	protected void runRouting(Cell cell, List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,
+			List<RoutingContact> allContacts, List<RoutingGeometry> blockages) {
 
-//        printChipStatistics(cell, segmentsToRoute, allLayers, allContacts, blockages);
-        
-        
-        long start_time = System.currentTimeMillis();
-        if(output)
-        System.out.println("electric goes yana...");
-        
-        int maxRuntimeMs=this.maxRuntime.getIntValue()*1000;
-        
-        maxThreads = (numThreads.getIntValue() < 1) ? 1 : numThreads.getIntValue();
-        numPartitions = (numPartitionsParameter.getIntValue() < 1) ? 1 : numPartitionsParameter.getIntValue();
-        minimumRegionBorderLength = (minimumRegionBorderLengthParameter.getIntValue() < 2) ? 2 : minimumRegionBorderLengthParameter.getIntValue();
-        //distanceBetweenWires = (widthWhereJustOneWireIsPermittedParameter.getIntValue() < 1) ? 1 : widthWhereJustOneWireIsPermittedParameter.getIntValue();
-        regionDivideMethod = regionDivideMethodParameter.getIntValue();
-        //regionDivideMethod can be any value, but if it is an unkown one, there will be just one region
-        
-        maxLayerUse=maxLayerUseParameter.getIntValue();
-        if(maxLayerUse<=0 || maxLayerUse>countLayers(allLayers)){
-        	maxLayerUse=countLayers(allLayers);
-        }
-        
-        int dist= 0;
-        int width = 0;
-        int currentLayer = 0;
-        for (RoutingLayer rl : allLayers) {
-            if(rl.isMetal() && currentLayer<maxLayerUse){
-	        	if (rl.getMinSpacing(rl)>dist) {
-	                dist=(int)Math.round(rl.getMinSpacing(rl));
-	            }
-	            if(rl.getMinWidth()>width){
-	                width = (int)Math.round(rl.getMinWidth());
-	            }
-	            currentLayer++;
-            }
-        }
-        
-        //distance: free space needed between two objects on the same layer
-        //width: width of a wire
-        //assumption: vias are width+1 thick (except vias from the last layer
-        if(width<5){
-        	width++;
-        }
-        distanceBetweenWires = dist + width;
+		// printChipStatistics(cell, segmentsToRoute, allLayers, allContacts,
+		// blockages);
 
-        if(output)
-        System.out.println("Running " + maxThreads + " Threads on " + numPartitions + " partitions each minimum " + minimumRegionBorderLength + " length and " + distanceBetweenWires + " wire spacing.");
-        initProgress();
+		ElapseTimer timer = ElapseTimer.createInstance().start();
+		if (output)
+			System.out.println("electric goes yana...");
 
-        initializeWiringClass(allLayers, allContacts);
+		int maxRuntimeMs = this.maxRuntime.getIntValue() * 1000;
 
-        // for testing purposes: identify blocking cells -> will be deleted later
-//        Iterator<NodeInst> iter = cell.getNodes();
-//        while (iter.hasNext()) {
-//            NodeInst node = iter.next();
-//            if (node.getName().contains("blockage")) {
-//                for (RoutingLayer rl : allLayers) {
-//                    RoutingGeometry blockage = new RoutingGeometry(rl, node.getBounds(), 0);
-//                    blockages.add(blockage);
-//                }
-//            }
-//        }
+		maxThreads = (numThreads.getIntValue() < 1) ? 1 : numThreads.getIntValue();
+		numPartitions = (numPartitionsParameter.getIntValue() < 1) ? 1 : numPartitionsParameter.getIntValue();
+		minimumRegionBorderLength = (minimumRegionBorderLengthParameter.getIntValue() < 2) ? 2
+				: minimumRegionBorderLengthParameter.getIntValue();
+		// distanceBetweenWires =
+		// (widthWhereJustOneWireIsPermittedParameter.getIntValue() < 1) ? 1 :
+		// widthWhereJustOneWireIsPermittedParameter.getIntValue();
+		regionDivideMethod = regionDivideMethodParameter.getIntValue();
+		// regionDivideMethod can be any value, but if it is an unkown one,
+		// there will be just one region
 
-        //create barriers
-        barrierRouting = new CyclicBarrier(maxThreads, new Runnable() {
+		maxLayerUse = maxLayerUseParameter.getIntValue();
+		if (maxLayerUse <= 0 || maxLayerUse > countLayers(allLayers)) {
+			maxLayerUse = countLayers(allLayers);
+		}
 
-            public void run() {
-                WorkPool.prepare();
-            }
-        });
-        
-        barrierWiring = new CyclicBarrier(maxThreads);
+		int dist = 0;
+		int width = 0;
+		int currentLayer = 0;
+		for (RoutingLayer rl : allLayers) {
+			if (rl.isMetal() && currentLayer < maxLayerUse) {
+				if (rl.getMinSpacing(rl) > dist) {
+					dist = (int) Math.round(rl.getMinSpacing(rl));
+				}
+				if (rl.getMinWidth() > width) {
+					width = (int) Math.round(rl.getMinWidth());
+				}
+				currentLayer++;
+			}
+		}
 
-        //configure the Tupel-class static variables
-        Tupel.setOffset(cell.getBounds().getLambdaX(), cell.getBounds().getLambdaY(), 10, output);
+		// distance: free space needed between two objects on the same layer
+		// width: width of a wire
+		// assumption: vias are width+1 thick (except vias from the last layer
+		if (width < 5) {
+			width++;
+		}
+		distanceBetweenWires = dist + width;
 
-        //the global routing array, where the routing will be done from each thread
-        RoutingArray ra = new RoutingArray(cell, maxLayerUse, blockages, 3);
+		if (output)
+			System.out.println("Running " + maxThreads + " Threads on " + numPartitions + " partitions each minimum "
+					+ minimumRegionBorderLength + " length and " + distanceBetweenWires + " wire spacing.");
+		initProgress();
 
-        //DEBUG
-//        System.out.println("Interessantes Tupel: " + Tupel.convertElectricToRoutingArrayCoordinate_X(208) + "," + Tupel.convertElectricToRoutingArrayCoordinate_Y(101));
+		initializeWiringClass(allLayers, allContacts);
 
-        //set start and end points as blocked
-        markStartEndAsBlocked(segmentsToRoute, ra);
+		// for testing purposes: identify blocking cells -> will be deleted
+		// later
+		// Iterator<NodeInst> iter = cell.getNodes();
+		// while (iter.hasNext()) {
+		// NodeInst node = iter.next();
+		// if (node.getName().contains("blockage")) {
+		// for (RoutingLayer rl : allLayers) {
+		// RoutingGeometry blockage = new RoutingGeometry(rl, node.getBounds(),
+		// 0);
+		// blockages.add(blockage);
+		// }
+		// }
+		// }
 
-        //create all workers
-        WorkerThread[] workerObjects = new WorkerThread[maxThreads];
-        Thread[] workerThreads = new Thread[maxThreads];
-        for (int i = 0; i < maxThreads; i++) {
-            workerObjects[i] = new WorkerThread(i);
-            workerThreads[i] = new Thread(workerObjects[i]);
-            //do not start the threads here, because they have to be initialized first
-        }
-        maxRuntimeMs=(int)(System.currentTimeMillis()-start_time)+maxRuntimeMs;		//calculate runtime without initialization
-        WorkerThread.init(workerObjects, maxLayerUse, ra, segmentsToRoute,maxRuntimeMs, output);
+		// create barriers
+		barrierRouting = new CyclicBarrier(maxThreads, new Runnable() {
 
-        //start all threads
-        for (int i = 0; i < maxThreads; i++) {
-            workerThreads[i].start();
-        }
+			public void run() {
+				WorkPool.prepare();
+			}
+		});
 
-        // wait until threads have finished their work. afterwards we can do the return
-        try {
-            for (int i = 0; i < maxThreads; i++) {
-                workerThreads[i].join();
-            }
-        } catch (InterruptedException ex) {
-            Logger.getLogger(yana.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        if(output)
-        System.out.println("yana complete...");
-        closeProgress();
-        if(output)
-        System.out.println("YANA-time: " + TextUtils.getElapsedTime(System.currentTimeMillis() - start_time));
-        System.gc();
-    }
+		barrierWiring = new CyclicBarrier(maxThreads);
 
-    private void initializeWiringClass(List<RoutingLayer> allLayers, List<RoutingContact> allContacts) {
-        //map metal layers which can be used for routing
+		// configure the Tupel-class static variables
+		Tupel.setOffset(cell.getBounds().getLambdaX(), cell.getBounds().getLambdaY(), 10, output);
+
+		// the global routing array, where the routing will be done from each
+		// thread
+		RoutingArray ra = new RoutingArray(cell, maxLayerUse, blockages, 3);
+
+		// DEBUG
+		// System.out.println("Interessantes Tupel: " +
+		// Tupel.convertElectricToRoutingArrayCoordinate_X(208) + "," +
+		// Tupel.convertElectricToRoutingArrayCoordinate_Y(101));
+
+		// set start and end points as blocked
+		markStartEndAsBlocked(segmentsToRoute, ra);
+
+		// create all workers
+		WorkerThread[] workerObjects = new WorkerThread[maxThreads];
+		Thread[] workerThreads = new Thread[maxThreads];
+		for (int i = 0; i < maxThreads; i++) {
+			workerObjects[i] = new WorkerThread(i);
+			workerThreads[i] = new Thread(workerObjects[i]);
+			// do not start the threads here, because they have to be
+			// initialized first
+		}
+		maxRuntimeMs = (int) (timer.currentTimeLong()) + maxRuntimeMs; // calculate
+																		// runtime
+																		// without
+																		// initialization
+		WorkerThread.init(workerObjects, maxLayerUse, ra, segmentsToRoute, maxRuntimeMs, output);
+
+		// start all threads
+		for (int i = 0; i < maxThreads; i++) {
+			workerThreads[i].start();
+		}
+
+		// wait until threads have finished their work. afterwards we can do the
+		// return
+		try {
+			for (int i = 0; i < maxThreads; i++) {
+				workerThreads[i].join();
+			}
+		} catch (InterruptedException ex) {
+			Logger.getLogger(yana.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		if (output)
+			System.out.println("yana complete...");
+		closeProgress();
+		if (output) {
+			timer.end();
+			System.out.println("YANA-time: " + timer);
+		}
+		System.gc();
+	}
+
+	private void initializeWiringClass(List<RoutingLayer> allLayers, List<RoutingContact> allContacts) {
+		// map metal layers which can be used for routing
 		int metalLayers = 0;
 		HashMap<String, Integer> metalLayerMap = new HashMap<String, Integer>();
 		for (RoutingLayer rl : allLayers) {
@@ -251,7 +280,7 @@ public class yana extends BenchmarkRouter {
 
 	/**
 	 * print some statistics about the chip
-	 *
+	 * 
 	 * 
 	 * @param cell
 	 * @param segmentsToRoute
@@ -259,8 +288,8 @@ public class yana extends BenchmarkRouter {
 	 * @param allContacts
 	 * @param blockages
 	 */
-	public void printChipStatistics(Cell cell, List<RoutingSegment> segmentsToRoute,
-			List<RoutingLayer> allLayers, List<RoutingContact> allContacts, List<RoutingGeometry> blockages) {
+	public void printChipStatistics(Cell cell, List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,
+			List<RoutingContact> allContacts, List<RoutingGeometry> blockages) {
 
 		int metalLayers = 0;
 
@@ -454,59 +483,59 @@ public class yana extends BenchmarkRouter {
 		int i;
 		for (RoutingSegment rs : segmentsToRoute) {
 			// original points
-			i=0;
-			
-			Tupel start = new Tupel(rs.getStartEnd().getLocation(), rs.getStartLayers().get(0)
-					.getMetalNumber() - 1);
-			Tupel end = new Tupel(rs.getFinishEnd().getLocation(), rs.getFinishLayers().get(0)
-					.getMetalNumber() - 1);
-			
-			//DEBUG
-//			if(start.getX_InsideRoutingArray()==93 && start.getY_InsideRoutingArray()==50){
-//	        	System.out.println("GOT IT");
-//	        }
-//	    	if(end.getX_InsideRoutingArray()==93 && end.getY_InsideRoutingArray()==50){
-//	        	System.out.println("GOT IT");
-//	        }
-			
+			i = 0;
+
+			Tupel start = new Tupel(rs.getStartEnd().getLocation(), rs.getStartLayers().get(0).getMetalNumber() - 1);
+			Tupel end = new Tupel(rs.getFinishEnd().getLocation(), rs.getFinishLayers().get(0).getMetalNumber() - 1);
+
+			// DEBUG
+			// if(start.getX_InsideRoutingArray()==93 &&
+			// start.getY_InsideRoutingArray()==50){
+			// System.out.println("GOT IT");
+			// }
+			// if(end.getX_InsideRoutingArray()==93 &&
+			// end.getY_InsideRoutingArray()==50){
+			// System.out.println("GOT IT");
+			// }
+
 			startEndPoints[i++] = start;
 			startEndPoints[i++] = end;
 			// points right and top of the original points
-			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() + 1, start
-					.getY_InsideRoutingArray(), start.getLayer(), false);
-			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray(),
-					start.getY_InsideRoutingArray() + 1, start.getLayer(), false);
-			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() + 1, start
-					.getY_InsideRoutingArray() + 1, start.getLayer(), false);
-			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() - 1, start
-					.getY_InsideRoutingArray(), start.getLayer(), false);
-			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray(),
-					start.getY_InsideRoutingArray() - 1, start.getLayer(), false);
-			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() - 1, start
-					.getY_InsideRoutingArray() - 1, start.getLayer(), false);
-			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() + 1, start
-					.getY_InsideRoutingArray() - 1, start.getLayer(), false);
-			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() - 1, start
-					.getY_InsideRoutingArray() + 1, start.getLayer(), false);
+			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() + 1, start.getY_InsideRoutingArray(), start
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray(), start.getY_InsideRoutingArray() + 1, start
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() + 1, start.getY_InsideRoutingArray() + 1,
+					start.getLayer(), false);
+			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() - 1, start.getY_InsideRoutingArray(), start
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray(), start.getY_InsideRoutingArray() - 1, start
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() - 1, start.getY_InsideRoutingArray() - 1,
+					start.getLayer(), false);
+			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() + 1, start.getY_InsideRoutingArray() - 1,
+					start.getLayer(), false);
+			startEndPoints[i++] = new Tupel(start.getX_InsideRoutingArray() - 1, start.getY_InsideRoutingArray() + 1,
+					start.getLayer(), false);
 
-			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() + 1, end.getY_InsideRoutingArray(),
-					end.getLayer(), false);
-			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray(), end.getY_InsideRoutingArray() + 1,
-					end.getLayer(), false);
-			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() + 1,
-					end.getY_InsideRoutingArray() + 1, end.getLayer(), false);
-			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() - 1, end.getY_InsideRoutingArray(),
-					end.getLayer(), false);
-			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray(), end.getY_InsideRoutingArray() - 1,
-					end.getLayer(), false);
-			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() - 1,
-					end.getY_InsideRoutingArray() - 1, end.getLayer(), false);
-			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() + 1,
-					end.getY_InsideRoutingArray() - 1, end.getLayer(), false);
-			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() - 1,
-					end.getY_InsideRoutingArray() + 1, end.getLayer(), false);
-			
-			ra.reserveForRouting(startEndPoints,rs.getNetID());
+			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() + 1, end.getY_InsideRoutingArray(), end
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray(), end.getY_InsideRoutingArray() + 1, end
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() + 1, end.getY_InsideRoutingArray() + 1, end
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() - 1, end.getY_InsideRoutingArray(), end
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray(), end.getY_InsideRoutingArray() - 1, end
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() - 1, end.getY_InsideRoutingArray() - 1, end
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() + 1, end.getY_InsideRoutingArray() - 1, end
+					.getLayer(), false);
+			startEndPoints[i++] = new Tupel(end.getX_InsideRoutingArray() - 1, end.getY_InsideRoutingArray() + 1, end
+					.getLayer(), false);
+
+			ra.reserveForRouting(startEndPoints, rs.getNetID());
 		}
 		ra.markReserved();
 	}
@@ -515,15 +544,15 @@ public class yana extends BenchmarkRouter {
 		super();
 	}
 
-	public static void markSegmentAsUnroutable(RoutingSegment rs){
+	public static void markSegmentAsUnroutable(RoutingSegment rs) {
 		unroutedNets.put(rs.hashCode(), false);
 	}
 
 	public static boolean isRouteable(RoutingSegment rs) {
-		if(unroutedNets.get(rs.hashCode())==null){
-			//segment can be routed
+		if (unroutedNets.get(rs.hashCode()) == null) {
+			// segment can be routed
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}

@@ -55,7 +55,7 @@ public class FillGenJob extends Job
 
         if (doItNow) // call from regressions
         {
-            startTime = System.currentTimeMillis(); // startTime doesn't get initialized
+            timer.start();
             try
             {
                 if (doIt())
@@ -80,10 +80,10 @@ public class FillGenJob extends Job
     public void terminateOK()
     {
         log.termLogging(false);
-        long endTime = System.currentTimeMillis();
+        timer.end();
         int errorCount = log.getNumErrors();
         int warnCount = log.getNumWarnings();
-        System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+        System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + timer + ")");
     }
 
     protected FillGeneratorTool setUpJob()

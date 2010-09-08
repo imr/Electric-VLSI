@@ -185,11 +185,11 @@ public class UserInterfaceMain extends AbstractUserInterface
             System.out.println("Exception executing terminateIt");
             ex.printStackTrace(System.out);
         }
-        job.endTime = System.currentTimeMillis();
+        job.timer.end();
         job.finished = true;                        // is this redundant with Thread.isAlive()?
 
         // say something if it took more than a minute by default
-        if (job.reportExecution || (job.endTime - job.startTime) >= Job.MIN_NUM_SECONDS) {
+        if (job.reportExecution || job.timer.getTime() >= Job.MIN_NUM_SECONDS) {
 
             if (User.isBeepAfterLongJobs())
                 Job.getExtendedUserInterface().beep();
@@ -1162,7 +1162,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
 //    private static void runThreadStatusTimer() {
 //        int delay = 1000*60*10; // milliseconds
-//        Timer timer = new Timer(delay, new ThreadStatusTask());
+//        ElapseTimer timer = new ElapseTimer(delay, new ThreadStatusTask());
 //        timer.start();
 //    }
 //

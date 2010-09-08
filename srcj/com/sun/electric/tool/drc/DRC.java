@@ -51,6 +51,7 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
@@ -1453,7 +1454,8 @@ public class DRC extends Listener
 
 		public boolean doIt()
 		{
-			long startTime = System.currentTimeMillis();
+			ElapseTimer timer = ElapseTimer.createInstance();
+			timer.start();
             ErrorLogger errorLog = getDRCErrorLogger(isLayout, null);
             checkNetworks(errorLog, cell, isLayout);
             if (isLayout)
@@ -1461,10 +1463,10 @@ public class DRC extends Listener
             else
                 Schematic.doCheck(errorLog, cell, geoms, dp);
             errorLog.termLogging(true);
-            long endTime = System.currentTimeMillis();
+            timer.end();
             int errorCount = errorLog.getNumErrors();
             int warnCount = errorLog.getNumWarnings();
-            System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+            System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + timer.toString() + ")");
             if (onlyArea)
                 Job.getUserInterface().termLogging(errorLog, false, false); // otherwise the errors don't appear
             return true;

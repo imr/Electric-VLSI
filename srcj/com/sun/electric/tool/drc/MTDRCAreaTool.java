@@ -96,13 +96,12 @@ public class MTDRCAreaTool extends MTDRCTool
         HashSet<Cell> goodAreaDRCDate = new HashSet<Cell>();
         HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
 
-        long endTime = System.currentTimeMillis();
+        timer.end();
         int errorCount = errorLogger.getNumErrors();
         int warnCount = errorLogger.getNumWarnings();
         System.out.println(errorCount + " errors and " + warnCount + " warnings found in " + msg
-                + " (took " + TextUtils.getElapsedTime(endTime - startTime) + " in thread " + Thread.currentThread().getName() + ")");
-        long accuEndTime = System.currentTimeMillis() - globalStartTime;
-        System.out.println("Accumulative time " + TextUtils.getElapsedTime(accuEndTime));
+                + " (took " + timer + " in thread " + Thread.currentThread().getName() + ")");
+        System.out.println("Accumulative time " + globalStartTime.currentTimeString());
         if (totalNumErrors == 0)
         {
             goodAreaDRCDate.add(topCell);

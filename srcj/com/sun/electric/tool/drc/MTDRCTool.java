@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.tool.Consumer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.MultiTaskJob;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.technology.*;
 
 import java.util.*;
@@ -44,7 +45,7 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
 {
     protected DRC.DRCPreferences dp;
     protected Cell topCell;
-    protected long globalStartTime;
+    protected ElapseTimer globalStartTime = ElapseTimer.createInstance();
     protected CellLayersContainer cellLayersCon = new CellLayersContainer();
     protected final boolean printLog = Job.getDebug();
     protected DRCRules rules;
@@ -66,7 +67,7 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
         CheckCellLayerEnumerator layerCellCheck = new CheckCellLayerEnumerator(cellLayersCon);
         HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, layerCellCheck);
         Collection<Layer> layers = cellLayersCon.getLayersSet(topCell);
-        globalStartTime = System.currentTimeMillis();
+        globalStartTime.start();
         for (Layer layer : layers)
         {
             assert (layer != null); // it should always be a valid layer
@@ -121,8 +122,8 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
 
         System.out.println("Total DRC Errors: " + numTE);
         System.out.println("Total DRC Warnings: " + numTW);
-        long accuEndTime = System.currentTimeMillis() - globalStartTime;
-        System.out.println("Total Time: " + TextUtils.getElapsedTime(accuEndTime));
+        globalStartTime.end();
+        System.out.println("Total Time: " + globalStartTime);
 
         if (runFine)
         {

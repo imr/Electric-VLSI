@@ -35,6 +35,7 @@ import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 import java.util.Iterator;
 
@@ -67,13 +68,14 @@ public class TransistorSearch
 
         public boolean doIt()
         {
-            long startTime = System.currentTimeMillis();
+        	ElapseTimer timer = ElapseTimer.createInstance().start();
 
             TransistorSearchEnumerator visitor = new TransistorSearchEnumerator();
             HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, visitor);
+            timer.end();
             System.out.println("Number of transistors found from cell " + cell.getName() + ": " + visitor.transistorTotalNumber);
-            System.out.println("Number of non-cap transistors found from cell " + cell.getName() + ": " + visitor.transistorRealNumber);
-            System.out.println("(took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
+            System.out.println("Number of non-cap transistors found from cell " + cell.getName() + ": " + visitor.transistorRealNumber);            
+            System.out.println("(took " + timer + ")");
 
             return true;
         }

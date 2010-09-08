@@ -52,6 +52,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -501,7 +502,7 @@ public class ParasiticTool extends Tool {
          */
         public boolean doIt() throws JobException
         {
-            long startTime = System.currentTimeMillis();
+        	ElapseTimer timer = ElapseTimer.createInstance().start();
             System.out.println("Extracting Parasitic for " + cell + " " + net);
             Rectangle2D bounds = new Rectangle2D.Double();
             double maxDistance = getMaxDistance();
@@ -564,8 +565,8 @@ public class ParasiticTool extends Tool {
             {
                 System.out.println("Value " + val + " Layer " + val.elements[1].poly.getLayer());
             }
-            long endTime = System.currentTimeMillis();
-            System.out.println("Done (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+            timer.end();
+            System.out.println("Done (took " + timer + ")");
 			// sort the errors by layer
 			errorLogger.sortLogs();
             return true;

@@ -78,6 +78,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 /**
  * Class to do sea-of-gates routing. This router replaces unrouted arcs with
@@ -467,8 +468,8 @@ public abstract class SeaOfGatesEngine {
         EditingPreferences ep = cell.getEditingPreferences();
 
         // user-interface initialization
-        long startTime = System.currentTimeMillis();
-        long debugTime = startTime;
+        ElapseTimer timer = ElapseTimer.createInstance().start();
+        ElapseTimer debugTimer = ElapseTimer.createInstance().start();
         Job.getUserInterface().startProgressDialog("Routing " + arcsToRoute.size() + " nets", null);
         Job.getUserInterface().setProgressNote("Building blockage information...");
 
@@ -498,8 +499,8 @@ public abstract class SeaOfGatesEngine {
 
         this.makeListOfRoutes(numBatches, routeBatches, allRoutes, arcsToRoute, prefs, ep);
 
-        long endDebug = System.currentTimeMillis();
-        System.out.println("### debug time (initialize): " + TextUtils.getElapsedTime(endDebug - debugTime));
+        debugTimer.end();
+        System.out.println("### debug time (initialize): " + debugTimer);
         // now do the actual routing
         boolean parallel = prefs.useParallelRoutes;
         parallelDij = prefs.useParallelFromToRoutes;
@@ -598,11 +599,11 @@ public abstract class SeaOfGatesEngine {
 
         // clean up at end
         errorLogger.termLogging(true);
-        long stopTime = System.currentTimeMillis();
+        timer.end();
         Job.getUserInterface().stopProgressDialog();
         System.out.println("Routed " + numRoutedSegments + " out of " + totalRoutes
                 + " segments; total length of routed wires is " + TextUtils.formatDistance(totalWireLength)
-                + "; took " + TextUtils.getElapsedTime(stopTime - startTime));
+                + "; took " + timer);
         if (numFailedRoutes > 0)
             System.out.println("NOTE: " + numFailedRoutes + " nets were not routed");
         return numRoutedSegments;

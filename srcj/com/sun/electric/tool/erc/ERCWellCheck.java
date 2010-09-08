@@ -102,6 +102,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
 
 /**
@@ -267,8 +268,7 @@ public class ERCWellCheck {
 	 * @return the success of running well-check.
 	 */
 	@Deprecated
-	public static int checkERCWell(Cell cell, GeometryHandler.GHMode newAlgorithm,
-			WellCheckPreferences wellPrefs) {
+	public static int checkERCWell(Cell cell, GeometryHandler.GHMode newAlgorithm, WellCheckPreferences wellPrefs) {
 		ERCWellCheck check = new ERCWellCheck(cell, null, newAlgorithm, wellPrefs);
 		return check.runNow();
 	}
@@ -302,18 +302,15 @@ public class ERCWellCheck {
 		private WellCheckPreferences wellPrefs;
 
 		@Deprecated
-		private WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm,
-				WellCheckPreferences wellPrefs) {
-			super("ERC Well Check on " + cell, ERC.tool, Job.Type.SERVER_EXAMINE, null, null,
-					Job.Priority.USER);
+		private WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm, WellCheckPreferences wellPrefs) {
+			super("ERC Well Check on " + cell, ERC.tool, Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.wellPrefs = wellPrefs;
 			startJob();
 		}
 
 		private WellCheckJob(Cell cell, WellCheckPreferences wellPrefs) {
-			super("ERC Well Check on " + cell, ERC.tool, Job.Type.SERVER_EXAMINE, null, null,
-					Job.Priority.USER);
+			super("ERC Well Check on " + cell, ERC.tool, Job.Type.SERVER_EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.wellPrefs = wellPrefs;
 			startJob();
@@ -331,8 +328,7 @@ public class ERCWellCheck {
 				fieldVariableChanged("worstPWellCon");
 			}
 			if (check.worstPWellEdge != null) {
-				worstPWellEdge = new EPoint(check.worstPWellEdge.getX(), check.worstPWellEdge
-						.getY());
+				worstPWellEdge = new EPoint(check.worstPWellEdge.getX(), check.worstPWellEdge.getY());
 				fieldVariableChanged("worstPWellEdge");
 			}
 			if (check.worstNWellCon != null) {
@@ -340,8 +336,7 @@ public class ERCWellCheck {
 				fieldVariableChanged("worstNWellCon");
 			}
 			if (check.worstNWellEdge != null) {
-				worstNWellEdge = new EPoint(check.worstNWellEdge.getX(), check.worstNWellEdge
-						.getY());
+				worstNWellEdge = new EPoint(check.worstNWellEdge.getX(), check.worstNWellEdge.getY());
 				fieldVariableChanged("worstNWellEdge");
 			}
 			return true;
@@ -355,13 +350,11 @@ public class ERCWellCheck {
 				wnd.clearHighlighting();
 				if (worstPWellDist > 0) {
 					wnd.addHighlightLine(worstPWellCon, worstPWellEdge, cell, false, false);
-					System.out.println("Farthest distance from a P-Well contact is "
-							+ worstPWellDist);
+					System.out.println("Farthest distance from a P-Well contact is " + worstPWellDist);
 				}
 				if (worstNWellDist > 0) {
 					wnd.addHighlightLine(worstNWellCon, worstNWellEdge, cell, false, false);
-					System.out.println("Farthest distance from an N-Well contact is "
-							+ worstNWellDist);
+					System.out.println("Farthest distance from an N-Well contact is " + worstNWellDist);
 				}
 				wnd.finishedHighlighting();
 			}
@@ -370,7 +363,7 @@ public class ERCWellCheck {
 
 	private int runNow() {
 		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
-		long startTime = System.currentTimeMillis();
+		ElapseTimer timer = ElapseTimer.createInstance().start();
 		errorLogger = ErrorLogger.newInstance("ERC Well Check ");
 		initStatistics();
 
@@ -409,13 +402,11 @@ public class ERCWellCheck {
 		showStatistics();
 
 		// report the number of errors found
-		long endTime = System.currentTimeMillis();
+		timer.end();
 		if (errorCount == 0) {
-			System.out.println("No Well errors found (took "
-					+ TextUtils.getElapsedTime(endTime - startTime) + ")");
+			System.out.println("No Well errors found (took " + timer + ")");
 		} else {
-			System.out.println("FOUND " + errorCount + " WELL ERRORS (took "
-					+ TextUtils.getElapsedTime(endTime - startTime) + ")");
+			System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + timer + ")");
 
 		}
 		return errorCount;
@@ -453,8 +444,7 @@ public class ERCWellCheck {
 				break;
 
 			// see if this contact is a marked well
-			Rectangle2D searchArea = new Rectangle2D.Double(wc.getCtr().getX(), wc.getCtr().getY(),
-					0, 0);
+			Rectangle2D searchArea = new Rectangle2D.Double(wc.getCtr().getX(), wc.getCtr().getY(), 0, 0);
 			RTNode topSearch = nWellRoot;
 			if (Utils.canBeSubstrateTap(wc.getFun()))
 				topSearch = pWellRoot;
@@ -478,14 +468,12 @@ public class ERCWellCheck {
 				String errorMsg = "N-Well contact is floating";
 				if (Utils.canBeSubstrateTap(wc.getFun()))
 					errorMsg = "P-Well contact is floating";
-				errorLogger.logError(errorMsg, new EPoint(wc.getCtr().getX(), wc.getCtr().getY()),
-						cell, 0);
+				errorLogger.logError(errorMsg, new EPoint(wc.getCtr().getX(), wc.getCtr().getY()), cell, 0);
 				continue;
 			}
 
 			// spread out through the well area
-			Utils.spreadWellSeed(wc.getCtr().getX(), wc.getCtr().getY(), wc.getWellNum(),
-					topSearch, threadIndex);
+			Utils.spreadWellSeed(wc.getCtr().getX(), wc.getCtr().getY(), wc.getWellNum(), topSearch, threadIndex);
 		}
 	}
 
@@ -521,15 +509,13 @@ public class ERCWellCheck {
 		nWellRoot = RTNode.makeTopLevel();
 
 		// enumerate the hierarchy below here
-		long startTime = System.currentTimeMillis();
+		ElapseTimer timer = ElapseTimer.createInstance().start();
 		WellCheckVisitor wcVisitor = new WellCheckVisitor();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, wcVisitor);
 		int numPRects = getTreeSize(pWellRoot);
 		int numNRects = getTreeSize(nWellRoot);
-		long endTime = System.currentTimeMillis();
-		System.out.println("   Geometry collection found " + (numPRects + numNRects)
-				+ " well pieces, took " + TextUtils.getElapsedTime(endTime - startTime));
-		startTime = endTime;
+		timer.end();
+		System.out.println("   Geometry collection found " + (numPRects + numNRects) + " well pieces, took " + timer);
 
 		wcVisitor.clear();
 		wcVisitor = null;
@@ -540,18 +526,17 @@ public class ERCWellCheck {
 			e.printStackTrace();
 		}
 
-		startTime = System.currentTimeMillis();
+		timer.start();
 
 		// make arrays of well contacts clustdered for each processor
 		assignWellContacts(numberOfThreads);
 
 		if (Job.getDebug()) {
-			endTime = System.currentTimeMillis();
+			timer.end();
 
-			System.out.println("   Assign well contacts took: "
-					+ TextUtils.getElapsedTime(endTime - startTime));
+			System.out.println("   Assign well contacts took: " + timer);
 
-			startTime = endTime;
+			timer.start();
 		}
 
 		// analyze the contacts
@@ -565,13 +550,12 @@ public class ERCWellCheck {
 			spreadJob.execute();
 		}
 
-		endTime = System.currentTimeMillis();
+		timer.end();
 		String msg = "   Geometry analysis ";
 		if (numberOfThreads > 1)
 			msg += "used " + numberOfThreads + " threads and ";
 		msg += "took ";
-		System.out.println(msg + TextUtils.getElapsedTime(endTime - startTime));
-		startTime = endTime;
+		System.out.println(msg + timer);
 
 		try {
 			ThreadPool.getThreadPool().shutdown();
@@ -579,7 +563,7 @@ public class ERCWellCheck {
 			e.printStackTrace();
 		}
 
-		startTime = endTime;
+		timer.start();
 
 		if (Job.getDebug()) {
 			System.out.println("   Amount of merges: " + NetValues.numberOfMerges);
@@ -593,19 +577,16 @@ public class ERCWellCheck {
 		analysisParts.add(new OnRailCheck(parameter, networkExportAvailable, transistors));
 		analysisParts.add(new ConnectionCheck(parameter, hasPCon, hasNCon, pWellRoot, nWellRoot));
 		analysisParts.add(new DRCCheck(parameter, pWellLayer, nWellLayer, pWellRoot, nWellRoot));
-		analysisParts
-				.add(new DistanceCheck(parameter, worstPWellDist, worstPWellCon, worstPWellEdge,
-						worstNWellDist, worstNWellCon, worstNWellEdge, pWellRoot, nWellRoot));
+		analysisParts.add(new DistanceCheck(parameter, worstPWellDist, worstPWellCon, worstPWellEdge, worstNWellDist,
+				worstNWellCon, worstNWellEdge, pWellRoot, nWellRoot));
 
 		// execute analysis steps
 		for (WellCheckAnalysisStrategy strategy : analysisParts) {
 			strategy.execute();
 		}
 
-		endTime = System.currentTimeMillis();
-		System.out.println("   Additional analysis took "
-				+ TextUtils.getElapsedTime(endTime - startTime));
-		startTime = endTime;
+		timer.end();
+		System.out.println("   Additional analysis took " + timer);
 
 		errorLogger.termLogging(true);
 		int errorCount = errorLogger.getNumErrors();
@@ -645,43 +626,36 @@ public class ERCWellCheck {
 			return cell;
 		}
 
-//		public ErrorLogger getErrorLogger() {
-//			return errorLogger;
-//		}
+		// public ErrorLogger getErrorLogger() {
+		// return errorLogger;
+		// }
 
-        // Apply translation to place the bounding box of the well contact
-        // in the correct location on the top cell.
-        private Rectangle2D placedWellCon(WellCon wc)
-        {
-            Rectangle2D orig = wc.getNi().getBounds();
-            return new Rectangle2D.Double(wc.getCtr().getX()-orig.getWidth()/2,
-                wc.getCtr().getY()-orig.getHeight()/2,
-                orig.getWidth(), orig.getHeight());
-        }
+		// Apply translation to place the bounding box of the well contact
+		// in the correct location on the top cell.
+		private Rectangle2D placedWellCon(WellCon wc) {
+			Rectangle2D orig = wc.getNi().getBounds();
+			return new Rectangle2D.Double(wc.getCtr().getX() - orig.getWidth() / 2, wc.getCtr().getY()
+					- orig.getHeight() / 2, orig.getWidth(), orig.getHeight());
+		}
 
-        public void logError(String message)
-        {
-        	errorLogger.logError(message, cell, 0);
-        }
-        
-        public void logError(String message, Object... wblist)
-        {					
-            List<Object> list = new ArrayList<Object>();
-        	for (Object w : wblist)
-        	{
-        		if (w instanceof WellBound)
-        		{
-        			list.add(((WellBound)w).getBounds());
-        		}
-        		else if (w instanceof WellCon)
-        		{
-        			// calculate the correct location of wc bnd with respect to the top cell
-        			list.add(placedWellCon(((WellCon)w)));
-        		}
-        	}
-        	errorLogger.logMessage(message, list, cell, 0, true);
-        }
-    }
+		public void logError(String message) {
+			errorLogger.logError(message, cell, 0);
+		}
+
+		public void logError(String message, Object... wblist) {
+			List<Object> list = new ArrayList<Object>();
+			for (Object w : wblist) {
+				if (w instanceof WellBound) {
+					list.add(((WellBound) w).getBounds());
+				} else if (w instanceof WellCon) {
+					// calculate the correct location of wc bnd with respect to
+					// the top cell
+					list.add(placedWellCon(((WellCon) w)));
+				}
+			}
+			errorLogger.logMessage(message, list, cell, 0, true);
+		}
+	}
 
 	@SuppressWarnings("unchecked")
 	private void assignWellContacts(int numberOfThreads) {
@@ -744,8 +718,8 @@ public class ERCWellCheck {
 				double sizeCellX = cell.getDefWidth() / (double) dim.xDim;
 				double sizeCellY = cell.getDefHeight() / (double) dim.yDim;
 
-				Parallel.For(new BlockedRange1D(0, wellCons.size(), wellCons.size()
-						/ numberOfThreads), new WorkDistributionTask(sizeCellX, sizeCellY, dim));
+				Parallel.For(new BlockedRange1D(0, wellCons.size(), wellCons.size() / numberOfThreads),
+						new WorkDistributionTask(sizeCellX, sizeCellY, dim));
 			}
 		}
 
@@ -980,21 +954,18 @@ public class ERCWellCheck {
 			List<Rectangle2D> pWellsInCell = essentialPWell.get(cell);
 			List<Rectangle2D> nWellsInCell = essentialNWell.get(cell);
 			for (Rectangle2D b : pWellsInCell) {
-				Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(),
-						b.getHeight());
+				Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
 				DBMath.transformRect(bounds, info.getTransformToRoot());
 				pWellRoot = RTNode.linkGeom(null, pWellRoot, new WellBound(bounds));
 			}
 			for (Rectangle2D b : nWellsInCell) {
-				Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(),
-						b.getHeight());
+				Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
 				DBMath.transformRect(bounds, info.getTransformToRoot());
 				nWellRoot = RTNode.linkGeom(null, nWellRoot, new WellBound(bounds));
 			}
 		}
 
-		private void addNetwork(Network net, AtomicInteger netNum,
-				HierarchyEnumerator.CellInfo cinfo, Transistor trans) {
+		private void addNetwork(Network net, AtomicInteger netNum, HierarchyEnumerator.CellInfo cinfo, Transistor trans) {
 			if (net != null) {
 				Integer num = cinfo.getNetID(net);
 				netNum.set(num);
@@ -1016,10 +987,8 @@ public class ERCWellCheck {
 
 			if ((fun.isNTypeTransistor() || fun.isPTypeTransistor())) {
 				Transistor trans = new Transistor();
-				addNetwork(netList.getNetwork(ni.getTransistorDrainPort()), trans.drainNet, info,
-						trans);
-				addNetwork(netList.getNetwork(ni.getTransistorSourcePort()), trans.sourceNet, info,
-						trans);
+				addNetwork(netList.getNetwork(ni.getTransistorDrainPort()), trans.drainNet, info, trans);
+				addNetwork(netList.getNetwork(ni.getTransistorSourcePort()), trans.sourceNet, info, trans);
 			} else if (Utils.canBeSubstrateTap(fun) || Utils.canBeWellTap(fun)) {
 				// Allowing more than one port for well resistors.
 				for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext();) {
@@ -1033,8 +1002,7 @@ public class ERCWellCheck {
 					else
 						tmpNetNum = info.getNetID(net);
 
-					WellCon wc = new WellCon(ni.getTrueCenter(), tmpNetNum, null, false, false,
-							fun, ni);
+					WellCon wc = new WellCon(ni.getTrueCenter(), tmpNetNum, null, false, false, fun, ni);
 					AffineTransform trans = ni.rotateOut();
 					trans.transform(wc.getCtr(), wc.getCtr());
 					info.getTransformToRoot().transform(wc.getCtr(), wc.getCtr());
@@ -1106,8 +1074,7 @@ public class ERCWellCheck {
 						continue;
 
 					// Getting only ercLayers
-					Poly[] nodeInstPolyList = pn.getTechnology().getShapeOfNode(ni, true, true,
-							ercLayers);
+					Poly[] nodeInstPolyList = pn.getTechnology().getShapeOfNode(ni, true, true, ercLayers);
 					int tot = nodeInstPolyList.length;
 					for (int i = 0; i < tot; i++) {
 						Poly poly = nodeInstPolyList[i];
@@ -1178,9 +1145,9 @@ public class ERCWellCheck {
 		}
 	}
 
-	private static final Layer.Function[] ercLayersArray = { Layer.Function.WELLP,
-			Layer.Function.WELL, Layer.Function.WELLN, Layer.Function.SUBSTRATE,
-			Layer.Function.IMPLANTP, Layer.Function.IMPLANT, Layer.Function.IMPLANTN };
+	private static final Layer.Function[] ercLayersArray = { Layer.Function.WELLP, Layer.Function.WELL,
+			Layer.Function.WELLN, Layer.Function.SUBSTRATE, Layer.Function.IMPLANTP, Layer.Function.IMPLANT,
+			Layer.Function.IMPLANTN };
 	private static final Layer.Function.Set ercLayers = new Layer.Function.Set(ercLayersArray);
 
 	/**
@@ -1205,8 +1172,7 @@ public class ERCWellCheck {
 	private void initStatistics() {
 		if (Utils.GATHERSTATISTICS) {
 			Utils.numObjSearches = 0;
-			Utils.wellBoundSearchOrder = Collections
-					.synchronizedList(new ArrayList<WellBoundRecord>());
+			Utils.wellBoundSearchOrder = Collections.synchronizedList(new ArrayList<WellBoundRecord>());
 		}
 	}
 

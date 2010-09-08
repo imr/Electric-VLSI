@@ -499,9 +499,8 @@ public class LETool extends Tool {
             if (!success) return false;
 
             // calculate statistics
-            long equationsDone = System.currentTimeMillis();
-            String elapsed = TextUtils.getElapsedTime(equationsDone-startTime);
-            System.out.println("done ("+elapsed+")");
+            timer.end();            
+            System.out.println("done ("+timer+")");
 
             // if user aborted, return, and do not run sizer
             if (checkAbort(null)) {

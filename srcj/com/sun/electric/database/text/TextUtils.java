@@ -922,57 +922,6 @@ public class TextUtils {
     }
 
     /**
-     * Method to describe a time value as a String.
-     * @param milliseconds the time span in milli-seconds.
-     * @return a String describing the time span with the
-     * format: days : hours : minutes : seconds
-     */
-    public static String getElapsedTime(long milliseconds) {
-        if (milliseconds < 60000) {
-            // less than a minute: show fractions of a second
-            return (milliseconds / 1000.0) + " secs";
-        }
-        StringBuffer buf = new StringBuffer();
-        int seconds = (int) milliseconds / 1000;
-        if (seconds < 0) {
-            seconds = 0;
-        }
-        int days = seconds / 86400;
-        if (days > 0) {
-            buf.append(days + " days, ");
-        }
-        seconds = seconds - (days * 86400);
-        int hours = seconds / 3600;
-        if (hours > 0) {
-            buf.append(hours + " hrs, ");
-        }
-        seconds = seconds - (hours * 3600);
-        int minutes = seconds / 60;
-        if (minutes > 0) {
-            buf.append(minutes + " mins, ");
-        }
-        seconds = seconds - (minutes * 60);
-        buf.append(seconds + " secs");
-        return buf.toString();
-    }
-    
-    /**
-     * Method to describe a percentage value as a String
-     * @param value which should be described as a percentage string
-     * @return percentage string
-     */
-    public static String getPercentageString(double value) {
-    	StringBuilder builder = new StringBuilder();
-    	
-    	DecimalFormat df2 = new DecimalFormat("##0.00");
-
-		builder.append(df2.format(value * 100.0));
-		builder.append("%");
-    	
-    	return builder.toString();
-    }
-
-    /**
      * Method to find a string inside of another string.
      * @param string the main string being searched.
      * @param search the string being located in the main string.

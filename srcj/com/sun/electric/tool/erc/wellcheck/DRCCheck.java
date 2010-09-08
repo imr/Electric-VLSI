@@ -35,6 +35,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck.StrategyParameter;
 import com.sun.electric.tool.erc.ERCWellCheck.WellBound;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 /**
  * @author Felix Schmidt
@@ -75,7 +76,8 @@ public class DRCCheck implements WellCheckAnalysisStrategy {
 	 */
 	public void execute() {
 		if (parameters.getWellPrefs().drcCheck) {
-			long startTime = System.currentTimeMillis();
+			ElapseTimer timer = ElapseTimer.createInstance();
+			timer.start();
 			DRCTemplate pRule = DRC.getSpacingRule(pWellLayer, null, pWellLayer, null, false, -1, 0, 0);
 			DRCTemplate nRule = DRC.getSpacingRule(nWellLayer, null, nWellLayer, null, false, -1, 0, 0);
 			if (pRule != null)
@@ -83,9 +85,8 @@ public class DRCCheck implements WellCheckAnalysisStrategy {
 			if (nRule != null)
 				findDRCViolations(nWellRoot, nRule.getValue(0));
 
-			long endTime = System.currentTimeMillis();
-			System.out.println("   Design rule check took " + TextUtils.getElapsedTime(endTime - startTime));
-			startTime = endTime;
+			timer.end();
+			System.out.println("   Design rule check took " + timer.toString());
 		}
 
 	}
