@@ -27,7 +27,6 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
@@ -42,6 +41,7 @@ import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
+import com.sun.electric.util.TextUtils;
 
 /**
  * @author Felix Schmidt

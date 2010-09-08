@@ -36,7 +36,6 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
@@ -44,6 +43,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
+import com.sun.electric.util.TextUtils;
 
 /**
  * @author Felix Schmidt

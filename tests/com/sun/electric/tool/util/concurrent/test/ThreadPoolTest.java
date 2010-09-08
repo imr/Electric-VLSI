@@ -27,7 +27,6 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
@@ -43,6 +42,7 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.Thr
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolType;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
+import com.sun.electric.util.TextUtils;
 
 public class ThreadPoolTest {
 
