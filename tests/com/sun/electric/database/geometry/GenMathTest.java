@@ -25,6 +25,9 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.tool.simulation.interval.MutableInterval;
+import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.DBMath;
+
 import java.awt.geom.Point2D;
 import java.math.BigDecimal;
 
