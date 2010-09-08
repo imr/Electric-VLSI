@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+BUG: (9/8/10, GVG) build.xml and Scala compilation (Bug #2906)
+FIX: Forcing "ant -DNOSCALA" and modifications in build.xml to deal with no ScalaProjects dir.
+
 BUG: (9/8/10, GVG) Can't run anymore (Bug #2905)
 FIX: Made ElapseTimer serializable plus new GenMath/DBMath imports in tests code
 

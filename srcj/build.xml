@@ -202,7 +202,12 @@
 		</delete>
 	</target>
 
-	<!-- Delete jar files in packages -->
+    <!-- Delete Scala package if available -->
+	<target name="deleteScala" description="Delete Scala buit files?" unless="NOSCALA">
+        <ant antfile="${scalaProjects}/scalaMainAnt.xml" target="cleanCopiedClasses"/>
+	</target>
+
+    <!-- Delete jar files in packages -->
 	<target name="deleteExternalJars" description="Delete extracted Jar files to cleanup after build">
 		<delete dir="META-INF" />
 		<delete dir="bsh" />
@@ -549,11 +554,9 @@
 	</target>
 
 	<target name="clean" depends="init" description="Clean all build products">
-		<antcall target="deleteElectric">
-		</antcall>
-		<antcall target="deleteExternalJars">
-		</antcall>
-		<ant antfile="${scalaProjects}/scalaMainAnt.xml" target="cleanCopiedClasses" />
+		<antcall target="deleteElectric"> </antcall>
+		<antcall target="deleteExternalJars"> </antcall>
+        <antcall target="deleteScala"> </antcall>
 		<delete dir="apidoc" />
 		<delete dir="bin/com" />
 		<delete file="electric.mf" />
