@@ -29,6 +29,7 @@ import java.awt.geom.Point2D;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import com.sun.electric.util.math.DBMath;
 
 /**
  * Unit test of EPoint
