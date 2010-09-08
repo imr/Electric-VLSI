@@ -23,11 +23,14 @@
  */
 package com.sun.electric.tool.util.concurrent.utils;
 
+import java.io.Serializable;
+
 /**
  * @author Felix Schmidt
  * 
  */
-public class ElapseTimer {
+public class ElapseTimer implements Serializable
+{
 
 	private long start = 0;
 	private long end = 0;
