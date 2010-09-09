@@ -24,9 +24,8 @@
  */
 package com.sun.electric.scala
 
-import com.sun.electric.database.geometry.DBMath
+import com.sun.electric.util.math.DBMath
 
-import java.util.Arrays
 import java.io.DataOutputStream
 
 class DeltaMerge {

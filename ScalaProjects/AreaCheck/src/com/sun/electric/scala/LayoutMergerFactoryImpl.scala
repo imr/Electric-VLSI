@@ -33,8 +33,9 @@ import com.sun.electric.database.geometry.bool.UnloadPolys
 import com.sun.electric.database.geometry.bool.VectorCache
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.CellId
-import com.sun.electric.database.text.TextUtils
 import com.sun.electric.technology.Layer
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer
+import com.sun.electric.util.TextUtils
 
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -163,16 +164,18 @@ class LayoutMergerScalaImpl(topCell: Cell) extends LayoutMerger {
     }
 
     val topOrient = (if (rotate) Orientation.XR else Orientation.IDENT).canonic
+    val timer1 = ElapseTimer.createInstance.start
     val startTime1 = System.currentTimeMillis
     collectLayer(topCellId, 0, 0, topOrient)
     val get = ps.fix
-    val endTime1 = System.currentTimeMillis
+    timer1.end
+    val timer2 = ElapseTimer.createInstance.start
     val dm = new DeltaMerge
     val outPoints = dm.loop(get, out)
-    val endTime2 = System.currentTimeMillis
+    timer2.end
     println(layer + " " + ps.size + "->" + outPoints + " points" +
-            ", merge=" + TextUtils.getElapsedTime(endTime1 - startTime1) + " sec" +
-            ", tree=" + TextUtils.getElapsedTime(endTime2 - endTime1) + " sec");
+            ", merge=" + timer1 + " sec" +
+            ", tree=" + timer2 + " sec");
   }
 
   def flattenAndMergeLayer(layer: Layer, out: DataOutputStream) = {
