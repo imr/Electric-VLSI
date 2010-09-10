@@ -1,0 +1,49 @@
+<project name="scalaMainAnt" basedir="../ScalaProjects/">
+	<property name="scala.jar" value="../packaging/scala-library.jar" />
+	<property name="scala.compiler.jar" value="../packaging/scala-compiler.jar" />
+	<property name="electric.classes" value="../srcj" />
+	<property name="scala.classes" value="../ScalaProjects/bin" />
+
+	<target name="init">
+		<path id="scala.classpath">
+			<pathelement location="${scala.jar}" />
+			<pathelement location="${electric.classes}" />
+			<pathelement location="${build.dir}" />
+		</path>
+
+		<taskdef resource="scala/tools/ant/antlib.xml">
+			<classpath>
+				<pathelement location="${scala.jar}" />
+				<pathelement location="${scala.compiler.jar}" />
+			</classpath>
+		</taskdef>
+	</target>
+
+	<target name="build" depends="clean, init">
+		<mkdir dir="${build.dir}" />
+		<scalac srcdir="${src.dir}" destdir="${build.dir}" classpathref="scala.classpath">
+			<include name="**/*.scala" />
+		</scalac>
+
+		<antcall target="copyClasses" />
+	</target>
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="copyClasses">
+		<mkdir dir="${scala.classes}" />
+		<copy todir="${scala.classes}">
+			<fileset dir="${build.dir}" />
+		</copy>
+	</target>
+
+	<target name="cleanCopiedClasses">
+		<delete dir="${scala.classes}" />
+	</target>
+
+	<target name="compileAllScalaProjects">
+		<ant antfile="../ScalaProjects/AreaCheck/scalaAnt.xml" />
+	</target>
+</project>
