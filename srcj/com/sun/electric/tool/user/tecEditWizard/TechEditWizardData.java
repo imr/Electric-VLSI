@@ -134,6 +134,8 @@ public class TechEditWizardData
 	// METAL RULES
 	private WizardField [] metal_width;
 	private WizardField [] metal_spacing;
+    private WizardField [] metal_minarea;
+    private WizardField [] metal_enclosedarea;
     private List<WideWizardField> wide_metal_spacing = new ArrayList<WideWizardField>(); // For all wide spacing rules not displayed in graphcs
 
     // VIA RULES
@@ -464,7 +466,9 @@ public class TechEditWizardData
     	// Not worth it to clear them
 		metal_width = new WizardField[num_metal_layers];
 		metal_spacing = new WizardField[num_metal_layers];
-		via_size = new WizardField[num_metal_layers-1];
+        metal_minarea = new WizardField[num_metal_layers];
+        metal_enclosedarea = new WizardField[num_metal_layers];
+        via_size = new WizardField[num_metal_layers-1];
 		via_inline_spacing = new WizardField[num_metal_layers-1];
 		via_array_spacing = new WizardField[num_metal_layers-1];
 		via_overhang = new WizardField[num_metal_layers-1];
@@ -476,6 +480,9 @@ public class TechEditWizardData
 		{
 			metal_width[i] = new WizardField();
 			metal_spacing[i] = new WizardField();
+            metal_minarea[i] = new WizardField();
+            metal_enclosedarea[i] = new WizardField();
+            
             metal_layers[i] = new LayerInfo("Metal-"+(i+1));
         }
 
@@ -515,40 +522,58 @@ public class TechEditWizardData
             return; // nothing to do
         }
         int smallest = Math.min(n, num_metal_layers);
-        
+
+        // n size arrays
         WizardField [] new_metal_width = new WizardField[n];
-		for(int i=0; i<smallest; i++) new_metal_width[i] = metal_width[i];
-		for(int i=smallest; i<n; i++) new_metal_width[i] = new WizardField();
-		metal_width = new_metal_width;
-
         WizardField [] new_metal_spacing = new WizardField[n];
-		for(int i=0; i<smallest; i++) new_metal_spacing[i] = metal_spacing[i];
-		for(int i=smallest; i<n; i++) new_metal_spacing[i] = new WizardField();
-		metal_spacing = new_metal_spacing;
-
-		WizardField [] new_via_size = new WizardField[n-1];
-		for(int i=0; i<smallest-1; i++) new_via_size[i] = via_size[i];
-		for(int i=smallest-1; i<n-1; i++) new_via_size[i] = new WizardField();
-		via_size = new_via_size;
-
-		WizardField [] new_via_spacing = new WizardField[n-1];
-		for(int i=0; i<smallest-1; i++) new_via_spacing[i] = via_inline_spacing[i];
-		for(int i=smallest-1; i<n-1; i++) new_via_spacing[i] = new WizardField();
-		via_inline_spacing = new_via_spacing;
-
-		WizardField [] new_via_array_spacing = new WizardField[n-1];
-		for(int i=0; i<smallest-1; i++) new_via_array_spacing[i] = via_array_spacing[i];
-		for(int i=smallest-1; i<n-1; i++) new_via_array_spacing[i] = new WizardField();
-		via_array_spacing = new_via_array_spacing;
-
-		WizardField [] new_via_overhang_inline = new WizardField[n-1];
-		for(int i=0; i<smallest-1; i++) new_via_overhang_inline[i] = via_overhang[i];
-		for(int i=smallest-1; i<n-1; i++) new_via_overhang_inline[i] = new WizardField();
-		via_overhang = new_via_overhang_inline;
-
+        WizardField [] new_metal_minarea = new WizardField[n];
+        WizardField [] new_metal_enclosedarea = new WizardField[n];
         double [] new_metal_antenna_ratio = new double[n];
-		for(int i=0; i<smallest; i++) new_metal_antenna_ratio[i] = metal_antenna_ratio[i];
-		metal_antenna_ratio = new_metal_antenna_ratio;
+
+        for(int i=0; i<smallest; i++)
+        {
+            new_metal_width[i] = metal_width[i];
+            new_metal_spacing[i] = metal_spacing[i];
+            new_metal_minarea[i] = metal_minarea[i];
+            new_metal_enclosedarea[i] = metal_enclosedarea[i];
+            new_metal_antenna_ratio[i] = metal_antenna_ratio[i];
+        }
+		for(int i=smallest; i<n; i++)
+        {
+            new_metal_width[i] = new WizardField();
+            new_metal_spacing[i] = new WizardField();
+            new_metal_minarea[i] = new WizardField();
+            new_metal_enclosedarea[i] = new WizardField();
+        }
+		metal_width = new_metal_width;
+		metal_spacing = new_metal_spacing;
+        metal_minarea = new_metal_minarea;
+        metal_enclosedarea = new_metal_enclosedarea;
+        metal_antenna_ratio = new_metal_antenna_ratio;
+
+        // n-1 size arrays
+        WizardField [] new_via_size = new WizardField[n-1];
+		WizardField [] new_via_spacing = new WizardField[n-1];
+		WizardField [] new_via_array_spacing = new WizardField[n-1];
+		WizardField [] new_via_overhang_inline = new WizardField[n-1];
+		for(int i=0; i<smallest-1; i++)
+        {
+            new_via_size[i] = via_size[i];
+            new_via_spacing[i] = via_inline_spacing[i];
+            new_via_array_spacing[i] = via_array_spacing[i];
+            new_via_overhang_inline[i] = via_overhang[i];
+        }
+		for(int i=smallest-1; i<n-1; i++)
+        {
+            new_via_size[i] = new WizardField();
+            new_via_spacing[i] = new WizardField();
+            new_via_array_spacing[i] = new WizardField();
+            new_via_overhang_inline[i] = new WizardField();
+        }
+		via_size = new_via_size;
+		via_inline_spacing = new_via_spacing;
+		via_array_spacing = new_via_array_spacing;
+		via_overhang = new_via_overhang_inline;
 
 		LayerInfo [] new_gds_metal_layer = new LayerInfo[n];
         for(int i=0; i<smallest; i++)
@@ -934,6 +959,11 @@ public class TechEditWizardData
                 if (varName.equalsIgnoreCase("metal_spacing")) fillWizardArray(varValue, metal_spacing, false); else
                 if (varName.equalsIgnoreCase("metal_spacing_rule")) fillWizardArray(varValue, metal_spacing, true); else
                 if (varName.equalsIgnoreCase("wide_metal_spacing_rules")) fillWizardWideArray(varValue, wide_metal_spacing); else
+
+                if (varName.equalsIgnoreCase("metal_minarea_rules")) fillRulesSeries(varValue, metal_minarea); else
+                if (varName.equalsIgnoreCase("metal_enclosed_area_rules")) fillRulesSeries(varValue, metal_enclosedarea); else
+
+                    // private void fillRulesSeries(String str, WizardField... rules)
                 if (varName.equalsIgnoreCase("via_size")) fillWizardArray(varValue, via_size, false); else
                 if (varName.equalsIgnoreCase("via_size_rule")) fillWizardArray(varValue, via_size, true); else
                 if (varName.equalsIgnoreCase("via_spacing")) fillWizardArray(varValue, via_inline_spacing, false); else
@@ -1037,6 +1067,8 @@ public class TechEditWizardData
         return w;
     }
 
+    // @TODO stripQuotes is a weak function since it will fail with '"something"   ' (white spaces after
+    // the second "
     private String stripQuotes(String str)
 	{
 		if (str.startsWith("\"") && str.endsWith("\""))
@@ -1147,46 +1179,64 @@ public class TechEditWizardData
 			return;
 		}
 
-		int pos = 1;
-		int index = 0;
-		for(;;)
-		{
-			while (pos < str.length() && str.charAt(pos) == ' ') pos++;
+        StringTokenizer parse = new StringTokenizer(str, "(),\"", false);
 
-            if (index >= fieldArray.length)
+		int index = 0;
+        while (parse.hasMoreTokens())
+        {
+            String value = parse.nextToken().trim();
+
+            if (value.equals("")) continue; // just white space
+
+            if (getRule) // assune "<name>" format
             {
-//                 Job.getUserInterface().showErrorMessage("Invalid metal index: " + index,
-//						"Syntax Error In Technology File");
-					return;
+                fieldArray[index++].rule = value;
             }
-            if (getRule)
-			{
-				if (str.charAt(pos) != '"')
-				{
-					Job.getUserInterface().showErrorMessage("Rule element does not start with quote on " + str,
-						"Syntax Error In Technology File");
-					return;
-				}
-				pos++;
-				int end = pos;
-				while (end < str.length() && str.charAt(end) != '"') end++;
-				if (str.charAt(end) != '"')
-				{
-					Job.getUserInterface().showErrorMessage("Rule element does not end with quote on " + str,
-						"Syntax Error In Technology File");
-					return;
-				}
-				fieldArray[index++].rule = str.substring(pos, end);
-				pos = end+1;
-			} else
-			{
-				double v = TextUtils.atof(str.substring(pos));
+            else
+            {
+                double v = TextUtils.atof(value);
                 fieldArray[index++].value = v;
-			}
-			while (pos < str.length() && str.charAt(pos) != ',' && str.charAt(pos) != ')') pos++;
-			if (str.charAt(pos) != ',') break;
-			pos++;
-		}
+            }
+        }
+//        int pos = 1;
+//		for(;;)
+//		{
+//			while (pos < str.length() && str.charAt(pos) == ' ') pos++;
+//
+//            if (index >= fieldArray.length)
+//            {
+////                 Job.getUserInterface().showErrorMessage("Invalid metal index: " + index,
+////						"Syntax Error In Technology File");
+//					return;
+//            }
+//            if (getRule)
+//			{
+////				if (str.charAt(pos) != '"')
+////				{
+////					Job.getUserInterface().showErrorMessage("Rule element does not start with quote on " + str,
+////						"Syntax Error In Technology File");
+////					return;
+////				}
+////				pos++;
+////				int end = pos;
+////				while (end < str.length() && str.charAt(end) != '"') end++;
+////				if (str.charAt(end) != '"')
+////				{
+////					Job.getUserInterface().showErrorMessage("Rule element does not end with quote on " + str,
+////						"Syntax Error In Technology File");
+////					return;
+////				}
+//				fieldArray[index++].rule = eatQuotes(str, pos);// str.substring(pos, end);
+//				pos = end+1;
+//			} else
+//			{
+//				double v = TextUtils.atof(str.substring(pos));
+//                fieldArray[index++].value = v;
+//			}
+//			while (pos < str.length() && str.charAt(pos) != ',' && str.charAt(pos) != ')') pos++;
+//			if (str.charAt(pos) != ',') break;
+//			pos++;
+//		}
 	}
 
     // fillRules
@@ -1268,6 +1318,66 @@ public class TechEditWizardData
                 itemCount++;
             }
             assert(itemCount > 1 && itemCount < 5); // 2, 3 or 3
+        }
+    }
+
+    // to get serie of drc rules described as a set [(value1, "rule name 1") .... (valueN, "rule name N")]
+    private void fillRulesSeries(String str, WizardField... rules)
+    {
+        int index = str.indexOf("(");
+        if (!str.startsWith("[") || index == -1)
+		{
+			Job.getUserInterface().showErrorMessage("Array does not start with '[' on " + str,
+				"Syntax Error In Technology File");
+			return;
+		}
+
+        StringTokenizer parse = new StringTokenizer(str.substring(index), "[]", false);
+
+        // it should be only 1 set of []. Keeping the two loops for consistency and no need of
+        // detecting ']' as special case
+
+        while (parse.hasMoreTokens())
+        {
+            String value = parse.nextToken();
+
+            if (value.equals(";") || value.startsWith(" ")) // end of line or eats white spaces btw ()
+                continue;
+
+            // syntax: (value1, "name1") ... (valueN, "nameN")
+            StringTokenizer p = new StringTokenizer(value, "()", false);
+            int pos = 0;
+
+            while (p.hasMoreTokens())
+            {
+                String s = p.nextToken();
+                if (s.equals(";") || s.startsWith(" ")) // end of line or eats white spaces btw ()
+                    continue;
+
+                // layer info
+                int itemCount = 0; // 2 max items: value, rule name
+                StringTokenizer x = new StringTokenizer(s, ", \"", false);
+
+                if (pos >= rules.length)
+                    assert(pos < rules.length); // no out of bound array
+
+                while (x.hasMoreTokens() && itemCount < 2)
+                {
+                    String item = x.nextToken();
+                    switch (itemCount)
+                    {
+                        case 0: // rule value
+                           rules[pos].value = Double.valueOf(item);
+                            break;
+                        case 1: // rule name
+                            rules[pos++].rule = item;
+                            break;
+                    }
+                    itemCount++;
+                }
+                if (itemCount != 2)
+                assert(itemCount == 2);
+            }
         }
     }
 
@@ -2744,12 +2854,14 @@ public class TechEditWizardData
         // Simple spacing rules included here
         for (int i = 0; i < num_metal_layers; i++) {
             Xml.Layer met = metalLayers.get(i);
-            makeLayerRuleMinWid(t, met, metal_width[i]); 
+            makeLayerRuleMinRule(t, met, DRCTemplate.DRCRuleType.MINWID, metal_width[i]);
+            makeLayerRuleMinRule(t, met, DRCTemplate.DRCRuleType.MINAREA, metal_minarea[i]);
+            makeLayerRuleMinRule(t, met, DRCTemplate.DRCRuleType.MINENCLOSEDAREA, metal_enclosedarea[i]);
             makeLayersRule(t, met, DRCTemplate.DRCRuleType.SPACING, metal_spacing[i].rule, metal_spacing[i].value);
 
             if (i >= num_metal_layers - 1) continue;
             Xml.Layer via = viaLayers.get(i);
-            makeLayerRuleMinWid(t, via, via_size[i]);
+            makeLayerRuleMinRule(t, via, DRCTemplate.DRCRuleType.MINWID, via_size[i]);
             makeLayersRule(t, via, DRCTemplate.DRCRuleType.SPACING, via_inline_spacing[i].rule, via_inline_spacing[i].value);
         }
         // wide metal rules
@@ -2767,7 +2879,7 @@ public class TechEditWizardData
         {
             Xml.Layer l = t.findLayer(layer.name);
             if (layer.minimum != null)
-                makeLayerRuleMinWid(t, l, layer.minimum);
+                makeLayerRuleMinRule(t, l, DRCTemplate.DRCRuleType.MINWID, layer.minimum);
             if (layer.spacing != null)
                 makeLayersRule(t, l, DRCTemplate.DRCRuleType.SPACING, layer.spacing.rule, layer.spacing.value);
         }
@@ -2895,9 +3007,13 @@ public class TechEditWizardData
         }
     }
 
-    private void makeLayerRuleMinWid(Xml.Technology t, Xml.Layer l, WizardField fld) {
+    private void makeLayerRuleMinRule(Xml.Technology t, Xml.Layer l, DRCTemplate.DRCRuleType type, WizardField fld)
+    {
+        // not elegant way to detect valid value but it should work
+        if (fld.value == 0.0)
+            return; // nothing to add
         for (Xml.Foundry f: t.foundries) {
-            f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.MINWID,
+            f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), type,
                 l.name, null, new double[] {scaledValue(fld.value)}, null, null));
         }
     }
@@ -4426,7 +4542,7 @@ public class TechEditWizardData
         /*** Layer Rules ***/
         for (Xml.Layer l : diffLayers)
         {
-            makeLayerRuleMinWid(t, l, diff_width);
+            makeLayerRuleMinRule(t, l, DRCTemplate.DRCRuleType.MINWID, diff_width);
             makeLayersRule(t, l, DRCTemplate.DRCRuleType.SPACING, diff_spacing.rule, diff_spacing.value);
         }
 
@@ -4436,7 +4552,7 @@ public class TechEditWizardData
 
         for (int i = 0; i < plusLayers.length; i++)
         {
-            makeLayerRuleMinWid(t, plusLayers[i], plus_width[i]);
+            makeLayerRuleMinRule(t, plusLayers[i], DRCTemplate.DRCRuleType.MINWID, plus_width[i]);
             makeLayersRuleSurround(t, plusLayers[i], diffLayers[i], plus_diff[i].rule, plus_diff[i].value);
             makeLayersRule(t, plusLayers[i], DRCTemplate.DRCRuleType.SPACING, plus_spacing[i].rule, plus_spacing[i].value);
         }
@@ -4445,7 +4561,7 @@ public class TechEditWizardData
 
         for (Xml.Layer w : wells)
         {
-            makeLayerRuleMinWid(t, w, nwell_width);
+            makeLayerRuleMinRule(t, w, DRCTemplate.DRCRuleType.MINWID, nwell_width);
             makeLayersRuleSurround(t, w, diffPLayer, nwell_overhang_diff_p.rule, nwell_overhang_diff_p.value);
             makeLayersRuleSurround(t, w, diffNLayer, nwell_overhang_diff_n.rule, nwell_overhang_diff_n.value);
             makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, nwell_spacing.rule, nwell_spacing.value);
@@ -4454,7 +4570,7 @@ public class TechEditWizardData
         Xml.Layer[] polys = {polyLayer, polyGateLayer};
         for (Xml.Layer w : polys)
         {
-            makeLayerRuleMinWid(t, w, poly_width);
+            makeLayerRuleMinRule(t, w, DRCTemplate.DRCRuleType.MINWID, poly_width);
             makeLayersRule(t, w, DRCTemplate.DRCRuleType.SPACING, poly_spacing.rule, poly_spacing.value);
         }
 

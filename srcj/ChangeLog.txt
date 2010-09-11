@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+IMP/MAN: (9/10/10, GVG) TechEditor and area rules (Bug #2903)
+MinArea MinEnclosedArea supported now in the txt file.
+Added minarea and minenclosedarea to 40nm tech for more testing.
+
 BUG: (9/8/10, GVG) build.xml and Scala compilation (Bug #2906)
 FIX: Forcing "ant -DNOSCALA" and modifications in build.xml to deal with no ScalaProjects dir.
 
