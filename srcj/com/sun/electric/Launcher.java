@@ -26,7 +26,6 @@ package com.sun.electric;
 import com.sun.electric.tool.Regression;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * This class initializes the Electric by re-launching a JVM with sufficient memory.
@@ -117,7 +116,7 @@ public final class Launcher
 
         // build the command line for reinvoking Electric
 		String command = program;
-		command += " -cp " + getJarLocation();
+		command += " -cp " + Main.getJarLocation();
         command += " -ss2m";
 		if (enableAssertions)
 			command += " -ea"; // enable assertions
@@ -152,19 +151,6 @@ public final class Launcher
 		}
 	}
 
-    static Process invokePipeserver(String electricOptions, boolean withDebugger) throws IOException {
-        String javaOptions = " -Xss2m";
-		int maxMemWanted = StartupPrefs.getMemorySize();
-        javaOptions += " -Xmx" + maxMemWanted + "m";
-        long maxPermWanted = StartupPrefs.getPermSpace();
-        if (maxPermWanted > 0)
-            javaOptions += " -XX:MaxPermSize=" + maxPermWanted + "m";
-        if (withDebugger)
-//            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=localhost:35856";
-            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
-        return invokePipeserver(javaOptions, electricOptions);
-    }
-
     private static boolean invokeRegression(String[] args) {
         String javaOptions = "";
         String electricOptions = " -debug";
@@ -187,43 +173,11 @@ public final class Launcher
             javaOptions += " " + args[i];
         Process process = null;
         try {
-            process = invokePipeserver(javaOptions, electricOptions);
+            process = Main.invokePipeserver(javaOptions, electricOptions);
             return Regression.runScript(process, script);
         } catch (java.io.IOException e) {
             e.printStackTrace();
             return false;
         }
-    }
-
-    private static Process invokePipeserver(String javaOptions, String electricOptions) throws IOException {
-        String program = "java";
-        String javaHome = System.getProperty("java.home");
-        if (javaHome != null) program = javaHome + File.separator + "bin" + File.separator + program;
-
-        String command = program;
-        command += " -ea";
-        command += " -Djava.util.prefs.PreferencesFactory=com.sun.electric.database.text.EmptyPreferencesFactory";
-        command += javaOptions;
-		command += " -cp " + getJarLocation();
-        command += " com.sun.electric.Main";
-        if (electricOptions != null)
-            command += electricOptions;
-        command += " -pipeserver";
-        System.err.println("exec: " + command);
-
-        Runtime runtime = Runtime.getRuntime();
-        return runtime.exec(command);
-    }
-
-    /**
-     * Method to return a String that gives the path to the Electric JAR file.
-     * If the path has spaces in it, it is quoted.
-     * @return the path to the Electric JAR file.
-     */
-    public static String getJarLocation()
-    {
-		String jarPath = System.getProperty("java.class.path", ".");
-		if (jarPath.indexOf(' ') >= 0) jarPath = "\"" + jarPath + "\"";
-		return jarPath;
     }
 }

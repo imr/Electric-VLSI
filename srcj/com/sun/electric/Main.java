@@ -24,6 +24,7 @@
 package com.sun.electric;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -261,7 +262,7 @@ public final class Main
             IdManager.stdIdManager.setReadOnly();
             if (pipe) {
                 try {
-                    Process process = Launcher.invokePipeserver(pipeOptions, pipedebug);
+                    Process process = invokePipeserver(pipeOptions, pipedebug);
                     Job.pipeClient(process, ui, job, false/*pipedebug*/);
                 } catch (IOException e) {
                     System.exit(1);
@@ -283,6 +284,51 @@ public final class Main
         ElectricWorkerStrategy electricWorker = new ElectricWorkerStrategy(null);
         PoolWorkerStrategyFactory.userDefinedStrategy = electricWorker;
 	}
+
+    private static Process invokePipeserver(String electricOptions, boolean withDebugger) throws IOException {
+        String javaOptions = " -Xss2m";
+		int maxMemWanted = StartupPrefs.getMemorySize();
+        javaOptions += " -Xmx" + maxMemWanted + "m";
+        long maxPermWanted = StartupPrefs.getPermSpace();
+        if (maxPermWanted > 0)
+            javaOptions += " -XX:MaxPermSize=" + maxPermWanted + "m";
+        if (withDebugger)
+//            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=localhost:35856";
+            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
+        return invokePipeserver(javaOptions, electricOptions);
+    }
+
+    static Process invokePipeserver(String javaOptions, String electricOptions) throws IOException {
+        String program = "java";
+        String javaHome = System.getProperty("java.home");
+        if (javaHome != null) program = javaHome + File.separator + "bin" + File.separator + program;
+
+        String command = program;
+        command += " -ea";
+        command += " -Djava.util.prefs.PreferencesFactory=com.sun.electric.database.text.EmptyPreferencesFactory";
+        command += javaOptions;
+		command += " -cp " + getJarLocation();
+        command += " com.sun.electric.Main";
+        if (electricOptions != null)
+            command += electricOptions;
+        command += " -pipeserver";
+        System.err.println("exec: " + command);
+
+        Runtime runtime = Runtime.getRuntime();
+        return runtime.exec(command);
+    }
+
+    /**
+     * Method to return a String that gives the path to the Electric JAR file.
+     * If the path has spaces in it, it is quoted.
+     * @return the path to the Electric JAR file.
+     */
+    public static String getJarLocation()
+    {
+		String jarPath = System.getProperty("java.class.path", ".");
+		if (jarPath.indexOf(' ') >= 0) jarPath = "\"" + jarPath + "\"";
+		return jarPath;
+    }
 
     public static class UserInterfaceDummy extends AbstractUserInterface
 	{
