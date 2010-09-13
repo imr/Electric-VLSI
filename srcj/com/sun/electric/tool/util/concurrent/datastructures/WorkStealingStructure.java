@@ -26,7 +26,7 @@ package com.sun.electric.tool.util.concurrent.datastructures;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.electric.tool.Job;
+import com.sun.electric.tool.util.concurrent.debug.Debug;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
@@ -206,6 +206,6 @@ public class WorkStealingStructure<T> extends IStructure<T> implements IWorkStea
 	 * @return initialized WorkStealingStructure
 	 */
 	public static WorkStealingStructure<PTask> createForThreadPool(int numOfThreads) {
-		return new WorkStealingStructure<PTask>(numOfThreads, Job.getDebug());
+		return new WorkStealingStructure<PTask>(numOfThreads, Debug.isDebug());
 	}
 }

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.util.concurrent.runtime.pipeline;
 
-import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.ThreadID;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.Stage;
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.StageImpl;
 
@@ -50,7 +50,7 @@ public class SimplePipelineWorker<Input, Output> extends PipelineWorkerStrategy 
 	 */
 	@Override
 	public void execute() {
-		ThreadID.getID();
+		ThreadID.get();
 		this.executed = 0;
 		while (!abort) {
 			Input item = myStage.recv();
