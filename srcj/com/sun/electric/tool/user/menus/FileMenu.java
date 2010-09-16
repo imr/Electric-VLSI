@@ -142,7 +142,7 @@ public class FileMenu {
 			ToolBar.openLibraryCommand, // O
             openRecentLibs,
 
-		// mnemonic keys available:      F HI    NO Q    VW YZ
+		// mnemonic keys available:      F H     NO Q    VW YZ
             new EMenu("_Import",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
                     importLibraryCommand(FileType.CIF, false, true, true); }},
@@ -158,7 +158,7 @@ public class FileMenu {
                     importLibraryCommand(FileType.DEF, false, true, true); }},
                 new EMenuItem("D_XF (AutoCAD)...") { public void run() {
                     importLibraryCommand(FileType.DXF, false, true, false); }},
-                new EMenuItem("Spice Dec_ks...") { public void run() {
+                new EMenuItem("Sp_ice Decks...") { public void run() {
                     importLibraryCommand(FileType.SPICE, true, true, false); }},
                 new EMenuItem("Ge_rber...") { public void run() {
                     importLibraryCommand(FileType.GERBER, false, true, false); }},
@@ -168,7 +168,7 @@ public class FileMenu {
                     importLibraryCommand(FileType.VERILOG, false, true, false); }},
                 new EMenuItem("_Applicon 860...") {	public void run() {
                     importLibraryCommand(FileType.APPLICON860, false, true, true); }},
-                new EMenuItem("_Bookshelf...") {	public void run() {
+                new EMenuItem("Boo_kshelf...") {	public void run() {
                     importLibraryCommand(FileType.BOOKSHELF, false, true, false); }},
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD)...") { public void run() {
                     importLibraryCommand(FileType.DAIS, true, true, false); }} : null,
@@ -201,7 +201,7 @@ public class FileMenu {
             new EMenuItem("Save All Libraries in _Format...") { public void run() {
                 if (checkInvariants()) saveAllLibrariesInFormatCommand(); }},
 
-		// mnemonic keys available:    D        M   Q   UVW YZ
+		// mnemonic keys available:             M   Q   UVW YZ
             new EMenu("_Export",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
                     exportCommand(FileType.CIF, false); }},
@@ -213,9 +213,9 @@ public class FileMenu {
                     exportCommand(FileType.LEF, false); }},
                 new EMenuItem("_L...") { public void run() {
                     exportCommand(FileType.L, false); }},
-                new EMenuItem("_Bookshelf ...") { public void run() {
+                new EMenuItem("Boo_kshelf...") { public void run() {
                     exportCommand(FileType.BOOKSHELF, false); }},
-                IOTool.hasSkill() ? new EMenuItem("S_kill (Cadence Commands)...") {	public void run() {
+                IOTool.hasSkill() ? new EMenuItem("Skill (Ca_dence Commands)...") {	public void run() {
                     exportCommand(FileType.SKILL, false); }} : null,
                 IOTool.hasSkill() ? new EMenuItem("Skill Exports _Only (Cadence Commands)...") { public void run() {
                     exportCommand(FileType.SKILLEXPORTSONLY, false); }} : null,
