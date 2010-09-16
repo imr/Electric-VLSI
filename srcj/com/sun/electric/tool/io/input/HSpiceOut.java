@@ -111,16 +111,17 @@ public class HSpiceOut extends Input<Stimuli>
 		trFiles = new ArrayList<String>();
 		String fileNameNoPath = TextUtils.getFileNameWithoutExtension(TextUtils.URLtoString(fileURL), true) +
 			".tr";
-		String filePath = TextUtils.getFilePath(fileURL);
 		String topDirName = TextUtils.getFilePath(fileURL);
 		File topDir = new File(topDirName);
 		String [] fileList = topDir.list();
 		for(int i=0; i<fileList.length; i++)
 		{
 			if (!fileList[i].startsWith(fileNameNoPath)) continue;
-			trFiles.add(filePath + fileList[i]);
+			trFiles.add(topDirName + fileList[i]);
 		}
 		Collections.sort(trFiles, TextUtils.STRING_NUMBER_ORDER);
+		if (trFiles.size() > 1)
+			System.out.println("Reading " + trFiles.size() + " 'tr' files...");
 
 		// figure out other file names
 		swExtension = "sw0";

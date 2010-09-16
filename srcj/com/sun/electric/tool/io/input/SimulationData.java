@@ -140,7 +140,7 @@ public final class SimulationData {
 		}
 
 		public void run() {
-            if (is==null) return;
+            if (is == null) return;
             if (Thread.currentThread() == this) {
                 Environment.setThreadEnvironment(launcherEnvironment);
                 Job.setUserInterface(userInterface);
@@ -156,13 +156,13 @@ public final class SimulationData {
                 assert cell.getDatabase() == EDatabase.clientDatabase();
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        if (ww==null)
+                        if (ww == null)
                             WaveformWindow.showSimulationDataInNewWindow(sdx);
                         else
                             WaveformWindow.refreshSimulationData(sdx, ReadSimulationOutput.this.ww);
                     }});
 			} catch (IOException e) {
-				System.out.println("End of file reached while reading " + fileURL);
+				System.out.println("Error reading: " + fileURL + " (" + e.getMessage() + ")");
 			}
 		}
 	}

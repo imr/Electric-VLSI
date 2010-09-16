@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+IMP: (9/16/10, SMR) Can now read multiple Nanosim files (Bug #1413).
+
 IMP: (9/11/10, DN) Move getJarLocation from Launcher to Main.
 
 IMP/MAN: (9/10/10, GVG) TechEditor and area rules (Bug #2903)
