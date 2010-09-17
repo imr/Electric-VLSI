@@ -25,23 +25,23 @@ package com.sun.electric.tool.util.concurrent.test;
 
 import java.util.Random;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
+import com.sun.electric.tool.util.concurrent.debug.Debug;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
-import com.sun.electric.util.CollectionFactory;
-import com.sun.electric.util.TextUtils;
 
 /**
  * @author Felix Schmidt
@@ -56,9 +56,10 @@ public class SchedulingTest {
 	private static int size = 700;
 	private static final int numOfThreads = 8;
 
+        @Ignore
 	@Test
 	public void balancingTest() throws PoolExistsException, InterruptedException {
-		Job.setDebug(true);
+		Debug.setDebug(true);
 
 		Random rand = new Random(System.currentTimeMillis());
 
@@ -79,14 +80,14 @@ public class SchedulingTest {
 		System.out.println("==============================================");
 		System.out.println("==                  Queue                   ==");
 
-		IStructure<PTask> structure = CollectionFactory.createLockFreeQueue();
+		IStructure<PTask> structure = ConcurrentCollectionFactory.createLockFreeQueue();
 		ElapseTimer tQueue = this.runMatrixMultiplication(structure);
 
 		System.out.println("==============================================");
 		System.out.println("==============================================");
 		System.out.println("==                  Stack                   ==");
 
-		structure = CollectionFactory.createLockFreeStack();
+		structure = ConcurrentCollectionFactory.createLockFreeStack();
 		ElapseTimer tStack = this.runMatrixMultiplication(structure);
 
 		System.out.println("==============================================");

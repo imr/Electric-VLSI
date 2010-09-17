@@ -29,15 +29,15 @@ import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
-import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt
@@ -78,7 +78,7 @@ public class FCQueueTest {
 	private void workStealing() {
 
 		try {
-			IStructure<PTask> tasks = CollectionFactory.createLockFreeQueue();
+			IStructure<PTask> tasks = ConcurrentCollectionFactory.createLockFreeQueue();
 			ThreadPool.initialize(tasks, 2);
 		} catch (PoolExistsException e) {
 			// TODO Auto-generated catch block
@@ -98,7 +98,7 @@ public class FCQueueTest {
 
 	private void fcQueue() {
 
-		FCQueue<PTask> tasks = CollectionFactory.createFCQueue();
+		FCQueue<PTask> tasks = ConcurrentCollectionFactory.createFCQueue();
 		try {
 			ThreadPool.initialize(tasks, 2);
 		} catch (PoolExistsException e) {

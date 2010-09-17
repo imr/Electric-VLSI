@@ -26,7 +26,7 @@ package com.sun.electric.tool.util.concurrent.test;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.sun.electric.tool.Job;
+import com.sun.electric.tool.util.concurrent.debug.Debug;
 import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime;
 import com.sun.electric.tool.util.concurrent.runtime.pipeline.PipelineRuntime.StageImpl;
@@ -41,7 +41,7 @@ public class PipelineTest {
     @Test
     public void testPipelineConstruction() throws InterruptedException {
     	
-    	Job.setDebug(true);
+    	Debug.setDebug(true);
     	
         PipelineRuntime<Integer, Integer> testPipe = new PipelineRuntime<Integer, Integer>();
         testPipe.addStage(new SimpleStage(),3);

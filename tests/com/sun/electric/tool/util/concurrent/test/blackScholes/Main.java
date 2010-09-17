@@ -35,17 +35,16 @@ import java.util.List;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.test.blackScholes.OptionData.OptionType;
+import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
-import com.sun.electric.util.CollectionFactory;
-import com.sun.electric.util.TextUtils;
 
 /**
  * @author Felix Schmidt
@@ -221,7 +220,7 @@ public class Main {
 	}
 
 	private static List<OptionData> readInputFile(String inputFile) throws IOException {
-		List<OptionData> options = CollectionFactory.createLinkedList();
+		List<OptionData> options = ConcurrentCollectionFactory.createLinkedList();
 
 		BufferedReader reader = new BufferedReader(new FileReader(new File(inputFile)));
 		String numberLine = reader.readLine();

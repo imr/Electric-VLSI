@@ -29,6 +29,7 @@ import java.util.Random;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.junit.Ignore;
 
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
@@ -52,7 +53,7 @@ public class PerformanceTest {
 	private static final int matSize = 15000;
     private static final int NUMBER_OF_THREADS = 8;
 
-	@Test
+	@Ignore @Test
 	public void testSum() throws InterruptedException, PoolExistsException {
 
 		System.out.println("init ...");
@@ -105,7 +106,7 @@ public class PerformanceTest {
 
 	}
 
-	@Test
+	@Ignore @Test
 	public void testMatrixTranspose() throws PoolExistsException, InterruptedException {
 		System.out.println("init ...");
 		matA = TestHelper.createMatrix(matSize, matSize);
