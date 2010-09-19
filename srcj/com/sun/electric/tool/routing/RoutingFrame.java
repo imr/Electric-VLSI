@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -50,7 +51,6 @@ import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
-import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.GenMath;
 
 import java.awt.geom.AffineTransform;
@@ -162,7 +162,20 @@ public class RoutingFrame {
 		return null;
 	}
 
+    private ArrayList<RoutingParameter> allParameters = new ArrayList<RoutingParameter>();
 	private static Map<RoutingParameter, Pref> separatePrefs;
+
+    public static class RoutingFramePrefs extends PrefPackage {
+        private Object[][] values;
+
+        public RoutingFramePrefs(boolean factory) {
+            super(factory);
+            values = new Object[routingAlgorithms.length][];
+            for (int i = 0; i < values.length; i++) {
+                RoutingFrame rf = routingAlgorithms[i];
+            }
+        }
+    }
 
 	/**
 	 * Class to define a parameter for a routing algorithm.
