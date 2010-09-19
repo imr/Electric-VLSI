@@ -59,7 +59,8 @@ public class yana extends BenchmarkRouter {
 	// RoutingParameter("threads", "Number of Threads to use:", 4);
 	public static int maxThreads;
 	public RoutingParameter numPartitionsParameter = new RoutingParameter("partitions", "Number of partitions to use:",
-			Math.max(26, Math.max(Runtime.getRuntime().availableProcessors(), numThreads.getIntValue())));
+			26);  // Factory value must be constant
+//			Math.max(26, Math.max(Runtime.getRuntime().availableProcessors(), numThreads.getIntValue())));
 	// public RoutingParameter numPartitionsParameter = new
 	// RoutingParameter("partitions", "Number of partitions to use:", 5);
 	public static int numPartitions;

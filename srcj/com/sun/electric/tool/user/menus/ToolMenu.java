@@ -2037,13 +2037,12 @@ public class ToolMenu
 	{
 		private String algorithmName;
 		private Cell cell;
+        private RoutingFrame.RoutingFramePrefs routingOptions = new RoutingFrame.RoutingFramePrefs(false);
 
 		private DoExperimentalRoutingJob(RoutingFrame rf, Cell cell)
 		{
 			super("Routing", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			algorithmName = rf.getAlgorithmName();
-			for(RoutingParameter rp : rf.getParameters())
-				rp.cacheValue();
 			this.cell = cell;
 			startJob();
 		}
@@ -2054,7 +2053,7 @@ public class ToolMenu
 			{
 				if (algorithmName.equals(rf.getAlgorithmName()))
 				{
-		    		int numDone = rf.doRouting(cell);
+		    		int numDone = rf.doRouting(cell, routingOptions);
 		    		if (numDone == 0) return false;
 		    		return true;
 				}

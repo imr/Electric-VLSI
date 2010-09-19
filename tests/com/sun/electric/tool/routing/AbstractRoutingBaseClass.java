@@ -42,7 +42,7 @@ public abstract class AbstractRoutingBaseClass extends AbstractJunitBaseClass {
 	}
 
 	protected int testRoutingAlgorithm(RoutingFrame router, Cell cell) {
-		return router.doRouting(cell);
+		return router.doRouting(cell, new RoutingFrame.RoutingFramePrefs(true));
 	}
 
 	protected abstract RoutingFrame getRoutingFrame();

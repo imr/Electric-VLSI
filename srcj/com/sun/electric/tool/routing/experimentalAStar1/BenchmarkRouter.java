@@ -57,9 +57,9 @@ public class BenchmarkRouter extends RoutingFrame {
 	
 	public void setBenchmarkParameters(int threads, int runtime) {
 		numThreads.setTempIntValue(threads);
-		numThreads.makeTempSettingReal();
+//		numThreads.makeTempSettingReal();
 		maxRuntime.setTempIntValue(runtime);
-		maxRuntime.makeTempSettingReal();
+//		maxRuntime.makeTempSettingReal();
 	}
 
 }

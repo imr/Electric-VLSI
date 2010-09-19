@@ -58,6 +58,7 @@ public class RoutingTab extends PreferencePanel
 {
 	private PreferencesFrame parent;
 	private Map<RoutingParameter,JComponent> currentParameters;
+    private RoutingFrame.RoutingFramePrefs routingOptions;
 
 	/** Creates new form RoutingTab */
 	public RoutingTab(PreferencesFrame parent, boolean modal)
@@ -176,15 +177,9 @@ public class RoutingTab extends PreferencePanel
         	routExperimental.addItem(rf.getAlgorithmName());
         routExperimental.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { getAlgorithmParameters();   setupForAlgorithm(); }
+			public void actionPerformed(ActionEvent evt) { getAlgorithmParameters(); setupForAlgorithm(); }
 		});
-		for(RoutingFrame alg : algorithms)
-		{
-			List<RoutingParameter> params = alg.getParameters();
-			if (params == null) continue;
-			for(RoutingParameter pp : params)
-				pp.clearTempValue();
-		}
+        routingOptions = new RoutingFrame.RoutingFramePrefs(false);
 
 		// show parameters for current algorithm
 		setupForAlgorithm();
@@ -222,10 +217,11 @@ public class RoutingTab extends PreferencePanel
 
 				for(RoutingParameter pp : allParams)
 				{
+                    Object value = routingOptions.getParameter(pp);
 					if (pp.getType() == RoutingParameter.TYPEBOOLEAN)
 					{
 						JCheckBox cb = new JCheckBox(pp.getName());
-						cb.setSelected(pp.hasTempValue() ? pp.getTempBooleanValue() : pp.getBooleanValue());
+						cb.setSelected(((Boolean)value).booleanValue());
 						gbc = new GridBagConstraints();
 						gbc.gridx = 0;   gbc.gridy = yPos;
 						gbc.anchor = GridBagConstraints.WEST;
@@ -245,13 +241,13 @@ public class RoutingTab extends PreferencePanel
 						String init = null;
 						if (pp.getType() == RoutingParameter.TYPEINTEGER)
 						{
-							init = "" + (pp.hasTempValue() ? pp.getTempIntValue() : pp.getIntValue());
+							init = value.toString();
 						} else if (pp.getType() == RoutingParameter.TYPESTRING)
 						{
-							init = pp.hasTempValue() ? pp.getTempStringValue() : pp.getStringValue();
+							init = value.toString();
 						} else if (pp.getType() == RoutingParameter.TYPEDOUBLE)
 						{
-							init = TextUtils.formatDouble(pp.hasTempValue() ? pp.getTempDoubleValue() : pp.getDoubleValue());
+							init = TextUtils.formatDouble(((Double)value).doubleValue());
 						}
 						JTextField txt = new JTextField(init);
 						txt.setColumns(init.length()*2);
@@ -486,14 +482,7 @@ public class RoutingTab extends PreferencePanel
 		getAlgorithmParameters();
 
 		// set parameters in experimental algorithms
-		RoutingFrame [] algorithms = RoutingFrame.getRoutingAlgorithms();
-		for(RoutingFrame alg : algorithms)
-		{
-			List<RoutingParameter> params = alg.getParameters();
-			if (params == null) continue;
-			for(RoutingParameter pp : params)
-				pp.makeTempSettingReal();
-		}
+        putPrefs(routingOptions);
 	}
 
 	/**
@@ -552,14 +541,7 @@ public class RoutingTab extends PreferencePanel
 			Routing.setAutoStitchCreateExports(Routing.isFactoryAutoStitchCreateExports());
 
 		// reset parameters in experimental algorithms
-		RoutingFrame [] algorithms = RoutingFrame.getRoutingAlgorithms();
-		for(RoutingFrame alg : algorithms)
-		{
-			List<RoutingParameter> params = alg.getParameters();
-			if (params == null) continue;
-			for(RoutingParameter pp : params)
-				pp.resetToFactory();
-		}
+        putPrefs(new RoutingFrame.RoutingFramePrefs(true));
 	}
 
 	private void getAlgorithmParameters()
@@ -570,19 +552,24 @@ public class RoutingTab extends PreferencePanel
 		for(RoutingParameter pp : currentParameters.keySet())
 		{
 			JComponent txt = currentParameters.get(pp);
-			if (pp.getType() == RoutingParameter.TYPEINTEGER)
-			{
-				pp.setTempIntValue(TextUtils.atoi(((JTextField)txt).getText()));
-			} else if (pp.getType() == RoutingParameter.TYPESTRING)
-			{
-				pp.setTempStringValue(((JTextField)txt).getText());
-			} else if (pp.getType() == RoutingParameter.TYPEDOUBLE)
-			{
-				pp.setTempDoubleValue(TextUtils.atof(((JTextField)txt).getText()));
-			} else if (pp.getType() == RoutingParameter.TYPEBOOLEAN)
-			{
-				pp.setTempBooleanValue(((JCheckBox)txt).isSelected());
-			}
+            Object value;
+            switch (pp.getType()) {
+                case RoutingParameter.TYPEINTEGER:
+                    value = Integer.valueOf(TextUtils.atoi(((JTextField)txt).getText()));
+                    break;
+                case RoutingParameter.TYPESTRING:
+                    value = String.valueOf(((JTextField)txt).getText());
+                    break;
+                case RoutingParameter.TYPEDOUBLE:
+                    value = Double.valueOf(TextUtils.atof(((JTextField)txt).getText()));
+                    break;
+                case RoutingParameter.TYPEBOOLEAN:
+                    value = Boolean.valueOf(((JCheckBox)txt).isSelected());
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+            routingOptions = routingOptions.withParameter(pp, value);
 		}
 	}
 

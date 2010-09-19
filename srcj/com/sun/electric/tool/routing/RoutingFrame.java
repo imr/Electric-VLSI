@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 /**
  * Class to define a framework for Routing algorithms. To make Routing
@@ -94,7 +95,7 @@ import java.util.Map;
  * the finished route. RouteWire defines a wire between two RoutePoint objects
  * in the finished route.
  */
-public class RoutingFrame {
+public abstract class RoutingFrame {
 	private static final boolean DEBUGROUTES = false;
 
 	/**
@@ -141,7 +142,7 @@ public class RoutingFrame {
 	 */
 	protected void runRouting(Cell cell, List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,
 			List<RoutingContact> allContacts, List<RoutingGeometry> blockages) {
-	}
+    }
 
 	/**
 	 * Method to return the name of the routing algorithm (overridden by actual
@@ -163,18 +164,127 @@ public class RoutingFrame {
 	}
 
     private ArrayList<RoutingParameter> allParameters = new ArrayList<RoutingParameter>();
-	private static Map<RoutingParameter, Pref> separatePrefs;
+//	private static Map<RoutingParameter, Pref> separatePrefs;
 
     public static class RoutingFramePrefs extends PrefPackage {
         private Object[][] values;
 
         public RoutingFramePrefs(boolean factory) {
             super(factory);
+            Preferences prefs = (factory ? getFactoryPrefRoot() : getPrefRoot()).node("tool/routing");
             values = new Object[routingAlgorithms.length][];
             for (int i = 0; i < values.length; i++) {
                 RoutingFrame rf = routingAlgorithms[i];
+                values[i] = new Object[rf.allParameters.size()];
+                for (int j = 0; j < rf.allParameters.size(); j++) {
+                    RoutingParameter par = rf.allParameters.get(j);
+                    String key = rf.getAlgorithmName() + "-" + par.key;
+                    Object value;
+                    switch (par.type) {
+                        case RoutingParameter.TYPEINTEGER:
+                            value = Integer.valueOf(prefs.getInt(key, ((Integer)par.factoryValue).intValue()));
+                            break;
+                        case RoutingParameter.TYPESTRING:
+                            value = String.valueOf(prefs.get(key, (String)par.factoryValue));
+                            break;
+                        case RoutingParameter.TYPEDOUBLE:
+                            value = Double.valueOf(prefs.getDouble(key, ((Double)par.factoryValue).doubleValue()));
+                            break;
+                        case RoutingParameter.TYPEBOOLEAN:
+                            value = Boolean.valueOf(prefs.getBoolean(key, ((Boolean)par.factoryValue).booleanValue()));
+                            break;
+                        default:
+                            throw new AssertionError();
+                    }
+                    if (value.equals(par.factoryValue)) {
+                        value = par.factoryValue;
+                    }
+                    values[i][j] = value;
+                }
             }
         }
+
+        /**
+         * Store annotated option fields of the subclass into the speciefied Preferences subtree.
+         * @param prefRoot the root of the Preferences subtree.
+         * @param removeDefaults remove from the Preferences subtree options which have factory default value.
+         */
+        @Override
+        protected void putPrefs(Preferences prefRoot, boolean removeDefaults) {
+            super.putPrefs(prefRoot, removeDefaults);
+            Preferences prefs = prefRoot.node("tool/routing");
+            assert values.length == routingAlgorithms.length;
+            for (int i = 0; i < values.length; i++) {
+                RoutingFrame rf = routingAlgorithms[i];
+                assert values[i].length == rf.allParameters.size();
+                for (int j = 0; j < rf.allParameters.size(); j++) {
+                    RoutingParameter par = rf.allParameters.get(j);
+                    String key = rf.getAlgorithmName() + "-" + par.key;
+                    Object v = values[i][j];
+                    if (removeDefaults && v.equals(par.factoryValue)) {
+                        prefs.remove(key);
+                    } else {
+                        switch (par.type) {
+                            case RoutingParameter.TYPEINTEGER:
+                                prefs.putInt(key, ((Integer)v).intValue());
+                                break;
+                            case RoutingParameter.TYPESTRING:
+                                prefs.put(key, (String)v);
+                                break;
+                            case RoutingParameter.TYPEDOUBLE:
+                                prefs.putDouble(key, ((Double)v).doubleValue());
+                                break;
+                            case RoutingParameter.TYPEBOOLEAN:
+                                prefs.putBoolean(key, ((Boolean)v).booleanValue());
+                                break;
+                            default:
+                                throw new AssertionError();
+                        }
+                    }
+                }
+            }
+        }
+
+        public Object getParameter(RoutingParameter par) {
+            int i = indexOfFrame(par);
+            RoutingFrame rf = routingAlgorithms[i];
+            int j = rf.indexOfParameter(par.key);
+            return values[i][j];
+        }
+
+        public RoutingFramePrefs withParameter(RoutingParameter par, Object value) {
+            int i = indexOfFrame(par);
+            RoutingFrame rf = routingAlgorithms[i];
+            int j = rf.indexOfParameter(par.key);
+            Object oldValue = values[i][j];
+            if (oldValue.equals(value)) {
+                return this;
+            }
+            assert value.getClass() == par.factoryValue.getClass();
+            if (value.equals(par.factoryValue))
+                value = par.factoryValue;
+            Object[] vs = values[i].clone();
+            vs[j] = value;
+            Object[][] newValues = values.clone();
+            newValues[i] = vs;
+            return (RoutingFramePrefs)withField("values", newValues);
+        }
+
+        private int indexOfFrame(RoutingParameter par) {
+            RoutingFrame rf = par.getOwner();
+            for (int i = 0; i < routingAlgorithms.length; i++) {
+                if (rf.getClass() == routingAlgorithms[i].getClass()) return i;
+            }
+            return -1;
+        }
+    }
+
+    private int indexOfParameter(String parameterKey) {
+        for (int j = 0; j < allParameters.size(); j++) {
+            if (parameterKey.equals(allParameters.get(j).key))
+                return j;
+        }
+        return -1;
     }
 
 	/**
@@ -186,14 +296,16 @@ public class RoutingFrame {
 		public static final int TYPEDOUBLE = 3;
 		public static final int TYPEBOOLEAN = 4;
 
-		private String title;
-		private int type;
-		private int tempInt, cachedInt;
-		private String tempString, cachedString;
-		private double tempDouble, cachedDouble;
-		private boolean tempBoolean, cachedBoolean;
+        private final String key;
+		private final String title;
+        private final Object factoryValue;
+        private Object cachedValue;
+		private final int type;
+		private int tempInt;
+		private String tempString;
+		private double tempDouble;
+		private boolean tempBoolean;
 		private boolean tempValueSet;
-		private boolean cached;
 
 		/**
 		 * Constructor to create an integer routing parameter.
@@ -207,13 +319,16 @@ public class RoutingFrame {
 		 *            the default value of the parameter.
 		 */
 		public RoutingParameter(String name, String title, int factory) {
+            key = getAlgorithmName() + "-" + name;
 			this.title = title;
+            cachedValue = factoryValue = Integer.valueOf(factory);
 			type = TYPEINTEGER;
-			tempValueSet = cached = false;
-			if (separatePrefs == null)
-				separatePrefs = new HashMap<RoutingParameter, Pref>();
-			separatePrefs.put(this, Pref.makeIntPref(getAlgorithmName() + "-" + name, Routing.getRoutingTool().prefs,
-					factory));
+			tempValueSet = false;
+            allParameters.add(this);
+//			if (separatePrefs == null)
+//				separatePrefs = new HashMap<RoutingParameter, Pref>();
+//			separatePrefs.put(this, Pref.makeIntPref(key, Routing.getRoutingTool().prefs,
+//					factory));
 		}
 
 		/**
@@ -228,13 +343,16 @@ public class RoutingFrame {
 		 *            the default value of the parameter.
 		 */
 		public RoutingParameter(String name, String title, String factory) {
+            key = getAlgorithmName() + "-" + name;
 			this.title = title;
+            cachedValue = factoryValue = String.valueOf(factory);
 			type = TYPESTRING;
-			tempValueSet = cached = false;
-			if (separatePrefs == null)
-				separatePrefs = new HashMap<RoutingParameter, Pref>();
-			separatePrefs.put(this, Pref.makeStringPref(getAlgorithmName() + "-" + name,
-					Routing.getRoutingTool().prefs, factory));
+			tempValueSet = false;
+            allParameters.add(this);
+//			if (separatePrefs == null)
+//				separatePrefs = new HashMap<RoutingParameter, Pref>();
+//			separatePrefs.put(this, Pref.makeStringPref(key,
+//					Routing.getRoutingTool().prefs, factory));
 		}
 
 		/**
@@ -249,13 +367,16 @@ public class RoutingFrame {
 		 *            the default value of the parameter.
 		 */
 		public RoutingParameter(String name, String title, double factory) {
+            key = getAlgorithmName() + "-" + name;
 			this.title = title;
+            cachedValue = factoryValue = Double.valueOf(factory);
 			type = TYPEDOUBLE;
-			tempValueSet = cached = false;
-			if (separatePrefs == null)
-				separatePrefs = new HashMap<RoutingParameter, Pref>();
-			separatePrefs.put(this, Pref.makeDoublePref(getAlgorithmName() + "-" + name,
-					Routing.getRoutingTool().prefs, factory));
+			tempValueSet = false;
+            allParameters.add(this);
+//			if (separatePrefs == null)
+//				separatePrefs = new HashMap<RoutingParameter, Pref>();
+//			separatePrefs.put(this, Pref.makeDoublePref(key,
+//					Routing.getRoutingTool().prefs, factory));
 		}
 
 		/**
@@ -270,14 +391,21 @@ public class RoutingFrame {
 		 *            the default value of the parameter.
 		 */
 		public RoutingParameter(String name, String title, boolean factory) {
+            key = getAlgorithmName() + "-" + name;
 			this.title = title;
+            cachedValue = factoryValue = Boolean.valueOf(factory);
 			type = TYPEBOOLEAN;
-			tempValueSet = cached = false;
-			if (separatePrefs == null)
-				separatePrefs = new HashMap<RoutingParameter, Pref>();
-			separatePrefs.put(this, Pref.makeBooleanPref(getAlgorithmName() + "-" + name,
-					Routing.getRoutingTool().prefs, factory));
+			tempValueSet = false;
+            allParameters.add(this);
+//			if (separatePrefs == null)
+//				separatePrefs = new HashMap<RoutingParameter, Pref>();
+//			separatePrefs.put(this, Pref.makeBooleanPref(key,
+//					Routing.getRoutingTool().prefs, factory));
 		}
+
+        public RoutingFrame getOwner() {
+            return RoutingFrame.this;
+        }
 
 		public String getName() {
 			return title;
@@ -293,9 +421,7 @@ public class RoutingFrame {
 		 * @return the current Parameter value for an integer.
 		 */
 		public int getIntValue() {
-			if (cached)
-				return cachedInt;
-			return separatePrefs.get(this).getInt();
+            return ((Integer)cachedValue).intValue();
 		}
 
 		/**
@@ -304,9 +430,7 @@ public class RoutingFrame {
 		 * @return the current Parameter value for a String.
 		 */
 		public String getStringValue() {
-			if (cached)
-				return cachedString;
-			return separatePrefs.get(this).getString();
+            return (String)cachedValue;
 		}
 
 		/**
@@ -315,9 +439,7 @@ public class RoutingFrame {
 		 * @return the current Parameter value for an double.
 		 */
 		public double getDoubleValue() {
-			if (cached)
-				return cachedDouble;
-			return separatePrefs.get(this).getDouble();
+            return ((Double)cachedValue).doubleValue();
 		}
 
 		/**
@@ -326,14 +448,15 @@ public class RoutingFrame {
 		 * @return the current Parameter value for a boolean.
 		 */
 		public boolean getBooleanValue() {
-			if (cached)
-				return cachedBoolean;
-			return separatePrefs.get(this).getBoolean();
+            return ((Boolean)cachedValue).booleanValue();
 		}
 
-		public void resetToFactory() {
-			separatePrefs.get(this).factoryReset();
-		}
+        private void setValue(Object value) {
+            assert value.getClass() == factoryValue.getClass();
+            if (value.equals(factoryValue))
+                value = factoryValue;
+            cachedValue = value;
+        }
 
 		/******************** TEMP VALUES DURING THE PREFERENCES DIALOG ********************/
 
@@ -378,45 +501,7 @@ public class RoutingFrame {
 		}
 
 		public void clearTempValue() {
-			tempValueSet = cached = false;
-		}
-
-		public void cacheValue() {
-			cached = true;
-			switch (type) {
-			case TYPEINTEGER:
-				cachedInt = separatePrefs.get(this).getInt();
-				break;
-			case TYPESTRING:
-				cachedString = separatePrefs.get(this).getString();
-				break;
-			case TYPEDOUBLE:
-				cachedDouble = separatePrefs.get(this).getDouble();
-				break;
-			case TYPEBOOLEAN:
-				cachedBoolean = separatePrefs.get(this).getBoolean();
-				break;
-			}
-		}
-
-		public void makeTempSettingReal() {
-			if (tempValueSet) {
-				switch (type) {
-				case TYPEINTEGER:
-					separatePrefs.get(this).setInt(tempInt);
-					break;
-				case TYPESTRING:
-					separatePrefs.get(this).setString(tempString);
-					break;
-				case TYPEDOUBLE:
-					separatePrefs.get(this).setDouble(tempDouble);
-					break;
-				case TYPEBOOLEAN:
-					separatePrefs.get(this).setBoolean(tempBoolean);
-					break;
-				}
-				cached = false;
-			}
+			tempValueSet = false;
 		}
 	}
 
@@ -1027,7 +1112,7 @@ public class RoutingFrame {
 	 *            the Cell to route.
 	 * @return the number of segments that were routed.
 	 */
-	public int doRouting(Cell cell) {
+	public int doRouting(Cell cell, RoutingFrame.RoutingFramePrefs routingOptions) {
 		// get network information for the Cell
 		Netlist netList = cell.getNetlist();
 		if (netList == null) {
@@ -1217,6 +1302,9 @@ public class RoutingFrame {
 				+ "' algorithm");
 
 		// do the real work of Routing
+        for (RoutingParameter par: allParameters) {
+            par.setValue(routingOptions.getParameter(par));
+        }
 		runRouting(cell, segmentsToRoute, allLayers, allContacts, blockages);
 
 		// now implement the results
