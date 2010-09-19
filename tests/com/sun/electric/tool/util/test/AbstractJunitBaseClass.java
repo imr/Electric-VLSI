@@ -62,12 +62,18 @@ public abstract class AbstractJunitBaseClass {
 	@Before
 	public void initElectric() {
 		TextDescriptor.cacheSize();
+                Pref.forbidPreferences();
 		Tool.initAllTools();
 		Pref.lockCreation();
 		this.initDatabase();
 		this.initEnvironment();
 		this.initTech();
 	}
+
+    protected Library loadLibrary(String libName) throws Exception {
+        String fileName = "/com/sun/electric/tool/util/test/testData/" + libName + ".jelib";
+        return this.loadLibrary(libName, fileName, LoadLibraryType.resource);
+    }
 
 	protected Library loadLibrary(String libName, String fileName) throws Exception {
 		return this.loadLibrary(libName, fileName, LoadLibraryType.resource);
@@ -93,6 +99,11 @@ public abstract class AbstractJunitBaseClass {
 		return rootLib;
 	}
 	
+    protected Cell loadCell(String libName, String cellName) throws Exception {
+        String fileName = "/com/sun/electric/tool/util/test/testData/" + libName + ".jelib";
+        return this.loadCell(libName, cellName, fileName);
+    }
+
 	protected Cell loadCell(String libName, String cellName, String fileName) throws Exception {
 		return this.loadCell(libName, cellName, fileName, LoadLibraryType.resource);
 	}
@@ -116,7 +127,7 @@ public abstract class AbstractJunitBaseClass {
 
 	private void initDatabase() {
 		EDatabase database = new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "serverDB");
-		Job.setUserInterface(new TestUserInterface());
+		Job.setUserInterface(new TstUserInterface());
 		EDatabase.setServerDatabase(database);
 		EDatabase.serverDatabase().lock(true);
 	}

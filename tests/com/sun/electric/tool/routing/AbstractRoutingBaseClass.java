@@ -49,8 +49,7 @@ public abstract class AbstractRoutingBaseClass extends AbstractJunitBaseClass {
 
 	@Test
 	public void testRouter() throws Exception {
-		Cell cell = this.loadCell("PlacementTest", "PlacementTest4", TestProperties.getInstance().getRegressionPath()
-				+ TestProperties.getInstance().getRoutingTestData(), LoadLibraryType.fileSystem);
+		Cell cell = this.loadCell("placementTests", "PlacementTest4");
 		this.testRoutingAlgorithm(getRoutingFrame(), cell);
 	}
 

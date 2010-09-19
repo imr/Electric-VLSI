@@ -37,9 +37,7 @@ public class ERCWellCheckTest extends AbstractJunitBaseClass {
 
 	@Test
 	public void testERCWellCheck() throws Exception {
-		Cell cell = this.loadCell("PlacementTest", "PlacementTest4",
-				"W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib", LoadLibraryType.fileSystem);
-		
+		Cell cell = this.loadCell("placementTests", "PlacementTest4");
 		WellCheckPreferences wellPrefs = new WellCheckPreferences(false);
 		wellPrefs.drcCheck = false;
 		wellPrefs.pWellCheck = 1;

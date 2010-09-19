@@ -38,25 +38,25 @@ public class TestJunitCaseTest {
 	@Test
 	public void testTestByReflection() throws Exception {
 
-		Object testClass = new TestClass();
+		Object testClass = new TstClass();
 
 		TestHelpers.invokePrivateMethod("testMethod", testClass);
 	}
 
 	@Test
 	public void testTestByReflection2() throws Exception {
-		Object testClass = new TestClass();
+		Object testClass = new TstClass();
 		String result = (String) TestHelpers.invokePrivateMethod("testMethod2", testClass);
 
-		Assert.assertEquals(TestClass.testString, result);
+		Assert.assertEquals(TstClass.testString, result);
 	}
 
 	@Test
 	public void testTestByReflection3() throws Exception {
-		Object testClass = new TestClass();
-		String result = (String) TestHelpers.invokePrivateMethod("testMethod3", testClass, TestClass.testString);
+		Object testClass = new TstClass();
+		String result = (String) TestHelpers.invokePrivateMethod("testMethod3", testClass, TstClass.testString);
 
-		Assert.assertEquals(TestClass.testString, result);
+		Assert.assertEquals(TstClass.testString, result);
 	}
 
 }

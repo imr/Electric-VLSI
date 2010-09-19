@@ -71,7 +71,7 @@ public class CollectionFactoryTest {
 
 		List<Integer> list = CollectionFactory.copySetToList(set);
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < list.size(); i++) {
 			set.remove(list.get(i));
 		}
 

@@ -26,16 +26,18 @@ package com.sun.electric.tool.util.test;
 import org.junit.Test;
 
 import com.sun.electric.util.test.TestProperties;
+import org.junit.Ignore;
 
 /**
  * @author Felix Schmidt
  *
  */
 public class TestPropertiesTest {
-	
-	@Test
-	public void getRegressionPath() {
-		System.out.println(TestProperties.getInstance().getRegressionPath());
-	}
+
+    @Ignore
+    @Test
+    public void getRegressionPath() {
+        System.out.println(TestProperties.getInstance().getRegressionPath());
+    }
 
 }

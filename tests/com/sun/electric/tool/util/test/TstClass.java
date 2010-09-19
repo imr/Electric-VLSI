@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TestClass.java
+ * File: TstClass.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -29,7 +29,7 @@ import com.sun.electric.util.test.TestByReflection;
  * @author Felix Schmidt
  * 
  */
-public class TestClass {
+public class TstClass { // Don't have Test in its name
 
 	public static final String testString = "TestString";
 

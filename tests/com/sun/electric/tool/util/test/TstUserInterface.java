@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TestUserInterface.java
+ * File: TstUserInterface.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -31,7 +31,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
  * @author Felix Schmidt
  * 
  */
-public class TestUserInterface extends UserInterfaceDummy {
+public class TstUserInterface extends UserInterfaceDummy {
 
 	private Cell curCell = null;
 

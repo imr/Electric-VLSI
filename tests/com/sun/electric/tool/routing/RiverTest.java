@@ -30,7 +30,7 @@ import java.util.List;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.util.test.TestUserInterface;
+import com.sun.electric.tool.util.test.TstUserInterface;
 
 /**
  * @author Felix Schmidt
@@ -57,10 +57,8 @@ public class RiverTest extends AbstractRoutingBaseClass {
 	 */
 	@Override
 	public void testRouter() throws Exception {
-		Cell cell = this.loadCell("PlacementTest", "PlacementTest4",
-				"W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib", LoadLibraryType.fileSystem);
-
-		TestUserInterface testUI = (TestUserInterface) Job.getUserInterface();
+		Cell cell = this.loadCell("placementTests", "PlacementTest4");
+		TstUserInterface testUI = (TstUserInterface) Job.getUserInterface();
 		testUI.setCurrentCell(cell);
 
 		River router = new River();

@@ -52,11 +52,9 @@ public abstract class SeaOfGatesBase extends AbstractRoutingBaseClass {
 	 */
 	@Override
 	public void testRouter() throws Exception {
-		Cell cell = this.loadCell("PlacementTest", "PlacementTest4",
-				"W:/workspace/regression/tools/Placement/data/libs/placementTests.jelib", LoadLibraryType.fileSystem);
-		
+		Cell cell = this.loadCell("placementTests", "PlacementTest4");
 		SeaOfGatesOptions options = new SeaOfGatesOptions();
-		options.getOptionsFromPreferences();
+//		options.getOptionsFromPreferences();
 		
 		SeaOfGates.seaOfGatesRoute(cell, options, SeaOfGatesEngineType.oldThreads);
 	}
