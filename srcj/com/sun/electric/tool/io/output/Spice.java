@@ -429,7 +429,7 @@ public class Spice extends Topology
                 if (test.exists())
                 {
                     multiLinePrint(true, "* Primitives described in this file:\n");
-                    addIncludeFile(filePart);
+                    addIncludeFile(filePart, false);
                 } else {
                     reportWarning("Warning: CDL Include file not found: "+fileName);
                 }
@@ -2332,7 +2332,7 @@ public class Spice extends Topology
     /** Method to report that not to choose best export name among exports connected to signal. */
     protected boolean isChooseBestExportName() { return false; }
 
-    /** If the netlister has requirments not to netlist certain cells and their
+    /** If the netlister has requirements not to netlist certain cells and their
      * subcells, override this method.
      * If this cell has a spice template, skip it
      */
@@ -2358,13 +2358,47 @@ public class Spice extends Topology
                     fileName = str;
             }
         }
-        if (fileName != null && !localPrefs.ignoreModelFiles) {
+        if ((fileName != null && !localPrefs.ignoreModelFiles) || CellModelPrefs.isUseVerilogView(unfilteredFileName)) {
             if (!modelOverrides.containsKey(cell))
             {
                 String absFileName = fileName;
-                if (!fileName.startsWith("/") && !fileName.startsWith("\\")) {
+                boolean isVerilog = false;
+                if (absFileName == null)
+                {
+                	// referring to a Verilog view
+                    Cell verilogCell = null;
+                    for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
+                    {
+                    	Cell otherCell = it.next();
+                    	if (otherCell.getView() == View.VERILOG) { verilogCell = otherCell;   break; }
+                    }
+                    if (verilogCell == null)
+                    {
+                    	System.out.println("Verilog cell for " + cell.describe(false) + " requested but it does not exist");
+                    	return false;
+                    }
                     File spiceFile = new File(filePath);
-                    absFileName = (new File(spiceFile.getParent(), fileName)).getPath();
+                    File verilogFile = new File(spiceFile.getParent(), cell.getName() + ".va");
+                    fileName = absFileName = verilogFile.getPath();
+                	try
+                	{
+                		PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+                        String lines[] = verilogCell.getTextViewContents();
+                        for(int i=0; i<lines.length; i++)
+                    		printWriter.println(lines[i]);
+                		printWriter.close();
+                	} catch (IOException e)
+                	{
+                		System.out.println("Error writing Verilog file");
+                	}
+                    isVerilog = true;
+                } else
+                {
+                	// referring to a model file
+	                if (!fileName.startsWith("/") && !fileName.startsWith("\\")) {
+	                    File spiceFile = new File(filePath);
+	                    absFileName = (new File(spiceFile.getParent(), fileName)).getPath();
+	                }
                 }
                 boolean alreadyIncluded = false;
                 for (String includeFile : modelOverrides.values()) {
@@ -2376,7 +2410,7 @@ public class Spice extends Topology
                     multiLinePrint(true, "* "+fileName+" (already included) \n");
                 } else {
                     multiLinePrint(true, "\n* " + cell + " is described in this file:\n");
-                    addIncludeFile(fileName);
+                    addIncludeFile(fileName, isVerilog);
                 }
                 modelOverrides.put(cell, absFileName);
             }
@@ -2398,7 +2432,7 @@ public class Spice extends Topology
      */
     protected void validateSkippedCell(HierarchyEnumerator.CellInfo info) {
         String fileName = modelOverrides.get(info.getCell());
-        if (fileName != null) {
+        if (fileName != null && !fileName.endsWith(".va")) {
             // validate included file
             SpiceNetlistReader reader = new SpiceNetlistReader();
             try {
@@ -2577,7 +2611,7 @@ public class Spice extends Topology
 				if (test.exists())
 				{
 					multiLinePrint(true, "* Model cards are described in this file:\n");
-					addIncludeFile(filePart);
+					addIncludeFile(filePart, false);
                     System.out.println("Spice Header Card '" + fileName + "' is included");
                     return;
 				}
@@ -2589,7 +2623,7 @@ public class Spice extends Topology
 				if (!test.exists())
 					reportWarning("Warning: cannot find model file '" + headerFile + "'");
 				multiLinePrint(true, "* Model cards are described in this file:\n");
-				addIncludeFile(headerFile);
+				addIncludeFile(headerFile, false);
 				return;
 			}
 		}
@@ -2634,7 +2668,7 @@ public class Spice extends Topology
 				if (test.exists())
 				{
 					multiLinePrint(true, "* Trailer cards are described in this file:\n");
-					addIncludeFile(filePart);
+					addIncludeFile(filePart, false);
                     System.out.println("Spice Trailer Card '" + fileName + "' is included");
 				}
                 else
@@ -2645,7 +2679,7 @@ public class Spice extends Topology
 			{
 				// normal trailer file specified
 				multiLinePrint(true, "* Trailer cards are described in this file:\n");
-				addIncludeFile(trailerFile);
+				addIncludeFile(trailerFile, false);
                 System.out.println("Spice Trailer Card '" + trailerFile + "' is included");
 			}
 		}
@@ -3037,8 +3071,13 @@ public class Spice extends Topology
 	/**
 	 * Method to insert an "include" of file "filename" into the stream "io".
 	 */
-	private void addIncludeFile(String fileName)
+	private void addIncludeFile(String fileName, boolean verilog)
 	{
+		if (verilog)
+		{
+            multiLinePrint(false, ".hdl "+ fileName + "\n");
+            return;
+		}
         if (useCDL) {
             multiLinePrint(false, ".include "+ fileName + "\n");
             return;
@@ -3059,7 +3098,7 @@ public class Spice extends Topology
 	}
 
 	/**
-	 * Method to report an error or warning messagethat is built in the infinite string.
+	 * Method to report an error or warning message that is built in the infinite string.
 	 * The message is sent to the messages window, errorLogger and also to the SPICE deck "f".
 	 */
 	private void dumpMessage(String message, boolean isErrorMsg)

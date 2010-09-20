@@ -26,6 +26,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.io.FileType;
 
@@ -67,7 +68,8 @@ public class CellModelPrefs {
 
     public static boolean isUseModelFromFile(String unfilteredFileName) {
         return unfilteredFileName != null &&  unfilteredFileName.length() > 0 &&
-                !unfilteredFileName.startsWith("-----") && !unfilteredFileName.startsWith("+++++");
+            !unfilteredFileName.startsWith("-----") && !unfilteredFileName.startsWith("+++++") &&
+            !unfilteredFileName.startsWith("=====");
     }
 
     public boolean isUseLayoutView(Cell cell) {
@@ -79,23 +81,52 @@ public class CellModelPrefs {
                 unfilteredFileName.startsWith("+++++");
     }
 
+    public boolean isUseVerilogView(Cell cell) {
+    	String unfilteredFileName = getModelFileUnfiltered(cell);
+    	if (fileType != FileType.VERILOG)
+    		return isUseVerilogView(unfilteredFileName);
+
+    	// verilog defaults to using verilog view if there is one defined
+    	Cell verilogView = null;
+    	for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
+    	{
+    		Cell otherView = it.next();
+    		if (otherView.getView() == View.VERILOG) { verilogView = otherView;   break; }
+    	}
+    	if (unfilteredFileName == null || unfilteredFileName.length() == 0)
+    	{
+    		// use default
+    		if (verilogView != null) return true;
+    	}
+    	return isUseVerilogView(unfilteredFileName);
+    }
+
+    public static boolean isUseVerilogView(String unfilteredFileName) {
+        return unfilteredFileName != null && unfilteredFileName.length() > 0 &&
+                unfilteredFileName.startsWith("=====");
+    }
+
     public String getModelFile(Cell cell) {
         return getModelFile(getModelFileUnfiltered(cell));
     }
 
     public static String getModelFile(String unfilteredFileName) {
         if (unfilteredFileName != null && unfilteredFileName.length() > 0 &&
-            (unfilteredFileName.startsWith("+++++") || unfilteredFileName.startsWith("-----")))
-            return unfilteredFileName.substring(5);
+            (unfilteredFileName.startsWith("+++++") || unfilteredFileName.startsWith("-----") ||
+            	unfilteredFileName.startsWith("=====")))
+            		return unfilteredFileName.substring(5);
         return unfilteredFileName;
     }
 
-    public void setModelFile(Cell cell, String fileName, boolean useModelFromFile, boolean useLayoutView) {
-        assert !(useModelFromFile && useLayoutView);
-        if (!useModelFromFile && useLayoutView)
-            fileName = "+++++" + fileName;
-        if (!useModelFromFile && !useLayoutView)
-            fileName = "-----" + fileName;
+    public void setModelFile(Cell cell, String fileName, boolean useModelFromFile, boolean useLayoutView, boolean useVerilogView) {
+        assert !(useModelFromFile && (useLayoutView || useVerilogView));
+        assert !(useLayoutView && useVerilogView);
+        if (!useModelFromFile)
+        {
+        	if (useLayoutView) fileName = "+++++" + fileName; else
+        		if (useVerilogView) fileName = "=====" + fileName; else
+        			fileName = "-----" + fileName;
+        }
         Preferences libPrefs = Pref.getLibraryPreferences(cell.getId().libId); 
         String key = getPrefKey(cell);
         if (fileName.length() == 0)

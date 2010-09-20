@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+IMP/MAN: (9/20/10, SMR) Added Spice and Verilog Model Files preferences
+     to use or force Verilog views (Bug #2908).
+
 IMP: (9/19/10, DN) Class RoutingFrame.RoutingFramePrefs to control routing preferences.
 
 IMP: (9/17/10, DN) Remove plugin with russian manual because it is too old.

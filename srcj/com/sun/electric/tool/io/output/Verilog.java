@@ -355,7 +355,7 @@ public class Verilog extends Topology
 
 		// use library behavior if it is available
 		Cell verViewCell = cell.otherView(View.VERILOG);
-		if (verViewCell != null)
+		if (verViewCell != null && CellModelPrefs.verilogModelPrefs.isUseVerilogView(cell))
 		{
 			String [] stringArray = verViewCell.getTextViewContents();
 			if (stringArray != null)

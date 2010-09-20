@@ -645,10 +645,10 @@ public class FileMenu {
                 Cell cell = it.next();
 				String spiceModelFile = cell.getVarValue(Spice.SPICE_MODEL_FILE_KEY, String.class);
 				if (spiceModelFile != null)
-					CellModelPrefs.spiceModelPrefs.setModelFile(cell, spiceModelFile, false, false);
+					CellModelPrefs.spiceModelPrefs.setModelFile(cell, spiceModelFile, false, false, false);
                 String verilogModelFile = cell.getVarValue(Verilog.VERILOG_BEHAVE_FILE_KEY, String.class);
                 if (verilogModelFile != null)
-                    CellModelPrefs.verilogModelPrefs.setModelFile(cell, verilogModelFile, false, false);
+                    CellModelPrefs.verilogModelPrefs.setModelFile(cell, verilogModelFile, false, false, false);
             }
         }
     }
