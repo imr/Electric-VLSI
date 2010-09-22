@@ -27,7 +27,6 @@ import org.junit.Test;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.util.test.AbstractJunitBaseClass;
-import com.sun.electric.util.test.TestProperties;
 
 /**
  * @author Felix Schmidt
