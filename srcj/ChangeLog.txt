@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+BUG: (9/22/10, SMR) SVG coordinates are not integers (Bug #2909).
+FIX: Adjust transformations to produce integer coordinates.
+
 IMP: (9/20/10, DN) Move Orientation.java to electric.util.math .
 
 IMP/MAN: (9/20/10, SMR) Added Spice and Verilog Model Files preferences
@@ -11,7 +14,7 @@ IMP/MAN: (9/20/10, SMR) Added Spice and Verilog Model Files preferences
 
 IMP: (9/19/10, DN) Class RoutingFrame.RoutingFramePrefs to control routing preferences.
 
-IMP: (9/17/10, DN) Remove plugin with russian manual because it is too old.
+IMP: (9/17/10, DN) Remove plugin with Russian manual because it is too old.
 
 IMP: (9/16/10, SMR) Can now read multiple Nanosim files (Bug #1413).
 

@@ -222,6 +222,10 @@ public class SVG extends Output
 			i = Math.min(unitsX / localPrefs.printBounds.getWidth(), unitsY / localPrefs.printBounds.getHeight());
 			j = Math.min(unitsX / localPrefs.printBounds.getHeight(), unitsY / localPrefs.printBounds.getWidth());
 		}
+
+		// force transformations to be integral
+		i = Math.floor(i);   if (i == 0) i = 1;
+		j = Math.floor(j);   if (j == 0) j = 1;
 		double matrix00 = i;   double matrix01 = 0;
 		double matrix10 = 0;   double matrix11 = -i;
 		if (rotatePlot)
@@ -240,6 +244,10 @@ public class SVG extends Output
 		{
 			matrix21 = i * cY + unitsY / 2 + pageMargin;
 		}
+
+		// force transformations to be integral
+		matrix20 = Math.round(matrix20);
+		matrix21 = Math.round(matrix21);
 		matrix = new AffineTransform(matrix00, matrix01, matrix10, matrix11, matrix20, matrix21);
 
 		// write SVG header		
@@ -844,8 +852,8 @@ public class SVG extends Output
 	{
 		Point2D pt1 = svgXform(from);
 		Point2D pt2 = svgXform(to);
-		printWriter.print("<line x1=\"" + pt1.getX() + "\" y1=\"" + pt1.getY() +
-			"\" x2=\"" + pt2.getX() + "\" y2=\"" + pt2.getY() + "\"");
+		printWriter.print("<line x1=\"" + TextUtils.formatDouble(pt1.getX()) + "\" y1=\"" + TextUtils.formatDouble(pt1.getY()) +
+			"\" x2=\"" + TextUtils.formatDouble(pt2.getX()) + "\" y2=\"" + TextUtils.formatDouble(pt2.getY()) + "\"");
 		switch (pattern)
 		{
 			case 0:
@@ -890,8 +898,9 @@ public class SVG extends Output
 		if (angleDiff < 0) angleDiff += 360;
 		int largeAngle = angleDiff >= 180 ? 1 : 0;
 		int positive = 1;
-		printWriter.println("<path d=\"M " + ps1.getX() + "," + ps1.getY() + " A" + radius + "," + radius + " " + startAngle +
-			" " + largeAngle + "," + positive + " " + ps2.getX() + "," + ps2.getY() + "\" fill=\"none\" stroke=\"" +
+		printWriter.println("<path d=\"M " + TextUtils.formatDouble(ps1.getX()) + "," + TextUtils.formatDouble(ps1.getY()) +
+			" A" + radius + "," + radius + " " + startAngle + " " + largeAngle + "," + positive + " " +
+			TextUtils.formatDouble(ps2.getX()) + "," + TextUtils.formatDouble(ps2.getY()) + "\" fill=\"none\" stroke=\"" +
 			getColorDescription(col) + "\" />");
 	}
 
@@ -938,8 +947,8 @@ public class SVG extends Output
 		double lY = Math.min(pLow.getY(), pHigh.getY());
 		double hY = Math.max(pLow.getY(), pHigh.getY());
 		String style = getStyleDescription(col, opaque, patternName);
-		printWriter.println("<rect x=\"" + lX + "\" y=\"" + lY +
-			"\" width=\"" + (hX-lX) + "\" height=\"" + (hY-lY) + "\" " + style + "/>");
+		printWriter.println("<rect x=\"" + TextUtils.formatDouble(lX) + "\" y=\"" + TextUtils.formatDouble(lY) +
+			"\" width=\"" + TextUtils.formatDouble(hX-lX) + "\" height=\"" + TextUtils.formatDouble(hY-lY) + "\" " + style + "/>");
 	}
 
 	/**
@@ -1051,7 +1060,7 @@ public class SVG extends Output
 		if (td.isBold()) styleMsg += "; font-weight: bold";
 		if (td.isItalic()) styleMsg += "; font-style: italic";
 
-		printWriter.print("<text x=\"" + x + "\" y=\"" + y +
+		printWriter.print("<text x=\"" + TextUtils.formatDouble(x) + "\" y=\"" + TextUtils.formatDouble(y) +
 			"\" fill=\"" + getColorDescription(col) + "\" font-size=\"" + size + "\"");
 		if (td.isUnderline()) printWriter.print(" text-decoration=\"underline\"");
 		String faceName = null;
