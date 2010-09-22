@@ -28,7 +28,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
@@ -40,6 +39,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.Point;
 import java.awt.Rectangle;

@@ -31,7 +31,6 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.id.NodeProtoId;
@@ -43,6 +42,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

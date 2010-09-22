@@ -24,9 +24,8 @@
 
 package com.sun.electric.tool.simulation.interval;
 
-import com.sun.electric.tool.simulation.interval.MutableInterval;
+import com.sun.electric.util.math.MutableInterval;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
 /**

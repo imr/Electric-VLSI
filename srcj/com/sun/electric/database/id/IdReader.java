@@ -26,13 +26,13 @@ package com.sun.electric.database.id;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.util.math.Orientation;
 
 import java.io.DataInputStream;
 import java.io.IOException;

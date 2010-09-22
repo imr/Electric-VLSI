@@ -23,10 +23,10 @@
  */
 package com.sun.electric.tool.placement;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.util.math.GenMath.MutableInteger;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;

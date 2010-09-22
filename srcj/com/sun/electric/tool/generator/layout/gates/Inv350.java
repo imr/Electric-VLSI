@@ -7,7 +7,6 @@ package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -16,7 +15,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.extract.LayerCoverageTool;
-import com.sun.electric.tool.extract.LayerCoverageTool.LCMode;
 import com.sun.electric.tool.generator.layout.FoldedMos;
 import com.sun.electric.tool.generator.layout.FoldedNmos;
 import com.sun.electric.tool.generator.layout.FoldedPmos;
@@ -26,6 +24,8 @@ import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
+import com.sun.electric.util.math.Orientation;
+
 import java.util.Iterator;
 
 /**

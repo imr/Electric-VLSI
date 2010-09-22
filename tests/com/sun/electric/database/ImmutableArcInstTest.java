@@ -26,7 +26,6 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
@@ -54,6 +53,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -43,6 +42,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.tecEdit.Info;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.Container;
 import java.awt.Cursor;

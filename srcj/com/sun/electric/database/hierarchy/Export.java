@@ -29,11 +29,8 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ExportId;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -54,6 +51,7 @@ import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.BusParameters;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -63,11 +61,9 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * An Export is a PortProto at the Cell level.  It points to the

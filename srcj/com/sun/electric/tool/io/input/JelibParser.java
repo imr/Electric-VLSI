@@ -29,7 +29,6 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
@@ -55,6 +54,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

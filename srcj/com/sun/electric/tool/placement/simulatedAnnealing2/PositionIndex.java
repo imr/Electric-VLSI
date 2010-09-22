@@ -28,7 +28,7 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing2;
 
-import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.util.math.Orientation;
 
 import java.util.ArrayList;
 import java.util.List;

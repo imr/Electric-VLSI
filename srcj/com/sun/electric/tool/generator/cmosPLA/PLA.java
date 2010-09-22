@@ -26,7 +26,6 @@
  */
 package com.sun.electric.tool.generator.cmosPLA;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -48,6 +47,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

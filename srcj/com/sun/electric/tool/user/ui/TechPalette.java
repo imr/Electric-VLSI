@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -64,6 +63,7 @@ import com.sun.electric.tool.user.redisplay.PixelDrawing;
 import com.sun.electric.tool.user.redisplay.VectorCache;
 import com.sun.electric.tool.user.tecEdit.Info;
 import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.Color;
 import java.awt.Dimension;

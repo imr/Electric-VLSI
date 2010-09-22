@@ -25,7 +25,6 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.NodeProtoId;
@@ -33,6 +32,7 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.util.math.Orientation;
 
 import java.io.IOException;
 import java.util.Arrays;

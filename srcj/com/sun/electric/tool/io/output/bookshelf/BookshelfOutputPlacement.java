@@ -28,11 +28,11 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.bookshelf.Bookshelf.BookshelfFiles;
+import com.sun.electric.util.math.Orientation;
 
 /**
  * @author Felix Schmidt

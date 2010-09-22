@@ -28,10 +28,10 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing2;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementParameter;
 import com.sun.electric.tool.placement.simulatedAnnealing2.PositionIndex.AreaSnapshot;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.Point2D;
 import java.io.FileWriter;

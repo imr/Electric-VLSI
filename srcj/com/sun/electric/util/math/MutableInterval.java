@@ -22,7 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 
-package com.sun.electric.tool.simulation.interval;
+package com.sun.electric.util.math;
 
 import java.math.BigDecimal;
 

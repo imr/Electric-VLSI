@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -43,6 +42,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.Rectangle2D;
 import java.util.HashSet;

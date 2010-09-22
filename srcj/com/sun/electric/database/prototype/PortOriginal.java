@@ -25,7 +25,6 @@ package com.sun.electric.database.prototype;
 
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -33,6 +32,7 @@ import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.AffineTransform;
 

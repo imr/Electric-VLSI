@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+IMP: (9/20/10, DN) Move Orientation.java to electric.util.math .
+
 IMP/MAN: (9/20/10, SMR) Added Spice and Verilog Model Files preferences
      to use or force Verilog views (Bug #2908).
 

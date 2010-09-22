@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -49,6 +48,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

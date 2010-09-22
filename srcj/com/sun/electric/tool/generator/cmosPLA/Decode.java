@@ -26,7 +26,6 @@
  */
 package com.sun.electric.tool.generator.cmosPLA;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -34,6 +33,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.Rectangle2D;
 

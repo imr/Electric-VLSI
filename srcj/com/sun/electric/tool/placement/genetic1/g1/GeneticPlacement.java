@@ -49,11 +49,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.genetic1.Chromosome;
 import com.sun.electric.tool.placement.genetic1.Population;
 import com.sun.electric.tool.placement.genetic1.PopulationCreation;
+import com.sun.electric.util.math.Orientation;
 
 /**
  * Genetic placement test framework class. Allows to plug in to utilize

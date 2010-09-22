@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.placement;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.util.math.Orientation;
 
 import java.util.ArrayList;
 import java.util.List;

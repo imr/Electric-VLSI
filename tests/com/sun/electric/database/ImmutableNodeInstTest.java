@@ -25,7 +25,6 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.PortProtoId;
@@ -39,6 +38,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;

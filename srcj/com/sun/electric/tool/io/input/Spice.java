@@ -26,7 +26,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -44,7 +43,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.placement.Placement;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.Placement.PlacementPreferences;
@@ -53,6 +51,7 @@ import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.Orientation;
 
 import java.io.File;
 import java.io.IOException;

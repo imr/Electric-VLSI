@@ -27,7 +27,6 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -60,6 +59,7 @@ import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

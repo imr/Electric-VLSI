@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GeometryHandler;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
@@ -71,6 +70,7 @@ import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
 import com.sun.electric.util.math.GenMath.MutableBoolean;
 import com.sun.electric.util.math.GenMath.MutableInteger;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;

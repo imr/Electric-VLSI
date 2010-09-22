@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -31,6 +30,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib.Corner;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.user.ExportChanges;
+import com.sun.electric.util.math.Orientation;
 
 
 /** Super class for the physical design objects of all Cells */

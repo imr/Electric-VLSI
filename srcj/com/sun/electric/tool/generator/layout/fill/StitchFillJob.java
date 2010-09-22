@@ -46,6 +46,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.util.*;
 import java.awt.geom.Rectangle2D;

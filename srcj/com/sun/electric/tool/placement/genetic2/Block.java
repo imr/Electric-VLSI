@@ -28,8 +28,8 @@
  */
 package com.sun.electric.tool.placement.genetic2;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.util.math.Orientation;
 
 import java.util.Random;
 

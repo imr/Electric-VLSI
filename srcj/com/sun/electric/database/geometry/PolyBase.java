@@ -34,6 +34,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.Rectangle;
 import java.awt.Shape;

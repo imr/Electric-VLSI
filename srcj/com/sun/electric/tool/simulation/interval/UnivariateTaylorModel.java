@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.simulation.interval;
 
+import com.sun.electric.util.math.MutableInterval;
+
 import java.math.BigDecimal;
 
 /**

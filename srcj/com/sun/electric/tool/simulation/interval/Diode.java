@@ -23,11 +23,7 @@
  */
 package com.sun.electric.tool.simulation.interval;
 
-import com.sun.electric.tool.simulation.interval.ExprEval;
-import com.sun.electric.tool.simulation.interval.MutableInterval;
-import com.sun.electric.tool.simulation.interval.RawFile;
-
-import java.nio.ByteOrder;
+import com.sun.electric.util.math.MutableInterval;
 
 /**
  * This class contains a set of expressions which defines model equations

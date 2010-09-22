@@ -28,8 +28,8 @@
  */
 package com.sun.electric.tool.placement.genetic1.g1;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
+import com.sun.electric.util.math.Orientation;
 
 public class PlacementNodeProxy {
 

@@ -37,7 +37,6 @@ import java.util.Map;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -70,7 +69,7 @@ import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing;
 import com.sun.electric.tool.placement.simulatedAnnealing2.PlacementSimulatedAnnealing;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
-import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.Orientation;
 
 /**
  * Class to define a framework for Placement algorithms. To make Placement

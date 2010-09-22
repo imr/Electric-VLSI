@@ -22,17 +22,12 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database.geometry;
-
-import com.sun.electric.tool.simulation.interval.MutableInterval;
-import com.sun.electric.util.math.GenMath;
-import com.sun.electric.util.math.DBMath;
+package com.sun.electric.util.math;
 
 import java.awt.geom.Point2D;
 import java.math.BigDecimal;
 
 import junit.framework.Assert;
-
 import static org.junit.Assert.*;
 import org.junit.Ignore;
 import org.junit.Test;

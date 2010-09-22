@@ -3,7 +3,6 @@ package com.sun.electric.tool.generator.flag.designs.Infinity2;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
@@ -15,6 +14,7 @@ import com.sun.electric.tool.generator.flag.router.ToConnect;
 import com.sun.electric.tool.generator.layout.AbutRouter;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.LayoutLib.Corner;
+import com.sun.electric.util.math.Orientation;
 
 public class InstFifoAll extends FlagDesign {
 	private final double DEF_SIZE = LayoutLib.DEF_SIZE;

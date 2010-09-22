@@ -25,7 +25,6 @@
 package com.sun.electric.scala
 
 import com.sun.electric.database.CellTree
-import com.sun.electric.database.geometry.Orientation
 import com.sun.electric.database.geometry.PolyBase
 import com.sun.electric.database.geometry.bool.LayoutMerger
 import com.sun.electric.database.geometry.bool.LayoutMergerFactory
@@ -36,7 +35,9 @@ import com.sun.electric.database.id.CellId
 import com.sun.electric.technology.Layer
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer
 import com.sun.electric.util.TextUtils
+import com.sun.electric.util.math.Orientation
 
+import com.sun.electric.util.math.Orientation
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.ByteArrayInputStream

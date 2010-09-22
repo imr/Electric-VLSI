@@ -41,13 +41,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementParameter;
 import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.AreaOverlapMetric;
 import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.BoundingBoxMetric;
 import com.sun.electric.tool.placement.simulatedAnnealing1.metrics.MSTMetric;
 import com.sun.electric.util.math.GenMath.MutableInteger;
+import com.sun.electric.util.math.Orientation;
 
 /**
  * Parallel Placement

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -31,7 +30,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -52,6 +50,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.math.GenMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

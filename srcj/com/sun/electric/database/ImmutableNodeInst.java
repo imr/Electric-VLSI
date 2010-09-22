@@ -26,7 +26,6 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.id.IdWriter;
@@ -44,6 +43,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.Point2D;
 

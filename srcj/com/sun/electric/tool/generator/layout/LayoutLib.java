@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -57,6 +56,7 @@ import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.Orientation;
 
 /*
  * The LayoutLib class provides an assortment of methods that I
