@@ -58,7 +58,7 @@ public class RoutingTab extends PreferencePanel
 {
 	private PreferencesFrame parent;
 	private Map<RoutingParameter,JComponent> currentParameters;
-    private RoutingFrame.RoutingFramePrefs routingOptions;
+    private RoutingFrame.RoutingPrefs routingOptions;
 
 	/** Creates new form RoutingTab */
 	public RoutingTab(PreferencesFrame parent, boolean modal)
@@ -179,7 +179,7 @@ public class RoutingTab extends PreferencePanel
 		{
 			public void actionPerformed(ActionEvent evt) { getAlgorithmParameters(); setupForAlgorithm(); }
 		});
-        routingOptions = new RoutingFrame.RoutingFramePrefs(false);
+        routingOptions = new RoutingFrame.RoutingPrefs(false);
 
 		// show parameters for current algorithm
 		setupForAlgorithm();
@@ -541,7 +541,7 @@ public class RoutingTab extends PreferencePanel
 			Routing.setAutoStitchCreateExports(Routing.isFactoryAutoStitchCreateExports());
 
 		// reset parameters in experimental algorithms
-        putPrefs(new RoutingFrame.RoutingFramePrefs(true));
+        putPrefs(new RoutingFrame.RoutingPrefs(true));
 	}
 
 	private void getAlgorithmParameters()

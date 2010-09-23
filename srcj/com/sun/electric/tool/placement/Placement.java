@@ -70,17 +70,18 @@ public class Placement extends Tool
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 		PlacementPreferences pp = new PlacementPreferences(false);
+		PlacementAdapter.PlacementPrefs placementOptions = new PlacementAdapter.PlacementPrefs(false);
 		pp.getOptionsFromPreferences();
-		new PlaceJob(cell, pp);
+		new PlaceJob(cell, pp, placementOptions);
 	}
 
 	/**
 	 * Method to run placement a given cell without starting a new Job.
 	 */
-	public static Cell placeCellNoJob(Cell cell, PlacementPreferences prefs)
+	public static Cell placeCellNoJob(Cell cell, PlacementPreferences prefs, PlacementAdapter.PlacementPrefs placementOptions)
 	{
 		PlacementFrame pla = getCurrentPlacementAlgorithm(prefs);
-		Cell newCell = pla.doPlacement(cell, prefs);
+		Cell newCell = PlacementAdapter.doPlacement(pla, cell, prefs, placementOptions);
 		return newCell;
 	}
 
@@ -91,19 +92,21 @@ public class Placement extends Tool
 	{
 		private Cell cell;
 		private PlacementPreferences prefs;
+        private PlacementAdapter.PlacementPrefs placementOptions;
 		private Cell newCell;
 
-		private PlaceJob(Cell cell, PlacementPreferences prefs)
+		private PlaceJob(Cell cell, PlacementPreferences prefs, PlacementAdapter.PlacementPrefs placementOptions)
 		{
 			super("Place cells", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.prefs = prefs;
+            this.placementOptions = placementOptions;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			newCell = placeCellNoJob(cell, prefs);
+			newCell = placeCellNoJob(cell, prefs, placementOptions);
 			fieldVariableChanged("newCell");
             return true;
 		}
@@ -148,11 +151,11 @@ public class Placement extends Tool
 	public static PlacementFrame getCurrentPlacementAlgorithm(PlacementPreferences prefs)
 	{
 		String algName = prefs.placementAlgorithm;
-		for(PlacementFrame pfObj : PlacementFrame.getPlacementAlgorithms())
+		for(PlacementFrame pfObj : PlacementAdapter.getPlacementAlgorithms())
 		{
 			if (algName.equals(pfObj.getAlgorithmName())) return pfObj;
 		}
-		return PlacementFrame.getPlacementAlgorithms()[0];
+		return PlacementAdapter.getPlacementAlgorithms()[0];
 	}
 
 	/************************ PREFERENCES ***********************/

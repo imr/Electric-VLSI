@@ -136,18 +136,6 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 	}
 
 	/**
-	 * Method to return a list of parameters for this placement algorithm.
-	 * 
-	 * @return a list of parameters for this placement algorithm.
-	 */
-	public List<PlacementParameter> getParameters() {
-		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
-		allParams.add(numThreadsParam);
-		allParams.add(maxRuntimeParam);
-		return allParams;
-	}
-
-	/**
 	 * Method that counts how often the temperature will be decreased before
 	 * going below 1
 	 */
@@ -174,11 +162,7 @@ public class PlacementSimulatedAnnealing extends PlacementFrame {
 	 *            the name of the cell being placed.
 	 */
 	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks, String cellName) {
-		if (USE_GUIPARAMETER) {
-			this.setParamterValues(this.numThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
-		} else {
-			this.setParamterValues(this.numThreadsParam.getTempIntValue(), this.maxRuntimeParam.getTempIntValue());
-		}
+		this.setParamterValues(this.numThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
 
 		this.initializeParameters();
 

@@ -159,18 +159,19 @@ public abstract class RoutingFrame {
 	 * @return a list of parameters for this routing algorithm.
 	 */
 	public List<RoutingParameter> getParameters() {
-		return null;
+		return allParameters;
 	}
 
     private ArrayList<RoutingParameter> allParameters = new ArrayList<RoutingParameter>();
 //	private static Map<RoutingParameter, Pref> separatePrefs;
 
-    public static class RoutingFramePrefs extends PrefPackage {
+    public static class RoutingPrefs extends PrefPackage {
         private Object[][] values;
+        private final static String NODE_NAME = "tool/rooting";
 
-        public RoutingFramePrefs(boolean factory) {
+        public RoutingPrefs(boolean factory) {
             super(factory);
-            Preferences prefs = (factory ? getFactoryPrefRoot() : getPrefRoot()).node("tool/routing");
+            Preferences prefs = (factory ? getFactoryPrefRoot() : getPrefRoot()).node(NODE_NAME);
             values = new Object[routingAlgorithms.length][];
             for (int i = 0; i < values.length; i++) {
                 RoutingFrame rf = routingAlgorithms[i];
@@ -211,7 +212,7 @@ public abstract class RoutingFrame {
         @Override
         protected void putPrefs(Preferences prefRoot, boolean removeDefaults) {
             super.putPrefs(prefRoot, removeDefaults);
-            Preferences prefs = prefRoot.node("tool/routing");
+            Preferences prefs = prefRoot.node(NODE_NAME);
             assert values.length == routingAlgorithms.length;
             for (int i = 0; i < values.length; i++) {
                 RoutingFrame rf = routingAlgorithms[i];
@@ -251,7 +252,7 @@ public abstract class RoutingFrame {
             return values[i][j];
         }
 
-        public RoutingFramePrefs withParameter(RoutingParameter par, Object value) {
+        public RoutingPrefs withParameter(RoutingParameter par, Object value) {
             int i = indexOfFrame(par);
             RoutingFrame rf = routingAlgorithms[i];
             int j = rf.indexOfParameter(par.key);
@@ -266,7 +267,7 @@ public abstract class RoutingFrame {
             vs[j] = value;
             Object[][] newValues = values.clone();
             newValues[i] = vs;
-            return (RoutingFramePrefs)withField("values", newValues);
+            return (RoutingPrefs)withField("values", newValues);
         }
 
         private int indexOfFrame(RoutingParameter par) {
@@ -1111,7 +1112,7 @@ public abstract class RoutingFrame {
 	 *            the Cell to route.
 	 * @return the number of segments that were routed.
 	 */
-	public int doRouting(Cell cell, RoutingFrame.RoutingFramePrefs routingOptions) {
+	public int doRouting(Cell cell, RoutingFrame.RoutingPrefs routingOptions) {
 		// get network information for the Cell
 		Netlist netList = cell.getNetlist();
 		if (netList == null) {

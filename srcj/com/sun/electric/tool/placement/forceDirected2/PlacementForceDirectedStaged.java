@@ -69,18 +69,6 @@ public class PlacementForceDirectedStaged extends PlacementFrame {
 	public PlacementParameter maxThreadsParam = new PlacementParameter("threads", "Number of threads:", 4);
 	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime", "Runtime (seconds):", 240);
 
-	/**
-	 * Method to return a list of parameters for this placement algorithm.
-	 * 
-	 * @return a list of parameters for this placement algorithm.
-	 */
-	public List<PlacementParameter> getParameters() {
-		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
-		allParams.add(maxRuntimeParam);
-		allParams.add(maxThreadsParam);
-		return allParams;
-	}
-
 	public static int getGlobalCounter() {
 		return PlacementForceDirectedStaged.globalCounter;
 	}
@@ -127,12 +115,7 @@ public class PlacementForceDirectedStaged extends PlacementFrame {
 	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
 			String cellName) {
 
-		if (USE_GUIPARAMETER) {
-			this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
-		} else {
-			this.setParamterValues(this.maxThreadsParam.getTempIntValue(), this.maxRuntimeParam
-					.getTempIntValue());
-		}
+        this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
 
 		nodeData = new HashMap<PlacementNode, AdditionalNodeData>();
 		globalCounter = 0;

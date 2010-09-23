@@ -65,18 +65,6 @@ public class GeneticPlacement extends PlacementFrame {
 	public PlacementParameter maxThreadsParam = new PlacementParameter("threads", "Number of threads:", 4);
 	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime", "Runtime (seconds):", 240);
 
-	/**
-	 * Method to return a list of parameters for this placement algorithm.
-	 * 
-	 * @return a list of parameters for this placement algorithm.
-	 */
-	public List<PlacementParameter> getParameters() {
-		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
-		allParams.add(maxRuntimeParam);
-		allParams.add(maxThreadsParam);
-		return allParams;
-	}
-
 	public int numThreads;
 	public int maxRuntime;
 	boolean printDebugInformation;
@@ -261,13 +249,7 @@ public class GeneticPlacement extends PlacementFrame {
 	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
 			String cellName) {
 
-		if (USE_GUIPARAMETER) {
-			this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue(),
-					false);
-		} else {
-			this.setParamterValues(this.maxThreadsParam.getTempIntValue(), this.maxRuntimeParam
-					.getTempIntValue(), false);
-		}
+        this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue(), false);
 
 		if (beenRun)
 			System.out

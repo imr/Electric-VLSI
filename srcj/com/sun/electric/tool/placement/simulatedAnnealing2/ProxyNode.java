@@ -79,7 +79,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 		 */
 		public ProxyPort(double x, double y, ProxyNode p)
 		{
-			super(x, y, null);
+			super(x, y);
 			offX = x;
 			offY = y;
 			this.proxyNode = p;

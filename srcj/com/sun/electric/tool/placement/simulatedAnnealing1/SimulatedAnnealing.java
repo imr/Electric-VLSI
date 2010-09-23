@@ -28,7 +28,6 @@
  */
 package com.sun.electric.tool.placement.simulatedAnnealing1;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -66,17 +65,6 @@ public class SimulatedAnnealing extends PlacementFrame {
 	public PlacementParameter maxThreadsParam = new PlacementParameter("threads", "Number of threads:", 4);
 	public PlacementParameter maxRuntimeParam = new PlacementParameter("runtime", "Runtime (seconds):", 240);
 
-	/**
-	 * Method to return a list of parameters for this placement algorithm.
-	 * 
-	 * @return a list of parameters for this placement algorithm.
-	 */
-	public List<PlacementParameter> getParameters() {
-		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
-		allParams.add(maxThreadsParam);
-		return allParams;
-	}
-
 	private Temperature temp;
 	private Random rand = new Random();
 
@@ -98,12 +86,7 @@ public class SimulatedAnnealing extends PlacementFrame {
 	protected void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
 			String cellName) {
 
-		if (USE_GUIPARAMETER) {
-			this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
-		} else {
-			this.setParamterValues(this.maxThreadsParam.getTempIntValue(), this.maxRuntimeParam
-					.getTempIntValue());
-		}
+		this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
 
 		System.out.println("Simulated annealing started.");
 

@@ -24,13 +24,12 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.placement.Placement;
+import com.sun.electric.tool.placement.PlacementAdapter;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementParameter;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.util.TextUtils;
 
-import java.awt.Component;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,6 +45,7 @@ public class PlacementTab extends PreferencePanel
 {
 	private PreferencesFrame parent;
 	private Map<PlacementParameter,JTextField> currentParameters;
+    private PlacementAdapter.PlacementPrefs placementOptions;
 
 	/** Creates new form PlacementTab */
 	public PlacementTab(PreferencesFrame parent, boolean modal)
@@ -67,7 +67,7 @@ public class PlacementTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		PlacementFrame [] algorithms = PlacementFrame.getPlacementAlgorithms();
+		PlacementFrame [] algorithms = PlacementAdapter.getPlacementAlgorithms();
 		for(PlacementFrame an : algorithms)
 			placementAlgorithm.addItem(an.getAlgorithmName());
 		placementAlgorithm.setSelectedItem(Placement.getAlgorithmName());
@@ -75,14 +75,7 @@ public class PlacementTab extends PreferencePanel
             public void actionPerformed(ActionEvent evt) { getAlgorithmParameters();   setupForAlgorithm(); }
         });
 
-		// reset temp parameters in all algorithms
-		for(PlacementFrame alg : algorithms)
-		{
-			List<PlacementParameter> params = alg.getParameters();
-			if (params == null) continue;
-			for(PlacementParameter pp : params)
-				pp.clearTempValue();
-		}
+        placementOptions = new PlacementAdapter.PlacementPrefs(false);
 
 		// show parameters for current algorithm
 		setupForAlgorithm();
@@ -102,14 +95,7 @@ public class PlacementTab extends PreferencePanel
 		getAlgorithmParameters();
 
 		// set parameters in all algorithms
-		PlacementFrame [] algorithms = PlacementFrame.getPlacementAlgorithms();
-		for(PlacementFrame alg : algorithms)
-		{
-			List<PlacementParameter> params = alg.getParameters();
-			if (params == null) continue;
-			for(PlacementParameter pp : params)
-				pp.makeTempSettingReal();
-		}
+        putPrefs(placementOptions);
 	}
 
 	/**
@@ -120,15 +106,8 @@ public class PlacementTab extends PreferencePanel
 		if (!Placement.getFactoryAlgorithmName().equals(Placement.getAlgorithmName()))
 			Placement.setAlgorithmName(Placement.getFactoryAlgorithmName());
 
-		// reset parameters in all algorithms
-		PlacementFrame [] algorithms = PlacementFrame.getPlacementAlgorithms();
-		for(PlacementFrame alg : algorithms)
-		{
-			List<PlacementParameter> params = alg.getParameters();
-			if (params == null) continue;
-			for(PlacementParameter pp : params)
-				pp.resetToFactory();
-		}
+		// reset parameters in experimental algorithms
+        putPrefs(new PlacementAdapter.PlacementPrefs(true));
 	}
 
 	private void getAlgorithmParameters()
@@ -139,16 +118,21 @@ public class PlacementTab extends PreferencePanel
 		for(PlacementParameter pp : currentParameters.keySet())
 		{
 			JTextField txt = currentParameters.get(pp);
-			if (pp.getType() == PlacementParameter.TYPEINTEGER)
-			{
-				pp.setTempIntValue(TextUtils.atoi(txt.getText()));
-			} else if (pp.getType() == PlacementParameter.TYPESTRING)
-			{
-				pp.setTempStringValue(txt.getText());
-			} else if (pp.getType() == PlacementParameter.TYPEDOUBLE)
-			{
-				pp.setTempDoubleValue(TextUtils.atof(txt.getText()));
-			}
+            Object value;
+            switch (pp.getType()) {
+                case PlacementFrame.PlacementParameter.TYPEINTEGER:
+                    value = Integer.valueOf(TextUtils.atoi(((JTextField)txt).getText()));
+                    break;
+                case PlacementFrame.PlacementParameter.TYPESTRING:
+                    value = String.valueOf(((JTextField)txt).getText());
+                    break;
+                case PlacementFrame.PlacementParameter.TYPEDOUBLE:
+                    value = Double.valueOf(TextUtils.atof(((JTextField)txt).getText()));
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+            placementOptions = placementOptions.withParameter(pp, value);
 		}
 	}
 
@@ -159,7 +143,7 @@ public class PlacementTab extends PreferencePanel
 		currentParameters = new HashMap<PlacementParameter,JTextField>();
 
 		String algName = (String)placementAlgorithm.getSelectedItem();
-		PlacementFrame [] algorithms = PlacementFrame.getPlacementAlgorithms();
+		PlacementFrame [] algorithms = PlacementAdapter.getPlacementAlgorithms();
 		PlacementFrame whichOne = null;
 		for(PlacementFrame an : algorithms)
 		{
@@ -174,6 +158,7 @@ public class PlacementTab extends PreferencePanel
 				int yPos = 0;
 				for(PlacementParameter pp : allParams)
 				{
+                    Object value = placementOptions.getParameter(pp);
 					JLabel lab = new JLabel(pp.getName());
 					GridBagConstraints gbc = new GridBagConstraints();
 					gbc.gridx = 0;   gbc.gridy = yPos;
@@ -183,13 +168,13 @@ public class PlacementTab extends PreferencePanel
 					String init = null;
 					if (pp.getType() == PlacementParameter.TYPEINTEGER)
 					{
-						init = "" + (pp.hasTempValue() ? pp.getTempIntValue() : pp.getIntValue());
+                        init = value.toString();
 					} else if (pp.getType() == PlacementParameter.TYPESTRING)
 					{
-						init = pp.hasTempValue() ? pp.getTempStringValue() : pp.getStringValue();
+                        init = value.toString();
 					} else if (pp.getType() == PlacementParameter.TYPEDOUBLE)
 					{
-						init = TextUtils.formatDouble(pp.hasTempValue() ? pp.getTempDoubleValue() : pp.getDoubleValue());
+						init = TextUtils.formatDouble(((Double)value).doubleValue());
 					}
 					JTextField txt = new JTextField(init);
 					txt.setColumns(init.length()*2);

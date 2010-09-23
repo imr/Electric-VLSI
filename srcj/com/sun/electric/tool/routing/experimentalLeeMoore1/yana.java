@@ -34,7 +34,6 @@ import java.util.List;
 import com.sun.electric.tool.routing.experimentalLeeMoore1.LeeMoore.RoutingArray;
 import com.sun.electric.tool.routing.experimentalLeeMoore1.LeeMoore.Tupel;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
-import com.sun.electric.util.TextUtils;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CyclicBarrier;
@@ -98,22 +97,6 @@ public class yana extends BenchmarkRouter {
 	@Override
 	public String getAlgorithmName() {
 		return "Lee/Moore - 1";
-	}
-
-	/**
-	 * Method to return a list of parameters for this routing algorithm.
-	 * 
-	 * @return a list of parameters for this routing algorithm.
-	 */
-	@Override
-	public List<RoutingParameter> getParameters() {
-		// allParameters.add(maxThreadsParameter);
-		allParameters.add(numPartitionsParameter);
-		allParameters.add(regionDivideMethodParameter);
-		allParameters.add(minimumRegionBorderLengthParameter);
-		// allParams.add(widthWhereJustOneWireIsPermittedParameter);
-		allParameters.add(maxLayerUseParameter);
-		return allParameters;
 	}
 
 	/**

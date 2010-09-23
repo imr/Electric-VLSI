@@ -88,18 +88,6 @@ public class PlacementForceDirectedTeam5 extends PlacementFrame {
         return "Force-Directed-1";
     }
 
-    /**
-     * Method to return a list of parameters for this placement algorithm.
-     * 
-     * @return a list of parameters for this placement algorithm.
-     */
-    public List<PlacementParameter> getParameters() {
-        List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
-        allParams.add(maxRuntimeParam);
-        allParams.add(maxThreadsParam);
-        return allParams;
-    }
-
     // public void setBenchmarkValues(int runtime, int threads, boolean debug) {
     // maxRuntime = runtime;
     // numThreads = threads;
@@ -212,12 +200,7 @@ public class PlacementForceDirectedTeam5 extends PlacementFrame {
     public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
             String cellName) {
 
-        if (USE_GUIPARAMETER) {
-            this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
-        } else {
-            this.setParamterValues(this.maxThreadsParam.getTempIntValue(), this.maxRuntimeParam
-                    .getTempIntValue());
-        }
+        this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
 
         initTimeout(0);
         bb = new BBMetric();

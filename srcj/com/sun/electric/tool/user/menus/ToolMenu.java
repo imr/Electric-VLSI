@@ -2037,7 +2037,7 @@ public class ToolMenu
 	{
 		private String algorithmName;
 		private Cell cell;
-        private RoutingFrame.RoutingFramePrefs routingOptions = new RoutingFrame.RoutingFramePrefs(false);
+        private RoutingFrame.RoutingPrefs routingOptions = new RoutingFrame.RoutingPrefs(false);
 
 		private DoExperimentalRoutingJob(RoutingFrame rf, Cell cell)
 		{

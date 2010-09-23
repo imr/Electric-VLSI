@@ -24,9 +24,6 @@
  */
 package com.sun.electric.tool.routing.experimentalAStar3;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.sun.electric.tool.routing.RoutingFrame;
 
 public class BenchmarkRouter extends RoutingFrame
@@ -38,23 +35,13 @@ public class BenchmarkRouter extends RoutingFrame
 
   public RoutingParameter enableOutput = new RoutingParameter("output", "Enable console output", false);
 
-  List<RoutingParameter> allParameters = new ArrayList<RoutingParameter>();
-
   public BenchmarkRouter()
   {
-    this.allParameters.add(this.numThreads);
-    this.allParameters.add(this.maxRuntime);
-    this.allParameters.add(this.enableOutput);
   }
 
   public String getAlgorithmName()
   {
     return "BenchmarkRouter";
-  }
-
-  public List<RoutingParameter> getParameters()
-  {
-    return this.allParameters;
   }
 
   public void setBenchmarkParameters(int threads, int runtime)

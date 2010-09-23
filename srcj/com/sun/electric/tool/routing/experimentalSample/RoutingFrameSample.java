@@ -27,7 +27,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.routing.RoutingFrame;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,20 +45,6 @@ public class RoutingFrameSample extends RoutingFrame
 	 * @return the name of this routing algorithm.
 	 */
 	public String getAlgorithmName() { return "Simple"; }
-
-	/**
-	 * Method to return a list of parameters for this routing algorithm.
-	 * @return a list of parameters for this routing algorithm.
-	 */
-	public List<RoutingParameter> getParameters()
-	{
-		List<RoutingParameter> allParams = new ArrayList<RoutingParameter>();
-		allParams.add(maxThreadsParam);
-		allParams.add(happinessParam);
-		allParams.add(numericParam);
-		allParams.add(booleanParam);
-		return allParams;
-	}
 
 	/**
 	 * Method to do Simple routing.

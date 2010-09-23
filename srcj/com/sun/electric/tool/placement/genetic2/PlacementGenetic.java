@@ -80,18 +80,6 @@ public class PlacementGenetic extends PlacementFrame {
 		return "Genetic-2";
 	}
 
-	/**
-	 * Method to return a list of parameters for this placement algorithm.
-	 * 
-	 * @return a list of parameters for this placement algorithm.
-	 */
-	public List<PlacementParameter> getParameters() {
-		List<PlacementParameter> allParams = new ArrayList<PlacementParameter>();
-		allParams.add(maxRuntimeParam);
-		allParams.add(maxThreadsParam);
-		return allParams;
-	}
-
 	public UnifiedPopulation getPopulation() {
 		if (placer != null)
 			return placer.getPopulation();
@@ -113,12 +101,7 @@ public class PlacementGenetic extends PlacementFrame {
 	 */
 	public void runPlacement(List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
 			String cellName) {
-		if (USE_GUIPARAMETER) {
-			this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
-		} else {
-			this.setParamterValues(this.maxThreadsParam.getTempIntValue(), this.maxRuntimeParam
-					.getTempIntValue());
-		}
+		this.setParamterValues(this.maxThreadsParam.getIntValue(), this.maxRuntimeParam.getIntValue());
 
 		placer = new GeneticPlacer(nodesToPlace, allNetworks, runtime, numOfThreads, printDebugInformation);
 		placer.runPlacement(nodesToPlace, allNetworks);

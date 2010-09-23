@@ -110,20 +110,6 @@ public class RoutingFrameSeaOfGates extends RoutingFrame
 	public String getAlgorithmName() { return "Sea-of-Gates in Framework"; }
 
 	/**
-	 * Method to return a list of parameters for this routing algorithm.
-	 * @return a list of parameters for this routing algorithm.
-	 */
-	public List<RoutingParameter> getParameters()
-	{
-		List<RoutingParameter> allParams = new ArrayList<RoutingParameter>();
-		allParams.add(maxArcWidth);
-		allParams.add(complexityLimit);
-		allParams.add(useParallelFromToRoutes);
-		allParams.add(useParallelRoutes);
-		return allParams;
-	}
-
-	/**
 	 * Method to do Sea of Gates Routing.
 	 */
 	protected void runRouting(Cell cell, List<RoutingSegment> segmentsToRoute, List<RoutingLayer> allLayers,

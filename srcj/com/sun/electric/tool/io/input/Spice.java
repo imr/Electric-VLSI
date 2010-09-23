@@ -44,12 +44,13 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.placement.Placement;
+import com.sun.electric.tool.placement.PlacementAdapter;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.tool.placement.Placement.PlacementPreferences;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementExport;
+import com.sun.electric.tool.placement.PlacementAdapter.PlacementExport;
+import com.sun.electric.tool.placement.PlacementAdapter.PlacementNode;
+import com.sun.electric.tool.placement.PlacementAdapter.PlacementPort;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.Orientation;
 
@@ -76,10 +77,12 @@ public class Spice extends Input
 	public static class SpicePreferences extends InputPreferences
     {
 		public String placementAlgorithm;
+        public PlacementAdapter.PlacementPrefs placementOptions;
 
         public SpicePreferences(boolean factory)
         {
             super(factory);
+            placementOptions = new PlacementAdapter.PlacementPrefs(factory);
         }
 
 		public void initFromUserDefaults()
@@ -91,7 +94,7 @@ public class Spice extends Input
         public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
         {
         	Spice in = new Spice(this);
-			in.readDirectory(fileURL, lib);
+			in.readDirectory(fileURL, lib, placementOptions);
 			return lib;
         }
     }
@@ -105,7 +108,7 @@ public class Spice extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
 	 */
-	public void readDirectory(URL dirURL, Library lib)
+	public void readDirectory(URL dirURL, Library lib, PlacementAdapter.PlacementPrefs placementOptions)
 	{
 		try
 		{
@@ -136,7 +139,7 @@ public class Spice extends Input
 		} catch (IOException e) {}
 
 		// file read, now create all circuitry
-		placeCells(lib);
+		placeCells(lib, placementOptions);
 	}
 
 	private void readSimFile()
@@ -247,7 +250,7 @@ public class Spice extends Input
 		}
 	}
 
-	private void placeCells(Library lib)
+	private void placeCells(Library lib, PlacementAdapter.PlacementPrefs placementOptions)
 	{
 		PlacementPreferences prefs = new PlacementPreferences(false);
 		prefs.placementAlgorithm = localPrefs.placementAlgorithm;
@@ -321,8 +324,8 @@ public class Spice extends Input
 				for(PlacementPort plPort : ports)
 					plPort.setPlacementNode(plNode);
 				plNode.setOrientation(Orientation.IDENT);
-				if (td.width != null) plNode.addVariable(Schematics.ATTR_WIDTH, td.width);
-				if (td.length != null) plNode.addVariable(Schematics.ATTR_LENGTH, td.length);
+				if (td.width != null) plNode.addVariable(Schematics.ATTR_WIDTH.getName(), td.width);
+				if (td.length != null) plNode.addVariable(Schematics.ATTR_LENGTH.getName(), td.length);
 			}
 
 			// place resistors and capacitors
@@ -342,7 +345,7 @@ public class Spice extends Input
 				for(PlacementPort plPort : ports)
 					plPort.setPlacementNode(plNode);
 				plNode.setOrientation(Orientation.IDENT);
-				if (rd.resistance != null) plNode.addVariable(Schematics.SCHEM_RESISTANCE, rd.resistance);
+				if (rd.resistance != null) plNode.addVariable(Schematics.SCHEM_RESISTANCE.getName(), rd.resistance);
 			}
 			for(CapacitorDef cd : sd.capacitors)
 			{
@@ -360,7 +363,7 @@ public class Spice extends Input
 				for(PlacementPort plPort : ports)
 					plPort.setPlacementNode(plNode);
 				plNode.setOrientation(Orientation.IDENT);
-				if (cd.capacitance != null) plNode.addVariable(Schematics.SCHEM_CAPACITANCE, cd.capacitance);
+				if (cd.capacitance != null) plNode.addVariable(Schematics.SCHEM_CAPACITANCE.getName(), cd.capacitance);
 			}
 
 			// place instances
@@ -420,14 +423,14 @@ public class Spice extends Input
 			for(String netName : allNetworks.keySet())
 			{
 				PlacementNetwork net = allNetworks.get(netName);
-				for(PlacementPort port : net.getPortsOnNet())
+				for(PlacementFrame.PlacementPort port : net.getPortsOnNet())
 					port.setPlacementNetwork(net);
 				if (net.getPortsOnNet() == null || net.getPortsOnNet().size() <= 1) continue;
 				nets.add(net);
 			}
 
 			// run placement
-			pla.doPlacement(lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell);
+			PlacementAdapter.doPlacement(pla, lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell, placementOptions);
 
 			// the old way...
 //			Cell cell = Cell.makeInstance(lib, name + "{sch}");
@@ -571,8 +574,8 @@ public class Spice extends Input
 		List<String> exports, Set<String> usedExports, List<PlacementExport> exportsToPlace)
 	{
 		PlacementNetwork net = allNetworks.get(name);
-		if (net == null) allNetworks.put(name, net = new PlacementNetwork(new ArrayList<PlacementPort>()));
-		List<PlacementPort> portsOnNet = net.getPortsOnNet();
+		if (net == null) allNetworks.put(name, net = new PlacementNetwork(new ArrayList<PlacementFrame.PlacementPort>()));
+		List<PlacementFrame.PlacementPort> portsOnNet = net.getPortsOnNet();
 
 		Poly poly = pi.getPoly();
 		double offX = poly.getCenterX() - ni.getTrueCenterX();

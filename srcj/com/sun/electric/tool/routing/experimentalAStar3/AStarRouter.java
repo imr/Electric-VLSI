@@ -57,7 +57,6 @@ public class AStarRouter extends BenchmarkRouter
   public AStarRouter()
   {
     super();
-    this.allParameters.add(this.numRegionsPerSide);
     setBenchmarkParameters(16, 60, 2);
   }
 

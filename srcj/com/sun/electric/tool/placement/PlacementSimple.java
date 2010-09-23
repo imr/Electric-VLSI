@@ -57,11 +57,12 @@ public class PlacementSimple extends PlacementFrame
 		List<PlacementNode> capacitors = new ArrayList<PlacementNode>();
 		for(PlacementNode plNode : nodesToPlace)
 		{
-			if (plNode.getType() == Schematics.tech().transistorNode ||
-				plNode.getType() == Schematics.tech().transistor4Node)
+			if (plNode.getTypeName().equals(Schematics.tech().transistorNode.getName()) ||
+				plNode.getTypeName().equals(Schematics.tech().transistor4Node.getName()))
 			{
-				PrimitiveNode.Function fun = Schematics.tech().getPrimitiveFunction((PrimitiveNode)plNode.getType(),
-					plNode.getTechBits());
+				PrimitiveNode.Function fun = Schematics.tech().getPrimitiveFunction(Schematics.tech().transistorNode,
+//				PrimitiveNode.Function fun = Schematics.tech().getPrimitiveFunction((PrimitiveNode)plNode.getType(),
+					((PlacementAdapter.PlacementNode)plNode).getTechBits());
 				if (fun.isPTypeTransistor())
 				{
 					plNode.setPlacement(pPos, 5);
@@ -73,15 +74,16 @@ public class PlacementSimple extends PlacementFrame
 					plNode.setOrientation(Orientation.R);
 					nPos += 10;
 				}
-			} else if (plNode.getType() == Schematics.tech().resistorNode)
+			} else if (plNode.getTypeName().equals(Schematics.tech().resistorNode.getName()))
 			{
 				resistors.add(plNode);
-			} else if (plNode.getType() == Schematics.tech().capacitorNode)
+			} else if (plNode.getTypeName().equals(Schematics.tech().capacitorNode.getName()))
 			{
 				capacitors.add(plNode);
 			} else
 			{
-				plNode.setPlacement(iPos, -10-plNode.getType().getDefHeight());
+				plNode.setPlacement(iPos, -10-plNode.getHeight());
+//				plNode.setPlacement(iPos, -10-plNode.getType().getDefHeight());
 				iPos += 30;
 			}
 		}
