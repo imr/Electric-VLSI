@@ -312,8 +312,8 @@ public class GDS extends Input<Object>
         	GDS in = new GDS(this);
 			if (in.openBinaryInput(fileURL)) return null;
 
-            // Librarys before loading
-            HashSet oldLibs = new HashSet();
+            // Libraries before loading
+            Set<Library> oldLibs = new HashSet<Library>();
             for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
                 oldLibs.add(it.next());
             oldLibs.remove(lib);
@@ -1061,7 +1061,7 @@ public class GDS extends Input<Object>
     						(ir == (nRows-1) && ic == (nCols-1)))
     				{
     					Point2D loc = new Point2D.Double(ptX, ptY);
-    		            NodeInst ni = NodeInst.makeInstance(proto, loc, proto.getDefWidth(), proto.getDefHeight(), parent, orient, null);
+    		            /* NodeInst ni = */ NodeInst.makeInstance(proto, loc, proto.getDefWidth(), proto.getDefHeight(), parent, orient, null);
 //    		            if (ni != null)
 //    		            {
 //	    		            if (localPrefs.expandCells && ni.isCellInstance())
@@ -1271,6 +1271,23 @@ public class GDS extends Input<Object>
                 ExportId exportId = parent.getD().cellId.newPortId(exportName);
                 boolean busNamesAllowed = false;
                 Name exportNameKey = ImmutableExport.validExportName(exportName, busNamesAllowed);
+                if (exportNameKey == null)
+                {
+                    String newName = Export.repairExportName(parent, exportName);
+                    if (newName == null) newName = Export.repairExportName(parent, "X");
+                    if (newName != null)
+                    	exportNameKey = ImmutableExport.validExportName(newName, busNamesAllowed);
+                    if (exportNameKey == null)
+                    {
+                    	System.out.print("Error: Pin '" + exportName + "' is invalid");
+                    	if (newName != null)
+                    		System.out.print(" and alternate name, '" + newName + "' cannot be used");
+                    	System.out.println(".  Pin ignored.");
+                    	return;
+                    }
+                	System.out.println("Warning: Pin '" + exportName + "' is invalid and was renamed to '" + newName + "'");
+                	exportName = newName;
+                }
                 TextDescriptor nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
                 PortProtoId portProtoId = proto.getPort(0).getId();
                 boolean alwaysDrawn = false;
@@ -1280,7 +1297,7 @@ public class GDS extends Input<Object>
                 ImmutableExport d = ImmutableExport.newInstance(exportId, exportNameKey, nameTextDescriptor,
                     nodeId, portProtoId, alwaysDrawn, bodyOnly, characteristic);
 
-                // Put ImmutableExport ti the CellBuiler.
+                // Put ImmutableExport in the CellBuiler.
                 // This also modifies the cb.alreadyExports
                 cb.exportsByName.put(exportName, d);
             }
@@ -1495,7 +1512,7 @@ public class GDS extends Input<Object>
 		Cell cell = findCell(name);
 		if (cell == null)
 		{
-			// create the proto
+			// create the prototype
 			cell = Cell.newInstance(theLibrary, name);
 			if (cell == null) handleError("Failed to create structure");
 			System.out.println("Reading " + name);
@@ -2363,7 +2380,7 @@ public class GDS extends Input<Object>
 	private void getPrototype(String name)
 		throws IOException
 	{
-		// scan for this proto
+		// scan for this prototype
 		name = name + "{lay}";
 		Cell np = findCell(name);
 		if (np == null)
@@ -2375,7 +2392,7 @@ public class GDS extends Input<Object>
 			setProgressNote("Reading " + name);
 		}
 
-		// set the reference node proto
+		// set the reference node prototype
 		theNodeProto = np;
 	}
 
@@ -2548,14 +2565,14 @@ public class GDS extends Input<Object>
 		reg = reg + dataword;
 		int shift_count = 0;
 
-		// normalize the matissa
+		// normalize the mantissa
 		while ((reg & 0x00800000) == 0)
 		{
 			reg = reg << 1;
 			shift_count++;
 		}
 
-		// this is the exponent + normalize shift - precision of matissa
+		// this is the exponent + normalize shift - precision of mantissa
 		// binary_exponent = binary_exponent + shift_count - 24;
 		binary_exponent = binary_exponent - shift_count - 24;
 
@@ -2596,7 +2613,7 @@ public class GDS extends Input<Object>
 		int dataword = getWord();
 		register1 = register1 + dataword;
 
-		// next word completes the matissa (1/16 to 1)
+		// next word completes the mantissa (1/16 to 1)
 		int long_integer = getInteger();
 		int register2 = long_integer;
 
@@ -2619,7 +2636,7 @@ public class GDS extends Input<Object>
 			return 0;
 		}
 
-		// now create the matissa (fraction between 1/16 to 1)
+		// now create the mantissa (fraction between 1/16 to 1)
 		realValue *= (register1 * twoTo32 + register2) * twoToNeg56;
 		if (exponent > 0)
 		{

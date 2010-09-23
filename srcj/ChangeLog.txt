@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+BUG: (9/23/10, SMR) GDS import ignores pins with bad names (Bug #2910).
+FIX: Now convert to valid export names.
+
 IMP: (9/22/10, DN) Refactor PlaceingFrame to isolate from Electric internals .
 
 BUG: (9/22/10, SMR) SVG coordinates are not integers (Bug #2909).

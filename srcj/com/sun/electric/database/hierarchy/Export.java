@@ -83,7 +83,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     public static final Export[] NULL_ARRAY = {};
     /** Key of text descriptor of export name */
     public static final Variable.Key EXPORT_NAME = Variable.newKey("EXPORT_name");
-    /** Key of Varible holding reference name. */
+    /** Key of Variable holding reference name. */
     public static final Variable.Key EXPORT_REFERENCE_NAME = Variable.newKey("EXPORT_reference_name");
     // -------------------------- private data ---------------------------
     /** persistent data of this Export. */
@@ -227,7 +227,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             // if this was made on a schematic, and an icon exists, make the export on the icon as well
             Cell icon = parent.iconView();
             if (icon != null && icon.findExport(protoName) == null) {
-                // find analagous point to create export
+                // find analogous point to create export
                 Rectangle2D bounds = parent.getBounds();
                 double locX = portInst.getPoly().getCenterX();
                 double locY = portInst.getPoly().getCenterY();
@@ -583,7 +583,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     }
 
     /**
-     * Modifies persistend data of this Export.
+     * Modifies persistent data of this Export.
      * @param newD new persistent data.
      * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
@@ -733,7 +733,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
     /**
      * Method chooses TextDescriptor with "smart text placement"
-     * of Export on specified origianl port.
+     * of Export on specified original port.
      * @param originalPort original port for the Export
      * @return Immutable text descriptor with smart text placement
      */
@@ -827,12 +827,12 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     }
 
     /**
-     * Repairs export name  true if string is a valid Export name with cirtain width.
+     * Repairs export name  true if string is a valid Export name with certain width.
      * @param parent parent Cell
      * @param name string to test.
-     * @return true if string is a valid Export name with cirtain width.
+     * @return true if string is a valid Export name with certain width.
      */
-    private static String repairExportName(Cell parent, String name) {
+    public static String repairExportName(Cell parent, String name) {
         String newName = null;
         int oldBusWidth = Name.findName(name).busWidth();
         if (!parent.busNamesAllowed()) {
@@ -882,10 +882,10 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     }
 
     /**
-     * Returns true if string is a valid Export name with cirtain width.
+     * Returns true if string is a valid Export name with certain width.
      * @param name string to test.
-     * @param busWidth cirtain width.
-     * @return true if string is a valid Export name with cirtain width.
+     * @param busWidth certain width.
+     * @return true if string is a valid Export name with certain width.
      */
     private static boolean validExportName(String name, int busWidth) {
         Name nameKey = ImmutableExport.validExportName(name, true);
@@ -954,7 +954,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
     /**
      * Method to set the PortCharacteristic of this Export.
-     * @param characteristic the PortCharacteristic of this Exort.
+     * @param characteristic the PortCharacteristic of this Export.
      */
     public void setCharacteristic(PortCharacteristic characteristic) {
         setD(d.withCharacteristic(characteristic), true);
