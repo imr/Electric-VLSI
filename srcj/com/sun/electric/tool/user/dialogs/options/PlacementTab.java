@@ -45,7 +45,7 @@ public class PlacementTab extends PreferencePanel
 {
 	private PreferencesFrame parent;
 	private Map<PlacementParameter,JTextField> currentParameters;
-    private PlacementAdapter.PlacementPrefs placementOptions;
+    private Placement.PlacementPreferences placementOptions;
 
 	/** Creates new form PlacementTab */
 	public PlacementTab(PreferencesFrame parent, boolean modal)
@@ -65,17 +65,18 @@ public class PlacementTab extends PreferencePanel
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Frame tab.
 	 */
+    @Override
 	public void init()
 	{
 		PlacementFrame [] algorithms = PlacementAdapter.getPlacementAlgorithms();
 		for(PlacementFrame an : algorithms)
 			placementAlgorithm.addItem(an.getAlgorithmName());
-		placementAlgorithm.setSelectedItem(Placement.getAlgorithmName());
+        placementOptions = new Placement.PlacementPreferences(false);
+		placementAlgorithm.setSelectedItem(placementOptions.placementAlgorithm);
 		placementAlgorithm.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) { getAlgorithmParameters();   setupForAlgorithm(); }
         });
 
-        placementOptions = new PlacementAdapter.PlacementPrefs(false);
 
 		// show parameters for current algorithm
 		setupForAlgorithm();
@@ -85,12 +86,10 @@ public class PlacementTab extends PreferencePanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Frame tab.
 	 */
+    @Override
 	public void term()
 	{
-		String algorithm = (String)placementAlgorithm.getSelectedItem();
-		if (!algorithm.equals(Placement.getAlgorithmName()))
-			Placement.setAlgorithmName(algorithm);
-
+        placementOptions.placementAlgorithm = (String)placementAlgorithm.getSelectedItem();
 		// load values into temp parameters
 		getAlgorithmParameters();
 
@@ -101,13 +100,11 @@ public class PlacementTab extends PreferencePanel
 	/**
 	 * Method called when the factory reset is requested.
 	 */
+    @Override
 	public void reset()
 	{
-		if (!Placement.getFactoryAlgorithmName().equals(Placement.getAlgorithmName()))
-			Placement.setAlgorithmName(Placement.getFactoryAlgorithmName());
-
 		// reset parameters in experimental algorithms
-        putPrefs(new PlacementAdapter.PlacementPrefs(true));
+        putPrefs(new Placement.PlacementPreferences(true));
 	}
 
 	private void getAlgorithmParameters()
@@ -132,7 +129,7 @@ public class PlacementTab extends PreferencePanel
                 default:
                     throw new AssertionError();
             }
-            placementOptions = placementOptions.withParameter(pp, value);
+            placementOptions.setParameter(pp, value);
 		}
 	}
 

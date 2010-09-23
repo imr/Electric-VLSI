@@ -42,7 +42,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.placement.Placement;
-import com.sun.electric.tool.placement.PlacementAdapter;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.user.ViewChanges;
@@ -77,7 +76,6 @@ public class VerilogReader extends Input<Object>
     {
 		public boolean runPlacement = SimulationTool.getFactoryVerilogRunPlacementTool();
         Placement.PlacementPreferences placementPrefs;
-        PlacementAdapter.PlacementPrefs placementOptions;
         IconParameters iconParameters = IconParameters.makeInstance(true);
 
         public VerilogPreferences(boolean factory)
@@ -87,8 +85,6 @@ public class VerilogReader extends Input<Object>
                 runPlacement = SimulationTool.getVerilogRunPlacementTool();
             // need to cache placement preference here even though it might not be used later
             placementPrefs = new Placement.PlacementPreferences(factory);
-            placementOptions = new PlacementAdapter.PlacementPrefs(factory);
-            placementPrefs.getOptionsFromPreferences();
         }
 
         @Override
@@ -100,7 +96,7 @@ public class VerilogReader extends Input<Object>
             // running placement tool if selected
             if (lib != null && runPlacement)
             {
-                Placement.placeCellNoJob(currentCells.get(lib), placementPrefs, placementOptions);
+                Placement.placeCellNoJob(currentCells.get(lib), placementPrefs);
             }
             in.closeInput();
 			return lib;

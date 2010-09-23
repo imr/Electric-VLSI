@@ -76,25 +76,19 @@ public class Spice extends Input
 
 	public static class SpicePreferences extends InputPreferences
     {
-		public String placementAlgorithm;
-        public PlacementAdapter.PlacementPrefs placementOptions;
+        public Placement.PlacementPreferences placementOptions;
 
         public SpicePreferences(boolean factory)
         {
             super(factory);
-            placementOptions = new PlacementAdapter.PlacementPrefs(factory);
+            placementOptions = new Placement.PlacementPreferences(factory);
         }
-
-		public void initFromUserDefaults()
-		{
-			placementAlgorithm = Placement.getAlgorithmName();
-		}
 
         @Override
         public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job)
         {
         	Spice in = new Spice(this);
-			in.readDirectory(fileURL, lib, placementOptions);
+			in.readDirectory(fileURL, lib);
 			return lib;
         }
     }
@@ -108,7 +102,7 @@ public class Spice extends Input
 	 * Method to import a library from disk.
 	 * @param lib the library to fill
 	 */
-	public void readDirectory(URL dirURL, Library lib, PlacementAdapter.PlacementPrefs placementOptions)
+	public void readDirectory(URL dirURL, Library lib)
 	{
 		try
 		{
@@ -139,7 +133,7 @@ public class Spice extends Input
 		} catch (IOException e) {}
 
 		// file read, now create all circuitry
-		placeCells(lib, placementOptions);
+		placeCells(lib);
 	}
 
 	private void readSimFile()
@@ -250,11 +244,9 @@ public class Spice extends Input
 		}
 	}
 
-	private void placeCells(Library lib, PlacementAdapter.PlacementPrefs placementOptions)
+	private void placeCells(Library lib)
 	{
-		PlacementPreferences prefs = new PlacementPreferences(false);
-		prefs.placementAlgorithm = localPrefs.placementAlgorithm;
-		PlacementFrame pla = Placement.getCurrentPlacementAlgorithm(prefs);
+		PlacementFrame pla = Placement.getCurrentPlacementAlgorithm(localPrefs.placementOptions);
 		System.out.println("Placing cells using the " + pla.getAlgorithmName() + " algorithm");
 
 		// make icons
@@ -430,7 +422,7 @@ public class Spice extends Input
 			}
 
 			// run placement
-			PlacementAdapter.doPlacement(pla, lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell, placementOptions);
+			PlacementAdapter.doPlacement(pla, lib, name + "{sch}", nodesToPlace, nets, exportsToPlace, sd.iconCell, localPrefs.placementOptions);
 
 			// the old way...
 //			Cell cell = Cell.makeInstance(lib, name + "{sch}");

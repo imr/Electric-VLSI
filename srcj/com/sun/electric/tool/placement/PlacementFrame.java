@@ -28,9 +28,7 @@ import com.sun.electric.util.math.Orientation;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -59,7 +57,6 @@ import java.util.Map;
  */
 public abstract class PlacementFrame {
 
-	public static boolean USE_GUIPARAMETER = true;
 	protected int numOfThreads;
 	protected int runtime;
     private ArrayList<PlacementParameter> allParameters = new ArrayList<PlacementParameter>();

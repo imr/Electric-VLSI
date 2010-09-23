@@ -33,7 +33,7 @@ public class PlacementTools_T {
 
 	@Test
 	public void getAvailablePlacementTools() {
-		PlacementFrame[] tools = PlacementFrame.getPlacementAlgorithms();
+		PlacementFrame[] tools = PlacementAdapter.getPlacementAlgorithms();
 		for(PlacementFrame tool: tools) {
 			System.out.println(tool.getAlgorithmName());
 		}

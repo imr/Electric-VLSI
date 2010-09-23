@@ -26,23 +26,17 @@ package com.sun.electric.tool.placement;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.PrefPackage;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -57,7 +51,6 @@ import com.sun.electric.tool.placement.metrics.mst.MSTMetric;
 import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing;
 import com.sun.electric.tool.placement.simulatedAnnealing2.PlacementSimulatedAnnealing;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
-import com.sun.electric.util.CollectionFactory;
 import com.sun.electric.util.math.Orientation;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -65,10 +58,8 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.prefs.Preferences;
 
 /**
  * PlacementExport describes exports in the cell. Placement algorithms do not
@@ -78,126 +69,6 @@ import java.util.prefs.Preferences;
 public class PlacementAdapter {
 
    	private static final boolean specialDebugFlag = false;
-
-    public static class PlacementPrefs extends PrefPackage {
-        private Object[][] values;
-        private final static String NODE_NAME = "tool/placement";
-
-        public PlacementPrefs(boolean factory) {
-            super(factory);
-            Preferences prefs = (factory ? getFactoryPrefRoot() : getPrefRoot()).node(NODE_NAME);
-            values = new Object[placementAlgorithms.length][];
-            for (int i = 0; i < values.length; i++) {
-                PlacementFrame pf = placementAlgorithms[i];
-                values[i] = new Object[pf.getParameters().size()];
-                for (int j = 0; j < pf.getParameters().size(); j++) {
-                    PlacementFrame.PlacementParameter par = pf.getParameters().get(j);
-                    String key = pf.getAlgorithmName() + "-" + par.key;
-                    Object value;
-                    switch (par.getType()) {
-                        case PlacementFrame.PlacementParameter.TYPEINTEGER:
-                            value = Integer.valueOf(prefs.getInt(key, ((Integer)par.factoryValue).intValue()));
-                            break;
-                        case PlacementFrame.PlacementParameter.TYPESTRING:
-                            value = String.valueOf(prefs.get(key, (String)par.factoryValue));
-                            break;
-                        case PlacementFrame.PlacementParameter.TYPEDOUBLE:
-                            value = Double.valueOf(prefs.getDouble(key, ((Double)par.factoryValue).doubleValue()));
-                            break;
-                        default:
-                            throw new AssertionError();
-                    }
-                    if (value.equals(par.factoryValue)) {
-                        value = par.factoryValue;
-                    }
-                    values[i][j] = value;
-                }
-            }
-        }
-
-        /**
-         * Store annotated option fields of the subclass into the speciefied Preferences subtree.
-         * @param prefRoot the root of the Preferences subtree.
-         * @param removeDefaults remove from the Preferences subtree options which have factory default value.
-         */
-        @Override
-        protected void putPrefs(Preferences prefRoot, boolean removeDefaults) {
-            super.putPrefs(prefRoot, removeDefaults);
-            Preferences prefs = prefRoot.node(NODE_NAME);
-            assert values.length == placementAlgorithms.length;
-            for (int i = 0; i < values.length; i++) {
-                PlacementFrame pf = placementAlgorithms[i];
-                assert values[i].length == pf.getParameters().size();
-                for (int j = 0; j < pf.getParameters().size(); j++) {
-                    PlacementFrame.PlacementParameter par = pf.getParameters().get(j);
-                    String key = pf.getAlgorithmName() + "-" + par.key;
-                    Object v = values[i][j];
-                    if (removeDefaults && v.equals(par.factoryValue)) {
-                        prefs.remove(key);
-                    } else {
-                        switch (par.getType()) {
-                            case PlacementFrame.PlacementParameter.TYPEINTEGER:
-                                prefs.putInt(key, ((Integer)v).intValue());
-                                break;
-                            case PlacementFrame.PlacementParameter.TYPESTRING:
-                                prefs.put(key, (String)v);
-                                break;
-                            case PlacementFrame.PlacementParameter.TYPEDOUBLE:
-                                prefs.putDouble(key, ((Double)v).doubleValue());
-                                break;
-                            default:
-                                throw new AssertionError();
-                        }
-                    }
-                }
-            }
-        }
-
-        public Object getParameter(PlacementFrame.PlacementParameter par) {
-            int i = indexOfFrame(par);
-            PlacementFrame pf = placementAlgorithms[i];
-            int j = indexOfParameter(pf, par.key);
-            return values[i][j];
-        }
-
-        public PlacementPrefs withParameter(PlacementFrame.PlacementParameter par, Object value) {
-            int i = indexOfFrame(par);
-            PlacementFrame pf = placementAlgorithms[i];
-            int j = indexOfParameter(pf, par.key);
-            Object oldValue = values[i][j];
-            if (oldValue.equals(value)) {
-                return this;
-            }
-            assert value.getClass() == par.factoryValue.getClass();
-            if (value.equals(par.factoryValue))
-                value = par.factoryValue;
-            Object[] vs = values[i].clone();
-            vs[j] = value;
-            Object[][] newValues = values.clone();
-            newValues[i] = vs;
-            return (PlacementPrefs)withField("values", newValues);
-        }
-
-        private int indexOfFrame(PlacementFrame.PlacementParameter par) {
-            PlacementFrame rf = par.getOwner();
-            for (int i = 0; i < placementAlgorithms.length; i++) {
-                if (rf.getClass() == placementAlgorithms[i].getClass()) return i;
-            }
-            return -1;
-        }
-
-        private static int indexOfParameter(PlacementFrame pf, String parameterKey) {
-            for (int j = 0; j < pf.getParameters().size(); j++) {
-                if (parameterKey.equals(pf.getParameters().get(j).key))
-                    return j;
-            }
-            return -1;
-        }
-    }
-
-    public static void setValue(PlacementFrame.PlacementParameter par, Object value) {
-        par.setValue(value);
-    }
 
 	/**
 	 * Class to define a node that is being placed. This is a shadow class for
@@ -419,7 +290,7 @@ public class PlacementAdapter {
 	 * Static list of all Placement algorithms. When you create a new algorithm,
 	 * add it to the following list.
 	 */
-	private static PlacementFrame[] placementAlgorithms = { new SimulatedAnnealing(), // team
+	static PlacementFrame[] placementAlgorithms = { new SimulatedAnnealing(), // team
 			// 2
 			new PlacementSimulatedAnnealing(), // team 6
 			new GeneticPlacement(), // team 3
@@ -435,140 +306,6 @@ public class PlacementAdapter {
 	 */
 	public static PlacementFrame[] getPlacementAlgorithms() {
 		return placementAlgorithms;
-	}
-
-	/**
-	 * Entry point to do Placement of a Cell and create a new, placed Cell.
-	 * Gathers the requirements for Placement into a collection of shadow
-	 * objects (PlacementNode, PlacementPort, PlacementNetwork, and
-	 * PlacementExport). Then invokes the alternate version of "doPlacement()"
-	 * that works from shadow objedts.
-	 *
-	 * @param cell
-	 *            the Cell to place. Objects in that Cell will be reorganized in
-	 *            and placed in a new Cell.
-	 * @return the new Cell with the placement results.
-	 */
-	public static Cell doPlacement(PlacementFrame pla, Cell cell, Placement.PlacementPreferences prefs, PlacementAdapter.PlacementPrefs placementOptions) {
-        // get network information for the Cell
-		Netlist netList = cell.getNetlist();
-		if (netList == null) {
-			System.out
-					.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
-			return null;
-		}
-
-		// convert nodes in the Cell into PlacementNode objects
-		NodeProto iconToPlace = null;
-		List<PlacementNode> nodesToPlace = CollectionFactory.createArrayList();
-		Map<NodeInst, Map<PortProto, PlacementPort>> convertedNodes = CollectionFactory.createHashMap();
-		List<PlacementExport> exportsToPlace = CollectionFactory.createArrayList();
-		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
-			NodeInst ni = it.next();
-			if (ni.isIconOfParent()) {
-				iconToPlace = ni.getProto();
-				continue;
-			}
-			boolean validNode = ni.isCellInstance();
-			if (!validNode) {
-				if (ni.getProto().getTechnology() != Generic.tech()) {
-					PrimitiveNode.Function fun = ni.getFunction();
-					if (fun != PrimitiveNode.Function.CONNECT && fun != PrimitiveNode.Function.CONTACT && !fun.isPin())
-						validNode = true;
-				}
-				if (ni.hasExports())
-					validNode = true;
-			}
-			if (validNode) {
-				// make a list of PlacementPorts on this NodeInst
-				NodeProto np = ni.getProto();
-				List<PlacementPort> pl = new ArrayList<PlacementPort>();
-				Map<PortProto, PlacementPort> placedPorts = new HashMap<PortProto, PlacementPort>();
-				if (ni.isCellInstance()) {
-					for (Iterator<Export> eIt = ((Cell) np).getExports(); eIt.hasNext();) {
-						Export e = eIt.next();
-						Poly poly = e.getPoly();
-						PlacementPort plPort = new PlacementPort(poly.getCenterX(), poly.getCenterY(), e);
-						pl.add(plPort);
-						placedPorts.put(e, plPort);
-					}
-				} else {
-					NodeInst niDummy = NodeInst.makeDummyInstance(np);
-					for (Iterator<PortInst> pIt = niDummy.getPortInsts(); pIt.hasNext();) {
-						PortInst pi = pIt.next();
-						Poly poly = pi.getPoly();
-						double offX = poly.getCenterX() - niDummy.getTrueCenterX();
-						double offY = poly.getCenterY() - niDummy.getTrueCenterY();
-						PlacementPort plPort = new PlacementPort(offX, offY, pi.getPortProto());
-						pl.add(plPort);
-						placedPorts.put(pi.getPortProto(), plPort);
-					}
-				}
-
-				// add to the list of PlacementExports
-				for (Iterator<Export> eIt = ni.getExports(); eIt.hasNext();) {
-					Export e = eIt.next();
-					PlacementPort plPort = placedPorts.get(e.getOriginalPort().getPortProto());
-					PlacementExport plExport = new PlacementExport(plPort, e.getName(), e.getCharacteristic());
-					exportsToPlace.add(plExport);
-				}
-
-				// make the PlacementNode for this NodeInst
-				String name = ni.getName();
-				if (ni.getNameKey().isTempname())
-					name = null;
-				PlacementNode plNode = new PlacementNode(np, name, ni.getTechSpecific(), np.getDefWidth(), np
-						.getDefHeight(), pl, ni.isLocked());
-
-				nodesToPlace.add(plNode);
-				for (PlacementFrame.PlacementPort plPort : pl)
-					plPort.setPlacementNode(plNode);
-				plNode.setOrientation(Orientation.IDENT);
-				convertedNodes.put(ni, placedPorts);
-			}
-		}
-
-		// gather connectivity information in a list of PlacementNetwork objects
-		Map<Network, PortInst[]> portInstsByNetwork = null;
-		if (cell.getView() != View.SCHEMATIC)
-			portInstsByNetwork = netList.getPortInstsByNetwork();
-		List<PlacementNetwork> allNetworks = new ArrayList<PlacementNetwork>();
-		for (Iterator<Network> it = netList.getNetworks(); it.hasNext();) {
-			Network net = it.next();
-			List<PlacementFrame.PlacementPort> portsOnNet = new ArrayList<PlacementFrame.PlacementPort>();
-			PortInst[] portInsts = null;
-			if (portInstsByNetwork != null)
-				portInsts = portInstsByNetwork.get(net);
-			else {
-				List<PortInst> portList = new ArrayList<PortInst>();
-				for (Iterator<PortInst> pIt = net.getPorts(); pIt.hasNext();)
-					portList.add(pIt.next());
-				portInsts = portList.toArray(new PortInst[] {});
-			}
-			for (int i = 0; i < portInsts.length; i++) {
-				PortInst pi = portInsts[i];
-				NodeInst ni = pi.getNodeInst();
-				PortProto pp = pi.getPortProto();
-				Map<PortProto, PlacementPort> convertedPorts = convertedNodes.get(ni);
-				if (convertedPorts == null)
-					continue;
-				PlacementPort plPort = convertedPorts.get(pp);
-				if (plPort != null)
-					portsOnNet.add(plPort);
-			}
-			if (portsOnNet.size() > 1) {
-				PlacementNetwork plNet = new PlacementNetwork(portsOnNet);
-				for (PlacementFrame.PlacementPort plPort : portsOnNet)
-					plPort.setPlacementNetwork(plNet);
-				allNetworks.add(plNet);
-			}
-		}
-
-		// do the placement from the shadow objects
-		Cell newCell = doPlacement(pla, cell.getLibrary(), cell.noLibDescribe(), nodesToPlace, allNetworks, exportsToPlace,
-				iconToPlace, placementOptions);
-
-		return newCell;
 	}
 
 	/**
@@ -592,14 +329,14 @@ public class PlacementAdapter {
 	 */
 	public static Cell doPlacement(PlacementFrame pla, Library lib, String cellName, List<PlacementNode> nodesToPlace,
 			List<PlacementNetwork> allNetworks, List<PlacementExport> exportsToPlace, NodeProto iconToPlace,
-            PlacementPrefs placementOptions) {
+            Placement.PlacementPreferences prefs) {
 		ElapseTimer timer = ElapseTimer.createInstance().start();
 		System.out.println("Running placement on cell '" + cellName + "' using the '" + pla.getAlgorithmName()
 				+ "' algorithm");
 
 		// do the real work of placement
         for (PlacementFrame.PlacementParameter par: pla.getParameters()) {
-            par.setValue(placementOptions.getParameter(par));
+            par.setValue(prefs.getParameter(par));
         }
         List<PlacementFrame.PlacementNode> nodesToPlaceCopy = new ArrayList<PlacementFrame.PlacementNode>(nodesToPlace);
         
