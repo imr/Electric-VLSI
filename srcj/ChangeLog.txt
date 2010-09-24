@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00n: ******************************
 
+IMP: (9/24/10, DN) Replace calls of plugins.Java3D by similar inline code.
+
 BUG: (9/23/10, SMR) GDS import ignores pins with bad names (Bug #2910).
 FIX: Now convert to valid export names.
 

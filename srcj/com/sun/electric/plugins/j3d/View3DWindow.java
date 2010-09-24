@@ -54,7 +54,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.*;
@@ -88,8 +87,8 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.awt.print.PageFormat;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -362,49 +361,70 @@ public class View3DWindow extends JPanel
         TransformGroup axisTranslation = new TransformGroup(t);
         axisRoot.addChild(axisTranslation);
 
+        // Create transform group to orient the axis and make it
+        // readable & writable (this will be the target of the axis
+        // behavior)
+        final TransformGroup axisTG = new TransformGroup();
+        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        axisTranslation.addChild(axisTG);
+
+        // Create the axis geometry
+        J3DAxis axis = new J3DAxis(radius/10, J3DAppearance.axisApps[0], J3DAppearance.axisApps[1],
+                J3DAppearance.axisApps[2], User.getDefaultFont());
+        axisTG.addChild(axis);
+
+        // Add axis into BG
+        pg.addChild(axisRoot);
+
         // Create the axis behavior
-        // Using reflection to create this behavior because Java3D plugin
-        // might not be available. Reflection would have to  be here until Java3D team
-        // releases this new behavior
-        Class plugin = Resources.getJ3DClass("J3DAxisBehavior");
-        if (plugin == null)
-        {
-            if (Job.getDebug())
-                System.out.println("Java3D plugin not available. 3D axes not created.");
-        }
-        else
-        {
-            // Create transform group to orient the axis and make it
-            // readable & writable (this will be the target of the axis
-            // behavior)
-            TransformGroup axisTG = new TransformGroup();
-            axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-            axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-            axisTranslation.addChild(axisTG);
+        final TransformGroup viewPlatformTG = viewingPlatform.getViewPlatformTransform();
+        pg.addChild(new Behavior() {
+            // Wake up every frame (passively)
+            private WakeupOnElapsedFrames w = new WakeupOnElapsedFrames(0, true);
+            // Cached value of last view platform transform
+            private Transform3D lastTransform = new Transform3D();
 
-            // Create the axis geometry
-            J3DAxis axis = new J3DAxis(radius/10, J3DAppearance.axisApps[0], J3DAppearance.axisApps[1],
-                    J3DAppearance.axisApps[2], User.getDefaultFont());
-            axisTG.addChild(axis);
-
-            // Add axis into BG
-            pg.addChild(axisRoot);
-
-            TransformGroup viewPlatformTG = viewingPlatform.getViewPlatformTransform();
-            try {
-                Constructor instance = plugin.getDeclaredConstructor(new Class[]{TransformGroup.class, TransformGroup.class});
-                Object obj = instance.newInstance(new Object[] {axisTG, viewPlatformTG});
-                if (obj != null)
-                {
-                    Behavior axisBehavior = (Behavior)obj; //new J3DAxisBehavior(axisTG, viewPlatformTG);
-                    axisBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
-                    pg.addChild(axisBehavior);
-                }
-            } catch (Exception e)
-            {
-                e.printStackTrace();
+            {   // Run this behavior in the last scheduling interval
+                setSchedulingInterval(Behavior.getNumSchedulingIntervals() - 1);
+                setSchedulingBounds(J3DUtils.infiniteBounds);
             }
-        }
+
+            /**
+             * Initialize local variables and set the initial wakeup
+             * condition. Called when the behavior is first made live.
+             */
+            public void initialize() {
+                // Initiialize to identity (no rotation)
+                lastTransform.setIdentity();
+                axisTG.setTransform(new Transform3D());
+
+                // Set the initial wakeup condition
+                wakeupOn(w);
+            }
+
+            /**
+             * Extract the rotation from the view platform transform (if it has
+             * changed) and update the target transform with its inverse.
+             */
+            public void processStimulus(Enumeration criteria) {
+                Transform3D t = new Transform3D();
+                viewPlatformTG.getTransform(t);
+
+                // Compute the new axis transform if the viewPlatformTransform has changed
+                if (!lastTransform.equals(t)) {
+                    lastTransform.set(t);
+
+                    t.setTranslation(new Vector3d());
+                    t.invert();
+                    axisTG.setTransform(t);
+                }
+
+                // Reset the wakeup condition so we will wakeup next frame
+                wakeupOn(w);
+            }
+
+        });
 
         viewingPlatform.setPlatformGeometry(pg) ;
 

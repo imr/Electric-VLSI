@@ -24,6 +24,7 @@
 
 package com.sun.electric.plugins.j3d.ui;
 
+import java.awt.GraphicsConfiguration;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.tool.user.Resources;
@@ -35,8 +36,15 @@ import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.Job;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 
 import java.lang.reflect.Method;
+import java.util.Iterator;
+import java.util.Map;
+import javax.media.j3d.Canvas3D;
+import javax.media.j3d.GraphicsConfigTemplate3D;
+import javax.media.j3d.VirtualUniverse;
 
 
 /**
@@ -131,18 +139,21 @@ public class J3DMenu {
     }
 
     /**
-     * Calling code available in Java3D plugin using reflection
+     * Print hardware properties
      */
     private static void runHardwareTest()
     {
-        Class app3DClass = Resources.getJ3DClass("J3DQueryProperties");
-        try
-        {
-            Method queryClass = app3DClass.getDeclaredMethod("queryHardwareAcceleration"); // varargs
-            queryClass.invoke(queryClass); // varargs
-        } catch (Exception e) {
-            if (Job.getDebug()) e.printStackTrace();
-            System.out.println("Cannot call 3D plugin method queryHardwareAcceleration: ");
+        for (Iterator<Map.Entry> it = VirtualUniverse.getProperties().entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry e = it.next();
+            System.out.println(e.getKey()+"="+e.getValue());
+        }
+        System.out.println();
+
+        GraphicsDevice screenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        GraphicsConfiguration config = screenDevice.getBestConfiguration(new GraphicsConfigTemplate3D());
+        for (Iterator<Map.Entry> it = new Canvas3D(config).queryProperties().entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry e = it.next();
+            System.out.println(e.getKey()+"="+e.getValue());
         }
     }
 }
