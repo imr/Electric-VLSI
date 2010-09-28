@@ -1456,6 +1456,44 @@ public class IOTool extends Tool
 	 */
 	public static boolean isFactoryGerberFillsPolygons() { return cacheGerberFillsPolygons.getBooleanFactoryValue(); }
 
+	/****************************** SVG OUTPUT PREFERENCES ******************************/
+
+	private static Pref cacheSVGScale = Pref.makeDoublePref("SVGScale", IOTool.tool.prefs, 1);
+	/**
+	 * Method to tell how much to scale SVG output.
+	 * The default is "1".
+	 * @return how much to scale SVG output.
+	 */
+	public static double getSVGScale() { return cacheSVGScale.getDouble(); }
+	/**
+	 * Method to set how much to scale SVG output.
+	 * @param s how much to scale SVG output.
+	 */
+	public static void setSVGScale(double s) { cacheSVGScale.setDouble(s); }
+	/**
+	 * Method to tell how much to scale SVG output, by default.
+	 * @return how much to scale SVG output, by default.
+	 */
+	public static double getFactorySVGScale() { return cacheSVGScale.getDoubleFactoryValue(); }
+
+	private static Pref cacheSVGMargin = Pref.makeDoublePref("SVGMargin", IOTool.tool.prefs, 50);
+	/**
+	 * Method to tell how much margin to leave on the top and left of SVG output.
+	 * The default is "50".
+	 * @return how much margin to leave on the top and left of SVG output.
+	 */
+	public static double getSVGMargin() { return cacheSVGMargin.getDouble(); }
+	/**
+	 * Method to set how much margin to leave on the top and left of SVG output.
+	 * @param m how much margin to leave on the top and left of SVG output.
+	 */
+	public static void setSVGMargin(double m) { cacheSVGMargin.setDouble(m); }
+	/**
+	 * Method to tell how much margin to leave on the top and left of SVG output, by default.
+	 * @return how much margin to leave on the top and left of SVG output, by default.
+	 */
+	public static double getFactorySVGMargin() { return cacheSVGMargin.getDoubleFactoryValue(); }
+
 	/****************************** SKILL OUTPUT PREFERENCES ******************************/
 
 	private static Pref cacheSkillExcludesSubcells = Pref.makeBooleanPref("SkillExcludesSubcells", IOTool.tool.prefs, false);

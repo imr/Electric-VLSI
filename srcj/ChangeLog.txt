@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+IMP/MAN: (9/28/10, SMR) SVG now has preferences panel to specify scale and margin (Bug #2907).
+
 IMP: (9/24/10, DN) Replace calls of plugins.Java3D by similar inline code.
 
 BUG: (9/23/10, SMR) GDS import ignores pins with bad names (Bug #2910).

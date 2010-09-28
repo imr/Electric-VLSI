@@ -77,6 +77,7 @@ import com.sun.electric.tool.user.dialogs.options.PrintingTab;
 import com.sun.electric.tool.user.dialogs.options.ProjectManagementTab;
 import com.sun.electric.tool.user.dialogs.options.RoutingTab;
 import com.sun.electric.tool.user.dialogs.options.SUETab;
+import com.sun.electric.tool.user.dialogs.options.SVGTab;
 import com.sun.electric.tool.user.dialogs.options.ScaleTab;
 import com.sun.electric.tool.user.dialogs.options.SelectionTab;
 import com.sun.electric.tool.user.dialogs.options.SiliconCompilerTab;
@@ -262,6 +263,7 @@ public class PreferencesFrame extends EModelessDialog
 		addTreeNode(new DXFTab(this, true), ioSet);
 		addTreeNode(new GerberTab(parent, true), ioSet);
 		addTreeNode(new SUETab(parent, true), ioSet);
+		addTreeNode(new SVGTab(parent, true), ioSet);
 		if (IOTool.hasDais())
 			addTreeNode(new DaisTab(parent, true), ioSet);
 		if (IOTool.hasSkill())

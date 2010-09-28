@@ -78,17 +78,12 @@ public class SVG extends Output
 
 	public static class SVGPreferences extends OutputPreferences
     {
-		boolean printForPlotter = IOTool.isFactoryPrintForPlotter();
-		double pageWidth = IOTool.getFactoryPrintWidth();
-		double pageHeight = IOTool.getFactoryPrintHeight();
-		double printMargin = IOTool.getFactoryPrintMargin();
-		int printRotation = IOTool.getFactoryPrintRotation();
+		double scale = IOTool.getSVGScale();
+		double printMargin = IOTool.getSVGMargin();
         GraphicsPreferences gp;
         EditWindow0.EditWindowSmall wnd;
     	ERectangle printBounds;
         Set<Layer> invisibleLayers = new HashSet<Layer>();
-        boolean isGrid = false;
-        double gridXSpacing, gridYSpacing;
 
 		SVGPreferences(boolean factory)
 		{
@@ -109,17 +104,11 @@ public class SVG extends Output
 
 		private void fillPrefs()
         {
-			printForPlotter = IOTool.isPrintForPlotter();
-			pageWidth = IOTool.getPrintWidth();
-			pageHeight = IOTool.getPrintHeight();
-			printMargin = IOTool.getPrintMargin();
-			printRotation = IOTool.getPrintRotation();
+			scale = IOTool.getSVGScale();
+			printMargin = IOTool.getSVGMargin();
 			UserInterface ui = Job.getUserInterface();
 			EditWindow_ localWnd = ui.getCurrentEditWindow_();
 			wnd = new EditWindow0.EditWindowSmall(localWnd);
-	        isGrid = localWnd.isGrid();
-	        gridXSpacing = localWnd.getGridXSpacing();
-	        gridYSpacing = localWnd.getGridYSpacing();
 
 	        // determine the area of interest
 			Cell cell = localWnd.getCell();
@@ -175,79 +164,12 @@ public class SVG extends Output
 	 */
 	private boolean start()
 	{
-		// get page size options
-		double pageWid = localPrefs.pageWidth * 75;
-		double pageHei = localPrefs.pageHeight * 75;
-		double pageMargin = localPrefs.printMargin * 75;
-
-		boolean rotatePlot = false;
-		switch (localPrefs.printRotation)
-		{
-			case 1:		// rotate 90 degrees
-				rotatePlot = true;
-				break;
-			case 2:		// auto-rotate
-				if (((pageHei > pageWid || localPrefs.printForPlotter) &&
-					localPrefs.printBounds.getWidth() > localPrefs.printBounds.getHeight()) ||
-					(pageWid > pageHei && localPrefs.printBounds.getHeight() > localPrefs.printBounds.getWidth()))
-						rotatePlot = true;
-				break;
-		}
-
-		// if plotting, compute height from width
-		if (localPrefs.printForPlotter)
-		{
-			if (rotatePlot)
-			{
-				pageHei = pageWid * localPrefs.printBounds.getWidth() / localPrefs.printBounds.getHeight();
-			} else
-			{
-				pageHei = pageWid * localPrefs.printBounds.getHeight() / localPrefs.printBounds.getWidth();
-			}
-		}
-
 		// compute the transformation matrix
-		double cX = localPrefs.printBounds.getCenterX();
-		double cY = localPrefs.printBounds.getCenterY();
-		double unitsX = pageWid - pageMargin*2;
-		double unitsY = pageHei - pageMargin*2;
-
-		double i, j;
-		if (localPrefs.printForPlotter)
-		{
-			i = unitsX / localPrefs.printBounds.getWidth();
-			j = unitsX / localPrefs.printBounds.getHeight();
-		} else
-		{
-			i = Math.min(unitsX / localPrefs.printBounds.getWidth(), unitsY / localPrefs.printBounds.getHeight());
-			j = Math.min(unitsX / localPrefs.printBounds.getHeight(), unitsY / localPrefs.printBounds.getWidth());
-		}
-
-		// force transformations to be integral
-		i = Math.floor(i);   if (i == 0) i = 1;
-		j = Math.floor(j);   if (j == 0) j = 1;
+		double i = localPrefs.scale;
 		double matrix00 = i;   double matrix01 = 0;
 		double matrix10 = 0;   double matrix11 = -i;
-		if (rotatePlot)
-		{
-			i = j;
-			matrix00 = 0;   matrix01 = i;
-			matrix10 = j;  matrix11 = 0;
-			double swap = cX;   cX = cY;   cY = swap;
-		}
-		double matrix20 = - i * cX + unitsX / 2 + pageMargin;
-		double matrix21;
-		if (localPrefs.printForPlotter)
-		{
-			matrix21 = i * (rotatePlot ? localPrefs.printBounds.getMaxX() : localPrefs.printBounds.getMaxY()) + pageMargin;
-		} else
-		{
-			matrix21 = i * cY + unitsY / 2 + pageMargin;
-		}
-
-		// force transformations to be integral
-		matrix20 = Math.round(matrix20);
-		matrix21 = Math.round(matrix21);
+		double matrix20 = -localPrefs.printBounds.getMinX()*i + localPrefs.printMargin;
+		double matrix21 =  localPrefs.printBounds.getMaxY()*i + localPrefs.printMargin;
 		matrix = new AffineTransform(matrix00, matrix01, matrix10, matrix11, matrix20, matrix21);
 
 		// write SVG header		
@@ -416,12 +338,9 @@ public class SVG extends Output
 
 			if (!ni.isCellInstance())
 			{
-				if (!topLevel)
-				{
-					if (ni.isVisInside()) continue;
-					if (ni.getProto() == Generic.tech().essentialBoundsNode ||
-						ni.getProto() == Generic.tech().cellCenterNode) continue;
-				}
+				if (ni.getProto() == Generic.tech().essentialBoundsNode ||
+					ni.getProto() == Generic.tech().cellCenterNode) continue;
+				if (!topLevel && ni.isVisInside()) continue;
 				PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 				Technology tech = prim.getTechnology();
 				Poly [] polys = tech.getShapeOfNode(ni);
@@ -980,7 +899,7 @@ public class SVG extends Output
 
 	private String getColorDescription(Color col)
 	{
-		if (col == null) return "";
+		if (col == null) return "rgb(0,0,0)";
 		String style = "rgb(" + col.getRed() + "," + col.getGreen() + "," + col.getBlue() + ")";
 		return style;
 	}
