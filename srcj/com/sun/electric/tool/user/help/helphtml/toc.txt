@@ -172,6 +172,7 @@ Technologies
   DXF Control                        =chap07-03-07
   SUE Control                        =chap07-03-08
   Gerber Control                     =chap07-03-09
+  SVG Control                        =chap07-03-10
  The MOS Technologies
   Introduction                       =chap07-04-01
   The MOSIS CMOS Technology          =chap07-04-02
