@@ -147,8 +147,19 @@ abstract class BTreeSignal<S extends Sample> extends MutableSignal<S>
 
 			this.t0 = t0_.doubleValue();
 			this.t1 = t1_.doubleValue();
-			this.exact = numRegions > (t1_ord - t0_ord+1);
-			this.numRegions = exact ? (t1_ord - t0_ord+1) : numRegions;
+
+			// There is a bug in the BTree code which produces inaccurate sampling if the actual number
+			// of samples is close, but slightly greater than the requested number.  So, for example,
+			// if there are 600 actual samples (t1_ord - t2_ord+1 == 600) and the user requests 590
+			// samples (numRegions=590) then the sampling will be bad.
+			// The solution is to increase the requested number of samples if it is within 75% of the
+			// actual number of samples
+			int actualNumSamples = t1_ord - t0_ord + 1;
+			if (actualNumSamples > numRegions && actualNumSamples*0.75 < numRegions)
+				numRegions = actualNumSamples + 1;
+
+			this.exact = numRegions > actualNumSamples;
+			this.numRegions = exact ? actualNumSamples : numRegions;
 		}
 
 		public int getNumEvents() { return numRegions; }

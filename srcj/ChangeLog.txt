@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+BUG: (9/29/10, SMR) Waveform window may be wrong (Bug #2912).
+FIX: In BTreeSignal.BTreeRasterView constructor, adjust requested number of
+     samples if it is close to the actual number of samples.
+
 IMP/MAN: (9/28/10, SMR) SVG now has preferences panel to specify scale and margin (Bug #2907).
 
 IMP: (9/24/10, DN) Replace calls of plugins.Java3D by similar inline code.
