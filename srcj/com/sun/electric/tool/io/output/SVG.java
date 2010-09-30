@@ -187,7 +187,8 @@ public class SVG extends Output
 			printWriter.println("<!-- Creator: Electric VLSI Design System -->");
 		}
 		emitCopyright("<!-- ", "-->");
-		printWriter.println("<svg width=\"100%\" height=\"100%\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">");
+		printWriter.println("<svg width=\"" + Integer.toString((int)(localPrefs.printBounds.getWidth()*i + localPrefs.printMargin*2)) +
+			"\" height=\"" + Integer.toString((int)(localPrefs.printBounds.getHeight()*i + localPrefs.printMargin*2)) + "\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">");
 		printWriter.println();
 		return true;
 	}
