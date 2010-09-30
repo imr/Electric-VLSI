@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+BUG: (9/30/10, DN) Electric-bundle hangs on machine without java3d.
+FIX: Catch NoClassDefFoundError in MenuCommands.makeExtraMenu .
+
 BUG: (9/29/10, SMR) Waveform window may be wrong (Bug #2912).
 FIX: In BTreeSignal.BTreeRasterView constructor, adjust requested number of
      samples if it is close to the actual number of samples.

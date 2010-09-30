@@ -107,6 +107,8 @@ public final class MenuCommands
             Class<?> menuClass = Class.forName("com.sun.electric.plugins."+plugin);
             java.lang.reflect.Method makeMenu = menuClass.getMethod("makeMenu"); // varargs
             return (EMenu)makeMenu.invoke(null); // varargs
+        } catch (NoClassDefFoundError e) {
+            return null;
         } catch (Exception e) {
 //            e.printStackTrace();
             return null;

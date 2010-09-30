@@ -379,51 +379,26 @@ public class View3DWindow extends JPanel
 
         // Create the axis behavior
         final TransformGroup viewPlatformTG = viewingPlatform.getViewPlatformTransform();
-        pg.addChild(new Behavior() {
-            // Wake up every frame (passively)
-            private WakeupOnElapsedFrames w = new WakeupOnElapsedFrames(0, true);
-            // Cached value of last view platform transform
-            private Transform3D lastTransform = new Transform3D();
-
-            {   // Run this behavior in the last scheduling interval
-                setSchedulingInterval(Behavior.getNumSchedulingIntervals() - 1);
-                setSchedulingBounds(J3DUtils.infiniteBounds);
+        pg.addChild(new Behavior() { private Transform3D currentTransform = new Transform3D(); // Current transform of the view platform
+            {
+                setSchedulingInterval(Behavior.getNumSchedulingIntervals() - 1); // the last scheduling interval
+                setSchedulingBounds(J3DUtils.infiniteBounds); // everywhere
             }
 
-            /**
-             * Initialize local variables and set the initial wakeup
-             * condition. Called when the behavior is first made live.
-             */
-            public void initialize() {
-                // Initiialize to identity (no rotation)
-                lastTransform.setIdentity();
-                axisTG.setTransform(new Transform3D());
+            public void initialize() { wakeupOn(new WakeupOnElapsedFrames(0, true)); }
 
-                // Set the initial wakeup condition
-                wakeupOn(w);
-            }
-
-            /**
-             * Extract the rotation from the view platform transform (if it has
-             * changed) and update the target transform with its inverse.
-             */
             public void processStimulus(Enumeration criteria) {
-                Transform3D t = new Transform3D();
-                viewPlatformTG.getTransform(t);
-
-                // Compute the new axis transform if the viewPlatformTransform has changed
-                if (!lastTransform.equals(t)) {
-                    lastTransform.set(t);
-
+                Transform3D t;
+                viewPlatformTG.getTransform(t = new Transform3D());
+                if (!currentTransform.equals(t)) {
+                    currentTransform.set(t);
+                    // Axis transform is the inverse of view platform transform
                     t.setTranslation(new Vector3d());
                     t.invert();
                     axisTG.setTransform(t);
                 }
-
-                // Reset the wakeup condition so we will wakeup next frame
-                wakeupOn(w);
+                wakeupOn(new WakeupOnElapsedFrames(0, true));
             }
-
         });
 
         viewingPlatform.setPlatformGeometry(pg) ;

@@ -338,6 +338,13 @@ public class ManualViewer extends EModelessDialog
 			}
 		}
 	}
+        
+        public static boolean isJava3DAvailable()
+        {
+            // Checking first if j3d is installed
+            return Resources.get3DClass("utils.J3DUtils") != null;
+        }
+
 
 	/**
 	 * Create a new user's manual dialog.
