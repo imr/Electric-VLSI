@@ -379,24 +379,22 @@ public class View3DWindow extends JPanel
 
         // Create the axis behavior
         final TransformGroup viewPlatformTG = viewingPlatform.getViewPlatformTransform();
-        pg.addChild(new Behavior() { private Transform3D currentTransform = new Transform3D(); // Current transform of the view platform
-            {
+        pg.addChild(new Behavior() {
+            @Override
+            public void initialize() {
                 setSchedulingInterval(Behavior.getNumSchedulingIntervals() - 1); // the last scheduling interval
                 setSchedulingBounds(J3DUtils.infiniteBounds); // everywhere
+                wakeupOn(new WakeupOnElapsedFrames(0, true));
             }
 
-            public void initialize() { wakeupOn(new WakeupOnElapsedFrames(0, true)); }
-
+            @Override
             public void processStimulus(Enumeration criteria) {
-                Transform3D t;
-                viewPlatformTG.getTransform(t = new Transform3D());
-                if (!currentTransform.equals(t)) {
-                    currentTransform.set(t);
-                    // Axis transform is the inverse of view platform transform
-                    t.setTranslation(new Vector3d());
-                    t.invert();
-                    axisTG.setTransform(t);
-                }
+                Transform3D t = new Transform3D();
+                viewPlatformTG.getTransform(t);
+                // Axis transform is the inverse of view platform transform
+                t.setTranslation(new Vector3d());
+                t.invert();
+                axisTG.setTransform(t);
                 wakeupOn(new WakeupOnElapsedFrames(0, true));
             }
         });
