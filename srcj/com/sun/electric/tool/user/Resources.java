@@ -40,6 +40,7 @@ public class Resources {
     private static final String pluginJ3D = "com.sun.electric.plugins.Java3D";
     private static final String pluginJMF = "com.sun.electric.plugins.JMF";
     private static final String pluginJython = "org.python.util";
+    private static final String pluginScala = "com.sun.electric.scala";
 
     /**
 	 * Method to load a valid icon stored in resources package under the given class.
@@ -83,6 +84,11 @@ public class Resources {
     public static Class getJythonClass(String name)
     {
         return (getClass(name, pluginJython));
+    }
+
+    public static Class getScalaClass(String name)
+    {
+        return (getClass(name, pluginScala));
     }
 
     private static Class getClass(String name, String plugin)

@@ -24,6 +24,7 @@
 package com.sun.electric;
 
 import com.sun.electric.util.PropertiesUtils;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -230,7 +231,7 @@ public final class Launcher
         if (loadDependencies) {
             URL[] pluginJars = readMavenDependencies();
             if (pluginJars.length > 0)
-                pluginClassLoader = new URLClassLoader(pluginJars, appLoader);
+                pluginClassLoader = new EClassLoader(pluginJars, appLoader);
         }
 		if (enableAssertions) {
             appLoader.setDefaultAssertionStatus(true);
@@ -304,4 +305,40 @@ public final class Launcher
         }
         return null;
     }
+    
+    private static class EClassLoader extends URLClassLoader {
+        private EClassLoader(URL[] urls, ClassLoader parent) {
+            super(urls, parent);
+        }
+        
+        @Override
+        protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            if (name.startsWith("com.sun.electric.plugins.") || name.startsWith("com.sun.electric.scala.")) {
+                Class c = findLoadedClass(name);
+                if (c == null) {
+                    String path = name.replace('.', '/').concat(".class");
+                    URL url = getResource(path);
+                    if (url != null) {
+                        try {
+                            DataInputStream in = new DataInputStream(url.openStream());
+                            int len = in.available();
+                            byte[] ba = new byte[len];
+                            in.readFully(ba);
+                            in.close();
+                            c = defineClass(name, ba, 0, len);
+                        } catch (IOException e) {
+                            throw new ClassNotFoundException(name);
+                        }
+                    } else {
+                        throw new ClassNotFoundException(name);
+                    }
+                }
+                if (resolve) {
+                    resolveClass(c);
+                }
+                return c;
+            }
+            return super.loadClass(name, resolve);
+        }
+   }
 }

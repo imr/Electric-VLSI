@@ -25,6 +25,7 @@
 package com.sun.electric.database.geometry.bool;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.user.Resources;
 import java.lang.reflect.Constructor;
 
 /**
@@ -46,7 +47,7 @@ public abstract class LayoutMergerFactory {
 
     public static LayoutMergerFactory newInstance() {
         try {
-            Class<?> scalaClass = Class.forName("com.sun.electric.scala.LayoutMergerFactoryImpl");
+            Class<?> scalaClass = Resources.getScalaClass("LayoutMergerFactoryImpl");
             Constructor constructor = scalaClass.getConstructor();
             return (LayoutMergerFactory)constructor.newInstance();
         } catch (Exception e) {

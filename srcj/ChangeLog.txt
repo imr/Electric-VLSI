@@ -4,15 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
-<<<<<<< .mine
 IMP: (10/3/10, FS) Electric shows used memory and total memory size in status bar
 
 IMP: (10/3/10, DN) Electric tries to add plugins from maven repository on startup.
 
-=======
-IMP: (10/3/10, DN) Electric tries to add plugins from maven repository on startup.
-
->>>>>>> .r12074
 BUG: (9/30/10, DN) Electric-bundle hangs on machine without java3d.
 FIX: Catch NoClassDefFoundError in MenuCommands.makeExtraMenu .
 
