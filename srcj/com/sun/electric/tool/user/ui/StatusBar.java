@@ -45,6 +45,7 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.memory.MemoryUsage;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -66,7 +67,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 	private WindowFrame frame;
 	private String coords = null;
 	private String hierCoords = null;
-	private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords, fieldHierCoords;
+	private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords, fieldHierCoords, memoryUsage;
 
 	private static String selectionOverride = null;
 
@@ -124,6 +125,16 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		fieldHierCoords = new JLabel(" ");
 		fieldHierCoords.setHorizontalAlignment(JLabel.RIGHT);
 		addField(fieldHierCoords, 0, 2, 7, 0.0);
+		
+		gbc = new GridBagConstraints();
+        gbc.gridx = 0;   gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridwidth = 7;
+        add(new JSeparator(JSeparator.HORIZONTAL), gbc);
+		
+		memoryUsage = new JLabel(" ");
+        memoryUsage.setHorizontalAlignment(JLabel.RIGHT);
+        addField(memoryUsage, 0, 2, 7, 0.0);
 
 		// add myself as listener for highlight changes in SDI mode
 		if (TopLevel.isMDIMode())
@@ -232,10 +243,15 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			}
 		}
 	}
+	
+	private void updateUsedMemory() {
+	    memoryUsage.setText(MemoryUsage.getInstance().toString());
+	}
 
 	private void redoStatusBar()
 	{
 		updateSelectedText();
+		updateUsedMemory();
 
 		Cell cell = null;
 		WindowFrame thisFrame = frame;
