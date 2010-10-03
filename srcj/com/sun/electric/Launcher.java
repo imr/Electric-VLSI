@@ -23,6 +23,7 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.util.PropertiesUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -30,7 +31,9 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -92,7 +95,7 @@ public final class Launcher
 		int maxMem = (int)(runtime.maxMemory() / 1000000);
         int maxPermWanted = getUserInt(StartupPrefs.PermSizeKey, StartupPrefs.PermSizeDef);
 		int maxMemWanted = getUserInt(StartupPrefs.PermSizeKey, StartupPrefs.PermSizeDef);
-		if (maxMemWanted <= maxMem && maxPermWanted == 0)
+		if (maxMemWanted <= maxMem && maxPermWanted == 0 || Arrays.asList(args).contains("-pipeserver"))
 		{
 			// already have the desired amount of memory: just start Electric
 			loadAndRunMain(args, true);
@@ -203,7 +206,7 @@ public final class Launcher
         procArgs.addAll(javaOptions);
 		procArgs.add("-cp");
         procArgs.add(Launcher.getJarLocation());
-        procArgs.add("com.sun.electric.Main");
+        procArgs.add("com.sun.electric.Launcher");
         procArgs.addAll(electricOptions);
         procArgs.add("-pipeserver");
         String command = "";
@@ -214,35 +217,73 @@ public final class Launcher
         return new ProcessBuilder(procArgs).start();
     }
     
+    private static ClassLoader pluginClassLoader;
+    
+    public static Class classFromPlugins(String className) throws ClassNotFoundException {
+        return pluginClassLoader.loadClass(className);
+    }
+    
     private static void loadAndRunMain(String[] args, boolean loadDependencies)
     {
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        ClassLoader appLoader = ClassLoader.getSystemClassLoader();
+        pluginClassLoader = appLoader;
         if (loadDependencies) {
             URL[] pluginJars = readMavenDependencies();
             if (pluginJars.length > 0)
-                classLoader = new URLClassLoader(pluginJars, classLoader);
+                pluginClassLoader = new URLClassLoader(pluginJars, appLoader);
         }
-		if (enableAssertions)
-            classLoader.setDefaultAssertionStatus(true);
-        callByReflection(classLoader, "com.sun.electric.Main", "main", new Class[] { String[].class }, new Object[] { args });
+		if (enableAssertions) {
+            appLoader.setDefaultAssertionStatus(true);
+            pluginClassLoader.setDefaultAssertionStatus(true);
+        }
+        callByReflection(pluginClassLoader, "com.sun.electric.Main", "main", new Class[] { String[].class }, new Object[] { args });
     }
     
     private static URL[] readMavenDependencies() {
+        String mavenDependenciesResourceName = "maven.dependencies";
+        URL mavenDependencies = ClassLoader.getSystemResource(mavenDependenciesResourceName);
+        if (mavenDependencies == null) {
+            return new URL[0];
+        }
+        
         List<URL> urls = new ArrayList<URL>();
         List<File> repositories = new ArrayList<File>();
         String mavenRepository = ".m2" + File.separator + "repository";
         
-        String homeDir = System.getProperty("user.home");
-        if (homeDir != null) {
-            File file = new File(homeDir + File.separator + mavenRepository);
+        String homeDirProp = System.getProperty("user.home");
+        if (homeDirProp != null) {
+            File homeDir = new File(homeDirProp);
+            File file = new File(homeDir, mavenRepository);
             if (file.canRead())
                 repositories.add(file);
         }
 
-        URL mavenDependencies = ClassLoader.getSystemResource("maven.dependencies");
-        String classPath = System.getProperty("java.class.path");
-        System.err.println("mavenDependencies=" + mavenDependencies);
-        System.err.println("classPath=" + classPath);
+        if (mavenDependencies.getProtocol().equals("jar")) {
+            String path = mavenDependencies.getPath();
+            if (path.startsWith("file:") && path.endsWith("!/"+mavenDependenciesResourceName)) {
+                String jarPath = path.substring("file:".length(), path.length() - "!/".length() - mavenDependenciesResourceName.length());
+                File jarDir = new File(jarPath).getParentFile();
+                File file = new File(jarDir, mavenRepository);
+                if (file.exists())
+                    repositories.add(file);
+            }
+        }
+        try {
+            Properties properties = PropertiesUtils.load(mavenDependenciesResourceName);
+            for (Object dependency: properties.keySet()) {
+                for (File repository: repositories) {
+                    File file = new File(repository, dependency.toString());
+                    if (file.canRead()) {
+                        URL url = file.toURI().toURL();
+                        urls.add(url);
+                        logger.log(Level.FINE, "Add {0} to class path", url);
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error reading", mavenDependencies);
+        }
         
         return urls.toArray(new URL[urls.size()]);
     }

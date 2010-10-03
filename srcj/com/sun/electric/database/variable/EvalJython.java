@@ -28,6 +28,7 @@ import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.util.TextUtils;
 
@@ -52,11 +53,7 @@ public class EvalJython {
             jythonChecked = true;
 
             // find the Jython class
-            try {
-                jythonClass = Class.forName("org.python.util.PythonInterpreter");
-            } catch (Exception e) {
-                jythonClass = null;
-            }
+            jythonClass = Resources.getJythonClass("PythonInterpreter");
         }
 
         // if already initialized, return state

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Launcher;
 import com.sun.electric.tool.Job;
 
 import javax.swing.ImageIcon;
@@ -38,6 +39,7 @@ public class Resources {
 	private static final String plugin3D = "com.sun.electric.plugins.j3d";
     private static final String pluginJ3D = "com.sun.electric.plugins.Java3D";
     private static final String pluginJMF = "com.sun.electric.plugins.JMF";
+    private static final String pluginJython = "org.python.util";
 
     /**
 	 * Method to load a valid icon stored in resources package under the given class.
@@ -78,12 +80,17 @@ public class Resources {
         return (getClass(name, plugin3D));
     }
 
+    public static Class getJythonClass(String name)
+    {
+        return (getClass(name, pluginJython));
+    }
+
     private static Class getClass(String name, String plugin)
     {
         Class theClass = null;
 		try
         {
-            theClass = Class.forName(plugin+"."+name);
+            theClass = Launcher.classFromPlugins(plugin+"."+name);
 
         } catch (ClassNotFoundException e)
         {
