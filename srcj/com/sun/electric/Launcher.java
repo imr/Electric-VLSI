@@ -23,17 +23,34 @@
  */
 package com.sun.electric;
 
-import com.sun.electric.tool.Regression;
-
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 /**
- * This class initializes the Electric by re-launching a JVM with sufficient memory.
- * It is the main entrypoint of the system.
+ * This class initializes the Electric. It is the main entrypoint of the system.
+ * First it re-launches a JVM with sufficient memory if default memory limit s too small.
+ * Then it loads com.sun.electric.Main class in a new ClassLoader.
+ * The new ClassLoader is aware of jars with Electric plugins and dependencies. 
  */
 public final class Launcher
 {
 	private static final boolean enableAssertions = true;
+    private static final Logger logger = Logger.getLogger(Launcher.class.getName());
+    
+	private static final String[] propertiesToCopy =
+	{
+		"user.home"
+	};
+
 
 	private Launcher() {}
 
@@ -53,7 +70,7 @@ public final class Launcher
             if (str.equals("-NOMINMEM") || str.equals("-help") ||
                 str.equals("-version") || str.equals("-v")) {
                 // just start electric
-                Main.main(args);
+                loadAndRunMain(args, false);
                 return;
             }
         }
@@ -70,97 +87,89 @@ public final class Launcher
             return;
         }
 
-		// launching is different on different computers
-		try{
-            if (program != null)
-                invokeElectric(args, program);
-            else
-				// not able to relaunch a JVM: just start Electric
-				Main.main(args);
-		} catch (Exception e)
-		{
-			// problem figuring out what computer this is: just start Electric
-			e.printStackTrace(System.out);
-			Main.main(args);
-		}
-	}
-
-	private static final String[] propertiesToCopy =
-	{
-		"user.home"
-	};
-
-	private static void invokeElectric(String[] args, String program)
-	{
 		// see if the required amount of memory is already present
 		Runtime runtime = Runtime.getRuntime();
-		long maxMem = runtime.maxMemory() / 1000000;
-        long maxPermWanted = StartupPrefs.getPermSpace();
-		int maxMemWanted = StartupPrefs.getMemorySize();
+		int maxMem = (int)(runtime.maxMemory() / 1000000);
+        int maxPermWanted = getUserInt(StartupPrefs.PermSizeKey, StartupPrefs.PermSizeDef);
+		int maxMemWanted = getUserInt(StartupPrefs.PermSizeKey, StartupPrefs.PermSizeDef);
 		if (maxMemWanted <= maxMem && maxPermWanted == 0)
 		{
 			// already have the desired amount of memory: just start Electric
-			if (enableAssertions)
-				ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
-			Main.main(args);
+			loadAndRunMain(args, true);
 			return;
 		}
 
-//        // get location of jar file
-//        URL electric = Launcher.class.getResource("Main.class");
-//        if (electric.getProtocol().equals("jar")) {
-//            String file = electric.getFile();
-//            file = file.replaceAll("file:", "");
-//            file = file.replaceAll("!.*", "");
-//        }
-
+        // Start Electric in subprocess
+        
         // build the command line for reinvoking Electric
-		String command = program;
-		command += " -cp " + Main.getJarLocation();
-        command += " -ss2m";
+        List<String> procArgs = new ArrayList<String>();
+        procArgs.add(program);
+        procArgs.add("-cp");
+        procArgs.add(getJarLocation());
+        procArgs.add("-ss2m");
 		if (enableAssertions)
-			command += " -ea"; // enable assertions
-		command += " -mx" + maxMemWanted + "m";
+			procArgs.add("-ea"); // enable assertions
+		procArgs.add("-mx" + maxMemWanted + "m");
         if (maxPermWanted > 0)
-            command += " -XX:MaxPermSize=" + maxPermWanted + "m";
+            procArgs.add("-XX:MaxPermSize=" + maxPermWanted + "m");
         for(int i=0; i<propertiesToCopy.length; i++)
         {
 	        String propValue = System.getProperty(propertiesToCopy[i]);
 	        if (propValue != null && propValue.length() > 0)
 	        {
 	        	if (propValue.indexOf(' ') >= 0) propValue = "\"" + propValue + "\"";
-	        	command += " -D" + propertiesToCopy[i] + "=" + propValue;
+	        	procArgs.add("-D" + propertiesToCopy[i] + "=" + propValue);
 	        }
         }
-        command += " com.sun.electric.Main";
-        for (int i=0; i<args.length; i++) command += " " + args[i];
+        procArgs.add("com.sun.electric.Main");
+        for (int i=0; i<args.length; i++) procArgs.add(args[i]);
 
         if (maxMemWanted > maxMem)
-            System.out.println("Current Java memory limit of " + maxMem +
-            	"MEG is too small, rerunning Electric with a memory limit of " + maxMemWanted + "MEG");
+            logger.log(Level.INFO, "Current Java memory limit of {0}MEG is too small, rerunning Electric with a memory limit of {1}MEG",
+                    new Object[] { maxMem, maxMemWanted });
         if (maxPermWanted > 0)
-            System.out.println("Setting maximum permanent space (2nd GC) to " + maxPermWanted + "MEG");
-		try
-		{
-			runtime.exec(command);
+            logger.log(Level.INFO, "Setting maximum permanent space (2nd GC) to {0}MEG", new Object[]{ maxPermWanted });
+        ProcessBuilder processBuilder = new ProcessBuilder(procArgs);
+        try {
+            processBuilder.start();
             // Sometimes process doesn't finish nicely for some reason, try and kill it here
             System.exit(0);
-		} catch (java.io.IOException e)
-		{
-			Main.main(args);
-		}
+        } catch (IOException e) {
+			// problem figuring out what computer this is: just start Electric
+			logger.log(Level.WARNING, "Error starting Electric subprocess", e);
+			loadAndRunMain(args, false);
+        }
 	}
 
+    /**
+     * Method to return a String that gives the path to the Electric JAR file.
+     * If the path has spaces in it, it is quoted.
+     * @return the path to the Electric JAR file.
+     */
+    public static String getJarLocation()
+    {
+		String jarPath = System.getProperty("java.class.path", ".");
+		if (jarPath.indexOf(' ') >= 0) jarPath = "\"" + jarPath + "\"";
+		return jarPath;
+    }
+
+    private static int getUserInt(String key, int def) {
+        return Preferences.userNodeForPackage(Launcher.class).node(StartupPrefs.USER_NODE).getInt(key, def);
+    }
+    
     private static boolean invokeRegression(String[] args) {
-        String javaOptions = "";
-        String electricOptions = " -debug";
+        List<String> javaOptions = new ArrayList<String>();
+        List<String> electricOptions = new ArrayList<String>();
+        electricOptions.add("-debug");
         int regressionPos = 0;
         if (args[0].equals("-threads")) {
             regressionPos = 2;
-            electricOptions += " -threads " + args[1];
+            electricOptions.add("-threads");
+            electricOptions.add(args[1]);
         } else if (args[0].equals("-logging")) {
             regressionPos = 2;
-            electricOptions += " -logging " + args[1];
+            electricOptions.add("-logging");
+            electricOptions.add(args[1]);
         }
         else if (args[0].equals("-debug"))
         {
@@ -170,14 +179,88 @@ public final class Launcher
         String script = args[regressionPos + 1];
 
         for (int i = regressionPos + 2; i < args.length; i++)
-            javaOptions += " " + args[i];
+            javaOptions.add(args[i]);
         Process process = null;
         try {
-            process = Main.invokePipeserver(javaOptions, electricOptions);
-            return Regression.runScript(process, script);
+            process = invokePipeserver(javaOptions, electricOptions);
         } catch (java.io.IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Failure starting server subprocess", e);
             return false;
         }
+        return ((Boolean)callByReflection(ClassLoader.getSystemClassLoader(), "com.sun.electric.tool.Regression", "runScript",
+                new Class[]{ Process.class, String.class }, new Object[] { process, script})).booleanValue();
+    }
+    
+    public static Process invokePipeserver(List<String> javaOptions, List<String> electricOptions) throws IOException {
+        List<String> procArgs = new ArrayList<String>();
+        String program = "java";
+        String javaHome = System.getProperty("java.home");
+        if (javaHome != null) program = javaHome + File.separator + "bin" + File.separator + program;
+
+        procArgs.add(program);
+        procArgs.add("-ea");
+        procArgs.add("-Djava.util.prefs.PreferencesFactory=com.sun.electric.database.text.EmptyPreferencesFactory");
+        procArgs.addAll(javaOptions);
+		procArgs.add("-cp");
+        procArgs.add(Launcher.getJarLocation());
+        procArgs.add("com.sun.electric.Main");
+        procArgs.addAll(electricOptions);
+        procArgs.add("-pipeserver");
+        String command = "";
+        for (String arg: procArgs)
+            command += " " + arg;
+        logger.log(Level.INFO, "exec: {0}", new Object[] { command });
+
+        return new ProcessBuilder(procArgs).start();
+    }
+    
+    private static void loadAndRunMain(String[] args, boolean loadDependencies)
+    {
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        if (loadDependencies) {
+            URL[] pluginJars = readMavenDependencies();
+            if (pluginJars.length > 0)
+                classLoader = new URLClassLoader(pluginJars, classLoader);
+        }
+		if (enableAssertions)
+            classLoader.setDefaultAssertionStatus(true);
+        callByReflection(classLoader, "com.sun.electric.Main", "main", new Class[] { String[].class }, new Object[] { args });
+    }
+    
+    private static URL[] readMavenDependencies() {
+        List<URL> urls = new ArrayList<URL>();
+        List<File> repositories = new ArrayList<File>();
+        String mavenRepository = ".m2" + File.separator + "repository";
+        
+        String homeDir = System.getProperty("user.home");
+        if (homeDir != null) {
+            File file = new File(homeDir + File.separator + mavenRepository);
+            if (file.canRead())
+                repositories.add(file);
+        }
+
+        URL mavenDependencies = ClassLoader.getSystemResource("maven.dependencies");
+        String classPath = System.getProperty("java.class.path");
+        System.err.println("mavenDependencies=" + mavenDependencies);
+        System.err.println("classPath=" + classPath);
+        
+        return urls.toArray(new URL[urls.size()]);
+    }
+    
+    private static Object callByReflection(ClassLoader classLoader, String className, String methodName, Class[] argTypes, Object[] argValues) {
+        try {
+            Class mainClass = classLoader.loadClass(className);
+            Method method = mainClass.getMethod(methodName, argTypes);
+            return method.invoke(null, argValues);
+        } catch (ClassNotFoundException e) {
+            logger.log(Level.SEVERE, "Can't invoke Electric", e);
+        } catch (NoSuchMethodException e) {
+            logger.log(Level.SEVERE, "Can't invoke Electric", e);
+        } catch (IllegalAccessException e) {
+            logger.log(Level.SEVERE, "Can't invoke Electric", e);
+        } catch (InvocationTargetException e) {
+            logger.log(Level.SEVERE, "Error in Electric invocation", e.getTargetException());
+        }
+        return null;
     }
 }

@@ -24,7 +24,6 @@
 package com.sun.electric;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -165,35 +164,38 @@ public final class Main
 
 		// -debug for debugging
         runMode = DEFAULT_MODE;
-        String pipeOptions = "";
+        List<String> pipeOptions = new ArrayList<String>();
 		if (hasCommandLineOption(argsList, "-debug")) {
-            pipeOptions += " -debug";
+            pipeOptions.add(" -debug");
             Job.setDebug(true);
         }
         if (hasCommandLineOption(argsList, "-extraDebug")) {
-            pipeOptions += " -extraDebug";
+            pipeOptions.add("-extraDebug");
             Job.LOCALDEBUGFLAG = true;
         }
         String numThreadsString = getCommandLineOption(argsList, "-threads");
         int numThreads = 0 ;
         if (numThreadsString != null) {
             numThreads = TextUtils.atoi(numThreadsString);
-            if (numThreads > 0)
-                pipeOptions += " -threads " + numThreads;
-            else
+            if (numThreads > 0) {
+                pipeOptions.add("-threads");
+                pipeOptions.add(String.valueOf(numThreads));
+            }  else
                 System.out.println("Invalid option -threads " + numThreadsString);
         }
         String loggingFilePath = getCommandLineOption(argsList, "-logging");
         if (loggingFilePath != null) {
-            pipeOptions += " -logging " + loggingFilePath;
+            pipeOptions.add("-logging");
+            pipeOptions.add(loggingFilePath);
         }
         String socketString = getCommandLineOption(argsList, "-socket");
         int socketPort = 0;
         if (socketString != null) {
             socketPort = TextUtils.atoi(socketString);
-            if (socketPort > 0)
-                pipeOptions += " -socket " + socketPort;
-            else
+            if (socketPort > 0) {
+                pipeOptions.add("-socket");
+                pipeOptions.add(String.valueOf(socketPort));
+            }  else
                 System.out.println("Invalid option -socket " + socketString);
         }
         hasCommandLineOption(argsList, "-NOMINMEM"); // do nothing, just consume option: handled in Launcher
@@ -285,49 +287,19 @@ public final class Main
         PoolWorkerStrategyFactory.userDefinedStrategy = electricWorker;
 	}
 
-    private static Process invokePipeserver(String electricOptions, boolean withDebugger) throws IOException {
-        String javaOptions = " -Xss2m";
+    private static Process invokePipeserver(List<String> electricOptions, boolean withDebugger) throws IOException {
+        List<String> javaOptions = new ArrayList<String>();
+        javaOptions.add("-Xss2m");
 		int maxMemWanted = StartupPrefs.getMemorySize();
-        javaOptions += " -Xmx" + maxMemWanted + "m";
+        javaOptions.add("-Xmx" + maxMemWanted + "m");
         long maxPermWanted = StartupPrefs.getPermSpace();
         if (maxPermWanted > 0)
-            javaOptions += " -XX:MaxPermSize=" + maxPermWanted + "m";
-        if (withDebugger)
-//            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=localhost:35856";
-            javaOptions += " -Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856";
-        return invokePipeserver(javaOptions, electricOptions);
-    }
-
-    static Process invokePipeserver(String javaOptions, String electricOptions) throws IOException {
-        String program = "java";
-        String javaHome = System.getProperty("java.home");
-        if (javaHome != null) program = javaHome + File.separator + "bin" + File.separator + program;
-
-        String command = program;
-        command += " -ea";
-        command += " -Djava.util.prefs.PreferencesFactory=com.sun.electric.database.text.EmptyPreferencesFactory";
-        command += javaOptions;
-		command += " -cp " + getJarLocation();
-        command += " com.sun.electric.Main";
-        if (electricOptions != null)
-            command += electricOptions;
-        command += " -pipeserver";
-        System.err.println("exec: " + command);
-
-        Runtime runtime = Runtime.getRuntime();
-        return runtime.exec(command);
-    }
-
-    /**
-     * Method to return a String that gives the path to the Electric JAR file.
-     * If the path has spaces in it, it is quoted.
-     * @return the path to the Electric JAR file.
-     */
-    public static String getJarLocation()
-    {
-		String jarPath = System.getProperty("java.class.path", ".");
-		if (jarPath.indexOf(' ') >= 0) jarPath = "\"" + jarPath + "\"";
-		return jarPath;
+            javaOptions.add("-XX:MaxPermSize=" + maxPermWanted + "m");
+        if (withDebugger) {
+            javaOptions.add("-Xdebug");
+            javaOptions.add("-Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856");
+        }
+        return Launcher.invokePipeserver(javaOptions, electricOptions);
     }
 
     public static class UserInterfaceDummy extends AbstractUserInterface

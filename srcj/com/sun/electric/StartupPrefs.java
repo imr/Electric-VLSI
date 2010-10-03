@@ -32,7 +32,7 @@ import java.util.prefs.Preferences;
  * They are accessed without initializing Tool and Technology classes
  */
 public class StartupPrefs {
-    private static final String USER_NODE = "tool/user";
+    public static final String USER_NODE = "tool/user";
     private static final Preferences userNode = Pref.getPrefRoot().node(USER_NODE);
 
 	/** Preferences key with additional technologies for Electric. */

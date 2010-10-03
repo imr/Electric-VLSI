@@ -24,7 +24,7 @@
  */
 package com.sun.electric.tool.sandbox;
 
-import com.sun.electric.Main;
+import com.sun.electric.Launcher;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.io.BufferedInputStream;
@@ -48,7 +48,7 @@ public class TechExplorerDriver {
     public TechExplorerDriver(String jarPath, final OutputStream redirect) throws IOException {
         this(new ProcessBuilder("java",
                 "-cp",
-                Main.getJarLocation(),
+                Launcher.getJarLocation(),
                 "-ss2m",
                 "-ea",
                 "-mx128m",
