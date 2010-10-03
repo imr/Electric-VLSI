@@ -10,13 +10,13 @@
  *******************************************************************************/
 package com.sun.electric.util.memory;
 
-import java.math.BigDecimal;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
 
 import com.sun.electric.util.memory.Memory.MemSize;
+import java.util.Locale;
 
 public class TestMemory {
 
@@ -79,10 +79,16 @@ public class TestMemory {
     public void testFormatMemorySize() {
         Object[][] mems = { { (long) 1024, "1kB" }, { (long) (255 * 255 * 255), "15.8MB" } };
 
-        for (Object[] tmp : mems) {
-            String formattedString = Memory.formatMemorySize((Long) tmp[0]);
-            System.out.println(formattedString);
-            Assert.assertEquals(tmp[1], formattedString);
+        Locale savedLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.ROOT);
+            for (Object[] tmp : mems) {
+                String formattedString = Memory.formatMemorySize((Long) tmp[0]);
+                System.out.println(formattedString);
+                Assert.assertEquals(tmp[1], formattedString);
+            }
+        } finally {
+            Locale.setDefault(savedLocale);
         }
     }
 
