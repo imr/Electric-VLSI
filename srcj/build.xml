@@ -28,13 +28,11 @@
 	<target name="init" description="Initialization">
 		<property name="beanshell" value="../packaging/bsh-2.0b4.jar" />
 		<property name="AppleJava" value="../packaging/AppleJavaExtensions.jar" />
-		<property name="JUnit" value="../packaging/junit-4.5.jar" />
 		<property name="lucene" value="../packaging/lucene-1.4.3.jar" />
 		<property name="prefuse" value="../packaging/prefuse.jar" />
-		<property name="jython" value="../packaging/jython.jar" />
-		<property name="scala" value="../packaging/scala-library.jar" />
-		<property name="areacheck" value="../packaging/AreaCheck.jar" />
-		<property name="scalaProjects" value="../ScalaProjects/" />
+		<property name="jython" value="../packaging/.m2/repository/org/python/jython/2.5.0/jython-2.5.0.jar" />
+		<property name="scala" value="../packaging/.m2/repository/org/scala-lang/scala-library/2.8.0/scala-library-2.8.0.jar" />
+		<property name="scalaProjects" value="../packaging/ScalaProjects/" />
 	</target>
 
 	<!-- Patternset for 3D dependencies -->
@@ -57,11 +55,9 @@
 		<exclude name="com/sun/electric/plugins/jogl/" unless="JOGL" />
 		<exclude name="com/sun/electric/plugins/irsim/" if="GNU" />
 		<exclude name="com/sun/electric/plugins/libertyRW/" unless="SUN" />
-		<exclude name="com/sun/electric/plugins/manualRussian/" />
 		<exclude name="com/sun/electric/plugins/menus/" unless="SUN" />
 		<exclude name="com/sun/electric/plugins/oa/" unless="SUN" />
 		<exclude name="com/sun/electric/plugins/oyster/" unless="SUN" />
-		<exclude name="com/sun/electric/plugins/pie/" />
 		<exclude name="com/sun/electric/plugins/prefuse/" unless="SUN" />
 		<exclude name="com/sun/electric/plugins/sctiming/" unless="SUN" />
 		<exclude name="com/sun/electric/plugins/skill/" unless="SUN" />
@@ -106,8 +102,7 @@
 		<antcall target="compileScala" />
 	</target>
 
-	<target name="compileScala" unless="NOSCALA">
-		<!-- AreaCheck -->
+	<target name="compileScala" unless="NOSCALA_">
 		<ant antfile="${scalaProjects}/scalaMainAnt.xml" target="compileAllScalaProjects" />
 	</target>
 
@@ -134,14 +129,6 @@
 		</copy>
 	</target>
 
-	<target name="compileTests" depends="init,compile" description="Compile tests">
-		<javac debug="true" deprecation="true" destdir="." srcdir="../tests" source="1.5" target="1.5" fork="true" memoryMaximumSize="512m">
-			<classpath>
-				<pathelement location="${JUnit}" />
-			</classpath>
-		</javac>
-	</target>
-
 	<target name="runFromBin" depends="init,compileToBin" description="Run from 'bin' directory">
 		<java classname="com.sun.electric.Launcher" failonerror="true" fork="true" maxmemory="1024m">
 			<classpath>
@@ -165,34 +152,6 @@
 		</java>
 	</target>
 
-	<target name="runTests" depends="compileTests" description="Run unit tests">
-		<java classname="org.junit.runner.JUnitCore" failonerror="true" fork="true" maxmemory="1024m">
-			<jvmarg value="-enableassertions" />
-			<classpath>
-				<pathelement location="${JUnit}" />
-				<pathelement location="." />
-			</classpath>
-			<classpath refid="externalClassPath" />
-			<classpath refid="prefuseClassPath" />
-			<arg value="com.sun.electric.database.ImmutableArcInstTest" />
-			<arg value="com.sun.electric.database.ImmutableCellTest" />
-			<arg value="com.sun.electric.database.ImmutableElectricObjectTest" />
-			<arg value="com.sun.electric.database.ImmutableNodeInstTest" />
-			<arg value="com.sun.electric.database.SerializationTest" />
-			<arg value="com.sun.electric.database.SnapshotTest" />
-			<arg value="com.sun.electric.database.geometry.EPointTest" />
-			<arg value="com.sun.electric.database.geometry.ERectangleTest" />
-			<arg value="com.sun.electric.database.geometry.GenMathTest" />
-			<arg value="com.sun.electric.database.geometry.OrientationTest" />
-			<arg value="com.sun.electric.database.id.CellIdTest" />
-			<arg value="com.sun.electric.database.id.IdManagerTest" />
-			<arg value="com.sun.electric.database.id.IdReaderWriterTest" />
-			<arg value="com.sun.electric.database.id.TechIdTest" />
-			<arg value="com.sun.electric.database.variable.CodeExpressionTest" />
-			<arg value="com.sun.electric.database.variable.TextDescriptorTest" />
-		</java>
-	</target>
-
 	<!-- Delete Electric packages -->
 	<target name="deleteElectric" description="Delete .class files after build">
 		<delete quiet="true">
@@ -203,7 +162,7 @@
 	</target>
 
     <!-- Delete Scala package if available -->
-	<target name="deleteScala" description="Delete Scala buit files?" unless="NOSCALA">
+	<target name="deleteScala" description="Delete Scala buit files?" unless="NOSCALA_">
         <ant antfile="${scalaProjects}/scalaMainAnt.xml" target="cleanCopiedClasses"/>
 	</target>
 
@@ -278,29 +237,6 @@
 		<delete file="LicenseIRSIM.txt" />
 	</target>
 
-	<target name="jarForPIE" depends="init,compile" description="Make source Jar file for Port Interchange Experiment">
-		<java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-			<arg value="-v" />
-		</java>
-		<jar basedir="." compress="true" jarfile="electricPIE-${version}.jar">
-			<include name="com/sun/electric/plugins/pie/*" />
-			<include name="com/sun/electric/plugins/pie/*/*" />
-		</jar>
-		<antcall target="deleteElectric">
-		</antcall>
-	</target>
-
-	<target name="jarForRussianManual" depends="init,compile" description="Make Jar file for Russian User's Manual">
-		<java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-			<arg value="-v" />
-		</java>
-		<jar basedir="." compress="true" jarfile="electricRussianManual-${version}.jar">
-			<include name="com/sun/electric/plugins/manualRussian/*.*" />
-		</jar>
-		<antcall target="deleteElectric">
-		</antcall>
-	</target>
-
 	<target name="jarForJava3D" depends="init,compile" description="Make source Jar file for Java3D plugin">
 		<java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
 			<arg value="-v" />
@@ -343,7 +279,6 @@
 
 	<target name="unjarScala" unless="NOSCALA" description="Extract Scala if used in Sun release">
 		<unjar dest="." src="${scala}" />
-		<!-- <unjar dest="." src="${areacheck}"/> -->
 	</target>
 
 	<target name="generalPurposeJar" depends="init,compile" description="Make Jar file with version">
@@ -399,26 +334,30 @@
 	</target>
 
 	<target name="jar" description="Make binary Jar file">
-		<antcall target="jarWithTests">
+		<antcall target="jarLight" />
+	</target>
+
+	<target name="jarHeavy" description="Make binary Jar file with Jython and Scala libraries">
+		<antcall target="jarForSun">
 			<param name="SUN" value="1" />
 		</antcall>
 	</target>
 
-	<target name="jarLight" description="Make binary Jar file without Jython">
-		<antcall target="jarWithTests">
+	<target name="jarLight" description="Make binary Jar file without Jython and Scala libraries">
+		<antcall target="jarForSun">
 			<param name="SUN" value="1" />
 			<param name="NOJYTHON" value="1" />
 			<param name="NOSCALA" value="1" />
 		</antcall>
 	</target>
 
-	<target name="copyScalaStuff" unless="NOSCALA">
+	<target name="copyScalaStuff" unless="NOSCALA_">
 		<copy todir=".">
 			<fileset dir="${scalaProjects}/bin" />
 		</copy>
 	</target>
 
-	<target name="jarWithTests" depends="clean,init,compileTests" description="Make binary Jar file">
+	<target name="jarForSun" depends="clean,init,compile" description="Make binary Jar file">
 		<antcall target="unjarSUN" />
 		<!-- include scala class files -->
 		<antcall target="copyScalaStuff" />
@@ -443,7 +382,6 @@
 			<exclude name="**/*.java" unless="source" />
 			<exclude name="**/*.form" unless="source" />
 			<zipfileset src="${AppleJava}" excludes="META-INF/**" />
-			<zipfileset src="${JUnit}" excludes="META-INF/**" />
 			<!--
             <zipfileset src="${beanshell}" excludes="META-INF/**">
                 <selector if="SUN">

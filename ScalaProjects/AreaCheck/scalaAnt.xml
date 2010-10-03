@@ -1,9 +1,0 @@
-<project name="AreaCheck" default="build" basedir="../../ScalaProjects/">
-	
-	<target name="build">
-		<ant antfile="../ScalaProjects/scalaMainAnt.xml" target="build">
-			<property name="build.dir" value="../ScalaProjects/${ant.project.name}/bin" />
-			<property name="src.dir" value="../ScalaProjects/${ant.project.name}/src" />
-		</ant>
-	</target>
-</project>
