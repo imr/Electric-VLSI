@@ -271,7 +271,7 @@ public final class Launcher
                 String jarPath = path.substring("file:".length(), path.length() - "!/".length() - mavenDependenciesResourceName.length());
                 File jarDir = new File(jarPath).getParentFile();
                 File file = new File(jarDir, mavenRepository);
-                if (file.exists())
+                if (file.canRead())
                     repositories.add(file);
             }
         }

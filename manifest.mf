@@ -1,3 +1,4 @@
 Manifest-Version: 1.0
 X-COMMENT: Main-Class will be added automatically by build
-
+Class-Path: .m2/repository/org/beanshell/bsh/2.0b4/bsh-2.0b4.jar .m2/repository/org/python/jython/2.5.0/jython-2.5.0.jar .m2/repository/org/scala-lang/scala-library/2.8.0/scala-library-2.8.0.jar .m2/repository/javax/media/jmf/2.1.1e/jmf-2.1.1e.jar .m2/repository/org/prefuse/prefuse/beta-20060809/prefuse-beta-20060809.jar .m2/repository/org/apache/lucene/lucene-core/1.9.1/lucene-core-1.9.1.jar
+SplashScreen-Image: com/sun/electric/tool/user/ui/resources/SplashImage.gif
