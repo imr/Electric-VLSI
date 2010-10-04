@@ -274,7 +274,7 @@ public class TechEditWizardData
                 String str = p.nextToken();
 
                 // Remove white spaces
-                str = TextUtils.eatWhiteSpaces(str);
+                str = TextUtils.trimLeading(str);
 
                 int index = str.indexOf("=");
                 if (str.startsWith("G"))

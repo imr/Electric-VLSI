@@ -111,7 +111,7 @@ public class TextUtils {
      * @return original string without leading whitespaces.
      * TODO: why can't String.trim() be used?
      */
-    public static String eatWhiteSpaces(String str) {
+    public static String trimLeading(String str) {
         for (int i = 0; i < str.length(); i++) {
             // Found first non-whitespace character
             if (!Character.isWhitespace(str.charAt(i))) {
