@@ -374,6 +374,7 @@
 		<antcall target="unjarSUN" />
 		<!-- include scala class files -->
 		<antcall target="copyScalaStuff" />
+		<delete dir="META-INF" />
 		<copy file="../packaging/electric.mf" tofile="electric.mf" />
 		<jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
 			<exclude name="**/.nfs*" />
