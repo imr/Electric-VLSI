@@ -269,7 +269,7 @@
 
 	<!-- Not able to put if condition inside unjar -->
 	<target name="unjarSUN" if="SUN" unless="NOUNJAR" description="Extract Jar files used in Sun release">
-		<unjar dest="." src="${AppleJava}" excludes="META-INF/**" />
+		<unjar dest="." src="${AppleJava}" />
 		<unjar dest="." src="${beanshell}" />
 		<unjar dest="." src="${lucene}" />
 		<unjar dest="." src="${prefuse}" />
