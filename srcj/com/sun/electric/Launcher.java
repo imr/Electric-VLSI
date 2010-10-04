@@ -192,7 +192,7 @@ public final class Launcher
             return false;
         }
         return ((Boolean)callByReflection(ClassLoader.getSystemClassLoader(), "com.sun.electric.tool.Regression", "runScript",
-                new Class[]{ Process.class, String.class }, new Object[] { process, script})).booleanValue();
+                new Class[]{ Process.class, String.class }, null, new Object[] { process, script})).booleanValue();
     }
     
     public static Process invokePipeserver(List<String> javaOptions, List<String> electricOptions) throws IOException {
@@ -230,14 +230,20 @@ public final class Launcher
         pluginClassLoader = appLoader;
         if (loadDependencies) {
             URL[] pluginJars = readMavenDependencies();
-            if (pluginJars.length > 0)
-                pluginClassLoader = new EClassLoader(pluginJars, appLoader);
+            if (pluginJars.length > 0) {
+                for (URL url: pluginJars) {
+                    callByReflection(appLoader, "java.net.URLClassLoader", "addURL", new Class[] { URL.class },
+                            appLoader, new Object[] { url });
+                }
+//                pluginClassLoader = new EClassLoader(pluginJars, appLoader);
+            }
         }
 		if (enableAssertions) {
             appLoader.setDefaultAssertionStatus(true);
             pluginClassLoader.setDefaultAssertionStatus(true);
         }
-        callByReflection(pluginClassLoader, "com.sun.electric.Main", "main", new Class[] { String[].class }, new Object[] { args });
+        callByReflection(pluginClassLoader, "com.sun.electric.Main", "main", new Class[] { String[].class },
+                null, new Object[] { args });
     }
     
     private static URL[] readMavenDependencies() {
@@ -289,11 +295,12 @@ public final class Launcher
         return urls.toArray(new URL[urls.size()]);
     }
     
-    private static Object callByReflection(ClassLoader classLoader, String className, String methodName, Class[] argTypes, Object[] argValues) {
+    private static Object callByReflection(ClassLoader classLoader, String className, String methodName, Class[] argTypes, Object obj, Object[] argValues) {
         try {
             Class mainClass = classLoader.loadClass(className);
-            Method method = mainClass.getMethod(methodName, argTypes);
-            return method.invoke(null, argValues);
+            Method method = mainClass.getDeclaredMethod(methodName, argTypes);
+            method.setAccessible(true);
+            return method.invoke(obj, argValues);
         } catch (ClassNotFoundException e) {
             logger.log(Level.SEVERE, "Can't invoke Electric", e);
         } catch (NoSuchMethodException e) {
