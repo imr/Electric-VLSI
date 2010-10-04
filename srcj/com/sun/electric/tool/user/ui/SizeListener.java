@@ -90,7 +90,11 @@ public class SizeListener
 	{
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
+		Cell cell = wnd.getCell();
 		Highlighter highlighter = wnd.getHighlighter();
+
+		// disallow resizing if lock is on
+		if (CircuitChangeJobs.cantEdit(cell, null, true, false, false) != 0) return;
 
 		List<Geometric> geomList = highlighter.getHighlightedEObjs(true, true);
 		if (geomList == null) return;
@@ -101,6 +105,9 @@ public class SizeListener
 			{
 				NodeInst ni = (NodeInst)geom;
 				if (!ni.isCellInstance()) numPrims++;
+
+				// disallow resizing if lock is on
+				if (CircuitChangeJobs.cantEdit(cell, ni, true, false, false) != 0) return;
 			}
 		}
 		if (numPrims == 0 && numArcs == 0)
