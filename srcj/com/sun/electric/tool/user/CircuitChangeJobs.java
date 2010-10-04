@@ -338,8 +338,8 @@ public class CircuitChangeJobs
 			{
 				// determine change in angle because of node rotation
 				int origAngle = oldType.getTextAngle();
-				if (!wasSameMirror && ((origAngle%1800) == 0 || (origAngle%1800) == 1350))
-					origAngle += 1800;
+//				if (!wasSameMirror && ((origAngle%1800) == 0 || (origAngle%1800) == 1350))
+//					origAngle += 1800;
 				Point2D pt = new Point2D.Double(100, 0);
 				dTrans.transform(pt, pt);
 				int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);

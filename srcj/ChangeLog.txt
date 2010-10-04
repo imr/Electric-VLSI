@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+BUG: (10/4/10, SMR) Rotating mirrored nodes does not adjust text properly (Bug #2913).
+FIX: In CircuitChangeJobs.RotateSelected.rotateText() removed special case
+     that depends on the "wasSameMirror" parameter.
+
 BUG: (10/4/10, FS) TextUtils.eatWhiteSpaces v/s String.trim()
 FIX: rename TextUtils.eatWhiteSpaces to TextUtils.trimLeading
 
