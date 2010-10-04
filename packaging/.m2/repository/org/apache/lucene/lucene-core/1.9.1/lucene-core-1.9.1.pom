@@ -1,0 +1,49 @@
+<?xml version="1.0"?><project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.lucene</groupId>
+  <artifactId>lucene-core</artifactId>
+  <name>Lucene Java</name>
+  <version>1.9.1</version>
+  <description>Apache Lucene Java</description>
+  <url>http://lucene.apache.org</url>
+  <issueManagement>
+    <system>JIRA</system>
+    <url>http://issues.apache.org/jira/browse/LUCENE</url>
+  </issueManagement>
+  <ciManagement />
+  <inceptionYear>2004</inceptionYear>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments></comments>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/lucene/java/trunk</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/lucene/java/trunk</developerConnection>
+    <url>http://svn.apache.org/viewcvs.cgi/lucene/java/trunk</url>
+  </scm>
+  <organization>
+    <name>Apache Software Foundation</name>
+    <url>http://www.apache.org</url>
+  </organization>
+  <repositories>
+    <repository>
+      <releases />
+      <snapshots />
+      <id>apache.snapshots</id>
+      <name>Apache Maven Repository (Snapshots and Test Builds)</name>
+      <url>http://cvs.apache.org/maven-snapshot-repository</url>
+    </repository>
+  </repositories>
+  <distributionManagement>
+    <repository>
+      <id>apache-maven-releases</id>
+      <name>Apache Maven Repository (Releases)</name>
+      <url>scp://people.apache.org/www/www.apache.org/dist/maven-repository</url>
+    </repository>
+    <status>deployed</status>
+  </distributionManagement>
+</project>
