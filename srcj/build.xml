@@ -92,6 +92,33 @@
 		<exclude name="com/sun/electric/tool/user/MacOSXInterface.java" if="NOMAC" />
 	</patternset>
 
+	<!-- Patternset for all jar exclusions -->
+	<patternset id="exclusionFromJar">
+		<exclude name="**/.nfs*" />
+		<exclude name="apidoc/" />
+		<exclude name="build.xml" />
+		<exclude name="dotClasspath.txt" />
+		<exclude name="dotProject.txt" />
+		<exclude name="electric*.jar" />
+		<exclude name="electric.log" />
+		<exclude name="electric.mf" />
+		<exclude name="nbproject/" />
+		<exclude name="../packaging/" />
+		<exclude name=".settings" />
+		<exclude name="xml/" />
+		<patternset refid="exclusion" />
+		<exclude name="Makefile" unless="source" />
+		<exclude name="ChangeLog.txt" unless="source" />
+		<exclude name="OLDChangeLog.txt" unless="source" />
+		<exclude name="classes/" unless="source" />
+		<exclude name="**/*.java" unless="source" />
+		<exclude name="**/*.form" unless="source" />
+		<exclude name="**/package.html" unless="source" />
+		<exclude name="**/doc-files/" unless="source" />
+		<exclude name="com/sun/electric/technology/xml/draft.txt" unless="source" />
+		<exclude name="com/sun/electric/tool/routing/seaOfGates/README" unless="source" />
+	</patternset>
+
 	<!-- Use -DGNU=1 to build the GNU release -->
 	<!-- Use -DSFS=1 to build the SFS release -->
 	<!-- Use -DSUN=1 to build the Sun release -->
@@ -292,51 +319,34 @@
 		<java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
 			<arg value="-v" />
 		</java>
-		<antcall target="unjarSUN">
-		</antcall>
+		<antcall target="generalPurposeJarWithName">
+			<param name="jarname" value="electric-${version}" />
+                </antcall>
+
+		<!-- Don't move this property definition up -->
+		<property name="version" value="" />
+	</target>
+
+	<target name="generalPurposeJarWithName" depends="init,compile" description="Make Jar file with given name">
+		<antcall target="unjarSUN" />
+		<!-- include scala class files -->
+		<antcall target="copyScalaStuff" />
 		<delete dir="META-INF" />
 		<copy file="../packaging/electric.mf" tofile="electric.mf" />
-		<copy file="../packaging/LicenseGNU.txt" tofile="COPYING.txt" />
-		<copy file="../packaging/ReadmeGNUSrcDwn.txt" tofile="README.txt" />
-		<jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
-			<exclude name="**/.nfs*" />
-			<exclude name="apidoc/" />
-			<exclude name="build.xml" />
-			<exclude name="ChangeLog.txt" unless="source" />
-			<exclude name="classes/" unless="source" />
-			<exclude name="dotClasspath.txt" />
-			<exclude name="dotProject.txt" />
-			<exclude name="electric*.jar" />
-			<exclude name="electric.log" />
-			<exclude name="electric.mf" />
-			<exclude name="nbproject/" />
-			<exclude name="OLDChangeLog.txt" />
-			<exclude name=".settings/" />
-			<exclude name="../packaging/*.jar" />
-			<exclude name="../packaging/*.gif" />
-			<exclude name="../packaging/*.lsm" />
-			<exclude name="../packaging/MakePDF.book" />
-			<exclude name=".settings" />
-			<exclude name="xml/" />
-			<patternset refid="exclusion" />
-			<exclude name="**/*.java" unless="source" />
-			<exclude name="**/*.form" unless="source" />
-			<!-- out due to #2427
-            <zipfileset src="${beanshell}"/>
-            <zipfileset src="${lucene}"/>
-            <zipfileset src="${jython}"/>
-            <zipfileset src="${prefuse}"/>
-            -->
+		<antcall target="copyGNUTxt" />
+		<jar basedir="." compress="true" jarfile="${jarname}.jar" manifest="electric.mf">
+			<patternset refid="exclusionFromJar" />
 		</jar>
 		<delete file="electric.mf" />
 		<delete file="COPYING.txt" />
 		<delete file="README.txt" />
-		<antcall target="deleteExternalJars">
-		</antcall>
-		<antcall target="deleteElectric">
-		</antcall>
-		<!-- Don't move this property definition up -->
-		<property name="version" value="" />
+		<antcall target="deleteExternalJars" />
+		<antcall target="deleteElectric" />
+	</target>
+
+	<target name="copyGNUTxt" if="GNU">
+		<copy file="../packaging/LicenseGNU.txt" tofile="COPYING.txt" />
+		<copy file="../packaging/ReadmeGNUSrcDwn.txt" tofile="README.txt" />
 	</target>
 
 	<target name="jar" description="Make binary Jar file">
@@ -371,69 +381,9 @@
 	</target>
 
 	<target name="jarForSun" depends="clean,init,compile" description="Make binary Jar file">
-		<antcall target="unjarSUN" />
-		<!-- include scala class files -->
-		<antcall target="copyScalaStuff" />
-		<delete dir="META-INF" />
-		<copy file="../packaging/electric.mf" tofile="electric.mf" />
-		<jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
-			<exclude name="**/.nfs*" />
-			<exclude name="apidoc/" />
-			<exclude name="build.xml" />
-			<exclude name="ChangeLog.txt" unless="source" />
-			<exclude name="classes/" unless="source" />
-			<exclude name="dotClasspath.txt" />
-			<exclude name="dotProject.txt" />
-			<exclude name="electric*.jar" />
-			<exclude name="electric.log" />
-			<exclude name="electric.mf" />
-			<exclude name="nbproject/" />
-			<exclude name="OLDChangeLog.txt" />
-			<exclude name="../packaging/" />
-			<exclude name=".settings" />
-			<exclude name="xml/" />
-			<patternset refid="exclusion" />
-			<exclude name="**/*.java" unless="source" />
-			<exclude name="**/*.form" unless="source" />
-			<!--zipfileset src="${AppleJava}" excludes="META-INF/**" /-->
-			<!--
-            <zipfileset src="${beanshell}" excludes="META-INF/**">
-                <selector if="SUN">
-                    <filename name="**/*"/>
-                </selector>
-            </zipfileset>
-            <zipfileset src="${lucene}" excludes="META-INF/**">
-                <selector if="SUN">
-                    <filename name="**/*"/>
-                </selector>
-            </zipfileset>
-            <zipfileset src="${jython}" excludes="META-INF/**">
-                <selector if="SUN">
-                    <filename name="**/*"/>
-                </selector>
-            </zipfileset>
-
-            <zipfileset src="${prefuse}" excludes="META-INF/**">
-                <selector if="SUN">
-                    <filename name="**/*"/>
-                </selector>
-            </zipfileset>
-            -->
-		</jar>
-		<delete file="electric.mf" />
-		<antcall target="deleteExternalJars">
-		</antcall>
-		<antcall target="deleteElectric">
-		</antcall>
-		<delete quiet="true">
-			<!-- For JUnit? -->
-			<fileset dir=".">
-				<include name="to-do.txt" />
-				<include name="done.txt" />
-				<include name=".temp$junit.arx" />
-				<include name="stylesheet.css" />
-			</fileset>
-		</delete>
+		<antcall target="generalPurposeJarWithName">
+			<param name="jarname" value="electric" />
+                </antcall>
 	</target>
 
 	<target name="mac-app" description="Build Macintosh Application">
