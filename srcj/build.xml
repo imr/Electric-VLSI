@@ -113,6 +113,7 @@
 		<exclude name="classes/" unless="source" />
 		<exclude name="**/*.java" unless="source" />
 		<exclude name="**/*.form" unless="source" />
+		<exclude name="**/*.scala" unless="source" />
 		<exclude name="**/*.jj" unless="source" />
 		<exclude name="**/*.sqd" unless="source" />
 		<exclude name="**/*.cld" unless="source" />

@@ -37,6 +37,9 @@
 		<copy todir="${scala.classes}">
 			<fileset dir="${build.dir}" />
 		</copy>
+		<copy todir="${scala.classes}">
+			<fileset dir="${src.dir}" />
+		</copy>
 	</target>
 
 	<target name="cleanCopiedClasses">
