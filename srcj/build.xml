@@ -113,10 +113,15 @@
 		<exclude name="classes/" unless="source" />
 		<exclude name="**/*.java" unless="source" />
 		<exclude name="**/*.form" unless="source" />
+		<exclude name="**/*.jj" unless="source" />
+		<exclude name="**/*.sqd" unless="source" />
+		<exclude name="**/*.cld" unless="source" />
 		<exclude name="**/package.html" unless="source" />
 		<exclude name="**/doc-files/" unless="source" />
 		<exclude name="com/sun/electric/technology/xml/draft.txt" unless="source" />
 		<exclude name="com/sun/electric/tool/routing/seaOfGates/README" unless="source" />
+		<exclude name="com/sun/electric/plugins/generator/README" unless="source" />
+		<exclude name="com/sun/electric/plugins/oyster/toTranslate" unless="source" />
 	</patternset>
 
 	<!-- Use -DGNU=1 to build the GNU release -->
