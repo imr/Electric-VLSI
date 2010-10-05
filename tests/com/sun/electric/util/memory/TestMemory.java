@@ -81,7 +81,7 @@ public class TestMemory {
 
         Locale savedLocale = Locale.getDefault();
         try {
-            Locale.setDefault(Locale.ROOT);
+            Locale.setDefault(Locale.US);
             for (Object[] tmp : mems) {
                 String formattedString = Memory.formatMemorySize((Long) tmp[0]);
                 System.out.println(formattedString);
