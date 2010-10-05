@@ -200,13 +200,13 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			for(Cell cell : cells)
-			{
-				// Doesn't check cells in the same group
-				// check cell usage once more
-				if (cell.isInUse("delete", false, false))
-					return false;
-			}
+//			for(Cell cell : cells)
+//			{
+//				// Doesn't check cells in the same group
+//				// check cell usage once more
+//				if (cell.isInUse("delete", false, false))
+//					return false;
+//			}
 			// Now real delete
 			for(Cell cell : cells)
 			{
@@ -869,7 +869,7 @@ public class CellChangeJobs
 	/****************************** EXTRACT CELL INSTANCES ******************************/
 
 	/**
-	 * This class implement the command to delete unused old versions of cells.
+	 * This class implements the command to package circuitry into a new cell.
 	 */
 	public static class PackageCell extends Job
 	{
@@ -877,7 +877,7 @@ public class CellChangeJobs
 		Set<Geometric> whatToPackage;
 		String newCellName;
         private Set<NodeInst> expandedNodes = new HashSet<NodeInst>();
-        private IconParameters iconParameters = IconParameters.makeInstance(true);
+//        private IconParameters iconParameters = IconParameters.makeInstance(true);
 
         public PackageCell(Cell curCell, Set<Geometric> whatToPackage, String newCellName)
 		{

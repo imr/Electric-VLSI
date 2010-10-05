@@ -385,7 +385,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 		if (openLib && (obj instanceof Library))
 		{
 			Library lib = (Library)obj;
-            // Only expands library and its node. Doesn't contineu with rest of nodes in Explorer
+            // Only expands library and its node. Doesn't continue with rest of nodes in Explorer
 			if (lib == library)
             {
                 expandPath(path);
@@ -2475,8 +2475,24 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
         private void deleteGroupAction()
         {
+        	// get the CellGroup to delete
             Cell.CellGroup cellGroup = (Cell.CellGroup)getCurrentlySelectedObject(0);
-            new CellChangeJobs.DeleteCellGroup(cellGroup);
+
+            // make sure there are no dependencies that prevent deletion
+            for(Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); )
+			{
+				Cell cell = it.next();
+				if (cell.isInUse("delete", false, false)) return;
+			}
+
+            // one last confirmation with the user before deleting
+			String confirmMsg = "Are you sure you want to delete cell group " + cellGroup.getName() + "?";
+			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+				confirmMsg, "Confirm Cell Group Deletion", JOptionPane.YES_NO_OPTION);
+			if (response != JOptionPane.YES_OPTION) return;
+
+			// delete the group
+			new CellChangeJobs.DeleteCellGroup(cellGroup);
         }
 
         private void duplicateGroupAction()
@@ -2685,7 +2701,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				String confirmMsg = "Are you sure you want to delete cells";
 				for(Cell cell : cellsToDelete) confirmMsg += " " + cell.describe(false);
 				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-					confirmMsg + "?", "Delete Cells Dialog", JOptionPane.YES_NO_OPTION);
+					confirmMsg + "?", "Confirm Cell Deletion", JOptionPane.YES_NO_OPTION);
 				if (response != JOptionPane.YES_OPTION) return;
 				confirm = false;
 			}
