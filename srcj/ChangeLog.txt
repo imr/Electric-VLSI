@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+BUG: (10/5/10, SMR) Missing technologies in GNU/debug mode should not give errors (Bug #2916).
+FIX: Fixed in TechFactory.p().
+
 IMP: (10/5/10, DN) Cleaned maven and trunk builds.
 
 BUG: (10/5/10, SMR) No confirmation dialog when deleting a cell group (Bug #2915).

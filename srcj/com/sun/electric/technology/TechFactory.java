@@ -187,7 +187,7 @@ public abstract class TechFactory {
             techFactory = new FromParamClass(techName, techClass, params);
         } catch (Exception e) {
             if (Job.getDebug())
-                e.printStackTrace();
+                System.out.println("GNU Release can't find technology " + techName);
             return;
         }
         m.put(techName, techFactory);
@@ -257,7 +257,7 @@ public abstract class TechFactory {
     private static class FromParamClass extends TechFactory {
 //        private final Class<?> techClass;
         private final Method getPatchedXmlMethod;
-        Constructor techConstructor;
+        Constructor<?> techConstructor;
 
         private FromParamClass(String techName, Class<?> techClass, List<Param> techParams) throws Exception {
             super(techName, techParams);
