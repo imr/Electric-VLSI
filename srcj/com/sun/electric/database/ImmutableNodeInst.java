@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: ImmutableNodeInst.java
-h * Written by: Dmitry Nadezhin, Sun Microsystems.
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -24,10 +24,10 @@ h * Written by: Dmitry Nadezhin, Sun Microsystems.
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
+import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.NodeProtoId;
 import com.sun.electric.database.id.PortProtoId;
@@ -46,7 +46,6 @@ import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.Orientation;
 
 import java.awt.geom.Point2D;
-
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Arrays;
@@ -156,7 +155,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public final EPoint anchor;
     /** size of this ImmutableNodeInst. */
     public final EPoint size;
-    /** Tech specifiic bits for this ImmutableNodeInsts. */
+    /** Tech specific bits for this ImmutableNodeInsts. */
     public final byte techBits;
     /** Text descriptor of prototype name. */
     public final TextDescriptor protoDescriptor;
@@ -179,7 +178,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param anchor the anchor location of this ImmutableNodeInst.
      * @param size the size of this ImmutableNodeInst.
      * @param flags flag bits for thisImmutableNdoeIsnt.
-     * @param techBits tech speicfic bits of this ImmutableNodeInst.
+     * @param techBits tech specific bits of this ImmutableNodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
      * @param vars array of Variables of this ImmutableNodeInst
      * @param ports array of ImmutablePortInsts of this ImmutableNodeInst
@@ -212,7 +211,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param anchor the anchor location of this ImmutableNodeInst.
      * @param size the size of this ImmutableNodeInst.
      * @param flags flag bits for thisImmutableNdoeIsnt.
-     * @param techBits tech speicfic bits of this ImmutableNodeInst.
+     * @param techBits tech specific bits of this ImmutableNodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
      * @param vars array of Variables of this ImmutableNodeInst
      * @param params a map of parameter values of this ImmutableNodeInst
@@ -224,12 +223,12 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             Variable[] vars, ImmutablePortInst[] ports, Variable[] params) {
         if (protoId instanceof CellId && ((CellId) protoId).isIcon()) {
             return new ImmutableIconInst(nodeId, protoId, name, nameDescriptor,
-                    orient, anchor, size, flags, (byte) techBits, protoDescriptor,
+                    orient, anchor, size, flags, techBits, protoDescriptor,
                     vars, ports, params);
         } else {
             assert params == Variable.NULL_ARRAY;
             return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor,
-                    orient, anchor, size, flags, (byte) techBits, protoDescriptor,
+                    orient, anchor, size, flags, techBits, protoDescriptor,
                     vars, ports);
         }
     }
@@ -443,7 +442,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 
     /**
      * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by state bits.
-     * State bits are flags and tech-specifiic bits.
+     * State bits are flags and tech-specific bits.
      * @param d another ImmutableNodeInst where to take state bits.
      * @return ImmutableNodeInst which differs from this ImmutableNodeInst by state bit.
      */
@@ -688,7 +687,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     }
 
     /**
-     * Retruns true if this ImmutableNodeInst was named by user.
+     * Returns true if this ImmutableNodeInst was named by user.
      * @return true if this ImmutableNodeInst was named by user.
      */
     public boolean isUsernamed() {
@@ -882,7 +881,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     }
 
     /**
-     * Indicates whether fields of other ImmutableElectricObject are equal to fileds of this object.
+     * Indicates whether fields of other ImmutableElectricObject are equal to fields of this object.
      * Variables of objects are not compared.
      * @param o other ImmutableElectricObject.
      * @return true if fields of objects are equal.
@@ -1230,7 +1229,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     }
 
     /**
-     * Method to return the starting and ending angle of an arc described by this Immutab;eNodeInst.
+     * Method to return the starting and ending angle of an arc described by this ImmutableNodeInst.
      * These values can be found in the "ART_degrees" variable on the ImmutableNodeInst.
      * @return a 2-long double array with the starting offset in the first entry (a value in radians)
      * and the amount of curvature in the second entry (in radians).

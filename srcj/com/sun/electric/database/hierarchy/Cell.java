@@ -3127,7 +3127,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell> 
      * @return an array of Polys that describes the text.
      */
     public Poly[] getAllText(boolean hardToSelect, EditWindow0 wnd) {
-        return getDisplayableVariables(CENTERRECT, wnd, false);
+        return getDisplayableVariables(CENTERRECT, wnd, false, false);
     }
 
     /**

@@ -470,14 +470,14 @@ public class EditingPreferences extends PrefPackage {
         } else {
             newDefaultNodes.put(pnId, n.withSize(size));
         }
-        return (EditingPreferences) withField("defaultNodes", newDefaultNodes);
+        return withField("defaultNodes", newDefaultNodes);
     }
 
     public EditingPreferences withPlaceCellCenter(boolean placeCellCenter) {
         if (placeCellCenter == this.isPlaceCellCenter()) {
             return this;
         }
-        return withField("placeCellCenter", placeCellCenter);
+        return withField("placeCellCenter", Boolean.valueOf(placeCellCenter));
     }
 
     public EditingPreferences withDefaultNodesReset() {
@@ -508,7 +508,7 @@ public class EditingPreferences extends PrefPackage {
         } else {
             newDefaultArcs.put(apId, a.withFlags(flags));
         }
-        return (EditingPreferences) withField("defaultArcs", newDefaultArcs);
+        return withField("defaultArcs", newDefaultArcs);
     }
 
     public EditingPreferences withArcGridExtend(ArcProtoId apId, long gridExtend) {
@@ -527,7 +527,7 @@ public class EditingPreferences extends PrefPackage {
         } else {
             newDefaultArcs.put(apId, a.withGridExtendOverMin(gridExtend));
         }
-        return (EditingPreferences) withField("defaultArcs", newDefaultArcs);
+        return withField("defaultArcs", newDefaultArcs);
     }
 
     public EditingPreferences withArcAngleIncrement(ArcProtoId apId, int angleIncrement) {
@@ -545,7 +545,7 @@ public class EditingPreferences extends PrefPackage {
         } else {
             newDefaultArcAngleIncrements.put(apId, Integer.valueOf(angleIncrement));
         }
-        return (EditingPreferences) withField("defaultArcAngleIncrements", newDefaultArcAngleIncrements);
+        return withField("defaultArcAngleIncrements", newDefaultArcAngleIncrements);
     }
 
     public EditingPreferences withArcPin(ArcProtoId apId, PrimitiveNodeId arcPinId) {
@@ -563,7 +563,7 @@ public class EditingPreferences extends PrefPackage {
         } else {
             newDefaultArcPins.put(apId, arcPinId);
         }
-        return (EditingPreferences) withField("defaultArcPins", newDefaultArcPins);
+        return withField("defaultArcPins", newDefaultArcPins);
     }
 
     public EditingPreferences withArcsReset() {
@@ -574,21 +574,21 @@ public class EditingPreferences extends PrefPackage {
         if (defaultArcs.isEmpty()) {
             return this;
         }
-        return (EditingPreferences) withField("defaultArcs", new HashMap<ArcProtoId, ImmutableArcInst>());
+        return withField("defaultArcs", new HashMap<ArcProtoId, ImmutableArcInst>());
     }
 
     private EditingPreferences withDefaultAngleIncrementsReset() {
         if (defaultArcAngleIncrements.isEmpty()) {
             return this;
         }
-        return (EditingPreferences) withField("defaultArcAngleIncrements", new HashMap<ArcProtoId, Integer>());
+        return withField("defaultArcAngleIncrements", new HashMap<ArcProtoId, Integer>());
     }
 
     private EditingPreferences withDefaultArcPinsReset() {
         if (defaultArcPins.isEmpty()) {
             return this;
         }
-        return (EditingPreferences) withField("defaultArcPins", new HashMap<ArcProtoId, PrimitiveNodeId>());
+        return withField("defaultArcPins", new HashMap<ArcProtoId, PrimitiveNodeId>());
     }
 
     public ImmutableNodeInst getDefaultNode(PrimitiveNodeId pnId) {
@@ -690,14 +690,14 @@ public class EditingPreferences extends PrefPackage {
         if (Arrays.equals(alignments, this.alignments)) {
             return this;
         }
-        return (EditingPreferences) withField("alignments", alignments);
+        return withField("alignments", alignments);
     }
 
     private EditingPreferences withAlignmentIndex(int alignmentIndex) {
         if (alignmentIndex == this.alignmentIndex) {
             return this;
         }
-        return (EditingPreferences) withField("alignmentIndex", alignmentIndex);
+        return withField("alignmentIndex", new Integer(alignmentIndex));
     }
 
     public TextDescriptor getTextDescriptor(TextDescriptor.TextType textType, boolean display) {
@@ -712,7 +712,7 @@ public class EditingPreferences extends PrefPackage {
         TextDescriptor[] newTextDescriptors = textDescriptors.clone();
         newTextDescriptors[textType.ordinal() * 2 + 1] = td;
         newTextDescriptors[textType.ordinal() * 2 + 0] = td.withDisplay(false);
-        return (EditingPreferences) withField("textDescriptors", newTextDescriptors);
+        return withField("textDescriptors", newTextDescriptors);
     }
 
     public EditingPreferences withTextDescriptorsReset() {
@@ -757,7 +757,7 @@ public class EditingPreferences extends PrefPackage {
         if (fatWires == this.isFatWires()) {
             return this;
         }
-        return withField("fatWires", fatWires);
+        return withField("fatWires", Boolean.valueOf(fatWires));
     }
 
     public EditingPreferences withPlacementReset() {
@@ -772,133 +772,133 @@ public class EditingPreferences extends PrefPackage {
         if (iconGenLeadLength == this.getIconGenLeadLength()) {
             return this;
         }
-        return withField("iconGenLeadLength", iconGenLeadLength);
+        return withField("iconGenLeadLength", new Double(iconGenLeadLength));
     }
 
     public EditingPreferences withIconGenLeadSpacing(double iconGenLeadSpacing) {
         if (iconGenLeadSpacing == this.getIconGenLeadSpacing()) {
             return this;
         }
-        return withField("iconGenLeadSpacing", iconGenLeadSpacing);
+        return withField("iconGenLeadSpacing", new Double(iconGenLeadSpacing));
     }
 
     public EditingPreferences withIconGenDrawLeads(boolean iconGenDrawLeads) {
         if (iconGenDrawLeads == this.isIconGenDrawLeads()) {
             return this;
         }
-        return withField("iconGenDrawLeads", iconGenDrawLeads);
+        return withField("iconGenDrawLeads", Boolean.valueOf(iconGenDrawLeads));
     }
 
     public EditingPreferences withIconsAlwaysDrawn(boolean iconsAlwaysDrawn) {
         if (iconsAlwaysDrawn == this.isIconsAlwaysDrawn()) {
             return this;
         }
-        return withField("iconsAlwaysDrawn", iconsAlwaysDrawn);
+        return withField("iconsAlwaysDrawn", Boolean.valueOf(iconsAlwaysDrawn));
     }
 
     public EditingPreferences withIconGenDrawBody(boolean iconGenDrawBody) {
         if (iconGenDrawBody == this.isIconGenDrawBody()) {
             return this;
         }
-        return withField("iconGenDrawBody", iconGenDrawBody);
+        return withField("iconGenDrawBody", Boolean.valueOf(iconGenDrawBody));
     }
 
     public EditingPreferences withIconGenExportPlacement(int iconGenExportPlacement) {
         if (iconGenExportPlacement == this.getIconGenExportPlacement()) {
             return this;
         }
-        return withField("iconGenExportPlacement", iconGenExportPlacement);
+        return withField("iconGenExportPlacement", new Integer(iconGenExportPlacement));
     }
 
     public EditingPreferences withIconGenExportPlacementExact(boolean iconGenExportPlacementExact) {
         if (iconGenExportPlacementExact == this.isIconGenExportPlacementExact()) {
             return this;
         }
-        return withField("iconGenExportPlacementExact", iconGenExportPlacementExact);
+        return withField("iconGenExportPlacementExact", Boolean.valueOf(iconGenExportPlacementExact));
     }
 
     public EditingPreferences withIconGenReverseExportOrder(boolean iconGenReverseExportOrder) {
         if (iconGenReverseExportOrder == this.isIconGenReverseExportOrder()) {
             return this;
         }
-        return withField("iconGenReverseExportOrder", iconGenReverseExportOrder);
+        return withField("iconGenReverseExportOrder", Boolean.valueOf(iconGenReverseExportOrder));
     }
 
     public EditingPreferences withIconGenBodyTextSize(double iconGenBodyTextSize) {
         if (iconGenBodyTextSize == this.getIconGenBodyTextSize()) {
             return this;
         }
-        return withField("iconGenBodyTextSize", iconGenBodyTextSize);
+        return withField("iconGenBodyTextSize", new Double(iconGenBodyTextSize));
     }
 
     public EditingPreferences withIconGenExportLocation(int iconGenExportLocation) {
         if (iconGenExportLocation == this.getIconGenExportLocation()) {
             return this;
         }
-        return withField("iconGenExportLocation", iconGenExportLocation);
+        return withField("iconGenExportLocation", new Integer(iconGenExportLocation));
     }
 
     public EditingPreferences withIconGenExportStyle(int iconGenExportStyle) {
         if (iconGenExportStyle == this.getIconGenExportStyle()) {
             return this;
         }
-        return withField("iconGenExportStyle", iconGenExportStyle);
+        return withField("iconGenExportStyle", new Integer(iconGenExportStyle));
     }
 
     public EditingPreferences withIconGenExportTech(int iconGenExportTech) {
         if (iconGenExportTech == this.getIconGenExportTech()) {
             return this;
         }
-        return withField("iconGenExportTech", iconGenExportTech);
+        return withField("iconGenExportTech", new Integer(iconGenExportTech));
     }
 
     public EditingPreferences withIconGenInstanceLocation(int iconGenInstanceLocation) {
         if (iconGenInstanceLocation == this.getIconGenInstanceLocation()) {
             return this;
         }
-        return withField("iconGenInstanceLocation", iconGenInstanceLocation);
+        return withField("iconGenInstanceLocation", new Integer(iconGenInstanceLocation));
     }
 
     public EditingPreferences withIconGenInputRot(int iconGenInputRot) {
         if (iconGenInputRot == this.getIconGenInputRot()) {
             return this;
         }
-        return withField("iconGenInputRot", iconGenInputRot);
+        return withField("iconGenInputRot", new Integer(iconGenInputRot));
     }
 
     public EditingPreferences withIconGenOutputRot(int iconGenOutputRot) {
         if (iconGenOutputRot == this.getIconGenOutputRot()) {
             return this;
         }
-        return withField("iconGenOutputRot", iconGenOutputRot);
+        return withField("iconGenOutputRot", new Integer(iconGenOutputRot));
     }
 
     public EditingPreferences withIconGenBidirRot(int iconGenBidirRot) {
         if (iconGenBidirRot == this.getIconGenBidirRot()) {
             return this;
         }
-        return withField("iconGenBidirRot", iconGenBidirRot);
+        return withField("iconGenBidirRot", new Integer(iconGenBidirRot));
     }
 
     public EditingPreferences withIconGenPowerRot(int iconGenPowerRot) {
         if (iconGenPowerRot == this.getIconGenPowerRot()) {
             return this;
         }
-        return withField("iconGenPowerRot", iconGenPowerRot);
+        return withField("iconGenPowerRot", new Integer(iconGenPowerRot));
     }
 
     public EditingPreferences withIconGenGroundRot(int iconGenGroundRot) {
         if (iconGenGroundRot == this.getIconGenGroundRot()) {
             return this;
         }
-        return withField("iconGenGroundRot", iconGenGroundRot);
+        return withField("iconGenGroundRot", new Integer(iconGenGroundRot));
     }
 
     public EditingPreferences withIconGenClockRot(int iconGenClockRot) {
         if (iconGenClockRot == this.getIconGenClockRot()) {
             return this;
         }
-        return withField("iconGenClockRot", iconGenClockRot);
+        return withField("iconGenClockRot", new Integer(iconGenClockRot));
     }
 
     public EditingPreferences withIconGenReset() {

@@ -663,6 +663,9 @@ class VectorDrawing {
 				}
 				if (vt.height < maxTextSize)
 					continue;
+                if (vt.tempName && !PixelDrawing.gp.isShowTempNames()) {
+                    continue;
+                }
 
 				String drawString = vt.str;
 				int lX = vt.bounds.x;

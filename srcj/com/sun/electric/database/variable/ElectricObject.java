@@ -50,6 +50,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -225,58 +226,30 @@ public abstract class ElectricObject implements Serializable {
     }
 
     /**
-     * Method to return the number of displayable Variables on this ElectricObject.
-     * A displayable Variable is one that will be shown with its object.
-     * Displayable Variables can only sensibly exist on NodeInst and ArcInst objects.
-     * @return the number of displayable Variables on this ElectricObject.
-     */
-    public int numDisplayableVariables(boolean multipleStrings) {
-        //checkExamine();
-        int numVars = 0;
-        for (Iterator<Variable> it = getParametersAndVariables(); it.hasNext();) {
-            Variable var = it.next();
-            if (var.isDisplay()) {
-                int len = var.getLength();
-                if (len > 1 && var.getTextDescriptor().getDispPart() == TextDescriptor.DispPos.NAMEVALUE) {
-                    len++;
-                }
-                if (!multipleStrings) {
-                    len = 1;
-                }
-                numVars += len;
-            }
-        }
-        return numVars;
-    }
-
-    /**
      * Method to add all displayable Variables on this Electric object to an array of Poly objects.
      * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
-     * @param polys an array of Poly objects that will be filled with the displayable Variables.
-     * @param start the starting index in the array of Poly objects to fill with displayable Variables.
+     * @param polys a list of Poly objects that will be filled with the displayable Variables.
      * @param wnd window in which the Variables will be displayed.
      * @param multipleStrings true to break multiline text into multiple Polys.
-     * @return the number of Polys that were added.
+     * @param showTempNames show temporary names on nodes and arcs
      */
-    public int addDisplayableVariables(Rectangle2D rect, Poly[] polys, int start, EditWindow0 wnd, boolean multipleStrings) {
+    public void addDisplayableVariables(Rectangle2D rect, List<Poly> polys, EditWindow0 wnd, boolean multipleStrings, boolean showTempNames) {
         checkExamine();
-        int numAddedVariables = 0;
         double cX = rect.getCenterX();
         double cY = rect.getCenterY();
+        int startOfMyPolys = polys.size();
         for (Iterator<Variable> it = getParametersAndVariables(); it.hasNext();) {
             Variable var = it.next();
             if (!var.isDisplay()) {
                 continue;
             }
-            Poly[] polyList = getPolyList(var, cX, cY, wnd, multipleStrings);
-            for (int i = 0; i < polyList.length; i++) {
-                int index = start + numAddedVariables;
-                polys[index] = polyList[i];
-                polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
-                numAddedVariables++;
-            }
+            addPolyList(polys, var, cX, cY, wnd, multipleStrings);
         }
-        return numAddedVariables;
+        for (int i = startOfMyPolys; i < polys.size(); i++) {
+            Poly poly = polys.get(i);
+            poly.setStyle(Poly.rotateType(poly.getStyle(), this));
+           
+        }
     }
 
     /**
@@ -284,16 +257,13 @@ public abstract class ElectricObject implements Serializable {
      * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
      * @param wnd window in which the Variables will be displayed.
      * @param multipleStrings true to break multiline text into multiple Polys.
+     * @param showTempNames show temporary names on nodes and arcs.
      * @return an array of Poly objects with displayable variables.
      */
-    public Poly[] getDisplayableVariables(Rectangle2D rect, EditWindow0 wnd, boolean multipleStrings) {
-        int numVars = numDisplayableVariables(multipleStrings);
-        if (numVars == 0) {
-            return Poly.NULL_ARRAY;
-        }
-        Poly[] polys = new Poly[numVars];
-        addDisplayableVariables(rect, polys, 0, wnd, multipleStrings);
-        return polys;
+    public Poly[] getDisplayableVariables(Rectangle2D rect, EditWindow0 wnd, boolean multipleStrings, boolean showTempNames) {
+        List<Poly> polys = new ArrayList<Poly>();
+        addDisplayableVariables(rect, polys, wnd, multipleStrings, showTempNames);
+        return polys.toArray(Poly.NULL_ARRAY);
     }
 
     /**
@@ -311,23 +281,24 @@ public abstract class ElectricObject implements Serializable {
         checkExamine();
         Poly poly = null;
         if (varKey != null) {
+            LinkedList<Poly> polys = new LinkedList<Poly>();
             if (this instanceof Export) {
                 Export pp = (Export) this;
                 if (varKey == Export.EXPORT_NAME) {
                     poly = pp.getNamePoly();
                 } else {
                     Rectangle2D bounds = pp.getNamePoly().getBounds2D();
-                    Poly[] polys = pp.getPolyList(pp.getVar(varKey), bounds.getCenterX(), bounds.getCenterY(), wnd, false);
-                    if (polys.length > 0) {
-                        poly = polys[0];
+                    pp.addPolyList(polys, pp.getVar(varKey), bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+                    if (!polys.isEmpty()) {
+                        poly = polys.getFirst();
                     }
                 }
             } else if (this instanceof PortInst) {
                 PortInst pi = (PortInst) this;
                 Rectangle2D bounds = pi.getPoly().getBounds2D();
-                Poly[] polys = pi.getPolyList(pi.getVar(varKey), bounds.getCenterX(), bounds.getCenterY(), wnd, false);
-                if (polys.length > 0) {
-                    poly = polys[0];
+                pi.addPolyList(polys, pi.getVar(varKey), bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+                if (!polys.isEmpty()) {
+                    poly = polys.getFirst();
                     if (!Poly.NEWTEXTTREATMENT)
                     	poly.transform(pi.getNodeInst().rotateOut());
                 }
@@ -360,7 +331,6 @@ public abstract class ElectricObject implements Serializable {
                         x = uBounds.getCenterX();
                         y = uBounds.getCenterY();
                     }
-                    Poly[] polys;
 //					if (varKey == NodeInst.NODE_NAME || varKey == ArcInst.ARC_NAME)
 //					{
 	                    TextDescriptor td = geom.getTextDescriptor(varKey);
@@ -379,22 +349,22 @@ public abstract class ElectricObject implements Serializable {
                     		theText = var.describe(0, context, this);
                     		varLength = var.getLength();
                     	}
-	                    polys = ((ElectricObject)geom).getPolyListInternal(var, x, y, wnd, false, varLength, offX, offY,
+	                    addPolyListInternal(polys, var, x, y, wnd, false, varLength, offX, offY,
 	                    	style, td, varKey, theText);
-						if (Poly.NEWTEXTTREATMENT && polys.length > 0 && varLength == 1)
+						if (Poly.NEWTEXTTREATMENT && !polys.isEmpty() && varLength == 1)
 						{
 						    if (geom instanceof NodeInst)
 						    {
 						        NodeInst ni = (NodeInst) geom;
-						        polys[0].transform(ni.rotateOut());
+						        polys.get(0).transform(ni.rotateOut());
 						    }
 						}
 //					} else
 //					{
 //						polys = geom.getPolyList(geom.getParameterOrVariable(varKey), x, y, wnd, false);
 //					}
-                    if (polys.length > 0) {
-                        poly = polys[0];
+                    if (!polys.isEmpty()) {
+                        poly = polys.get(0);
                         if (!Poly.NEWTEXTTREATMENT && geom instanceof NodeInst) {
                             NodeInst ni = (NodeInst) geom;
                             poly.transform(ni.rotateOut());
@@ -403,9 +373,9 @@ public abstract class ElectricObject implements Serializable {
                 }
             } else if (this instanceof Cell) {
                 Cell cell = (Cell) this;
-                Poly[] polys = cell.getPolyList(cell.getParameterOrVariable(varKey), 0, 0, wnd, false);
-                if (polys.length > 0) {
-                    poly = polys[0];
+                cell.addPolyList(polys, cell.getParameterOrVariable(varKey), 0, 0, wnd, false);
+                if (!polys.isEmpty()) {
+                    poly = polys.getFirst();
                 }
             }
         }
@@ -485,18 +455,16 @@ public abstract class ElectricObject implements Serializable {
     }
 
     /**
-     * Method to create an array of Poly objects that describes a displayable Variable on this Electric object.
+     * Method to add to a list Poly objects that describes a displayable Variable on this Electric object.
+     * @param polys a list of polys to add
      * @param var the Variable on this ElectricObject to describe.
      * @param cX the center X coordinate of the ElectricObject.
      * @param cY the center Y coordinate of the ElectricObject.
      * @param wnd window in which the Variable will be displayed.
      * @param multipleStrings true to break multiline text into multiple Polys.
-     * @return an array of Poly objects that describe the Variable. May return zero length array.
      */
-    public Poly[] getPolyList(Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings)
+    protected void addPolyList(List<Poly> polys, Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings)
     {
-		if (var == null) return new Poly[0];
-
         double offX = var.getXOff();
         double offY = var.getYOff();
         int varLength = var.getLength();
@@ -506,12 +474,12 @@ public abstract class ElectricObject implements Serializable {
         VarContext context = null;
         if (wnd != null) context = wnd.getVarContext();
         String firstLine = var.describe(0, context, this);
-        Poly[] polys = getPolyListInternal(var, cX, cY, wnd, multipleStrings, varLength, offX, offY, style, td, var.getKey(), firstLine);
-        return polys;
+        addPolyListInternal(polys, var, cX, cY, wnd, multipleStrings, varLength, offX, offY, style, td, var.getKey(), firstLine);
     }
 
     /**
-     * Method to create an array of Poly objects that describes text on this Electric object.
+     * Method to add to a list Poly objects that describes text on this Electric object.
+     * @param polys a list to add
      * @param var the Variable on this ElectricObject to describe (may be null for node/arc names).
      * @param cX the center X coordinate of the ElectricObject.
      * @param cY the center Y coordinate of the ElectricObject.
@@ -524,9 +492,8 @@ public abstract class ElectricObject implements Serializable {
      * @param td the TextDescriptor of the text.
      * @param varKey the Key of the text.
      * @param firstLine the first line of text (all of it, unless a multi-line Variable).
-     * @return an array of Poly objects that describe the Variable. May return zero length array.
      */
-    private Poly[] getPolyListInternal(Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings,
+    private void addPolyListInternal(List<Poly> polys, Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings,
     	int varLength, double offX, double offY, Poly.Type style, TextDescriptor td, Variable.Key varKey, String firstLine)
     {
         double lineOffX = 0, lineOffY = 0;
@@ -623,7 +590,6 @@ public abstract class ElectricObject implements Serializable {
 
         VarContext context = null;
         if (wnd != null) context = wnd.getVarContext();
-        Poly[] polys = new Poly[varLength];
         for (int i = 0; i < varLength; i++)
         {
             String message = null;
@@ -659,16 +625,16 @@ public abstract class ElectricObject implements Serializable {
                 		trans.transform(pointList[0], pointList[0]);
                 }
             }
-            polys[i] = new Poly(pointList);
-            polys[i].setString(message);
-            polys[i].setStyle(style);
-            polys[i].setTextDescriptor(entryTD);
-            polys[i].setDisplayedText(new DisplayedText(this, varKey));
-            polys[i].setLayer(null);
+            Poly poly = new Poly(pointList);
+            poly.setString(message);
+            poly.setStyle(style);
+            poly.setTextDescriptor(entryTD);
+            poly.setDisplayedText(new DisplayedText(this, varKey));
+            poly.setLayer(null);
+            polys.add(poly);
             cX -= lineOffX;
             cY -= lineOffY;
         }
-        return polys;
     }
 
     /**

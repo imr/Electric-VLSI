@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+BUG: (10/7/10, DN) Display didn't refresh after changing Text Preference from Bug #2790.
+FIX: Implement new TextPreference in GraphicsPreferences instead of EditingPreferences.
+
+IMP/MAN: (10/6/10, SMR) New Text Preference to show temporary names on nodes (Bug #2790).
+
 BUG: (10/5/10, SMR) Missing technologies in GNU/debug mode should not give errors (Bug #2916).
 FIX: Fixed in TechFactory.p().
 

@@ -80,6 +80,10 @@ public class GraphicsPreferences extends PrefPackage {
     @StringPref(node = USER_NODE, key = "DefaultFont", factory = FACTORY_DEFAULT_FONT)
     public String defaultFont;
     public static final String FACTORY_DEFAULT_FONT = "SansSerif";
+    
+    /** Whether to show temporary names on nodes and arcs. The default is false. */
+    @BooleanPref(node = USER_NODE, key = "ShowTempNames", factory = false)
+    public boolean showTempNames;
 
     private transient final TechPool techPool;
     private final Color[] defaultColors;
@@ -496,6 +500,11 @@ public class GraphicsPreferences extends PrefPackage {
         return (GraphicsPreferences)withField("defaultFont", defaultFont);
     }
 
+    public GraphicsPreferences withShowTempNames(boolean showTempNames) {
+        if (showTempNames == this.isShowTempNames()) return this;
+        return (GraphicsPreferences)withField("showTempNames", Boolean.valueOf(showTempNames));
+    }
+
 	/**
 	 * Returns the number of transparent layers in specified technology.
 	 * Informs the display system of the number of overlapping or transparent layers
@@ -543,6 +552,16 @@ public class GraphicsPreferences extends PrefPackage {
 	 * @return true if the system should text of specified type.
 	 */
     public boolean isTextVisibilityOn(TextDescriptor.TextType t) { return textVisibility[t.ordinal()]; }
+    
+    /**
+     * Whether to show temporary names on nodes and arcs.
+     * true to show temporary names.
+     * The default is false.
+     * @return true to show temporary names on nodes and arcs.
+     */
+    public boolean isShowTempNames() {
+        return showTempNames;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -555,7 +574,8 @@ public class GraphicsPreferences extends PrefPackage {
                     Arrays.equals(this.textVisibility, that.textVisibility) &&
                     this.portDisplayLevel == that.portDisplayLevel &&
                     this.exportDisplayLevel == that.exportDisplayLevel &&
-                    this.defaultFont.equals(that.defaultFont);
+                    this.defaultFont.equals(that.defaultFont) &&
+                    this.isShowTempNames() == that.isShowTempNames();
         }
         return false;
     }

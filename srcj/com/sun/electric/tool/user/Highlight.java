@@ -1460,7 +1460,8 @@ class HighlightEOBJ extends Highlight
         if (eobj instanceof Geometric)
         {
         	boolean specialSelect = ToolBar.isSelectSpecial();
-            List<Highlight> gotAll = Highlighter.checkOutObject((Geometric)eobj, true, false, specialSelect, searchArea, wnd, directHitDist, false);
+            List<Highlight> gotAll = Highlighter.checkOutObject((Geometric)eobj, true, false, specialSelect,
+                    searchArea, wnd, directHitDist, false, wnd.getGraphicsPreferences().isShowTempNames());
             if (gotAll.size() == 0) return false;
             boolean found = false;
             for(Highlight got : gotAll)

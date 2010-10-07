@@ -109,9 +109,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public static final Variable.Key NODE_PROTO = Variable.newKey("NODE_proto");
     /** key of obsolete Variable holding instance name. */
     public static final Variable.Key NODE_NAME = Variable.newKey("NODE_name");
-    /** key of Varible holding outline information. */
+    /** key of Variable holding outline information. */
     public static final Variable.Key TRACE = Variable.newKey("trace");
-    /** key of Varible holding serpentine transistor length. */
+    /** key of Variable holding serpentine transistor length. */
     public static final Variable.Key TRANSISTOR_LENGTH_KEY = Variable.newKey("transistor_width");
     private static final PortInst[] NULL_PORT_INST_ARRAY = new PortInst[0];
 //	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
@@ -381,7 +381,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param width the width of this NodeInst (can't be negative).
      * @param height the height of this NodeInst (can't be negative).
      * @param parent the Cell in which this NodeInst will reside.
-     * @param orient the oriantation of this NodeInst.
+     * @param orient the orientation of this NodeInst.
      * @param name name of new NodeInst
      * @return the newly created NodeInst, or null on error.
      */
@@ -397,7 +397,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param width the width of this NodeInst (can't be negative).
      * @param height the height of this NodeInst (can't be negative).
      * @param parent the Cell in which this NodeInst will reside.
-     * @param orient the oriantation of this NodeInst.
+     * @param orient the orientation of this NodeInst.
      * @param name name of new NodeInst
      * @param techBits bits associated to different technologies
      * @return the newly created NodeInst, or null on error.
@@ -901,7 +901,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                             dY = newPoint[1 - otherEnd].getY() - newPoint[otherEnd].getY();
                             newPoint[otherEnd] = new Point2D.Double(newPoint[otherEnd].getX(), newPoint[1 - otherEnd].getY());
                         } else {
-                            // vertical arc: move the other node horizontaly
+                            // vertical arc: move the other node horizontally
                             dX = newPoint[1 - otherEnd].getX() - newPoint[otherEnd].getX();
                             newPoint[otherEnd] = new Point2D.Double(newPoint[1 - otherEnd].getX(), newPoint[otherEnd].getY());
                         }
@@ -1011,7 +1011,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     /**
-     * Modifies persistend data of this NodeInst.
+     * Modifies persistent data of this NodeInst.
      * @param newD new persistent data.
      * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
@@ -1047,7 +1047,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /**
      * Method to add a Variable on this NodeInst.
      * It may add repaired copy of this Variable in some cases.
-     * This methood is overriden in IconNodeInst
+     * This method is overridden in IconNodeInst
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
@@ -1179,7 +1179,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
     /**
      * Routing to check whether changing of this cell allowed or not.
-     * By default checks whole database change. Overriden in subclasses.
+     * By default checks whole database change. Overridden in subclasses.
      */
     @Override
     public void checkChanging() {
@@ -1744,91 +1744,63 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     /**
-     * Method to return the number of displayable Variables on this NodeInst and all of its PortInsts.
-     * A displayable Variable is one that will be shown with its object.
-     * Displayable Variables can only sensibly exist on NodeInst, ArcInst, and PortInst objects.
-     * @return the number of displayable Variables on this NodeInst and all of its PortInsts.
-     */
-    public int numDisplayableVariables(boolean multipleStrings) {
-        int numVarsOnNode = super.numDisplayableVariables(multipleStrings);
-        if (isUsernamed()) {
-            TextDescriptor td = d.nameDescriptor;
-            if (td.getDisplay() == TextDescriptor.Display.SHOWN)
-            	numVarsOnNode++;
-        }
-
-        for (Iterator<PortInst> it = getPortInsts(); it.hasNext();) {
-            PortInst pi = it.next();
-            numVarsOnNode += pi.numDisplayableVariables(multipleStrings);
-        }
-        return numVarsOnNode;
-    }
-
-    /**
      * Method to add all displayable Variables on this NodeInst and its PortInsts to an array of Poly objects.
      * @param rect a rectangle describing the bounds of the NodeInst on which the Variables will be displayed.
-     * @param polys an array of Poly objects that will be filled with the displayable Variables.
-     * @param start the starting index in the array of Poly objects to fill with displayable Variables.
+     * @param polys a list of Poly objects that will be filled with the displayable Variables.
      * @param wnd window in which the Variables will be displayed.
      * @param multipleStrings true to break multiline text into multiple Polys.
-     * @return the number of Polys that were added.
+     * @param showTempNames show temporary names on nodes and arcs
      */
-    public int addDisplayableVariables(Rectangle2D rect, Poly[] polys, int start, EditWindow0 wnd, boolean multipleStrings) {
-        int numAddedVariables = 0;
-        if (isUsernamed())
+    @Override
+    public void addDisplayableVariables(Rectangle2D rect, List<Poly> polys, EditWindow0 wnd, boolean multipleStrings, boolean showTempNames) {
+        assert isLinked();
+        if ((isUsernamed() || showTempNames) && d.nameDescriptor.isDisplay())
         {
+            double cX = rect.getCenterX();
+            double cY = rect.getCenterY();
             TextDescriptor td = d.nameDescriptor;
-            if (td.getDisplay() == TextDescriptor.Display.SHOWN)
-            {
-                double cX = rect.getCenterX();
-                double cY = rect.getCenterY();
-	            double offX = td.getXOff();
-	            double offY = td.getYOff();
-	            TextDescriptor.Position pos = td.getPos();
-	            Poly.Type style = pos.getPolyType();
+            double offX = td.getXOff();
+            double offY = td.getYOff();
+            TextDescriptor.Position pos = td.getPos();
+            Poly.Type style = pos.getPolyType();
 
-	            if (offX != 0 || offY != 0) {
-	                td = td.withOff(0, 0);
-	                style = Poly.rotateType(style, this);
-	            }
-
-	            Point2D[] pointList = null;
-	            if (style == Poly.Type.TEXTBOX) {
-	                pointList = Poly.makePoints(rect);
-	            } else {
-	                pointList = new Point2D.Double[1];
-	                pointList[0] = new Point2D.Double(cX + offX, cY + offY);
-	            }
-	            polys[start] = new Poly(pointList);
-	            polys[start].setStyle(style);
-	            polys[start].setString(getNameKey().toString());
-	            polys[start].setTextDescriptor(td);
-	            polys[start].setLayer(null);
-	            polys[start].setDisplayedText(new DisplayedText(this, NODE_NAME));
-	            numAddedVariables = 1;
+            if (offX != 0 || offY != 0) {
+                td = td.withOff(0, 0);
+                style = Poly.rotateType(style, this);
             }
+
+            Point2D[] pointList = null;
+            if (style == Poly.Type.TEXTBOX) {
+                pointList = Poly.makePoints(rect);
+            } else {
+                pointList = new Point2D.Double[1];
+                pointList[0] = new Point2D.Double(cX + offX, cY + offY);
+            }
+            Poly poly = new Poly(pointList);
+            poly.setStyle(style);
+            poly.setString(getNameKey().toString());
+            poly.setTextDescriptor(td);
+            poly.setLayer(null);
+            poly.setDisplayedText(new DisplayedText(this, NODE_NAME));
+            polys.add(poly);
         }
-        numAddedVariables += super.addDisplayableVariables(rect, polys, start + numAddedVariables, wnd, multipleStrings);
+        super.addDisplayableVariables(rect, polys, wnd, multipleStrings, showTempNames);
 
         for (Iterator<PortInst> it = getPortInsts(); it.hasNext();) {
             PortInst pi = it.next();
-            int justAdded = pi.addDisplayableVariables(rect, polys, start + numAddedVariables, wnd, multipleStrings);
-            for (int i = 0; i < justAdded; i++) {
-                polys[start + numAddedVariables + i].setPort(pi.getPortProto());
-            }
-            numAddedVariables += justAdded;
+            pi.addDisplayableVariables(rect, polys, wnd, multipleStrings, showTempNames);
         }
-        return numAddedVariables;
     }
 
     /**
      * Method to get all displayable Variables on this NodeInst and its PortInsts to an array of Poly objects.
      * This Poly were not transformed by Node transform.
      * @param wnd window in which the Variables will be displayed.
+     * @param showTempNames show temporary names on nodes and arcs.
      * @return an array of Poly objects with displayable variables.
      */
-    public Poly[] getDisplayableVariables(EditWindow0 wnd) {
-        return getDisplayableVariables(getUntransformedBounds(), wnd, true);
+    public Poly[] getDisplayableVariables(EditWindow0 wnd, boolean showTempNames) {
+        return getDisplayableVariables(getUntransformedBounds(), wnd, true, showTempNames);
     }
 
     /**
@@ -2363,7 +2335,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     /**
-     * Update PortInsts of this NodeInst accoding to pattern.
+     * Update PortInsts of this NodeInst according to pattern.
      * Pattern contains an element for each PortProto.
      * If PortProto was just created, the element contains -1.
      * For old PortProtos the element contains old index of the PortProto.
@@ -2384,7 +2356,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     /**
-     * Updaten PortInsts of this NodeInst according to PortProtos in prototype.
+     * Updates PortInsts of this NodeInst according to PortProtos in prototype.
      */
     public void updatePortInsts(boolean full) {
         PortInst[] newPortInsts = new PortInst[protoType.getNumPorts()];
@@ -2635,10 +2607,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
     /****************************** CONNECTIONS ******************************/
     /**
-     * Method to determine whether the display of this pin NodeInst should be supressed.
+     * Method to determine whether the display of this pin NodeInst should be suppressed.
      * In Schematics technologies, pins are not displayed if there are 1 or 2 connections,
      * but are shown for 0 or 3 or more connections (called "Steiner points").
-     * @return true if this pin NodeInst should be supressed.
+     * @return true if this pin NodeInst should be suppressed.
      */
     public boolean pinUseCount() {
         return topology != null && topology.cell.getMemoization().pinUseCount(getD());
@@ -2847,7 +2819,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     /**
-     * Retruns true if this NodeInst was named by user.
+     * Returns true if this NodeInst was named by user.
      * @return true if this NodeInst was named by user.
      */
     public boolean isUsernamed() {
@@ -3011,11 +2983,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         if (hasExports()) {
             return true;
         }
-//		if (getNumExports() != 0) return true;
-        if (numDisplayableVariables(false) != 0) {
-            return true;
-        }
-        return false;
+        return getDisplayableVariables(null, false).length != 0;
     }
 
     /**
@@ -3236,7 +3204,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
     /**
      * Method to see if this NodeInst is a Primitive Transistor.
-     * Use getFunction() to determine what specific transitor type it is, if any.
+     * Use getFunction() to determine what specific transistor type it is, if any.
      * @return true if NodeInst represents Primitive Transistor
      */
     public boolean isPrimitiveTransistor() {
@@ -3275,9 +3243,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
 //	/**
-//	 * Method to tell whether this NodeInst is a field-effect transtor.
+//	 * Method to tell whether this NodeInst is a field-effect transistor.
 //	 * This includes the nMOS, PMOS, and DMOS transistors, as well as the DMES and EMES transistors.
-//	 * @return true if this NodeInst is a field-effect transtor.
+//	 * @return true if this NodeInst is a field-effect transistor.
 //	 */
 //	public boolean isFET()
 //	{
@@ -3287,7 +3255,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //	/**
 //	 * Method to tell whether this NodeInst is a bipolar transistor.
 //	 * This includes NPN and PNP transistors.
-//	 * @return true if this NodeInst is a bipolar transtor.
+//	 * @return true if this NodeInst is a bipolar transistor.
 //	 */
 //	public boolean isBipolar()
 //	{
@@ -3313,7 +3281,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
     /**
-     * Method to return the size of this PrimitiveNode-dependend NodeInst
+     * Method to return the size of this PrimitiveNode-dependent NodeInst
      * like transistors and resistors.
      * @param context the VarContext in which any evaluations take place,
      * pass in VarContext.globalContext if no context needed.
@@ -3857,7 +3825,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
 
         // Compare variables?
-        // Has to be another way more eficient
+        // Has to be another way more efficient
         // Remove noCheckList if equals is implemented
         // Sort them out by a key so comparison won't be O(n2)
         List<Object> noCheckAgain = new ArrayList<Object>();
@@ -3903,7 +3871,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     break;
                 }
             }
-            // No correspoding PortInst found
+            // No corresponding PortInst found
             if (!found) {
                 // Error messages added in port.compare()
 //                if (buffer != null)
@@ -3931,7 +3899,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     break;
                 }
             }
-            // No correspoding Export found
+            // No corresponding Export found
             if (!found) {
                 if (buffer != null) {
                     buffer.append("No corresponding export '" + export.getName() + "' found in '" + no.getName() + "'\n");
@@ -3974,7 +3942,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     break;
                 }
             }
-            // No correspoding Variable found
+            // No corresponding Variable found
             if (!found) {
                 if (buffer != null) {
                     buffer.append("No corresponding variable '" + var + "' found in '" + no.getName() + "'\n");

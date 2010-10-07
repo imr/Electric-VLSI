@@ -53,6 +53,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.GenMath;
 import com.sun.electric.util.math.Orientation;
@@ -200,11 +201,13 @@ public class EDIF extends Topology
 		boolean edifUseSchematicView = IOTool.isFactoryEDIFUseSchematicView();
 		boolean edifCadenceCompatibility = IOTool.isFactoryEDIFCadenceCompatibility();
 		String configurationFile = IOTool.getEDIFConfigurationFile();
+        GraphicsPreferences gp;
 
         public EDIFPreferences(boolean factory) {
             super(factory);
             edifUseSchematicView = factory ? IOTool.isFactoryEDIFUseSchematicView() : IOTool.isEDIFUseSchematicView();
             edifCadenceCompatibility = factory ? IOTool.isFactoryEDIFCadenceCompatibility() : IOTool.isEDIFCadenceCompatibility();
+            gp = new GraphicsPreferences(factory);
         }
 
         public Output doOutput(Cell cell, VarContext context, String filePath)
@@ -766,7 +769,7 @@ public class EDIF extends Topology
 			{
 				// do all display variables first
                 NodeInst ni = no;
-                Poly[] varPolys = ni.getDisplayableVariables(ni.getBounds(), null, false);
+                Poly[] varPolys = ni.getDisplayableVariables(ni.getBounds(), null, false, localPrefs.gp.isShowTempNames());
                 writeDisplayableVariables(varPolys, ni.rotateOut());
 			}
 			blockClose("instance");
@@ -1685,7 +1688,7 @@ public class EDIF extends Topology
 			AffineTransform subrot = ni.translateOut(prevtrans);
 
 			// see if there are displayable variables on the cell
-			Poly[] varPolys = ni.getDisplayableVariables(ni.getBounds(), null, false);
+			Poly[] varPolys = ni.getDisplayableVariables(ni.getBounds(), null, false, localPrefs.gp.isShowTempNames());
 			if (varPolys.length != 0)
 				setGraphic(EGUNKNOWN);
             writeDisplayableVariables(varPolys, prevtrans);
@@ -1724,11 +1727,9 @@ public class EDIF extends Topology
 		writeSymbolPoly(poly, null, 1);
 
 		// now get the variables
-		int num = ai.numDisplayableVariables(false);
-		if (num != 0)
-			setGraphic(EGUNKNOWN);
-		Poly [] varPolys = new Poly[num];
-		ai.addDisplayableVariables(ai.getBounds(), varPolys, 0, null, false);
+		Poly [] varPolys = ai.getDisplayableVariables(ai.getBounds(), null, quiet, localPrefs.gp.isShowTempNames());
+        if (varPolys.length == 0)
+            setGraphic(EGUNKNOWN);
         writeDisplayableVariables(varPolys, trans);
 	}
 

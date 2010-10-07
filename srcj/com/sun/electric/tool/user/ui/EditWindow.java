@@ -1465,6 +1465,10 @@ public class EditWindow extends JPanel
     public LayerVisibility getLayerVisibility() {
         return lv;
     }
+    
+    public GraphicsPreferences getGraphicsPreferences() {
+        return UserInterfaceMain.getGraphicsPreferences();
+    }
 
     public void setLayerVisibility(LayerVisibility lv) {
         this.lv = lv;

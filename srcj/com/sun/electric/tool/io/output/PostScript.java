@@ -117,6 +117,7 @@ public class PostScript extends Output
         Set<Layer> invisibleLayers = new HashSet<Layer>();
         boolean isGrid = false;
         double gridXSpacing, gridYSpacing;
+        boolean showTempNames;
 
 		PostScriptPreferences(boolean factory, List<PolyBase> override)
 		{
@@ -776,7 +777,7 @@ public class PostScript extends Output
 			// draw any displayable variables on the node
 			if (/* topLevel && */ real && localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.NODE))
 			{
-				Poly [] textPolys = ni.getDisplayableVariables(localPrefs.wnd);
+				Poly [] textPolys = ni.getDisplayableVariables(localPrefs.wnd, localPrefs.gp.isShowTempNames());
 				for (int i=0; i<textPolys.length; i++)
 				{
 					textPolys[i].transform(subRot);
@@ -817,7 +818,7 @@ public class PostScript extends Output
 
 						// draw variables on the export
 						Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
-						Poly[] polys = e.getDisplayableVariables(rect, localPrefs.wnd, true);
+						Poly[] polys = e.getDisplayableVariables(rect, localPrefs.wnd, true, localPrefs.gp.isShowTempNames());
 						for (int i=0; i<polys.length; i++)
 						{
 							psPoly(polys[i]);
@@ -849,7 +850,7 @@ public class PostScript extends Output
 				// draw any displayable variables on the arc
 				if (topLevel && localPrefs.gp.isTextVisibilityOn(TextDescriptor.TextType.ARC))
 				{
-					Poly[] textPolys = ai.getDisplayableVariables(localPrefs.wnd);
+					Poly[] textPolys = ai.getDisplayableVariables(localPrefs.wnd, localPrefs.gp.isShowTempNames());
 					for (int i=0; i<textPolys.length; i++)
 					{
 						textPolys[i].transform(trans);
@@ -870,7 +871,7 @@ public class PostScript extends Output
 		{
 			// show displayable variables on the instance
 			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, localPrefs.wnd, true);
+			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, localPrefs.wnd, true, localPrefs.gp.isShowTempNames());
 			for (int i=0; i<polys.length; i++)
 				psPoly(polys[i]);
 		}

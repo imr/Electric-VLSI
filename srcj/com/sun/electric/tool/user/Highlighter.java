@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.Poly;
@@ -1459,6 +1460,7 @@ public class Highlighter implements DatabaseChangeListener {
             }
 
     		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
+            boolean showTempNames = wnd.getGraphicsPreferences().isShowTempNames();
             if (exclusively)
             {
                 // special case: only review what is already highlighted
@@ -1469,7 +1471,8 @@ public class Highlighter implements DatabaseChangeListener {
                     if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
                     if (eobj instanceof NodeInst)
                     {
-                        List<Highlight> found = checkOutObject((Geometric)eobj, findPort, findPoint, findSpecial, bounds, wnd, Double.MAX_VALUE, areaMustEnclose);
+                        List<Highlight> found = checkOutObject((Geometric)eobj, findPort, findPoint, findSpecial,
+                                bounds, wnd, Double.MAX_VALUE, areaMustEnclose, showTempNames);
                         for(Highlight h2 : found) list.add(h2);
                     }
                 }
@@ -1493,19 +1496,22 @@ public class Highlighter implements DatabaseChangeListener {
                         case 0:			// check primitive nodes
                             if (!(geom instanceof NodeInst)) break;
                             if (((NodeInst)geom).isCellInstance()) break;
-                            List<Highlight> found = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+                            List<Highlight> found = checkOutObject(geom, findPort, findPoint, findSpecial,
+                                    bounds, wnd, directHitDist, areaMustEnclose, showTempNames);
                             for(Highlight h2 : found) list.add(h2);
                             break;
                         case 1:			// check Cell instances
                             if (!findSpecial && !User.isEasySelectionOfCellInstances()) break; // ignore cells if requested
                             if (!(geom instanceof NodeInst)) break;
                             if (!((NodeInst)geom).isCellInstance()) break;
-                            found = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+                            found = checkOutObject(geom, findPort, findPoint, findSpecial,
+                                    bounds, wnd, directHitDist, areaMustEnclose, showTempNames);
                             for(Highlight h2 : found) list.add(h2);
                             break;
                         case 2:			// check arcs
                             if (!(geom instanceof ArcInst)) break;
-                            found = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);
+                            found = checkOutObject(geom, findPort, findPoint, findSpecial,
+                                    bounds, wnd, directHitDist, areaMustEnclose, showTempNames);
                             for(Highlight h2 : found) list.add(h2);
                             break;
                     }
@@ -1564,6 +1570,7 @@ public class Highlighter implements DatabaseChangeListener {
 
 		// get the window's cache of text locations
         LayerVisibility lv = wnd.getLayerVisibility();
+        GraphicsPreferences gp = wnd.getGraphicsPreferences();
 		RTNode rtn = wnd.getTextInCell();
 		if (rtn == null)
 		{
@@ -1574,7 +1581,7 @@ public class Highlighter implements DatabaseChangeListener {
 			Rectangle2D textBounds = new Rectangle2D.Double();
 
 			// start by examining all text on this Cell
-	        if (/*User.isTextVisibilityOnCell()*/1==1)
+	        if (/*User.isTextVisibilityOnCell()*/ true)
 	        {
 	            Poly [] polys = cell.getAllText(findSpecial, wnd);
 	            if (polys != null)
@@ -1603,10 +1610,10 @@ public class Highlighter implements DatabaseChangeListener {
 	            }
 
 	    		// check out node text
-	        	if (/*User.isTextVisibilityOnNode()*/1==1)
+	        	if (/*User.isTextVisibilityOnNode()*/ true)
 	        	{
 	            	// first see if cell name text is selectable
-	        		if (ni.isCellInstance() && !ni.isExpanded() && findSpecial && /*User.isTextVisibilityOnInstance()*/1==1)
+	        		if (ni.isCellInstance() && !ni.isExpanded() && findSpecial && /*User.isTextVisibilityOnInstance()*/ true)
 	        		{
 	            		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_PROTO, textBounds);
 	            		if (style != null)
@@ -1617,7 +1624,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        		}
 
 	        		// now see if node is named
-	        		if (ni.isUsernamed())
+	        		if (ni.isUsernamed() || (gp.isShowTempNames() && ni.isLinked()))
 	        		{
 	                    TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME);
 	                    if (td.getDisplay() == TextDescriptor.Display.SHOWN)
@@ -1632,7 +1639,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        		}
 
 	        		// look at all variables on the node
-	        		if (ni.getProto() != Generic.tech().invisiblePinNode || /*User.isTextVisibilityOnAnnotation()*/1==1)
+	        		if (ni.getProto() != Generic.tech().invisiblePinNode || /*User.isTextVisibilityOnAnnotation()*/ true)
 	        		{
 	            		for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
 	                	{
@@ -1648,7 +1655,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        		}
 
 	        		// look at variables on ports on the node
-	        		if (/*User.isTextVisibilityOnPort()*/1==1)
+	        		if (/*User.isTextVisibilityOnPort()*/ true)
 	        		{
 	            		for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 	            		{
@@ -1669,7 +1676,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        	}
 
 	    		// add export text
-	    		if (/*User.isTextVisibilityOnExport()*/1==1)
+	    		if (/*User.isTextVisibilityOnExport()*/ true)
 	    		{
 	            	NodeProto np = ni.getProto();
 	            	if (!(np instanceof PrimitiveNode) || lv.isVisible((PrimitiveNode)np))
@@ -1703,7 +1710,7 @@ public class Highlighter implements DatabaseChangeListener {
 	        }
 
 	        // next examine all text on arcs in the cell
-	        if (/*User.isTextVisibilityOnArc()*/1==1)
+	        if (/*User.isTextVisibilityOnArc()*/ true)
 	        {
 	            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 	            {
@@ -1802,10 +1809,11 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param wnd the window being examined (null to ignore window scaling).
 	 * @param directHitDist the slop area to forgive when searching (a few pixels in screen space, transformed to database units).
 	 * @param areaMustEnclose true if the object must be completely inside of the selection area.
+     * @param showTempNames consider temporary names on nodes and arcs.
 	 * @return a List of Highlights that define the object, empty if the point is not over any part of this object.
 	 */
 	public static List<Highlight> checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
-		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
+		EditWindow wnd, double directHitDist, boolean areaMustEnclose, boolean showTempNames)
 	{
 		List<Highlight> found = new ArrayList<Highlight>();
         LayerVisibility lv = wnd != null ? wnd.getLayerVisibility() : LayerVisibility.getLayerVisibility();
@@ -1844,7 +1852,7 @@ public class Highlighter implements DatabaseChangeListener {
 			}
 
 			// get the distance to the object
-			double dist = distToNode(bounds, ni, wnd);
+			double dist = distToNode(bounds, ni, wnd, showTempNames);
 
 			// direct hit
 			if (dist <= directHitDist)
@@ -1954,7 +1962,7 @@ public class Highlighter implements DatabaseChangeListener {
 			}
 
 			// get distance to arc
-			double dist = distToArc(bounds, ai, wnd);
+			double dist = distToArc(bounds, ai, wnd, showTempNames);
 
 			// direct hit
 			if (dist <= directHitDist)
@@ -1975,7 +1983,7 @@ public class Highlighter implements DatabaseChangeListener {
      * of Highlight should be retrieved from the highlights list.
      */
     public static Highlight getSimiliarHighlight(List<Highlight> highlights, Highlight exampleHigh) {
-        if (highlights.size() == 0) return null;
+        if (highlights.isEmpty()) return null;
         if (exampleHigh == null || !exampleHigh.isValid()) return highlights.get(0);
 
         // get Highlights of the same type
@@ -1993,7 +2001,7 @@ public class Highlighter implements DatabaseChangeListener {
         if (sameTypes.size() == 1) return sameTypes.get(0);
 
         // if none of same type, just return first in list of all highlights
-        if (sameTypes.size() == 0) return highlights.get(0);
+        if (sameTypes.isEmpty()) return highlights.get(0);
 
         // we have different rules depending on the type
         if (exampleHigh.isHighlightEOBJ())
@@ -2075,10 +2083,11 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param bounds the bounds in question.
 	 * @param ni the NodeInst.
 	 * @param wnd the window being examined (null to ignore text/window scaling).
+     * @param showTempNames consider temporary names on nodes and arcs
 	 * @return the distance from the bounds to the NodeInst.
 	 * Negative values are direct hits.
 	 */
-	public static double distToNode(Rectangle2D bounds, NodeInst ni, EditWindow wnd)
+	public static double distToNode(Rectangle2D bounds, NodeInst ni, EditWindow wnd, boolean showTempNames)
 	{
 		AffineTransform trans = ni.rotateOut();
 
@@ -2108,7 +2117,7 @@ public class Highlighter implements DatabaseChangeListener {
 				}
 				if (wnd != null)
 				{
-					for(Poly poly: ni.getDisplayableVariables(wnd))
+					for(Poly poly: ni.getDisplayableVariables(wnd, showTempNames))
 					{
 						Layer layer = poly.getLayer();
 						if (layer == null) continue;
@@ -2136,7 +2145,7 @@ public class Highlighter implements DatabaseChangeListener {
 				}
 				if (wnd != null)
 				{
-					for(Poly poly: ni.getDisplayableVariables(wnd))
+					for(Poly poly: ni.getDisplayableVariables(wnd, showTempNames))
 					{
 						poly.transform(trans);
 						double dist = poly.polyDistance(bounds);
@@ -2158,10 +2167,11 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param bounds the bounds in question.
 	 * @param ai the ArcInst.
 	 * @param wnd the window being examined.
+     * @param showTempNames consider temporary names on nodes and arcs
 	 * @return the distance from the bounds to the ArcInst.
 	 * Negative values are direct hits or intersections.
 	 */
-	public static double distToArc(Rectangle2D bounds, ArcInst ai, EditWindow wnd)
+	public static double distToArc(Rectangle2D bounds, ArcInst ai, EditWindow wnd, boolean showTempNames)
 	{
 		ArcProto ap = ai.getProto();
 
@@ -2177,7 +2187,7 @@ public class Highlighter implements DatabaseChangeListener {
 				double dist = poly.polyDistance(bounds);
 				if (dist < bestDist) bestDist = dist;
 			}
-			Poly[] textPolys = ai.getDisplayableVariables(wnd);
+			Poly[] textPolys = ai.getDisplayableVariables(wnd, showTempNames);
 			for(int box=0; box<textPolys.length; box++)
 			{
 				Poly poly = textPolys[box];

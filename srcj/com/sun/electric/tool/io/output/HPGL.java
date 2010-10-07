@@ -95,10 +95,11 @@ public class HPGL extends Output
         Map<Layer,Color> layerColors = new HashMap<Layer,Color>();
         EditWindow0.EditWindowSmall wnd;
         Rectangle2D printBounds;
+        GraphicsPreferences gp;
 
         public HPGLPreferences(boolean factory) {
             super(factory);
-            GraphicsPreferences gp = new GraphicsPreferences(factory);
+            gp = new GraphicsPreferences(factory);
         	textVisibilityOnExport = gp.isTextVisibilityOn(TextDescriptor.TextType.EXPORT);
     		exportDisplayLevel = gp.exportDisplayLevel;
 
@@ -272,7 +273,7 @@ public class HPGL extends Output
 					for (int i=0; i<polys.length; i++)
 						polys[i].transform(nodeTrans);
 					addPolys(polys, merge);
-                    Poly[] textPolys = ni.getDisplayableVariables(localPrefs.wnd);
+                    Poly[] textPolys = ni.getDisplayableVariables(localPrefs.wnd, localPrefs.gp.isShowTempNames());
 					for (int i=0; i<textPolys.length; i++)
 						textPolys[i].transform(nodeTrans);
 					addPolys(textPolys, merge);
@@ -334,7 +335,7 @@ public class HPGL extends Output
 				ArcProto ap = ai.getProto();
 				Technology tech = ap.getTechnology();
 				addPolys(tech.getShapeOfArc(ai), merge);
-				addPolys(ai.getDisplayableVariables(localPrefs.wnd), merge);
+				addPolys(ai.getDisplayableVariables(localPrefs.wnd, localPrefs.gp.isShowTempNames()), merge);
 			}
 
 			// extract merged data and add it to overall geometry

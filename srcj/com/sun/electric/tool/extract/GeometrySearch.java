@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.Highlighter;
 
 import com.sun.electric.tool.user.ui.LayerVisibility;
@@ -55,7 +56,8 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
     private List<GeometrySearchResult> found;
     private ERectangle geomBBnd;
     private boolean visibleObjectsOnly;
-    private LayerVisibility lv;
+    private final LayerVisibility lv;
+    private final GraphicsPreferences gp;
     private int cellsProcessed;         // for debug
 
     /**
@@ -111,9 +113,10 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
 	    }
 	}
 
-    public GeometrySearch(LayerVisibility lv)
+    public GeometrySearch(LayerVisibility lv, GraphicsPreferences gp)
     {
         this.lv = lv;
+        this.gp = gp;
     }
 
     /**
@@ -175,7 +178,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
                 } else
                 {
                     // primitive found, ignore nodes that are fully invisible
-                	double dist = Highlighter.distToNode(rect, oNi, null);
+                	double dist = Highlighter.distToNode(rect, oNi, null, gp.isShowTempNames());
                 	if (dist > 0) continue;
                     PrimitiveNode node = (PrimitiveNode)oNi.getProto();
                     if (visibleObjectsOnly && !lv.isVisible(node)) continue;
@@ -185,7 +188,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
             {
                 // arc, ignore arcs that and fully invisible
             	ArcInst ai = (ArcInst)geom;
-            	double dist = Highlighter.distToArc(rect, ai, null);
+            	double dist = Highlighter.distToArc(rect, ai, null, gp.isShowTempNames());
             	if (dist > 0) continue;
                 ArcProto ap = ai.getProto();
                 if (visibleObjectsOnly && !lv.isVisible(ap)) continue;

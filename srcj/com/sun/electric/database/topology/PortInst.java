@@ -42,6 +42,7 @@ import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -210,23 +211,18 @@ public class PortInst extends ElectricObject {
     /**
      * Method to add all displayable Variables on this PortInsts to an array of Poly objects.
      * @param rect a rectangle describing the bounds of the NodeInst on which the PortInsts reside.
-     * @param polys an array of Poly objects that will be filled with the displayable Variables.
-     * @param start the starting index in the array of Poly objects to fill with displayable Variables.
+     * @param polys a list of Poly objects that will be filled with the displayable Variables.
      * @param wnd window in which the Variables will be displayed.
      * @param multipleStrings true to break multiline text into multiple Polys.
-     * @return the number of Polys that were added.
+     * @param showTempNames show temporary names on nodes and arcs
      */
-    public int addDisplayableVariables(Rectangle2D rect, Poly[] polys, int start, EditWindow0 wnd, boolean multipleStrings) {
-        if (super.numDisplayableVariables(multipleStrings) == 0) {
-            return 0;
+    @Override
+    public void addDisplayableVariables(Rectangle2D rect, List<Poly> polys, EditWindow0 wnd, boolean multipleStrings, boolean showTempNames) {
+        int startOfMyPolys = polys.size();
+        super.addDisplayableVariables(getBounds(), polys, wnd, multipleStrings, showTempNames);
+        for (int i = startOfMyPolys; i < polys.size(); i++) {
+            polys.get(i).setPort(getPortProto());
         }
-
-        Poly portPoly = getPoly();
-        int justAdded = super.addDisplayableVariables(portPoly.getBounds2D(), polys, start, wnd, multipleStrings);
-        for (int i = 0; i < justAdded; i++) {
-            polys[start + i].setPort(getPortProto());
-        }
-        return justAdded;
     }
 
     /**
@@ -330,9 +326,10 @@ public class PortInst extends ElectricObject {
         Poly poly = null;
         if (var != null) {
             Rectangle2D bounds = getPoly().getBounds2D();
-            Poly[] polys = getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
-            if (polys.length > 0) {
-                poly = polys[0];
+            LinkedList<Poly> polys = new LinkedList<Poly>();
+            addPolyList(polys, var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+            if (!polys.isEmpty()) {
+                poly = polys.getFirst();
                 poly.transform(getNodeInst().rotateOut());
             }
         }

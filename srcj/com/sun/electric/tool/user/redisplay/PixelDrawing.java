@@ -1288,7 +1288,7 @@ public class PixelDrawing {
 			topLevel = (cell == topCell);
 		if (canDrawText && topLevel && gp.isTextVisibilityOn(TextDescriptor.TextType.CELL)) {
 			// show displayable variables on the instance
-			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, dummyWnd, true);
+			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, dummyWnd, true, gp.isShowTempNames());
 			drawPolys(polys, prevTrans, false);
 		}
 
@@ -1385,7 +1385,7 @@ public class PixelDrawing {
 
 			// draw any displayable variables on the instance
 			if (canDrawText && gp.isTextVisibilityOn(TextDescriptor.TextType.NODE)) {
-				Poly[] polys = ni.getDisplayableVariables(dummyWnd);
+				Poly[] polys = ni.getDisplayableVariables(dummyWnd, gp.isShowTempNames());
 				drawPolys(polys, localTrans, false);
 			}
 		} else {
@@ -1431,7 +1431,7 @@ public class PixelDrawing {
 				}
 				Technology tech = prim.getTechnology();
 				drawPolys(tech.getShapeOfNode(ni, false, false, null), localTrans, forceVisible);
-				drawPolys(ni.getDisplayableVariables(nodeWnd), localTrans, forceVisible);
+				drawPolys(ni.getDisplayableVariables(nodeWnd, gp.isShowTempNames()), localTrans, forceVisible);
 			}
 		}
 
@@ -1465,7 +1465,7 @@ public class PixelDrawing {
 				}
 
 				// draw variables on the export
-				Poly[] polys = e.getDisplayableVariables(rect, dummyWnd, true);
+				Poly[] polys = e.getDisplayableVariables(rect, dummyWnd, true, gp.isShowTempNames());
 				drawPolys(polys, localTrans, false);
 			}
 		}
@@ -1524,7 +1524,7 @@ public class PixelDrawing {
 		Technology tech = ap.getTechnology();
 		drawPolys(tech.getShapeOfArc(ai), trans, forceVisible);
 		if (canDrawText && gp.isTextVisibilityOn(TextDescriptor.TextType.ARC))
-			drawPolys(ai.getDisplayableVariables(dummyWnd), trans, forceVisible);
+			drawPolys(ai.getDisplayableVariables(dummyWnd, gp.isShowTempNames()), trans, forceVisible);
 	}
 
 	private void showCellPorts(NodeInst ni, AffineTransform trans, boolean expanded, boolean onPathDown) {

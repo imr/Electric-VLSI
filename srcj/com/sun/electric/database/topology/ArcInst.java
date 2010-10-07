@@ -853,25 +853,18 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
 //		addDisplayableVariables(getBounds(), polys, 0, wnd, false);
 //		return polys;
 //	}
-    /**
-     * Method to return the number of displayable Variables on this ArcInst.
-     * A displayable Variable is one that will be shown with its object.
-     * @return the number of displayable Variables on this ArcInst.
-     */
-    public int numDisplayableVariables(boolean multipleStrings) {
-        return super.numDisplayableVariables(multipleStrings) + (isUsernamed() && d.nameDescriptor.isDisplay() ? 1 : 0);
-    }
 
     /**
-     * Method to add all displayable Variables on this Electric object to an array of Poly objects.
+     * Method to add all displayable Variables on this ArcInst to an array of Poly objects.
      * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
-     * @param polys an array of Poly objects that will be filled with the displayable Variables.
-     * @param start the starting index in the array of Poly objects to fill with displayable Variables.
-     * @return the number of Variables that were added.
+     * @param polys an list of Poly objects that will be filled with the displayable Variables.
+     * @param wnd window in which the Variables will be displayed.
+     * @param multipleStrings true to break multiline text into multiple Polys.
+     * @param showTempNames show temporary names on nodes and arcs
      */
-    public int addDisplayableVariables(Rectangle2D rect, Poly[] polys, int start, EditWindow0 wnd, boolean multipleStrings) {
-        int numVars = 0;
-        if (isUsernamed() && d.nameDescriptor.isDisplay()) {
+    @Override
+    public void addDisplayableVariables(Rectangle2D rect, List<Poly> polys, EditWindow0 wnd, boolean multipleStrings, boolean showTempNames) {
+        if ((isUsernamed() || showTempNames) && d.nameDescriptor.isDisplay()) {
             double cX = rect.getCenterX();
             double cY = rect.getCenterY();
             TextDescriptor td = d.nameDescriptor;
@@ -887,24 +880,25 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
                 pointList = new Point2D.Double[1];
                 pointList[0] = new Point2D.Double(cX + offX, cY + offY);
             }
-            polys[start] = new Poly(pointList);
-            polys[start].setStyle(style);
-            polys[start].setString(getNameKey().toString());
-            polys[start].setTextDescriptor(td);
-            polys[start].setLayer(null);
-            polys[start].setDisplayedText(new DisplayedText(this, ARC_NAME));
-            numVars = 1;
+            Poly poly = new Poly(pointList);
+            poly.setStyle(style);
+            poly.setString(getNameKey().toString());
+            poly.setTextDescriptor(td);
+            poly.setLayer(null);
+            poly.setDisplayedText(new DisplayedText(this, ARC_NAME));
+            polys.add(poly);
         }
-        return super.addDisplayableVariables(rect, polys, start + numVars, wnd, multipleStrings) + numVars;
+        super.addDisplayableVariables(rect, polys, wnd, multipleStrings, showTempNames);
     }
 
     /**
      * Method to get all displayable Variables on this ArcInst to an array of Poly objects.
      * @param wnd window in which the Variables will be displayed.
+     * @param showTempNames show temporary names on nodes and arcs.
      * @return an array of Poly objects with displayable variables.
      */
-    public Poly[] getDisplayableVariables(EditWindow0 wnd) {
-        return getDisplayableVariables(getBounds(), wnd, true);
+    public Poly[] getDisplayableVariables(EditWindow0 wnd, boolean showTempNames) {
+        return getDisplayableVariables(getBounds(), wnd, true, showTempNames);
     }
 
     /****************************** CONNECTIONS ******************************/

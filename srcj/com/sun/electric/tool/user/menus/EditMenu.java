@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
@@ -963,6 +964,7 @@ public class EditMenu {
 		}
 
 		boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
+        boolean showTempNames = wnd.getGraphicsPreferences().isShowTempNames();
 		highlighter.clear();
         LayerVisibility lv = wnd.getLayerVisibility();
 		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
@@ -993,7 +995,7 @@ public class EditMenu {
 			if (ni.isInvisiblePinWithText() && mustBeHard && !hard) continue;
 			if (User.isTextVisibilityOnNode())
 			{
-				if (ni.isUsernamed())
+				if (ni.isUsernamed() || (showTempNames && ni.isLinked()))
 				{
                     TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME);
                     if (td.getDisplay() == TextDescriptor.Display.SHOWN)

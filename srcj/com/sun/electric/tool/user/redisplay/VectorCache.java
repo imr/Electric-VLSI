@@ -44,6 +44,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
@@ -337,9 +338,11 @@ public class VectorCache {
         int textType;
         /** valid for export text */
         PrimitivePort basePort;
+        /** temporary name on node or arc */
+        boolean tempName;
 
         VectorText(Rectangle2D bounds, Poly.Type style, TextDescriptor descript, String str, int textType, Export e,
-                Layer layer) {
+                Layer layer, boolean tempName) {
             super(layer, null);
             this.bounds = new Rectangle(databaseToGrid(bounds.getX()), databaseToGrid(bounds.getY()),
                     databaseToGrid(bounds.getWidth()), databaseToGrid(bounds.getHeight()));
@@ -350,6 +353,7 @@ public class VectorCache {
             if (e != null) {
                 basePort = e.getBasePort();
             }
+            this.tempName = tempName;
 
             height = 1;
             if (descript != null) {
@@ -781,8 +785,8 @@ public class VectorCache {
             if (cell == null) return;
             topOnlyShapes = new ArrayList<VectorBase>();
             // show cell variables
-            Poly[] polys = cell.getDisplayableVariables(CENTERRECT, dummyWnd, true);
-            drawPolys(polys, DBMath.MATID, this, true, VectorText.TEXTTYPECELL, false);
+            Poly[] polys = cell.getDisplayableVariables(CENTERRECT, dummyWnd, true, true);
+            drawTextPolys(polys, DBMath.MATID, this, true, VectorText.TEXTTYPECELL, false, false);
 
             // draw nodes visible only inside
             AffineTransform trans = orient.pureRotate();
@@ -810,12 +814,13 @@ public class VectorCache {
                 Poly.Type style = descript.getPos().getPolyType();
 //                style = Poly.rotateType(style, e.getOriginalPort().getNodeInst());
                 style = Poly.rotateType(style, e);
-                VectorText vt = new VectorText(poly.getBounds2D(), style, descript, e.getName(), VectorText.TEXTTYPEEXPORT, e, null);
+                boolean tempName = false;
+                VectorText vt = new VectorText(poly.getBounds2D(), style, descript, e.getName(), VectorText.TEXTTYPEEXPORT, e, null, false);
                 topOnlyShapes.add(vt);
 
                 // draw variables on the export
-                polys = e.getDisplayableVariables(rect, dummyWnd, true);
-                drawPolys(polys, trans, this, true, VectorText.TEXTTYPEEXPORT, false);
+                polys = e.getDisplayableVariables(rect, dummyWnd, true, true);
+                drawTextPolys(polys, trans, this, true, VectorText.TEXTTYPEEXPORT, false, false);
             }
             Collections.sort(topOnlyShapes, shapeByLayer);
         }
@@ -842,7 +847,7 @@ public class VectorCache {
             poly.setLayer(layer);
             poly.setGraphicsOverride(graphicsOverride);
             poly.gridToLambda();
-            renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
+            renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer, false);
         }
 
         @Override
@@ -857,7 +862,7 @@ public class VectorCache {
             poly.gridToLambda();
             poly.setString(message);
             poly.setTextDescriptor(descriptor);
-            renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
+            renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer, false);
         }
 
         @Override
@@ -885,7 +890,7 @@ public class VectorCache {
                     poly.setLayer(layer);
                     poly.setGraphicsOverride(graphicsOverride);
                     poly.gridToLambda();
-                    renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
+                    renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer, false);
                     break;
             }
         }
@@ -1359,8 +1364,8 @@ public class VectorCache {
         }
 
         // draw any displayable variables on the instance
-        Poly[] polys = ni.getDisplayableVariables(dummyWnd);
-        drawPolys(polys, localTrans, vc, false, VectorText.TEXTTYPENODE, false);
+        Poly[] polys = ni.getDisplayableVariables(dummyWnd, true);
+        drawTextPolys(polys, localTrans, vc, false, VectorText.TEXTTYPENODE, false, !ni.isUsernamed());
     }
 
     /**
@@ -1381,7 +1386,8 @@ public class VectorCache {
         shapeBuilder.pureLayer = (ni.getFunction() == PrimitiveNode.Function.NODE);
         shapeBuilder.hideOnLowLevel = ni.isVisInside() || np == Generic.tech().cellCenterNode;
         shapeBuilder.genShapeOfNode(ni.getD());
-        drawPolys(ni.getDisplayableVariables(dummyWnd), localTrans, vc, shapeBuilder.hideOnLowLevel, shapeBuilder.textType, shapeBuilder.pureLayer);
+        drawTextPolys(ni.getDisplayableVariables(dummyWnd, true), localTrans, vc,
+                shapeBuilder.hideOnLowLevel, shapeBuilder.textType, shapeBuilder.pureLayer, !ni.isUsernamed());
     }
 
     /**
@@ -1395,7 +1401,7 @@ public class VectorCache {
         ArcProto ap = ai.getProto();
         shapeBuilder.pureLayer = (ap.getNumArcLayers() == 1);
         shapeBuilder.genShapeOfArc(ai.getD());
-        drawPolys(ai.getDisplayableVariables(dummyWnd), trans, vc, false, VectorText.TEXTTYPEARC, false);
+        drawTextPolys(ai.getDisplayableVariables(dummyWnd, true), trans, vc, false, VectorText.TEXTTYPEARC, false, !ai.isUsernamed());
     }
 
     /**
@@ -1421,7 +1427,35 @@ public class VectorCache {
             poly.transform(trans);
 
             // render the polygon
-            renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
+            renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer, false);
+        }
+    }
+
+    /**
+     * Method to cache an array of polygons.
+     * @param polys the array of polygons to cache.
+     * @param trans the transformation to apply to each polygon.
+     * @param vc the cached cell in which to place the polygons.
+     * @param hideOnLowLevel true if the polygons should be marked such that they are not visible on lower levels of hierarchy.
+     * @param pureLayer true if these polygons come from a pure layer node.
+     * @param tempOwnerName true if owner object has temporary name.
+     */
+    private void drawTextPolys(Poly[] polys, AffineTransform trans, VectorCell vc, boolean hideOnLowLevel, int textType, boolean pureLayer, boolean tempOwnerName) {
+        if (polys == null) {
+            return;
+        }
+        for (int i = 0; i < polys.length; i++) {
+            // get the polygon and transform it
+            Poly poly = polys[i];
+            if (poly == null) {
+                continue;
+            }
+
+            // transform the bounds
+            poly.transform(trans);
+
+            // render the polygon
+            renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer, tempOwnerName);
         }
     }
 
@@ -1431,8 +1465,9 @@ public class VectorCache {
      * @param vc the cached cell in which to place the polygon.
      * @param hideOnLowLevel true if the polygon should be marked such that it is not visible on lower levels of hierarchy.
      * @param pureLayer true if the polygon comes from a pure layer node.
+     * @param tempOwnerName true if owner object has temporary name.
      */
-    private void renderPoly(Poly poly, VectorCell vc, boolean hideOnLowLevel, int textType, boolean pureLayer) {
+    private void renderPoly(Poly poly, VectorCell vc, boolean hideOnLowLevel, int textType, boolean pureLayer, boolean tempOwnerName) {
         // now draw it
         Point2D[] points = poly.getPoints();
         Layer layer = poly.getLayer();
@@ -1502,7 +1537,11 @@ public class VectorCache {
             TextDescriptor descript = poly.getTextDescriptor();
             String str = poly.getString();
             assert graphicsOverride == null;
-            VectorText vt = new VectorText(bounds, style, descript, str, textType, null, layer);
+            DisplayedText dt = poly.getDisplayedText();
+            if (tempOwnerName)
+                tempOwnerName = tempOwnerName;
+            boolean tempName = tempOwnerName && dt != null && (dt.getVariableKey() == NodeInst.NODE_NAME || dt.getVariableKey() == ArcInst.ARC_NAME);
+            VectorText vt = new VectorText(bounds, style, descript, str, textType, null, layer, tempName);
             shapes.add(vt);
             vc.maxFeatureSize = Math.max(vc.maxFeatureSize, vt.height);
             return;
