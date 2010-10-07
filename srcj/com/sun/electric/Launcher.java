@@ -87,6 +87,7 @@ public final class Launcher
                 args.length >= 3 && args[0].equals("-debug") && args[1].equals("-regression") ||
                 args.length >= 4 && args[0].equals("-threads") && args[2].equals("-regression") ||
                 args.length >= 4 && args[0].equals("-logging") && args[2].equals("-regression")) {
+            initClasspath(true);
             System.exit(invokeRegression(args) ? 0 : 1);
             return;
         }
@@ -191,8 +192,10 @@ public final class Launcher
             logger.log(Level.SEVERE, "Failure starting server subprocess", e);
             return false;
         }
-        return ((Boolean)callByReflection(ClassLoader.getSystemClassLoader(), "com.sun.electric.tool.Regression", "runScript",
+        initClasspath(true);
+        boolean result = ((Boolean)callByReflection(ClassLoader.getSystemClassLoader(), "com.sun.electric.tool.Regression", "runScript",
                 new Class[]{ Process.class, String.class }, null, new Object[] { process, script})).booleanValue();
+        return result;
     }
     
     public static Process invokePipeserver(List<String> javaOptions, List<String> electricOptions) throws IOException {
@@ -226,13 +229,19 @@ public final class Launcher
     
     private static void loadAndRunMain(String[] args, boolean loadDependencies)
     {
+        initClasspath(loadDependencies);
+        callByReflection(pluginClassLoader, "com.sun.electric.Main", "main", new Class[] { String[].class },
+                null, new Object[] { args });
+    }
+    
+    private static void initClasspath(boolean loadDependencies) {
         ClassLoader appLoader = ClassLoader.getSystemClassLoader();
         pluginClassLoader = appLoader;
         if (loadDependencies) {
             URL[] pluginJars = readMavenDependencies();
             if (pluginJars.length > 0) {
                 for (URL url: pluginJars) {
-                    callByReflection(appLoader, "java.net.URLClassLoader", "addURL", new Class[] { URL.class },
+                    Object result = callByReflection(appLoader, "java.net.URLClassLoader", "addURL", new Class[] { URL.class },
                             appLoader, new Object[] { url });
                 }
 //                pluginClassLoader = new EClassLoader(pluginJars, appLoader);
@@ -242,8 +251,6 @@ public final class Launcher
             appLoader.setDefaultAssertionStatus(true);
             pluginClassLoader.setDefaultAssertionStatus(true);
         }
-        callByReflection(pluginClassLoader, "com.sun.electric.Main", "main", new Class[] { String[].class },
-                null, new Object[] { args });
     }
     
     private static URL[] readMavenDependencies() {
@@ -271,8 +278,10 @@ public final class Launcher
                 String jarPath = path.substring("file:".length(), path.length() - "!/".length() - mavenDependenciesResourceName.length());
                 File jarDir = new File(jarPath).getParentFile();
                 File file = new File(jarDir, mavenRepository);
-                if (file.canRead())
+                if (file.canRead()) {
                     repositories.add(file);
+                    logger.log(Level.FINE, "Found repository {0}", file);
+				}
             }
         }
         try {

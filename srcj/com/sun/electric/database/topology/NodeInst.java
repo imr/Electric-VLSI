@@ -1753,8 +1753,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     @Override
     public void addDisplayableVariables(Rectangle2D rect, List<Poly> polys, EditWindow0 wnd, boolean multipleStrings, boolean showTempNames) {
-        assert isLinked();
-        if ((isUsernamed() || showTempNames) && d.nameDescriptor.isDisplay())
+        if ((isUsernamed() || showTempNames && isLinked()) && d.nameDescriptor.isDisplay())
         {
             double cX = rect.getCenterX();
             double cY = rect.getCenterY();
