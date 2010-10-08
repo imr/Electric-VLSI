@@ -117,7 +117,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
 
     /**
-     * Method to detect if np is not relevant for some tool calculation and therefore
+     * Method to detect if prototype is not relevant for some tool calculation and therefore
      * could be skip. E.g. cellCenter, drcNodes, essential bounds and pins in DRC.
      * Similar for layer generation
      * @param ni the NodeInst in question.
@@ -170,7 +170,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         protoType = d.protoId.inDatabase(getDatabase());
         this.d = d;
 
-        // create all of the portInsts on this node inst
+        // create all of the portInsts on this node instance
         portInsts = new PortInst[protoType.getNumPorts()];
         for (int i = 0; i < portInsts.length; i++) {
             PortProto pp = protoType.getPort(i);
@@ -184,7 +184,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         this.d = d;
         this.protoType = protoType;
 
-        // create all of the portInsts on this node inst
+        // create all of the portInsts on this node instance
         portInsts = new PortInst[protoType.getNumPorts()];
         for (int i = 0; i < portInsts.length; i++) {
             PortProto pp = protoType.getPort(i);
@@ -1748,11 +1748,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param rect a rectangle describing the bounds of the NodeInst on which the Variables will be displayed.
      * @param polys a list of Poly objects that will be filled with the displayable Variables.
      * @param wnd window in which the Variables will be displayed.
-     * @param multipleStrings true to break multiline text into multiple Polys.
+     * @param multipleStrings true to break multi-line text into multiple Polys.
      * @param showTempNames show temporary names on nodes and arcs
      */
     @Override
     public void addDisplayableVariables(Rectangle2D rect, List<Poly> polys, EditWindow0 wnd, boolean multipleStrings, boolean showTempNames) {
+    	PrimitiveNode.Function fun = getFunction();
+    	if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.ART) showTempNames = false; 
         if ((isUsernamed() || showTempNames && isLinked()) && d.nameDescriptor.isDisplay())
         {
             double cX = rect.getCenterX();
@@ -1799,6 +1801,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return an array of Poly objects with displayable variables.
      */
     public Poly[] getDisplayableVariables(EditWindow0 wnd, boolean showTempNames) {
+    	PrimitiveNode.Function fun = getFunction();
+    	if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.ART) showTempNames = false; 
         return getDisplayableVariables(getUntransformedBounds(), wnd, true, showTempNames);
     }
 
@@ -3841,7 +3845,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     break;
                 }
             }
-            // polyList[i] doesn't match any elem in noPolyList
+            // polyList[i] doesn't match any element in noPolyList
             if (!found) {
                 if (buffer != null) {
                     buffer.append("No corresponding geometry in '" + getName() + "' found in '" + no.getName() + "'\n");

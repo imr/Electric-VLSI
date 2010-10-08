@@ -51,16 +51,16 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * An ArcInst is an instance of an ArcProto (a wire type)
@@ -306,7 +306,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * @param tailPt the coordinate of the tail end PortInst.
      * @param name the name of the new ArcInst
      * @param defAngle default angle in case port points coincide
-     * @param flags flags of thew new ArcInst
+     * @param flags flags of the new ArcInst
      * @return the newly created ArcInst, or null if there is an error.
      */
     public static ArcInst newInstanceBase(ArcProto type, double baseWidth, PortInst head, PortInst tail,
@@ -585,7 +585,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     }
 
     /**
-     * Modifies persistend data of this ArcInst.
+     * Modifies persistent data of this ArcInst.
      * @param newD new persistent data.
      * @param notify true to notify Undo system.
      * @return true if persistent data was modified.
@@ -859,12 +859,12 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
      * @param polys an list of Poly objects that will be filled with the displayable Variables.
      * @param wnd window in which the Variables will be displayed.
-     * @param multipleStrings true to break multiline text into multiple Polys.
+     * @param multipleStrings true to break multi-line text into multiple Polys.
      * @param showTempNames show temporary names on nodes and arcs
      */
     @Override
     public void addDisplayableVariables(Rectangle2D rect, List<Poly> polys, EditWindow0 wnd, boolean multipleStrings, boolean showTempNames) {
-        if ((isUsernamed() || showTempNames) && d.nameDescriptor.isDisplay()) {
+        if (isUsernamed() && d.nameDescriptor.isDisplay()) {
             double cX = rect.getCenterX();
             double cY = rect.getCenterY();
             TextDescriptor td = d.nameDescriptor;
@@ -888,7 +888,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             poly.setDisplayedText(new DisplayedText(this, ARC_NAME));
             polys.add(poly);
         }
-        super.addDisplayableVariables(rect, polys, wnd, multipleStrings, showTempNames);
+        super.addDisplayableVariables(rect, polys, wnd, multipleStrings, false);
     }
 
     /**
@@ -898,7 +898,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * @return an array of Poly objects with displayable variables.
      */
     public Poly[] getDisplayableVariables(EditWindow0 wnd, boolean showTempNames) {
-        return getDisplayableVariables(getBounds(), wnd, true, showTempNames);
+        return getDisplayableVariables(getBounds(), wnd, true, false);
     }
 
     /****************************** CONNECTIONS ******************************/
@@ -1013,7 +1013,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     /**
      * Method to tell whether a tail connection on this ArcInst contains a port location.
      * @param pt the point in question.
-     * @param reduceForArc if true reduce width by width offset of it proto.
+     * @param reduceForArc if true reduce width by width offset of it prototype.
      * @return true if the point is inside of the port.
      */
     public boolean tailStillInPort(Point2D pt, boolean reduceForArc) {
@@ -1023,7 +1023,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     /**
      * Method to tell whether a head connection on this ArcInst contains a port location.
      * @param pt the point in question.
-     * @param reduceForArc if true reduce width by width offset of it proto.
+     * @param reduceForArc if true reduce width by width offset of it prototype.
      * @return true if the point is inside of the port.
      */
     public boolean headStillInPort(Point2D pt, boolean reduceForArc) {
@@ -1034,7 +1034,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * Method to tell whether a connection on this ArcInst contains a port location.
      * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
      * @param pt the point in question.
-     * @param reduceForArc if true reduce width by width offset of it proto.
+     * @param reduceForArc if true reduce width by width offset of it prototype.
      * @return true if the point is inside of the port.
      */
     public boolean stillInPort(int connIndex, Point2D pt, boolean reduceForArc) {
@@ -1067,7 +1067,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     }
 
     /**
-     * Retruns true if this ArcInst was named by user.
+     * Returns true if this ArcInst was named by user.
      * @return true if this ArcInst was named by user.
      */
     public boolean isUsernamed() {
@@ -1392,7 +1392,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * Directional arcs have an arrow drawn on them to indicate flow.
      * It is only for documentation purposes and does not affect the circuit.
      * The body is typically drawn when one of the ends has an arrow on it, but it may be
-     * drawin without an arrow head in order to continue an attached arc that has an arrow.
+     * drawn without an arrow head in order to continue an attached arc that has an arrow.
      * @return true if the arc's tail has an arrow line on it.
      */
     public boolean isBodyArrowed() {
@@ -1444,7 +1444,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * Directional arcs have an arrow drawn on them to indicate flow.
      * It is only for documentation purposes and does not affect the circuit.
      * The body is typically drawn when one of the ends has an arrow on it, but it may be
-     * drawin without an arrow head in order to continue an attached arc that has an arrow.
+     * drawn without an arrow head in order to continue an attached arc that has an arrow.
      * @param state true to show a directional line on this arc.
      */
     public void setBodyArrowed(boolean state) {
@@ -1456,7 +1456,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * Extended arcs continue past their endpoint by half of their width.
      * Most layout arcs want this so that they make clean connections to orthogonal arcs.
      * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
-     * @return true if that end of this ArcInst iss extended.
+     * @return true if that end of this ArcInst is extended.
      */
     public boolean isExtended(int connIndex) {
         return d.isExtended(connIndex);
@@ -1723,7 +1723,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     /**
      * Method to get the arcId of this ArcInst.
      * The arcId is assign to ArcInst in chronological order
-     * The arcId doesn't relate to alpahnumeric ordering of arcs in the Cell.
+     * The arcId doesn't relate to alphanumeric ordering of arcs in the Cell.
      * @return the index of this ArcInst.
      */
     public final int getArcId() {
@@ -1770,7 +1770,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
 
     /**
      * Routing to check whether changing of this cell allowed or not.
-     * By default checks whole database change. Overriden in subclasses.
+     * By default checks whole database change. Overridden in subclasses.
      */
     @Override
     public void checkChanging() {
@@ -1930,7 +1930,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             return (false);
         }
 
-        // Not sure if I should defina myEquals for Geometric
+        // Not sure if I should define myEquals for Geometric
         ArcProto arcType = a.getProto();
         Technology tech = arcType.getTechnology();
         if (getProto().getTechnology() != tech) {
@@ -1966,7 +1966,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
                     break;
                 }
             }
-            // polyList[i] doesn't match any elem in noPolyList
+            // polyList[i] doesn't match any element in noPolyList
             if (!found) {
                 // No message otherwise all comparisons are found in buffer
                 /*
@@ -1985,7 +1985,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * @return new polygon if was cropped otherwise the original
      */
     public Poly cropPerLayer(Poly poly) {
-        // must be manhattan
+        // must be Manhattan
         Rectangle2D polyBounds = poly.getBox();
         if (polyBounds == null) {
             return poly;
@@ -2031,7 +2031,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     }
 
     /**
-     * Method to determin if arc contains active diffusion
+     * Method to determine if arc contains active diffusion
      * @return True if contains active diffusion
      */
     public boolean isDiffusionArc() {

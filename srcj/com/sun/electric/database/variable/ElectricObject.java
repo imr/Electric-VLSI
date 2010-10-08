@@ -230,7 +230,7 @@ public abstract class ElectricObject implements Serializable {
      * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
      * @param polys a list of Poly objects that will be filled with the displayable Variables.
      * @param wnd window in which the Variables will be displayed.
-     * @param multipleStrings true to break multiline text into multiple Polys.
+     * @param multipleStrings true to break multi-line text into multiple Polys.
      * @param showTempNames show temporary names on nodes and arcs
      */
     public void addDisplayableVariables(Rectangle2D rect, List<Poly> polys, EditWindow0 wnd, boolean multipleStrings, boolean showTempNames) {
@@ -256,7 +256,7 @@ public abstract class ElectricObject implements Serializable {
      * Method to get all displayable Variables on this ElectricObject and its PortInsts to an array of Poly objects.
      * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
      * @param wnd window in which the Variables will be displayed.
-     * @param multipleStrings true to break multiline text into multiple Polys.
+     * @param multipleStrings true to break multi-line text into multiple Polys.
      * @param showTempNames show temporary names on nodes and arcs.
      * @return an array of Poly objects with displayable variables.
      */
@@ -461,7 +461,7 @@ public abstract class ElectricObject implements Serializable {
      * @param cX the center X coordinate of the ElectricObject.
      * @param cY the center Y coordinate of the ElectricObject.
      * @param wnd window in which the Variable will be displayed.
-     * @param multipleStrings true to break multiline text into multiple Polys.
+     * @param multipleStrings true to break multi-line text into multiple Polys.
      */
     protected void addPolyList(List<Poly> polys, Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings)
     {
@@ -484,7 +484,7 @@ public abstract class ElectricObject implements Serializable {
      * @param cX the center X coordinate of the ElectricObject.
      * @param cY the center Y coordinate of the ElectricObject.
      * @param wnd window in which the Variable will be displayed.
-     * @param multipleStrings true to break multiline text into multiple Polys.
+     * @param multipleStrings true to break multi-line text into multiple Polys.
      * @param varLength the number of strings in the text.
      * @param offX the X offset of the text.
      * @param offY the Y offset of the text.
@@ -524,7 +524,7 @@ public abstract class ElectricObject implements Serializable {
                 case 3: lineOffX = lineDist;   break;		// 270 degrees rotation
             }
 
-            // multiline text on rotated nodes must compensate for node rotation
+            // multi-line text on rotated nodes must compensate for node rotation
             Poly.Type rotStyle = style;
             if (this instanceof NodeInst)
             {
@@ -672,7 +672,7 @@ public abstract class ElectricObject implements Serializable {
      * Method to create a Variable on this ElectricObject with the specified values.
      * @param key the key of the Variable.
      * @param value the object to store in the Variable.
-     * @param display true if the Variale is displayable.
+     * @param display true if the Variable is displayable.
      * @return the Variable that has been created.
      */
     public Variable newVar(Variable.Key key, Object value, boolean display) {
@@ -910,7 +910,7 @@ public abstract class ElectricObject implements Serializable {
      * @param fromRight true to increment multidimensional arrays starting at the rightmost index.
      * @return a unique name for that class in that Cell.
      */
-    public static String uniqueObjectName(String name, Cell cell, Class cls, boolean leaveIndexValues, boolean fromRight)
+    public static String uniqueObjectName(String name, Cell cell, Class<?> cls, boolean leaveIndexValues, boolean fromRight)
     {
         String newName = name;
         for (int i = 0; !cell.isUniqueName(newName, cls, null); i++)
@@ -931,12 +931,12 @@ public abstract class ElectricObject implements Serializable {
      * @param cell the Cell in which this name resides.
      * @param cls the class of the object on which this name resides.
      * @param already a Set of names already in use.
-     * @param leaveIndexValues true to leave the index values untouches
+     * @param leaveIndexValues true to leave the index values untouched
      * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
      * @param fromRight true to increment multidimensional arrays starting at the rightmost index.
      * @return a unique name for that class in that Cell.
      */
-    public static String uniqueObjectName(String name, Cell cell, Class cls, Set<String> already,
+    public static String uniqueObjectName(String name, Cell cell, Class<?> cls, Set<String> already,
     	Map<String, GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues, boolean fromRight)
     {
         String newName = name;
@@ -960,12 +960,12 @@ public abstract class ElectricObject implements Serializable {
      * @param cell the Cell in which this name resides.
      * @param cls the class of the object on which this name resides.
      * @param already a Set of names already in use.
-     * @param leaveIndexValues true to leave the index values untouches
+     * @param leaveIndexValues true to leave the index values untouched
      * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
      * @param fromRight true to increment multidimensional arrays starting at the rightmost index.
      * @return a unique name for that class in that Cell.
      */
-    private static String uniqueObjectNameLow(String name, Cell cell, Class cls, Set<String> already,
+    private static String uniqueObjectNameLow(String name, Cell cell, Class<?> cls, Set<String> already,
     	Map<String, GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues, boolean fromRight)
     {
         // first see if the name is unique
@@ -1045,7 +1045,7 @@ public abstract class ElectricObject implements Serializable {
                 inBracket = false;
             }
             if ((ch == ',' && !inBracket) || i == len - 1) {
-                // remember this arrayname
+                // remember this array name
                 if (i == len - 1) {
                     i++;
                 }
@@ -1411,7 +1411,7 @@ public abstract class ElectricObject implements Serializable {
 
     /**
      * Routing to check whether changing of this cell allowed or not.
-     * By default checks whole database change. Overriden in subclasses.
+     * By default checks whole database change. Overridden in subclasses.
      */
     public void checkChanging() {
         EDatabase database = getDatabase();
@@ -1422,7 +1422,7 @@ public abstract class ElectricObject implements Serializable {
 
     /**
      * Routing to check whether undoing of this cell allowed or not.
-     * By default checks whole database undo. Overriden in subclasses.
+     * By default checks whole database undo. Overridden in subclasses.
      */
     public void checkUndoing() {
         getDatabase().checkUndoing();
@@ -1464,7 +1464,7 @@ public abstract class ElectricObject implements Serializable {
      * Get Technology by TechId
      * TechId must belong to same IdManager as TechPool
      * @param techId TechId to find
-     * @return Technology b giben TechId or null
+     * @return Technology b given TechId or null
      * @throws IllegalArgumentException of TechId is not from this IdManager
      */
     public Technology getTech(TechId techId) {
