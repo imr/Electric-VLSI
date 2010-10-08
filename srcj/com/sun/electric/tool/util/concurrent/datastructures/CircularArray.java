@@ -72,7 +72,6 @@ public class CircularArray<T> extends IStructure<T> {
 
 	@Override
 	public void add(T item, int i) {
-		System.out.println(i + ": " + getCapacity());
 		currentElements[i % getCapacity()] = item;
 	}
 

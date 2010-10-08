@@ -45,7 +45,7 @@ import com.sun.electric.tool.util.concurrent.utils.UniqueIDGenerator;
  * @author Felix Schmidt
  * 
  */
-public class ThreadPool {
+public class ThreadPool implements IThreadPool {
 
 	/**
 	 * states of the thread pool. This is very similar to states of processes or

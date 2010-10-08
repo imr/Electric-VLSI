@@ -26,6 +26,7 @@ package com.sun.electric.tool.util.concurrent.patterns;
 import com.sun.electric.tool.util.concurrent.barriers.SimpleTDBarrier;
 import com.sun.electric.tool.util.concurrent.barriers.TDBarrier;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolNotInitializedException;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 
 /**
@@ -36,14 +37,14 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 public class PJob {
 
 	public static final int SERIAL = -1;
-	protected ThreadPool pool;
+	protected IThreadPool pool;
 	protected TDBarrier barrier;
 
 	public PJob() {
 		this(ThreadPool.getThreadPool());
 	}
 
-	public PJob(ThreadPool pool) {
+	public PJob(IThreadPool pool) {
 		this.pool = pool;
 		this.barrier = new SimpleTDBarrier(0);
 	}
@@ -110,7 +111,7 @@ public class PJob {
 		this.add(task, PJob.SERIAL);
 	}
 
-	public ThreadPool getThreadPool() {
+	public IThreadPool getThreadPool() {
 		return this.pool;
 	}
 

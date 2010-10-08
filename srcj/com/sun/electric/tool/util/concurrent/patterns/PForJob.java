@@ -25,7 +25,7 @@ package com.sun.electric.tool.util.concurrent.patterns;
 
 import java.util.List;
 
-import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
 import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**
@@ -48,7 +48,7 @@ public class PForJob extends PJob {
 		this.add(new SplitIntoTasks(this, range, task), PJob.SERIAL);
 	}
 
-	public PForJob(BlockedRange range, PForTask task, ThreadPool pool) {
+	public PForJob(BlockedRange range, PForTask task, IThreadPool pool) {
 		super(pool);
 		this.add(new SplitIntoTasks(this, range, task), PJob.SERIAL);
 	}
