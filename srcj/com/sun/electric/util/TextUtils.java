@@ -106,22 +106,6 @@ public class TextUtils {
     }
 
     /**
-     * Method to remove white spaces at the beginning of the String.
-     * @param str the string to trim.
-     * @return original string without leading whitespaces.
-     * TODO: why can't String.trim() be used?
-     */
-    public static String trimLeading(String str) {
-        for (int i = 0; i < str.length(); i++) {
-            // Found first non-whitespace character
-            if (!Character.isWhitespace(str.charAt(i))) {
-                return str.substring(i);
-            }
-        }
-        return "";
-    }
-
-    /**
      * Returns canonic char for ignore-case comparison .
      * This is the same as Character.toLowerCase(Character.toUpperCase(ch)).
      * @param ch given char.
