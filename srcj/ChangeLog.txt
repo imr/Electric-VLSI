@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+BUG (10/8/10, FS) Strange debug message in CircularArray (Bug 2920)
+FIX: debug message removed
+
 BUG: (10/7/10, DN) Display didn't refresh after changing Text Preference from Bug #2790.
 FIX: Implement new TextPreference in GraphicsPreferences instead of EditingPreferences.
 
