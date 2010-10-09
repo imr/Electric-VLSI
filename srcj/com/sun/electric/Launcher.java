@@ -235,20 +235,20 @@ public final class Launcher
     }
     
     private static void initClasspath(boolean loadDependencies) {
-        ClassLoader appLoader = ClassLoader.getSystemClassLoader();
-        pluginClassLoader = appLoader;
+        ClassLoader launcherLoader = Launcher.class.getClassLoader();
+        pluginClassLoader = launcherLoader;
         if (loadDependencies) {
             URL[] pluginJars = readMavenDependencies();
             if (pluginJars.length > 0) {
                 for (URL url: pluginJars) {
-                    Object result = callByReflection(appLoader, "java.net.URLClassLoader", "addURL", new Class[] { URL.class },
-                            appLoader, new Object[] { url });
+                    Object result = callByReflection(launcherLoader, "java.net.URLClassLoader", "addURL", new Class[] { URL.class },
+                            launcherLoader, new Object[] { url });
                 }
 //                pluginClassLoader = new EClassLoader(pluginJars, appLoader);
             }
         }
 		if (enableAssertions) {
-            appLoader.setDefaultAssertionStatus(true);
+            launcherLoader.setDefaultAssertionStatus(true);
             pluginClassLoader.setDefaultAssertionStatus(true);
         }
     }

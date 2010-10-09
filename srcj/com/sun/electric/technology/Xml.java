@@ -48,6 +48,7 @@ import java.util.*;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -518,12 +519,12 @@ public class Xml {
 
     private static Schema schema = null;
 
-    private static synchronized void loadTechnologySchema() throws SAXException {
+    private static synchronized void loadTechnologySchema() throws SAXException, IOException {
         if (schema != null) return;
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         URL technologySchemaUrl = Technology.class.getResource("Technology.xsd");
         if (technologySchemaUrl != null)
-            schema = schemaFactory.newSchema(technologySchemaUrl);
+            schema = schemaFactory.newSchema(new StreamSource(technologySchemaUrl.openStream()));
         else
         {
             System.err.println("Schema file Technology.xsd, working without XML schema");
