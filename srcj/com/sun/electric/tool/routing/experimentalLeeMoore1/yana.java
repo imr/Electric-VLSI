@@ -37,10 +37,13 @@ import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CyclicBarrier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class yana extends BenchmarkRouter {
+    
+    private static Log logger = LogFactory.getLog(yana.class);
 
 	protected final boolean output = enableOutput.getBooleanValue();
 
@@ -227,7 +230,7 @@ public class yana extends BenchmarkRouter {
 				workerThreads[i].join();
 			}
 		} catch (InterruptedException ex) {
-			Logger.getLogger(yana.class.getName()).log(Level.SEVERE, null, ex);
+			logger.debug(null, ex);
 		}
 		if (output)
 			System.out.println("yana complete...");

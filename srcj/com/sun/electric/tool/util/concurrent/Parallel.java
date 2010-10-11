@@ -25,13 +25,14 @@ package com.sun.electric.tool.util.concurrent;
 
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob;
-import com.sun.electric.tool.util.concurrent.patterns.PJob;
-import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;
-import com.sun.electric.tool.util.concurrent.patterns.PWhileJob;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.patterns.PJob;
+import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
+import com.sun.electric.tool.util.concurrent.patterns.PWhileJob;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob.PWhileTask;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
 
 /**
  * This class simplifies the interface for the parallel base patterns
@@ -39,6 +40,10 @@ import com.sun.electric.tool.util.concurrent.patterns.PWhileJob.PWhileTask;
  * @author Felix Schmidt
  */
 public class Parallel {
+    
+    public static void For(BlockedRange range, PForTask task, IThreadPool pool) {
+        (new PForJob(range, task, pool)).execute(); 
+    }
 
 	/**
 	 * Parallel For Loop (1- and 2-dimensional)

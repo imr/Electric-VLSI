@@ -23,60 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.EditingPreferences;
-import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.change.DatabaseChangeEvent;
-import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.hierarchy.Cell.CellGroup;
-import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Geometric;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.RTNode;
-import com.sun.electric.database.variable.CodeExpression;
-import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.io.output.PNG;
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.GraphicsPreferences;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.tool.user.dialogs.SelectObject;
-import com.sun.electric.tool.user.redisplay.AbstractDrawing;
-import com.sun.electric.tool.user.redisplay.PixelDrawing;
-import com.sun.electric.tool.user.redisplay.VectorCache;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.util.TextUtils;
-import com.sun.electric.util.TextUtils.WhatToSearch;
-import com.sun.electric.util.math.DBMath;
-import com.sun.electric.util.math.Orientation;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -125,8 +71,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -140,6 +84,64 @@ import javax.swing.JScrollBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.tree.MutableTreeNode;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+
+import com.sun.electric.database.EditingPreferences;
+import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Cell.CellGroup;
+import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTNode;
+import com.sun.electric.database.variable.CodeExpression;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.output.PNG;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.GraphicsPreferences;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
+import com.sun.electric.tool.user.dialogs.SelectObject;
+import com.sun.electric.tool.user.redisplay.AbstractDrawing;
+import com.sun.electric.tool.user.redisplay.PixelDrawing;
+import com.sun.electric.tool.user.redisplay.VectorCache;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.TextUtils.WhatToSearch;
+import com.sun.electric.util.math.DBMath;
+import com.sun.electric.util.math.Orientation;
 
 /**
  * This class defines an editing window for displaying circuitry.
@@ -203,7 +205,7 @@ public class EditWindow extends JPanel
 
 	/** synchronization lock */								private static Object lock = new Object();
 	/** scheduled or running rendering job */				private static RenderJob runningNow = null;
-	/** Logger of this package. */							private static Logger logger = Logger.getLogger("com.sun.electric.tool.user.ui");
+	/** Logger of this package. */							private static Log logger = LogFactory.getLog(EditWindow.class);
 	/** Class name for logging. */							private static String CLASS_NAME = EditWindow.class.getName();
     /** ElapseTimer object for pulsating errors */                private Timer pulsatingTimer;
     /** if true, repaint entire screen (not just errors) */ private boolean dirty;
@@ -1294,16 +1296,16 @@ public class EditWindow extends JPanel
 			return;
 		}
 
-		logger.entering(CLASS_NAME, "paintComponent", this);
+		logger.trace("entering: paintComponent - " + this);
 
 		if (!drawing.paintComponent(g, lv, getSize())) {
 			fullRepaint();
 			g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
 			g.fillRect(0, 0, getWidth(), getHeight());
-			logger.exiting(CLASS_NAME, "paintComponent", "resize and repaint");
+			logger.trace("exiting: paintComponent - resize and repaint");
 			return;
 		}
-		logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "offscreen is drawn");
+		logger.trace("paintComponent: offscreen is drawn");
 		sz = getSize();
 		szHalfWidth = sz.width / 2;
 		szHalfHeight = sz.height / 2;
@@ -1390,7 +1392,7 @@ public class EditWindow extends JPanel
 			g.drawLine(hX+1, hY+1, hX+1, lY-1);
 			g.drawLine(hX+1, lY-1, lX-1, lY-1);
 		}
-		logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "overlays are drawn");
+		logger.trace("paintComponent: overlays are drawn");
 
 		// see if anything else is queued
 		if (scale != scaleRequested || offx != offxRequested || offy != offyRequested || !getSize().equals(sz))
@@ -1398,7 +1400,7 @@ public class EditWindow extends JPanel
 			textInCell = null;
 			fullRepaint();
 		}
-		logger.exiting(CLASS_NAME, "paintComponent");
+		logger.trace("exiting: paintComponent");
 	}
 
 	/**
@@ -1556,7 +1558,7 @@ public class EditWindow extends JPanel
 		if (runningNow != null && repaintRequest && !fullInstantiate)
 			return;
 
-		logger.entering(CLASS_NAME, "repaintContents", bounds);
+		logger.trace("repaintContents: "+ bounds);
 		// do the redraw in a separate thread
 		if (fullInstantiate) {
 			fullInstantiateBounds = bounds.getBounds2D();
@@ -1564,7 +1566,7 @@ public class EditWindow extends JPanel
 		}
 		invokeRenderJob(this, dp, gp);
 
-		logger.exiting(CLASS_NAME, "repaintContents");
+		logger.trace("exiting: repaintContents");
 	}
 
 	public static void invokeRenderJob() {
@@ -1572,7 +1574,7 @@ public class EditWindow extends JPanel
 	}
 
 	private static void invokeRenderJob(EditWindow wnd, AbstractDrawing.DrawingPreferences dp, GraphicsPreferences gp) {
-		logger.entering(CLASS_NAME, "invokeRenderJob", wnd);
+		logger.trace("entering: invokeRenderJob - "+ wnd);
 		synchronized(lock)
 		{
 			if (wnd != null) {
@@ -1581,13 +1583,13 @@ public class EditWindow extends JPanel
 			}
 			if (runningNow != null) {
 				runningNow.hasTasks = true;
-				logger.exiting(CLASS_NAME, "invokeRenderJob running now");
+				logger.trace("exiting: invokeRenderJob running now");
 				return;
 			}
 			runningNow = new RenderJob(gp, dp);
 		}
 		runningNow.startJob();
-		logger.exiting(CLASS_NAME, "invokeRenderJob starting job");
+		logger.trace("exiting: invokeRenderJob starting job");
 	}
 
 	private final static String RENDER_JOB_CLASS_NAME = CLASS_NAME + ".RenderJob";
@@ -1609,7 +1611,7 @@ public class EditWindow extends JPanel
 		}
 
 		public boolean doIt() throws JobException {
-			logger.entering(RENDER_JOB_CLASS_NAME, "doIt");
+			logger.trace("entering: doIt");
 			try {
 				for (;;) {
 					hasTasks = false;
@@ -1648,12 +1650,12 @@ public class EditWindow extends JPanel
 				}
 			}
 
-			logger.exiting(RENDER_JOB_CLASS_NAME, "doIt");
+			logger.trace("exiting: doIt");
 			return true;
 		}
 
 		private void render(EditWindow wnd) throws JobException {
-			logger.entering(RENDER_JOB_CLASS_NAME, "render");
+			logger.trace("entering: render");
 
 			// do the hard work of re-rendering the image
 			Rectangle2D bounds = null;
@@ -1673,7 +1675,7 @@ public class EditWindow extends JPanel
 				wnd.offxRequested, wnd.offyRequested, wnd.inPlaceDescent);
 			wnd.drawing.render(wnd.getSize(), da, gp, dp, fullInstantiate, bounds);
 			wnd.repaint();
-			logger.exiting(RENDER_JOB_CLASS_NAME, "render");
+			logger.trace("exiting: render");
 		}
 	}
 

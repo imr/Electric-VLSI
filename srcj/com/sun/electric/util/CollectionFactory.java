@@ -23,7 +23,9 @@
  */
 package com.sun.electric.util;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,53 +54,73 @@ import com.sun.electric.tool.util.datastructures.ImmutableList;
  * 
  */
 public class CollectionFactory extends ConcurrentCollectionFactory {
-	
-	private CollectionFactory() {
-		
-	}
 
-	
+    private CollectionFactory() {
 
-	public static <T, K> HashMap<T, K> createHashMap() {
-		return new HashMap<T, K>();
-	}
+    }
 
-	/**
-	 * 
-	 * @param <T>
-	 * @param source
-	 * @return
-	 */
-	public static <T> Set<T> copySet(Set<T> source) {
-		Set<T> result = CollectionFactory.createHashSet();
+    public static <T, K> HashMap<T, K> createHashMap() {
+        return new HashMap<T, K>();
+    }
 
-		doCopyCollection(source, result);
+    /**
+     * 
+     * @param <T>
+     * @param source
+     * @return
+     */
+    public static <T> Set<T> copySet(Set<T> source) {
+        Set<T> result = CollectionFactory.createHashSet();
 
-		return result;
-	}
+        doCopyCollection(source, result);
 
-	public static <T> Set<T> copyListToSet(List<T> source) {
-		Set<T> result = CollectionFactory.createHashSet();
+        return result;
+    }
 
-		doCopyCollection(source, result);
+    public static <T> Set<T> copyListToSet(List<T> source) {
+        Set<T> result = CollectionFactory.createHashSet();
 
-		return result;
-	}
+        doCopyCollection(source, result);
 
-	public static <T> List<T> copySetToList(Set<T> source) {
-		List<T> result = CollectionFactory.createArrayList();
+        return result;
+    }
 
-		doCopyCollection(source, result);
+    public static <T> List<T> copySetToList(Set<T> source) {
+        List<T> result = CollectionFactory.createArrayList();
 
-		return result;
-	}
+        doCopyCollection(source, result);
 
-	public static <T> ImmutableList<T> copyListToImmutableList(List<T> source) {
-		ImmutableList<T> immutableList = null;
-		for (T element : source) {
-			immutableList = ImmutableList.add(immutableList, element);
-		}
-		return immutableList;
-	}
+        return result;
+    }
 
+    public static <T> ImmutableList<T> copyListToImmutableList(List<T> source) {
+        ImmutableList<T> immutableList = null;
+        for (T element : source) {
+            immutableList = ImmutableList.add(immutableList, element);
+        }
+        return immutableList;
+    }
+
+    public static <T> T[] arrayMerge(T[]... arrays) {
+
+        Class objectClass = null;
+        int count = 0;
+        for(T[] array: arrays) {
+            if(array != null) {
+              count +=array.length;
+              if(array.length > 0)
+                  objectClass = array[0].getClass();
+            }
+        }
+        if(objectClass == null)
+            return null;
+       List<T> mergedList = new ArrayList<T>();
+       
+       for(T[] array: arrays)
+           if(array != null)
+               mergedList.addAll(Arrays.asList(array));
+       
+       return mergedList.toArray((T[])Array.newInstance(objectClass, count));
+
+    }
 }

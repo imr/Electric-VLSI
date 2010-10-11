@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+IMP: (10/11/10, FS) Add spring environment and use it in ERC for ThreadPool
+
+IMP: (10/11/10, FS) Additional folder handling for experimnetal stuff
+
+IMP: (10/11/10, FS) Use log4j and common-logging 
+
 BUG: (10/8/10, GVG) TextUtils.eatWhiteSpaces v/s String.trim() (Bug #2907)
 FIX: Per our discussion, trimLeading removed from the code.
 

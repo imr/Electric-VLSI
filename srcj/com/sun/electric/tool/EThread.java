@@ -23,8 +23,15 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.StartupPrefs;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.logging.Level;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.sun.electric.Main;
+import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
@@ -34,14 +41,12 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.logging.Level;
-
 /**
  * Thread for execution Jobs in Electric.
  */
 class EThread extends Thread {
+    
+    private static Log logger = LogFactory.getLog(EThread.class);
 
     private static final String CLASS_NAME = EThread.class.getName();
     private static final ArrayList<Snapshot> snapshotCache = new ArrayList<Snapshot>();
@@ -58,7 +63,7 @@ class EThread extends Thread {
     EThread(int id) {
         super("EThread-" + id);
         //       setUserInterface(Job.currentUI);
-        Job.logger.logp(Level.FINER, CLASS_NAME, "constructor", getName());
+        logger.trace("constructor " + getName());
         start();
     }
 
@@ -67,10 +72,10 @@ class EThread extends Thread {
     }
 
     public void run() {
-        Job.logger.logp(Level.FINE, CLASS_NAME, "run", getName());
+        logger.trace("run " + getName());
         for (;;) {
             ejob = Job.serverJobManager.selectEJob();
-            Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", ejob.jobName);
+            logger.trace("run: selectedJob " + ejob.jobName);
             isServerThread = ejob.jobType != Job.Type.CLIENT_EXAMINE;
             database = isServerThread ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
             ejob.changedFields = new ArrayList<Field>();
@@ -170,7 +175,7 @@ class EThread extends Thread {
             isServerThread = false;
             database = null;
 
-            Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", finishedEJobName);
+            logger.trace("run: finishedJob {0}" + finishedEJobName);
         }
     }
 

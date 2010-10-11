@@ -24,6 +24,22 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.prefs.BackingStoreException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.CellTree;
@@ -50,26 +66,12 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.util.TextUtils;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
-
 /**
  * Electric run-time database is a graph of ElectricObjects.
  */
 public class EDatabase {
 
-    private static final Logger logger = Logger.getLogger("com.sun.electric.database");
+    private static final Log logger = LogFactory.getLog(EDatabase.class);
     private static final String CLASS_NAME = EDatabase.class.getName();
     private static EDatabase serverDatabase;
     private static EDatabase clientDatabase;
@@ -313,7 +315,7 @@ public class EDatabase {
             return;
         }
         IllegalStateException e = new IllegalStateException("Database changes are forbidden");
-        logger.logp(Level.WARNING, CLASS_NAME, "checkChanging", e.getMessage(), e);
+        logger.warn("checkChanging: " + e.getMessage(), e);
         throw e;
     }
 
@@ -326,7 +328,7 @@ public class EDatabase {
             return;
         }
         IllegalStateException e = new IllegalStateException("Database undo is forbidden");
-        logger.logp(Level.WARNING, CLASS_NAME, "checkUndoing", e.getMessage(), e);
+        logger.warn("checkUndoing " + e.getMessage(), e);
         throw e;
     }
 
@@ -345,7 +347,7 @@ public class EDatabase {
         }
         IllegalStateException e = new IllegalStateException("Cuncurrent database examine");
 //        e.printStackTrace();
-        logger.logp(Level.FINE, CLASS_NAME, "checkExamine", e.getMessage(), e);
+        logger.error("checkExamine " + e.getMessage(), e);
 //        throw e;
     }
 
