@@ -2582,7 +2582,7 @@ public class Spice extends Topology
                 }
             }
         }
-        multiLinePrint(false, ".OPTIONS NOMOD NOPAGE\n");
+//        multiLinePrint(false, ".OPTIONS NOMOD NOPAGE\n");
 
         if (localPrefs.useCellParameters) {
             multiLinePrint(false, ".options parhier=local\n");
