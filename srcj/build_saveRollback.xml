@@ -36,12 +36,18 @@
 		<property name="prefuse" value="../packaging/.m2/repository/org/prefuse/prefuse/beta-20060809/prefuse-beta-20060809.jar" />
 		<property name="jython" value="../packaging/.m2/repository/org/python/jython/2.5.0/jython-2.5.0.jar" />
 		<property name="scala-library" value="../packaging/.m2/repository/org/scala-lang/scala-library/2.8.0/scala-library-2.8.0.jar" />
+		<property name="log4j" value="../packaging/.m2/repository/log4j/log4j/1.2.16/log4j-1.2.16.jar" />
+		<property name="commons-logging" value="../packaging/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar" />
+		<property name="spring" value="../packaging/.m2/repository/org/springframework/spring/2.5.5/spring-2.5.5.jar" />
 		<property name="scalaProjects" value="../packaging/ScalaProjects/" />
 
 		<!-- Path for minimum set of external jars -->
 		<path id="externalClassPath">
 			<pathelement location="${beanshell}" />
 			<pathelement location="${AppleJava}" />
+			<pathelement location="${commons-logging}" />
+			<pathelement location="${log4j}" />
+			<pathelement location="${spring}" />
 		</path>
 
 		<!-- Path for jmf libraries -->
@@ -210,6 +216,10 @@
 	<target name="deleteExternalJars" description="Delete extracted Jar files to cleanup after build">
 		<delete dir="META-INF" />
 		<delete dir="bsh" />
+		<!-- spring and logging -->
+		<delete dir="org/springframework" />
+		<delete dir="org/aopalliance" />
+		<delete dir="org/apache" />
 		<!-- beanshell -->
 		<delete dir="org" />
 		<!-- lucene, jython -->
@@ -305,6 +315,7 @@
 		<unjar dest="." src="${beanshell}" />
 		<unjar dest="." src="${lucene}" />
 		<unjar dest="." src="${prefuse}" />
+		<antcall target="unjarSpring" />
 		<antcall target="unjarJython">
 		</antcall>
 		<antcall target="unjarScala">
@@ -317,6 +328,12 @@
 
 	<target name="unjarScala" unless="NOSCALA" description="Extract Scala if used in Sun release">
 		<unjar dest="." src="${scala-library}" />
+	</target>
+	
+	<target name="unjarSpring" description="Extract Spring">
+	  <unjar dest="." src="${spring}" />
+	  <unjar dest="." src="${commons-logging}" />
+	  <unjar dest="." src="${log4j}" />
 	</target>
 
 	<target name="generalPurposeJar" depends="init,compile" description="Make Jar file with version">

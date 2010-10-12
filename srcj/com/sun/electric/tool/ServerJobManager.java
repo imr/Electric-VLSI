@@ -51,6 +51,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 
 /**
  *
@@ -122,7 +123,7 @@ public class ServerJobManager {
         if (recommendedNumThreads > 0) {
             maxNumThreads = recommendedNumThreads;
         }
-        Job.logger.trace("initThreads: maxNumThreads=" + maxNumThreads);
+        Job.logger.logp(Level.FINE, CLASS_NAME, "initThreads", "maxNumThreads=" + maxNumThreads);
         return maxNumThreads;
     }
 
@@ -346,7 +347,7 @@ public class ServerJobManager {
     }
 
     private void setEJobState(EJob ejob, EJob.State newState, String info) {
-        Job.logger.trace("setEjobState: " +  newState + " " + ejob.jobName);
+        Job.logger.logp(Level.FINE, CLASS_NAME, "setEjobState", newState + " " + ejob.jobName);
         EJob.State oldState = ejob.state;
         switch (newState) {
             case WAITING:
@@ -391,6 +392,7 @@ public class ServerJobManager {
 //        if (!Job.BATCHMODE && !guiChanged)
 //            SwingUtilities.invokeLater(this);
 //        guiChanged = true;
+        Job.logger.exiting(CLASS_NAME, "setJobState");
     }
 
 //    private boolean isChangeJobQueuedOrRunning() {
@@ -490,9 +492,9 @@ public class ServerJobManager {
                     ActivityLogger.finished();
                     System.exit(0);
                 }
-                Job.logger.trace("selectConnection: pause");
+                Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "pause");
                 databaseChangesMutex.awaitUninterruptibly();
-                Job.logger.trace("selectConnection: resume");
+                Job.logger.logp(Level.FINE, CLASS_NAME, "selectConnection", "resume");
             }
         } finally {
             unlock();

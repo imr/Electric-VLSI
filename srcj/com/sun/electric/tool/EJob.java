@@ -38,6 +38,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 /**
  * Class to track Job serializing and execution.
@@ -184,7 +185,7 @@ public class EJob {
             out.close();
             serializedResult = byteStream.toByteArray();
         } catch (Throwable e) {
-            Job.logger.warn("serializeResult: failure", e);
+            Job.logger.logp(Level.WARNING, getClass().getName(), "serializeResult", "failure", e);
             serializeExceptionResult(e, database);
         }
     }
@@ -199,7 +200,7 @@ public class EJob {
             out.close();
             serializedResult = byteStream.toByteArray();
         } catch (Throwable e) {
-            Job.logger.warn("serializeExceptionResult: failure", e);
+            Job.logger.logp(Level.WARNING, getClass().getName(), "serializeExceptionResult", "failure", e);
             serializedResult = new byte[0];
         }
     }
@@ -221,7 +222,7 @@ public class EJob {
             in.close();
             return jobException;
         } catch (Throwable e) {
-            Job.logger.warn("deserializeResult: failure", e);
+            Job.logger.logp(Level.WARNING, getClass().getName(), "deserializeResult", "failure", e);
             return e;
         }
     }

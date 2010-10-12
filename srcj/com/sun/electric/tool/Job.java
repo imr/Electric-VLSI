@@ -51,10 +51,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Jobs are processes that will run in the background, such as DRC, NCC,
@@ -120,7 +118,7 @@ public abstract class Job implements Serializable {
 	static final int PROTOCOL_VERSION = 20; // Mar 17
 	public static boolean LOCALDEBUGFLAG; // Gilda's case
 	// private static final String CLASS_NAME = Job.class.getName();
-	static final Log logger = LogFactory.getLog(Job.class);
+	static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
 
 	/**
 	 * Method to tell whether Electric is running in "debug" mode. If the

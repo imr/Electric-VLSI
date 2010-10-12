@@ -44,7 +44,6 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.util.TextUtils;
-import com.sun.electric.util.config.Configuration;
 
 /**
  * @author Felix Schmidt
@@ -57,8 +56,7 @@ public abstract class AbstractJunitBaseClass {
 	}
 
 	public AbstractJunitBaseClass() {
-	    Configuration.setConfigName("configuration.xml");
-	    Configuration.getInstance();
+
 	}
 
 	@Before
