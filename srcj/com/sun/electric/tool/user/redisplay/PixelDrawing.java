@@ -442,14 +442,11 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* TOP LEVEL
-	// *************************************
+	// ************************************* TOP LEVEL *************************************
 
 	/**
 	 * Constructor creates an offscreen PixelDrawing object.
-	 * 
-	 * @param sz
-	 *            the size of an offscreen PixelDrawinf object.
+	 * @param sz the size of an offscreen PixelDrawing object.
 	 */
 	public PixelDrawing(Dimension sz) {
 		this.sz = new Dimension(sz);
@@ -502,10 +499,8 @@ public class PixelDrawing {
 
 	/**
 	 * Method to set the printing mode used for all drawing.
-	 * 
-	 * @param mode
-	 *            the printing mode: 0=color display (default), 1=color
-	 *            printing, 2=B&W printing.
+	 * @param mode the printing mode: 0=color display (default), 1=color
+	 * printing, 2=B&W printing.
 	 */
 	public void setPrintingMode(int mode) {
 		nowPrinting = mode;
@@ -513,11 +508,8 @@ public class PixelDrawing {
 
 	/**
 	 * Method to override the background color. Must be called before
-	 * "drawImage()". This is used by printing, which forces the background to
-	 * be white.
-	 * 
-	 * @param bg
-	 *            the background color to use.
+	 * "drawImage()". This is used by printing, which forces the background to be white.
+	 * @param bg the background color to use.
 	 */
 	public void setBackgroundColor(Color bg) {
 		backgroundColor = bg.getRGB() & 0xFFFFFF;
@@ -525,7 +517,6 @@ public class PixelDrawing {
 
 	/**
 	 * Method for obtaining the rendered image after "drawImage" has finished.
-	 * 
 	 * @return an Image for this edit window.
 	 */
 	public BufferedImage getBufferedImage() {
@@ -535,7 +526,6 @@ public class PixelDrawing {
 	/**
 	 * Method for obtaining the RGB array of the rendered image after
 	 * "drawImage" has finished.
-	 * 
 	 * @return an RGB array for this edit window.
 	 */
 	int[] getOpaqueData() {
@@ -544,7 +534,6 @@ public class PixelDrawing {
 
 	/**
 	 * Method for obtaining the size of the offscreen bitmap.
-	 * 
 	 * @return the size of the offscreen bitmap.
 	 */
 	public Dimension getSize() {
@@ -560,11 +549,8 @@ public class PixelDrawing {
 	}
 
 	/**
-	 * Method to set the EditWindow0 associated with the rendering. Useful when
-	 * printing.
-	 * 
-	 * @param wnd
-	 *            the EditWindow0 to use for scaling, context, etc.
+	 * Method to set the EditWindow0 associated with the rendering. Useful when printing.
+	 * @param wnd the EditWindow0 to use for scaling, context, etc.
 	 */
 	public void setWindow(EditWindow0 wnd) {
 		this.wnd = wnd;
@@ -573,12 +559,9 @@ public class PixelDrawing {
 	/**
 	 * This is the entry point for rendering. It displays a cell in this
 	 * offscreen window.
-	 * 
-	 * @param fullInstantiate
-	 *            true to display to the bottom of the hierarchy (for peeking).
-	 * @param drawLimitBounds
-	 *            the area in the cell to display (null to show all). The
-	 *            rendered Image can then be obtained with "getImage()".
+	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
+	 * @param drawLimitBounds the area in the cell to display (null to show all). The
+	 * rendered Image can then be obtained with "getImage()".
 	 */
 	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds,
 			boolean isPixelDrawing, double greekSizeLimit, double greekCellSizeLimit) {
@@ -781,15 +764,12 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* INTERMEDIATE CONTROL LEVEL
-	// *************************************
+	// ************************************* INTERMEDIATE CONTROL LEVEL *************************************
 
 	/**
 	 * Method to erase the offscreen data in this PixelDrawing. This is called
 	 * before any rendering is done.
-	 * 
-	 * @param bounds
-	 *            the area of the image to actually draw (null to draw all).
+	 * @param bounds the area of the image to actually draw (null to draw all).
 	 */
 	public void clearImage(Rectangle bounds, Cell cell) {
 		// pickup new technology if it changed
@@ -851,7 +831,6 @@ public class PixelDrawing {
 	/**
 	 * Method to complete rendering by combining the transparent and opaque
 	 * imagery. This is called after all rendering is done.
-	 * 
 	 * @return the offscreen Image with the final display.
 	 */
 	public Image composite(Rectangle bounds) {
@@ -1157,9 +1136,8 @@ public class PixelDrawing {
 	/**
 	 * Method to return a rectangle in database coordinates that covers the
 	 * viewable extent of this window.
-	 * 
 	 * @return a rectangle that describes the viewable extent of this window
-	 *         (database coordinates).
+	 * (database coordinates).
 	 */
 	private Rectangle2D displayableBounds(AffineTransform intoCellTransform) {
 		Point2D low = new Point2D.Double();
@@ -1240,8 +1218,7 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* HIERARCHY TRAVERSAL
-	// *************************************
+	// ************************************* HIERARCHY TRAVERSAL *************************************
 
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
@@ -1300,20 +1277,13 @@ public class PixelDrawing {
 
 	/**
 	 * Method to draw a NodeInst into the offscreen image.
-	 * 
-	 * @param ni
-	 *            the NodeInst to draw.
-	 * @param trans
-	 *            the transformation of the NodeInst to the display.
-	 * @param topCell
-	 *            the Cell at the top-level of display.
-	 * @param drawLimitBounds
-	 *            bounds in which to draw.
-	 * @param fullInstantiate
-	 *            true to draw to the bottom of the hierarchy ("peek" mode).
-	 * @param forceVisible
-	 *            true if layer visibility information should be ignored and
-	 *            force the drawing
+	 * @param ni the NodeInst to draw.
+	 * @param trans the transformation of the NodeInst to the display.
+	 * @param topCell the Cell at the top-level of display.
+	 * @param drawLimitBounds bounds in which to draw.
+	 * @param fullInstantiate true to draw to the bottom of the hierarchy ("peek" mode).
+	 * @param forceVisible true if layer visibility information should be ignored and
+	 * force the drawing
 	 */
 	private void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, Cell topCell,
 			Rectangle2D drawLimitBounds, boolean fullInstantiate, boolean forceVisible) {
@@ -1473,13 +1443,9 @@ public class PixelDrawing {
 
 	/**
 	 * Method to render an ArcInst into the offscreen image.
-	 * 
-	 * @param ai
-	 *            the ArcInst to draw.
-	 * @param trans
-	 *            the transformation of the ArcInst to the display.
-	 * @param forceVisible
-	 *            true to ignore layer visibility and draw all layers.
+	 * @param ai the ArcInst to draw.
+	 * @param trans the transformation of the ArcInst to the display.
+	 * @param forceVisible true to ignore layer visibility and draw all layers.
 	 */
 	private void drawArc(ArcInst ai, AffineTransform trans, boolean forceVisible) {
 		// if the arc is tiny, just approximate it with a single dot
@@ -1655,12 +1621,11 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* CELL CACHING
-	// *************************************
+	// ************************************* CELL CACHING *************************************
 
 	/**
 	 * @return true if the cell is properly handled and need no further
-	 *         processing. False to render the contents recursively.
+	 * processing. False to render the contents recursively.
 	 */
 	private boolean expandedCellCached(Cell subCell, Orientation orient, AffineTransform origTrans, Cell topCell,
 			Rectangle2D drawLimitBounds, boolean fullInstantiate) {
@@ -1978,8 +1943,7 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* RENDERING POLY SHAPES
-	// *************************************
+	// ************************************* RENDERING POLY SHAPES *************************************
 
 	/**
 	 * A class representing a rectangular array of pixels. References to pixels
@@ -1990,103 +1954,73 @@ public class PixelDrawing {
 	 */
 	static interface ERaster {
 		/**
-		 * Method to fill a box [lX,hX] x [lY,hY]. Both low and high coordiantes
+		 * Method to fill a box [lX,hX] x [lY,hY]. Both low and high coordinates
 		 * are inclusive. Filling might be patterned.
-		 * 
-		 * @param lX
-		 *            left X coordinate
-		 * @param hX
-		 *            right X coordiante
-		 * @param lY
-		 *            top Y coordinate
-		 * @param hY
-		 *            bottom Y coordiante
+		 * @param lX left X coordinate
+		 * @param hX right X coordinate
+		 * @param lY top Y coordinate
+		 * @param hY bottom Y coordinate
 		 */
 		public void fillBox(int lX, int hX, int lY, int hY);
 
 		/**
 		 * Method to fill a horizontal scanline [lX,hX] x [y]. Both low and high
-		 * coordiantes are inclusive. Filling might be patterned.
-		 * 
-		 * @param y
-		 *            Y coordinate
-		 * @param lX
-		 *            left X coordinate
-		 * @param hX
-		 *            right X coordiante
+		 * Coordinates are inclusive. Filling might be patterned.
+		 * @param y Y coordinate
+		 * @param lX left X coordinate
+		 * @param hX right X coordinate
 		 */
 		public void fillHorLine(int y, int lX, int hX);
 
 		/**
-		 * Method to fill a verticaltal scanline [x] x [lY,hY]. Both low and
-		 * bigh coordiantes are inclusive. Filling might be patterned.
-		 * 
-		 * @param x
-		 *            X coordinate
-		 * @param lY
-		 *            top Y coordinate
-		 * @param hY
-		 *            bottom Y coordiante
+		 * Method to fill a vertical scanline [x] x [lY,hY]. Both low and
+		 * high Coordinates are inclusive. Filling might be patterned.
+		 * @param x X coordinate
+		 * @param lY top Y coordinate
+		 * @param hY bottom Y coordinate
 		 */
 		public void fillVerLine(int x, int lY, int hY);
 
 		/**
 		 * Method to fill a point. Filling might be patterned.
-		 * 
-		 * @param x
-		 *            X coordinate
-		 * @param y
-		 *            Y coordinate
+		 * @param x X coordinate
+		 * @param y Y coordinate
 		 */
 		public void fillPoint(int x, int y);
 
 		/**
 		 * Method to draw a horizontal line [lX,hX] x [y]. Both low and high
-		 * coordiantes are inclusive. Drawing is always solid.
-		 * 
-		 * @param y
-		 *            Y coordinate
-		 * @param lX
-		 *            left X coordinate
-		 * @param hX
-		 *            right X coordiante
+		 * Coordinates are inclusive. Drawing is always solid.
+		 * @param y Y coordinate
+		 * @param lX left X coordinate
+		 * @param hX right X coordinate
 		 */
 		public void drawHorLine(int y, int lX, int hX);
 
 		/**
 		 * Method to draw a vertical line [x] x [lY,hY]. Both low and high
-		 * coordiantes are inclusive. Drawing is always solid.
-		 * 
-		 * @param x
-		 *            X coordinate
-		 * @param lY
-		 *            top Y coordinate
-		 * @param hY
-		 *            bottom Y coordiante
+		 * coordinates are inclusive. Drawing is always solid.
+		 * @param x  X coordinate
+		 * @param lY top Y coordinate
+		 * @param hY bottom Y coordinate
 		 */
 		public void drawVerLine(int x, int lY, int hY);
 
 		/**
 		 * Method to draw a point.
-		 * 
-		 * @param x
-		 *            X coordinate
-		 * @param y
-		 *            Y coordinate
+		 * @param x X coordinate
+		 * @param y Y coordinate
 		 */
 		public void drawPoint(int x, int y);
 
 		/**
 		 * Method to return Electric Outline style for this ERaster.
-		 * 
-		 * @return Electric Outline style for this ERaster or null for no
-		 *         outline.
+		 * @return Electric Outline style for this ERaster or null for no outline.
 		 */
 		public EGraphics.Outline getOutline();
 	}
 
-	// ************************************* RENDERING POLY SHAPES
-	// *************************************
+	// ************************************* RENDERING POLY SHAPES *************************************
 
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
@@ -2336,8 +2270,7 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* BOX DRAWING
-	// *************************************
+	// ************************************* BOX DRAWING *************************************
 
 	EGraphics getPortGraphics(PrimitivePort basePort) {
 		EGraphics portGraphics = portGraphicsCache.get(basePort);
@@ -2368,9 +2301,7 @@ public class PixelDrawing {
 
 	/**
 	 * Method to dim a color by reducing its saturation.
-	 * 
-	 * @param col
-	 *            the color as a 24-bit integer.
+	 * @param col the color as a 24-bit integer.
 	 * @return the dimmed color, a 24-bit integer.
 	 */
 	private int dimColor(int col) {
@@ -2385,9 +2316,7 @@ public class PixelDrawing {
 
 	/**
 	 * Method to brighten a color by increasing its saturation.
-	 * 
-	 * @param col
-	 *            the color as a 24-bit integer.
+	 * @param col the color as a 24-bit integer.
 	 * @return the brightened color, a 24-bit integer.
 	 */
 	private int brightenColor(int col) {
@@ -2597,8 +2526,7 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* LINE DRAWING
-	// *************************************
+	// ************************************* LINE DRAWING *************************************
 
 	/**
 	 * Method to draw a line on the off-screen buffer.
@@ -2914,8 +2842,7 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* POLYGON DRAWING
-	// *************************************
+	// ************************************* POLYGON DRAWING *************************************
 
 	/**
 	 * Method to draw a polygon on the off-screen buffer.
@@ -2976,7 +2903,7 @@ public class PixelDrawing {
 				polySegs[i].fy = j;
 			}
 
-			// insert this edge into the edgelist, sorted by ascending "fy"
+			// insert this edge into the edge list, sorted by ascending "fy"
 			if (edgelist == null) {
 				edgelist = polySegs[i];
 				polySegs[i].nextedge = null;
@@ -3010,7 +2937,7 @@ public class PixelDrawing {
 
 			// introduce edges from edge list into active list
 			while (edgelist != null && edgelist.fy <= ycur) {
-				// insert "edgelist" into active list, sorted by "fx" coordinate
+				// insert "edge list" into active list, sorted by "fx" coordinate
 				if (active.fx > edgelist.fx || (active.fx == edgelist.fx && active.increment > edgelist.increment)) {
 					edgelist.nextactive = active;
 					active = edgelist;
@@ -3118,8 +3045,7 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* TEXT DRAWING
-	// *************************************
+	// ************************************* TEXT DRAWING *************************************
 
 	/**
 	 * Method to draw a text on the off-screen buffer
@@ -3151,7 +3077,7 @@ public class PixelDrawing {
 			rotation = descript.getRotation().getIndex();
 			int colorIndex = descript.getColorIndex();
 			if (colorIndex != 0) {
-				Color full = EGraphics.getColorFromIndex(colorIndex);
+				Color full = EGraphics.getColorFromIndex(colorIndex, null);
 				if (full != null)
 					col = full.getRGB() & 0xFFFFFF;
 			}
@@ -3198,9 +3124,9 @@ public class PixelDrawing {
 		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation, shiftUp))
 			return;
 
-		// if text was made "greek", just draw a line
+		// if text was made "Greek", just draw a line
 		if (greekScale != 0) {
-			// text too small: make it "greek"
+			// text too small: make it "Greek"
 			int width = (int) renderInfo.bounds.getWidth() / greekScale;
 			int sizeIndent = (size / greekScale + 1) / 4;
 			Point pt = getTextCorner(width, size / greekScale, style, rect, rotation);
@@ -3516,20 +3442,13 @@ public class PixelDrawing {
 	}
 
 	/**
-	 * Method to return the coordinates of the lower-left corner of text in this
-	 * window.
-	 * 
-	 * @param rasterWidth
-	 *            the width of the text.
-	 * @param rasterHeight
-	 *            the height of the text.
-	 * @param style
-	 *            the anchor information for the text.
-	 * @param rect
-	 *            the bounds of the polygon containing the text.
-	 * @param rotation
-	 *            the rotation of the text (0=normal, 1=90 counterclockwise,
-	 *            2=180, 3=90 clockwise).
+	 * Method to return the coordinates of the lower-left corner of text in this window.
+	 * @param rasterWidth the width of the text.
+	 * @param rasterHeight the height of the text.
+	 * @param style the anchor information for the text.
+	 * @param rect the bounds of the polygon containing the text.
+	 * @param rotation the rotation of the text (0=normal, 1=90 counterclockwise,
+	 * 2=180, 3=90 clockwise).
 	 * @return the coordinates of the lower-left corner of the text.
 	 */
 	private static Point getTextCorner(int rasterWidth, int rasterHeight, Poly.Type style, Rectangle rect, int rotation) {
@@ -3648,8 +3567,7 @@ public class PixelDrawing {
 		return theFont;
 	}
 
-	// ************************************* CIRCLE DRAWING
-	// *************************************
+	// ************************************* CIRCLE DRAWING *************************************
 
 	/**
 	 * Method to draw a circle on the off-screen buffer
@@ -3833,8 +3751,7 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* DISC DRAWING
-	// *************************************
+	// ************************************* DISC DRAWING *************************************
 
 	/**
 	 * Method to draw a scan line of the filled-in circle of radius "radius"
@@ -3940,8 +3857,7 @@ public class PixelDrawing {
 		}
 	}
 
-	// ************************************* ARC DRAWING
-	// *************************************
+	// ************************************* ARC DRAWING *************************************
 
 	private boolean[] arcOctTable = new boolean[9];
 	private Point arcCenter;
@@ -4196,8 +4112,7 @@ public class PixelDrawing {
 		return (x > 8) ? x - 8 : x;
 	}
 
-	// ************************************* RENDERING SUPPORT
-	// *************************************
+	// ************************************* RENDERING SUPPORT *************************************
 
 	void drawPoint(int x, int y, byte[][] layerBitMap, int col) {
 		if (layerBitMap == null) {
@@ -4234,13 +4149,9 @@ public class PixelDrawing {
 
 	/**
 	 * Method to convert a database coordinate to screen coordinates.
-	 * 
-	 * @param dbX
-	 *            the X coordinate (in database units).
-	 * @param dbY
-	 *            the Y coordinate (in database units).
-	 * @param result
-	 *            the Point in which to store the screen coordinates.
+	 * @param dbX the X coordinate (in database units).
+	 * @param dbY the Y coordinate (in database units).
+	 * @param result the Point in which to store the screen coordinates.
 	 */
 	private void databaseToScreen(double dbX, double dbY, Point result) {
 		double scrX = originX + dbX * scale;
@@ -4255,9 +4166,7 @@ public class PixelDrawing {
 
 	/**
 	 * Method to convert a database rectangle to screen coordinates.
-	 * 
-	 * @param db
-	 *            the rectangle (in database units).
+	 * @param db the rectangle (in database units).
 	 * @return the rectangle on the screen.
 	 */
 	private Rectangle databaseToScreen(Rectangle2D db) {

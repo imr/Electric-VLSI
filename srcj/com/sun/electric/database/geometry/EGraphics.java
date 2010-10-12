@@ -145,11 +145,11 @@ public class EGraphics implements Serializable
 	/** transparent layer to use (0 for none) */			private final int transparentLayer;
 	/** color to use */										private final Color color;
 	/** opacity (0 to 1) of color */						private final double opacity;
-	/** whether to draw color in foregound */				private final boolean foreground;
+	/** whether to draw color in foreground */				private final boolean foreground;
 	/** stipple pattern to draw */							private final int [] pattern;
 	/** stipple pattern to draw with proper bit order */	private final int [] reversedPattern;
     /** 3D transparency mode */                             private final J3DTransparencyOption transparencyMode;
-    /** 3D transparenct factor */                           private final double transparencyFactor;
+    /** 3D transparency factor */                           private final double transparencyFactor;
 
 	/**
 	 * There are 3 ways to encode color in an integer.
@@ -391,7 +391,7 @@ public class EGraphics implements Serializable
 	 * Method returns EGraphics which differs from this EGraphics by Outline pattern
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @param o the outline pattern.
-     * @return EGraphics with specifed outline pattern
+     * @return EGraphics with specified outline pattern
 	 */
     public EGraphics withOutlined(Outline o) {
         if (o == null)
@@ -414,7 +414,7 @@ public class EGraphics implements Serializable
 	 * @param transparentLayer the transparent layer number associated with this EGraphics.
 	 * A value of zero means that this EGraphics is not drawn transparently.
 	 * Then, use the "setColor()" method to set its solid color.
-     * @return EGraphcos with specifed transparentLayer
+     * @return EGraphcos with specified transparentLayer
 	 */
     public EGraphics withTransparentLayer(int transparentLayer) {
 		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12) {
@@ -537,7 +537,7 @@ public class EGraphics implements Serializable
 
 	/**
 	 * Method to get whether this EGraphics should be drawn in the foreground.
-	 * The foreground is the main "mix" of layers, such as metals and polysilicons.
+	 * The foreground is the main "mix" of layers, such as metal and polysilicon.
 	 * The background is typically used by implant and well layers.
 	 * @return the whether this EGraphics should be drawn in the foreground.
 	 */
@@ -545,7 +545,7 @@ public class EGraphics implements Serializable
 
 	/**
 	 * Method returns EGraphics which differs from this EGraphics that it should be drawn in the foreground.
-	 * The foreground is the main "mix" of layers, such as metals and polysilicons.
+	 * The foreground is the main "mix" of layers, such as metal and polysilicon.
 	 * The background is typically used by implant and well layers.
 	 * @param f true if this EGraphics should be drawn in the foreground.
      * @return EGraphics with specified foreground
@@ -568,7 +568,7 @@ public class EGraphics implements Serializable
 
 	/**
 	 * Method to return the color associated with this EGraphics.
-     * Alpha comonent is 255.
+     * Alpha component is 255.
 	 * @return the color associated with this EGraphics.
 	 */
 	public Color getColor() { return color; }
@@ -598,7 +598,7 @@ public class EGraphics implements Serializable
 	/**
 	 * Method returns EGraphics which differs from this EGraphics by to the associated color.
      * The alpha component of the color is set to full opacity,
-     * alpha component of the argument is igniored.
+     * alpha component of the argument is ignored.
 	 * @param color the color to set.
      * @return EGraphics with specified color.
 	 */
@@ -617,10 +617,11 @@ public class EGraphics implements Serializable
 	 * Color indices are more general than colors, because they can handle
 	 * transparent layers, C-Electric-style opaque layers, and full color values.
 	 * @param colorIndex the color index to convert.
+	 * @param colorMap an optional color map to use for transparent colors (if null, figure it out)
 	 * @return a Color that describes the index
 	 * Returns null if the index is a transparent layer.
 	 */
-	public static Color getColorFromIndex(int colorIndex)
+	public static Color getColorFromIndex(int colorIndex, Color [] colorMap)
 	{
 		if ((colorIndex&OPAQUEBIT) != 0)
 		{
@@ -666,16 +667,19 @@ public class EGraphics implements Serializable
 		}
 
 		// handle transparent colors
-		Technology curTech = Technology.getCurrent();
-		Color [] colorMap = curTech.getColorMap();
 		if (colorMap == null)
 		{
-			Technology altTech = Schematics.getDefaultSchematicTechnology();
-			if (altTech != curTech)
+			Technology curTech = Technology.getCurrent();
+			colorMap = curTech.getColorMap();
+			if (colorMap == null)
 			{
-				colorMap = altTech.getColorMap();
+				Technology altTech = Schematics.getDefaultSchematicTechnology();
+				if (altTech != curTech)
+				{
+					colorMap = altTech.getColorMap();
+				}
+				if (colorMap == null) return null;
 			}
-			if (colorMap == null) return null;
 		}
 		int trueIndex = colorIndex >> 2;
 		if (trueIndex < colorMap.length) return colorMap[trueIndex];
@@ -694,7 +698,7 @@ public class EGraphics implements Serializable
 		if ((colorIndex&(OPAQUEBIT|FULLRGBBIT)) != 0)
 		{
 			// an opaque or full RGB color
-			return withColor(getColorFromIndex(colorIndex)).withTransparentLayer(0);
+			return withColor(getColorFromIndex(colorIndex, null)).withTransparentLayer(0);
 		}
 
 		// a transparent color
@@ -908,7 +912,7 @@ public class EGraphics implements Serializable
 	 * Method returns EGraphics which differs from this EGraphics by transparency factor.
 	 * Layers can have a transparency from 0 (opaque) to 1(transparent).
 	 * @param factor the transparency factor of this layer.
-     * @return EGraphics with specified transparecy factor.
+     * @return EGraphics with specified transparency factor.
 	 */
 	public EGraphics withTransparencyFactor(double factor) {
         if (factor == transparencyFactor) return this;

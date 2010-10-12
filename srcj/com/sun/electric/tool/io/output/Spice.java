@@ -125,10 +125,11 @@ public class Spice extends Topology
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_@";
 	/** legal characters in a spice deck */						private static final String PSPICELEGALCHARS       = "!#$%*+-/<>[]_";
 	/** legal characters in a CDL deck */						private static final String CDLNOBRACKETLEGALCHARS = "!#$%*+-/<>_";
-    /** if CDL writes out empty subckt definitions */			private static final boolean CDLWRITESEMPTYSUBCKTS = false;
+    /** if CDL writes out empty subcircuit definitions */		private static final boolean CDLWRITESEMPTYSUBCKTS = false;
     /** A mark for uniquify */                                  private static final Set<Variable.Key> UNIQUIFY_MARK = Collections.emptySet();
 
 	/** default Technology to use. */							private Technology layoutTechnology;
+	/** Technology of top cell. */								private Technology curTech;
 	/** Mask shrink factor (default =1) */						private double maskScale;
 	/** True to write CDL format */								private boolean useCDL;
 	/** Legal characters */										private String legalSpiceChars;
@@ -139,7 +140,7 @@ public class Spice extends Topology
     /** Parameters used for Spice */                            private Map<NodeProto,Set<Variable.Key>> allSpiceParams = new HashMap<NodeProto,Set<Variable.Key>>();
     /** for RC parasitics */                                    private SpiceParasiticsGeneral parasiticInfo;
     /** Networks exempted during parasitic ext */				private SpiceExemptedNets exemptedNets;
-    /** Whether or not to write empty subckts  */				private boolean writeEmptySubckts = true;
+    /** Whether or not to write empty subcircuits */			private boolean writeEmptySubckts = true;
     /** max length per line */									private int spiceMaxLenLine = SPICEMAXLENLINE;
 
     /** Flat measurements file */								private FlatSpiceCodeVisitor spiceCodeFlat = null;
@@ -257,6 +258,7 @@ public class Spice extends Topology
     		Spice out = new Spice(this);
     		out.useCDL = cdl;
             out.spiceEngine = engine;
+            out.curTech = cell.getTechnology();
     		if (out.openTextOutputStream(filePath)) return out.finishWrite();
     		if (out.writeCell(cell, context)) return out.finishWrite();
     		if (out.closeTextOutputStream()) return out.finishWrite();
@@ -308,7 +310,7 @@ public class Spice extends Topology
             if (!runSpice.equals(SimulationTool.spiceRunChoiceDontRun)) {
                 String command = runProgram + " " + runProgramArgs;
 
-                // see if user specified custom dir to run process in
+                // see if user specified custom directory to run process in
                 String workdir = User.getWorkingDirectory();
                 String rundir = workdir;
                 if (useRunDir) {
@@ -326,7 +328,7 @@ public class Spice extends Topology
                 String filename_noext = filePath.substring(start, end);
                 String filename = filePath.substring(start, filePath.length());
 
-                // replace vars in command and args
+                // replace variables in command and arguments
                 command = command.replaceAll("\\$\\{WORKING_DIR}", Matcher.quoteReplacement(workdir));
                 command = command.replaceAll("\\$\\{USE_DIR}", Matcher.quoteReplacement(rundir));
                 command = command.replaceAll("\\$\\{FILEPATH}", Matcher.quoteReplacement(filePath));
@@ -592,7 +594,7 @@ public class Spice extends Topology
                         spNet.diffPerim += perim * maskScale;
                     } else {
                         area = area * scale * scale / 1000000; // area in square microns
-                        perim = perim * scale / 1000;           // perim in microns
+                        perim = perim * scale / 1000;           // perimeter in microns
                         spNet.nonDiffCapacitance += layer.getCapacitance() * area * maskScale * maskScale;
                         spNet.nonDiffCapacitance += layer.getEdgeCapacitance() * perim * maskScale;
                     }
@@ -614,7 +616,7 @@ public class Spice extends Topology
 			dumpMessage(message, false);
 		}
 
-		// generate header for subckt or top-level cell
+		// generate header for subcircuit or top-level cell
         boolean forceEval = useCDL || !localPrefs.useCellParameters || detectSpiceParams(cell) == UNIQUIFY_MARK;
         String topLevelInstance = "";
 		if (cell == topCell && !useCDL && !localPrefs.writeSubcktTopCell)
@@ -782,7 +784,7 @@ public class Spice extends Topology
                     // This checks if we are netlisting a schematic top level with swapped-in layout subcells
                     if (pp != null && cell.isSchematic() && (subCni.getCell().getView() == View.LAYOUT))
                     {
-                        // find equivalent pp from layout to schematic
+                        // find equivalent port from layout to schematic
                         Network subNet = subCS.getNetwork();  // layout network name
                         boolean found = false;
                         for (Iterator<Export> eIt = subCell.getExports(); eIt.hasNext(); )
@@ -1205,23 +1207,23 @@ public class Spice extends Topology
 				modelChar = "Z";
 				biasCs = null;
 				modelName = "EMES";
- 			} else if (fun == PrimitiveNode.Function.TRANMOSCN)			// Pallav: NMOS (carbon-nanotube) transistor
+ 			} else if (fun == PrimitiveNode.Function.TRANMOSCN)			// NMOS (carbon-nanotube) transistor
 			{
 				modelChar = "X";
 				biasCs = cni.getCellSignal(groundNet);
 				defaultBulkName = "gnd";
 				modelName = "NCNFET";
-			} else if (fun == PrimitiveNode.Function.TRA4NMOSCN)		// Pallav: NMOS (carbon-nanotube) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRA4NMOSCN)		// NMOS (carbon-nanotube) 4-port transistor
 			{
 				modelChar = "X";
 				modelName = "NCNFET";
-			} else if (fun == PrimitiveNode.Function.TRAPMOSCN)			// Pallav: PMOS (carbon-nanotube) transistor
+			} else if (fun == PrimitiveNode.Function.TRAPMOSCN)			// PMOS (carbon-nanotube) transistor
 			{
 				modelChar = "X";
 				biasCs = cni.getCellSignal(powerNet);
 				defaultBulkName = "vdd";
 				modelName = "PCNFET";
-			} else if (fun == PrimitiveNode.Function.TRA4PMOSCN)		// Pallav: PMOS (carbon-nanotube) 4-port transistor
+			} else if (fun == PrimitiveNode.Function.TRA4PMOSCN)		// PMOS (carbon-nanotube) 4-port transistor
 			{
 				modelChar = "X";
 				modelName = "PCNFET";
@@ -1565,7 +1567,7 @@ public class Spice extends Topology
     /****************************** PARAMETERS ******************************/
 
     /**
-     * Method to create a parameterized name for node instance "ni".
+     * Method to create a parameterized name for nodable.
      * If the node is not parameterized, returns zero.
      * If it returns a name, that name must be deallocated when done.
      */
@@ -1660,7 +1662,7 @@ public class Spice extends Topology
      * @param context specified VarContext
      * @param no specified Nodable
      * @param instParam instance parameter
-     * @param forceEval true to always evaluate param
+     * @param forceEval true to always evaluate parameter
      * @return true if the variable should be netlisted as a spice parameter
      */
     private String evalParam(VarContext context, Nodable no, Variable instParam, boolean forceEval)
@@ -1676,7 +1678,7 @@ public class Spice extends Topology
      * @param context specified VarContext
      * @param no specified Nodable
      * @param instParam instance parameter
-     * @param forceEval true to always evaluate param
+     * @param forceEval true to always evaluate parameter
      * @param wrapped true if the string is already "wrapped" (with parenthesis) and does not need to have quotes around it.
      * @return true if the variable should be netlisted as a spice parameter
      */
@@ -1747,13 +1749,6 @@ public class Spice extends Topology
         return params;
     }
 
-//  private static void printlnParams(String message, Set<Variable.Key> varKeys) {
-//      System.out.print(message);
-//      for (Variable.Key varKey: varKeys)
-//          System.out.print(" " + varKey);
-//      System.out.println();
-//  }
-
     /**
      * Method to tell which Variables are important for primitive node in this netlister
      * @param pn primitive node to tell
@@ -1768,7 +1763,7 @@ public class Spice extends Topology
         if (line != null) {
             findVarsInLine(line, pn, true, importantVars);
             // Writing MFactor if available. Not sure here
-            // No, this causes problems because "ATTR_M" does not actually exist on proto
+            // No, this causes problems because "ATTR_M" does not actually exist on prototype
             //importantVars.add(SimulationTool.M_FACTOR_KEY);
             return importantVars;
         }
@@ -1904,13 +1899,13 @@ public class Spice extends Topology
     }
 
     /**
-     * Replace ports and vars in 'line'.  Ports and Vars should be
+     * Replace ports and variables in 'line'.  Ports and Variables should be
      * referenced via $(name)
      * @param line the string to search and replace within
      * @param no the nodable up the hierarchy that has the parameters on it
      * @param context the context of the nodable
-     * @param cni the cell net info of cell in which the nodable exists (if cni is
-     * null, no port name replacement will be done)
+     * @param cni the cell net info of cell in which the nodable exists
+     * (if null, no port name replacement will be done)
      * @param segNets
      * @param info
      * @param flatNetNames
@@ -2168,7 +2163,7 @@ public class Spice extends Topology
     }
 
     /**
-     * Find vars in 'line'.  Ports and Vars should be referenced via $(name)
+     * Find variables in 'line'.  Ports and variables should be referenced via $(name)
      * @param line the string to search and replace within
      * @param prototype of instance that has the parameters on it
      * @param isPortReplacement true if port name replacement will be done)
@@ -2343,7 +2338,7 @@ public class Spice extends Topology
         varTemplate = getEngineTemplate(cell);
         if (varTemplate != null) return true;
 
-		// look for a model file for the current cell, can come from pref or on cell
+		// look for a model file for the current cell, can come from preference or on cell
         String fileName = null;
         String unfilteredFileName = localPrefs.modelFiles.get(cell);
         if (CellModelPrefs.isUseModelFromFile(unfilteredFileName)) {
@@ -2544,7 +2539,7 @@ public class Spice extends Topology
 	/**
 	 * write a header for "cell" to spice deck "sim_spice_file"
 	 * The model cards come from a file specified by tech:~.SIM_spice_model_file
-	 * or else tech:~.SIM_spice_header_level%ld
+	 * or else tech:~.SIM_spice_header_levelN
 	 * The spice model file can be located in el_libdir
 	 */
 	private void writeHeader(Cell cell)
@@ -2687,7 +2682,7 @@ public class Spice extends Topology
 
 	/**
 	 * Function to write a two port device to the file. Complain about any missing connections.
-	 * Determine the port connections from the portprotos in the instance
+	 * Determine the port connections from the exports in the instance
 	 * prototype. Get the part number from the 'part' number value;
 	 * increment it. The type of device is declared in type; extra is the string
 	 * data acquired before calling here.
@@ -2720,7 +2715,7 @@ public class Spice extends Topology
 
 		if (ni.getName() != null) partName += getSafeNetName(ni.getName(), false);
 
-        // add Mfactor if there
+        // add M factor if there
         StringBuffer sbExtra = new StringBuffer(extra);
         writeMFactor(context, ni, sbExtra);
 
@@ -2737,7 +2732,7 @@ public class Spice extends Topology
 
 	/**
 	 * Method to recursively determine the area of diffusion and capacitance
-	 * associated with port "pp" of nodeinst "ni".  If the node is mult_layer, then
+	 * associated with a NodeInst.  If the node is mult_layer, then
 	 * determine the dominant capacitance layer, and add its area; all other
 	 * layers will be added as well to the extra_area total.
 	 * Continue out of the ports on a complex cell
@@ -2768,12 +2763,11 @@ public class Spice extends Topology
 			// don't bother with layers without capacity
             if (poly.isPseudoLayer()) continue;
 			Layer layer = poly.getLayer();
-			if (layer.getTechnology() != Technology.getCurrent()) continue;
+			if (layer.getTechnology() != curTech) continue;
 			if (!layer.isDiffusionLayer() && layer.getCapacitance() == 0.0) continue;
 
 			// leave out the gate capacitance of transistors
 			if (layer.getFunction() == Layer.Function.GATE) continue;
-
 			SpiceNet spNet = spiceNets.get(net);
 			if (spNet == null) continue;
 
@@ -2788,7 +2782,7 @@ public class Spice extends Topology
 
 	/**
 	 * Method to recursively determine the area of diffusion, capacitance, (NOT
-	 * resistance) on arc "ai". If the arc contains active device diffusion, then
+	 * resistance) on an arc. If the arc contains active device diffusion, then
 	 * it will contribute to the area of sources and drains, and the other layers
 	 * will be ignored. This is not quite the same as the rule used for
 	 * contact (node) structures. Note: the earlier version of this
@@ -2816,7 +2810,7 @@ public class Spice extends Topology
 
             if (poly.isPseudoLayer()) continue;
 			Layer layer = poly.getLayer();
-			if (layer.getTechnology() != Technology.getCurrent()) continue;
+			if (layer.getTechnology() != curTech) continue;
 
 			if (layer.isDiffusionLayer() ||
 				(!isDiffArc && layer.getCapacitance() > 0.0))
@@ -2861,7 +2855,7 @@ public class Spice extends Topology
             if (ni.isIconOfParent()) continue;
 
             Set<Variable.Key> varkeys = detectSpiceParams(ni.getProto());
-            // check vars on instance; only uniquify cells that contain instances with Java params
+            // check variables on instance; only uniquify cells that contain instances with Java parameters
             for (Variable.Key key : varkeys) {
                 Variable var = ni.getVar(key);
                 if (var != null && !isNetlistableParam(var)) mark = true;
@@ -3025,10 +3019,10 @@ public class Spice extends Topology
 
     /**
      * This adds formatting to a Spice parameter value.  It adds single quotes
-     * around the param string if they do not already exist.
-     * @param param the string param value (without the name= part).
+     * around the parameter string if they do not already exist.
+     * @param param the string parameter value (without the name= part).
      * @param wrapped true if the string is already "wrapped" (with parenthesis) and does not need to have quotes around it.
-     * @return a param string with single quotes around it
+     * @return a parameter string with single quotes around it
      */
     private String formatParam(String param, TextDescriptor.Unit u, boolean wrapped)
     {
@@ -3069,7 +3063,7 @@ public class Spice extends Topology
     }
 
 	/**
-	 * Method to insert an "include" of file "filename" into the stream "io".
+	 * Method to insert an "include" of file "filename" into the stream.
 	 */
 	private void addIncludeFile(String fileName, boolean verilog)
 	{
@@ -3164,11 +3158,11 @@ public class Spice extends Topology
 
 	private static class SpiceNet
 	{
-		/** merged geometry for this network */		PolyMerge merge;
-		/** area of diffusion */					double    diffArea;
-		/** perimeter of diffusion */				double    diffPerim;
-		/** amount of capacitance in non-diff */	float     nonDiffCapacitance;
-		/** number of transistors on the net */		int       transistorCount;
+		/** merged geometry for this network */			PolyMerge merge;
+		/** area of diffusion */						double    diffArea;
+		/** perimeter of diffusion */					double    diffPerim;
+		/** amount of capacitance in non-diffusion */	float     nonDiffCapacitance;
+		/** number of transistors on the net */			int       transistorCount;
 
 		SpiceNet()
 		{

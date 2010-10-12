@@ -25,7 +25,10 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -34,7 +37,12 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.*;
+import com.sun.electric.database.variable.EditWindow0;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.TechPool;
@@ -57,6 +65,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -88,15 +97,13 @@ public class PostScript extends Output
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
-	/** list of patterns emitted so far. */								private HashMap<EGraphics,Integer> patternsEmitted;
+	/** list of patterns emitted so far. */								private Map<EGraphics,Integer> patternsEmitted;
 	/** current layer number (-1: do all; 0: cleanup). */				private int currentLayer;
 	/** the last color written out. */									private int lastColor;
 	/** the normal width of lines. */									private int lineWidth;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake graphics for drawing outlines and text. */					private static EGraphics blackGraphics =
         new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-//    /** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstanceFree(null, "black",
-//		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 	PostScriptPreferences localPrefs;
 
 	public static class PostScriptPreferences extends OutputPreferences
@@ -396,10 +403,8 @@ public class PostScript extends Output
 
 		if (rotatePlot)
 		{
-			/*
-			 * fiddle with the bbox if image rotated on page
-			 * (at this point, bbox coordinates are absolute printer units)
-			 */
+			// fiddle with the bounding box if image rotated on page
+			// (at this point, bounding box coordinates are absolute printer units)
 			double t1 = bblx;
 			double t2 = bbhx;
 			bblx = -bbhy + pageHei * 300 / 75;
@@ -415,7 +420,7 @@ public class PostScript extends Output
 		bbhx = bbhx / (PSSCALE * 75.0) * 72.0 * (bbhx>=0 ? 1 : -1);
 		bbhy = bbhy / (PSSCALE * 75.0) * 72.0 * (bbhy>=0 ? 1 : -1);
 
-		// Increase the size of the bbox by one "pixel" to
+		// Increase the size of the bounding box by one "pixel" to
 		// prevent the edges from being obscured by some drawing tools
 		printWriter.println("%%BoundingBox: " + (int)(bblx-1) + " " + (int)(bbly-1) + " " + (int)(bbhx+1) + " " + (int)(bbhy+1));
 		printWriter.println("%%DocumentFonts: " + DEFAULTFONT);
@@ -1395,9 +1400,13 @@ public class PostScript extends Output
 		putPSHeader(HEADERSTRING);
 
 		// set text color
-		Color [] map = localPrefs.gp.getColorMap(cell.getTechnology());
-		Color full = map[td.getColorIndex()];
-		if (td.getColorIndex() == 0) full = localPrefs.gp.getColor(ColorPrefType.TEXT);
+		Color full;
+		int index = td.getColorIndex();
+		if (index == 0) full = localPrefs.gp.getColor(ColorPrefType.TEXT); else
+		{
+			Color [] map = localPrefs.gp.getColorMap(cell.getTechnology());
+			full = EGraphics.getColorFromIndex(index, map);
+		}
 		setColor(full);
 
 		boolean changedFont = false;
@@ -1543,7 +1552,7 @@ public class PostScript extends Output
 
 	private String [] headerDot =
 	{
-		"/Putdot {",				// print dot at stack pos
+		"/Putdot {",				// print dot at stack position
 		"    newpath moveto 0 0 rlineto stroke} def"
 	};
 
@@ -1653,7 +1662,7 @@ public class PostScript extends Output
 		"    /ComMode 0 def",							// command mode flag
 		"    /TSize exch def",							// text size
 		"    /TString exch def",						// string to draw
-		"    /NormY currentpoint exch pop def",			// save Y coord of string
+		"    /NormY currentpoint exch pop def",			// save Y coordinate of string
 		"    TSize scaleFont",
 		"    TString {",								// scan string char by char
 		"        /CharCode exch def",					// save char

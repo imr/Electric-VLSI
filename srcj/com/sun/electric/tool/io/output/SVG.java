@@ -78,8 +78,8 @@ public class SVG extends Output
 
 	public static class SVGPreferences extends OutputPreferences
     {
-		double scale = IOTool.getSVGScale();
-		double printMargin = IOTool.getSVGMargin();
+		double scale = IOTool.getFactorySVGScale();
+		double printMargin = IOTool.getFactorySVGMargin();
         GraphicsPreferences gp;
         EditWindow0.EditWindowSmall wnd;
     	ERectangle printBounds;

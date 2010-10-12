@@ -515,7 +515,7 @@ class LayerDrawing {
         }
 
         /**
-         * Retruns true if full repaint is necessary
+         * Returns true if full repaint is necessary
          * @return
          */
         public boolean visibilityChanged() {
@@ -2133,32 +2133,32 @@ class LayerDrawing {
 
         /**
          * Method to fill a box [lX,hX] x [lY,hY].
-         * Both low and high coordiantes are inclusive.
+         * Both low and high coordinates are inclusive.
          * Filling might be patterned.
          * @param lX left X coordinate
-         * @param hX right X coordiante
+         * @param hX right X coordinate
          * @param lY top Y coordinate
-         * @param hY bottom Y coordiante
+         * @param hY bottom Y coordinate
          */
         public void fillBox(int lX, int hX, int lY, int hY);
 
         /**
          * Method to fill a horizontal scanline [lX,hX] x [y].
-         * Both low and high coordiantes are inclusive.
+         * Both low and high coordinates are inclusive.
          * Filling might be patterned.
          * @param y Y coordinate
          * @param lX left X coordinate
-         * @param hX right X coordiante
+         * @param hX right X coordinate
          */
         public void fillHorLine(int y, int lX, int hX);
 
         /**
-         * Method to fill a verticaltal scanline [x] x [lY,hY].
-         * Both low and bigh coordiantes are inclusive.
+         * Method to fill a vertical scanline [x] x [lY,hY].
+         * Both low and high coordinates are inclusive.
          * Filling might be patterned.
          * @param x X coordinate
          * @param lY top Y coordinate
-         * @param hY bottom Y coordiante
+         * @param hY bottom Y coordinate
          */
         public void fillVerLine(int x, int lY, int hY);
 
@@ -2172,21 +2172,21 @@ class LayerDrawing {
 
         /**
          * Method to draw a horizontal line [lX,hX] x [y].
-         * Both low and high coordiantes are inclusive.
+         * Both low and high coordinates are inclusive.
          * Drawing is always solid.
          * @param y Y coordinate
          * @param lX left X coordinate
-         * @param hX right X coordiante
+         * @param hX right X coordinate
          */
         public void drawHorLine(int y, int lX, int hX);
 
         /**
          * Method to draw a vertical line [x] x [lY,hY].
-         * Both low and high coordiantes are inclusive.
+         * Both low and high coordinates are inclusive.
          * Drawing is always solid.
          * @param x X coordinate
          * @param lY top Y coordinate
-         * @param hY bottom Y coordiante
+         * @param hY bottom Y coordinate
          */
         public void drawVerLine(int x, int lY, int hY);
 
@@ -2204,7 +2204,7 @@ class LayerDrawing {
         public EGraphics.Outline getOutline();
 
         /**
-         * Method to copy bits from rectangle of sorce TransparentRaster to thus ERaster.
+         * Method to copy bits from rectangle of source TransparentRaster to thus ERaster.
          * @param polSrc source TransparentRaster.
          * @param minSrcX left bound of source rectangle (inclusive).
          * @param maxSrcX right bound of source rectangle (inclusive).
@@ -3933,7 +3933,7 @@ class LayerDrawing {
             rotation = descript.getRotation().getIndex();
             int colorIndex = descript.getColorIndex();
             if (colorIndex != 0) {
-                Color full = EGraphics.getColorFromIndex(colorIndex);
+                Color full = EGraphics.getColorFromIndex(colorIndex, null);
                 if (full != null) {
                     color = full;
                 }
