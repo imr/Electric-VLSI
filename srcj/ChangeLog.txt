@@ -7,9 +7,15 @@ NOTE: Please place changes under the version that will be released next.
 BUG: (10/11/10, DN) java -jar electric.jar doesn't longer work (Bug #2927)
 FIX: In Launcher.initClasspath check for null combinedArray.
 
+BUG: (10/11/10, SMR) Spice should not write OPTIONS NOMOD NOPAGE line (Bug #2925).
+FIX: Removed the line from Spice.java.
+
+BUG: (10/11/10, SMR) Postscript output fails for colored text (Bug #2922).
+FIX: Use EGraphics to make colors.
+
 IMP: (10/11/10, FS) Add spring environment and use it in ERC for ThreadPool
 
-IMP: (10/11/10, FS) Additional folder handling for experimnetal stuff
+IMP: (10/11/10, FS) Additional folder handling for experimental stuff
 
 IMP: (10/11/10, FS) Use log4j and common-logging 
 
