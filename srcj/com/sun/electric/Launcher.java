@@ -287,7 +287,7 @@ public final class Launcher {
             
             URL[] combinedArray = CollectionFactory.arrayMerge(readAdditionalFolder(), readMavenDependencies());
 
-            if (combinedArray.length > 0) {
+            if (combinedArray != null && combinedArray.length > 0) {
                 for (URL url : combinedArray) {
                     Object result = callByReflection(launcherLoader, "java.net.URLClassLoader", "addURL",
                             new Class[] { URL.class }, launcherLoader, new Object[] { url });

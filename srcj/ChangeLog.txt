@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+BUG: (10/11/10, DN) java -jar electric.jar doesn't longer work (Bug #2927)
+FIX: In Launcher.initClasspath check for null combinedArray.
+
 IMP: (10/11/10, FS) Add spring environment and use it in ERC for ThreadPool
 
 IMP: (10/11/10, FS) Additional folder handling for experimnetal stuff
