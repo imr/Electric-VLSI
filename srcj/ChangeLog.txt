@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+BUG: (10/12/10, GVG) Main branch doesn't longer compile (jarLight2) after last sync with Maven (Bug #2929)
+FIX: Lines causing the compilation failure in Launcher.java ommented out.
+
 BUG: (10/12/10, FS) Rollback log4j + commons-logging + spring
 FIX: rollbacked in trunk
 

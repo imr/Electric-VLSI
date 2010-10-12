@@ -43,7 +43,7 @@ import java.util.prefs.Preferences;
 
 import com.sun.electric.util.CollectionFactory;
 import com.sun.electric.util.PropertiesUtils;
-import com.sun.electric.util.config.Configuration;
+//import com.sun.electric.util.config.Configuration;
 import com.sun.electric.util.test.TestByReflection;
 
 /**
@@ -77,7 +77,7 @@ public final class Launcher {
         args = Launcher.getAdditionalFolder(args);
         args = Launcher.getSpringConfig(args);
 
-        Configuration.setConfigName(springConfigFile);
+        //Configuration.setConfigName(springConfigFile);
 
         // ignore launcher if specified to do so
         for (int i = 0; i < args.length; i++) {
