@@ -98,8 +98,19 @@ public class Compaction extends Tool
 	 */
 	public static void compactNow(Cell cell, boolean allowSpreading)
 	{
+        compactNow(cell, allowSpreading, null);
+	}
+
+	/**
+	 * Method to compact the requested cell.
+     * @param cell cell to compact
+     * @param allowSpreading true to spread layout
+     * @param finalJob this Job will be started after compaction is complete
+	 */
+	public static void compactNow(Cell cell, boolean allowSpreading, Job finalJob)
+	{
 		// do the compaction in a job
-		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL, allowSpreading);
+		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL, allowSpreading, finalJob);
         job.startJobOnMyResult(); // start on my result. Otherwise regressions fail
 	}
 
@@ -113,14 +124,16 @@ private static int limitLoops = 10;
 		private final boolean lastTime;
 		private CompactCell.Axis curAxis;
         private final boolean allowSpreading;
+        private transient Job finalJob;
 
-		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis, boolean allowSpreading)
+		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis, boolean allowSpreading, Job finalJob)
 		{
 			super("Compact " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.lastTime = lastTime;
 			this.curAxis = curAxis;
             this.allowSpreading = allowSpreading;
+            this.finalJob = finalJob;
 		}
 
 		public boolean doIt() throws JobException
@@ -134,11 +147,13 @@ if (--limitLoops <= 0) change = false;
 			if (lastTime || change)
 			{
 				curAxis = (curAxis == CompactCell.Axis.HORIZONTAL) ? CompactCell.Axis.VERTICAL : CompactCell.Axis.HORIZONTAL;
-				CompactCellJob job = new CompactCellJob(cell, change, curAxis, allowSpreading);
+				CompactCellJob job = new CompactCellJob(cell, change, curAxis, allowSpreading, finalJob);
                 job.startJobOnMyResult();
 			} else
 			{
 				System.out.println("Compaction complete");
+                if (finalJob != null)
+                    finalJob.startJobOnMyResult();
 			}
 			return true;
 		}

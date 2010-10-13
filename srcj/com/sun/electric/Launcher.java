@@ -43,7 +43,8 @@ import java.util.prefs.Preferences;
 
 import com.sun.electric.util.CollectionFactory;
 import com.sun.electric.util.PropertiesUtils;
-//import com.sun.electric.util.config.Configuration;
+import com.sun.electric.util.config.ClasspathConfig;
+import com.sun.electric.util.config.Configuration;
 import com.sun.electric.util.test.TestByReflection;
 
 /**
@@ -77,7 +78,18 @@ public final class Launcher {
         args = Launcher.getAdditionalFolder(args);
         args = Launcher.getSpringConfig(args);
 
-        //Configuration.setConfigName(springConfigFile);
+        {
+            File configFile = new File(springConfigFile);
+            if (configFile.canRead()) {
+                try {
+                    Configuration.setInstance(new ClasspathConfig(configFile.toURI().toURL()));
+                } catch (MalformedURLException e) {
+                    logger.log(Level.SEVERE, "Error reading spring config file", e);
+                }
+            } else {
+                Configuration.setInstance(new ClasspathConfig(Launcher.class.getClassLoader().getResource(springConfigFile)));
+            }
+        }
 
         // ignore launcher if specified to do so
         for (int i = 0; i < args.length; i++) {
@@ -373,7 +385,7 @@ public final class Launcher {
                 }
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error reading", mavenDependencies);
+            logger.log(Level.SEVERE, "Error reading maven dependencies", e);
         }
 
         return urls.toArray(new URL[urls.size()]);

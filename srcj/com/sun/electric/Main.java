@@ -158,6 +158,11 @@ public final class Main
             System.out.println("\t-server: dump trace of snapshots");
             System.out.println("\t-client <machine name>: replay trace of snapshots");
 	        System.out.println("\t-help: this message");
+	        
+	        if(hasCommandLineOption(argsList, "-additional")) {
+	            System.out.println("\t-springconfig: <spring config file>");
+	            System.out.println("\t-additonalfolder: <relative or absolut path to addtional folder>");
+	        }
 
 			System.exit(0);
 		}

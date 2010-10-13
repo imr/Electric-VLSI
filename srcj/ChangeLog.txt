@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+IMP: (10/13/10, DN) Add Spring-less dependency injection environment and use it in ERC again.
+
+BUG: (10/13/10, DN) Some Compaction tests failed on Ubuntu boxes (Bug #2932)
+FIX: Launch the compareJob before the QuitJob.
+
 BUG: (10/12/10, SMR) Want to be able to rename Waveform Window signals (Bug #2788).
 FIX: Can now double-click over signal name in Waveform Window and rename it.
      Does not rename crossprobed object in Electric...just assigns a new display name in the Waveform Window panel.
