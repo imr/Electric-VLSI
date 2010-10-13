@@ -171,6 +171,7 @@ public final class Main
         runMode = DEFAULT_MODE;
         List<String> pipeOptions = new ArrayList<String>();
 		if (hasCommandLineOption(argsList, "-debug")) {
+//		    Logger.getLogger("com.sun.electric").setLevel(Level.DEBUG);
             pipeOptions.add(" -debug");
             Job.setDebug(true);
         }
