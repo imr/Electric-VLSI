@@ -186,7 +186,7 @@ public class KeyBindings implements ActionListener {
     public String getActionDesc() { return actionDesc; }
 
     /** Get an iterator over the actionListeners */
-    public Iterator getActionListeners() { return actionListeners.iterator(); }
+    public Iterator<ActionListener> getActionListeners() { return actionListeners.iterator(); }
 
     /** Get an iterator over the user key stroke pairs */
     public Iterator<KeyStrokePair> getKeyStrokePairs() { return keyStrokePairs.iterator(); }

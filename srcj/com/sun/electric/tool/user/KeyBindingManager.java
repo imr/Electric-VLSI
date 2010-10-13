@@ -33,8 +33,8 @@ import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Component;
@@ -58,7 +58,6 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
@@ -70,7 +69,7 @@ import javax.swing.KeyStroke;
  * to any component.
  * <p><p>
  * The <i>inputMap</i> uses <code>KeyStrokes</code> as it's keys, and stores Objects
- * of type Set.  The Set contains Strings and the set will guarantee they are not repetead.
+ * of type Set.  The Set contains Strings and the set will guarantee they are not repeated.
  * <p>
  * Each String is then used as a key into the HashMap <i>actionMap</i> to retrieve
  * a KeyBindings object.  Each key bindings object has a list of actions which can then be
@@ -103,11 +102,11 @@ public class KeyBindingManager implements KeyEventDispatcher
     /** Hash table of hash of lists of prefixed key bindings */ private Map<KeyStroke,Map<KeyStroke,Set<String>>> prefixedInputMapMaps;
     /** action to take on prefix key hit */         private PrefixAction prefixAction;
     /** where to store Preferences */               private Preferences prefs;
-    /** prefix on pref key, if desired */           private String prefPrefix;
+    /** prefix on preference key, if desired */     private String prefPrefix;
 
     // ----------------------------- global stuff ----------------------------------
     /** Listener to register for catching keys */   //public static KeyBindingListener listener = new KeyBindingListener();
-    /** All key binding manangers */                private static List<KeyBindingManager> allManagers = new ArrayList<KeyBindingManager>();
+    /** All key binding managers */                 private static List<KeyBindingManager> allManagers = new ArrayList<KeyBindingManager>();
 
     /** debug preference saving */                  private static final boolean debugPrefs = false;
     /** debug key bindings */                       private static final boolean DEBUG = false;
@@ -255,7 +254,7 @@ public class KeyBindingManager implements KeyEventDispatcher
         }
     }
 
-    /** Method to print existing KeyStrokes in std output for help
+    /** Method to print existing KeyStrokes in standard output for help
      */
     public void printKeyBindings()
     {
@@ -327,8 +326,8 @@ public class KeyBindingManager implements KeyEventDispatcher
      */
     private static class PrefixAction extends AbstractAction
     {
-        /** The action description analagous to KeyBinding */ public static final String actionDesc = "KeyBindingManager prefix action";
-        /** the key binding manager using this aciton */    private KeyBindingManager manager;
+        /** The action description analogous to KeyBinding */ public static final String actionDesc = "KeyBindingManager prefix action";
+        /** the key binding manager using this action */    private KeyBindingManager manager;
 
         public PrefixAction(KeyBindingManager manager) {
             super();
@@ -428,6 +427,7 @@ public class KeyBindingManager implements KeyEventDispatcher
             if (c instanceof GetInfoText.EIPTextField) { lastPrefix = null;  return false; }
             if (c instanceof ManualViewer) { lastPrefix = null;  return false; }
             if (c instanceof ManualViewer.EditHTML) { lastPrefix = null;  return false; }
+            if (c instanceof WaveSignal.EditSignalName) { lastPrefix = null;  return false; }
         	c = c.getParent();
         }
         if (!valid && (e.getModifiers() & InputEvent.CTRL_MASK) == 0)
@@ -514,10 +514,10 @@ public class KeyBindingManager implements KeyEventDispatcher
         }
         if (!actionPerformed) {
             // if no action to perform, perhaps the user hit a prefix key, then
-            // decided to start another prefix-key-combo (that does not result in
+            // decided to start another prefix-key-combination (that does not result in
             // a valid binding with the first prefix, obviously).  We'll be nice
             // and check for this case
-            Map prefixMap = prefixedInputMapMaps.get(stroke);
+            Map<KeyStroke,Set<String>> prefixMap = prefixedInputMapMaps.get(stroke);
             if (prefixMap != null) {
                 // valid prefix key, fire prefix event
                 prefixAction.actionPerformed(evt);
@@ -541,7 +541,7 @@ public class KeyBindingManager implements KeyEventDispatcher
 
     /**
      * Get a list of conflicting key bindings from all KeyBindingManagers.
-     * @param pair the keystrokepair
+     * @param pair the keystroke pair
      * @return a list of conflicting KeyBindings from all KeyBindingManagers
      */
     public static List<KeyBindings> getConflictsAllManagers(KeyStrokePair pair) {
@@ -592,7 +592,7 @@ public class KeyBindingManager implements KeyEventDispatcher
         KeyBindings keys = addKeyBinding(actionDesc, pair);
         // now using user specified key bindings, set usingDefaults false
         keys.setUsingDefaultKeys(false);
-        // user has modified bindings, write all current bindings to prefs
+        // user has modified bindings, write all current bindings to preferences
         setBindingsToPrefs(keys.getActionDesc());
     }
 
@@ -645,7 +645,7 @@ public class KeyBindingManager implements KeyEventDispatcher
         bindings.removeKeyBinding(k);
         bindings.setUsingDefaultKeys(false);
 
-        // user has modified bindings, write all current bindings to prefs
+        // user has modified bindings, write all current bindings to preferences
         setBindingsToPrefs(actionDesc);
     }
 
@@ -784,12 +784,12 @@ public class KeyBindingManager implements KeyEventDispatcher
 */
 
     /**
-     * Get a list of KeyBindings that conflict with the key combo
+     * Get a list of KeyBindings that conflict with the key combination
      * <code>prefixStroke, stroke</code>.  A conflict is registered if:
      * an existing stroke is the same as <code>prefixStroke</code>; or
      * an existing stroke is the same <code>stroke</code>
      * (if <code>prefixStroke</code> is null);
-     * or an existing prefixStroke,stroke combo is the same as
+     * or an existing prefixStroke,stroke combination is the same as
      * <code>prefixStroke,stroke</code>.
      * <p>
      * The returned list consists of newly created KeyBindings objects, not
@@ -834,7 +834,7 @@ public class KeyBindingManager implements KeyEventDispatcher
                         Map<KeyStroke,Set<String>> prefixMap = prefixedInputMapMaps.get(pair.getStroke());
                         if (prefixMap != null) {
                             for (Iterator<Set<String>> it2 = prefixMap.values().iterator(); it2.hasNext(); ) {
-                                // all existing prefixStroke,stroke combos conflict, so add them all
+                                // all existing prefixStroke,stroke combinations conflict, so add them all
                                 Set<String> prefixList = it2.next(); // this is a set of strings
                                 conflictsStrings.addAll(prefixList);
                             }
@@ -882,7 +882,7 @@ public class KeyBindingManager implements KeyEventDispatcher
                 }
             }
             // add conflicting KeyBindings to list if it has bindings in it
-            Iterator conflictingIt = conflicting.getKeyStrokePairs();
+            Iterator<KeyStrokePair> conflictingIt = conflicting.getKeyStrokePairs();
             if (conflictingIt.hasNext()) conflicts.add(conflicting);
         }
         return conflicts;
@@ -926,7 +926,7 @@ public class KeyBindingManager implements KeyEventDispatcher
             ActionListener action = (ActionListener)actionMap.get(key);
             if (action instanceof KeyBindings) {
                 KeyBindings bindings = (KeyBindings)action;
-                Iterator listenersIt = bindings.getActionListeners();
+                Iterator<ActionListener> listenersIt = bindings.getActionListeners();
                 if (!listenersIt.hasNext()) {
                     // no listeners on the action
                     System.out.println("Warning: Deleting defunct binding for "+key+" [ "+bindings.bindingsToString()+ " ]...action does not exist anymore");
@@ -1020,7 +1020,7 @@ public class KeyBindingManager implements KeyEventDispatcher
 
     /**
      * Get KeyBindings for <code>actionDesc</code> from Preferences.
-     * Returns null if actionDesc not present in prefs.
+     * Returns null if actionDesc not present in preferences.
      * @param actionDesc the action description associated with these bindings
      * @return a list of KeyStrokePairs
      */
@@ -1065,7 +1065,7 @@ public class KeyBindingManager implements KeyEventDispatcher
             }
             KeyBindings bindings = (KeyBindings)entry.getValue();
             bindings.clearKeyBindings();
-            // look up bindings in prefs
+            // look up bindings in preferences
             List<KeyStrokePair> keyPairs = getBindingsFromPrefs(bindings.getActionDesc());
             if (keyPairs == null) {
                 // no entry found, use default settings

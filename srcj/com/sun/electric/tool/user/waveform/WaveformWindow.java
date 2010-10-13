@@ -2789,7 +2789,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
                 if (sSig == null)
 				{
 					// check for equivalent layout net name
-					// search up hierarchy for cell with NCC equiv info
+					// search up hierarchy for cell with NCC equivalent info
 					Cell cell = net.getParent();
 					NccResult result = NccCrossProbing.getResults(cell);
 					if (result == null)
@@ -3081,7 +3081,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (wp.isHidden()) continue;
 			for(WaveSignal ws : wp.getSignals())
 			{
-				Signal<?> sig = (Signal<?>)ws.getSignal();
+				Signal<?> sig = ws.getSignal();
 				Signal<?>[] bussedSignals = sig.getBusMembers();
 				if (bussedSignals != null)
 				{
@@ -3876,7 +3876,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void addSignal(Signal<?> sig)
 	{
         // add signal on top of current panel
-        Signal<?> as = (Signal<?>)sig;
+        Signal<?> as = sig;
         boolean found = false;
         if (!sig.isDigital())
         {
@@ -4763,7 +4763,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public static Signal<?> findSignalForNetwork(SignalCollection sc, String netName) {
 		// look at all signal names in the cell
-		for(Signal<?> sSig : (Iterable<Signal<?>>)sc.getSignals()) {
+		for(Signal<?> sSig : sc.getSignals()) {
 			String signalName = sSig.getFullName();
 			if (netName.equalsIgnoreCase(signalName)) return sSig;
 			// if the signal name has underscores, see if all alphabetic characters match

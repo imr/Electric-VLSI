@@ -26,6 +26,7 @@ import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -35,8 +36,12 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 // ************************************* INDIVIDUAL TRACES *************************************
 
@@ -51,6 +56,8 @@ public class WaveSignal
 	/** the x values of selected control points */	private double [] controlPointsSelected;
 	/** true if this signal is highlighted */		private boolean highlighted;
 	/** the button on the left with this signal */	private JButton sigButton;
+	/** the edit control for the button */			private EditSignalName sigButtonEdit;
+	/** the index of this signal button */			private int sigButtonIndex;
 	/** for determining double-clicks */			private static long lastClick = 0;
 
 	private static Color [] colorArray = new Color [] {
@@ -67,6 +74,14 @@ public class WaveSignal
 		new Color(255,   0, 255),		// magenta
 		new Color(255,   0, 127)};
 
+	/**
+	 * Class to redefine a special use of JTextField that should not have its keystrokes captured
+	 * for quick-key execution.
+	 */
+	public static class EditSignalName extends JTextField
+	{
+	}
+
 	private static class SignalButton extends MouseAdapter
 	{
 		private static final int BUTTON_SIZE = 15;
@@ -75,8 +90,37 @@ public class WaveSignal
 
 		SignalButton(WaveSignal signal) { this.signal = signal; }
 
+		private void closeButtonRename()
+		{
+			JPanel sigPanel = signal.wavePanel.getSignalButtons();
+			sigPanel.remove(signal.sigButtonEdit);
+			signal.sigButton.setText(signal.sigButtonEdit.getText());
+			addSignalNameComponent(sigPanel, signal.sigButton, signal.sigButtonIndex);
+			sigPanel.updateUI();		
+		}
+
 		public void mouseClicked(MouseEvent e)
 		{
+			if (e.getClickCount() == 2)
+			{
+				if (signal.sigButtonEdit == null)
+				{
+					signal.sigButtonEdit = new EditSignalName();
+					signal.sigButtonEdit.addActionListener(new ActionListener()
+					{
+						public void actionPerformed(ActionEvent evt) { closeButtonRename(); }
+					});
+				}
+				String oldName = signal.sigButton.getText();
+				signal.sigButtonEdit.setText(oldName);
+				signal.sigButtonEdit.selectAll();
+				JPanel sigPanel = signal.wavePanel.getSignalButtons();
+				sigPanel.remove(signal.sigButton);
+				addSignalNameComponent(sigPanel, signal.sigButtonEdit, signal.sigButtonIndex);
+				signal.sigButtonEdit.requestFocus();
+				sigPanel.updateUI();
+				return;
+			}
 			if ((e.getModifiers() & InputEvent.BUTTON3_MASK) != 0)
 			{
 				if (!signal.highlighted)
@@ -135,16 +179,27 @@ public class WaveSignal
 		String sigName = sSig.getFullName();
 		color = colorArray[sigNo % colorArray.length];
 		sigButton = new DragButton(sigName, wavePanel.getPanelNumber());
+		sigButton.setHorizontalAlignment(SwingConstants.LEFT);
+		sigButtonIndex = wavePanel.getNewSignalButtonIndex();
 		sigButton.setBorderPainted(false);
 		sigButton.setDefaultCapable(false);
 		sigButton.setForeground(color);
-		wavePanel.getSignalButtons().add(sigButton);
+		addSignalNameComponent(wavePanel.getSignalButtons(), sigButton, sigButtonIndex);
 		wavePanel.addSignal(this, sigButton);
 		sigButton.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { signalNameClicked(evt); }
 		});
 		sigButton.addMouseListener(new SignalButton(this));
+	}
+
+	private static void addSignalNameComponent(JPanel sigPanel, JComponent addThis, int index)
+	{
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = index;
+		gbc.weightx = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		sigPanel.add(addThis, gbc);
 	}
 
 	public static WaveSignal addSignalToPanel(Signal<?> sSig, Panel panel, Color newColor)
@@ -162,7 +217,7 @@ public class WaveSignal
 			}
 			if (index >= colorArray.length) index = 0;
 			ws.color = colorArray[index];
-			JButton but = panel.findButton(ws);
+			JButton but = (JButton)panel.findButton(ws);
 			but.setForeground(colorArray[index]);
 			panel.getSignalButtons().repaint();
 			panel.repaintContents();
@@ -290,6 +345,8 @@ public class WaveSignal
 	public Panel getPanel() { return wavePanel; }
 
 	public JButton getButton() { return sigButton; }
+
+	public int getButtonindex() { return sigButtonIndex; }
 
 	public boolean isHighlighted() { return highlighted; }
 

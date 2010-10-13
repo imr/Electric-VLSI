@@ -33,14 +33,12 @@ import com.sun.electric.tool.simulation.RangeSample;
 import com.sun.electric.tool.simulation.Sample;
 import com.sun.electric.tool.simulation.ScalarSample;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.SweptSample;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
-import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
@@ -86,18 +84,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.Scrollable;
-import javax.swing.SwingConstants;
 
 /**
  * This class defines a single panel of WaveSignals with an associated list of signal names.
@@ -113,8 +108,9 @@ public class Panel extends JPanel
 	/** the size of the window (in pixels) */				private Dimension sz;
 	/** true if the size field is valid */					private boolean szValid;
 	/** the signal on the X axis (null for time) */			private Signal<?> xAxisSignal;
-	/** maps signal buttons to the actual Signal */			private LinkedHashMap<JButton,WaveSignal> waveSignals = new LinkedHashMap<JButton,WaveSignal>();
+	/** maps signal button panels to the actual Signal */	private LinkedHashMap<JComponent,WaveSignal> waveSignals = new LinkedHashMap<JComponent,WaveSignal>();
 	/** the list of signal name buttons on the left */		private JPanel signalButtons;
+	/** the highest index of new signal buttons */			private int signalButtonsHighIndex;
 	/** the JScrollPane with of signal name buttons */		private JScrollPane signalButtonsPane;
 	/** the left side: with signal names etc. */			private JPanel leftHalf;
 	/** the right side: with signal traces */				private JPanel rightHalf;
@@ -296,11 +292,11 @@ public class Panel extends JPanel
 		});
 
 		// the list of signals in this panel
-		signalButtons = new JPanelX();
-		signalButtons.setLayout(new BoxLayout(signalButtons, BoxLayout.Y_AXIS));
+		signalButtonsHighIndex = 0;
+		signalButtons = new JPanel();
+		signalButtons.setLayout(new GridBagLayout());
 		signalButtonsPane = new JScrollPane(signalButtons);
         signalButtonsPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        signalButtons.setAlignmentX(1.0f);
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 3;
 		gbc.gridwidth = 5;   gbc.gridheight = 1;
@@ -355,24 +351,6 @@ public class Panel extends JPanel
 
 	// ************************************* MISCELLANEOUS *************************************
 
-    /** A subclass of JPanel which implements Scrollable and always tracks its JScrollPane's height */
-    private static class JPanelX extends JPanel implements Scrollable {
-        public JPanelX() { }
-        public boolean getScrollableTracksViewportWidth()  { return true; }
-        public boolean getScrollableTracksViewportHeight()  { return false; }
-        public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
-        public int getScrollableUnitIncrement(Rectangle visibleRect,
-                                              int orientation,
-                                              int direction) {
-            return 1;
-        }
-        public int getScrollableBlockIncrement(Rectangle visibleRect,
-                                               int orientation,
-                                               int direction) {
-            return 1;
-        }
-    }
-
 	public WaveformWindow getWaveWindow() { return waveWindow; }
 
 	/**
@@ -409,9 +387,9 @@ public class Panel extends JPanel
 
 	public boolean isAnalog()
 	{
-		for(JButton but : waveSignals.keySet())
+		for(JComponent comp : waveSignals.keySet())
 		{
-			WaveSignal ws = waveSignals.get(but);
+			WaveSignal ws = waveSignals.get(comp);
 			Signal<?> sig = ws.getSignal();
 			if (!sig.isDigital()) return true;
 		}
@@ -450,9 +428,9 @@ public class Panel extends JPanel
 
 	// ************************************* SIGNALS IN THE PANEL *************************************
 
-	public void addSignal(WaveSignal sig, JButton but)
+	public void addSignal(WaveSignal sig, JComponent comp)
 	{
-		waveSignals.put(but, sig);
+		waveSignals.put(comp, sig);
 		updatePanelTitle();
 	}
 
@@ -489,10 +467,10 @@ public class Panel extends JPanel
 		panelTitle.setText(panelTitleName);
 	}
 
-	public void removeSignal(JButton but)
+	public void removeSignal(JComponent panel)
 	{
-		if (signalButtons != null) signalButtons.remove(but);
-		waveSignals.remove(but);
+		if (signalButtons != null) signalButtons.remove(panel);
+		waveSignals.remove(panel);
 		updatePanelTitle();
 	}
 
@@ -509,9 +487,9 @@ public class Panel extends JPanel
 	public List<WaveSignal> getSignals()
 	{
 		List<WaveSignal> signals = new ArrayList<WaveSignal>();
-		for(JButton but : waveSignals.keySet())
+		for(JComponent comp : waveSignals.keySet())
 		{
-			WaveSignal ws = waveSignals.get(but);
+			WaveSignal ws = waveSignals.get(comp);
 			signals.add(ws);
 		}
 		return signals;
@@ -519,28 +497,30 @@ public class Panel extends JPanel
 
 	public int getNumSignals() { return waveSignals.size(); }
 
+	public int getNewSignalButtonIndex() { return signalButtonsHighIndex++; }
+
 	public WaveSignal findWaveSignal(Signal<?> sig)
 	{
-		for(JButton but : waveSignals.keySet())
+		for(JComponent comp : waveSignals.keySet())
 		{
-			WaveSignal ws = waveSignals.get(but);
+			WaveSignal ws = waveSignals.get(comp);
 			if (ws.getSignal() == sig) return ws;
 		}
 		return null;
 	}
 
-	public WaveSignal findWaveSignal(JButton but)
+	public WaveSignal findWaveSignal(JComponent comp)
 	{
-		WaveSignal sig = waveSignals.get(but);
+		WaveSignal sig = waveSignals.get(comp);
 		return sig;
 	}
 
-	public JButton findButton(WaveSignal ws)
+	public JComponent findButton(WaveSignal ws)
 	{
-		for(JButton but : waveSignals.keySet())
+		for(JComponent comp : waveSignals.keySet())
 		{
-			WaveSignal oWs = waveSignals.get(but);
-			if (oWs == ws) return but;
+			WaveSignal oWs = waveSignals.get(comp);
+			if (oWs == ws) return comp;
 		}
 		return null;
 	}
@@ -1740,10 +1720,10 @@ public class Panel extends JPanel
 			return;
 		}
 
-		Set<JButton> set = waveSignals.keySet();
+		Set<JComponent> set = waveSignals.keySet();
 		if (set.size() != 1) return;
-		JButton but = set.iterator().next();
-		WaveSignal ws = waveSignals.get(but);
+		JComponent comp = set.iterator().next();
+		WaveSignal ws = waveSignals.get(comp);
 
 		if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 		{
