@@ -27,15 +27,14 @@ import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
-import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.debug.Debug;
 import com.sun.electric.tool.util.concurrent.debug.LoadBalancing;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
-import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
+import com.sun.electric.tool.util.concurrent.runtime.ThreadID;
 import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 import com.sun.electric.tool.util.concurrent.utils.UniqueIDGenerator;
 
@@ -175,7 +174,6 @@ public class ThreadPool implements IThreadPool {
 	 * @param item
 	 */
 	public void add(PTask item) {
-	    System.out.println("- PI - ");
 		taskPool.add(item);
 	}
 
@@ -185,7 +183,6 @@ public class ThreadPool implements IThreadPool {
 	 * @param item
 	 */
 	public void add(PTask item, int threadId) {
-	    System.out.println("- PI - ");
 		taskPool.add(item, threadId);
 	}
 

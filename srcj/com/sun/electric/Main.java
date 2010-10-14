@@ -65,6 +65,7 @@ import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.PoolWorkerStrategyFactory;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.concurrent.ElectricWorkerStrategy;
+import com.sun.electric.util.config.Configuration;
 
 /**
  * This class initializes Electric and starts the system. How to run Electric:
@@ -158,11 +159,6 @@ public final class Main
             System.out.println("\t-server: dump trace of snapshots");
             System.out.println("\t-client <machine name>: replay trace of snapshots");
 	        System.out.println("\t-help: this message");
-	        
-	        if(hasCommandLineOption(argsList, "-additional")) {
-	            System.out.println("\t-springconfig: <spring config file>");
-	            System.out.println("\t-additonalfolder: <relative or absolut path to addtional folder>");
-	        }
 
 			System.exit(0);
 		}
@@ -171,7 +167,6 @@ public final class Main
         runMode = DEFAULT_MODE;
         List<String> pipeOptions = new ArrayList<String>();
 		if (hasCommandLineOption(argsList, "-debug")) {
-//		    Logger.getLogger("com.sun.electric").setLevel(Level.DEBUG);
             pipeOptions.add(" -debug");
             Job.setDebug(true);
         }
@@ -291,6 +286,9 @@ public final class Main
         // initialize parallel stuff
         ElectricWorkerStrategy electricWorker = new ElectricWorkerStrategy(null);
         PoolWorkerStrategyFactory.userDefinedStrategy = electricWorker;
+        
+        // load configuration and dependency injection
+        Configuration.getInstance();
 	}
 
     private static Process invokePipeserver(List<String> electricOptions, boolean withDebugger) throws IOException {

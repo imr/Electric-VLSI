@@ -56,7 +56,7 @@ public abstract class AbstractJunitBaseClass {
 	}
 
 	public AbstractJunitBaseClass() {
-
+	    //Configuration.setInstance(new SpringConfig("configuration.xml"));
 	}
 
 	@Before

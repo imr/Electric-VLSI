@@ -25,6 +25,7 @@ package com.sun.electric;
 
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sun.electric.util.CollectionFactory;
@@ -45,6 +46,7 @@ public class TestLauncher {
         args.add("-additionalfolder=testfolder");
     }
     
+    @Ignore
     @Test
     public void testGetSpringConfig() throws Exception {
         Class<?> clazz = Class.forName("com.sun.electric.Launcher");

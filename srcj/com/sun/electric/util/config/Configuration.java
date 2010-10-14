@@ -23,35 +23,58 @@
  */
 package com.sun.electric.util.config;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * @author fschmidt
- *
+ * 
  */
 public abstract class Configuration {
-    
+
     private static Configuration instance = null;
-    
-    protected Configuration() {      
+    protected static String configName = "";
+    protected static Logger logger = Logger.getLogger(Configuration.class.getName());
+
+    protected Configuration() {
     }
-    
-    public static void setInstance(Configuration config) {
-        if (config == null)
-            throw new NullPointerException();
-//        if (instance != null)
-//            throw new IllegalStateException();
-        instance = config;
-    }
-    
-    public static Object lookup(String name) {
-        return getInstance().lookupImpl(name);
-    } 
-    
-    private static Configuration getInstance() {
+
+    public static Configuration getInstance() {
         if (instance == null) {
-            instance = new ClasspathConfig();
+            instance = extractConfigurationImplementation();
         }
         return instance;
     }
-    
+
+    public static void setConfigName(String configName) {
+        Configuration.configName = configName;
+    }
+
+    public static Object lookup(String name) {
+        return getInstance().lookupImpl(name);
+    }
+
+    public static <T> T lookup(Class<T> clazz) {
+        return getInstance().lookupImpl(clazz);
+    }
+
+    private static Configuration extractConfigurationImplementation() {
+        Configuration result = null;
+
+        try {
+            Class<?> configClazz = Class.forName("com.sun.electric.util.config.SpringConfig");
+            result = (Configuration) configClazz.newInstance();
+            logger.log(Level.INFO, "Use the spring framework for dependency injection.");
+        } catch (Throwable t) {
+            result = new EConfig();
+            logger.log(Level.INFO, "Use the standard electric configurator for dependency injection.");
+        }
+
+        return result;
+    }
+
     protected abstract Object lookupImpl(String name);
+
+    protected abstract <T> T lookupImpl(Class<T> clazz);
+
 }
