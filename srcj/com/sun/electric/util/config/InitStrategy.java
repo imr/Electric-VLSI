@@ -24,6 +24,7 @@
 package com.sun.electric.util.config;
 
 import com.sun.electric.database.geometry.bool.LayoutMergerFactory;
+import com.sun.electric.tool.simulation.irsim.IAnalyzer;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.util.config.EConfig.ConfigEntry;
@@ -56,6 +57,14 @@ public abstract class InitStrategy {
                     ConfigEntry.createForConstructor(Class.forName("com.sun.electric.scala.LayoutMergerFactoryImpl")));
             } catch (ClassNotFoundException e) {
                 Configuration.logger.log(Level.INFO, "Didn't find scala implementation of LayoutMergerFactory");
+            }
+
+            // IRSIM plugin
+            try {
+                config.addConfigEntry(IAnalyzer.class,
+                    ConfigEntry.createForFactoryMethod(Class.forName("com.sun.electric.plugins.irsim.Analyzer"), "getInstance"));
+            } catch (ClassNotFoundException e) {
+                Configuration.logger.log(Level.INFO, "Didn't find IRSIM plugin");
             }
 
         }

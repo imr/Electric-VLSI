@@ -34,6 +34,7 @@ import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.DigitalSample.Strength;
 import com.sun.electric.tool.simulation.DigitalSample.Value;
+import com.sun.electric.tool.simulation.irsim.IAnalyzer;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.waveform.Panel;
@@ -193,6 +194,14 @@ public class Analyzer extends Engine
         sd = new Stimuli();
 		theSim = new Sim(this);
 	}
+    
+    public static IAnalyzer getInstance() {
+        return new IAnalyzer() {
+        	public void simulateCell(Cell cell, VarContext context, String fileName, IRSIMPreferences ip, boolean doNow) {
+                Analyzer.simulateCell(cell, context, fileName, ip, doNow);
+            }
+        };
+    }
 
 	/**
 	 * Main entry point to start simulating a cell.

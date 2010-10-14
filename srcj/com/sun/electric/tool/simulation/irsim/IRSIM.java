@@ -26,18 +26,13 @@ package com.sun.electric.tool.simulation.irsim;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
-
-import java.lang.reflect.Method;
+import com.sun.electric.util.config.Configuration;
 
 /**
  * Class for interfacing to the IRSIM simulator by reflection.
  */
 public class IRSIM
 {
-    private static boolean irsimChecked = false;
-    private static Class<?> irsimClass = null;
-    private static Method irsimSimulateMethod;
-    
     /**
      * Method to tell whether the IRSIM simulator is available.
      * IRSIM is packaged separately because it is from Stanford University.
@@ -46,35 +41,7 @@ public class IRSIM
      */
     public static boolean hasIRSIM()
     {
-        if (!irsimChecked)
-        {
-            irsimChecked = true;
-
-            // find the IRSIM class
-            try
-            {
-                irsimClass = Class.forName("com.sun.electric.plugins.irsim.Analyzer");
-            } catch (ClassNotFoundException e)
-            {
-                irsimClass = null;
-                return false;
-            }
-
-            // find the necessary methods on the IRSIM class
-            try
-            {
-                irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class,
-                	VarContext.class, String.class, IRSIMPreferences.class, Boolean.class});
-            } catch (NoSuchMethodException e)
-            {
-                irsimClass = null;
-                return false;
-            }
-        }
-
-        // if already initialized, return
-        if (irsimClass == null) return false;
-        return true;
+        return Configuration.lookup(IAnalyzer.class) != null;
     }
 
     /**
@@ -89,8 +56,7 @@ public class IRSIM
     {
         try
         {
-            irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName, ip, Boolean.valueOf(doNow)});
-            return;
+            Configuration.lookup(IAnalyzer.class).simulateCell(cell, context, fileName, ip, doNow);
         } catch (Exception e)
         {
             System.out.println("Unable to run the IRSIM simulator");
