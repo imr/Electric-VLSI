@@ -23,11 +23,11 @@
  */
 package com.sun.electric.util.config;
 
-import java.util.Map;
-
+import com.sun.electric.database.geometry.bool.LayoutMergerFactory;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.util.config.EConfig.ConfigEntry;
+import java.util.logging.Level;
 
 /**
  * @author fschmidt
@@ -49,6 +49,14 @@ public abstract class InitStrategy {
 
             config.addConfigEntry(IThreadPool.class,
                     ConfigEntry.createForFactoryMethod(ThreadPool.class, "initialize"));
+
+            // Scala implementation of LayoutMergerFactory
+            try {
+                config.addConfigEntry(LayoutMergerFactory.class,
+                    ConfigEntry.createForConstructor(Class.forName("com.sun.electric.scala.LayoutMergerFactoryImpl")));
+            } catch (ClassNotFoundException e) {
+                Configuration.logger.log(Level.INFO, "Didn't find scala implementation of LayoutMergerFactory");
+            }
 
         }
 
