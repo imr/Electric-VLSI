@@ -32,21 +32,34 @@
 	<xsd:element name="injection">
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element ref="parameters" maxOccurs="1" minOccurs="0"/>
+				<xsd:element ref="parameters" maxOccurs="1" minOccurs="0" />
 			</xsd:sequence>
-			
+
 			<xsd:attribute name="name" type="xsd:string" use="required" />
 			<xsd:attribute name="implementation" type="xsd:string"
 				use="required" />
 			<xsd:attribute name="factoryMethod" type="xsd:string"
 				use="optional" />
+			<xsd:attribute name="singleton" type="xsd:boolean"
+				default="false" use="optional" />
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="configuration">
+	<xsd:element name="include">
+		<xsd:complexType>
+			<xsd:attribute name="file" type="xsd:string" use="required" />
+			<xsd:attribute name="id" type="xsd:string" use="optional" />
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="
+				configuration ">
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element ref="injection" />
+				<xsd:element ref="include" maxOccurs="unbounded"
+					minOccurs="0" />
+				<xsd:element ref="injection" maxOccurs="unbounded"
+					minOccurs="0" />
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>

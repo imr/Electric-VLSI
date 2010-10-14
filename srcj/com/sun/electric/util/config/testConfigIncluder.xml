@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<electric:configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:electric="http://www.sun.com/Electric" xsi:schemaLocation="http://www.sun.com/Electric ../../../../../econfig.xsd">
+
+	<electric:include file="com/sun/electric/util/config/testConfigIncluderSelfReference.xml" />
+
+</electric:configuration>

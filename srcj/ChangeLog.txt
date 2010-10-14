@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+IMP: (10/14/10, FS) Electric-Dependency-Injection: include + parameter + singleton handling
+
 IMP: (10/13/10, FS) Initial version of Electric-Dependency-Injection
 
 BUG: (10/13/10, SMR) "New" graphing commands in Sun Async menu do not compile

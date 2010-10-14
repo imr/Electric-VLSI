@@ -24,33 +24,36 @@
 package com.sun.electric.util.config.model;
 
 import java.util.List;
+import java.util.Map;
 
-import com.sun.electric.util.config.EConfig.ConfigEntry;
+import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author fschmidt
  * 
  */
 public class Injection {
-    
+
     public enum Attributes {
-        name, implementation, factoryMethod
+        name, implementation, factoryMethod, singleton
     }
 
     private String name;
     private String implementation;
     private String factoryMethod;
     private List<Parameter> parameters;
+    private boolean singleton = false;
 
     /**
      * @param name
      * @param implementation
      * @param factoryMethod
      */
-    public Injection(String name, String implementation, String factoryMethod) {
+    public Injection(String name, String implementation, String factoryMethod, boolean singleton) {
         this.name = name;
         this.implementation = implementation;
         this.factoryMethod = factoryMethod;
+        this.singleton = singleton;
         this.setParameters(null);
     }
 
@@ -78,6 +81,14 @@ public class Injection {
         this.factoryMethod = factoryMethod;
     }
 
+    public void setSingleton(boolean singleton) {
+        this.singleton = singleton;
+    }
+
+    public boolean isSingleton() {
+        return singleton;
+    }
+
     public void setParameters(List<Parameter> parameters) {
         this.parameters = parameters;
     }
@@ -85,16 +96,31 @@ public class Injection {
     public List<Parameter> getParameters() {
         return parameters;
     }
-    
-    public ConfigEntry<?> createConfigEntry() throws ClassNotFoundException {
+
+    public ConfigEntry<?> createConfigEntry(Map<String, Injection> allInjections)
+            throws ClassNotFoundException {
         ConfigEntry<?> entry = null;
-        
-        if(factoryMethod == null) {
-            entry = ConfigEntry.createForConstructor(Class.forName(this.implementation));
-        } else {
-            entry = ConfigEntry.createForFactoryMethod(Class.forName(this.implementation), this.factoryMethod);
+
+        List<ParameterEntry> paramEntries = null;
+        ParameterEntry[] entries = null;
+
+        if (this.parameters != null) {
+            paramEntries = CollectionFactory.createArrayList();
+            for (Parameter param : parameters) {
+                paramEntries.add(param.createParameter(allInjections));
+            }
+            entries = paramEntries.toArray(new ParameterEntry[paramEntries.size()]);
         }
-        
+
+        if (factoryMethod == null) {
+            entry = ConfigEntry.createForConstructor(Class.forName(this.implementation), singleton, entries);
+        } else {
+            entry = ConfigEntry.createForFactoryMethod(Class.forName(this.implementation),
+                    this.factoryMethod, singleton, entries);
+        }
+
+        ConfigEntries.getEntries().put(name, entry);
+
         return entry;
     }
 

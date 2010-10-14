@@ -31,67 +31,70 @@ import com.sun.electric.util.config.model.Parameter;
 
 /**
  * @author fschmidt
- *
+ * 
  */
 public class XmlConfigVerification {
-    
+
     private static XmlConfigVerification instance = new XmlConfigVerification();
-    
+
     private XmlConfigVerification() {
-        
+
     }
-    
+
     public static XmlConfigVerification getInstance() {
         return instance;
     }
-    
+
     public static boolean runVerification(Map<String, Injection> injections) throws LoopExistsException {
         return XmlConfigVerification.getInstance().verifyConfiguration(injections);
     }
-    
+
     public boolean verifyConfiguration(Map<String, Injection> injections) throws LoopExistsException {
         Map<String, InjectionWrapper> wrappers = CollectionFactory.createHashMap();
-        for(Map.Entry<String, Injection> entry: injections.entrySet()) {
+        for (Map.Entry<String, Injection> entry : injections.entrySet()) {
             wrappers.put(entry.getKey(), new InjectionWrapper(entry.getValue()));
         }
-        
-        for(InjectionWrapper wrapper: wrappers.values()) {
+
+        for (InjectionWrapper wrapper : wrappers.values()) {
             deepFirstSearch(wrapper, wrappers);
         }
-        
+
         return true;
     }
-    
-    private void deepFirstSearch(InjectionWrapper wrapper, Map<String, InjectionWrapper> injections) throws LoopExistsException {
-        if(wrapper.finished)
+
+    private void deepFirstSearch(InjectionWrapper wrapper, Map<String, InjectionWrapper> injections)
+            throws LoopExistsException {
+        if (wrapper.finished)
             return;
-            
-        if(wrapper.visited) 
+
+        if (wrapper.visited)
             throw new LoopExistsException();
-        
+
         wrapper.visited = true;
-        
-        for(Parameter param: wrapper.injection.getParameters()) {
-            if(param.getRef() != null) {
-                this.deepFirstSearch(injections.get(param.getRef()), injections);
+
+        if (wrapper.injection.getParameters() != null) {
+            for (Parameter param : wrapper.injection.getParameters()) {
+                if (param.getRef() != null) {
+                    this.deepFirstSearch(injections.get(param.getRef()), injections);
+                }
             }
         }
-        
+
         wrapper.finished = true;
     }
-    
+
     private class InjectionWrapper {
         private Injection injection;
         private boolean visited = false;
         private boolean finished = false;
-        
+
         public InjectionWrapper(Injection parameter) {
             this.injection = parameter;
         }
     }
-    
-    private static class LoopExistsException extends Exception {
-        
+
+    public static class LoopExistsException extends Exception {
+
     }
 
 }

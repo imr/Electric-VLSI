@@ -7,4 +7,6 @@
 		factoryMethod="initialize">
 	</electric:injection>
 
+	<electric:injection implementation="com.sun.electric.util.config.Singleton"
+		name="singleton" singleton="true" />
 </electric:configuration>

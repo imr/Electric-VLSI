@@ -1,9 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <electric:configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:electric="http://www.sun.com/Electric" xsi:schemaLocation="http://www.sun.com/Electric ../../../../../econfig.xsd">
-	<electric:injection
-		name="com.sun.electric.util.config.SimpleInterface"
+	<electric:injection name="com.sun.electric.util.config.SimpleInterface"
 		implementation="com.sun.electric.util.config.SimpleInterfaceImpl">
+	</electric:injection>
+
+	<electric:injection name="multipleConstructorOneParameter"
+		implementation="com.sun.electric.util.config.SimpleConstructorType2">
+		<electric:parameters>
+			<electric:parameter name="test" value="testString"
+				type="String" />
+		</electric:parameters>
+	</electric:injection>
+
+	<electric:injection name="multipleConstructorOneParameterInteger"
+		implementation="com.sun.electric.util.config.SimpleConstructorType2">
+		<electric:parameters>
+			<electric:parameter name="test" value="1" type="Integer" />
+		</electric:parameters>
+	</electric:injection>
+
+	<electric:injection name="multipleConstructorOneParameterDouble"
+		implementation="com.sun.electric.util.config.SimpleConstructorType2">
+		<electric:parameters>
+			<electric:parameter name="test" value="2.0" type="Double" />
+		</electric:parameters>
+	</electric:injection>
+
+	<electric:injection name="multipleConstructorTwoParameters"
+		implementation="com.sun.electric.util.config.SimpleConstructorType2">
+		<electric:parameters>
+			<electric:parameter name="test1" value="testString1"
+				type="String" />
+			<electric:parameter name="test2" value="testString2"
+				type="String" />
+		</electric:parameters>
 	</electric:injection>
 
 </electric:configuration>

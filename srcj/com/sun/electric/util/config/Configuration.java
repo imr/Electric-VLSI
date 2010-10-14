@@ -66,7 +66,7 @@ public abstract class Configuration {
             result = (Configuration) configClazz.newInstance();
             logger.log(Level.INFO, "Use the spring framework for dependency injection.");
         } catch (Throwable t) {
-            result = new EConfig();
+            result = new EConfigContainer();
             logger.log(Level.INFO, "Use the standard electric configurator for dependency injection.");
         }
 

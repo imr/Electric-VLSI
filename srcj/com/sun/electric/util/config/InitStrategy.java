@@ -23,12 +23,13 @@
  */
 package com.sun.electric.util.config;
 
+import java.util.logging.Level;
+
 import com.sun.electric.database.geometry.bool.LayoutMergerFactory;
 import com.sun.electric.tool.simulation.irsim.IAnalyzer;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
-import com.sun.electric.util.config.EConfig.ConfigEntry;
-import java.util.logging.Level;
+import com.sun.electric.util.config.model.ConfigEntry;
 
 /**
  * @author fschmidt
@@ -36,7 +37,7 @@ import java.util.logging.Level;
  */
 public abstract class InitStrategy {
 
-    public abstract void init(EConfig config);
+    public abstract void init(EConfigContainer config);
 
     public static class StaticInit extends InitStrategy {
 
@@ -46,29 +47,31 @@ public abstract class InitStrategy {
          * @see com.sun.electric.util.config.InitStrategy#init()
          */
         @Override
-        public void init(EConfig config) {
+        public void init(EConfigContainer config) {
 
-            config.addConfigEntry(IThreadPool.class,
-                    ConfigEntry.createForFactoryMethod(ThreadPool.class, "initialize"));
+            config.addConfigEntry(IThreadPool.class.getName(),
+                    ConfigEntry.createForFactoryMethod(ThreadPool.class, "initialize", false));
 
             // Scala implementation of LayoutMergerFactory
             try {
-                config.addConfigEntry(LayoutMergerFactory.class,
-                    ConfigEntry.createForConstructor(Class.forName("com.sun.electric.scala.LayoutMergerFactoryImpl")));
+                config.addConfigEntry(
+                        LayoutMergerFactory.class.getName(),
+                        ConfigEntry.createForConstructor(
+                                Class.forName("com.sun.electric.scala.LayoutMergerFactoryImpl"), false));
             } catch (ClassNotFoundException e) {
-                Configuration.logger.log(Level.INFO, "Didn't find scala implementation of LayoutMergerFactory");
+                Configuration.logger.log(Level.INFO,
+                        "Didn't find scala implementation of LayoutMergerFactory");
             }
 
             // IRSIM plugin
             try {
-                config.addConfigEntry(IAnalyzer.class,
-                    ConfigEntry.createForFactoryMethod(Class.forName("com.sun.electric.plugins.irsim.Analyzer"), "getInstance"));
+                config.addConfigEntry(IAnalyzer.class.getName(), ConfigEntry.createForFactoryMethod(
+                        Class.forName("com.sun.electric.plugins.irsim.Analyzer"), "getInstance", false));
             } catch (ClassNotFoundException e) {
                 Configuration.logger.log(Level.INFO, "Didn't find IRSIM plugin");
             }
 
         }
-
     }
 
 }

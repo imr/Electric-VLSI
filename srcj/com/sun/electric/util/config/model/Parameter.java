@@ -23,6 +23,8 @@
  */
 package com.sun.electric.util.config.model;
 
+import java.util.Map;
+
 /**
  * @author fschmidt
  * 
@@ -34,7 +36,7 @@ public class Parameter {
     }
 
     public enum Type {
-        String, Integer, Double, Boolean
+        String, Integer, Double, Boolean, Reference
     }
 
     private String name;
@@ -88,31 +90,41 @@ public class Parameter {
         this.type = type;
     }
 
-    public Object createObject() {
-        Object obj = null;
+    public ParameterEntry createParameter(Map<String, Injection> allInjections) throws ClassNotFoundException {
+        ParameterEntry entry = null;
 
         if (this.ref == null) {
-            obj = createByType(type, value);
+            entry = new ParameterEntry(this.name, createByType());
         } else {
-            
+            entry = new ParameterEntry(name, createByReference(allInjections));
         }
 
-        return obj;
+        return entry;
     }
 
-    private Object createByType(Type type, String value) {
+    private ConfigEntry<?> createByType() {
 
         if (type.equals(Type.Boolean)) {
-            return Boolean.parseBoolean(value);
+            return new ConfigEntry.ConfigEntryPrimitive<Boolean>(Boolean.parseBoolean(value));
         } else if(type.equals(Type.Double)) {
-            return Double.parseDouble(value);
+            return new ConfigEntry.ConfigEntryPrimitive<Double>(Double.parseDouble(value));
         } else if(type.equals(Type.Integer)) {
-            return Integer.parseInt(value);
+            return new ConfigEntry.ConfigEntryPrimitive<Integer>(Integer.parseInt(value));
         } else if(type.equals(Type.String)) {
-            return value;
+            return new ConfigEntry.ConfigEntryPrimitive<String>(value);
         }
 
         return null;
+    }
+    
+    private ConfigEntry<?> createByReference(Map<String, Injection> allInjections) throws ClassNotFoundException {
+        ConfigEntry<?> entry = ConfigEntries.getEntries().get(this.ref);
+        
+        if(entry != null) {
+            return entry;
+        } else {
+            return allInjections.get(this.ref).createConfigEntry(allInjections);
+        }
     }
 
 }

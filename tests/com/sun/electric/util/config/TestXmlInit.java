@@ -23,29 +23,134 @@
  */
 package com.sun.electric.util.config;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 
 /**
  * @author fschmidt
- *
+ * 
  */
 public class TestXmlInit {
-    
+
     @Test
     public void testXmlInit() {
-        EConfig econfig = new EConfig(new XmlInitSax(ClassLoader.getSystemResource("com/sun/electric/util/config/testConfig.xml")));
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfig.xml")));
+
+        Assert.assertNotNull(econfig);
     }
-    
+
     @Test
     public void testXmlInitConstructor() {
-        EConfig econfig = new EConfig(new XmlInitSax(ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigConstructor.xml")));
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigConstructor.xml")));
         SimpleInterface si = econfig.lookupImpl(SimpleInterface.class);
+
+        Assert.assertNotNull(si);
+    }
+
+    @Test
+    public void testXmlInitFactoryMethod() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigFactoryMethod.xml")));
+        SimpleInterface si = econfig.lookupImpl(SimpleInterface.class);
+
+        Assert.assertNotNull(si);
+    }
+
+    @Test
+    public void testXmlInitParameterViaSetters() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigParameters.xml")));
+        SimpleParameterType pt = (SimpleParameterType) econfig.lookupImpl("simpleParameterType");
+
+        Assert.assertNotNull(pt);
+
+        System.out.println(pt.getTest());
+        pt.print();
+    }
+
+    @Test
+    public void testXmlInitParameterViaConstructor() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigParameters.xml")));
+        SimpleConstructorType pt = (SimpleConstructorType) econfig.lookupImpl("simpleConstructorType");
+
+        Assert.assertNotNull(pt);
+
+        System.out.println(pt.getTest());
+        pt.print();
+    }
+
+    @Test
+    public void testXmlInitParameterViaFactory() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigParameters.xml")));
+        SimpleFactoryType pt = (SimpleFactoryType) econfig.lookupImpl("simpleFactoryType");
+
+        Assert.assertNotNull(pt);
+
+        System.out.println(pt.getTest());
+        pt.print();
+    }
+
+    @Test
+    public void testXmlInitSingleton() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfig.xml")));
+        Singleton singleton1 = (Singleton) econfig.lookupImpl("singleton");
+        Singleton singleton2 = (Singleton) econfig.lookupImpl("singleton");
+
+        Assert.assertNotNull(singleton1);
+        Assert.assertNotNull(singleton2);
+
+        Assert.assertEquals(singleton1, singleton2);
+
+        System.out.println("s1: " + singleton1);
+        System.out.println("s2: " + singleton2);
     }
     
     @Test
-    public void testXmlInitFactoryMethod() {
-        EConfig econfig = new EConfig(new XmlInitSax(ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigFactoryMethod.xml")));
+    public void testXmlInitInclude() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigIncluder.xml")));
         SimpleInterface si = econfig.lookupImpl(SimpleInterface.class);
+
+        Assert.assertNotNull(si);
+    }
+    
+    @Test
+    public void testXmlInitIncludeSelfReference() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigIncluderSelfReference.xml")));
+    }
+    
+    @Test
+    public void testXmlInitConstructorMultiple() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigConstructor.xml")));
+        SimpleConstructorType2 si1 = (SimpleConstructorType2) econfig.lookupImpl("multipleConstructorOneParameter");
+        SimpleConstructorType2 si2 = (SimpleConstructorType2) econfig.lookupImpl("multipleConstructorTwoParameters");
+        SimpleConstructorType2 si3 = (SimpleConstructorType2) econfig.lookupImpl("multipleConstructorOneParameterInteger");
+        SimpleConstructorType2 si4 = (SimpleConstructorType2) econfig.lookupImpl("multipleConstructorOneParameterDouble");
+
+        Assert.assertNotNull(si1);
+        Assert.assertNotNull(si2);
+        Assert.assertNotNull(si3);
+        Assert.assertNotNull(si4);
+    }
+    
+    @Test
+    public void testXmlInitParameterViaFactoryInheritance() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigParameters.xml")));
+        SimpleFactoryType pt = (SimpleFactoryType) econfig.lookupImpl("simpleFactoryTypeNumber");
+
+        Assert.assertNotNull(pt);
+
+        System.out.println(pt.getTest());
+        pt.print();
     }
 
 }
