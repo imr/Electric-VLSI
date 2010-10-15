@@ -35,10 +35,6 @@ import com.sun.electric.util.config.model.ParameterEntry;
  */
 public class SetterInject<T> extends InjectStrategy<T> {
 
-    public enum CreateBy {
-        constructor, factoryMethod
-    }
-    
     private CreateBy createBy;
     private String factoryName;
     

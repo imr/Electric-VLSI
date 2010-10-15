@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00o: ******************************
 
+BUG: (10/14/10, DN) Compiling issue in frehley after last update in main branch (Bug #2935)
+FIX: Rename util.config.SetterInject.CreateBy to util.config.CreateBy.
+
 IMP: (10/14/10, FS) Electric-Dependency-Injection: include + parameter + singleton handling
 
 IMP: (10/13/10, FS) Initial version of Electric-Dependency-Injection

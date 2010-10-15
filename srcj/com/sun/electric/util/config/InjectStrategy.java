@@ -26,7 +26,6 @@ package com.sun.electric.util.config;
 import java.util.List;
 
 import com.sun.electric.util.CollectionFactory;
-import com.sun.electric.util.config.SetterInject.CreateBy;
 import com.sun.electric.util.config.annotations.Inject;
 import com.sun.electric.util.config.cache.TypeCache;
 import com.sun.electric.util.config.model.ParameterEntry;
