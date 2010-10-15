@@ -144,7 +144,7 @@ public class ManualViewer extends EModelessDialog
 		boolean newAtLevel;
 	};
 
-	private Class htmlBaseClass;
+	private Class<?> htmlBaseClass;
 	private String htmlDirectory;
 	private JScrollPane rightHalf;
 	private JEditorPane editorPane;
@@ -162,7 +162,7 @@ public class ManualViewer extends EModelessDialog
 	private List<Object> history = new ArrayList<Object>();
 	private static ManualViewer theManual = null;
 
-    private static void setManualViewer(String preference, Class baseClass, String htmlDir, boolean setVisible)
+    private static void setManualViewer(String preference, Class<?> baseClass, String htmlDir, boolean setVisible)
     {
         if (theManual == null)
         {
@@ -350,7 +350,7 @@ public class ManualViewer extends EModelessDialog
 	 * Create a new user's manual dialog.
 	 * @param parent
 	 */
-	private ManualViewer(Frame parent, String preference, Class baseClass, String htmlDir) throws Exception
+	private ManualViewer(Frame parent, String preference, Class<?> baseClass, String htmlDir) throws Exception
 	{
 		super(parent);
 		htmlBaseClass = baseClass;
@@ -473,11 +473,11 @@ public class ManualViewer extends EModelessDialog
 			topPath = manualTree.getPathForRow(1);
 			manualTree.expandPath(topPath);
 			manualTree.setSelectionPath(topPath);
-		} else
-		{
-			TreePath tp = new TreePath(thisNode.getPath());
-			manualTree.scrollPathToVisible(tp);
-			manualTree.setSelectionPath(tp);
+//		} else
+//		{
+//			TreePath tp = new TreePath(thisNode.getPath());
+//			manualTree.scrollPathToVisible(tp);
+//			manualTree.setSelectionPath(tp);
 		}
 		// load the title page of the manual
 		loadPage(currentIndex, null);
@@ -1428,6 +1428,26 @@ public class ManualViewer extends EModelessDialog
 					System.out.println("  but did save: " + fileName);
 					return;
 				}
+			} else
+			{
+				// another way to find the original file (using Maven file structures)
+				binPos = fileName.indexOf("/target/classes/");
+				if (binPos >= 0)
+				{
+					String otherFileName = fileName.substring(0, binPos) + "/src/main/resources" + fileName.substring(binPos+15);
+					try
+					{
+						PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(otherFileName)));
+						printWriter.print(textArea.getText());
+						printWriter.close();
+						System.out.println("Also saved to "+otherFileName);
+					} catch (IOException e)
+					{
+						System.out.println("Could not also save file: " + otherFileName);
+						System.out.println("  but did save: " + fileName);
+						return;
+					}
+				}
 			}
 
 			setVisible(false);
@@ -1485,7 +1505,7 @@ public class ManualViewer extends EModelessDialog
 	}
 
 	/**
-	 * Initialize list of all ToolTips and initilize components
+	 * Initialize list of all ToolTips and initialize components
 	 */
 	private void init()
 	{

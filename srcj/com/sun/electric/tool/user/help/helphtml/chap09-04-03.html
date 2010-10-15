@@ -210,12 +210,20 @@ The following variables are available to use in the program name and arguments:
 <!-- NEED 5in -->
 Another set of controls can be used is the Spice Model Files Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Spice Model Files" tab).
-This dialog allows you to specify a disk file of Spice cards that will be used to describe any cell.
-Instead of the cell subcircuit, the specified disk file is "included" in the deck.
+This dialog allows you to control how each cell is represented in the Spice deck.
 <P>
 <CENTER><IMG SRC="fig09-11.png" ALT="Figure 9.11"></CENTER>
 <P>
-The same function can be done by using the <B>Set Netlist Cell From File</B> command
+The default is to construct the Spice from the actual cell contents.
+If there is an equivalent layout cell, it can be used (instead of the schematic).
+You can also choose to use the "Verilog" view, which contains Verilog text for that cell
+(it will be converted to Spice).
+Finally, you can request that an external model file be used.
+Note that in the case of external model files,
+the specified disk file is referenced by adding "include" lines in the deck.
+These choices allow you to create your own definitions in situations where the derived Spice would be too complex or otherwise incorrect.
+<P>
+Another way to change the Spice representation of a cell is to use the <B>Set Netlist Cell From File</B> command
 (in menu <B>Tools / Simulation (Spice)</B>).
 This places a piece of text in the cell, which you must edit to be the path to a disk file.
 That file will then be included in the Spice deck instead of the actual subcircuit of the cell.
