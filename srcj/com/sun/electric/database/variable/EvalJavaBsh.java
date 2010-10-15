@@ -91,7 +91,7 @@ public class EvalJavaBsh {
     private static boolean DEBUGSTACKTRACE = false;
 
     // ------------------------ private and protected methods -------------------
-    /** the contructor */
+    /** the constructor */
     public EvalJavaBsh() {
         envObject = null;
 
