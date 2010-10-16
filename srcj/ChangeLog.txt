@@ -2,7 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 9.00o: ******************************
+************************* Version 9.00p: ******************************
 
 BUG: (10/14/10, DN) Compiling issue in frehley after last update in main branch (Bug #2935)
 FIX: Rename util.config.SetterInject.CreateBy to util.config.CreateBy.
@@ -24,12 +24,6 @@ BUG: (10/12/10, SMR) Want to be able to rename Waveform Window signals (Bug #278
 FIX: Can now double-click over signal name in Waveform Window and rename it.
      Does not rename crossprobed object in Electric...just assigns a new display name in the Waveform Window panel.
 
-BUG: (10/12/10, GVG) Main branch doesn't longer compile (jarLight2) after last sync with Maven (Bug #2929)
-FIX: Lines causing the compilation failure in Launcher.java commented out.
-
-BUG: (10/12/10, FS) Rollback log4j + commons-logging + spring
-FIX: rolled back in trunk
-
 BUG: (10/11/10, DN) java -jar electric.jar doesn't longer work (Bug #2927)
 FIX: In Launcher.initClasspath check for null combinedArray.
 
@@ -38,6 +32,14 @@ FIX: Removed the line from Spice.java.
 
 BUG: (10/11/10, SMR) Postscript output fails for colored text (Bug #2922).
 FIX: Use EGraphics to make colors.
+
+************************* Version 9.00o: ******************************
+
+BUG: (10/12/10, GVG) Main branch doesn't longer compile (jarLight2) after last sync with Maven (Bug #2929)
+FIX: Lines causing the compilation failure in Launcher.java commented out.
+
+BUG: (10/12/10, FS) Rollback log4j + commons-logging + spring (Bug #2926)
+FIX: rolled back in trunk
 
 IMP: (10/11/10, FS) Add spring environment and use it in ERC for ThreadPool
 
