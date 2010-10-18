@@ -31,7 +31,7 @@ import com.sun.electric.util.config.cache.TypeCache;
 import com.sun.electric.util.config.model.ParameterEntry;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public abstract class InjectStrategy<T> {

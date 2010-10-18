@@ -29,7 +29,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 @Retention(RetentionPolicy.RUNTIME)

@@ -28,7 +28,7 @@ import java.util.List;
 import com.sun.electric.util.CollectionFactory;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class ParameterEntry {

@@ -32,7 +32,7 @@ import com.sun.electric.util.config.annotations.InjectionMethod;
 import com.sun.electric.util.config.annotations.InjectionMethod.InjectionStrategy;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public abstract class ConfigEntry<T> {

@@ -50,7 +50,7 @@ import com.sun.electric.util.config.model.Injection;
 import com.sun.electric.util.config.model.Parameter;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class XmlInitSax extends InitStrategy {

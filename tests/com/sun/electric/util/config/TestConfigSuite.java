@@ -28,7 +28,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  *
  */
 @RunWith(Suite.class)

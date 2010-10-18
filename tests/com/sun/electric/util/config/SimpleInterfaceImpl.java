@@ -25,7 +25,7 @@ package com.sun.electric.util.config;
 
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  *
  */
 public class SimpleInterfaceImpl implements SimpleInterface {

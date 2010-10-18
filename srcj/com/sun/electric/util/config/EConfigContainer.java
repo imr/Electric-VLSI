@@ -31,7 +31,7 @@ import com.sun.electric.util.config.InitStrategy.StaticInit;
 import com.sun.electric.util.config.model.ConfigEntry;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class EConfigContainer extends Configuration {

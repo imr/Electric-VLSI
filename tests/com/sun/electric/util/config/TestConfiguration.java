@@ -26,7 +26,7 @@ package com.sun.electric.util.config;
 import org.junit.Test;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  *
  */
 public class TestConfiguration {

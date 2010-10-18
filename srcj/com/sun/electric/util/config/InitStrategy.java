@@ -32,7 +32,7 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.util.config.model.ConfigEntry;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public abstract class InitStrategy {

@@ -26,7 +26,7 @@ package com.sun.electric.util.config.model;
 import java.util.Map;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class Parameter {

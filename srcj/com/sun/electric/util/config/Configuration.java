@@ -27,7 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public abstract class Configuration {

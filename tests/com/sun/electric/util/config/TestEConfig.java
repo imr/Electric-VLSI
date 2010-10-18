@@ -34,7 +34,7 @@ import com.sun.electric.util.config.annotations.InjectionMethod.InjectionStrateg
 import com.sun.electric.util.config.model.ConfigEntry;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class TestEConfig {

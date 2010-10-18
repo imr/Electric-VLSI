@@ -28,7 +28,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class TestCollectionFactory {

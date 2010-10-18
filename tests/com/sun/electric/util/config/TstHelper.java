@@ -27,7 +27,7 @@ import com.sun.electric.util.config.model.ConfigEntry;
 import com.sun.electric.util.config.model.ParameterEntry;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  * 
  */
 public class TstHelper {

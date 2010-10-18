@@ -28,7 +28,7 @@ import java.util.Map;
 import com.sun.electric.util.CollectionFactory;
 
 /**
- * @author fschmidt
+ * @author Felix Schmidt
  *
  */
 public class ConfigEntries {
