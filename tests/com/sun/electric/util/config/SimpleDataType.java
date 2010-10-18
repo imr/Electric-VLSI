@@ -25,7 +25,6 @@ package com.sun.electric.util.config;
 
 /**
  * @author Felix Schmidt
- *
  */
 public class SimpleDataType {
     

@@ -29,7 +29,6 @@ import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt
- *
  */
 public class ConfigEntries {
     

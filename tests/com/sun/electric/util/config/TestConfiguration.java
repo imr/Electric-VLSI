@@ -25,16 +25,22 @@ package com.sun.electric.util.config;
 
 import org.junit.Test;
 
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
+
 /**
  * @author Felix Schmidt
- *
  */
 public class TestConfiguration {
     
     @Test
     public void testGetInstance() {
-        Configuration.setConfigName("configuration.xml");
+        ElapseTimer timer = ElapseTimer.createInstance().start();
+        Configuration.setConfigName("econfig.xml");
         Configuration config = Configuration.getInstance();
+        timer.end();
+        
+        timer.print("");
+        
         System.out.println(config);
     }
 

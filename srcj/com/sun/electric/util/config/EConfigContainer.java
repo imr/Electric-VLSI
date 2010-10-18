@@ -23,6 +23,9 @@
  */
 package com.sun.electric.util.config;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -38,6 +41,22 @@ public class EConfigContainer extends Configuration {
 
     EConfigContainer() {
         this(new StaticInit());
+    }
+
+    EConfigContainer(String configFile) {
+        File file = new File(configFile);
+        if (file.exists()) {
+            new XmlInitSax(configFile).init(this);
+        } else {
+            URL fileName = EConfigContainer.class.getResource("/" + configFile);
+            try {
+                System.out.println(fileName.toURI());
+            } catch (URISyntaxException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            new XmlInitSax(fileName).init(this);
+        }
     }
 
     EConfigContainer(InitStrategy initMethod) {
@@ -74,7 +93,7 @@ public class EConfigContainer extends Configuration {
     protected <T> T lookupImpl(Class<T> clazz) {
         try {
             return (T) lookupImpl(clazz.getName());
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             return null;
         }
     }

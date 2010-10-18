@@ -32,7 +32,6 @@ import com.sun.electric.util.config.model.ParameterEntry;
 
 /**
  * @author Felix Schmidt
- * 
  */
 public abstract class InjectStrategy<T> {
 

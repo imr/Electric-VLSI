@@ -63,6 +63,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.PoolWorkerStrategyFactory;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.concurrent.ElectricWorkerStrategy;
 import com.sun.electric.util.config.Configuration;
@@ -287,8 +288,13 @@ public final class Main
         ElectricWorkerStrategy electricWorker = new ElectricWorkerStrategy(null);
         PoolWorkerStrategyFactory.userDefinedStrategy = electricWorker;
         
+        ElapseTimer timer = ElapseTimer.createInstance().start();
         // load configuration and dependency injection
         Configuration.getInstance();
+        
+        timer.end();
+        
+        System.out.println("load configuration: " + timer.toString());
 	}
 
     private static Process invokePipeserver(List<String> electricOptions, boolean withDebugger) throws IOException {

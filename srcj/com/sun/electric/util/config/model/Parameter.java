@@ -27,7 +27,6 @@ import java.util.Map;
 
 /**
  * @author Felix Schmidt
- * 
  */
 public class Parameter {
 

@@ -29,7 +29,6 @@ import com.sun.electric.util.config.annotations.InjectionMethod.InjectionStrateg
 
 /**
  * @author Felix Schmidt
- * 
  */
 @InjectionMethod(injectionStrategy=InjectionStrategy.initialization)
 public class SimpleConstructorType2 {

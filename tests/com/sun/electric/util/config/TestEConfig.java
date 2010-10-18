@@ -35,7 +35,6 @@ import com.sun.electric.util.config.model.ConfigEntry;
 
 /**
  * @author Felix Schmidt
- * 
  */
 public class TestEConfig {
 

@@ -61,14 +61,8 @@ public abstract class Configuration {
     private static Configuration extractConfigurationImplementation() {
         Configuration result = null;
 
-        try {
-            Class<?> configClazz = Class.forName("com.sun.electric.util.config.SpringConfig");
-            result = (Configuration) configClazz.newInstance();
-            logger.log(Level.INFO, "Use the spring framework for dependency injection.");
-        } catch (Throwable t) {
-            result = new EConfigContainer();
-            logger.log(Level.INFO, "Use the standard electric configurator for dependency injection.");
-        }
+        result = new EConfigContainer(Configuration.configName);
+        logger.log(Level.INFO, "Use the standard electric configurator for dependency injection.");
 
         return result;
     }

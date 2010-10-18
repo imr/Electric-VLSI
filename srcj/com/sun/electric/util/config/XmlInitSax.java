@@ -24,7 +24,7 @@
 package com.sun.electric.util.config;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
@@ -57,20 +57,18 @@ public class XmlInitSax extends InitStrategy {
 
     private static Logger logger = Logger.getLogger(XmlInitSax.class.getName());
 
-    private File xmlFile;
+    private String xmlFile;
     private static final String SCHEMA_LANGUAGE = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
     private static final String XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
 
     public XmlInitSax(String xmlFile) {
-        this.xmlFile = new File(xmlFile);
+        this.xmlFile = xmlFile;// new File(xmlFile);
     }
 
-    public XmlInitSax(URL xmlFile) {
-        try {
-            this.xmlFile = new File(xmlFile.toURI());
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+    public XmlInitSax(URL xmlUrl) {
+
+        this.xmlFile = xmlUrl.toString();
+
     }
 
     @Override
@@ -89,7 +87,7 @@ public class XmlInitSax extends InitStrategy {
             saxParser.setProperty(SCHEMA_LANGUAGE, XML_SCHEMA);
             saxParser.parse(xmlFile, new ParserHandler(injections, includes));
 
-            Include mainInclude = new Include(xmlFile.getName(), null);
+            Include mainInclude = new Include(xmlFile, null);
             visitedIncludes.add(mainInclude);
         } catch (Exception e) {
             e.printStackTrace();
@@ -134,20 +132,21 @@ public class XmlInitSax extends InitStrategy {
         for (Include include : includes) {
             if (!visitedIncludes.contains(include)) {
                 List<Include> newIncludes = CollectionFactory.createArrayList();
-                parser.parse(this.getFileObject(include.getFile()), new ParserHandler(injections, newIncludes));
-                
+                parser.parse(this.getFileObject(include.getFile()),
+                        new ParserHandler(injections, newIncludes));
+
                 this.parseIncludes(parser, newIncludes, visitedIncludes, injections);
             }
         }
     }
-    
+
     private File getFileObject(String name) throws Exception {
         File result = new File(name);
-        
-        if(!result.exists()) {
+
+        if (!result.exists()) {
             result = new File(ClassLoader.getSystemResource(name).toURI());
         }
-        
+
         return result;
     }
 

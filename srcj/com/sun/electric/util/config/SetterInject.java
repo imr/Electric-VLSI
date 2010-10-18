@@ -31,10 +31,8 @@ import com.sun.electric.util.config.model.ParameterEntry;
 
 /**
  * @author Felix Schmidt
- * 
  */
 public class SetterInject<T> extends InjectStrategy<T> {
-   
 
     private CreateBy createBy;
     private String factoryName;

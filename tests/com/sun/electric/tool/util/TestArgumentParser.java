@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TestConfigSuite.java
+ * File: TestArgumentParser.java
  *
  * Copyright (c) 2010 Sun Microsystems and Static Free Software
  *
@@ -21,17 +21,29 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.util.config;
+package com.sun.electric.tool.util;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.util.Map;
+
+import org.junit.Test;
+
+import com.sun.electric.util.ArgumentsParser;
 
 /**
- * @author Felix Schmidt
+ * @author fschmidt
+ *
  */
-@RunWith(Suite.class)
-@SuiteClasses({ TestConfiguration.class, TestEConfig.class, TestXmlConfigVerification.class, TestXmlInit.class })
-public class TestConfigSuite {
+public class TestArgumentParser {
+    
+    @Test
+    public void testParser() {
+        String[] args = {"--test1=test" , "--test2"};
+        
+        Map<String, String> result = ArgumentsParser.parseArguments(args);
+        
+        for(Map.Entry<String, String> entry: result.entrySet()) {
+            System.out.println("key: " + entry.getKey() + " - value: " + entry.getValue());
+        }
+    }
 
 }

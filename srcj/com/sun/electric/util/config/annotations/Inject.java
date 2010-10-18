@@ -30,7 +30,6 @@ import java.lang.annotation.Target;
 
 /**
  * @author Felix Schmidt
- *
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})

@@ -30,7 +30,6 @@ import com.sun.electric.util.config.model.ParameterEntry;
 
 /**
  * @author Felix Schmidt
- * 
  */
 public class ConstructorInject<T> extends InjectStrategy<T> {
 

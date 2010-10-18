@@ -59,7 +59,7 @@ public final class Launcher {
     private static final String[] propertiesToCopy = { "user.home" };
 
     private static String additionalFolder = "additional";
-    private static String springConfigFile = "configuration.xml";
+    private static String configFile = "econfig.xml";
 
     private Launcher() {
     }
@@ -75,9 +75,9 @@ public final class Launcher {
      */
     public static void main(String[] args) {
         args = Launcher.getAdditionalFolder(args);
-        args = Launcher.getSpringConfig(args);
+        args = Launcher.getConfig(args);
 
-        Configuration.setConfigName(springConfigFile);
+        Configuration.setConfigName(configFile);
 
         // ignore launcher if specified to do so
         for (int i = 0; i < args.length; i++) {
@@ -160,11 +160,10 @@ public final class Launcher {
         }
     }
 
-    @TestByReflection(testMethodName = "getSpringConfig")
-    private static String[] getSpringConfig(String[] args) {
+    private static String[] getConfig(String[] args) {
         for (String arg : args) {
-            if (arg.startsWith("-springconfig=")) {
-                springConfigFile = arg.replaceAll("-springconfig=", "");
+            if (arg.startsWith("-config=")) {
+                configFile = arg.replaceAll("-config=", "");
                 args = removeArg(args, arg);
                 return args;
             }

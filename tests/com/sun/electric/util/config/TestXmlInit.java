@@ -29,7 +29,6 @@ import org.junit.Test;
 
 /**
  * @author Felix Schmidt
- * 
  */
 public class TestXmlInit {
 

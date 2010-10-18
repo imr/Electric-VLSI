@@ -3,8 +3,8 @@
 	xmlns:electric="http://www.sun.com/Electric" xsi:schemaLocation="http://www.sun.com/Electric econfig.xsd">
 
 	<electric:injection
-		implementation="com.sun.electric.tools.util.concurrent.runtime.taskParallel.ThreadPool"
-		name="com.sun.electric.tools.util.concurrent.runtime.taskParallel.IThreadPool"
+		implementation="com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool"
+		name="com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool"
 		factoryMethod="initialize" />
 
 	<electric:injection implementation="com.sun.electric.scala.LayoutMergerFactoryImpl"

@@ -33,7 +33,6 @@ import com.sun.electric.util.config.annotations.InjectionMethod.InjectionStrateg
 
 /**
  * @author Felix Schmidt
- * 
  */
 public abstract class ConfigEntry<T> {
     protected boolean singleton = false;

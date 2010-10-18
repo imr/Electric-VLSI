@@ -36,7 +36,6 @@ import com.sun.electric.util.config.model.Parameter;
 
 /**
  * @author Felix Schmidt
- *
  */
 public class TestXmlConfigVerification {
     

@@ -33,7 +33,6 @@ import com.sun.electric.util.config.model.ConfigEntry;
 
 /**
  * @author Felix Schmidt
- * 
  */
 public abstract class InitStrategy {
 

@@ -27,7 +27,6 @@ import com.sun.electric.util.config.annotations.Inject;
 
 /**
  * @author Felix Schmidt
- *
  */
 public class SimpleParameterType {
     

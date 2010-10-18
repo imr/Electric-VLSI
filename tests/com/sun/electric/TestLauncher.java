@@ -31,9 +31,7 @@ import org.junit.Test;
 import com.sun.electric.util.CollectionFactory;
 
 /**
- * @author Felix Schmidt
- *
- */
+ * @author Felix Schmidt*/
 public class TestLauncher {
     
     private List<String> args;

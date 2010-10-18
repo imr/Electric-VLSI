@@ -72,7 +72,7 @@ public class ThreadPool implements IThreadPool {
 	 * @param taskPool
 	 * @param numOfThreads
 	 */
-	private ThreadPool(IStructure<PTask> taskPool, int numOfThreads, ThreadPoolType type) {
+	protected ThreadPool(IStructure<PTask> taskPool, int numOfThreads, ThreadPoolType type) {
 		state = ThreadPoolState.New;
 		this.taskPool = taskPool;
 		this.numOfThreads = numOfThreads;

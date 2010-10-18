@@ -25,7 +25,6 @@ package com.sun.electric.util.config.model;
 
 /**
  * @author Felix Schmidt
- * 
  */
 public class Include {
     

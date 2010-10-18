@@ -1,12 +1,59 @@
 package com.sun.electric.util;
 
+import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import junit.framework.Assert;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class TestPlayground {
+
+    public interface ExtEnum {
+        public boolean optional();
+    }
+    
+    public enum ExtEnumee implements ExtEnum {
+        test1(), test2(true);
+
+        private boolean opt = false;
+        
+        ExtEnumee() {
+            opt = false;
+        }
+
+        ExtEnumee(boolean optional) {
+            this.opt = optional;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see com.sun.electric.util.TestPlayground.ExtEnum#optional()
+         */
+        public boolean optional() {
+            return opt;
+
+        }
+
+    }
+
+    @Before
+    public void printLine() {
+        System.out.println("===================================================");
+    }
+
+    private enum TestEnum {
+        test1, test2;
+    }
+
+    @Test
+    public void testEnum() {
+        this.deepSearch(TestEnum.class);
+    }
 
     @Test
     public void testUserHome() {
@@ -49,7 +96,7 @@ public class TestPlayground {
     }
 
     public void deepSearch(Class<?> clazz) {
-        if(clazz == null) {
+        if (clazz == null) {
             return;
         }
         System.out.println(clazz.getName());
@@ -60,4 +107,12 @@ public class TestPlayground {
         deepSearch(clazz.getSuperclass());
     }
 
+    @Test
+    public void testURI() throws URISyntaxException {
+        String uri = "E:/workspaceElectric2/electric-public/target/electric-9.0-SNAPSHOT-bin.jar!/econfig.xml";
+        URI tmpUri = new URI(uri);
+        System.out.println(tmpUri);
+        File file = new File(tmpUri.toString());
+        System.out.println(file.exists());
+    }
 }
