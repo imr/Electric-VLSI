@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00p: ******************************
 
+BUG: (10/19/10, FS) Why did we add the xxxMB/yyyMB text on the bottom bar? (Bug #2940)
+FIX: Show memory usage only in debug mode + fix license issue
+
 IMP: (10/18/10, SMR) Updated author information in About dialog (Bug #2937).
 
 IMP: (10/18/10, SMR) Standardized error messages for missing components (Bug #2933).
