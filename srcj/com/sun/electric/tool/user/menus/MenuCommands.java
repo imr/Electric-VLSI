@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.LayerTab;
 import com.sun.electric.tool.Job;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
@@ -96,8 +97,7 @@ public final class MenuCommands
             if (menus != null)
                 list.addAll((List<EMenuItem>)menus);
         } catch (Exception e) {
-            if (Job.getDebug())
-                System.out.println("GNU Release can't find developers menus");
+        	TextUtils.recordMissingPrivateComponent("Developers menus");
         }
         return list;
     }

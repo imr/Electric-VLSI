@@ -46,6 +46,8 @@ import com.sun.electric.tool.generator.layout.GateLayGenSettings;
 import com.sun.electric.tool.cvspm.CVS;
 
 import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool;
+import com.sun.electric.util.TextUtils;
+
 import java.lang.reflect.Method;
 
 import java.util.ArrayList;
@@ -152,7 +154,7 @@ public class Tool implements Comparable
                 staInit.invoke(Tool.class);
             }
         } catch (Exception e) {
-//            System.out.println(e.getMessage());
+        	TextUtils.recordMissingPrivateComponent("Static Timing Analyzer");
         }
 	}
 

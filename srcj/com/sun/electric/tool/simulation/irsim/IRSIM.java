@@ -26,6 +26,7 @@ package com.sun.electric.tool.simulation.irsim;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
+import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.config.Configuration;
 
 /**
@@ -33,7 +34,10 @@ import com.sun.electric.util.config.Configuration;
  */
 public class IRSIM
 {
-    /**
+	private static boolean IRSIMAvailable;
+	private static boolean IRSIMChecked = false;
+
+	/**
      * Method to tell whether the IRSIM simulator is available.
      * IRSIM is packaged separately because it is from Stanford University.
      * This method dynamically figures out whether the IRSIM module is present by using reflection.
@@ -41,7 +45,13 @@ public class IRSIM
      */
     public static boolean hasIRSIM()
     {
-        return Configuration.lookup(IAnalyzer.class) != null;
+    	if (!IRSIMChecked)
+    	{
+    		IRSIMChecked = true;
+        	IRSIMAvailable = Configuration.lookup(IAnalyzer.class) != null;
+        	if (!IRSIMAvailable) TextUtils.recordMissingComponent("IRSIM");
+    	}
+    	return IRSIMAvailable;
     }
 
     /**

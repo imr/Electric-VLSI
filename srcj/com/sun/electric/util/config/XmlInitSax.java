@@ -116,7 +116,7 @@ public class XmlInitSax extends InitStrategy {
                         }
                         config.addConfigEntry(in.getName(), entry);
                     } catch (ClassNotFoundException e) {
-                        logger.log(Level.SEVERE, "unable to bind injection: " + in.getName(), e);
+                        logger.log(Level.INFO, "unable to bind injection: " + in.getName());
                     }
 
                 }

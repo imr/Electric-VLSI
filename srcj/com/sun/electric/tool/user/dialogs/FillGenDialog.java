@@ -232,13 +232,13 @@ public class FillGenDialog extends EDialog {
         try
         {
             Class<?> extraPanelClass = Class.forName("com.sun.electric.plugins.generator.FillCelllGenPanel");
-            Constructor instance = extraPanelClass.getDeclaredConstructor(FillGenDialog.class, JPanel.class,
+            Constructor<?> instance = extraPanelClass.getDeclaredConstructor(FillGenDialog.class, JPanel.class,
             ButtonGroup.class, JButton.class, JRadioButton.class);  // using varargs
             instance.newInstance(this, floorplanPanel, topGroup, okButton, templateButton); // using varargs
         } catch (Exception e)
         {
-             if (Job.getDebug())
-                System.out.println("GNU Release can't find the Fill Cell Generator dialog");
+        	TextUtils.recordMissingComponent("Fill Cell Generator dialog");
+
             // Adding here the default OKAction
             okButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

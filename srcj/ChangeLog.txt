@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00p: ******************************
 
+IMP: (10/18/10, SMR) Updated author information in About dialog (Bug #2937).
+
+IMP: (10/18/10, SMR) Standardized error messages for missing components (Bug #2933).
+
+BUG: (10/18/10, SMR) Waveform window and other places show small numbers as zero (Bug #2936).
+FIX: Fixed TextUtils.convertToEngineeringNotation().
+
 BUG: (10/14/10, DN) Compiling issue in frehley after last update in main branch (Bug #2935)
 FIX: Rename util.config.SetterInject.CreateBy to util.config.CreateBy.
 

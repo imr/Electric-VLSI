@@ -54,6 +54,8 @@ public class EvalJython {
 
             // find the Jython class
             jythonClass = Resources.getJythonClass("PythonInterpreter");
+            if (jythonClass == null)
+            	TextUtils.recordMissingComponent("Jython");
         }
 
         // if already initialized, return state
@@ -68,7 +70,7 @@ public class EvalJython {
             return;
         }
         try {
-            Constructor instance = jythonClass.getDeclaredConstructor();
+            Constructor<?> instance = jythonClass.getDeclaredConstructor();
             jythonInterpreterObject = instance.newInstance();
             jythonExecMethod = jythonClass.getMethod("exec", new Class[]{String.class});
             jythonExecMethod.invoke(jythonInterpreterObject, new Object[]{"import sys"});

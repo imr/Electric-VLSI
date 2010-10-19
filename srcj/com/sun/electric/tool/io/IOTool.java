@@ -46,14 +46,14 @@ import java.util.Map;
 
 /**
  * This class manages reading files in different formats.
- * The class is subclassed by the different file readers.
+ * The class is sub-classed by the different file readers.
  */
 public class IOTool extends Tool
 {
 	/** the IO tool. */										private static IOTool tool = new IOTool();
     static { FileType.getFileTypeGroups(); } // Preallocate preferences
 
-	/** Varible key for true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
+	/** Variable key for true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
 
 	// ---------------------- private and protected methods -----------------
 
@@ -95,6 +95,7 @@ public class IOTool extends Tool
 				skillClass = Class.forName("com.sun.electric.plugins.skill.Skill");
 			} catch (ClassNotFoundException e)
 			{
+				TextUtils.recordMissingPrivateComponent("Skill");
 				skillClass = null;
 				return false;
 			}
@@ -183,6 +184,7 @@ public class IOTool extends Tool
 				daisClass = Class.forName("com.sun.electric.plugins.dais.Dais");
 			} catch (ClassNotFoundException e)
 			{
+				TextUtils.recordMissingPrivateComponent("Dais");
 				daisClass = null;
 				return false;
 			}
@@ -742,7 +744,7 @@ public class IOTool extends Tool
 	 * perform the analogous operation of virtual connection of networks.
 	 * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
 	 * pins that match the assertion to vdd:vdd.
-     * @param b true if pin maes should be converted.
+     * @param b true if pin names should be converted.
 	 */
 	public static void setGDSConvertNCCExportsConnectedByParentPins(boolean b) { cacheGDSConvertNCCExportsConnectedByParentPins.setBoolean(b); }
 	/**
@@ -775,18 +777,18 @@ public class IOTool extends Tool
 
 	private static Pref cacheGDSColapseVddGndPinNames = Pref.makeBooleanPref("cacheGDSColapseVddGndPinNames", IOTool.tool.prefs, false);
 	/**
-	 * Method to tell whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice.
-	 * @return true if GDS Input colapses vdd/gnd names.
+	 * Method to tell whether Vdd_* and Gnd_* export pins must be collapsed. This is for extraction in Fire/Ice.
+	 * @return true if GDS Input collapses vdd/gnd names.
 	 */
 	public static boolean isGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBoolean(); }
 	/**
-	 * Method to set whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice.
-	 * @param on true if GDS Input colapses vdd/gnd names.
+	 * Method to set whether Vdd_* and Gnd_* export pins must be collapsed. This is for extraction in Fire/Ice.
+	 * @param on true if GDS Input collapses vdd/gnd names.
 	 */
 	public static void setGDSColapseVddGndPinNames(boolean on) { cacheGDSColapseVddGndPinNames.setBoolean(on); }
 	/**
-	 * Method to tell whether Vdd_* and Gnd_* export pins must be colapsed, by default. This is for extraction in Fire/Ice.
-	 * @return true if GDS Input colapses vdd/gnd names, by default.
+	 * Method to tell whether Vdd_* and Gnd_* export pins must be collapsed, by default. This is for extraction in Fire/Ice.
+	 * @return true if GDS Input collapses vdd/gnd names, by default.
 	 */
 	public static boolean isFactoryGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBooleanFactoryValue(); }
 

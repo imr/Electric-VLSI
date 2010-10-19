@@ -114,8 +114,7 @@ public abstract class TechFactory {
             tech.setup();
             return tech;
         } catch (ClassNotFoundException e) {
-            if (Job.getDebug())
-                System.out.println("GNU Release can't find extra technologies");
+        	TextUtils.recordMissingTechnology("Extra");
         } catch (Exception e) {
             System.out.println("Exceptions while importing extra technology " + getDescription());
 //            if (Job.getDebug())
@@ -186,8 +185,7 @@ public abstract class TechFactory {
             params = (List<Param>)getTechParamsMethod.invoke(null);
             techFactory = new FromParamClass(techName, techClass, params);
         } catch (Exception e) {
-            if (Job.getDebug())
-                System.out.println("GNU Release can't find technology " + techName);
+        	TextUtils.recordMissingTechnology(techName);
             return;
         }
         m.put(techName, techFactory);

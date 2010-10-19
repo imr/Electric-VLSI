@@ -126,10 +126,11 @@ public class Version implements Comparable<Version>, Serializable {
 
     /**
      * Method to return author information
-     * @return Steven M. Rubin
+     * @return the main authors of Electric
      */
-    public static String getAuthorInformation() {
-        return "Written by Steven M. Rubin";
+    public static String[] getAuthorInformation()
+    {
+    	return new String[] {"Steven M. Rubin", "Gilda Garret\u00F3n", "Dmitry Nadezhin"};
     }
 
     /**

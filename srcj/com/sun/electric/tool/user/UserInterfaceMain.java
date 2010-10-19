@@ -55,6 +55,7 @@ import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.TextUtils;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -268,13 +269,13 @@ public class UserInterfaceMain extends AbstractUserInterface
             Pref.setCachedObjsFromPreferences();
             EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, null));
             currentGraphicsPreferences = new GraphicsPreferences(true, new TechPool(IdManager.stdIdManager));
-            // see if there is a Mac OS/X interface
+            // see if there is a Macintosh OS/X interface
             if (Client.isOSMac()) {
                 try {
                     Class<?> osXClass = Class.forName(getMacClassName());
                     Method osXRegisterMethod = null;
 
-                    // find the necessary methods on the Mac OS/X class
+                    // find the necessary methods on the Macintosh OS/X class
                     try {
                         osXRegisterMethod = osXClass.getMethod("registerMacOSXApplication", new Class[] {List.class});
                     } catch (NoSuchMethodException e) {
@@ -297,6 +298,32 @@ public class UserInterfaceMain extends AbstractUserInterface
 
             TopLevel.OSInitialize(mode);
             TopLevel.InitializeMessagesWindow();
+
+            // report on missing components
+            if (Job.getDebug())
+            {
+            	List<String> missingComponents = TextUtils.getMissingComponentNames();
+            	String errorMsg = null;
+            	for(String comp : missingComponents)
+            	{
+            		if (errorMsg == null) errorMsg = "Warning: optional components not found: "; else
+            			errorMsg += ", ";
+            		errorMsg += comp;
+            	}
+            	if (errorMsg != null)
+            		System.out.println(errorMsg);
+
+            	missingComponents = TextUtils.getMissingPrivateComponentNames();
+            	errorMsg = null;
+            	for(String comp : missingComponents)
+            	{
+            		if (errorMsg == null) errorMsg = "Warning: private components not found: "; else
+            			errorMsg += ", ";
+            		errorMsg += comp;
+            	}
+            	if (errorMsg != null)
+            		System.out.println(errorMsg);
+            }
         }
     }
 
@@ -723,7 +750,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param message the prompt message.
      * @param title the title of a dialog with the message.
      * @param def the default response.
-     * @return the string (null if cancelled).
+     * @return the string (null if canceled).
      */
     public String askForInput(Object message, String title, String def)
     {
@@ -732,7 +759,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     	return ret.toString();
     }
 
-    /** For Pref */
+    /** For Preference */
     public static void importPrefs(URL fileURL) {
         assert Job.isClientThread();
         if (fileURL == null) return;
@@ -743,7 +770,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         // Mirror Settings in Preferences
         env.saveToPreferences();
 
-        // recache all prefs
+        // recache all preferences
         loadPreferences(env.techPool);
         TopLevel.getCurrentJFrame().getEMenuBar().restoreSavedBindings(false); //trying to cache again
         User.technologyChanged();

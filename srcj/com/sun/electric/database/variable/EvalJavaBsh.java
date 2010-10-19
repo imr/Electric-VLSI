@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.tool.Job;
@@ -31,6 +30,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.TextUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -55,7 +55,7 @@ import java.util.regex.Pattern;
 public class EvalJavaBsh {
 
     // ------------------------ private data ------------------------------------
-    /** The bean shell interpreter eval method */
+    /** The bean shell interpreter evaluation method */
     private static Method evalMethod;
     /** The bean shell interpreter source method */
     private static Method sourceMethod;
@@ -79,15 +79,15 @@ public class EvalJavaBsh {
     private static HashMap<String, String> replaceHash = new HashMap<String, String>();
     /** The bean shell interpreter object */
     private Object envObject;
-    /** Context stack for recursive eval calls */
+    /** Context stack for recursive evaluation calls */
     private Stack<VarContext> contextStack = new Stack<VarContext>();
-    /** Info stack for recursive eval calls */
+    /** Info stack for recursive evaluation calls */
     private Stack<Object> infoStack = new Stack<Object>();
     /** the singleton object of this class. */
     public static final EvalJavaBsh evalJavaBsh = new EvalJavaBsh();
-    /** turn on Bsh verbose DEBUG stmts */
+    /** turn on Bsh verbose DEBUG statements */
     private static boolean DEBUG = false;
-    /** turn on stack trace stmts for exceptions */
+    /** turn on stack trace statements for exceptions */
     private static boolean DEBUGSTACKTRACE = false;
 
     // ------------------------ private and protected methods -------------------
@@ -144,7 +144,7 @@ public class EvalJavaBsh {
      */
 //	  public static Interpreter getInterpreter() { return env; }
     /**
-     * See what the current context of eval is.
+     * See what the current context of evaluation is.
      * @return a VarContext.
      */
     public synchronized VarContext getCurrentContext() {
@@ -152,7 +152,7 @@ public class EvalJavaBsh {
     }
 
     /**
-     * See what the current info of eval is.
+     * See what the current info of evaluation is.
      * @return an Object.
      */
     public synchronized Object getCurrentInfo() {
@@ -223,7 +223,7 @@ public class EvalJavaBsh {
         infoStack.push(info);                   // push info
         Object ret;
         try {
-            ret = doEval(expr);              // ask bsh to eval
+            ret = doEval(expr);              // ask bsh to evaluate
         } catch (VarContext.EvalException e) {
             // we need to catch, pop off stacks, and re-throw to maintain
             // proper state of stacks.
@@ -368,9 +368,7 @@ public class EvalJavaBsh {
             targetErrorClass = Class.forName("bsh.TargetError");
             evalErrorClass = Class.forName("bsh.EvalError");
         } catch (ClassNotFoundException e) {
-            if (Job.getDebug()) {
-                System.out.println("GNU Release can't find the Bean Shell: " + e.getMessage());
-            }
+        	TextUtils.recordMissingComponent("Bean Shell");
             interpreterClass = null;
             return;
         }
@@ -430,7 +428,7 @@ public class EvalJavaBsh {
             }
         } catch (Exception e) {
             if (e instanceof InvocationTargetException) {
-                // rethrow original EvalException, if any
+                // re-throw original EvalException, if any
                 VarContext.EvalException ee = getEvalException((InvocationTargetException) e);
                 if (ee != null) {
                     throw ee;
@@ -528,7 +526,7 @@ public class EvalJavaBsh {
      * If the InvocationTargetException was generated because of an EvalException,
      * get the EvalException that is wrapped by the target exception.
      * @param e the invocation target exception
-     * @return the initial eval exception, or null if none.
+     * @return the initial evaluation exception, or null if none.
      */
     private VarContext.EvalException getEvalException(InvocationTargetException e) {
         Throwable t = e.getCause();

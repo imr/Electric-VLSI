@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author fschmidt
+ * @author Schmidt
  * 
  */
 public class ArgumentsParser {

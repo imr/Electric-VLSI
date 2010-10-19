@@ -25,9 +25,9 @@ package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
@@ -85,7 +85,7 @@ public class GateLayoutGenerator {
             try
             {
                 Class<?> cmos90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.gates90nm.CMOS90Generator");
-                Class [] parameterTypes = new Class[] {String.class, Double.class, StdCellParams.class};
+                Class<?> [] parameterTypes = new Class[] {String.class, Double.class, StdCellParams.class};
                 Method makeGateMethod = cmos90GeneratorClass.getDeclaredMethod("makeGate", parameterTypes);
                 c = (Cell)makeGateMethod.invoke(null, new Object[] {type, new Double(Xstrength), stdCell});
              } catch (Exception e)
@@ -109,7 +109,7 @@ public class GateLayoutGenerator {
 
 
     /**
-     * Generate layout cells from a heirarchical traversal of the
+     * Generate layout cells from a hierarchical traversal of the
      * schematic cell
      * @param outLib the output library
      * @param cell the schematic cell

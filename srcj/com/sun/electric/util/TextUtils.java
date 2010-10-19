@@ -31,9 +31,9 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.awt.Toolkit;
@@ -109,7 +109,7 @@ public class TextUtils {
      * Returns canonic char for ignore-case comparison .
      * This is the same as Character.toLowerCase(Character.toUpperCase(ch)).
      * @param ch given char.
-     * @return canonic char fo rthe given char.
+     * @return canonic char for the given char.
      */
     public static char canonicChar(char ch) {
         if (ch <= 'Z') {
@@ -125,12 +125,12 @@ public class TextUtils {
     }
 
     /**
-     * Returns canonic string for ignore-case comparision .
+     * Returns canonic string for ignore-case comparison .
      * FORALL String s1, s2: s1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
      * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
      * @param s given String
      * @return canonic String
-     * Simple "toLowerCase" is not sufficent.
+     * Simple "toLowerCase" is not sufficient.
      * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
      */
     public static String canonicString(String s) {
@@ -580,7 +580,7 @@ public class TextUtils {
     public static String formatDate(Date date) {
         return simpleDateFormat.format(date);
     }
-    // SMR removed this method because the initialization of the "PST" timezone only works in the USA
+    // SMR removed this method because the initialization of the "PST" time zone only works in the USA
     private static SimpleDateFormat simpleDateFormatGMT = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss zzz");
 
     static {
@@ -702,7 +702,7 @@ public class TextUtils {
 
         if (precpower >= allRanges[rangePos].power) {
             // if the value is too tiny, just call it zero
-            if (precpower - 4 > allRanges[rangePos].power) {
+            if (precpower < 1000 && precpower - 4 > allRanges[rangePos].power) {
                 return "0" + unitPostfix;
             }
 
@@ -1160,7 +1160,7 @@ public class TextUtils {
      * is tried in order. If a conversion is successful, that object is returned.
      * If no conversions are successful, this throws a NumberFormatException.
      * This method removes any UnitScale postfix, and scales the number accordingly.
-     * No characters in the string are ignored - the string in its entirety (sans removed postfix) must be
+     * No characters in the string are ignored - the string in its entirety (except removed postfix) must be
      * able to be parsed into the Number by the usual Integer.parseInt(), Double.parseDouble() methods.
      * <P>Formats: Integer, Long, Double
      * @param s the string to parse.
@@ -1504,7 +1504,7 @@ public class TextUtils {
     /**
      * Method to return the pure file name of a file path.
      * The pure file name excludes the directory path and the extension.
-     * It is used to find the library name from a file patj.
+     * It is used to find the library name from a file path.
      * For example, the file path "file:/users/strubin/gates.elib" has the pure file name "gates".
      * @param fileName full name of file.
      * @param removePath if only file name without path should be extracted
@@ -1681,9 +1681,9 @@ public class TextUtils {
         List<String> retval = new ArrayList<String>();
         try {
             ZipFile zf = new ZipFile(file);
-            Enumeration e = zf.entries();
+            Enumeration<? extends ZipEntry> e = zf.entries();
             while (e.hasMoreElements()) {
-                ZipEntry ze = (ZipEntry) e.nextElement();
+                ZipEntry ze = e.nextElement();
                 String entry = ze.getName();
                 if (entry.startsWith(resName)) {
                     retval.add(entry.substring(resName.length() + 1));
@@ -1771,15 +1771,15 @@ public class TextUtils {
                         // One char is digit, another is not. Is previous digit ?
                         int digit = pos > 0 ? digit(name1.charAt(--pos)) : -1;
                         if (digit < 0 && (digit1 < 0 || digit2 < 0)) {
-                            // Previos is not digit. Number is less than non-number.
+                            // Previous is not digit. Number is less than non-number.
                             return digit2 - digit1;
                         }
-                        // Are previus digits all zeros ?
+                        // Are previous digits all zeros ?
                         while (digit == 0) {
                             digit = pos > 0 ? digit(name1.charAt(--pos)) : -1;
                         }
                         if (digit < 0) {
-                            // All previos digits are zeros. Skip zeros further.
+                            // All previous digits are zeros. Skip zeros further.
                             while (digit1 == 0) {
                                 digit1 = pos1 < len1 ? digit(name1.charAt(pos1++)) : -1;
                             }
@@ -1997,7 +1997,7 @@ public class TextUtils {
      * @param n
      * @param onlyBrackets
      * @param correctBrackets
-     * @return String where characters "/", "[", "]" are replacedby "_". "\" is removed.
+     * @return String where characters "/", "[", "]" are replaced by "_". "\" is removed.
      */
     public static String correctName(String n, boolean onlyBrackets, boolean correctBrackets) {
         int index;
@@ -2052,5 +2052,67 @@ public class TextUtils {
         public String toString() {
             return descriptionOfObjectFound;
         }
+    }
+
+    private static List<String> missingComponentNames = new ArrayList<String>();
+    private static List<String> missingPrivateComponentNames = new ArrayList<String>();
+    private static List<String> missingTechnologyNames = new ArrayList<String>();
+
+    /**
+     * Method to report a missing component, not found in the classpath.
+     * @param name a missing component, not found in the classpath.
+     */
+    public static void recordMissingComponent(String name)
+    {
+    	missingComponentNames.add(name);
+    }
+
+    /**
+     * Method to report a missing technologies, not found in the classpath.
+     * @param name a missing technologies, not found in the classpath.
+     */
+    public static void recordMissingTechnology(String name)
+    {
+    	missingTechnologyNames.add(name);
+    }
+
+    /**
+     * Method to report a missing private component, not found in the classpath.
+     * Private components are those not publicly available.
+     * @param name a missing private component, not found in the classpath.
+     */
+    public static void recordMissingPrivateComponent(String name)
+    {
+    	missingPrivateComponentNames.add(name);
+    }
+
+    /**
+     * Method to return a list of components that were not found in Electric plugins.
+     * @return a list of components that were not found in Electric plugins.
+     */
+    public static List<String> getMissingComponentNames()
+    {
+    	if (missingTechnologyNames.size() > 0)
+    	{
+    		String techNames = null;
+        	for(String tech : missingTechnologyNames)
+        	{
+        		if (techNames == null) techNames = "Technologies ("; else
+        			techNames += ", ";
+        		techNames += tech;
+        	}
+        	techNames += ")";
+        	missingComponentNames.add(techNames);
+    	}
+    	return missingComponentNames;
+    }
+
+    /**
+     * Method to return a list of private (internal) components that were not found in Electric plugins.
+     * @return a list of private (internal) components that were not found in Electric plugins.
+     */
+    public static List<String> getMissingPrivateComponentNames()
+    {
+    	return missingPrivateComponentNames;
     }
 }

@@ -38,6 +38,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.generator.layout.Gallery;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.util.TextUtils;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -566,13 +567,12 @@ public class FillGeneratorTool extends Tool {
         try
         {
             Class<?> extraClass = Class.forName("com.sun.electric.plugins.generator.FillCellTool");
-            Constructor instance = extraClass.getDeclaredConstructor(); // varags
+            Constructor<?> instance = extraClass.getDeclaredConstructor(); // varags
             Object obj = instance.newInstance();  // varargs;
             tool = (FillGeneratorTool)obj;
         } catch (Exception e)
         {
-            if (Job.getDebug())
-                System.out.println("GNU Release can't find Fill Cell Generator plugin");
+        	TextUtils.recordMissingComponent("Fill Cell Generator");
             tool = new FillGeneratorTool();
         }
         return tool;
@@ -715,7 +715,7 @@ public class FillGeneratorTool extends Tool {
         try
 		{
 			Class<?> cmos90Class = Class.forName("com.sun.electric.plugins.tsmc.fill90nm.CapCellCMOS90");
-            Constructor capCellC = cmos90Class.getDeclaredConstructor(Library.class, CapFloorplan.class);   // varargs
+            Constructor<?> capCellC = cmos90Class.getDeclaredConstructor(Library.class, CapFloorplan.class);   // varargs
             Object cell = capCellC.newInstance(lib, plan);
             c = (CapCell)cell;
          } catch (Exception e)
@@ -831,7 +831,7 @@ public class FillGeneratorTool extends Tool {
      * exportConfig must be PERIMETER_AND_INTERNAL in which case exports are
      * placed inside the perimeter of the cell for the bottom layer.
      * @param tiledSizes Array specifying composite Cells we should build by
-     * concatonating fill cells. For example int[] {2, 4, 7} means we should
+     * concatenating fill cells. For example int[] {2, 4, 7} means we should
      * */
     public Cell standardMakeFillCell(int loLayer, int hiLayer, 
     		                         TechType tech,

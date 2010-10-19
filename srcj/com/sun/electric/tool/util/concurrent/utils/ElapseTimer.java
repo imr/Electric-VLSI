@@ -81,6 +81,10 @@ public class ElapseTimer implements Serializable
 	public String toString() {
 		return this.getElapsedTime(getTime());
 	}
+	
+	public Long toLong() {
+	    return this.end - this.start;
+	}
 
 	public void print(String preText) {
 		System.out.println(preText + this.toString());

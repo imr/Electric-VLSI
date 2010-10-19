@@ -30,7 +30,7 @@ import org.junit.Test;
 import com.sun.electric.util.ArgumentsParser;
 
 /**
- * @author fschmidt
+ * @author Schmidt
  *
  */
 public class TestArgumentParser {
