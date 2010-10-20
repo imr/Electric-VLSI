@@ -240,16 +240,17 @@ public class Sue extends Input<Object>
 	{
 		public boolean use4PortTransistors;
 		public boolean convertExpressions;
-		public IconParameters iconParameters = IconParameters.makeInstance(false);
+		public IconParameters iconParameters;
 
-		public SuePreferences(boolean factory) { super(factory); }
-
-		public void initFromUserDefaults()
-		{
-			use4PortTransistors = IOTool.isSueUses4PortTransistors();
-			convertExpressions = IOTool.isSueConvertsExpressions();
-			iconParameters.initFromUserDefaults();
-		}
+		public SuePreferences(boolean factory) {
+            super(factory);
+            iconParameters.makeInstance(!factory);
+            if (!factory)
+            {
+                use4PortTransistors = IOTool.isSueUses4PortTransistors();
+                convertExpressions = IOTool.isSueConvertsExpressions();
+            }
+        }
 
 		@Override
 		public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells,
@@ -1072,7 +1073,7 @@ public class Sue extends Input<Object>
 			placeNets(sueNets, cell);
 
 			// autostitch the cell to connect nodes to nodes
-			AutoOptions prefs = new AutoOptions();
+			AutoOptions prefs = new AutoOptions(true);
 			AutoStitch.runAutoStitch(cell, null, null, sueJob, null, null, false, false, prefs, false, null);
 		}
 

@@ -204,8 +204,6 @@ public class Input<ResultType>
 				throw new IllegalStateException("Current default Prefs can be accessed only from client thread");
 		}
 
-		public void initFromUserDefaults() {}
-
 		public abstract Library doInput(URL fileURL, Library lib, Technology tech, Map<Library,Cell> currentCells, Map<CellId,BitSet> nodesToExpand, Job job);
 	}
 

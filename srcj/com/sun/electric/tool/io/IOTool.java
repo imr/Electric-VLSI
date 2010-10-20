@@ -222,16 +222,15 @@ public class IOTool extends Tool
 		{
 			super(factory);
 			this.newLib = newLib;
-		}
-
-		public void initFromUserDefaults()
-		{
-			displayOnly = IOTool.isDaisDisplayOnly();
-			readCellInstances = IOTool.isDaisReadCellInstances();
-			readGlobalWires = IOTool.isDaisReadGlobalWires();
-			readPowerAndGround = IOTool.isDaisReadPowerAndGround();
-			readDetailWires = IOTool.isDaisReadDetailWires();
-			readConnectivity = IOTool.isDaisReadConnectivity();
+            if (!factory)
+            {
+                displayOnly = IOTool.isDaisDisplayOnly();
+                readCellInstances = IOTool.isDaisReadCellInstances();
+                readGlobalWires = IOTool.isDaisReadGlobalWires();
+                readPowerAndGround = IOTool.isDaisReadPowerAndGround();
+                readDetailWires = IOTool.isDaisReadDetailWires();
+                readConnectivity = IOTool.isDaisReadConnectivity();
+            }
 		}
 
         @Override

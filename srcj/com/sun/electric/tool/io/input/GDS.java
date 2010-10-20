@@ -290,20 +290,18 @@ public class GDS extends Input<Object>
 				includeText = IOTool.isFactoryGDSInIncludesText();
 				unknownLayerHandling = IOTool.getFactoryGDSInUnknownLayerHandling();
 				cadenceCompatibility = IOTool.isFactoryGDSCadenceCompatibility();
-			}
-		}
-
-		public void initFromUserDefaults()
-		{
-			inputScale = IOTool.getGDSInputScale();
-			simplifyCells = IOTool.isGDSInSimplifyCells();
-			arraySimplification = IOTool.getGDSArraySimplification();
-			instantiateArrays = IOTool.isGDSInInstantiatesArrays();
-			expandCells = IOTool.isGDSInExpandsCells();
-			mergeBoxes = IOTool.isGDSInMergesBoxes();
-			includeText = IOTool.isGDSInIncludesText();
-			unknownLayerHandling = IOTool.getGDSInUnknownLayerHandling();
-			cadenceCompatibility = IOTool.isGDSCadenceCompatibility();
+			} else
+            {
+                inputScale = IOTool.getGDSInputScale();
+                simplifyCells = IOTool.isGDSInSimplifyCells();
+                arraySimplification = IOTool.getGDSArraySimplification();
+                instantiateArrays = IOTool.isGDSInInstantiatesArrays();
+                expandCells = IOTool.isGDSInExpandsCells();
+                mergeBoxes = IOTool.isGDSInMergesBoxes();
+                includeText = IOTool.isGDSInIncludesText();
+                unknownLayerHandling = IOTool.getGDSInUnknownLayerHandling();
+                cadenceCompatibility = IOTool.isGDSCadenceCompatibility();
+            }
 		}
 
         @Override

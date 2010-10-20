@@ -410,12 +410,14 @@ public class EDIF extends Input<Object>
 		public String configurationFile;
 		public boolean cadenceCompatibility;
 		public boolean showArcNames, showNodeNames;
-		public IconParameters iconParameters = IconParameters.makeInstance(false);
-		public AutoStitch.AutoOptions autoParameters = new AutoStitch.AutoOptions();
+		public IconParameters iconParameters;
+		public AutoStitch.AutoOptions autoParameters;
 
 		public EDIFPreferences(boolean factory)
 		{
 			super(factory);
+            iconParameters = IconParameters.makeInstance(!factory);
+            autoParameters = new AutoStitch.AutoOptions(factory);
 			if (factory)
 			{
 				inputScale = IOTool.getFactoryEDIFInputScale();
@@ -425,20 +427,15 @@ public class EDIF extends Input<Object>
 				showArcNames = IOTool.isFactoryEDIFShowArcNames();
 				showNodeNames = IOTool.isFactoryEDIFShowNodeNames();
 				autoParameters.createExports = false;
-			}
-		}
-
-		public void initFromUserDefaults()
-		{
-			inputScale = IOTool.getEDIFInputScale();
-			acceptedParameters = IOTool.getEDIFAcceptedParameters();
-			configurationFile = IOTool.getEDIFConfigurationFile();
-			cadenceCompatibility = IOTool.isEDIFCadenceCompatibility();
-			showArcNames = IOTool.isEDIFShowArcNames();
-			showNodeNames = IOTool.isEDIFShowNodeNames();
-			iconParameters.initFromUserDefaults();
-			autoParameters.initFromUserDefaults();
-			autoParameters.createExports = false;
+			} else
+            {
+                inputScale = IOTool.getEDIFInputScale();
+                acceptedParameters = IOTool.getEDIFAcceptedParameters();
+                configurationFile = IOTool.getEDIFConfigurationFile();
+                cadenceCompatibility = IOTool.isEDIFCadenceCompatibility();
+                showArcNames = IOTool.isEDIFShowArcNames();
+                showNodeNames = IOTool.isEDIFShowNodeNames();
+            }
 		}
 
         @Override

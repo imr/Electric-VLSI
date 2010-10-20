@@ -123,14 +123,12 @@ public class DXF extends Input<Object>
 				flattenHierarchy = IOTool.isFactoryDXFInputFlattensHierarchy();
 				readAllLayers = IOTool.isFactoryDXFInputReadsAllLayers();
 				scale = IOTool.getFactoryDXFScale();
-			}
-		}
-
-		public void initFromUserDefaults()
-		{
-			flattenHierarchy = IOTool.isDXFInputFlattensHierarchy();
-			readAllLayers = IOTool.isDXFInputReadsAllLayers();
-			scale = IOTool.getDXFScale();
+			} else
+            {
+                flattenHierarchy = IOTool.isDXFInputFlattensHierarchy();
+                readAllLayers = IOTool.isDXFInputReadsAllLayers();
+                scale = IOTool.getDXFScale();
+            }
 		}
 
         @Override

@@ -931,7 +931,7 @@ public class PadGenerator
 		}
 
 		// auto stitch everything
-		AutoOptions prefs = new AutoOptions();
+		AutoOptions prefs = new AutoOptions(true);
 		prefs.createExports = false;
 		AutoStitch.runAutoStitch(framecell, null, null, job, null, null, true, false, prefs, false, null);
 

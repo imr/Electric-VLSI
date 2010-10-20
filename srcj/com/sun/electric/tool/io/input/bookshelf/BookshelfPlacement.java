@@ -28,6 +28,7 @@ import com.sun.electric.util.TextUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
@@ -46,9 +47,16 @@ public class BookshelfPlacement
 	public void parse()
 		throws IOException
 	{
-		File file = new File(plFile);
-		FileReader freader = new FileReader(file);
-		BufferedReader rin = new BufferedReader(freader);
+		BufferedReader rin;
+		try
+		{
+			File file = new File(plFile);
+			FileReader freader = new FileReader(file);
+			rin = new BufferedReader(freader);
+		} catch (FileNotFoundException e) {
+			System.out.println("ERROR: Cannot find Bookshelf Placement file: " + plFile);
+			return;
+		}
 
 		// skip the first line
 		rin.readLine();

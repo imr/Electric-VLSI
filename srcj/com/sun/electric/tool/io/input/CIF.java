@@ -409,12 +409,10 @@ public class CIF extends Input<Object>
 			if (factory)
 			{
 				squareWires = IOTool.isFactoryCIFInSquaresWires();
-			}
-		}
-
-		public void initFromUserDefaults()
-		{
-			squareWires = IOTool.isCIFInSquaresWires();
+			} else
+            {
+    			squareWires = IOTool.isCIFInSquaresWires();
+            }
 		}
 
         @Override

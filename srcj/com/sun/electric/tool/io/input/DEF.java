@@ -105,23 +105,21 @@ public class DEF extends LEFDEF
     {
 		public boolean logicalPlacement;
 		public boolean physicalPlacement;
-        public IconParameters iconParameters = IconParameters.makeInstance(false);
+        public IconParameters iconParameters;
 
         public DEFPreferences(boolean factory)
         {
         	super(factory);
+            iconParameters = IconParameters.makeInstance(!factory);
         	if (factory)
         	{
     			logicalPlacement = IOTool.isFactoryDEFLogicalPlacement();
     			physicalPlacement = IOTool.isFactoryDEFPhysicalPlacement();
-        	}
-        }
-
-		public void initFromUserDefaults()
-		{
-			logicalPlacement = IOTool.isDEFLogicalPlacement();
-			physicalPlacement = IOTool.isDEFPhysicalPlacement();
-            iconParameters.initFromUserDefaults();
+        	} else
+            {
+    			logicalPlacement = IOTool.isDEFLogicalPlacement();
+        		physicalPlacement = IOTool.isDEFPhysicalPlacement();
+            }
         }
 
         @Override

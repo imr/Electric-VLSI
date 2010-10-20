@@ -23,13 +23,14 @@
  */
 package com.sun.electric.tool.io.input.bookshelf;
 
+import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
+
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
-
-import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfNode;
 
 /**
  * @author Felix Schmidt
@@ -52,9 +53,16 @@ public class BookshelfWeights implements BookshelfInputParser<Void> {
 	public Void parse() throws IOException {
 
 		// Job.getUserInterface().setProgressNote("Parse Weights File");
-		File file = new File(this.nodesFile);
-		FileReader freader = new FileReader(file);
-		BufferedReader rin = new BufferedReader(freader);
+		BufferedReader rin;
+		try
+		{
+			File file = new File(nodesFile);
+			FileReader freader = new FileReader(file);
+			rin = new BufferedReader(freader);
+		} catch (FileNotFoundException e) {
+			System.out.println("ERROR: Cannot find Bookshelf Weights file: " + nodesFile);
+			return null;
+		}
 
 		String line;
 		while ((line = rin.readLine()) != null) {

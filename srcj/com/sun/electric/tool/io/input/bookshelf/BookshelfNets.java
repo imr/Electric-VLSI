@@ -23,20 +23,6 @@
  */
 package com.sun.electric.tool.io.input.bookshelf;
 
-import java.awt.geom.Point2D;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -57,6 +43,21 @@ import com.sun.electric.tool.io.input.bookshelf.BookshelfNodes.BookshelfPin;
 import com.sun.electric.util.CollectionFactory;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.Orientation;
+
+import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author Felix Schmidt
@@ -79,9 +80,16 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 
 		netIndex.clear();
 
-		File file = new File(this.fileName);
-		FileReader freader = new FileReader(file);
-		BufferedReader rin = new BufferedReader(freader);
+		BufferedReader rin;
+		try
+		{
+			File file = new File(fileName);
+			FileReader freader = new FileReader(file);
+			rin = new BufferedReader(freader);
+		} catch (FileNotFoundException e) {
+			System.out.println("ERROR: Cannot find Bookshelf Nets file: " + fileName);
+			return null;
+		}
 
 		Map<String, List<BookshelfPin>> pins = CollectionFactory.createHashMap();
 
@@ -183,7 +191,7 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(bn.getX(), bn.getY()), bn.getWidth(), bn
 					.getHeight(), mainCell, Orientation.IDENT, bn.getName());
 			Key key = Variable.newKey("weight");
-			Variable var = Variable.newInstance(key, bn.getWeight(), TextDescriptor.getNodeTextDescriptor());
+			Variable var = Variable.newInstance(key, new Integer(bn.getWeight()), TextDescriptor.getNodeTextDescriptor());
 			ni.addVar(var);
 			
 			bn.setInstance(ni);

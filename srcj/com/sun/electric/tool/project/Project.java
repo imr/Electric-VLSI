@@ -107,7 +107,6 @@ public class Project extends Listener
 		setOn();
 		pmActive = false;
 		ignoreChanges = false;
-//        iconParameters.initFromUserDefaults();
     }
 
 	/**

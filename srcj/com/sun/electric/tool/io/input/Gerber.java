@@ -164,12 +164,13 @@ public class Gerber extends Input<Object>
 		private boolean justThisFile;
 		private boolean fillPolygons;
 
-		public GerberPreferences(boolean factory) { super(factory); }
-
-		public void initFromUserDefaults()
-		{
-			justThisFile = !IOTool.isGerberReadsAllFiles();
-			fillPolygons = IOTool.isGerberFillsPolygons();
+		public GerberPreferences(boolean factory) {
+            super(factory);
+            if (!factory)
+            {
+                justThisFile = !IOTool.isGerberReadsAllFiles();
+                fillPolygons = IOTool.isGerberFillsPolygons();
+            }
         }
 
         @Override

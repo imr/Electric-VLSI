@@ -57,21 +57,19 @@ public class IconParameters implements Serializable
         bottomRot = 0;
         leftRot = 0;
         rightRot = 0;
-if (userDefaults) initFromUserDefaults();
-}
-
-    public void initFromUserDefaults()
-    {
-        inputSide = User.getIconGenInputSide();
-        outputSide = User.getIconGenOutputSide();
-        bidirSide = User.getIconGenBidirSide();
-        pwrSide = User.getIconGenPowerSide();
-        gndSide = User.getIconGenGroundSide();
-        clkSide = User.getIconGenClockSide();
-        topRot = User.getIconGenTopRot();
-        bottomRot = User.getIconGenBottomRot();
-        leftRot = User.getIconGenLeftRot();
-        rightRot = User.getIconGenRightRot();
+        if (userDefaults)
+        {
+            inputSide = User.getIconGenInputSide();
+            outputSide = User.getIconGenOutputSide();
+            bidirSide = User.getIconGenBidirSide();
+            pwrSide = User.getIconGenPowerSide();
+            gndSide = User.getIconGenGroundSide();
+            clkSide = User.getIconGenClockSide();
+            topRot = User.getIconGenTopRot();
+            bottomRot = User.getIconGenBottomRot();
+            leftRot = User.getIconGenLeftRot();
+            rightRot = User.getIconGenRightRot();
+        }
     }
 
     /**

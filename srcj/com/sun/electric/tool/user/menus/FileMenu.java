@@ -716,8 +716,6 @@ public class FileMenu {
             }
 
 			prefs = Input.getInputPreferences(type, false);
-            if (prefs != null)
-                prefs.initFromUserDefaults();
 			startJob();
 		}
 

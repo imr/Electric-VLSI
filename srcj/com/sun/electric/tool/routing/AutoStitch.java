@@ -190,8 +190,7 @@ public class AutoStitch
 			this.hY = hY;
 			this.forced = forced;
 			setReportExecutionFlag(true);
-			prefs = new AutoOptions();
-			prefs.initFromUserDefaults();
+			prefs = new AutoOptions(false);
 		    double resolution = cell.getTechnology().getFactoryResolution();
 		    alignment = new Dimension2D.Double(resolution, resolution);
 			startJob();
@@ -3021,17 +3020,18 @@ name=null;
 		public ArcProto preferredArc;
         public boolean fatWires = true;
 
-		public AutoOptions()
+		public AutoOptions(boolean factory)
 		{
-			createExports = false;	
-			preferredArc = Technology.getCurrent().getArcs().next();
-		}
-
-		public void initFromUserDefaults()
-		{
-			createExports = Routing.isAutoStitchCreateExports();
-			preferredArc = Routing.getPreferredRoutingArcProto();
-            fatWires = EditingPreferences.getThreadEditingPreferences().isFatWires();
+            if (factory)
+            {
+                createExports = false;	
+                preferredArc = Technology.getCurrent().getArcs().next();
+            } else
+            {
+                createExports = Routing.isAutoStitchCreateExports();
+                preferredArc = Routing.getPreferredRoutingArcProto();
+                fatWires = EditingPreferences.getThreadEditingPreferences().isFatWires();
+            }
 		}
 	}
 

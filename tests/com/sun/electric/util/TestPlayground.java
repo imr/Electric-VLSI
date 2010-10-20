@@ -8,6 +8,7 @@ import java.net.URISyntaxException;
 import junit.framework.Assert;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestPlayground {
@@ -50,6 +51,7 @@ public class TestPlayground {
         test1, test2;
     }
 
+    @Ignore
     @Test
     public void testEnum() {
         this.deepSearch(TestEnum.class);
@@ -57,9 +59,10 @@ public class TestPlayground {
 
     @Test
     public void testUserHome() {
-        System.out.println(System.getProperty("user.home"));
+        System.out.println("User Property: " + System.getProperty("user.home"));
     }
 
+    @Ignore
     @Test
     public void printMethodNames() {
         Method[] methods = TestPlayground.class.getMethods();
@@ -68,6 +71,7 @@ public class TestPlayground {
         }
     }
 
+    @Ignore
     @Test
     public void testInstance() {
         Number n = new Double(12.3);
@@ -86,6 +90,7 @@ public class TestPlayground {
 
     }
 
+    @Ignore
     @Test
     public void testDeepSearch() {
         deepSearch(Double.class);
@@ -109,7 +114,7 @@ public class TestPlayground {
 
     @Test
     public void testURI() throws URISyntaxException {
-        String uri = "E:/workspaceElectric2/electric-public/target/electric-9.0-SNAPSHOT-bin.jar!/econfig.xml";
+        String uri = "jar:file:/E:/workspaceElectric2/electric-public/target/electric-9.0-SNAPSHOT-bin.jar!/econfig.xml";
         URI tmpUri = new URI(uri);
         System.out.println(tmpUri);
         File file = new File(tmpUri.toString());

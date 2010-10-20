@@ -435,7 +435,7 @@ public class StitchFillJob extends Job
                 }
                 xPos += width;
             }
-            AutoOptions prefs = new AutoOptions();
+            AutoOptions prefs = new AutoOptions(true);
             prefs.createExports = true;
             AutoStitch.runAutoStitch(newTile, niList, null, job, null, null, true, false, prefs, true, null);
         }

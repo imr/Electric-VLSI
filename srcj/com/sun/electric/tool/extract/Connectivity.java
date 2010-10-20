@@ -612,7 +612,7 @@ public class Connectivity
         // TODO: originalMerge passed to auto stitcher really needs to include subcell geometry too, in order
         // for the auto-stitcher to know where it can place arcs. However, building and maintaining such a hashmap
         // might take up a lot of memory.
-        AutoOptions prefs = new AutoOptions();
+        AutoOptions prefs = new AutoOptions(true);
 		prefs.createExports = true;
 		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, true, prefs, !recursive, alignment);
 

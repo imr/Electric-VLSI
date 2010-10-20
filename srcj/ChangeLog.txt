@@ -4,8 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00p: ******************************
 
+BUG: (10/19/10, DN) GDS import is all zero-size (Bug #2941).
+FIX: Constructors of all subclasses of Input.InputPreferences respect parameter "factory" now.
+
 BUG: (10/19/10, FS) Why did we add the xxxMB/yyyMB text on the bottom bar? (Bug #2940)
 FIX: Show memory usage only in debug mode + fix license issue
+
+BUG: (10/19/10, SMR) GDS import is all zero-size (Bug #2941).
+FIX: In FileMenu.ImportLibrary constructor, restore call to initFromUserDefaults().
 
 IMP: (10/18/10, SMR) Updated author information in About dialog (Bug #2937).
 

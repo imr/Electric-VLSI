@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <xsd:schema targetNamespace="http://www.sun.com/Electric"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sun.com/Electric">
 
