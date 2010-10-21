@@ -2,7 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 9.00p: ******************************
+************************* Version 9.00-p: ******************************
+
+BUG: (10/20/10, DN) Make syntax of Electric version compatible with maven version (Bug #2943)
+FIX: Dash is allowed in Version string. The current version is renamed to "9.00-p" .
+
+IMP: (10/20/10, SMR) GDS import can handle references to existing libraries (Bug #2942).
 
 BUG: (10/19/10, DN) GDS import is all zero-size (Bug #2941).
 FIX: Constructors of all subclasses of Input.InputPreferences respect parameter "factory" now.

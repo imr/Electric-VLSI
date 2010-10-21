@@ -48,6 +48,7 @@ import java.util.StringTokenizer;
  * For example:
  *    "8.00"      major=8, minor=0, detail=999     (a Release)
  *    "8.01a"     major=8, minor=1, detail=1       (a Prerelease)
+ *    "8.01-a"    major=8, minor=1, detail=1       (a Prerelease)
  *    "8.01z"     major=8, minor=1, detail=26      (a Prerelease)
  *    "8.01aa"    major=8, minor=1, detail=27      (a Prerelease)
  *    "8.01az"    major=8, minor=1, detail=52      (a Prerelease)
@@ -60,7 +61,7 @@ public class Version implements Comparable<Version>, Serializable {
     /**
      * This is the current version of Electric
      */
-    private static final String CURRENT = "9.00p";
+    private static final String CURRENT = "9.00-p";
     private static final String ROOTARNAME = "electric";
     private final String version;
     private final int major;
@@ -107,6 +108,8 @@ public class Version implements Comparable<Version>, Serializable {
             } else if (restOfString.charAt(0) == '.') {
                 details = 1000 + Integer.parseInt(restOfString.substring(1));
             } else {
+                if (restOfString.startsWith("-"))
+                    restOfString = restOfString.substring(1);
                 while (restOfString.length() > 0
                         && Character.isLetter(restOfString.charAt(0))) {
                     details = (details * 26) + Character.toLowerCase(restOfString.charAt(0)) - 'a' + 1;

@@ -103,7 +103,7 @@ import java.util.TreeSet;
  * <LI>REFLIBS are not supported.</LI>
  * <LI>PATH-ARC mapping - should be done, problem is that any layer can be a path, only connection layers in Electric are arcs.
  *	Someone could make a GDS mapping technology for this purpose, defaults could be taken from this technology.</LI>
- * <LI>Misc. fields mapped to variables - should be done.</LI>
+ * <LI>Miscellaneous fields mapped to variables - should be done.</LI>
  * <LI>MAG - no scaling is possible, must create a separate object for each value, don't scale.  (TEXT does scale.)</LI>
  * </UL>
  */
@@ -168,6 +168,7 @@ public class GDS extends Input<Object>
 	private Set<Integer>     pinLayers;
 	private PolyMerge        merge;
 	private static boolean   arraySimplificationUseful;
+	private Set<Cell>        missingCells;
 
 	private static class GSymbol
 	{
@@ -380,6 +381,25 @@ public class GDS extends Input<Object>
             return null;
         }
 
+        // fix references to unknown cells that may be in other libraries
+        Map<Cell,Cell> foundCellMap = CellBuilder.substituteExternalCells(missingCells, theLibrary);
+        if (foundCellMap.size() > 0)
+        {
+        	System.out.println("Note: these cells from other libraries were referenced in the GDS:");
+        	for(Cell mCell : foundCellMap.keySet())
+        	{
+        		Cell found = foundCellMap.get(mCell);
+        		System.out.println("    " + found.libDescribe());
+        		missingCells.remove(mCell);
+        	}
+        }
+        if (missingCells.size() > 0)
+        {
+        	System.out.println("Note: these cells are missing in the GDS and were created with no contents:");
+        	for(Cell cell : missingCells)
+        		System.out.println("    " + cell.noLibDescribe());
+        }
+
 		// now build all instances recursively
 		CellBuilder.buildInstances();
 		CellBuilder.term();
@@ -417,6 +437,7 @@ public class GDS extends Input<Object>
 	private void initialize()
 	{
 		layerNodeProto = Generic.tech().drcNode;
+		missingCells = new HashSet<Cell>();
 
 		theVertices = new Point2D[MAXPOINTS];
 		for(int i=0; i<MAXPOINTS; i++) theVertices[i] = new Point2D.Double();
@@ -758,7 +779,6 @@ public class GDS extends Input<Object>
 				Set<Cell> cellsWithError = cellLayerErrors.get(ulm);
 				if (cellsWithError == null) cellLayerErrors.put(ulm, cellsWithError = new TreeSet<Cell>());
 				cellsWithError.add(cell);
-//				System.out.println(msg);
 				errorLogger.logMessage(msg, instantiated, cell, -1, true);
 			}
             createNodes();
@@ -963,7 +983,62 @@ public class GDS extends Input<Object>
             }
         }
 
-		private static void buildInstances()
+        /**
+         * Method to find missing cells in the GDS and substitute references to cells in other libraries.
+         * @param missingCells
+         * @param theLibrary
+         * @return
+         */
+        private static Map<Cell,Cell> substituteExternalCells(Set<Cell> missingCells, Library theLibrary)
+        {
+        	Map<Cell,Cell> missingCellMap = new HashMap<Cell,Cell>();
+
+        	// make a list of other libraries to scan
+        	List<Library> otherLibraries = new ArrayList<Library>();
+        	for(Library lib : Library.getVisibleLibraries())
+        	{
+        		if (lib != theLibrary) otherLibraries.add(lib);
+        	}
+        	if (otherLibraries.size() == 0) return missingCellMap;
+
+        	// first map missing cells to found ones
+        	for(Cell mCell : missingCells)
+        	{
+        		for(Library lib : otherLibraries)
+        		{
+        			Cell found = lib.findNodeProto(mCell.getName());
+        			if (found != null)
+        			{
+        				missingCellMap.put(mCell, found);
+        				mCell.kill();
+        				break;
+        			}
+        		}
+        	}
+
+        	for(CellBuilder cellBuilder : allBuilders.values())
+			{
+				for(MakeInstance mi : cellBuilder.insts)
+				{
+	                if (mi.proto instanceof Cell)
+	                {
+	                	Cell found = missingCellMap.get(mi.proto);
+	                	if (found != null) mi.proto = found;
+	                }
+				}
+				for(MakeInstanceArray mia : cellBuilder.instArrays)
+				{
+	                if (mia.proto instanceof Cell)
+	                {
+	                	Cell found = missingCellMap.get(mia.proto);
+	                	if (found != null) mia.proto = found;
+	                }
+				}
+			}
+        	return missingCellMap;
+        }
+
+        private static void buildInstances()
 		{
 			Set<CellId> builtCells = new HashSet<CellId>();
 			for(CellBuilder cellBuilder : allBuilders.values())
@@ -1111,7 +1186,7 @@ public class GDS extends Input<Object>
 
     private static class MakeInstance
 	{
-		private final NodeProto proto;
+		private NodeProto proto;
 		private final Point2D loc;
 		private final Orientation orient;
         private final double wid, hei;
@@ -1222,12 +1297,9 @@ public class GDS extends Input<Object>
                 n = n.withTrace(points, cb.traceDescriptor);
             }
             cb.nodesToCreate.add(n);
-//            NodeInst ni = NodeInst.newInstance(parent, n);
             String errorMsg = null;
-//            if (ni == null) return;
             if (saveHere != null) saveHere.add(n);
 
-//            assert ni.getNameKey() == nodeName;
             if (origNodeName != null)
             {
            		errorMsg = "Cell " + parent.describe(false) + ": Original GDS name of '" + name + "' was '" + origNodeName + "'";
@@ -1516,6 +1588,9 @@ public class GDS extends Input<Object>
 			System.out.println("Reading " + name);
 			if (!currentCells.containsKey(theLibrary))
 				currentCells.put(theLibrary, cell);
+		} else
+		{
+			missingCells.remove(cell);
 		}
         theCell = new CellBuilder(cell, curTech, localPrefs);
 	}
@@ -1816,7 +1891,7 @@ public class GDS extends Input<Object>
 			{
 				NodeLayer [] layers = layerNodeProto.getNodeLayers();
 				if (layerNodeProto != null)
-					merge.addPolygon(layers[0].getLayer(), new Poly(theVertices)); // ??? npts
+					merge.addPolygon(layers[0].getLayer(), new Poly(theVertices));
 			} else
 			{
 				// determine the bounds of the polygon
@@ -2065,13 +2140,13 @@ public class GDS extends Input<Object>
 		if (theToken == GDS_PATHTYPE)
 		{
 			getToken();
-			// pathcode = tokenValue16;
+			// code = tokenValue16;
 			getToken();
 		}
 		if (theToken == GDS_WIDTH)
 		{
 			getToken();
-			// pathwidth = tokenValue32 * theScale;
+			// width = tokenValue32 * theScale;
 			getToken();
 		}
 		int angle = 0;
@@ -2270,22 +2345,12 @@ public class GDS extends Input<Object>
 				case IOTool.GDSUNKNOWNLAYERUSEDRC:    message += "using Generic:DRC layer";        break;
 				case IOTool.GDSUNKNOWNLAYERUSERANDOM: message += "using layer " + layer.getName(); break;
 			}
-//			if (layer != null)
-//			{
-				currentUnknownLayerMessage = layerErrorMessages.get(layerInt);
-				if (currentUnknownLayerMessage == null)
-				{
-					currentUnknownLayerMessage = new UnknownLayerMessage(message);
-					layerErrorMessages.put(layerInt, currentUnknownLayerMessage);
-				}
-//			} else
-//			{
-//				errorLogger.logWarning(message, theCell.cell, 0);
-//				List<Cell> cellsWithError = cellLayerErrors.get(message);
-//				if (cellsWithError == null) cellLayerErrors.put(message, cellsWithError = new ArrayList<Cell>());
-//				cellsWithError.add(theCell.cell);
-//				System.out.println(message);
-//			}
+			currentUnknownLayerMessage = layerErrorMessages.get(layerInt);
+			if (currentUnknownLayerMessage == null)
+			{
+				currentUnknownLayerMessage = new UnknownLayerMessage(message);
+				layerErrorMessages.put(layerInt, currentUnknownLayerMessage);
+			}
 		}
 		if (layer != null)
 		{
@@ -2388,6 +2453,7 @@ public class GDS extends Input<Object>
 			if (np == null) handleError("Failed to create SREF proto");
 			setProgressValue(0);
 			setProgressNote("Reading " + name);
+			missingCells.add(np);
 		}
 
 		// set the reference node prototype
