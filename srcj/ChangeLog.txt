@@ -6,6 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 BUG: (10/20/10, DN) Make syntax of Electric version compatible with maven version (Bug #2943)
 FIX: Dash is allowed in Version string. The current version is renamed to "9.00-p" .
+     Library writers still write version in old format.
 
 IMP: (10/20/10, SMR) GDS import can handle references to existing libraries (Bug #2942).
 

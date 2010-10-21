@@ -91,7 +91,7 @@ public class ReadableDump extends ELIB {
 
         // write header information
         printWriter.println("****library: \"" + theLibId.libName + "\"");
-        printWriter.println("version: " + Version.getVersion());
+        printWriter.println("version: " + Version.getVersion().toOldStyleString());
         printWriter.println("aids: " + toolCount);
         for (Iterator<Tool> it = Tool.getTools(); it.hasNext();) {
             Tool tool = it.next();

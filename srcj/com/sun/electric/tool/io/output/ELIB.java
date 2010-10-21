@@ -428,7 +428,7 @@ public class ELIB extends Output {
         writeObj(null);
 
         // write the version number
-        writeString(Version.getVersion().toString());
+        writeString(Version.getVersion().toOldStyleString());
 
         // number the views and write nonstandard ones
         putObjIndex(View.UNKNOWN, -1);

@@ -130,7 +130,7 @@ public class JELIB extends Output {
 
         // write header information (library, version)
         printWriter.println("# header information:");
-        printWriter.print("H" + convertString(libBackup.d.libId.libName) + "|" + version);
+        printWriter.print("H" + convertString(libBackup.d.libId.libName) + "|" + version.toOldStyleString());
         printlnVars(libBackup.d);
 
         // write view information

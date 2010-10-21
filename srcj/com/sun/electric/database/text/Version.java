@@ -64,6 +64,7 @@ public class Version implements Comparable<Version>, Serializable {
     private static final String CURRENT = "9.00-p";
     private static final String ROOTARNAME = "electric";
     private final String version;
+    private final String oldStyle;
     private final int major;
     private final int minor;
     private final int details;
@@ -122,6 +123,7 @@ public class Version implements Comparable<Version>, Serializable {
         }
 
         this.version = version;
+        this.oldStyle = version.replaceFirst("-", "");
         this.major = major;
         this.minor = minor;
         this.details = details;
@@ -295,6 +297,15 @@ public class Version implements Comparable<Version>, Serializable {
      */
     public String toString() {
         return version;
+    }
+    
+    /**
+     * Returns a <code>String</code> object representing this Version in a style before 9.00-p.
+     * The dash symbol is stripped, so that old Jelib readers could read it. 
+     * @return  a string representation of this Version
+     */
+    public String toOldStyleString() {
+        return oldStyle;
     }
 
     /**
