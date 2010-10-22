@@ -7,7 +7,7 @@
  * Original C Code written by Brent Serbin and Peter J. Gallant
  * Translated to Java by Steven M. Rubin, Sun Microsystems.
  *
- * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

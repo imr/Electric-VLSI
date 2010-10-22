@@ -4,7 +4,7 @@
  *
  * File: Version.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,10 +148,10 @@ public class Version implements Comparable<Version>, Serializable {
 
     /**
      * Method to return copyright information
-     * @return Sun Microsystems and Static Free Software
+     * @return Oracle copyright.
      */
     public static String getCopyrightInformation() {
-        return "Copyright (c) 2010 Sun Microsystems and Static Free Software";
+        return "Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.";
     }
 
     /**

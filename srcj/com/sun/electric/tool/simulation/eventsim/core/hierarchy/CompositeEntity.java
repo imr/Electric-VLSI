@@ -11,7 +11,7 @@ import java.util.Iterator;
 
 /**
  *
- * Copyright (c) 2005 Sun Microsystems Inc. All rights reserved. Use is subject to license terms.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  * 
  * @author ib27688
  *

@@ -5,7 +5,7 @@
  * File: SimpleGoalEightNeighbours.java
  * Written by: Christian Harnisch, Ingo Besenfelder, Michael Neumann (Team 3)
  *
- * Copyright (c) 2010 Sun Microsystems and Static Free Software
+ * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -4,7 +4,7 @@
  *
  * File: About.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -396,7 +396,7 @@ public class About extends EDialog
         Bottom.add(jLabel9, gridBagConstraints);
 
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel8.setText("Copyright (c) 2007 Sun Microsystems and Static Free Software");
+        jLabel8.setText("Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;

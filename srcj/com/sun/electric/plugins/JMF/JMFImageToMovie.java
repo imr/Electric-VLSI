@@ -1,7 +1,7 @@
 /*
  * @(#)JpegImagesToMovie.java	1.3 01/03/13
  *
- * Copyright (c) 1999-2001 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1999-2001, Oracle and/or its affiliates. All rights reserved.
  *
  * Sun grants you ("Licensee") a non-exclusive, royalty free, license to use,
  * modify and redistribute this software in source and binary code form,

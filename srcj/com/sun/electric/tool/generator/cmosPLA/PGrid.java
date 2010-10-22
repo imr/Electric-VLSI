@@ -7,7 +7,7 @@
  * Originally written by Wallace Kroeker at the University of Calgary
  * Translated to Java by Steven Rubin, Sun Microsystems.
  *
- * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

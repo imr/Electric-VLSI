@@ -4,7 +4,7 @@
  *
  * File: Xml806.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1530,7 +1530,7 @@ public class Xml806 {
             pl(" * " + t.techName + " technology description");
             pl(" * Generated automatically from a library");
             pl(" *");
-            pl(" * Copyright (c) " + cal.get(Calendar.YEAR) + " Sun Microsystems and Static Free Software");
+            pl(" * Copyright (c) " + cal.get(Calendar.YEAR) + ", Oracle and/or its affiliates. All rights reserved.");
             pl(" *");
             pl(" * Electric(tm) is free software; you can redistribute it and/or modify");
             pl(" * it under the terms of the GNU General Public License as published by");

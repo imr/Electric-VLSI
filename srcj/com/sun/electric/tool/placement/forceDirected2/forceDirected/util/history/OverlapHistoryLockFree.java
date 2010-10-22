@@ -9,7 +9,7 @@
  * as part of the course "Multicore Programming in Practice: Tools, Models, and Languages".
  * Contact instructor: Dr. Victor Pankratius (pankratius@ipd.uka.de)
  *
- * Copyright (c) 2010 Sun Microsystems and Static Free Software
+ * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

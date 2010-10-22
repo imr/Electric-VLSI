@@ -1,5 +1,5 @@
 /**
- * Copyright 2005 Sun Microsystems Inc. All rights reserved. Use is subject to license terms.
+ * Copyright 2005, Oracle and/or its affiliates. All rights reserved.
  */
 package com.sun.electric.tool.simulation.eventsim.core.common;
 

@@ -3,9 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: Agilent6031A.java
- * Written by Tom O'Neill and Nathaniel Pinckney, Sun Microsystems.
+ * Written by Tom O'Neill and Nathaniel Pinckney.
  *
- * Copyright (c) 2008 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -6,7 +6,7 @@
  * Routing tool: Sea of Gates control
  * Written by: Steven M. Rubin
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -6,7 +6,7 @@
  * Written by: David Harris, 4/20/01 (David_Harris@hmc.edu)
  * Translated to Java by Steven Rubin: 12/05
  *
- * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

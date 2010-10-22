@@ -7,7 +7,7 @@ import com.sun.electric.tool.simulation.eventsim.core.globals.Globals;
 
 /**
  *
- * Copyright (c) 2005 Sun Microsystems Inc. All rights reserved. Use is subject to license terms.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  * 
  * Common denominator for journalinig simulation results
  * @author ib27688

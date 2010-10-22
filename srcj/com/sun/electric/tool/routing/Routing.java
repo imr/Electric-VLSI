@@ -4,7 +4,7 @@
  *
  * File: Routing.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -592,8 +592,7 @@ public class Routing extends Listener {
 	private static Method sunRouterMethod;
 
 	/**
-	 * Method to tell whether the Sun Router is available. This is a proprietary
-	 * tool from Sun Microsystems. This method dynamically figures out whether
+	 * Method to tell whether the Sun Router is available. The method dynamically figures out whether
 	 * the router is present by using reflection.
 	 * 
 	 * @return true if the Sun Router is available.
