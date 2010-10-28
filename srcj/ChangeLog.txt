@@ -1,5 +1,11 @@
 			Java Electric change log ( MAIN branch )
 
+************************************************************************
+**
+** PLEASE NO MORE CHECK-IN IN THIS MAIN BRANCH
+**
+************************************************************************
+
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-p: ******************************
