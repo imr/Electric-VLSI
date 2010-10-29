@@ -123,7 +123,7 @@ Apache Maven either version 3.0 or version 2.2.1  http://maven.apache.org
 
 3) cd electric
 
-4) mvn install
+4) mvn -DskipTests=true install
 
 5) The result is electric/target/electric-9.0-SNAPSHOT-bin.jar
 
