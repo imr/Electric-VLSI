@@ -14,7 +14,7 @@
     <artifactId>electric</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <!--module>electric-parent</module-->
+        <module>electric-parent</module>
         <module>electric-concurrent</module>
         <module>electric-test</module>
         <module>electric-core</module>

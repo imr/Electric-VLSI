@@ -155,7 +155,7 @@
     </build>
     
     <!-- More Project Information -->
-    <name>electric</name>
+    <name>electric-parent</name>
     <description>Electric VLSI Design System, a state-of-the-art computer-aided design system for VLSI circuit design.</description>
     <url>http://www.gnu.org/software/electric</url>
     <inceptionYear>2004</inceptionYear>
