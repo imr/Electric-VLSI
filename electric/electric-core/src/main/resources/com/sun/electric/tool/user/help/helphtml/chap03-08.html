@@ -1,0 +1,31 @@
+<!-- HEADER 3-8: Rearranging Cell Hierarchy -->
+
+<!-- COMMAND Cell/Package Into Cell... -->
+<!-- COMMAND Cell/Extract Cell Instance/One Level Down -->
+<!-- COMMAND Cell/Extract Cell Instance/All the Way -->
+<!-- COMMAND Cell/Extract Cell Instance/Specified Amount... -->
+
+In order to manipulate hierarchical circuits,
+it is useful to create and delete levels of the hierarchy.
+The <B>Package Into Cell...</B> command (in menu <B>Cell</B>)
+collects all of the highlighted objects into a new cell.
+You will be prompted for the cell name.
+To package everything in an area, use the Area Selection commands
+(see <A HREF="chap02-01-03.html#chap02-01-03">Section 2-1-3</A>).
+When packaging an area, every node touching the area and all arcs between nodes in the area
+are included in the new cell.
+<P>
+Packaging does not affect the highlighted circuitry.
+However, after packaging circuitry into a new cell,
+that circuitry can be deleted and replaced with an instance of the cell.
+<P>
+The opposite function is the removal of levels of hierarchy.
+This is done with the <B>Extract Cell Instance</B> subcommands (in menu <B>Cell</B>),
+which takes the currently highlighted cell instances and replaces them with their contents.
+The <B>One Level Down</B> subcommand just replaces the selected instances with their contents.
+The <B>All the Way</B> subcommand continues to extract instances inside of instances until there are
+no more instances, just primitives.
+The <B>Specified Amount...</B> prompts for a number of levels of hierarchy and extracts that many levels deep.
+All arcs that were connected to the cell instances are reconnected to the correct parts of the instantiated circuitry.
+
+<!-- TRAILER -->

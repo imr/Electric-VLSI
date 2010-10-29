@@ -1,0 +1,20 @@
+SeaOfGatesEngineOld:
+- old version with raw native java threads
+- just refactored for the integration of the new versions
+
+SeaOfGatesEngineNew:
+- two thread pools
+* 1 for parallel routes
+* 1 for the parallel dijkstra
+
+SeaOfGatesEngineNew2:
+- one thread pool
+- calculate n routes in parallel (n: number of threads)
+- after each n routes there is a barrier 
+
+SeaOfGatesEngineNew3:
+- one thread pool
+- put as much as possible routes into the task pool
+- calculate all possible routes
+- barrier
+- start again with the next possible routes

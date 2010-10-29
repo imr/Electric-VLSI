@@ -1,0 +1,60 @@
+<!-- HEADER 10-4-1: Variables -->
+
+Variables may be attached to any object in the Electric database.
+They appear at the end of many of the lines in the file.
+When more than 1 variable is listed on an object, they are sorted by the variable name.
+The syntax is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>&lt;name&gt; ( &lt;TD&gt; ) &lt;type&gt; &lt;value&gt;</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;name&gt;</TD><TD WIDTH="80%">the name of the variable.</TD></TR>
+<TR><TD>&lt;TD&gt;</TD><TD>the text descriptor (when the variable is visible).</TD></TR>
+<TR><TD>&lt;type&gt;</TD><TD>the type of data attached.</TD></TR>
+<TR><TD>&lt;value&gt;</TD><TD>the data.  If it starts with "[", it is an array of the form [ <value1> , <value2> , ... ]</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+&lt;name&gt; and &lt;value&gt; fields may be enclosed in quotation marks.
+Backslash character can be used inside enclosed strings to denote special characters.
+<P>
+The &lt;type&gt; field can be one of these:<BR>
+"B" Boolean ("T" or "F")<BR>
+"C" Cell (of the form &lt;library&gt; : &lt;cell&gt;)<BR>
+"D" Double<BR>
+"E" Export (of the form &lt;library&gt; : &lt;cell&gt; : &lt;exportID&gt;)<BR>
+"F" Float<BR>
+"G" Long<BR>
+"H" Short<BR>
+"I" Integer<BR>
+"L" Library name<BR>
+"O" Tool name<BR>
+"P" Primitive Node prototype (of the form &lt;technology&gt; : &lt;node name&gt;)<BR>
+"R" Arc prototype (of the form &lt;technology&gt; : &lt;arc name&gt;)<BR>
+"S" String<BR>
+"T" Technology name<BR>
+"V" Point2D (of the form &lt;x&gt; / &lt;y&gt;)<BR>
+"Y" Byte (0-255)
+<P>
+Examples:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>ART_message(D5G8;)StxArray4x4B</CODE>
+<P>
+Adds a variable called "ART_message" with the string "txArray4x4B".
+The text descriptor indicates centered text ("D5") that is 8 units tall ("G8;").
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>ART_degrees()F[0.0,3.1415927]</CODE>
+<P>
+Adds a variable called "ART_degrees" with an array of 2 floating point values: 0.0 and 3.1415927.
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>EXPORTS()E[ccc:gate;1{sch}:a,"ccc:hate;1{sch}:b[0:4]"]</CODE>
+<P>
+Adds a variable called "EXPORTS" with an array of 2 exports: export "a" of cell "ccc:gate{sch}"
+and export "b[0:4]" from the cell "ccc:hate{sch}".
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>ATTR_z0(D5G0.5;NPY1;)I50</CODE>
+<P>
+Adds an attribute called "z0" with the integer value 50.
+It is displayed anchored at the center ("D5"), 0.5 unit tall ("G0.5;"),
+written as "name=value" ("N"), is a parameter ("P"), and is offset by 1 in Y ("Y1;").
+
+<!-- TRAILER -->

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: DRC.dtd
+ * DRC rules scheme
+ *
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+-->
+
+<!-- First attemp to store DRC rules in files -->
+<!--<!ELEMENT ruleName (#PCDATA)> -->
+ <!ELEMENT DRCRules (Foundry)*>
+ <!ELEMENT Foundry ((LayerRule|LayersRule|NodeLayersRule|NodeRule)*)>
+ <!ELEMENT LayerRule ANY>   <!-- Rules for particular layers -->
+ <!ELEMENT LayersRule ANY>  <!-- Spacing rules between layers -->
+ <!ELEMENT NodeLayersRule ANY> <!-- Spacing between layers in a node -->
+ <!ELEMENT NodeRule ANY> <!-- special for transistors so far -->
+ <!ATTLIST Foundry name CDATA #REQUIRED>
+ <!ATTLIST LayerRule
+    ruleName CDATA #REQUIRED
+    layerName CDATA #REQUIRED
+    type (MINWID | MINWIDCOND | MINAREA | MINENCLOSEDAREA | SURROUND) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #REQUIRED
+    condition CDATA #IMPLIED
+ >
+ <!-- value in LayersRule is implied due to COMBINATION -->
+ <!ATTLIST LayersRule
+    ruleName CDATA #REQUIRED
+    layerNames CDATA #REQUIRED
+    type (CONSPA | UCONSPA | UCONSPA2D | SPACING | SPACINGE | FORBIDDEN | EXTENSION | EXTENSIONGATE | SURROUND) #REQUIRED
+    when CDATA #REQUIRED
+    valueX CDATA #IMPLIED
+    valueY CDATA #IMPLIED
+    value CDATA #IMPLIED
+    maxW CDATA #IMPLIED
+    minLen CDATA #IMPLIED
+    nodeName CDATA #IMPLIED
+    condition CDATA #IMPLIED
+ >
+ <!ATTLIST NodeLayersRule
+    ruleName CDATA #REQUIRED
+    layerNames CDATA #REQUIRED
+    nodeName CDATA #REQUIRED
+    type (SURROUND | ASURROUND) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #IMPLIED
+    valueX CDATA #IMPLIED
+    valueY CDATA #IMPLIED
+ >
+ <!ATTLIST NodeRule
+    ruleName CDATA #REQUIRED
+    type (NODSIZ | FORBIDDEN) #REQUIRED
+    when CDATA #REQUIRED
+    value CDATA #IMPLIED
+    valueX CDATA #IMPLIED
+    valueY CDATA #IMPLIED
+    nodeName CDATA #REQUIRED
+ >

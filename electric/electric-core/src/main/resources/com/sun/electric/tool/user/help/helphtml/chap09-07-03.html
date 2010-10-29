@@ -1,0 +1,145 @@
+<!-- NEED 4in -->
+<!-- HEADER 9-7-3: Preferences -->
+
+<!-- PREFERENCE Tools/NCC -->
+
+NCC options are available in the NCC Preferences
+(in menu <B>File / Preferences... </B>, "Tools" section, "NCC" tab).
+<p>
+<CENTER><IMG SRC="fig09-22.png" ALT="Figure 9.22"></CENTER>
+
+<H4>Operation Section</H4>
+<p>
+This section allows you to select what kind of NCC operation to perform.
+You can either compare hierarchically, compare flat, or list all the NCC annotations in the design.  
+</p>
+<p>
+It is recommended that you use hierarchical comparison because it is faster
+and the mismatch diagnostics are much more precise and intelligible.
+However, transistor size checking  limits what NCC can compare hierarchically because the size of a
+schematic transistor may depend upon the instance path.
+</p>
+<p>
+The best way to use NCC is to initially perform all comparisons hierarchically.
+This will typically require many iterations.
+Once the circuit has passed hierarchical comparison, turn on size checking.
+This will report transistor size mismatches.
+</p>
+
+<H4>Size Checking Section</H4>
+<p>
+The "Size Checking" section controls how NCC compares transistor widths
+and lengths. This section affects two distinct NCC phases: 
+netlist comparison and series / parallel combination.
+</p>
+
+<h5>Netlist comparison</h5>
+<p>
+After each topological comparison, NCC can optionally perform size checking.
+If NCC finds no topological mismatches, and if "Check transistor sizes" is checked,
+then NCC checks, for each pair of matching transistors,
+that the widths and lengths are approximately equal.
+</p>
+<p>
+The two tolerance values allow the user to specify how much more the
+larger of the two matched transistors may be than the smaller before NCC reports a size mismatch.
+The "Relative size tolerance" is the difference in percentage.
+The "Absolute size tolerance" is the difference in units.
+NCC reports a size mismatch when both tolerances are exceeded.
+</p>
+<p>
+If you choose "Check transistor sizes" and "Hierarchical Comparison"
+simultaneously then NCC restricts which cells it treats
+hierarchically to ensure a correct answer in the presence of
+automatically sized transistors.
+For this case it compares a pair of cells
+hierarchically if and only if each cell is instantiated exactly once.
+</p>
+
+<h5>Series / Parallel Combination</h5>
+<p>
+When NCC builds the netlist, it performs series / parallel combination.
+When NCC finds a number of transistors with the same channel length wired in parallel,
+NCC substitutes a single transistor whose width is the sum of the widths of those transistors.
+When NCC finds a number of transistors with the same channel width and channel length wired in series, 
+NCC substitutes a single multi-gate transistor that represents all the series transistors.  
+</p>
+<p>
+NCC uses the "Relative size tolerance" and the "Absolute size tolerance"
+fields to determine how close transistor widths and lengths
+have to be before it will combine them in series or in parallel. 
+</p>
+
+<H4>Body Checking Section</H4>
+<p>
+The check box "Check transistor body connections" allows the user
+to select whether NCC checks connections to the body port of transistors.
+By default, body checking is disabled and NCC ignores connections to transistor body ports.
+</p>
+<p>
+If the user wishes to check body connections, then she must check this box.
+Then, the NCC will make sure that the schematics and layout have matching connections
+to all transistor body ports.
+</p>
+<p>
+Note that only certain versions of schematic transistors have body ports.
+The designer must use those schematic transistors.
+In addition, in this version of Electric, layout transistors also have body ports.
+The designer must specify the connectivity of the body port of layout transistors using well arcs.
+</p>
+<p>
+Note that the body port of the layout transistors are in the very center of the transistor
+and are "hard to select".
+If you wish to connect to the body port of a layout transistor
+you may need to push the "Toggle Special Select" button in the Electric tool bar
+(see the <A HREF="chap02-01-05.html#chap02-01-05">Section 2-1-5</A> for more).
+</p>
+<p>
+At the moment, only the MoCMOS layout technology has been augmented to allow body connections.
+This is because this implementation of body checking is experimental.
+We'd like to get some feedback from users before we go to the effort of generalizing all other technologies.
+</p>
+
+<H4>Checking All Cells Section</H4>
+<p>
+In hierarchical mode, NCC attempts to compare all cells in the design
+starting with those at the leaves and working it's way toward the root.
+For that mode it is often best if NCC stops as soon as it finds an export or topology mismatch.
+To get this behavior the user should check "Halt after finding the first mismatched cell".
+Note that size mismatches never cause NCC to stop.
+</p>
+<p>
+It is occasionally useful to continue checking even after mismatches have been detected.
+For example, the designer might find that although a cell mismatches,
+it cannot be fixed because someone else designed it.
+When asked to continue, NCC will do the following when comparing cells that use the mismatched one:
+</p>
+<ul>
+<li>If NCC found no export mismatches when comparing the mismatched cell then NCC will use
+the export names to identify corresponding ports in the layout and schematic.</li>
+<li>If NCC found export mismatches when comparing the mismatched cell then NCC will
+flatten that one level of hierarchy before performing the comparison.</li>
+</ul>
+<p>
+If the check box "Don't recheck cells that have passed in this Electric run" is checked,
+then NCC skips a cell if that cell passed NCC in a previous run and the designer hasn't since changed the cell.
+</p>
+<p>
+Note that NCC only remembers when cells were last checked during a single run of Electric.
+If you run NCC, quit Electric, restart Electric, and rerun NCC, all cells will be checked. 
+</p>
+
+<H4>Reporting Progress Section</H4>
+<p>
+This panel controls how verbose NCC is in reporting its progress.
+Most users should leave this at 0.
+</p>
+
+<H4>Error Reporting Section</H4>
+<p>
+The error reporting section controls how many error messages are printed
+when the Local Partitioning algorithm has failed to find a mismatch but the Gemini algorithm has.
+Most users will want to leave these at the default setting of 10.
+</p>
+
+<!-- TRAILER -->

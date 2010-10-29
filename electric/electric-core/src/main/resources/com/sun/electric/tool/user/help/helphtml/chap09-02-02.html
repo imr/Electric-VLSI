@@ -1,0 +1,73 @@
+<!-- NEED 3in -->
+
+<!-- HEADER 9-2-2: DRC Preferences -->
+
+<!-- PREFERENCE Tools/DRC -->
+
+<TABLE><TR><TD>
+To control the DRC,
+use the DRC Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "DRC" tab).
+<P>
+By default, the incremental design-rule checker is on.
+To turn it off, uncheck the "On" checkbox in the "Incremental DRC" section.
+You can also control the incremental display of design-rule violations that occurs when moving nodes and arcs
+(see <A HREF="chap02-04-01.html#chap02-04-01">Section 2-4-1</A>).
+</TD><TD><CENTER><IMG SRC="fig09-20.png" ALT="Figure 9.20"></CENTER></TD></TR></TABLE>
+<P>
+There are three levels of checking that can be requested for the Hierarchical DRC.
+Each level of checking consumes more time and finds more errors.
+<UL>
+<LI>"Report just 1 error per cell" tells the system to stop checking a cell
+after the first error has been found.
+By using this option, you can more quickly determine <I>which</I> cells in the design are correct,
+without knowing exactly where the errors lie.
+Then, you can go to the cells with errors and do a more complete check.</LI>
+<LI>"Report just 1 error per pair of geometries" is the default.
+The algorithm works by checking design rules per each possible pair of geometries and it stops when the first
+violation for a given pair is found in this mode.</LI>
+<LI>"Report all errors" tells the system to continue checking all possible violations in a pair of geometries,
+even if an error has already been found.
+This is the exhaustive mode and therefore time consuming that will report all violations found.</LI>
+</UL>
+Hierarchical errors appear in the cell explorer (see <A HREF="chap04-05-02.html#chap04-05-02">Section 4-5-2</A>).
+Since there can be many errors involving many different rules, you can control how they appear
+by setting "Report Errors" to:
+<UL>
+<LI>"By Cell" creates a separate error section for each cell.  This is the default.</LI>
+<LI>"By Rule" creates a separate error section for each different design rule.</LI>
+<LI>"Flat" creates a single error section with all errors.</LI>
+</UL>
+<P>
+Users with multiprocessor computers can check "Multi-threaded DRC"
+to speed-up the hierarchical design-rule checking process.
+<P>
+The design-rule checker remembers the date of the last clean check.
+If a cell has not changed since then, it does not need to be rechecked.
+This date information can be stored in the libraries (requiring them to be saved)
+or can be held only in Electric's memory (requiring them to be rechecked if Electric is restarted).
+You can also request that all date information be removed so that a full recheck is done.
+To see which cells have passed DRC,
+use the <B>General Cell Lists...</B> command (in menu <B>Cell / Cell Info</B>)
+A "D" is shown in on the right for cells that are DRC current
+(see <A HREF="chap03-07-01.html#chap03-07-01">Section 3-7-1</A>).
+<P>
+MOS contact nodes automatically increase the number of cuts when they grow larger
+(see <A HREF="chap07-04-01.html#chap07-04-01">Section 7-4-1</A>).
+Because of this,
+very large contact nodes can create excessive work for the design-rule checker as it examines each of the cuts.
+To save time, check the "Ignore center cuts in large contacts" check box,
+which will examine only the cut layers around the edges of contact nodes.
+<P>
+DRC rules for new technologies might require special rules, which can be time consuming.
+To ignore these errors, check "Ignore area checking" (for minimum area rules) and
+"Ignore extension rules" (for special overlap rules).
+<P>
+After DRC is complete, errors are available in the the cell explorer.
+If you wish to see errors while DRC is running, check "Interactive logging",
+and the errors will appear incrementally.
+<P>
+The final DRC control is how minimum area detection is done.
+Setting "MinArea Algorithm" to "Simple" uses an algorithm that is slower.
+Setting "MinArea Algorithm" to "Local" uses an algorithm that is faster but consumes more memory.
+
+<!-- TRAILER -->

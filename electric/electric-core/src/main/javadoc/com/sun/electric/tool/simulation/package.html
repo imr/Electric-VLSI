@@ -1,0 +1,53 @@
+<BODY>
+Package for handling the simulation tool.
+<p>
+
+The {@link com.sun.electric.tool.simulation.Simulation Simulation}
+class is the "tool" which represents all work done with simulation
+data.  An {@link com.sun.electric.tool.simulation.Engine Engine} is
+something which produces simulation data.  All the other classes in
+this package deal with that data.
+<p>
+
+The simulation data seen in a particular waveform window are
+encapsulated by a corresponding instance of {@link
+com.sun.electric.tool.simulation.Stimuli Stimuli}.  An instance of
+{@link com.sun.electric.tool.simulation.Stimuli Stimuli}, in turn,
+consists of one or more {@link
+com.sun.electric.tool.simulation.Analysis Analysis} instances, each of
+which contains one or more {@link
+com.sun.electric.tool.simulation.Signal Signal}s.  A {@link
+com.sun.electric.tool.simulation.Signal Signal} contains one or more
+{@link com.sun.electric.tool.simulation.Waveform Waveform}s, one for
+each {@linkplain com.sun.electric.tool.user.waveform.SweepSignal sweep}.
+<p>
+
+{@link com.sun.electric.tool.simulation.Signal Signal}s are grouped
+into {@link com.sun.electric.tool.simulation.Analysis Analyses}
+according to the kind of signal ({@link
+com.sun.electric.tool.simulation.AnalogSignal AnalogSignal} or {@link
+com.sun.electric.tool.simulation.DigitalSignal DigitalSignal}) and {@linkplain
+com.sun.electric.tool.simulation.Analysis.AnalysisType type} of
+analysis being performed
+({@linkplain com.sun.electric.tool.simulation.Analysis.AnalysisType#ANALYSIS_SIGNALS signal},
+{@linkplain com.sun.electric.tool.simulation.Analysis.AnalysisType#ANALYSIS_AC AC},
+{@linkplain com.sun.electric.tool.simulation.Analysis.AnalysisType#ANALYSIS_DC DC},
+{@linkplain com.sun.electric.tool.simulation.Analysis.AnalysisType#ANALYSIS_TRANS transient},
+or {@linkplain com.sun.electric.tool.simulation.Analysis.AnalysisType#ANALYSIS_MEAS measurement}).
+<p>
+
+@see com.sun.electric.tool.io.input.EpicAnalysis
+@see com.sun.electric.tool.io.input.EpicOutProcess
+@see com.sun.electric.tool.io.input.EpicReaderProcess
+@see com.sun.electric.tool.io.input.HSpiceOut
+@see com.sun.electric.tool.io.input.LTSpiceOut
+@see com.sun.electric.tool.io.input.PSpiceOut
+@see com.sun.electric.tool.io.input.RawSpiceOut
+@see com.sun.electric.tool.io.input.ReadableDump
+@see com.sun.electric.tool.io.input.Simulate
+@see com.sun.electric.tool.io.input.SmartSpiceOut
+@see com.sun.electric.tool.io.input.Spice
+@see com.sun.electric.tool.io.input.SpiceOut
+@see com.sun.electric.tool.io.input.verilog.VerilogOut
+
+</BODY>

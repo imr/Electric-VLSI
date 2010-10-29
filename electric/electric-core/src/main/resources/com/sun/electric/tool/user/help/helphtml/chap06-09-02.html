@@ -1,0 +1,26 @@
+<!-- NEED 2in -->
+
+<!-- HEADER 6-9-2: Naming Networks -->
+
+Network names are derived from export names and arcs that are named in a cell.
+The name given to an export becomes the network name for all arcs connected to that export.
+Similarly, the name given to an arc
+(by setting the name field in the <B>Object Properties...</B> dialog)
+becomes the name of the network for all connected arcs.
+You can rename a network by changing the name of a connected export or arc.
+<P>
+Two phenomena can occur in network naming: a network can be <I>multiply named</I>,
+and it can <I>span disjoint circuitry</I>.
+A network has multiple names when two or more connected arcs or exports are named with different names.
+For example, if you make an export on a contact node and call it "clock",
+then you select an arc connected to that contact node and name it "sig",
+the circuitry will be on the network "clock/sig."
+Thus, both names now apply to the same network.
+<P>
+The other phenomenon of network naming is that a single network can include unconnected parts of the circuit.
+This happens when arcs in unconnected parts of the circuit are given the same name.
+This causes the two arcs to be implicitly joined into one network.
+Because this network naming phenomena is most commonly used in schematics,
+the unification of like-named networks only happens in cells with the "schematic" view.
+
+<!-- TRAILER -->

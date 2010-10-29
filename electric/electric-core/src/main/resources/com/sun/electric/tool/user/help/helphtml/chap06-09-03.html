@@ -1,0 +1,129 @@
+<!-- NEED 3in -->
+
+<!-- HEADER 6-9-3: Bus Naming -->
+
+<!-- COMMAND Edit/Arc/Rip Bus -->
+<!-- COMMAND Edit/Properties/Parameterize Bus Name -->
+<!-- COMMAND Edit/Properties/Edit Bus Parameters... -->
+<!-- PREFERENCE Tools/Network -->
+
+The Bus arc of the Schematics technology is a special arc that can carry multiple signals
+(see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>).
+When giving a network name to Bus arcs, it is possible to specify complex bus names.
+<UL>
+<LI><B>Simple arrays</B> Bus names can be arrays (for example, "A[0:7]" which defines an 8-wide bus).
+The indices can ascend or descend.</LI>
+
+<LI><B>Lists</B> Bus names can be lists (for example,
+"clock,in1,out" which aggregates 3 signals into a 3-wide bus).</LI>
+
+<LI><B>Array index lists and ranges</B> Arrayed bus names can have lists of values (separated by commas)
+or ranges of values (using the colon).
+For example, the bus "b[0],c[3,5],d[1:2],e[8:6]" is an 8-wide bus with signals in this order:
+b[0], c[3], c[5], d[1], d[2], e[8], e[7], e[6].
+</LI>
+
+<LI><B>Multidimensional array indices</B> Arrays can be multiply indexed
+(for example "b[1:2][100,102]" defines a bus with 4 entries: b[1][100], b[1][102], b[2][100], and b[2][102]).
+You can have any number of dimensions in an array.
+Note that the order of signals in a multidimensional array is such that the rightmost index varies the fastest.
+For example, the bus "D[1:2][1:2]" has signals in this order: D[1][1], D[1][2], D[2][1], D[2][2].
+</LI>
+
+<LI><B>Symbolic array indices</B> It is possible to use symbolic indices in bus naming
+(for example, the bus "r[x,y]" defines a 2-wide bus with the signals r[x] and r[y]).
+</LI>
+</UL>
+<P>
+<!-- NEED 4in -->
+When a bus is unnamed, the system determines its width from the ports that it connects.
+Some tools (such as simulation netlisters) need to name everything,
+and so use automatically-generated names.
+When this happens, the system must choose whether to number the bus ascending or descending.
+To resolve this issue,
+use the Network Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab),
+and choose "Ascending" or "Descending".
+(For information about the "Node Extraction" portion of the Network Preferences,
+see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>.)
+<P>
+<CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER>
+<P>
+Individual wires that connect to a bus must be named with names from that bus.
+As an aid in obtaining individual signals from a bus,
+the <B>Rip Bus</B> command (in menu <B>Edit / Arc</B>)
+will automatically create such wires for the selected bus arc.
+<P>
+To find out what signals are on a bus, select that bus and use the <B>Object Properties...</B> command
+(in the <B>Edit / Properties</B> menu).
+In the full dialog (obtained by clicking the "More" button),
+select "List Shows Bus Members" to see a list of networks on the selected bus arc.
+When a node's port is a bus, you can see the signals on that bus by selecting that port of the node and using
+the <B>Object Properties...</B> command.
+In the full dialog, select "Bus Members on Port" to see the signals.
+<P>
+<!-- NEED 4in -->
+<H4>Arrayed Nodes</H4>
+<P>
+Besides using array names on busses, you can also give array names to cell instances in a schematic.
+Netlisters will create multiple copies of that node, named with the individual elements of the array.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-28.png" ALT="Figure 6.28"></CENTER></TD><TD>
+When a cell instance is arrayed, the connections to its ports can be similarly arrayed.
+For example, suppose that schematic cell X has wire port Y and bus port Z[1:2].
+An instance of cell X is arrayed by giving it the name M[2:4].
+Ports Y and Z can be connected in two ways:
+</TD></TR></TABLE>
+<UL>
+<LI>Implicit connection to all instances (top illustration).
+If the wire port Y is connected to a single wire (A), then wire A connects to port Y on all three instances of cell X.
+If the bus port Z is connected to a 2-wide bus (B), then each element of that bus connects to the same element
+of bus port Z on all three instances of cell X.
+So B[1] connects to port Z[1] and B[2] connects to Z[2] on all three instances, M[2], M[3], and M[4].
+</LI>
+<LI>Explicit connection to individual instances (bottom illustration).
+If the wire port Y is connected to a 3-wide bus (C), then each element of the bus connects to port Y on a different
+instance of cell X.
+C[1] connects to Y on M[2]; C[2] connects to Y on M[3]; and C[3] connects to Y on M[4].
+If the bus port Z is connected to a 6-wide bus (D), then it is viewed as 3 pairs of signals, and each pair
+connecting to the two-wide bus Z on a different instance of cell X.
+D[1] and D[2] connect to Z[1] and Z[2] on M[2];
+D[3] and D[4] connect to Z[1] and Z[2] on M[3]; and
+D[5] and D[6] connect to Z[1] and Z[2] on M[4].
+</LI>
+</UL>
+<P>
+Note that it is not possible to array a primitive node from the Schematic technology.
+Instead, you must place that node inside of a cell, and array instances of the cell.
+
+<!-- NEED 4in -->
+<P>
+<H4>Parameterized Bus Names</H4>
+<P>
+<TABLE><TR><TD>
+It is possible to have variable-width busses by parameterizing their names.
+Electric maintains a list of global parameters, and these can be manipulated with the
+<B>Edit Bus Parameters...</B> command (in menu <B>Edit / Properties</B>).
+You can create and delete parameters, and can set values for each.
+</TD><TD><CENTER><IMG SRC="fig06-25.png" ALT="Figure 6.25"></CENTER></TD></TR></TABLE>
+<P>
+To use these parameters, you must add a template to an arc, node, or export name.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-26.png" ALT="Figure 6.26"></CENTER></TD><TD>
+This figure shows an export called "in", and an arc called "internal".
+Both the export name and the arc name were selected, and the command
+<B>Parameterize Bus Name</B> issued (in menu <B>Edit / Properties</B>).
+</TD></TR></TABLE>
+<P>
+The templates are then shown near the original names.
+Arrayed nodes can also have their names parameterized.
+<P>
+You may type any text into the template.
+Wherever the string <CODE>$(par)</CODE> appears, it will be replaced
+with the parameter <CODE>par</CODE>.
+In this example, the parameter <CODE>x</CODE> has the value 7.
+You can also use simple arithmetic operators (just "+", "-", "*", and "/"),
+for example <CODE>in[0:$(x)-1]</CODE> defines a bus that runs from 0 to one minus the value of "x".
+When parameter values change, click the "Update All Templates" button to
+reevaluate all node, arc, and export names.
+
+<!-- TRAILER -->

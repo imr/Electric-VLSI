@@ -1,0 +1,145 @@
+<!-- HEADER 4-3: Creating and Deleting Editing Windows -->
+
+<!-- COMMAND Window/Close Window -->
+<!-- COMMAND Window/Adjust Position/Tile Horizontally -->
+<!-- COMMAND Window/Adjust Position/Tile Vertically -->
+<!-- COMMAND Window/Adjust Position/Cascade -->
+<!-- COMMAND Window/Adjust Position/Move to Other Display -->
+<!-- COMMAND Window/Adjust Position/Remember Location of Display -->
+
+<!-- PREFERENCE Display/Display Control -->
+
+Initially, there is only one editing window on the screen.
+Electric allows you to create multiple editing windows,
+each of which can show a different cell.
+You can also have the same cell in more than one window to see it at different scales and locations.
+<P>
+New windows are created by checking the appropriate checkbox in the <B>New Cell...</B> or <B>Edit Cell...</B>
+commands (in menu <B>Cell</B>).
+New windows can also be created from the cell explorer by using the context menu on a cell name.
+<P>
+All of the windows are listed at the bottom of the <B>Window</B> pulldown menu,
+including the Messages Window.
+To bring a window to the top for editing, select its name from this list.
+To cycle through the different windows, type "q".
+<P>
+To delete a window, click its close box, or use the <B>Close Window</B> command (in menu <B>Window</B>).
+Note that you cannot delete the last window on systems where the pulldown menu is inside of each window,
+because then the pulldown menus would become unavailable.
+<P>
+When there are many editing windows on the display,
+you can arrange them neatly with the <B>Window / Adjust Position</B> commands.
+The <B>Tile Horizontally</B> command adjusts the windows so that they are full-width,
+but just tall enough to fill the screen, one above the other.
+The <B>Tile Vertically</B> command adjusts the windows so that they are full-height,
+but just wide enough to fill the screen, one next to the other.
+The <B>Cascade</B> command adjusts the windows so that they are all the same size and overlap each other uniformly from the upper-left to the lower-right.
+
+<P>
+<H4>Window Frames</H4>
+<P>
+When Electric runs on the Windows operating systems, each editing window lives inside of a larger frame on the display.
+This is called an MDI (Multiple Document Interface) interaction.
+On non-Windows systems (UNIX/Linux, Macintosh, etc.) each editing window is a separate frame on the display.
+This is called an SDI (Single Document Interface) interaction.
+Note that Windows users can request an SDI interaction, and non-Windows users can request MDI interaction.
+This is done with command-line switches (see <A HREF="chap01-03.html#chap01-03">Section 1-3</A>).
+<P>
+When running in SDI mode, there are two extra commands (in menu <B>Windows</B>) for controlling the frames:
+<UL>
+<LI><B>Move to Other Display</B> requests that the current window frame be moved to a different display.
+Some systems (Macintosh) let you drag the frames between displays, but others keep each display distinct, requiring
+this command to make the move.</LI>
+<LI><B>Remember Location of Display</B> requests that the current editing window's frame location be used as the
+initial location when Electric runs again.
+This command can also be used to start the system on a different display.</LI>
+</UL>
+<P>
+<!-- NEED 4in -->
+<H4>Display Considerations</H4>
+<P>
+Electric offers many settings for controlling the display, available in the Display Control Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Display Control" tab).
+<P>
+<CENTER><IMG SRC="fig04-20.png" ALT="Figure 4.20"></CENTER>
+<P>
+The status area at the bottom of the screen shows current selection, cursor coordinates, etc.
+If "Show hierarchical cursor coordinates in status bar" is checked,
+it will also show global coordinates when traversing the hierarchy.
+<P>
+The side bar can be set to always show on the right by checking "Side Bar defaults to the right side".
+See <A HREF="chap01-07.html#chap01-07">Section 1-7</A> for more on the side bar.
+<P>
+When editing "down-in-place", the upper levels of hierarchy are dimmed.
+Some displays find this difficult to do and draw slowly in down-in-place mode.
+This is particularly noticeable on X Window systems that use Xorg and Xinerama.
+To disable the dimming and speed the display,
+uncheck "Dim upper levels of hierarchy when editing Down-In-Place".
+See <A HREF="chap03-05.html#chap03-05">Section 3-5</A> for more on down-in-place editing.
+<P>
+Many commands cause cells to be displayed in a new window.
+If you uncheck "Show cell results in new window", then the cells are shown in the current window instead.
+<P>
+When errors are highlighted, the highlighting pulsates to make the error more visible.
+To disable pulsating highlighting, uncheck "Make error highlighting pulsate".
+<P>
+Another error display control is "Shift window to show errors" which requests that the window pan and zoom
+to focus on the error.
+When this is not checked, errors that are off-screen cause an arrow to briefly display indicating the
+direction of the error.
+<P>
+Many dialogs are "modeless" meaning that they can remain up while other work is done.
+These modeless dialogs can be covered by the editing windows.
+Checking "Keep modeless dialogs on top" forces these dialogs to always remain visible.
+<P>
+The Measurement tool is used to show distances (see <A HREF="chap04-07-04.html#chap04-07-04">Section 4-7-4</A>).
+Checking "Cadence measurement style" requests that it draw rulers similar to Cadence systems.
+<P>
+The "Dock messages window to each edit window" requests that the messages window be
+attached to the edit window, instead being a separate window.
+<P>
+When panning the window using menu commands, the distance to pan can be controlled with the
+"Panning distance" selection (see <A HREF="chap04-04-02.html#chap04-04-02">Section 4-4-2</A> for more on panning).
+<P>
+The "Display style" controls whether Electric uses the MDI (Multiple Document Interface) or the SDI
+(Single Document Interface) style of interaction.
+MDI (used typically on Windows systems) uses a single large window that has all of the editing windows
+inside of it.
+SDI (used typically on Linux and Macintosh systems) creates a window for every editing window in Electric.
+You can leave the default style for your operating system, or you can override that and force a style.
+<!-- NEED 4in -->
+<H4>Display Algorithms</H4>
+<P>
+Electric has three different display algorithms:
+<UL>
+<LI>The "Pixel Display Algorithm" is the older.
+It was the only display algorithm prior to version 8.04 of Electric.</LI>
+<LI>The "Vector Display Algorithm" is newer, and is faster for panning and zooming.
+This algorithm optimizes the display of circuitry by simplifying the display of objects when they get to be very small.
+For example, when zoomed-out very far, a transistor may be only 1 screen pixel in size, and it does not make sense to carefully
+compute and draw all of its parts.
+In such cases, the algorithm "simplifies" display of the object, usually drawing it as a single dot.
+<P>
+Besides simplifying individual nodes and arcs, Electric also simplifies the display of entire cells
+if their contents are all too small to draw.
+Such simplification can consist of rendering the cell with a single "approximating" color,
+or keeping a small image of the cell and using it in the proper place.
+<P>
+There are some controls for the Vector Display Algorithm.
+The first control selects whether cell simplification uses an image of the cell or just an approximating color.
+The next control determines the size at which objects are simplified.
+The default is to "Simplify objects smaller than 3 pixels".
+Making this value smaller will cause more detailed drawing, but take longer.
+The last control determines the threshold for simplifying entire cells.
+Although a cell's contents may be small, the cell may be quite large on the screen, and so should not be simplified
+(this happens to top-level cells in a deep hierarchy).
+The default limit is to "Do not simplify cells greater than 10 percent of the screen".
+Making this number smaller causes more cells to be drawn fully.
+Making this number zero turns off cell simplification.</LI>
+<LI>The "Layer Display Algorithm" is the newest, but still experimental.
+It has controls for the use of pattern displays, and has controls for Alpha blending (used in layer composition).
+When zoomed out below the "Alpha blending overcolor limit", standard alpha blending composition rule is used.
+When zoomed in above this limit, alphablending with overcolor composition rule is used.</LI>
+</UL>
+
+<!-- TRAILER -->

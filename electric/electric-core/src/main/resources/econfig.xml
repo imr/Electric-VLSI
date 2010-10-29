@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<electric:configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:electric="http://www.sun.com/Electric" xsi:schemaLocation="http://www.sun.com/Electric econfig.xsd">
+
+	<electric:injection
+		implementation="com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool"
+		name="com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool"
+		factoryMethod="initialize" />
+
+	<electric:injection implementation="com.sun.electric.scala.LayoutMergerFactoryImpl"
+		name="com.sun.electric.database.geometry.bool.LayoutMergerFactory" />
+
+	<electric:injection implementation="com.sun.electric.plugins.irsim.Analyzer"
+		name="com.sun.electric.tool.simulation.irsim.IAnalyzer" factoryMethod="getInstance" />
+
+</electric:configuration>

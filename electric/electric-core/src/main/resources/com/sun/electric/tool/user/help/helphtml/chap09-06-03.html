@@ -1,0 +1,55 @@
+<!-- HEADER 9-6-3: Mimic Stitching -->
+
+<!-- COMMAND Tools/Routing/Enable Mimic-Stitching -->
+<!-- COMMAND Tools/Routing/Mimic-Stitch Now -->
+<!-- COMMAND Tools/Routing/Mimic Selected -->
+
+One problem with the auto-stitcher is that it may take a different view of the circuit than originally intended.
+In an area where more than two cells meet,
+the auto-stitcher may place many wires in an attempt to connect all touching ports.
+Another problem with the auto-stitcher is that it makes explicit only what is already implicit,
+and so does not always add all necessary wires.
+<P>
+To control the wiring of arrays of cells more directly,
+there is the mimic-stitcher.
+This tool lets the designer place a wire,
+and then it adds other wires between all other similar situations in the circuit.
+Thus, it mimics your actions.
+The router also mimics your wire removals, removing arcs similar to the ones that you delete.
+<P>
+To turn on the mimic-stitcher, use the <B>Enable Mimic-Stitching</B> command
+(in menu <B>Tools / Routing</B>).
+To disable the stitcher, use the command to uncheck it.
+You can also request that the mimic-stitcher run just once
+(mimicking the very last wire that was created or deleted) by using the <B>Mimic-Stitch Now</B> command.
+Finally, you can request that the mimic-stitcher run just once, mimicking the currently selected arc,
+by using the <B>Mimic Selected</B> command.
+<P>
+A set of restrictions applies to the mimic stitcher.
+These restrictions prevent mimicking from happening.
+Use Routing Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Routing" tab)
+to control these exact conditions in which arc creation and deletion will be mimicked.
+<P>
+When "Interactive mimicking" is checked, the mimic stitcher will ignore the restrictions,
+and present all possible mimic situations for your approval.
+These situations will be organized by the restrictions that apply to them,
+in order of increasingly relaxed acceptance criteria.
+<P>
+The "Keep Pins" checkbox requests that deleted arcs keep their pins
+(typically, pins at the ends of deleted arcs are also deleted).
+<P>
+When running noninteractively, these are the restrictions that may be applied:
+<UL>
+<LI>"Ports must match" indicates that the specific ports at the end of the arcs must be the same.</LI>
+<LI>"Bus ports must have same width" applies to schematics: the ports must have the same bus-width.</LI>
+<LI>"Number of existing arcs must match" counts the number of arcs already connected to the other ports
+and ensures that they match.</LI>
+<LI>"Node sizes must match" applies to primitives, and forces their sizes to be equal.</LI>
+<LI>"Node types must match" demands that the mimicked connections be on the same type of node.</LI>
+<LI>"No other arcs in the same direction" prevents arc creation when there are existing arcs
+wired in the same location as the proposed new arcs.</LI>
+<LI>"Ignore if already connected elsewhere" prevents arc creation in situations where the two ports
+are already electrically connected.</LI>
+</UL>
+
+<!-- TRAILER -->

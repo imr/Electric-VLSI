@@ -1,0 +1,344 @@
+<!-- package.html: extra javadoc for async test lib -->
+
+<BODY>
+Chip-independent test software library for the
+Asynchronous Design Group in Sun Labs, see bottom
+for locations of documentation.
+
+Each heading below is a copy of one documentation file that used to be
+in the old <tt>com.sun.electric.tool.simulation.test</tt> CVS repository.  All
+non-documentation files now appear
+in <tt>electric/srcj/com/sun/async/test/</tt>.  The only remaining
+files which do not appear in either of these two places are the
+following files, whose copyright is held by entities other than Sun
+(and therefore we can't distribute them with Electric):
+
+<pre>
+NetUSB.a
+libgpibenet.so
+netesfl.h
+NetUSB.h
+libnetesfl.a
+ugpib.h
+</pre>
+
+Aside from that, this directory contains everything that used to be in
+the <tt>com.sun.electric.tool.simulation.test</tt> repository.
+
+
+<h1>Original Javadoc</h1>
+
+These javadoc files are the most authoritative
+source of information about the library, but
+you will probably want to supplement them with
+the following:
+<BR>
+<UL>
+  <LI> "Big picture" guidance can be
+       found in the following Archivist documents:
+  <UL>
+    <LI><A HREF="http://archivist/index.jsp?id=2004-1091">
+          "The Scan Chain XML File Format"</A></LI>
+    <LI><A HREF="http://archivist/index.jsp?id=2005-0076">"Using the Chip Test Software Library"</A></LI>
+  </UL></LI>
+  <LI><A HREF="../../../../../README.txt">
+        Errata and late-breaking information that haven't made it into
+        the Archivist documents yet.</A></LI>
+  <LI><A HREF="../../../../../FAQ.html">
+        Frequently Asked Questions about the test library.</A></LI>
+  <LI><A HREF="../../../../../manuals">
+        Vendor manuals for some of the experimental equipment we use.
+        </A></LI>
+</UL>
+
+
+<h1>README</h1>
+<pre>
+--------------------------------------------------
+README for the Async group chip test software library.
+by Tom O'Neill
+--------------------------------------------------
+
+Important paths:
+
+/import/async/cad/cvs/test - CVS source tree
+/import/async/cad/test - compiled code
+/import/async/cad/test/doc - compiled javadoc
+
+Documentation in Archivist:
+
+"The Scan Chain XML File Format (Version 2)" by Tom O'Neill, SML #2005-0382.
+
+"Using the Chip Test Software Library (Version 2)" by Tom O'Neill,
+SML #2005-0384.
+
+The documentation for the test software consists of the javadoc and the Archivist documents mentioned above.  This file lists changes that haven't made it into the Archivist documents yet.
+
+
+############### ERRATA FOR "The Scan Chain XML File Format (Version 2)"
+
+(None yet.)
+
+############### ERRATA FOR "Using the Chip Test Software Library (Version 2)"
+
+(None yet.)
+
+</pre>
+
+<H1>Async Test Library FAQ</H1>
+If you cannot find your questions answered herein, there's an
+excellent chance you can find the answer in the documentation in the
+description at the bottom of the
+<span style="text-decoration: underline;"></span><A HREF="doc/index.html">javadoc
+for the test package.</A><BR>
+
+
+
+<DL>
+<DT><STRONG>Why doesn't ChainG open my XML file?</STRONG>
+<DD>Somewhere along the line I broke the "open" menu item in ChainG,
+and it isn't obvious how to fix it.
+Currently you can only browse your XML file if you specify it as
+a parameter on the command line when you run ChainG, e.g.:
+<BLOCKQUOTE><TT>
+% java com.sun.electric.tool.simulation.test.ChainG heater.xml
+</TT></BLOCKQUOTE>
+</DD><BR>
+
+
+<DT><STRONG>What the heck does "001-1-011" mean?</STRONG>
+<DD>This is the <TT>String</TT> representation of a <TT>BitVector</TT>
+containing
+"bits" in the false ("0"), true ("1"), and invalid ("-") states.
+Here invalid means undefined or unknown.
+See the Javadoc for <TT>BitVector</TT> for a full explanation.
+The <TT>inBits</TT> vector for a scan chain cannot contain any
+invalid bits when a shift is performed.
+</DD><BR>
+
+
+<DT><STRONG>What does
+"<EM>chain_name</EM>.shift() error:  expected..." mean?</STRONG>
+<DD>This means the bits scanned out from the scan chain didn't
+equal what the software expected.
+The error could mean that your XML files has the wrong
+<TT>access</TT> or <TT>clears</TT> values for one or more
+scan chain elements, or that your software didn't call
+<TT>ChainControl.processMasterClear()</TT> upon
+changes to the master clear state.
+Otherwise it may mean a hardware error in the shift or in the
+functioning of the scan chain.
+For more details, see the Appendix about this error in
+<A HREF="http://archivist/index.jsp?id=2005-0076">"Using the Chip Test Software Library"</A>.
+</DD><BR>
+
+
+<DT><STRONG>What does "<EM>chain_name</EM>.shift() warning: no bits being compared" mean?</STRONG>
+  <DD>If you haven't set the "access" and "clears" parameters for
+your scan chain elements,
+try that first and see if you still get this warning.
+You can find instructions in
+<A HREF="http://archivist/index.jsp?id=2004-1091">
+          "The Scan Chain XML File Format"</A>.
+It might also be that you're setting "readEnable" to true during a shift
+when you don't need to, see
+<A HREF="http://archivist/index.jsp?id=2005-0076">"Using the Chip Test Software Library"</A>
+for details.
+If these approaches don't help, see the Appendix about this
+warning in
+<A HREF="http://archivist/index.jsp?id=2005-0076">"Using the Chip Test Software Library"</A>.
+</DD><BR>
+
+
+<DT><STRONG>What would be some good FAQ questions?</STRONG>
+  <DD>You tell me! (Really.)</DD>
+<BR>
+</DL>
+-- tom.oneill@sun.com
+
+<h1>changes.txt</h1>
+<pre>
+Proposed changes to test library:
+
+1. Move member gpibControllers from Infrastructure to Equipment, and encapsulate it.
+2. Add a CurrentSource class, which IndirectSet would be an example of.  Current-controlled power supply channels should work there too.
+3. Replace Infrastructure.fatal() with unchecked exceptions so that the caller can choose to recover if it wants to.
+4. Use the same resolution-control model for readCurrent() as for readVoltage() in HP34401A.
+5. Make Agilent34970A look more like HP34401A.  Maybe they could share a parent, with HP34401A having a fake channel?
+6. Use Equipment.readFloat() instead of explicit code whenever possible.
+7. Change floating-point values from type float to type double?
+8. In Pst3202, don't wait 100s after each command.  Instead, delay each command until it is at least 100 ms after the previous.
+9. Optimize shift()?  Right now the JNI calls dominate the time.  If this is still the case when the JTAG controller is on a local net with the host, then there is not much we can do about the shift speed.
+</pre>
+
+<h1>configureXML.bsh</h1>
+<pre>
+/* ConfigureXML.bsh */
+
+/**
+ * Returns a configured ScanChainXML object, with standard
+ * scan chain elements and JTAG controller name defined.  The
+ * user should not need to call addScanChainElement()
+ * or setJtagController() unless it needs to override
+ * one of these settings.  E.g., this method assumes
+ * the JTAG controller has 8 instruction register bits.
+ *
+ * NOTE!!! You need to load your chip into Electric before you 
+ *         run this script
+ *
+ * To use this, your chip-specific bean shell script should
+ * include the following:
+ *
+ * import com.sun.electric.tool.io.output.ScanChainXML;
+ * addClassPath("/home/toneill/eclipse/");
+ * importCommands("/test");
+ * gen = configureXML();
+ *
+ * Your script must then call gen.setChipName(), .addJtagPort(),
+ * .addCellToFlatten(), .setOutput(), and .start() as
+ * appropriate for your chip.
+ */
+
+import com.sun.electric.tool.io.output.ScanChainXML;
+
+configureXML() {
+
+  ScanChainXML gen = new ScanChainXML();
+
+  // Add all the scan chain elements: name, access, clears, 
+  // scan in port name, scan out port name
+  gen.addScanChainElement("scanBB", "RWS", "-", "sin", "sout");
+  gen.addScanChainElement("scanBBbuf", "RWS", "-", "sin", "sout");
+  gen.addScanChainElement("scanBBronly", "R", "-", "sin", "sout");
+  gen.addScanChainElement("scanBS", "RW", "-", "sin", "sout");
+  gen.addScanChainElement("scanCH", "R", "H", "sin", "sout");
+  gen.addScanChainElement("scanCL", "R", "L", "sin", "sout");
+  gen.addScanChainElement("scanCount", "R", "-", "sin", "sout");
+  gen.addScanChainElement("scanDK_fix", "RW", "-", "sin", "sout");
+  gen.addScanChainElement("scanDK_xCouple", "RW", "-", "sin", "sout");
+  gen.addScanChainElement("scanRWH", "RWS", "H", "sin", "sout");
+  gen.addScanChainElement("scanRWL", "RWS", "L", "sin", "sout");
+  gen.addScanChainElement("scanDK", "RWS", "-", "sin", "sout");
+
+  // Add all the pass through elements: these pass scan data through,
+  // like inverters or buffers:  name, in port name, out port name
+  gen.addPassThroughCell("scanAmp1", "in", "out");
+  gen.addPassThroughCell("scanAmp2", "in", "out");
+  gen.addPassThroughCell("jtagBuf", "jtag[1]", "jtag_1[1]");
+  gen.addPassThroughCell("jtagBuf", "jtag_1[8]", "jtag[8]");
+
+  // Define the jtag controller by it's library, cell name,
+  // and the number of instruction register bits
+  gen.setJtagController("jtag", "jtagCentral{sch}", 8);
+
+  return gen;
+}
+</pre>
+
+<h1>Makefile</h1>
+<pre>
+# Makefile
+#
+# Compiles the com.sun.electric.tool.simulation.test package into test.jar.
+#
+# To reduce the file count, libtest.so contains as much of the native code
+# as possible.  The Netscan libraries had to be kept out, though, to
+# prevent conflicts between the various Corelis libraries.  And I couldn't
+# figure out how to roll libgpibenet.so into libtest.so.
+#
+# Thus the following are required to run the software:
+#   test.jar, libtest.so, libgpibenet.so, and
+#   at least one of: libNetscanJNI.so, libNetscan4JNI.so
+#
+## Modified 21 Jul 2008 to compile as 32-bit binaries under 64-bit Linux (replaced Javamake with javac) JKG
+
+#JAVA32BIT = /proj/async/cad/linux/lib/j2sdk_1_4_2_nb/j2sdk1.4.2
+JAVA32BIT = /import/async/cad/linux/lib/jdk1.5/
+JAVADIR = $(JAVA32BIT)
+JAVA = $(JAVADIR)/bin/java
+JAVAC = $(JAVADIR)/bin/javac
+JAVAH = $(JAVADIR)/bin/javah
+JAVADOC = $(JAVADIR)/bin/javadoc
+JAVAR = $(JAVADIR)/bin/jar
+CFLAGS = -m32 -g
+
+
+DOCDIR = ./doc
+
+BASEDIR = com/sun/async/test/
+PACKAGE = com.sun.electric.tool.simulation.test
+WRAP_PREFIX = com_sun_electric_tool_simulation_test
+MAIN = miniHeater
+JARFILE = test.jar
+INP_JARFILES = ./jfreechart.jar:./jcommon.jar
+
+# Files associated with JNI wrappers
+# WRAP_NAME = $(PACKAGE).NetscanJNI $(PACKAGE).NetscanJNI4 $(PACKAGE).GPIB
+#WRAP_CLASS = $(BASEDIR)/NetscanJNI.class \
+#   $(BASEDIR)/NetscanJNI4.class $(BASEDIR)/GPIB.class
+#WRAP_HDR = com_sun_electric_tool_simulation_test_NetscanJNI.h \
+#   com_sun_electric_tool_simulation_test_NetscanJNI4.h com_sun_electric_tool_simulation_test_GPIB.h
+#WRAP_OBJ = NetscanJNI.o NetscanJNI4.o GPIB.o
+
+WRAP = GPIB
+WRAP2 = NetscanJNI
+WRAP3 = Netscan4JNI
+WRAP_OBJ = $(WRAP).o $(WRAP2).o $(WRAP3).o
+
+# Compilation performed by javamake.jar.  Use -C-g to pass the
+# -g debug flag to the compiler.
+JAVAMAKE = $(JAVAC) -g
+
+.PHONY : all javamake run doc clean
+
+all: $(JARFILE) libtest.so lib$(WRAP2).so lib$(WRAP3).so
+
+javamake: 
+	$(JAVAMAKE) -classpath .:$(INP_JARFILES) $(BASEDIR)/*.java
+
+# Generate jar file
+$(JARFILE): javamake
+	echo "Main-Class: com.sun.electric.tool.simulation.test.ChainG" > my_manifest;\
+	$(JAVAR) cmf my_manifest $(JARFILE) $(BASEDIR)/*.class $(BASEDIR)/*.v $(BASEDIR)/*.dtd; \
+	rm -f my_manifest
+
+# Generate wrapper headers (Netscan.h, GPIB.H)
+$(WRAP_PREFIX)_%.h: $(BASEDIR)/%.class
+	$(JAVAH) -jni $(PACKAGE).$*
+
+# Generate wrapper objects (Netscan.o, GPIB.o)
+$(WRAP_OBJ): %.o: %.c $(WRAP_PREFIX)_%.h
+	gcc $(CFLAGS) -I$(JAVADIR)/include/ -I$(JAVADIR)/include/linux/ \
+		-c $<
+
+# Generate libtest.so from as many .o and .a files as possible
+# (currently all .a files have to appear separately)
+libtest.so: $(WRAP).o
+	gcc $(CFLAGS) $(WRAP).o libgpibenet.so -shared -o libtest.so
+
+# Generate the libNetscanJNI.so, the lib for the 1-port JTAG tester
+lib$(WRAP2).so: $(WRAP_PREFIX)_$(WRAP2).h $(WRAP2).o libnetesfl.a
+	gcc $(CFLAGS) $(WRAP2).o libnetesfl.a -shared -o lib$(WRAP2).so
+
+# Generate the libNetscan4JNI.so, the lib for the 4-port JTAG tester
+lib$(WRAP3).so: $(WRAP_PREFIX)_$(WRAP3).h $(WRAP3).o NetUSB.a
+	gcc $(CFLAGS) $(WRAP3).o NetUSB.a -lusb -shared -o lib$(WRAP3).so
+
+run : all
+	echo "NOTE: If you get java.lang.UnsatisfiedLinkError, add '.' to your LD_LIBRARY_PATH.  In csh, do 'setenv LD_LIBRARY_PATH .:$$LD_LIBRARY_PATH'"
+	$(JAVA) $(MAIN)
+
+doc: 
+	rm -rf $(DOCDIR)/*
+	$(JAVADOC) $(BASEDIR)/*.java -d $(DOCDIR)
+
+clean : 
+	rm $(BASEDIR)/*.class libtest.so $(JARFILE) $(WRAP_OBJ) \
+$(WRAP_PREFIX)_$(WRAP).h \
+$(WRAP_PREFIX)_$(WRAP2).h lib$(WRAP2).so \
+$(WRAP_PREFIX)_$(WRAP3).h lib$(WRAP3).so
+</pre>
+
+
+</BODY>
+

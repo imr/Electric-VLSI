@@ -1,0 +1,38 @@
+<!-- NEED 4in -->
+
+<!-- HEADER 9-5-2: ALS -->
+
+<!-- COMMAND Tools/Simulation (Built-in)/ALS: Simulate Current Cell -->
+
+Electric has a built-in gate-level simulator called ALS that can simulate schematics,
+IC layout, or VHDL descriptions.
+The simulator already knows about MOS transistors and some digital logic gates.
+It can be augmented with functional descriptions of any circuit
+using the hardware description language described later in this section.
+<P>
+For an example of ALS simulation, load the "samples" library and simulate the cell "tool-SimulateALS{sch}".
+You can load the samples library with the <B>Load Sample Cells Library</B> command (in menu <B>Help</B>).
+<P>
+To begin simulation of the circuit in the current window,
+use the <B>ALS: Simulate This Cell</B> command (from menu <B>Tools / Simulation (Built-in)</B>).
+After issuing this command, a waveform window will appear to control the simulation
+(see <A HREF="chap04-11.html#chap04-11">Section 4-11</A> for more).
+Since the ALS engine is running inside of Electric,
+you can place stimuli on the circuit and see the results immediately.
+<P>
+ALS is able to handle transistors with varying strength.
+To set a transistor to be weak, use the <B>Weak</B> command
+(in menu <B>Tools / Simulation (Verilog) / Transistor Strength</B>).
+To restore the strength to normal, use the <B>Normal</B> command.
+Note that this must be done before simulation begins.
+<P>
+<H4>Preferences</H4>
+<P>
+The Simulators Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab)
+has some controls that affect ALS simulation.
+The "Multistate display" check tells the simulator to show waveform signals
+with different colors to indicate different strengths.
+Without this, a single color is used everywhere.
+The other general controls at the top are discussed in <A HREF="chap04-11.html#chap04-11">Section 4-11</A>.
+
+<!-- TRAILER -->

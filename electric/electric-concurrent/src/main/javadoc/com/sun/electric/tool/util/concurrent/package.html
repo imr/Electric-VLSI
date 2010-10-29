@@ -1,0 +1,32 @@
+<BODY>
+Package for parallel patterns and concurrent data structures
+<P>
+Through this new "Parallel Infrastructure" new parallel algorithms could be implemented very simple.
+This framework provides simple parallel patterns for task parallel programming:
+
+<UL>
+<LI>1- and 2-dimensional parallel for</LI>
+<LI>parallel reduce based on parallel for</LI>
+<LI>parallel while</LI>
+</UL>
+
+The class <code>Parallel</code> provides for each parallel pattern a simple interface.
+<h3>Example</h3>
+<code>Parallel.For(new BlockedRange1D(0, 10, 1), new PForTask() {</code><br>
+<code>&nbsp;&nbsp;public void execute(BlockedRange range) {</code><br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;for(int i = range.start(); i < range.end(); i++) { System.out.println(i); }</code><br>
+<code>}});</code>
+
+<H3>parallel for</H3>
+The parallel for loops base is <code>PForJob</code>. The body implements a class that extends <code>PForTask</code>. The number 
+of iterations is given by a <code>BlockedRange</code> (1- and 2-dimensional). The <code>BlockedRange</code> has three (1D) or six (2D) 
+parameter. These parameters define a start and a end value of the for loops. The programmer could also define a grain size for each task.
+<H3>parallel reduce</H3>
+The parallel reduce is based on parallel for. The <code>PReduceJob</code> returns with an aggregated result of all tasks. A class 
+which extends the <code>PReduceTask</code> has override the <code>reduce</code> method.
+<H3>parallel while</H3>
+The parallel while iterates while there are elements in the task pool.
+ 
+<P>
+<CENTER><IMG SRC="doc-files/classDiagram.gif"></CENTER>
+</BODY>

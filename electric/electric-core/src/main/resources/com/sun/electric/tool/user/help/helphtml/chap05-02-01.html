@@ -1,0 +1,30 @@
+<!-- HEADER 5-2-1: Rigid and Fixed-Angle Arcs -->
+
+<!-- COMMAND Edit/Cleanup Cell/Show Nonmanhattan -->
+
+<TABLE><TR><TD VALIGN=TOP>
+The first constraint in Electric is the <I>rigid</I> constraint.
+When an arc is made rigid, it cannot change length.
+If a node on either end is moved, the other node and the arc move by the same amount.
+Besides keeping a constant length, rigid arcs attach in a fixed way to their nodes.
+This means that if the node rotates or mirrors, the arc spins about
+so that the overall configuration does not change.
+Without this rigidity constraint, arcs simply stretch and rotate to keep their connectivity.
+<P>
+The second constraint, which is used only if an arc is not rigid,
+is the <I>fixed-angle</I> constraint.
+This constraint forces a wire to remain at a constant angle
+(usually used to keep horizontal and vertical wires in their Manhattan orientations).
+For example, if a vertical fixed-angle arc connects two nodes,
+and the bottom node moves left, then the arc and the top node also move left by the same amount.
+If that bottom node moves down, the arc simply stretches without affecting the other node.
+If the bottom node moves down and to the left, the arc both moves and stretches.
+Rotation of nodes causes no change to fixed-angle arcs unless the arc is connected to an off-center port,
+in which case a slight translation and stretch may occur.
+</TD><TD><CENTER><IMG SRC="fig05-01.png" ALT="Figure 5.1"></CENTER></TD></TR></TABLE>
+<P>
+Most IC layout is done with Manhattan geometry.
+If you suspect that some of your wires have become skewed, use the <B>Show Nonmanhattan</B>
+command (in menu <B>Edit / Cleanup Cell</B>).
+
+<!-- TRAILER -->

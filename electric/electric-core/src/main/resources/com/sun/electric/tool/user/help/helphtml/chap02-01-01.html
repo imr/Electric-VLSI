@@ -1,0 +1,68 @@
+<!-- HEADER 2-1-1: Selecting Nodes and Arcs -->
+
+<!-- COMMAND Edit/Selection/Select Object... -->
+<!-- COMMAND Edit/Selection/Deselect All Arcs -->
+<!-- COMMAND Edit/Selection/Select All Like This -->
+<!-- COMMAND Edit/Selection/Select Next Like This -->
+<!-- COMMAND Edit/Selection/Select Previous Like This -->
+<!-- COMMAND Edit/Selection/Select All -->
+<!-- COMMAND Edit/Selection/Select Nothing -->
+<!-- COMMAND Edit/Modes/Edit/Click/Zoom/Wire -->
+
+Electric is a <I>noun/verb</I> system, meaning that all commands work by first selecting something (the noun)
+and then doing an operation (the verb).
+For this reason, selection is important.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig02-03.png" ALT="Figure 2.3"></CENTER></TD><TD>
+Selection (and movement, wiring, and zooming) are done in "selection" mode, which is the default mode.
+This mode is indicated by having the "selection" icon highlighted in the tool bar.
+</TD></TR></TABLE>
+<P>
+Selection is done with clicks of the
+<I><A HREF="chap01-08.html#chap01-08">left</A></I> button.
+Individual nodes and arcs are selected by clicking over them.
+You can tell in advance what will be selected by the button click, because the next object to be selected
+is shown in blue.
+This advance selection is called "mouse-over highlighting" and can be disabled
+(see <A HREF="chap02-01-04.html#chap02-01-04">Section 2-1-4</A>).
+Once selected, objects are highlighted on the screen.
+If you use the
+<I><A HREF="chap01-08.html#chap01-08">shift-left</A></I> button, unhighlighted nodes
+and arcs are added to the selection, but objects that are already highlighted become deselected.
+<P>
+There are often multiple objects under the cursor (for example, in the area where an arc overlaps a node).
+To get the object you want, hold the control key while clicking.
+The <I><A HREF="chap01-08.html#chap01-08">control-left</A></I> button cycles through all objects under the cursor.
+<P>
+The notion of toggling selection (shift-left) and cycling through what is under the cursor (control-left)
+can be combined.
+If there are multiple objects under the cursor,
+ and you are trying to toggle the selection,
+use the <I><A HREF="chap01-08.html#chap01-08">control-shift-left</A></I> button to cycle through them
+.
+<P>
+<TABLE><TR><TD>
+To select an object by its name, use the <B>Select Object...</B> command (in menu <B>Edit / Selection</B>).
+The resulting dialog lets you select nodes, arcs, exports, or networks in the cell.
+You can also search for objects by name (the search field supports regular expressions).
+<P>
+To select everything in the cell,
+use the <B>Select All</B> command (in menu <B>Edit / Selection</B>).
+To deselect everything, use <B>Select Nothing</B>.
+<P>
+The <B>Deselect All Arcs</B> command deselects all selected arcs.
+This is useful when you wish to select a set of nodes,
+but you have selected the entire area, including nodes and arcs.
+</TD><TD><CENTER><IMG SRC="fig02-14.png" ALT="Figure 2.14"></CENTER></TD></TR></TABLE>
+<P>
+To select everything in the cell that is the same as the currently selected objects,
+use the <B>Select All Like This</B> command (in menu <B>Edit / Selection</B>).
+For example, if a Metal-1 arc is selected, the command will select all Metal-1 arcs in the cell;
+if a P-Transistor is selected, the command will select all P-Transistor nodes in the cell;
+if an export with the "output" characteristic is selected, the command will select all output exports in the cell
+(for more on export characteristics, see <A HREF="chap03-06-01.html#chap03-06-01">Section 3-6-1</A>).
+<P>
+To loop through the objects similar to the selected one, use <B>Select Next Like This</B>
+and <B>Select Previous Like This</B>.
+
+<!-- TRAILER -->

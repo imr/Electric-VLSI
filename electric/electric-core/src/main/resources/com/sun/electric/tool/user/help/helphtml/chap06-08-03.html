@@ -1,0 +1,69 @@
+<!-- NEED 4in -->
+
+<!-- HEADER 6-8-3: Modifying Text -->
+
+<!-- COMMAND Edit/Text/Change Text Size... -->
+
+Like nodes and arcs, text can be moved simply by clicking and dragging.
+Text can be erased by selecting it and using the <B>Selected</B> command of the <B>Edit / Erase</B> menu
+(the Delete key).
+<P>
+<H4>Changing a Single Piece of Text</H4>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-06.png" ALT="Figure 6.6"></CENTER></TD><TD>
+To change text, double-click on it and type a new value.
+To change other aspects of selected text, and use the
+<B>Object Properties...</B> command (in menu <B>Edit / Properties</B>).
+Besides the text at the top of the dialog, these fields can be modified:
+<UL>
+<LI>"Text Size" can be absolute (given in "points") or relative (given in units).</LI>
+<LI>"X/Y offset" is relative to the center of the attached object.</LI>
+<LI>"Rotation" is in 90-degree increments only.</LI>
+<LI>"Anchor" is the point in the text that remains unchanged
+(see <A HREF="chap06-08-02.html#chap06-08-02">Section 6-8-2</A>).</LI>
+<LI>"Font" can be the default font or any font installed on your system.</LI>
+<LI>"Color" can be any color.</LI>
+<LI>"Bold", "Italic", and "Underline" can be set in any combination.</LI>
+</UL>
+</TD></TR></TABLE>
+<P>
+These additional factors can be controlled:
+<UL>
+<LI>"Code" allows the text to be code in an interpretive language,
+in which case, the evaluation of that code is displayed.
+The code choices are:
+<UL>
+<LI>"Not Code" the text is taken as-is.</LI>
+<LI>"Java" the text is handed to a Java interpreter for evaluation.
+For example, the expression "Math.abs(-4*5)" will be converted to "20".</LI>
+<LI>"Spice" the text is handled as a Spice expression.
+Spice allows simple expressions and Electric is able to evaluate them.
+These expressions are not as powerful as Java.
+One advantage of Spice code is that the Spice deck writer can send them unevaluated to the Spice deck.</LI>
+</UL></LI>
+
+<LI>"Units" can be any electrical type (capacitance, resistance, etc.)
+See <A HREF="chap07-02-02.html#chap07-02-02">Section 7-2-2</A> for more on units.</LI>
+<LI>"Show" allows you to show the text value, the name of the piece of text, or both.</LI>
+<LI>"Multi-Line Text" allows the text to have more than one line.
+After checking this box,
+it may be useful to stretch the dialog in order to have a larger field for editing the text.</LI>
+<LI>"Highlight Owner" highlights the node or arc on which the text is attached.</LI>
+<LI>"Invisible outside cell" requests that the text not be drawn when an instance of the cell is examined.</LI>
+</UL>
+<P>
+<H4>Changing Multiple Pieces of Text</H4>
+<P>
+The above dialog changes information on a single piece of text.
+There are two ways to change information on multiple pieces of text:
+(1) select all of the text and use <B>Object Properties...</B> or
+(2) use the <B>Change Text Size...</B> command (in menu <B>Edit / Text</B>).
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig04-14.png" ALT="Figure 4-14"></CENTER></TD><TD>
+The <B>Change Text Size...</B> command
+allows you to change the size, font, and style of any text object.
+Instead of selecting the text, you have a choice of 6 classes of text that can be changed,
+and you can choose whether to make the changes only on selected objects, in the current cell,
+in all cells of a particular view, or everywhere.
+</TD></TR></TABLE>
+
+<!-- TRAILER -->
