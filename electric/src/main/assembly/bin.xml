@@ -15,25 +15,11 @@
       <source>COPYING.txt</source>
     </file>
   </files>
-  <moduleSets>
-    <moduleSet>
-      <includes>
-        <include>com.sun.electric:electric-core</include>
-        <include>com.sun.electric:electric-concurrent</include>
-        <include>com.sun.electric:electric-test</include>
-        <include>com.sun.electric:electric-3d</include>
-	<include>com.sun.electric:electric-merge</include>
-      </includes>
-      <binaries>
-        <includeDependencies>false</includeDependencies>
-        <unpackOptions>
-          <excludes>
-            <exclude>com/sun/electric/tool/simulation/interval/**</exclude>
-          </excludes>
-        </unpackOptions>
+  <dependencySets>
+    <dependencySet>
+        <useProjectArtifact>false</useProjectArtifact>
         <unpack>true</unpack>
-      </binaries>
-    </moduleSet>
-  </moduleSets>
+    </dependencySet>
+  </dependencySets>
 </assembly>
 

@@ -5,7 +5,9 @@ single ".jar" file.  There are two variations on the ".jar" file:
   With source code (called "electric-${project.version}.jar")
   Without source code (called, "electricBinary-${project.version}.jar").
 Both of these files have the binary ".class" files needed to run Electric,
-but the one with source-code is larger because it also has all of the Java code. 
+but the one with source-code is larger because it also has all of the Java code.
+Latest source code can be downloaded from Electric Home Page:
+http://electric.dev.java.net .
 
 ---------------- Requirements:
 
@@ -109,6 +111,21 @@ When rebuilding Electric, there are some Macintosh vs. non-Macintosh issues to c
   to build it, you will need the stub package "AppleJavaExtensions.jar".  The package
   can be downloaded from Apple at
     http://developer.apple.com/samplecode/AppleJavaExtensions/index.html.
+
+---------------- Building from latest Sources:
+
+1) Check that these tools are installed on your computer:
+JDK 1.5 or later
+Subversion
+Apache Maven either version 3.0 or version 2.2.1  http://maven.apache.org
+
+2) svn co https://electric.dev.java.net/svn/electric/trunk/electric
+
+3) cd electric
+
+4) mvn install
+
+5) The result is electric/target/electric-9.0-SNAPSHOT-bin.jar
 
 ---------------- Discussion:
 

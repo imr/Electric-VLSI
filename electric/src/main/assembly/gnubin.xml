@@ -1,0 +1,39 @@
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+  <id>gnubin</id>
+  <formats>
+    <format>jar</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <files>
+    <file>
+      <source>README.txt</source>
+      <filtered>true</filtered>
+    </file>
+    <file>
+      <source>COPYING.txt</source>
+    </file>
+  </files>
+  <moduleSets>
+    <moduleSet>
+      <includes>
+        <include>com.sun.electric:electric-core</include>
+        <include>com.sun.electric:electric-concurrent</include>
+        <include>com.sun.electric:electric-test</include>
+        <include>com.sun.electric:electric-3d</include>
+	<include>com.sun.electric:electric-merge</include>
+      </includes>
+      <binaries>
+        <includeDependencies>false</includeDependencies>
+        <unpackOptions>
+          <excludes>
+            <exclude>com/sun/electric/tool/simulation/interval/**</exclude>
+          </excludes>
+        </unpackOptions>
+        <unpack>true</unpack>
+      </binaries>
+    </moduleSet>
+  </moduleSets>
+</assembly>
+

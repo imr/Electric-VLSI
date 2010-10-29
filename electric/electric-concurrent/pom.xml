@@ -3,9 +3,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
+        <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
-        <artifactId>electric</artifactId>
         <version>9.0-SNAPSHOT</version>
+        <relativePath>../electric-parent/pom.xml</relativePath>
     </parent>
     <artifactId>electric-concurrent</artifactId>
     <name>electric-concurrent</name>

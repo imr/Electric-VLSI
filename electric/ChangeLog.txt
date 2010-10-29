@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+BUG: (10/29/10, DN) New: "ant mac-app" using mvn? (Bug 2948)
+FIX: Reorganize maven projects a little. The parent of all maven projects is electric/electric-parent .
+     Project electric is a container of subprojects and a project to package huge jar.
+     Insert a call of osxappbundle-maven-plugin into pom.xml as a template for Gilda . 
+
 BUG: (10/28/10, FS) econfig.xml information printed not only in debug mode (Bug 2946)
 FIX: removed, because it is not really necessary
 
