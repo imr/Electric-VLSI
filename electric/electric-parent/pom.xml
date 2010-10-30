@@ -227,5 +227,30 @@
                 <!--module>electric-concurrent-java7</module-->
             </modules>
         </profile>
+        <profile>
+            <id>macos</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <envClassifier>mac</envClassifier>
+            </properties>
+            <build>
+                <pluginManagement>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <verbose>true</verbose>
+                            <fork>true</fork>
+                            <maxmem>64m</maxmem>
+                        </configuration>
+                    </plugin>
+                </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
     </profiles>
 </project>
