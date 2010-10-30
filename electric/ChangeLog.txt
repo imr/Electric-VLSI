@@ -4,7 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
-BUG: (10/29/10, DN) New: "ant mac-app" using mvn? (Bug 2948)
+IMP: (10/30/10, DN) One more assembly target "distro" .
+    This is a directory with all jars and unix/windows scripts to launch the main jar.
+    Scripts were derived from maven startup scripts.
+    Distro is invoked by scripts trunk/electric/target/electric-9.0-SNAPSHOT-distro/bin/electric[.bat]
+
+BUG: (10/29/10, DN) "ant mac-app" using mvn? (Bug 2948)
 FIX: Reorganize maven projects a little. The parent of all maven projects is electric/electric-parent .
      Project electric is a container of subprojects and a project to package huge jar.
      Insert a call of osxappbundle-maven-plugin into pom.xml as a template for Gilda . 

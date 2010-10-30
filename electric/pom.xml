@@ -89,9 +89,10 @@
                         <configuration>
                             <finalName>electric-${project.version}</finalName>
                             <descriptors>
+                                <descriptor>src/main/assembly/distro.xml</descriptor>
                                 <descriptor>src/main/assembly/bin.xml</descriptor>
-                                <!--descriptor>src/main/assembly/gnu.xml</descriptor-->
                             </descriptors>
+                            <tarLongFileMode>gnu</tarLongFileMode>
                         </configuration>
                     </execution>
                 </executions>
@@ -157,6 +158,6 @@
                 </plugins>
             </build>
         </profile>
-   </profiles>
+    </profiles>
     
 </project>

@@ -41,7 +41,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
-import com.sun.electric.util.CollectionFactory;
 import com.sun.electric.util.PropertiesUtils;
 import com.sun.electric.util.config.Configuration;
 import com.sun.electric.util.test.TestByReflection;
@@ -172,7 +171,7 @@ public final class Launcher {
     }
 
     private static String[] removeArg(String[] args, String option) {
-        List<String> tmp = CollectionFactory.createArrayList();
+        List<String> tmp = new ArrayList<String>();
         Collections.addAll(tmp, args);
         tmp.remove(option);
         return tmp.toArray(new String[tmp.size()]);
@@ -283,25 +282,25 @@ public final class Launcher {
         ClassLoader launcherLoader = Launcher.class.getClassLoader();
         pluginClassLoader = launcherLoader;
         if (loadDependencies) {
-            
-            URL[] combinedArray = CollectionFactory.arrayMerge(readAdditionalFolder(), readMavenDependencies());
-
-            if (combinedArray != null && combinedArray.length > 0) {
-                for (URL url : combinedArray) {
-                    Object result = callByReflection(launcherLoader, "java.net.URLClassLoader", "addURL",
-                            new Class[] { URL.class }, launcherLoader, new Object[] { url });
-                }
-                // pluginClassLoader = new EClassLoader(pluginJars, appLoader);
-            }
+            initClasspath(readAdditionalFolder(), launcherLoader);
+            initClasspath(readMavenDependencies(), launcherLoader);
+            // pluginClassLoader = new EClassLoader(pluginJars, appLoader);
         }
         if (enableAssertions) {
             launcherLoader.setDefaultAssertionStatus(true);
             pluginClassLoader.setDefaultAssertionStatus(true);
         }
     }
+    
+    private static void initClasspath(URL[] urls, ClassLoader launcherLoader) {
+        for (URL url : urls) {
+            Object result = callByReflection(launcherLoader, "java.net.URLClassLoader", "addURL",
+                    new Class[]{URL.class}, launcherLoader, new Object[]{url});
+        }
+    }
 
     private static URL[] readAdditionalFolder() {
-        List<URL> urls = CollectionFactory.createArrayList();
+        List<URL> urls = new ArrayList<URL>();
 
         File additionalFolder = new File("additional");
         if (additionalFolder.exists() && additionalFolder.isDirectory()) {
