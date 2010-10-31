@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+IMP: (10/30/10, DN) distro is created only when profile -Pdistor is activated .
+   The electric launcher "trunk/electric/electric-core/target/electric-core-SNAPSHOT.jar"
+   loads other components from local maven repository.
+
 IMP: (10/30/10, DN) One more assembly target "distro" .
     This is a directory with all jars and unix/windows scripts to launch the main jar.
     Scripts were derived from maven startup scripts.

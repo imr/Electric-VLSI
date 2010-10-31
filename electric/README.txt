@@ -119,13 +119,57 @@ JDK 1.5 or later
 Subversion
 Apache Maven either version 3.0 or version 2.2.1  http://maven.apache.org
 
-2) svn co https://electric.dev.java.net/svn/electric/trunk/electric
+2) Obtain latest sources by Subversion
 
-3) cd electric
+a) For the first time
+$ cd <work-directory>
+$ svn checkout https://electric.dev.java.net/svn/electric/trunk/electric
+$ cd electric
 
-4) mvn -DskipTests=true install
+b) Next time
+$ cd <work-directory>/electric
+$ svn update
 
-5) The result is electric/target/electric-9.0-SNAPSHOT-bin.jar
+3) Compile sources and install jars with Electric binary components into maven local repository.
+  The default location of maven local repository on unix systems is ~/.m2/repository
+
+$ mvn -DskipTests=true install
+
+4) Run the Electric launcher
+
+$ java -jar <work-directory>/electric/electric-core/target/electric-${project.version}.jar
+
+You might execute Electric with larger heap size if your design is large.
+
+$ java -Xmx1024m -XX:MaxPermSize=128m -jar <work-directory>/electric/electric-core/target/electric-${project.version}.jar
+
+---------------- Building distribution from latest Sources:
+
+The Electric launcher will load Electric components from the maven local repository.
+If you want that other people from your organization can run Electric from your binaries,
+you can prepare Electric distribution for them.
+
+$ mvn -DskipTests=true -Pdistro install
+
+The resulting distribution is generated in three formats:
+
+a) directory
+<work-directory>electric/target/electric-${project.version}-distro/
+   Its subdirectory
+<work-directory>electric/target/electric-${project.version}-distro/bin
+ contains launch scripts
+electric.bar - for Windows systems
+electric     - for Unix systems
+
+Add the Electric "bin" directory to your system PATH 
+or link "electric" to your local bin directory
+or create a shortcut for "electric.bat"
+
+b) tarball with directory 
+<work-directory>electric/target/electric-${project.version}-distro.tar
+
+c) jar archive with all dependencies
+<work-directory>electric/target/electric-${project.version}-bin.jar
 
 ---------------- Discussion:
 

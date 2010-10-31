@@ -5,7 +5,7 @@
     <id>distro</id>
     <formats>
         <format>dir</format>
-        <!--format>tar.gz</format-->
+        <format>tar</format>
     </formats>
     <includeBaseDirectory>false</includeBaseDirectory>
     <files>
