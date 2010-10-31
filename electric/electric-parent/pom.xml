@@ -205,7 +205,7 @@
     <scm>
         <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</connection>
         <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</developerConnection>
-        <!--developerConnection>scm:svn:file:///export/home/dn146861/electric/playRelease/sunlabsMorror/trunk/electric</developerConnection-->
+        <!--developerConnection>scm:svn:file:///export/home/dn146861/electric/playRelease/sunlabsMirror/trunk/electric</developerConnection-->
         <tag>HEAD</tag>
         <!--url>http://127.0.0.1/websvn/my-project</url-->
     </scm>
