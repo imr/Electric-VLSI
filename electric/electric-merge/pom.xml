@@ -3,7 +3,7 @@
     <parent>
         <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
-        <version>9.0-SNAPSHOT</version>
+        <version>9.00-q-SNAPSHOT</version>
         <relativePath>../electric-parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+IMP: (10/31/10, DN) Set project version in maven pom.xml files to 9.00-q-SNAPSHOT .
+
 BUG: (10/31/10, FS) ArrayIndexOutOfBoundsException in Parallel Infrastructure (Bug #2945)
 FIX: Fix parallel for work distribution
 

@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.sun.electric</groupId>
     <artifactId>electric-parent</artifactId>
-    <version>9.0-SNAPSHOT</version>
+    <version>9.00-q-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -119,6 +119,11 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>2.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>2.2</version>
                     <configuration>
@@ -203,11 +208,10 @@
         </contributor-->
     </contributors>
     <scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</developerConnection>
-        <!--developerConnection>scm:svn:file:///export/home/dn146861/electric/playRelease/sunlabsMirror/trunk/electric</developerConnection-->
-        <tag>HEAD</tag>
-        <!--url>http://127.0.0.1/websvn/my-project</url-->
+        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk</connection>
+        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk</developerConnection>
+        <!--developerConnection>scm:svn:file:///export/home/dn146861/electric/playRelease/sunlabsMirror/trunk</developerConnection-->
+        <url>https://electric.dev.java.net/source/browse/electric/trunk/electric</url>
     </scm>
     <distributionManagement>
         <repository>
