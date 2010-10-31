@@ -124,7 +124,7 @@ public class PForJob extends PJob {
 		public void execute() {
 			int threadNum = job.getThreadPool().getPoolSize();
 			for (int i = 0; i < threadNum; i++) {
-				job.add(new SplitterTask(job, range, task, i, threadNum), i);
+				job.add(new SplitterTask(job, range, task, i, threadNum));
 			}
 		}
 	}
