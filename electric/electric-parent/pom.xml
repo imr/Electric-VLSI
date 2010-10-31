@@ -68,19 +68,10 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <!--modules>
-        <module>electric-concurrent</module>
-        <module>electric-core</module>
-        <module>electric-3d</module>
-        <module>electric-irsim</module>
-        <module>electric-jmf</module>
-        <module>electric-merge</module>
-        <module>electric-test</module>
-    </modules-->
     <repositories>
         <repository>
-	    <id>java.net2</id>
-	    <name>java.net repository</name>
+	    <id>maven2-repository.dev.java.net</id>
+	    <name>Java.net Repository for Maven</name>
 	    <url>http://download.java.net/maven/2/</url>
             <releases>
                 <checksumPolicy>fail</checksumPolicy>
@@ -118,6 +109,11 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-eclipse-plugin</artifactId>
+                    <version>2.8</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-scm-plugin</artifactId>
                     <version>1.4</version>
                 </plugin>
@@ -134,24 +130,29 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.1</version>
+                    <configuration>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>    
+                        <tagBase>https://svn.sunlabs.com/svn/electric/tags</tagBase>
+                        <!--tagBase>file:///export/home/dn146861/electric/playRelease/sunlabsMirror/tags</tagBase-->
+                    </configuration>
+                </plugin>
+                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>osxappbundle-maven-plugin</artifactId>
                     <version>1.0-alpha-2</version>
                 </plugin>
             </plugins>
         </pluginManagement>
-        <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <finalName>electric-${project.version}</finalName>
-                    <descriptors>
-                        <descriptor>src/main/assembly/bin.xml</descriptor>
-                        <descriptor>src/main/assembly/gnu.xml</descriptor>
-                    </descriptors>
-                </configuration>
-            </plugin>
-        </plugins>
+        <extensions>
+            <extension>
+                <groupId>org.jvnet.wagon-svn</groupId>
+                <artifactId>wagon-svn</artifactId>
+                <version>1.9</version>
+            </extension>
+        </extensions>
     </build>
     
     <!-- More Project Information -->
@@ -202,12 +203,19 @@
         </contributor-->
     </contributors>
     <scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/branches/mavenPublic</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/branches/mavenPublic</developerConnection>
+        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</connection>
+        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</developerConnection>
+        <!--developerConnection>scm:svn:file:///export/home/dn146861/electric/playRelease/sunlabsMorror/trunk/electric</developerConnection-->
         <tag>HEAD</tag>
         <!--url>http://127.0.0.1/websvn/my-project</url-->
     </scm>
-    
+    <distributionManagement>
+        <repository>
+            <id>java.net-m2-repository</id>
+            <url>java-net:/maven2-repository/trunk/repository/</url>
+        </repository>
+    </distributionManagement>
+
     <profiles>
         <profile>
             <id>jdk16</id>
