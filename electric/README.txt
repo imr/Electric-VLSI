@@ -119,6 +119,9 @@ JDK 1.5 or later
 Subversion
 Apache Maven either version 3.0 or version 2.2.1  http://maven.apache.org
 
+The following variable should be defined in environment
+JAVA_PATH  -  path to JDK root directory
+
 2) Obtain latest sources by Subversion
 
 a) For the first time
@@ -154,9 +157,9 @@ $ mvn -DskipTests=true -Pdistro install
 The resulting distribution is generated in three formats:
 
 a) directory
-<work-directory>electric/target/electric-${project.version}-distro/
+<work-directory>/electric/target/electric-${project.version}-distro/
    Its subdirectory
-<work-directory>electric/target/electric-${project.version}-distro/bin
+<work-directory>/electric/target/electric-${project.version}-distro/bin
  contains launch scripts
 electric.bar - for Windows systems
 electric     - for Unix systems
@@ -166,10 +169,16 @@ or link "electric" to your local bin directory
 or create a shortcut for "electric.bat"
 
 b) tarball with directory 
-<work-directory>electric/target/electric-${project.version}-distro.tar
+<work-directory>/electric/target/electric-${project.version}-distro.tar
 
 c) jar archive with all dependencies
-<work-directory>electric/target/electric-${project.version}-bin.jar
+<work-directory>/electric/target/electric-${project.version}-bin.jar
+
+---------------- Build Electric from NetBeans IDE
+
+The devoleper release of NetBeans IDE 7.0 M2 already knows about Maven. 
+In earlier releases it is necessary to install Maven NetBeans plugin "Tools|Plugins".
+Then open the Maven project <work-directory>/electric in NetBeans.
 
 ---------------- Discussion:
 
