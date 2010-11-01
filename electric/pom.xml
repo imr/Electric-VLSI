@@ -12,6 +12,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.sun.electric</groupId>
     <artifactId>electric</artifactId>
+    <name>electric</name>
     <packaging>pom</packaging>
     <modules>
         <module>electric-parent</module>
