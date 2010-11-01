@@ -176,9 +176,9 @@ c) jar archive with all dependencies
 
 ---------------- Build Electric from NetBeans IDE
 
-The devoleper release of NetBeans IDE 7.0 M2 already knows about Maven. 
-In earlier releases it is necessary to install Maven NetBeans plugin "Tools|Plugins".
-Then open the Maven project <work-directory>/electric in NetBeans.
+Start NetBeans 6.9 or later. Open Maven project from <work-directory>/electric in NetBeans.
+It will show a small yellow exclaimation mark in "Projects" tab.
+Click right mouse button on the "electric" node in "Projects" tab and choose Clean And Build .
 
 ---------------- Discussion:
 
