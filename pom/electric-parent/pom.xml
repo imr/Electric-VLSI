@@ -23,11 +23,11 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.sun.electric</groupId>
     <artifactId>electric-parent</artifactId>
-    <version>1</version>
+    <version>2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -109,9 +109,9 @@
 
 
     <scm>
-        <connection>scm:svn:https://electric.dev.java.net/svn/electric/tags/electric-parent-1</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/tags/electric-parent-1</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/tags/electric-parent-1</url>
+        <connection>scm:svn:https://electric.dev.java.net/svn/electric/trunk/pom/electric-parent</connection>
+        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/pom/electric-parent</developerConnection>
+        <url>https://electric.dev.java.net/source/browse/electric/trunk/pom/electric-parent</url>
     </scm>
     
     <!-- Uploading to java.net maven2 repository -->
