@@ -157,9 +157,9 @@ $ mvn -DskipTests=true -Pdistro install
 The resulting distribution is generated in three formats:
 
 a) directory
-<work-directory>/electric/target/electric-${project.version}-distro/
+<work-directory>/electric/electric-distribution/target/electric-${project.version}-distro/
    Its subdirectory
-<work-directory>/electric/target/electric-${project.version}-distro/bin
+<work-directory>/electric/electric-distribution/target/electric-${project.version}-distro/bin
  contains launch scripts
 electric.bar - for Windows systems
 electric     - for Unix systems
@@ -169,16 +169,23 @@ or link "electric" to your local bin directory
 or create a shortcut for "electric.bat"
 
 b) tarball with directory 
-<work-directory>/electric/target/electric-${project.version}-distro.tar
+<work-directory>/electric/electric-distribution/target/electric-${project.version}-distro.tar
 
 c) jar archive with all dependencies
-<work-directory>/electric/target/electric-${project.version}-bin.jar
+<work-directory>/electric/electric-distribution/target/electric-${project.version}-bin.jar
 
 ---------------- Build Electric from NetBeans IDE
 
-Start NetBeans 6.9 or later. Open Maven project from <work-directory>/electric in NetBeans.
-It will show a small yellow exclaimation mark in "Projects" tab.
-Click right mouse button on the "electric" node in "Projects" tab and choose Clean And Build .
+1) Start NetBeans 6.7.1 or later.
+2) Click File|Open and choos <work-directory>/electric.
+  NetBeans will show in Projects tab a node with maven project "electric"
+3) Click on the "electric" with right mouse button and choose "Clean And Build" .
+  NetBeans will build electric and will run JUnit tests.
+3) Expand "electric" node.
+4) Expand "electric|Modules" node.
+5) Click on "electric|Modules|electric-core" node.
+  An "electric-core" project is opened.
+6) Right-click on "electric-core" node and choose "Run" or "Debug".
 
 ---------------- Discussion:
 

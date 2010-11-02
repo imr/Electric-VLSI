@@ -10,11 +10,11 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <files>
         <file>
-            <source>README.txt</source>
+            <source>../README.txt</source>
             <filtered>true</filtered>
         </file>
         <file>
-            <source>COPYING.txt</source>
+            <source>../COPYING.txt</source>
         </file>
         <file>
             <source>src/bin/electric</source>

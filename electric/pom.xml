@@ -1,137 +1,374 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: pom.xml
+ * electric aggregator
+ *
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
     <parent>
         <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
         <version>9.00-q-SNAPSHOT</version>
         <relativePath>electric-parent/pom.xml</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.sun.electric</groupId>
+    
     <artifactId>electric</artifactId>
-    <name>electric</name>
+    <version>9.00-q-SNAPSHOT</version>
     <packaging>pom</packaging>
+
+    <groupId>com.sun.electric</groupId>
+    <name>electric</name>
+    <description>
+        Electric is an integrated-circuit design system that offers IC layout,
+        schematic editing, and even textual hardware-description languages.
+        It offers a wide range of synthesis and analysis tools for working on the circuitry.
+        It has many importers and exporters for interfacing
+        to other EDA (Electronic Design Automation) systems.
+        It even has a constraint system for managing chip layout.
+        For more information about Electric, see www.staticfreesoft.com
+    </description>
+    <url>http://electric.dev.java.net</url>
+    <inceptionYear>1982</inceptionYear>
+
+    <properties>
+        <junitVersion>4.8.1</junitVersion>
+        <appleJavaExtensionsVersion>1.4</appleJavaExtensionsVersion>
+        <jmfVersion>2.1.1e</jmfVersion>
+        <java3dVersion>1.3.1</java3dVersion>
+        <beanshellVersion>2.0b4</beanshellVersion>
+        <jythonVersion>2.5.0</jythonVersion>
+        <scala.version>2.8.0</scala.version>
+        <specsVersion>1.6.5</specsVersion>
+    </properties>
+
+    <mailingLists>
+        <mailingList>
+            <name>Electric Developer List</name>
+            <post>dev@electric.dev.java.net</post>
+            <!--subscribe>dev-subscribe@electric.dev.java.net</subscribe-->
+            <!--unsubscribe>dev-unsubscribe@electric.dev.java.net</unsubscribe-->
+            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=dev</archive>
+            <!--otherArchives>
+                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=dev</otherArchive>
+            </otherArchives-->
+        </mailingList>
+        <mailingList>
+            <name>Electric User List</name>
+            <post>users@electric.dev.java.net</post>
+            <!--subscribe>users-subscribe@electric.dev.java.net</subscribe-->
+            <!--unsubscribe>users-unsubscribe@electric.dev.java.net</unsubscribe-->
+            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=users</archive>
+            <!--otherArchives>
+                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=users</otherArchive>
+            </otherArchives-->
+        </mailingList>
+        <mailingList>
+            <name>Electric Issues List</name>
+            <post>issues@electric.dev.java.net</post>
+            <!--subscribe>issues-subscribe@electric.dev.java.net</subscribe-->
+            <!--unsubscribe>issues-unsubscribe@electric.dev.java.net</unsubscribe-->
+            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=issues</archive>
+            <!--otherArchives>
+                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=issues</otherArchive>
+            </otherArchives-->
+        </mailingList>
+        <mailingList>
+            <name>Electric Commits List</name>
+            <post>commits@electric.dev.java.net</post>
+            <!--subscribe>commits-subscribe@electric.dev.java.net</subscribe-->
+            <!--unsubscribe>commits-unsubscribe@electric.dev.java.net</unsubscribe-->
+            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=commits</archive>
+            <!--otherArchives>
+                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=commits</otherArchive>
+            </otherArchives-->
+        </mailingList>
+        <!--
+            duplication from parent pom - temporary until they inherit
+            properly
+        -->
+        <mailingList>
+            <name>Electric Announcements List</name>
+            <post>announce@electric.dev.java.net</post>
+            <!--subscribe>announce-subscribe@electric.dev.java.net</subscribe-->
+            <!--unsubscribe>announce-unsubscribe@electric.dev.java.net</unsubscribe-->
+            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=announce</archive>
+            <!--otherArchives>
+                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=announce</otherArchive>
+            </otherArchives-->
+        </mailingList>
+    </mailingLists>
+
     <modules>
         <module>electric-parent</module>
         <module>electric-concurrent</module>
         <module>electric-test</module>
         <module>electric-core</module>
         <module>electric-3d</module>
+        <module>electric-merge</module>
         <module>electric-irsim</module>
         <module>electric-jmf</module>
-        <module>electric-merge</module>
+        <module>electric-distribution</module>
     </modules>
     
+    <scm>
+        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</connection>
+        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</developerConnection>
+        <url>https://electric.dev.java.net/source/browse/electric/trunk/electric</url>
+    </scm>
+    <issueManagement>
+        <system>bugzilla</system>
+        <url>http://bugs.sunlabs.com</url>
+    </issueManagement>
+    <distributionManagement>
+        <repository>
+            <id>java.net-m2-repository</id>
+            <url>java-net:/maven2-repository/trunk/repository/</url>
+        </repository>
+    </distributionManagement>
+
+    <dependencyManagement>
+        <dependencies>
+            <!--  Electric Modules -->
+            <dependency>
+                <groupId>com.sun.electric</groupId>
+                <artifactId>electric-concurrent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.electric</groupId>
+                <artifactId>electric-test</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.electric</groupId>
+                <artifactId>electric-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.electric</groupId>
+                <artifactId>electric-3d</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.electric</groupId>
+                <artifactId>electric-merge</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.electric</groupId>
+                <artifactId>electric-irsim</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.electric</groupId>
+                <artifactId>electric-jmf</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!--  Compilation Stubs -->
+            <dependency>
+                <groupId>com.apple</groupId>
+                <artifactId>AppleJavaExtensions</artifactId>
+                <version>${appleJavaExtensionsVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>javax.media</groupId>
+                <artifactId>jmf</artifactId>
+                <version>${jmfVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                    <!--
+                      This is an old version of java3d library that was found in public maven repositories.
+                      It is enough for compilation, but this may be too slow.
+                      User should install the latest version of java3d library if he wants to faster Electric 3D graphic.
+                    -->
+                <groupId>java3d</groupId>
+                <artifactId>j3d-core-utils</artifactId>
+                <version>${java3dVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <!--  Language Interpreters -->
+            <dependency>
+                <groupId>org.beanshell</groupId>
+                <artifactId>bsh</artifactId>
+                <version>${beanshellVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.python</groupId>
+                <artifactId>jython</artifactId>
+                <version>${jythonVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-tools.testing</groupId>
+                <artifactId>specs_${scala.version}</artifactId>
+                <version>${specsVersion}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-concurrent</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-test</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-3d</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-merge</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-irsim</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-jmf</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.beanshell</groupId>
-            <artifactId>bsh</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.python</groupId>
-            <artifactId>jython</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junitVersion}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.3.2</version>
+                    <configuration>
+                        <source>1.5</source>
+                        <target>1.5</target>
+                        <showDeprecation>true</showDeprecation>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.scala-tools</groupId>
+                    <artifactId>maven-scala-plugin</artifactId>
+                    <version>2.14.1</version>
+                    <configuration>
+                        <scalaVersion>${scala.version}</scalaVersion>
+                        <args>
+                            <arg>-target:jvm-1.5</arg>
+                        </args>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-eclipse-plugin</artifactId>
+                    <version>2.8</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-scm-plugin</artifactId>
+                    <version>1.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>2.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>2.2</version>
+                    <configuration>
+                        <archive>
+                            <manifest>
+                                <mainClass>com.sun.electric.Launcher</mainClass>
+                            </manifest>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.1</version>
+                    <configuration>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <tagBase>https://svn.sunlabs.com/svn/electric/tags</tagBase>
+                        <!--tagBase>file:///export/home/dn146861/electric/playRelease/sunlabsMirror/tags</tagBase-->
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>osxappbundle-maven-plugin</artifactId>
+                    <version>1.0-alpha-2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>animal-sniffer-maven-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <signature>
+                        <groupId>org.codehaus.mojo.signature</groupId>
+                        <artifactId>java15</artifactId>
+                        <version>1.0</version>
+                    </signature>
+                </configuration>
+                <executions>
+                    <!--execution>
+                        <id>check-java-1.5-compat</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution-->
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
-            <id>distro</id>
-            <build>
+            <id>reporting</id>
+            <reporting>
                 <plugins>
                     <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>bin</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <configuration>
-                                    <finalName>electric-${project.version}</finalName>
-                                    <descriptors>
-                                        <descriptor>src/main/assembly/distro.xml</descriptor>
-                                        <descriptor>src/main/assembly/bin.xml</descriptor>
-                                    </descriptors>
-                                    <tarLongFileMode>gnu</tarLongFileMode>
-                                </configuration>
-                            </execution>
-                        </executions>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.7</version>
                     </plugin>
                 </plugins>
-            </build>
+            </reporting>
         </profile>
-        
         <profile>
-            <id>gnu</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>gnu</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <configuration>
-                                    <finalName>electric-${project.version}</finalName>
-                                    <descriptors>
-                                        <descriptor>src/main/assembly/gnu.xml</descriptor>
-                                        <descriptor>src/main/assembly/gnubin.xml</descriptor>
-                                    </descriptors>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
+            <id>jdk16</id>
+            <activation>
+                <jdk>[1.6,)</jdk>
+            </activation>
+            <modules>
+                <!--module>electric-scripts</module-->
+            </modules>
         </profile>
-
+        <profile>
+            <id>jdk17</id>
+            <activation>
+                <jdk>[1.7,)</jdk>
+            </activation>
+            <modules>
+                <!--module>electric-concurrent-java7</module-->
+            </modules>
+        </profile>
         <profile>
             <id>macos</id>
             <activation>
@@ -143,25 +380,20 @@
                 <envClassifier>mac</envClassifier>
             </properties>
             <build>
+                <pluginManagement>
                 <plugins>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>osxappbundle-maven-plugin</artifactId>
+                        <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
-                            <mainClass>com.sun.electric.Launcher</mainClass>
+                            <verbose>true</verbose>
+                            <fork>true</fork>
+                            <maxmem>64m</maxmem>
                         </configuration>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>bundle</goal>
-                                </goals>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
+                </pluginManagement>
             </build>
         </profile>
     </profiles>
-    
+
 </project>
