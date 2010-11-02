@@ -30,7 +30,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.sun.electric</groupId>
     <artifactId>electric-parent</artifactId>
-    <version>9.00-q-SNAPSHOT</version>
+    <version>1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -111,6 +111,13 @@
     </contributors>
 
 
+    <scm>
+        <connection>scm:svn:https://electric.dev.java.net/svn/electric/trunk/pom/electric-parent</connection>
+        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/pom/electric-parent</developerConnection>
+        <url>https://electric.dev.java.net/source/browse/electric/trunk/pom/electric-parent</url>
+    </scm>
+    
+    <!-- Uploading to java.net maven2 repository -->
     <build>
         <extensions>
             <extension>
@@ -120,12 +127,6 @@
             </extension>
         </extensions>
     </build>
-
-    <!--scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/trunk/electric</url>
-    </scm-->
     <distributionManagement>
         <repository>
             <id>java.net-m2-repository</id>
