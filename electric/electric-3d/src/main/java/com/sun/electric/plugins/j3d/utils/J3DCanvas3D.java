@@ -28,7 +28,9 @@ package com.sun.electric.plugins.j3d.utils;
 //import com.sun.image.codec.jpeg.JPEGEncodeParam;
 //import com.sun.image.codec.jpeg.JPEGCodec;
 //import com.sun.image.codec.jpeg.JPEGImageEncoder;
+import com.sun.electric.api.movie.MovieCreator;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.util.config.Configuration;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -69,24 +71,32 @@ public class J3DCanvas3D extends Canvas3D  {
         }
     }
 
-    List<String> inputFiles = new ArrayList<String>();
-    public void saveMovie(String filename)
+    List<File> inputFiles = new ArrayList<File>();
+    public void saveMovie(File file)
     {
-        Class movieClass = Resources.getJMFClass("JMFImageToMovie");
-        if (movieClass == null)
+        MovieCreator movieCreator = Configuration.lookup(MovieCreator.class);
+        if (movieCreator == null)
         {
-            System.out.println("JMF plugin not available");
+            System.out.println("Movie Creator plugin not available");
             return;
         }
-        try {
-            Dimension dim = getSize();
-            Method createJMFMethod = movieClass.getDeclaredMethod("createMovie", new Class[] {String.class,
-                                                                                              Dimension.class, List.class});
-            createJMFMethod.invoke(movieClass, new Object[] {filename, dim, inputFiles});
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        movieCreator.createFromImages(file, getSize(), inputFiles);
+//       
+//        Class movieClass = Resources.getJMFClass("JMFImageToMovie");
+//        if (movieClass == null)
+//        {
+//            System.out.println("JMF plugin not available");
+//            return;
+//        }
+//        try {
+//            Dimension dim = getSize();
+//            Method createJMFMethod = movieClass.getDeclaredMethod("createMovie", new Class[] {String.class,
+//                                                                                              Dimension.class, List.class});
+//            createJMFMethod.invoke(movieClass, new Object[] {filename, dim, inputFiles});
+//        } catch (Exception e)
+//        {
+//            e.printStackTrace();
+//        }
     }
 
     public void resetMoveFrames()
@@ -123,7 +133,7 @@ public class J3DCanvas3D extends Canvas3D  {
             {
                 try
                 {
-                    String capture = "Capture" + count + ".jpg";
+                    File capture = new File("Capture" + count + ".jpg");
                     inputFiles.add(capture);
                     FileOutputStream out = new FileOutputStream(capture);
 

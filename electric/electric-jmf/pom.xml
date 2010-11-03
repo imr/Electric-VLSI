@@ -53,5 +53,10 @@
             <groupId>javax.media</groupId>
             <artifactId>jmf</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>electric-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

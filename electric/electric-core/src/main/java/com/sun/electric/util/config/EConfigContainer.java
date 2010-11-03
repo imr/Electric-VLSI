@@ -72,8 +72,8 @@ public class EConfigContainer extends Configuration {
         if (entry != null) {
             try {
                 result = entry.getInstance();
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Throwable e) {
+//                e.printStackTrace();
             }
         }
         return result;

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.help;
 
 import com.sun.electric.Main;
+import com.sun.electric.api.movie.MovieCreator;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
@@ -38,10 +39,10 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.EMenuItem;
-import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.config.Configuration;
 
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -343,6 +344,12 @@ public class ManualViewer extends EModelessDialog
         {
             // Checking first if j3d is installed
             return Resources.get3DClass("utils.J3DUtils") != null;
+        }
+
+        public static boolean isMovieCreatorAvailable()
+        {
+            // Checking first if Movie is installed
+            return Configuration.lookup(MovieCreator.class) != null;
         }
 
 

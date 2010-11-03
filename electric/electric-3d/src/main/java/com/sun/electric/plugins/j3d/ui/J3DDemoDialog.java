@@ -243,7 +243,7 @@ public class J3DDemoDialog extends EDialog
 
     private void movieActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_movieActionPerformed
         String fileName = OpenFile.chooseOutputFile(FileType.MOV, "Save 3D Movie", "demo.mov");
-        view3D.saveMovie(fileName);
+        view3D.saveMovie(new File(fileName));
     }//GEN-LAST:event_movieActionPerformed
 
     private void saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveActionPerformed

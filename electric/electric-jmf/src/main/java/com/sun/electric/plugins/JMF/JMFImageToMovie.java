@@ -50,7 +50,7 @@ import javax.media.format.VideoFormat;
  * Original class was taken from java.sun.com, JMF 2.1.1 Solutions web page (code sample)
  * "Generating a Movie File from a List of (JPEG) Images"
  */
-public class JMFImageToMovie implements ControllerListener, DataSinkListener
+class JMFImageToMovie implements ControllerListener, DataSinkListener
 {
     MediaLocator outML;
 

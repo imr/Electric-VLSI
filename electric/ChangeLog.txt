@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+IMP: (11/3/10, DN) Add com.sun.electric.api.movie.MovieCreator API .
+  Wrap JMFImageToMovie in com.sun.electric.plugin.JMF.MovieCreatorJMF .
+
 IMP: (11/2/10, DN) Create release of com.sun.electric:electric-parent:1 .
     Tag it in "https://svn.sunlabs.com/svn/electric/tags/electric-parent-1 .
     Upload this pom artifact to java.net repository .

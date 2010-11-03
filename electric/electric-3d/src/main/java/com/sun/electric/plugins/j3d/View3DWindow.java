@@ -87,6 +87,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.awt.print.PageFormat;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -1773,10 +1774,10 @@ public class View3DWindow extends JPanel
         return(new J3DUtils.ThreeDDemoKnot(1, new Vector3f(tmpVec), rot, shape));
     }
 
-    public void saveMovie(String filename)
+    public void saveMovie(File file)
     {
-        if (filename != null)
-            canvas.saveMovie(filename);
+        if (file != null)
+            canvas.saveMovie(file);
     }
 
     private static class J3DRotPosScaleTCBSplinePathInterpolator extends com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator

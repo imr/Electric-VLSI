@@ -23,6 +23,7 @@
  */
 package com.sun.electric.util.config;
 
+import com.sun.electric.api.movie.MovieCreator;
 import java.util.logging.Level;
 
 import com.sun.electric.database.geometry.bool.LayoutMergerFactory;
@@ -68,6 +69,16 @@ public abstract class InitStrategy {
                         Class.forName("com.sun.electric.plugins.irsim.Analyzer"), "getInstance", false));
             } catch (ClassNotFoundException e) {
                 Configuration.logger.log(Level.INFO, "Didn't find IRSIM plugin");
+            }
+
+            // JMF plugin
+            try {
+                config.addConfigEntry(
+                        MovieCreator.class.getName(),
+                        ConfigEntry.createForConstructor(
+                                Class.forName("com.sun.electric.plugins.JMF.MovieCreatorJMF"), false));
+            } catch (ClassNotFoundException e) {
+                Configuration.logger.log(Level.INFO, "Didn't find JMF plugin");
             }
 
         }

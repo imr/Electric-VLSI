@@ -64,8 +64,8 @@ public class HelpMenu {
             ManualViewer.isJava3DAvailable() ? new EMenu("_3D Showcase",
                 new EMenuItem("_Load Library") { public void run() {
                     loadSamplesLibrary("floatingGates", "topCell"); }},
-                new EMenuItem("_3D View of Cage Cell") { public void run() {
-                    ManualViewer.open3DSample("floatingGates" ,"topCell", "3D ShowCase"); }},
+                ManualViewer.isMovieCreatorAvailable() ? new EMenuItem("_3D View of Cage Cell") { public void run() {
+                    ManualViewer.open3DSample("floatingGates" ,"topCell", "3D ShowCase"); }} : null,
                 new EMenuItem("_Animate Cage Cell") { public void run() {
                     ManualViewer.animate3DSample("demoCage.j3d"); }}) : null,
 

@@ -37,8 +37,6 @@ public class Resources {
 
 	// Location of valid 3D plugin
 	private static final String plugin3D = "com.sun.electric.plugins.j3d";
-    private static final String pluginJ3D = "com.sun.electric.plugins.Java3D";
-    private static final String pluginJMF = "com.sun.electric.plugins.JMF";
     private static final String pluginJython = "org.python.util";
 
     /**
@@ -61,16 +59,6 @@ public class Resources {
 	{
 		return (theClass.getResource(resourceLocation+resourceName));
 	}
-
-    public static Class getJ3DClass(String name)
-    {
-		return (getClass(name, pluginJ3D));
-    }
-
-    public static Class getJMFClass(String name)
-    {
-		return (getClass(name, pluginJMF));
-    }
 
     public static Class get3DClass(String name)
     {

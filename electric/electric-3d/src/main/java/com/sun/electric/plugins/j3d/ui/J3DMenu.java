@@ -24,6 +24,7 @@
 
 package com.sun.electric.plugins.j3d.ui;
 
+import com.sun.electric.api.movie.MovieCreator;
 import java.awt.GraphicsConfiguration;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.plugins.j3d.View3DWindow;
@@ -34,12 +35,11 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
-import com.sun.electric.tool.Job;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+import com.sun.electric.util.config.Configuration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
 import javax.media.j3d.Canvas3D;
@@ -66,11 +66,12 @@ public class J3DMenu {
             {
                 if (isJava3DAvailable()) create3DViewCommand(false);
             }},
+            isMovieCreatorAvailable() ? 
             new EMenuItem("_Capture Frame/Animate") { public void run()
             {
                 if (isJava3DAvailable())
                     J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame(), null);
-            }},
+            }} : null,
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
 
@@ -113,6 +114,10 @@ public class J3DMenu {
             return false;
         }
         return true;
+    }
+    
+    private static boolean isMovieCreatorAvailable() {
+        return Configuration.lookup(MovieCreator.class) != null;
     }
 
     /**

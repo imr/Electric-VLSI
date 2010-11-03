@@ -13,4 +13,7 @@
 	<electric:injection implementation="com.sun.electric.plugins.irsim.Analyzer"
 		name="com.sun.electric.tool.simulation.irsim.IAnalyzer" factoryMethod="getInstance" />
 
+	<electric:injection implementation="com.sun.electric.plugins.JMF.MovieCreatorJMF"
+		name="com.sun.electric.api.movie.MovieCreator" />
+
 </electric:configuration>
