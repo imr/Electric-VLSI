@@ -83,6 +83,17 @@
         </dependency>
     </dependencies>
 
+    <!--repositories>
+        <repository>
+            <id>snapshots.repository.codehaus.org</id>
+            <name>Codehaus Snapshots</name>
+            <url>http://snapshots.repository.codehaus.org</url>
+            <releases>
+                <checksumPolicy>fail</checksumPolicy>
+            </releases>
+        </repository>
+    </repositories-->
+    
     <profiles>
         <profile>
             <id>distro</id>
@@ -154,8 +165,15 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>osxappbundle-maven-plugin</artifactId>
+                        <version>1.0-alpha-3-SNAPSHOT</version>
                         <configuration>
+                            <bundleName>Electric</bundleName>
+                            <version>${project.version}</version>
                             <mainClass>com.sun.electric.Launcher</mainClass>
+                            <dictionaryFile>${basedir}/src/main/app-resources/Info.plist.template</dictionaryFile>
+                            <iconFile>${basedir}/src/main/app-resources/electric.icns</iconFile>
+                            <jvmVersion>1.5+</jvmVersion>
+                            <vmOptions>-Xms16m -Xmx1200m -Dcom.apple.mrj.application.apple.menu.about.name=Electric</vmOptions>
                         </configuration>
                         <executions>
                             <execution>
