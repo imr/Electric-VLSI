@@ -19,7 +19,6 @@ package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
 import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
@@ -38,8 +37,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.util.TextUtils;
-import com.sun.electric.util.math.GenMath;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -65,7 +62,7 @@ import javax.swing.SwingUtilities;
  * Analyzers have Sim objects in them.
  * Sim objects have Config and Eval objects in them.
  */
-public class Analyzer extends Engine
+public class Analyzer implements Engine
 {
 	private static final String simVersion = "9.5j";
 
@@ -287,7 +284,7 @@ public class Analyzer extends Engine
 		} else
 		{
 			// get a pointer to to the file with the network (.sim file)
-			fileURL = TextUtils.makeURLToFile(fileName);
+			fileURL = Electric.makeURLToFile(fileName);
 		}
 		if (theSim.readNetwork(fileURL, components)) return;
 
@@ -328,6 +325,12 @@ public class Analyzer extends Engine
     }
     
 	/**
+	 * Method to reload the circuit data.
+	 */
+	public void refresh() {
+    }
+
+	/**
 	 * Method to update the simulation (because some stimuli have changed).
 	 */
 	public void update()
@@ -343,7 +346,7 @@ public class Analyzer extends Engine
 		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Job.getUserInterface().showErrorMessage("Must select a signal before setting it High",
+			Electric.showErrorMessage("Must select a signal before setting it High",
 				"No Signals Selected");
 			return;
 		}
@@ -365,7 +368,7 @@ public class Analyzer extends Engine
 		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Job.getUserInterface().showErrorMessage("Must select a signal before setting it Low",
+			Electric.showErrorMessage("Must select a signal before setting it Low",
 				"No Signals Selected");
 			return;
 		}
@@ -395,7 +398,7 @@ public class Analyzer extends Engine
 		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Job.getUserInterface().showErrorMessage("Must select a signal before setting it Undefined",
+			Electric.showErrorMessage("Must select a signal before setting it Undefined",
 				"No Signals Selected");
 			return;
 		}
@@ -417,7 +420,7 @@ public class Analyzer extends Engine
 		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() == 0)
 		{
-			Job.getUserInterface().showErrorMessage("Must select a signal before displaying it",
+			Electric.showErrorMessage("Must select a signal before displaying it",
 				"No Signals Selected");
 			return;
 		}
@@ -442,7 +445,7 @@ public class Analyzer extends Engine
 		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
 		if (signals.size() != 1)
 		{
-			Job.getUserInterface().showErrorMessage("Must select a single signal on which to clear stimuli",
+			Electric.showErrorMessage("Must select a single signal on which to clear stimuli",
 				"No Signals Selected");
 			return;
 		}
@@ -879,11 +882,11 @@ public class Analyzer extends Engine
 				double newSize = Sim.deltaToNS(stepSize);
 				if (params.length > 0)
 				{
-					newSize = TextUtils.atof(params[0]);
+					newSize = Electric.atof(params[0]);
 					long lNewSize = Sim.nsToDelta(newSize);
 					if (lNewSize <= 0)
 					{
-						System.out.println("Bad step size: " + TextUtils.formatDouble(newSize*1000) + "psec (must be 10 psec or larger), ignoring");
+						System.out.println("Bad step size: " + Electric.formatDouble(newSize*1000) + "psec (must be 10 psec or larger), ignoring");
 						return null;
 					}
 				}
@@ -891,14 +894,14 @@ public class Analyzer extends Engine
 				break;
 			case VECTORSTEPSIZE:
 				if (params.length > 0)
-					stepSize = Sim.nsToDelta(TextUtils.atof(params[0]));
+					stepSize = Sim.nsToDelta(Electric.atof(params[0]));
 				break;
 
 			case VECTORBACK:
 				newsv.value = 0;
 				if (params.length > 0)
 				{
-					newsv.value = TextUtils.atof(params[0]);
+					newsv.value = Electric.atof(params[0]);
 				}
 				break;
 
@@ -944,19 +947,19 @@ public class Analyzer extends Engine
 					case VECTORS:
 						double stepSze = sv.value * cmdFileUnits;
 						long ss = Sim.nsToDelta(((curTime + stepSze) - insertTime) / cmdFileUnits);
-						if (ss != 0 && GenMath.doublesLessThan(insertTime, curTime+stepSze))
+						if (ss != 0 && Electric.doublesLessThan(insertTime, curTime+stepSze))
 						{
 							// splitting step at "insertTime"
 							sv.parameters = new String[1];
 							sv.value = (insertTime-curTime) / cmdFileUnits;
-							sv.parameters[0] = TextUtils.formatDouble(sv.value);
+							sv.parameters[0] = Electric.formatDouble(sv.value);
 
 							// create second step to advance after this signal
 							SimVector afterSV = new SimVector();
 							afterSV.command = VECTORS;
 							afterSV.parameters = new String[1];
 							afterSV.value = (curTime + stepSze - insertTime) / cmdFileUnits;
-							afterSV.parameters[0] = TextUtils.formatDouble(afterSV.value);
+							afterSV.parameters[0] = Electric.formatDouble(afterSV.value);
 							afterSV.next = sv.next;
 							sv.next = afterSV;
 						}
@@ -964,7 +967,7 @@ public class Analyzer extends Engine
 						break;
 					case VECTORSTEPSIZE:
 						if (sv.parameters.length > 0)
-							defaultStepSize = TextUtils.atof(sv.parameters[0]) * cmdFileUnits;
+							defaultStepSize = Electric.atof(sv.parameters[0]) * cmdFileUnits;
 						break;
 					case VECTORCLOCK:
 						clockPhases = sv.parameters.length - 1;
@@ -972,7 +975,7 @@ public class Analyzer extends Engine
 					case VECTORC:
 						int mult = 1;
 						if (sv.parameters.length > 0)
-							mult = TextUtils.atoi(sv.parameters[0]);
+							mult = Electric.atoi(sv.parameters[0]);
 						curTime += defaultStepSize * clockPhases * mult;
 						break;
 					case VECTORP:
@@ -980,9 +983,9 @@ public class Analyzer extends Engine
 						break;
 				}
 				lastSV = sv;
-				if (!GenMath.doublesLessThan(curTime, insertTime)) break;
+				if (!Electric.doublesLessThan(curTime, insertTime)) break;
 			}
-			if (GenMath.doublesLessThan(curTime, insertTime))
+			if (Electric.doublesLessThan(curTime, insertTime))
 			{
 				// create step to advance to the insertion time
 				double thisStep = (insertTime-curTime) / cmdFileUnits;
@@ -991,8 +994,8 @@ public class Analyzer extends Engine
 					SimVector afterSV = new SimVector();
 					afterSV.command = VECTORS;
 					afterSV.parameters = new String[1];
-					afterSV.parameters[0] = TextUtils.formatDouble(thisStep);
-//					afterSV.parameters[0] = TextUtils.formatDouble(thisStep / cmdFileUnits);
+					afterSV.parameters[0] = Electric.formatDouble(thisStep);
+//					afterSV.parameters[0] = Electric.formatDouble(thisStep / cmdFileUnits);
 					afterSV.value = thisStep;
 					if (lastSV == null)
 					{
@@ -1041,7 +1044,7 @@ public class Analyzer extends Engine
 					break;
 				case VECTORSTEPSIZE:
 					if (sv.parameters.length > 0)
-						defaultStepSize = TextUtils.atof(sv.parameters[0]) * cmdFileUnits;
+						defaultStepSize = Electric.atof(sv.parameters[0]) * cmdFileUnits;
 					break;
 				case VECTORCLOCK:
 					clockPhases = sv.parameters.length - 1;
@@ -1049,7 +1052,7 @@ public class Analyzer extends Engine
 				case VECTORC:
 					int mult = 1;
 					if (sv.parameters.length > 0)
-						mult = TextUtils.atoi(sv.parameters[0]);
+						mult = Electric.atoi(sv.parameters[0]);
 					curTime += defaultStepSize * clockPhases * mult;
 					break;
 				case VECTORP:
@@ -1058,7 +1061,7 @@ public class Analyzer extends Engine
 				case VECTORL:
 				case VECTORH:
 				case VECTORX:
-					if (GenMath.doublesEqual(insertTime, curTime))
+					if (Electric.doublesEqual(insertTime, curTime))
 					{
 						boolean found = false;
 						for(Signal<?> s : sv.sigs)
@@ -1080,7 +1083,7 @@ public class Analyzer extends Engine
 					}
 			}
 			lastSV = sv;
-			if (GenMath.doublesLessThan(insertTime, curTime)) break;
+			if (Electric.doublesLessThan(insertTime, curTime)) break;
 		}
 		return cleared;
 	}
@@ -1141,7 +1144,7 @@ public class Analyzer extends Engine
 					break;
 				case VECTORSTEPSIZE:
 					if (sv.parameters.length > 0)
-						defaultStepSize = TextUtils.atof(sv.parameters[0]) * cmdFileUnits;
+						defaultStepSize = Electric.atof(sv.parameters[0]) * cmdFileUnits;
 					break;
 				case VECTORCLOCK:
 					clockPhases = sv.parameters.length - 1;
@@ -1149,7 +1152,7 @@ public class Analyzer extends Engine
 				case VECTORC:
 					int mult = 1;
 					if (sv.parameters.length > 0)
-						mult = TextUtils.atoi(sv.parameters[0]);
+						mult = Electric.atoi(sv.parameters[0]);
 					curTime += defaultStepSize * clockPhases * mult;
 					break;
 				case VECTORP:
@@ -1251,10 +1254,10 @@ public class Analyzer extends Engine
 	 */
 	private void doActivity(SimVector sv)
 	{
-		long begin = Sim.nsToDelta(TextUtils.atof(sv.parameters[0]));
+		long begin = Sim.nsToDelta(Electric.atof(sv.parameters[0]));
 		long end = theSim.curDelta;
 		if (sv.parameters.length > 1)
-			end = Sim.nsToDelta(TextUtils.atof(sv.parameters[1]));
+			end = Sim.nsToDelta(Electric.atof(sv.parameters[1]));
 		if (end < begin)
 		{
 			long swp = end;   end = begin;   begin = swp;
@@ -1357,7 +1360,7 @@ public class Analyzer extends Engine
 		int n = 1;
 		if (sv.parameters.length == 1)
 		{
-			n = TextUtils.atoi(sv.parameters[0]);
+			n = Electric.atoi(sv.parameters[0]);
 			if (n <= 0) n = 1;
 		}
 
@@ -1369,10 +1372,10 @@ public class Analyzer extends Engine
 	 */
 	private void doChanges(SimVector sv)
 	{
-		long begin = Sim.nsToDelta(TextUtils.atof(sv.parameters[0]));
+		long begin = Sim.nsToDelta(Electric.atof(sv.parameters[0]));
 		long end = theSim.curDelta;
 		if (sv.parameters.length > 1)
-			end = Sim.nsToDelta(TextUtils.atof(sv.parameters[1]));
+			end = Sim.nsToDelta(Electric.atof(sv.parameters[1]));
 
 		column = 0;
 		System.out.print("Nodes with last transition in interval " + Sim.deltaToNS(begin) + " . " + Sim.deltaToNS(end) + "ns:");
@@ -1473,7 +1476,7 @@ public class Analyzer extends Engine
 				System.out.println("decay = " + Sim.deltaToNS(theSim.tDecay) + "ns");
 		} else
 		{
-			theSim.tDecay = Sim.nsToDelta(TextUtils.atof(sv.parameters[0]));
+			theSim.tDecay = Sim.nsToDelta(Electric.atof(sv.parameters[0]));
 			if (theSim.tDecay < 0)
 				theSim.tDecay = 0;
 		}
@@ -1621,7 +1624,7 @@ public class Analyzer extends Engine
 		int n = 1;
 		if (sv.parameters.length == 1)
 		{
-			n = TextUtils.atoi(sv.parameters[0]);
+			n = Electric.atoi(sv.parameters[0]);
 			if (n <= 0) n = 1;
 		}
 
@@ -1734,8 +1737,8 @@ public class Analyzer extends Engine
 						tranCntNSD += n.nTermList.size();
 					}
 				}
-				System.out.println("avg: # gates/node = " + TextUtils.formatDouble(tranCntNG / theSim.numNodes) +
-					",  # src-drn/node = " + TextUtils.formatDouble(tranCntNSD / theSim.numNodes));
+				System.out.println("avg: # gates/node = " + Electric.formatDouble(tranCntNG / theSim.numNodes) +
+					",  # src-drn/node = " + Electric.formatDouble(tranCntNSD / theSim.numNodes));
 			}
 		}
 		System.out.println("changes = " + theSim.numEdges);
@@ -1744,8 +1747,8 @@ public class Analyzer extends Engine
 		String n2 = "0.0";
 		if (theSim.numPunted != 0)
 		{
-			n1 = TextUtils.formatDouble(100.0 / (theSim.numEdges / theSim.numPunted + 1.0));
-			n2 = TextUtils.formatDouble(theSim.numConsPunted * 100.0 / theSim.numPunted);
+			n1 = Electric.formatDouble(100.0 / (theSim.numEdges / theSim.numPunted + 1.0));
+			n2 = Electric.formatDouble(theSim.numConsPunted * 100.0 / theSim.numPunted);
 		}
 		System.out.println("punts = " + n1 + "%, cons_punted = " + n2 + "%");
 
@@ -1763,11 +1766,11 @@ public class Analyzer extends Engine
 			return;
 		}
 
-		double timeNS = TextUtils.atof(sv.parameters[0]);
+		double timeNS = Electric.atof(sv.parameters[0]);
 		long newSize = Sim.nsToDelta(timeNS);
 		if (newSize <= 0)
 		{
-			System.out.println("Bad step size: " + TextUtils.formatDouble(timeNS*1000) + "psec (must be 10 psec or larger)");
+			System.out.println("Bad step size: " + Electric.formatDouble(timeNS*1000) + "psec (must be 10 psec or larger)");
 			return;
 		}
 		stepSize = newSize;
@@ -1872,7 +1875,7 @@ public class Analyzer extends Engine
 			return;
 		}
 
-		theSim.tUnitDelay = (int)Sim.nsToDelta(TextUtils.atof(sv.parameters[0]));
+		theSim.tUnitDelay = (int)Sim.nsToDelta(Electric.atof(sv.parameters[0]));
 		if (theSim.tUnitDelay < 0) theSim.tUnitDelay = 0;
 	}
 
@@ -1885,12 +1888,12 @@ public class Analyzer extends Engine
 		{
 			mask = sv.parameters[1];
 			value = new StringBuffer(sv.parameters[2]);
-			cCount = TextUtils.atoi(sv.parameters[3]);
+			cCount = Electric.atoi(sv.parameters[3]);
 		} else
 		{
 			mask = null;
 			value = new StringBuffer(sv.parameters[1]);
-			cCount = TextUtils.atoi(sv.parameters[2]);
+			cCount = Electric.atoi(sv.parameters[2]);
 		}
 
 		Signal<DigitalSample> sig = findName(sv.parameters[0]);
@@ -2470,7 +2473,7 @@ public class Analyzer extends Engine
 
 	private String prOneRes(double r)
 	{
-		String ret = TextUtils.formatDouble(r);
+		String ret = Electric.formatDouble(r);
 		if (r < 1e-9 || r > 100e9)
 			return ret;
 
@@ -2562,7 +2565,7 @@ public class Analyzer extends Engine
 	private int getCh(String s, int index)
 	{
 		if (index >= s.length()) return 0;
-		return TextUtils.canonicChar(s.charAt(index));
+		return Electric.canonicChar(s.charAt(index));
 	}
 
 	/**

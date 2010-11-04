@@ -17,16 +17,11 @@
  */
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.extract.ExtractedPBucket;
 import com.sun.electric.tool.extract.RCPBucket;
 import com.sun.electric.tool.extract.TransistorPBucket;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.util.TextUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -108,7 +103,7 @@ public class Sim
 	 */
 	public Node findNode(String name)
 	{
-		return nodeHash.get(TextUtils.canonicString(name));
+		return nodeHash.get(Electric.canonicString(name));
 	}
 
 	/**
@@ -145,7 +140,7 @@ public class Sim
 		numNodes++;
 
 		// insert node into hash table and list
-		nodeHash.put(TextUtils.canonicString(name), n);
+		nodeHash.put(Electric.canonicString(name), n);
 		nodeList.add(n);
 
 		// initialize node entries
@@ -519,10 +514,10 @@ public class Sim
 			URL url;
 			if (pf != null && pf.exists())
 			{
-				url = TextUtils.makeURLToFile(parameterFile);
+				url = Electric.makeURLToFile(parameterFile);
 			} else
 			{
-				url = LibFile.getLibFile(parameterFile);
+				url = Electric.getLibFile(parameterFile);
 			}
 			if (url == null)
 			{
@@ -700,10 +695,10 @@ public class Sim
 
 		Node n = getNode(targ[1]);
 
-		n.nCap += TextUtils.atof(targ[4]) * (theConfig.CMA * theConfig.lambdaSquared) +
-			TextUtils.atof(targ[5]) * (theConfig.CPA * theConfig.lambdaSquared) +
-			TextUtils.atof(targ[6]) * (theConfig.CDA * theConfig.lambdaSquared) +
-			TextUtils.atof(targ[7]) * 2.0f * (theConfig.CDP * theConfig.lambda);
+		n.nCap += Electric.atof(targ[4]) * (theConfig.CMA * theConfig.lambdaSquared) +
+			Electric.atof(targ[5]) * (theConfig.CPA * theConfig.lambdaSquared) +
+			Electric.atof(targ[6]) * (theConfig.CDA * theConfig.lambdaSquared) +
+			Electric.atof(targ[7]) * 2.0f * (theConfig.CDP * theConfig.lambda);
 	}
 
 	/**
@@ -719,16 +714,16 @@ public class Sim
 
 		Node n = getNode(targ[1]);
 
-		n.nCap += TextUtils.atof(targ[4]) * (theConfig.CM2A * theConfig.lambdaSquared) +
-			TextUtils.atof(targ[5]) * 2.0 * (theConfig.CM2P * theConfig.lambda) +
-			TextUtils.atof(targ[6]) * (theConfig.CMA * theConfig.lambdaSquared) +
-			TextUtils.atof(targ[7]) * 2.0 * (theConfig.CMP * theConfig.lambda) +
-			TextUtils.atof(targ[8]) * (theConfig.CPA * theConfig.lambdaSquared) +
-			TextUtils.atof(targ[9]) * 2.0 * (theConfig.CPP * theConfig.lambda) +
-			TextUtils.atof(targ[10]) * (theConfig.CDA * theConfig.lambda) +
-			TextUtils.atof(targ[11]) * 2.0 * (theConfig.CDP * theConfig.lambda) +
-			TextUtils.atof(targ[12]) * (theConfig.CPDA * theConfig.lambdaSquared) +
-			TextUtils.atof(targ[13]) * 2.0 * (theConfig.CPDP * theConfig.lambda);
+		n.nCap += Electric.atof(targ[4]) * (theConfig.CM2A * theConfig.lambdaSquared) +
+			Electric.atof(targ[5]) * 2.0 * (theConfig.CM2P * theConfig.lambda) +
+			Electric.atof(targ[6]) * (theConfig.CMA * theConfig.lambdaSquared) +
+			Electric.atof(targ[7]) * 2.0 * (theConfig.CMP * theConfig.lambda) +
+			Electric.atof(targ[8]) * (theConfig.CPA * theConfig.lambdaSquared) +
+			Electric.atof(targ[9]) * 2.0 * (theConfig.CPP * theConfig.lambda) +
+			Electric.atof(targ[10]) * (theConfig.CDA * theConfig.lambda) +
+			Electric.atof(targ[11]) * 2.0 * (theConfig.CDP * theConfig.lambda) +
+			Electric.atof(targ[12]) * (theConfig.CPDA * theConfig.lambdaSquared) +
+			Electric.atof(targ[13]) * 2.0 * (theConfig.CPDP * theConfig.lambda);
 	}
 
 	/**
@@ -753,7 +748,7 @@ public class Sim
 			t.source = getNode(targ[1]);
 			t.drain = getNode(targ[2]);
 
-			long length = (long)(TextUtils.atof(targ[3]) * theConfig.lambdaCM);
+			long length = (long)(Electric.atof(targ[3]) * theConfig.lambdaCM);
 			t.r = theConfig.rEquiv(implant, 0, length);
 
 		} else
@@ -768,8 +763,8 @@ public class Sim
 			t.source = getNode(targ[2]);
 			t.drain = getNode(targ[3]);
 
-			long length = (long)(TextUtils.atof(targ[4]) * theConfig.lambdaCM);
-			long width = (long)(TextUtils.atof(targ[5]) * theConfig.lambdaCM);
+			long length = (long)(Electric.atof(targ[4]) * theConfig.lambdaCM);
+			long width = (long)(Electric.atof(targ[5]) * theConfig.lambdaCM);
 			if (width <= 0 || length <= 0)
 			{
 				reportError(fileName, lineReader.getLineNumber(),
@@ -779,8 +774,8 @@ public class Sim
 			((Node)t.gate).nCap += length * width * theConfig.CTGA;
 			t.r = theConfig.rEquiv(implant, width, length);
 
-			t.x = TextUtils.atoi(targ[6]);
-			t.y = TextUtils.atoi(targ[7]);
+			t.x = Electric.atoi(targ[6]);
+			t.y = Electric.atoi(targ[7]);
 
 			// parse area and perimeter
 			for (int i = 8; i < targ.length; i++)
@@ -789,8 +784,8 @@ public class Sim
 				int pIsPos = targ[i].indexOf("P_");
 				if (aIsPos >= 0 && pIsPos >= 0)
 				{
-					int a = TextUtils.atoi(targ[i].substring(aIsPos+2));
-					int p = TextUtils.atoi(targ[i].substring(pIsPos+2));
+					int a = Electric.atoi(targ[i].substring(aIsPos+2));
+					int p = Electric.atoi(targ[i].substring(pIsPos+2));
 					char type = targ[i].charAt(0);
 					int asrc = 0, adrn = 0, psrc = 0, pdrn = 0;
 					if (type == 's')
@@ -873,8 +868,8 @@ public class Sim
 		}
 
 		Node n = getNode(targ[1]);
-		n.vLow = (float)TextUtils.atof(targ[2]);
-		n.vHigh = (float)TextUtils.atof(targ[3]);
+		n.vLow = (float)Electric.atof(targ[2]);
+		n.vHigh = (float)Electric.atof(targ[3]);
 	}
 
 	/**
@@ -890,8 +885,8 @@ public class Sim
 
 		Node n = getNode(targ[1]);
 		n.nFlags |= USERDELAY;
-		n.tpLH = (short)nsToDelta(TextUtils.atof(targ[2]));
-		n.tpHL = (short)nsToDelta(TextUtils.atof(targ[3]));
+		n.tpLH = (short)nsToDelta(Electric.atof(targ[2]));
+		n.tpHL = (short)nsToDelta(Electric.atof(targ[3]));
 	}
 
 	/**
@@ -902,11 +897,11 @@ public class Sim
 		if (targ.length == 3)
 		{
 			Node n = getNode(targ[1]);
-			n.nCap += (float)TextUtils.atof(targ[2]);
+			n.nCap += (float)Electric.atof(targ[2]);
 		} else if (targ.length == 4)
 		{
 			// two terminal caps
-			float cap = (float)(TextUtils.atof(targ[3]) / 1000);		// ff to pf conversion
+			float cap = (float)(Electric.atof(targ[3]) / 1000);		// ff to pf conversion
 			Node n = getNode(targ[1]);
 			Node m = getNode(targ[2]);
 			if (n != m)
@@ -982,10 +977,10 @@ public class Sim
 		int firstColon = iterator.indexOf(':');
 		if (firstColon < 0) return true;
 		int secondColon = iterator.indexOf(':', firstColon);
-		int start = TextUtils.atoi(iterator);
-		int stop = TextUtils.atoi(iterator.substring(firstColon+1));
+		int start = Electric.atoi(iterator);
+		int stop = Electric.atoi(iterator.substring(firstColon+1));
 		int step = 1;
-		if (secondColon >= 0) step = TextUtils.atoi(iterator.substring(secondColon+1));
+		if (secondColon >= 0) step = Electric.atoi(iterator.substring(secondColon+1));
 
 		// figure out correct step size
 		if (step == 0) step = 1; else
@@ -1059,8 +1054,7 @@ public class Sim
 	{
 		if (components != null)
 		{
-            Technology layoutTech = Schematics.getDefaultSchematicTechnology();
-            double lengthOff = Schematics.getDefaultSchematicTechnology().getGateLengthSubtraction() / layoutTech.getScale();
+            double lengthOff = Electric.getLengthOff();
 			// load the circuit from memory
 			for(Object obj : components)
 			{
@@ -1152,7 +1146,7 @@ public class Sim
 		boolean rError = false;
 		boolean aError = false;
 		String fileName = simFileURL.getFile();
-		Job.getUserInterface().startProgressDialog("import", fileName);
+		Electric.startProgressDialog("import", fileName);
 		try
 		{
 			URLConnection urlCon = simFileURL.openConnection();
@@ -1170,7 +1164,7 @@ public class Sim
 				String line = lineReader.readLine();
 				if (line == null) break;
 				readSoFar += line.length() + 1;
-				Job.getUserInterface().setProgressValue((int)(readSoFar * 100 / fileLength));
+				Electric.setProgressValue((int)(readSoFar * 100 / fileLength));
 				String [] targ = parseLine(line, false);
 				if (targ.length == 0) continue;
 				char firstCh = targ[0].charAt(0);
@@ -1180,7 +1174,7 @@ public class Sim
 						if (lineReader.getLineNumber() > 1) break;
 						if (targ.length >= 2)
 						{
-							double lmbd = TextUtils.atof(targ[2]) / 100.0;
+							double lmbd = Electric.atof(targ[2]) / 100.0;
 							if (lmbd != theConfig.lambda)
 							{
 								System.out.println("WARNING: sim file lambda (" + lmbd + "u) != config lambda (" +
@@ -1252,7 +1246,7 @@ public class Sim
 		{
 			System.out.println("Error reading file");
 		}
-		Job.getUserInterface().stopProgressDialog();
+        Electric.stopProgressDialog();
 		System.out.println("Loaded circuit, lambda=" + theConfig.lambda + "u");
 	}
 

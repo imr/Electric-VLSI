@@ -18,10 +18,6 @@
 
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.tool.simulation.SimulationTool;
-import com.sun.electric.util.TextUtils;
-import com.sun.electric.util.math.GenMath;
-
 /**
  * Event-driven timing simulation step for irsim.
  *
@@ -369,7 +365,7 @@ public class NewRStep extends Eval
 				{
 					if (r.finall == Sim.X)
 					{
-                        if (SimulationTool.isIRSIMDelayedX()) {
+                        if (Electric.isIRSIMDelayedX()) {
                             // When fighting, instead of using the dominant time constant,
                             // use a value proportional to the difference in pull up and pull down
                             // strengths
@@ -855,7 +851,7 @@ public class NewRStep extends Eval
 	 * Return TRUE if we should consider the input slope of this transistor.  As
 	 * a side-effect, return the input time constant in 'ptin'.
 	 */
-	private boolean getTin(Sim.Trans t, GenMath.MutableDouble ptin)
+	private boolean getTin(Sim.Trans t, Electric.MutableDouble ptin)
 	{
 		Sim.HistEnt  h;
 		boolean isInt = false;
@@ -892,14 +888,14 @@ public class NewRStep extends Eval
 	/** combine 2 resistors in parallel, watch out for zero resistance */
 	private double combineR(double a, double b) { return ((a + b <= Sim.SMALL) ? 0 : Sim.combine(a, b)); }
 
-	private boolean getParallelTin(Sim.Trans t, GenMath.MutableDouble iTau)
+	private boolean getParallelTin(Sim.Trans t, Electric.MutableDouble iTau)
 	{
-		GenMath.MutableDouble tin = new GenMath.MutableDouble(0);
+		Electric.MutableDouble tin = new Electric.MutableDouble(0);
 		boolean isInt = getTin(t, tin);
 
 		for(t = theSim.parallelTransistors[t.nPar]; t != null; t = t.getDTrans())
 		{
-			GenMath.MutableDouble tmp = new GenMath.MutableDouble(0);
+			Electric.MutableDouble tmp = new Electric.MutableDouble(0);
 			if (getTin(t, tmp))
 			{
 				tin.setValue(isInt ? combineR(tin.doubleValue(), tmp.doubleValue()) : tmp.doubleValue());
@@ -968,7 +964,7 @@ public class NewRStep extends Eval
 		r.cD = n.nCap;
 		if (dom == Sim.X)			// assume X nodes are charged high
 		{
-            if (SimulationTool.isIRSIMDelayedX()) {
+            if (Electric.isIRSIMDelayedX()) {
                 // X nodes are charged to X through Rup and Rdown fighting
                 r.cA = n.nCap;
             } else
@@ -996,7 +992,7 @@ public class NewRStep extends Eval
 			}
 			if (cache.tauDone != dom)
 			{
-				GenMath.MutableDouble oldR = new GenMath.MutableDouble(0);
+				Electric.MutableDouble oldR = new Electric.MutableDouble(0);
 
 				cache = getTau(other, t, dom, level + incLevel);
 
@@ -1258,9 +1254,9 @@ public class NewRStep extends Eval
 		{
 			int exp = 0;
 			for( ; r >= 1000.0; exp++, r *= 0.001) ;
-			return TextUtils.formatDouble(r) + " KMG".charAt(exp);
+			return Electric.formatDouble(r) + " KMG".charAt(exp);
 		}
-		return TextUtils.formatDouble(r);
+		return Electric.formatDouble(r);
 	}
 
 

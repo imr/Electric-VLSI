@@ -32,79 +32,79 @@ import java.net.URL;
 /**
  * This is a Simulation Engine (such as IRSIM).
  */
-public abstract class Engine
+public interface Engine
 {
     /**
      * Returns FileType of vectors file.
      */
-    public abstract FileType getVectorsFileType();
+    public FileType getVectorsFileType();
     
     /**
      * Returns current Stimuli.
      */
-    public abstract Stimuli getStimuli();
+    public Stimuli getStimuli();
 
     
 	/**
 	 * Method to reload the circuit data.
 	 */
-	public void refresh() {}
+	public void refresh();
 
 	/**
 	 * Method to update the simulation (because some stimuli have changed).
 	 */
-	public void update() {}
+	public void update();
 
 	/**
 	 * Method to set the currently-selected signal high at the current time.
 	 */
-	public void setSignalHigh() {}
+	public void setSignalHigh();
 
 	/**
 	 * Method to set the currently-selected signal low at the current time.
 	 */
-	public void setSignalLow() {}
+	public void setSignalLow();
 
 	/**
 	 * Method to set the currently-selected signal undefined at the current time.
 	 */
-	public void setSignalX() {}
+	public void setSignalX();
 
 	/**
 	 * Method to set the currently-selected signal to have a clock with a given period.
 	 */
-	public void setClock(double period) {}
+	public void setClock(double period);
 
 	/**
 	 * Method to show information about the currently-selected signal.
 	 */
-	public void showSignalInfo() {}
+	public void showSignalInfo();
 
 	/**
 	 * Method to remove all stimuli from the currently-selected signal.
 	 */
-	public void removeStimuliFromSignal() {}
+	public void removeStimuliFromSignal();
 
 	/**
 	 * Method to remove the selected stimuli.
 	 * @return true if stimuli were deleted.
 	 */
-	public boolean removeSelectedStimuli() { return false; }
+	public boolean removeSelectedStimuli();
 
 	/**
 	 * Method to remove all stimuli from the simulation.
 	 */
-	public void removeAllStimuli() {}
+	public void removeAllStimuli();
 
 	/**
 	 * Method to save the current stimuli information to disk.
      * @param stimuliFile file to save stimuli information
 	 */
-	public void saveStimuli(File stimuliFile) throws IOException {}
+	public void saveStimuli(File stimuliFile) throws IOException;
 
 	/**
 	 * Method to restore the current stimuli information from URL.
      * @param stimuliURL URL of stimuli information
 	 */
-	public void restoreStimuli(URL stimuliURL) throws IOException {}
+	public void restoreStimuli(URL stimuliURL) throws IOException;
 }

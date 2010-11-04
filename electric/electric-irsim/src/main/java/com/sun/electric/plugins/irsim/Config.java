@@ -18,8 +18,6 @@
 
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.util.TextUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,7 +25,6 @@ import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class Config
@@ -145,34 +142,34 @@ public class Config
 					}
 				} else
 				{
-					if (targ[0].equals("capm2a")) CM2A = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("capm2p")) CM2P = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("capma")) CMA = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("capmp")) CMP = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("cappa")) CPA = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("cappp")) CPP = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("capda")) CDA = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("capdp")) CDP = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("cappda")) CPDA = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("cappdp")) CPDP = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("capga")) CGA = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("lambda")) lambda = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("lowthresh")) lowThresh = TextUtils.atof(targ[1]); else
-					if (targ[0].equals("highthresh")) highThresh = TextUtils.atof(targ[1]); else
+					if (targ[0].equals("capm2a")) CM2A = Electric.atof(targ[1]); else
+					if (targ[0].equals("capm2p")) CM2P = Electric.atof(targ[1]); else
+					if (targ[0].equals("capma")) CMA = Electric.atof(targ[1]); else
+					if (targ[0].equals("capmp")) CMP = Electric.atof(targ[1]); else
+					if (targ[0].equals("cappa")) CPA = Electric.atof(targ[1]); else
+					if (targ[0].equals("cappp")) CPP = Electric.atof(targ[1]); else
+					if (targ[0].equals("capda")) CDA = Electric.atof(targ[1]); else
+					if (targ[0].equals("capdp")) CDP = Electric.atof(targ[1]); else
+					if (targ[0].equals("cappda")) CPDA = Electric.atof(targ[1]); else
+					if (targ[0].equals("cappdp")) CPDP = Electric.atof(targ[1]); else
+					if (targ[0].equals("capga")) CGA = Electric.atof(targ[1]); else
+					if (targ[0].equals("lambda")) lambda = Electric.atof(targ[1]); else
+					if (targ[0].equals("lowthresh")) lowThresh = Electric.atof(targ[1]); else
+					if (targ[0].equals("highthresh")) highThresh = Electric.atof(targ[1]); else
 					if (targ[0].equals("diffperim"))
 					{
-						if (TextUtils.atof(targ[1]) != 0.0) configFlags |= DIFFPERIM;
+						if (Electric.atof(targ[1]) != 0.0) configFlags |= DIFFPERIM;
 					} else if (targ[0].equals("cntpullup"))
 					{
-						if (TextUtils.atof(targ[1]) != 0.0) configFlags |= CNTPULLUP;
+						if (Electric.atof(targ[1]) != 0.0) configFlags |= CNTPULLUP;
 					} else if (targ[0].equals("subparea"))
 					{
-						if (TextUtils.atof(targ[1]) != 0.0) configFlags |= SUBPAREA;
+						if (Electric.atof(targ[1]) != 0.0) configFlags |= SUBPAREA;
 					} else if (targ[0].equals("diffext"))
 					{
-						if (TextUtils.atof(targ[1]) != 0.0)
+						if (Electric.atof(targ[1]) != 0.0)
 						{
-//							DIFFEXT = TextUtils.atof(targ[1]);
+//							DIFFEXT = Electric.atof(targ[1]);
 							configFlags |= DIFFEXTF;
 						}
 					} else
@@ -379,9 +376,9 @@ public class Config
 	 */
 	private void insert(String fileName, int lineNo, String type, String context, String w, String l, String r)
 	{
-		long width = (long)(TextUtils.atof(w) * CM_M);
-		long length = (long)(TextUtils.atof(l) * CM_M);
-		double resist = TextUtils.atof(r);
+		long width = (long)(Electric.atof(w) * CM_M);
+		long length = (long)(Electric.atof(l) * CM_M);
+		double resist = Electric.atof(r);
 		if (width <= 0 || length <= 0 || resist <= 0)
 		{
 			Sim.reportError(fileName, lineNo, "bad w, l, or r in config file");
