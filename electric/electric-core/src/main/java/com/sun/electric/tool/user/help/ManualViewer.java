@@ -867,7 +867,7 @@ public class ManualViewer extends EModelessDialog
 				StringBuffer oneLine = new StringBuffer();
 				Matcher matcher = pattern.matcher(line);
 				while (matcher.find())
-					matcher.appendReplacement(oneLine, "<FONT style=\"BACKGROUND-COLOR: red\">" + highlightThis + "</FONT>");
+					matcher.appendReplacement(oneLine, "<FONT style=\"BACKGROUND-COLOR: red\">$0</FONT>");
 				matcher.appendTail(oneLine);
 				line = oneLine.toString();
 			}

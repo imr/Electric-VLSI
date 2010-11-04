@@ -545,7 +545,7 @@ public class Analyzer implements Engine
 //
 //		playVectors();
 //	}
-    @Override
+//    @Override
     public Stimuli getStimuli() { return sd; }
 
 	/************************** SIMULATION VECTORS **************************/
@@ -594,7 +594,7 @@ public class Analyzer implements Engine
 	 * Method to restore the current stimuli information from URL.
      * @param stimuliURL URL of stimuli information
 	 */
-    @Override
+//    @Override
 	public void restoreStimuli(URL stimuliURL) throws IOException
 	{
         if (stimuliURL == null)
@@ -745,7 +745,7 @@ public class Analyzer implements Engine
 	 * Method to save the current stimuli information to disk.
      * @param stimuliFile file to save stimuli information
 	 */
-    @Override
+//    @Override
 	public void saveStimuli(File stimuliFile) throws IOException 
 	{
 		if (stimuliFile == null)
