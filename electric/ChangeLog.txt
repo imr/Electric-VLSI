@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+IMP: (11/3/10, DN) Move OpenFile dialog and IOException handling out of IRSIM and ALS Engines.
+
 IMP: (11/3/10, DN) Add com.sun.electric.api.movie.MovieCreator API .
   Wrap JMFImageToMovie in com.sun.electric.plugin.JMF.MovieCreatorJMF .
 

@@ -62,6 +62,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 
@@ -301,7 +304,19 @@ public class SimulationTool extends Tool
 	{
 		Engine engine = findEngine();
 		if (engine == null) return;
-		engine.saveStimuli();
+        FileType fileType = engine.getVectorsFileType();
+        String hintFileName = engine.getStimuli().getCell().getName() + "." + fileType.getFirstExtension();
+        String stimuliFileName = OpenFile.chooseOutputFile(fileType, fileType.getName(), hintFileName);
+//		String stimuliFileName = OpenFile.chooseOutputFile(FileType.IRSIMVECTOR, "IRSIM Vector file", Library.getCurrent().getName() + ".cmd");
+//		String stimuliFileName = OpenFile.chooseOutputFile(FileType.ALSVECTOR, "ALS Vector file", getStimuli().getCell().getName() + ".vec");
+		if (stimuliFileName ==  null) return;
+
+        try {
+            engine.saveStimuli(new File(stimuliFileName));
+			System.out.println("Wrote " + stimuliFileName);
+        } catch (IOException e) {
+			System.out.println("Error writing " + stimuliFileName);
+        }
 	}
 
 	/**
@@ -312,8 +327,24 @@ public class SimulationTool extends Tool
 	{
 		Engine engine = findEngine();
 		if (engine == null) return;
-		engine.restoreStimuli(fileName);
-	}
+		if (fileName == null)
+		{
+            FileType fileType = engine.getVectorsFileType();
+			fileName = OpenFile.chooseInputFile(fileType, fileType.getName());
+//            fileName = OpenFile.chooseInputFile(FileType.IRSIMVECTOR, "IRSIM Vector file");
+//            fileName = OpenFile.chooseInputFile(FileType.ALSVECTOR, "ALS Vector file");
+
+			if (fileName == null) return;
+		}
+		URL url = TextUtils.makeURLToFile(fileName);
+        try {
+			System.out.println("Reading " + fileName);
+            engine.restoreStimuli(url);
+        } catch (IOException e)
+        {
+ 			System.out.println("Error reading " + fileName + "(" + e.getMessage() + ")");
+        }
+    }
 
 	/**
 	 * Method to locate the running simulation engine.

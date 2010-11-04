@@ -40,7 +40,6 @@ import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.CompileVHDL;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
@@ -48,13 +47,13 @@ import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.util.TextUtils;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -401,6 +400,7 @@ public class ALS extends Engine
 	}
 
     private Stimuli sd;
+    @Override
     public Stimuli getStimuli() { return sd; }
 	ALS(Stimuli sd)
 	{
@@ -436,6 +436,13 @@ public class ALS extends Engine
 		theALS.doSimulation(netlistCell, cell, ww, stimuliList);
 	}
 
+    /**
+     * Returns FileType of vectors file.
+     */
+    public FileType getVectorsFileType() {
+        return FileType.ALSVECTOR;
+    }
+    
 	/**
 	 * Method to reload the circuit data.
 	 */
@@ -725,53 +732,45 @@ public class ALS extends Engine
 	/**
 	 * Method to save the current stimuli information to disk.
 	 */
-	public void saveStimuli()
+    @Override
+	public void saveStimuli(File stimuliFile) throws IOException
 	{
-		String stimuliFileName = OpenFile.chooseOutputFile(FileType.ALSVECTOR, "ALS Vector file", getStimuli().getCell().getName() + ".vec");
-		if (stimuliFileName ==  null) return;
+		if (stimuliFile ==  null)
+            throw new NullPointerException();
+		PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(stimuliFile)));
 		try
 		{
-			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(stimuliFileName)));
 			List<String> stimuliList = getStimuliToSave();
 			for(String str : stimuliList)
 				printWriter.println(str);
-			printWriter.close();
-		} catch (IOException e)
+		} finally
 		{
-			System.out.println("Error writing results");
-			return;
+			printWriter.close();
 		}
-		System.out.println("Wrote " + stimuliFileName);
 	}
 
 	/**
-	 * Method to restore the current stimuli information from disk.
+	 * Method to restore the current stimuli information from URL.
+     * @param stimuliURL URL of stimuli information
 	 */
-	public void restoreStimuli(String stimuliFileName)
-	{
-		if (stimuliFileName == null)
-		{
-			stimuliFileName = OpenFile.chooseInputFile(FileType.ALSVECTOR, "ALS Vector file");
-			if (stimuliFileName == null) return;
-		}
-		List<String> stimuliList = new ArrayList<String>();
-		URL url = TextUtils.makeURLToFile(stimuliFileName);
+    @Override
+	public void restoreStimuli(URL stimuliURL) throws IOException
+    {
+        if (stimuliURL == null)
+            throw new NullPointerException();
+		LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(stimuliURL.openStream()));
 		try
 		{
-			URLConnection urlCon = url.openConnection();
-			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
-			LineNumberReader lineReader = new LineNumberReader(is);
+    		List<String> stimuliList = new ArrayList<String>();
 			for(;;)
 			{
 				String s1 = lineReader.readLine();
 				if (s1 == null) break;
 				stimuliList.add(s1);
 			}
-			lineReader.close();
-		} catch (IOException e)
+		} finally
 		{
-			System.out.println("Error reading " + stimuliFileName);
-			return;
+			lineReader.close();
 		}
 
 		processStimuliList(stimuliList);

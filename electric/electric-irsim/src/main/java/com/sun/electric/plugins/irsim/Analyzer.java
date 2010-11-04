@@ -18,7 +18,6 @@
 package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
@@ -36,7 +35,6 @@ import com.sun.electric.tool.simulation.DigitalSample.Strength;
 import com.sun.electric.tool.simulation.DigitalSample.Value;
 import com.sun.electric.tool.simulation.irsim.IAnalyzer;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -44,13 +42,13 @@ import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.GenMath;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -182,7 +180,6 @@ public class Analyzer extends Engine
 	/** the cell being simulated */					private Cell            cell;
 	/** the context for the cell being simulated */	private VarContext      context;
 	/** the name of the file being simulated */		private String          fileName;
-	/** the name of the last vector file read */	private String          vectorFileName;
 	/** mapping from signals to nodes */			private HashMap<Signal<?>,Sim.Node> nodeMap;
 
 	/************************** ELECTRIC INTERFACE **************************/
@@ -323,6 +320,13 @@ public class Analyzer extends Engine
 		sd.makeBusSignals(sigList, sigCollection);
 	}
 
+    /**
+     * Returns FileType of vectors file.
+     */
+    public FileType getVectorsFileType() {
+        return FileType.IRSIMVECTOR;
+    }
+    
 	/**
 	 * Method to update the simulation (because some stimuli have changed).
 	 */
@@ -518,27 +522,6 @@ public class Analyzer extends Engine
 			clearAllVectors();
 	}
 
-	/**
-	 * Method to save the current stimuli information to disk.
-	 */
-	public void saveStimuli()
-	{
-		saveVectorFile();
-	}
-
-	/**
-	 * Method to restore the current stimuli information from disk.
-	 */
-	public void restoreStimuli(String fileName)
-	{
-		if (fileName != null) vectorFileName = fileName; else
-		{
-			vectorFileName = OpenFile.chooseInputFile(FileType.IRSIMVECTOR, "IRSIM Vector file");
-			if (vectorFileName == null) return;
-		}
-		loadVectorFile();
-	}
-
 //	/**
 //	 * Method to reload the circuit data.
 //	 */
@@ -559,6 +542,7 @@ public class Analyzer extends Engine
 //
 //		playVectors();
 //	}
+    @Override
     public Stimuli getStimuli() { return sd; }
 
 	/************************** SIMULATION VECTORS **************************/
@@ -604,16 +588,17 @@ public class Analyzer extends Engine
 	}
 
 	/**
-	 * Method to read simulation vectors from a file.
+	 * Method to restore the current stimuli information from URL.
+     * @param stimuliURL URL of stimuli information
 	 */
-	private void loadVectorFile()
+    @Override
+	public void restoreStimuli(URL stimuliURL) throws IOException
 	{
-		URL url = TextUtils.makeURLToFile(vectorFileName);
+        if (stimuliURL == null)
+            throw new NullPointerException();
+		LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(stimuliURL.openStream()));
 		try
 		{
-			URLConnection urlCon = url.openConnection();
-			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
-			LineNumberReader lineReader = new LineNumberReader(is);
 
 			// remove all vectors
 			firstVector = null;
@@ -626,7 +611,6 @@ public class Analyzer extends Engine
 					ws.getSignal().clearControlPoints();
 				}
 			}
-			System.out.println("Reading " + vectorFileName);
 			double currentTime = 0;
 			boolean anyAnalyzerCommands = false;
 			for(;;)
@@ -748,25 +732,24 @@ public class Analyzer extends Engine
 			}
 			playVectors();
 			updateWindow(theSim.curDelta);
-
-			lineReader.close();
-		} catch (IOException e)
+		} finally
 		{
-			System.out.println("Error reading " + vectorFileName + "(" + e.getMessage() + ")");
-			return;
+			lineReader.close();
 		}
 	}
 
 	/**
-	 * Method to save simulation vectors to file "filename" (if zero, prompt for file).
+	 * Method to save the current stimuli information to disk.
+     * @param stimuliFile file to save stimuli information
 	 */
-	private void saveVectorFile()
+    @Override
+	public void saveStimuli(File stimuliFile) throws IOException 
 	{
-		String fileName = OpenFile.chooseOutputFile(FileType.IRSIMVECTOR, "IRSIM Vector file", Library.getCurrent().getName() + ".cmd");
-		if (fileName == null) return;
+		if (stimuliFile == null)
+            throw new NullPointerException();
+		PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(stimuliFile)));
 		try
 		{
-			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
 
 			for(SimVector sv = firstVector; sv != null; sv = sv.next)
 			{
@@ -775,14 +758,10 @@ public class Analyzer extends Engine
 					infstr += " " + sv.parameters[i];
 				printWriter.println(infstr);
 			}
-
-			printWriter.close();
-			System.out.println("Wrote " + fileName);
-		} catch (IOException e)
-		{
-			System.out.println("Error writing " + fileName);
-			return;
-		}
+		} finally
+        {
+            printWriter.close();
+        }
 	}
 
 	private void issueCommand(SimVector sv)

@@ -23,12 +23,28 @@
  */
 package com.sun.electric.tool.simulation;
 
+import com.sun.electric.tool.io.FileType;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
 
 /**
  * This is a Simulation Engine (such as IRSIM).
  */
-public class Engine
+public abstract class Engine
 {
+    /**
+     * Returns FileType of vectors file.
+     */
+    public abstract FileType getVectorsFileType();
+    
+    /**
+     * Returns current Stimuli.
+     */
+    public abstract Stimuli getStimuli();
+
+    
 	/**
 	 * Method to reload the circuit data.
 	 */
@@ -82,11 +98,13 @@ public class Engine
 
 	/**
 	 * Method to save the current stimuli information to disk.
+     * @param stimuliFile file to save stimuli information
 	 */
-	public void saveStimuli() {}
+	public void saveStimuli(File stimuliFile) throws IOException {}
 
 	/**
-	 * Method to restore the current stimuli information from disk.
+	 * Method to restore the current stimuli information from URL.
+     * @param stimuliURL URL of stimuli information
 	 */
-	public void restoreStimuli(String fileName) {}
+	public void restoreStimuli(URL stimuliURL) throws IOException {}
 }
