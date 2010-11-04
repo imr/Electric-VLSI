@@ -58,8 +58,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
@@ -2054,9 +2056,9 @@ public class TextUtils {
         }
     }
 
-    private static List<String> missingComponentNames = new ArrayList<String>();
-    private static List<String> missingPrivateComponentNames = new ArrayList<String>();
-    private static List<String> missingTechnologyNames = new ArrayList<String>();
+    private static Set<String> missingComponentNames = new HashSet<String>();
+    private static Set<String> missingPrivateComponentNames = new HashSet<String>();
+    private static Set<String> missingTechnologyNames = new HashSet<String>();
 
     /**
      * Method to report a missing component, not found in the classpath.
@@ -2090,7 +2092,7 @@ public class TextUtils {
      * Method to return a list of components that were not found in Electric plugins.
      * @return a list of components that were not found in Electric plugins.
      */
-    public static List<String> getMissingComponentNames()
+    public static Set<String> getMissingComponentNames()
     {
     	if (missingTechnologyNames.size() > 0)
     	{
@@ -2111,7 +2113,7 @@ public class TextUtils {
      * Method to return a list of private (internal) components that were not found in Electric plugins.
      * @return a list of private (internal) components that were not found in Electric plugins.
      */
-    public static List<String> getMissingPrivateComponentNames()
+    public static Set<String> getMissingPrivateComponentNames()
     {
     	return missingPrivateComponentNames;
     }

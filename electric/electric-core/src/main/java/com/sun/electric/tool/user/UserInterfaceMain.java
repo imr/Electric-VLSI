@@ -74,7 +74,6 @@ import java.beans.PropertyChangeEvent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -121,7 +120,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 	/** The progress during input. */						protected static Progress progress = null;
 
     private SplashWindow sw = null;
-    private PrintStream stdout = System.out;
+//    private PrintStream stdout = System.out;
 
     public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
         new EventProcessor();
@@ -298,32 +297,6 @@ public class UserInterfaceMain extends AbstractUserInterface
 
             TopLevel.OSInitialize(mode);
             TopLevel.InitializeMessagesWindow();
-
-            // report on missing components
-            if (Job.getDebug())
-            {
-            	List<String> missingComponents = TextUtils.getMissingComponentNames();
-            	String errorMsg = null;
-            	for(String comp : missingComponents)
-            	{
-            		if (errorMsg == null) errorMsg = "Warning: optional components not found: "; else
-            			errorMsg += ", ";
-            		errorMsg += comp;
-            	}
-            	if (errorMsg != null)
-            		System.out.println(errorMsg);
-
-            	missingComponents = TextUtils.getMissingPrivateComponentNames();
-            	errorMsg = null;
-            	for(String comp : missingComponents)
-            	{
-            		if (errorMsg == null) errorMsg = "Warning: private components not found: "; else
-            			errorMsg += ", ";
-            		errorMsg += comp;
-            	}
-            	if (errorMsg != null)
-            		System.out.println(errorMsg);
-            }
         }
     }
 
@@ -339,6 +312,32 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
         TopLevel.InitializeWindows();
         WindowFrame.wantToOpenCurrentLibrary(true, null);
+
+        // report on missing components
+        if (Job.getDebug())
+        {
+        	Set<String> missingComponents = TextUtils.getMissingComponentNames();
+        	String errorMsg = null;
+        	for(String comp : missingComponents)
+        	{
+        		if (errorMsg == null) errorMsg = "Warning: optional components not found: "; else
+        			errorMsg += ", ";
+        		errorMsg += comp;
+        	}
+        	if (errorMsg != null)
+        		System.out.println(errorMsg);
+
+        	missingComponents = TextUtils.getMissingPrivateComponentNames();
+        	errorMsg = null;
+        	for(String comp : missingComponents)
+        	{
+        		if (errorMsg == null) errorMsg = "Warning: private components not found: "; else
+        			errorMsg += ", ";
+        		errorMsg += comp;
+        	}
+        	if (errorMsg != null)
+        		System.out.println(errorMsg);
+        }
     }
 
     public EDatabase getDatabase() {
@@ -443,7 +442,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                 ErrorHighlight eh = it.next();
                 Highlighter highlighter = null;
 
-                // Checking whether a specific geom is displayed
+                // Checking whether a specific geometry is displayed
                 pos++;
                 if (position != -1 && pos != position) continue; // not this one
                 Cell cell = eh.getCell(database);

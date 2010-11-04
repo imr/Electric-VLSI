@@ -400,7 +400,7 @@ public class ALS implements Engine
 	}
 
     private Stimuli sd;
-    @Override
+//    @Override
     public Stimuli getStimuli() { return sd; }
 	ALS(Stimuli sd)
 	{
@@ -732,7 +732,7 @@ public class ALS implements Engine
 	/**
 	 * Method to save the current stimuli information to disk.
 	 */
-    @Override
+//    @Override
 	public void saveStimuli(File stimuliFile) throws IOException
 	{
 		if (stimuliFile ==  null)
@@ -753,7 +753,7 @@ public class ALS implements Engine
 	 * Method to restore the current stimuli information from URL.
      * @param stimuliURL URL of stimuli information
 	 */
-    @Override
+//    @Override
 	public void restoreStimuli(URL stimuliURL) throws IOException
     {
         if (stimuliURL == null)

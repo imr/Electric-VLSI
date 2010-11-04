@@ -24,10 +24,11 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.Launcher;
-import com.sun.electric.tool.Job;
+import com.sun.electric.util.TextUtils;
+
+import java.net.URL;
 
 import javax.swing.ImageIcon;
-import java.net.URL;
 
 /**
  * public class to handle resources like icons/images.
@@ -44,7 +45,7 @@ public class Resources {
 	 * @param theClass class path where the icon resource is stored under
 	 * @param iconName icon name
 	 */
-	public static ImageIcon getResource(Class theClass, String iconName)
+	public static ImageIcon getResource(Class<?> theClass, String iconName)
 	{
 		return (new ImageIcon(getURLResource(theClass, iconName)));
 	}
@@ -55,38 +56,36 @@ public class Resources {
 	 * @param resourceName resource name
 	 * @return a URL for the requested resource.
 	 */
-	public static URL getURLResource(Class theClass, String resourceName)
+	public static URL getURLResource(Class<?> theClass, String resourceName)
 	{
 		return (theClass.getResource(resourceLocation+resourceName));
 	}
 
-    public static Class get3DClass(String name)
+    public static Class<?> get3DClass(String name)
     {
         // Testing first if Java3D plugin exists
-        Class java3DClass = getClass("SimpleUniverse", "com.sun.j3d.utils.universe");
+        Class<?> java3DClass = getClass("SimpleUniverse", "com.sun.j3d.utils.universe");
         if (java3DClass == null) return null; // Java3D not available
         return (getClass(name, plugin3D));
     }
 
-    public static Class getJythonClass(String name)
+    public static Class<?> getJythonClass(String name)
     {
         return (getClass(name, pluginJython));
     }
 
-    private static Class getClass(String name, String plugin)
+    private static Class<?> getClass(String name, String plugin)
     {
-        Class theClass = null;
+        Class<?> theClass = null;
 		try
         {
-            theClass = Launcher.classFromPlugins(plugin+"."+name);
-
+            theClass = Launcher.classFromPlugins(plugin + "." + name);
         } catch (ClassNotFoundException e)
         {
-            if (Job.getDebug()) System.out.println("Can't find class '" + name +
-                    "' from " + plugin + " plugin: " + e.getMessage());
+        	TextUtils.recordMissingComponent(name);
         } catch (Error e)
         {
-            System.out.println(plugin + " not installed: " + e.getMessage());
+            System.out.println("Error accessing plugin '" + plugin + "': " + e.getMessage());
         }
 		return (theClass);
     }

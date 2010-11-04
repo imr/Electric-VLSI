@@ -339,17 +339,34 @@ public class ManualViewer extends EModelessDialog
 			}
 		}
 	}
-        
-        public static boolean isJava3DAvailable()
+
+		private static boolean j3DAvailable;
+		private static boolean j3DChecked = false;
+
+		public static boolean isJava3DAvailable()
         {
             // Checking first if j3d is installed
-            return Resources.get3DClass("utils.J3DUtils") != null;
+        	if (!j3DChecked)
+        	{
+        		j3DChecked = true;
+        		j3DAvailable = Resources.get3DClass("utils.J3DUtils") != null;
+        	}
+        	return j3DAvailable;
         }
 
-        public static boolean isMovieCreatorAvailable()
+		private static boolean movieCreatorAvailable;
+		private static boolean movieCreatorChecked = false;
+
+		public static boolean isMovieCreatorAvailable()
         {
-            // Checking first if Movie is installed
-            return Configuration.lookup(MovieCreator.class) != null;
+            // Checking first if Movie is installed()
+        	if (!movieCreatorChecked)
+        	{
+        		movieCreatorChecked = true;
+        		movieCreatorAvailable = Configuration.lookup(MovieCreator.class) != null;
+            	if (!movieCreatorAvailable) TextUtils.recordMissingComponent("Movie Creator");
+        	}
+        	return movieCreatorAvailable;
         }
 
 
