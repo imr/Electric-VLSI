@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+BUG: (11/4/10, DN) "ant mac-app" using mvn? Doesn't work for sunlabs (Bug $2948)
+FIX: Copy app-resources from electric-distibution to electric-sunlabs.
+   This is a quick solution that violates "Don't repeat yourself"
+
 IMP: (11/3/10, DN) Move OpenFile dialog and IOException handling out of IRSIM and ALS Engines.
 
 IMP: (11/3/10, DN) Add com.sun.electric.api.movie.MovieCreator API .
@@ -30,7 +34,7 @@ IMP: (10/30/10, DN) One more assembly target "distro" .
     Scripts were derived from maven startup scripts.
     Distro is invoked by scripts trunk/electric/target/electric-9.0-SNAPSHOT-distro/bin/electric[.bat]
 
-BUG: (10/29/10, DN) "ant mac-app" using mvn? (Bug 2948)
+BUG: (10/29/10, DN) "ant mac-app" using mvn? (Bug $2948)
 FIX: Reorganize maven projects a little. The parent of all maven projects is electric/electric-parent .
      Project electric is a container of subprojects and a project to package huge jar.
      Insert a call of osxappbundle-maven-plugin into pom.xml as a template for Gilda . 
