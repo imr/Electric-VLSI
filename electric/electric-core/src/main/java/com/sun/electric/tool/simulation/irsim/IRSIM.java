@@ -25,15 +25,30 @@ package com.sun.electric.tool.simulation.irsim;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.lib.LibFile;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.extract.ExtractedPBucket;
+import com.sun.electric.tool.extract.RCPBucket;
+import com.sun.electric.tool.extract.TransistorPBucket;
 import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
+import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.config.Configuration;
+
+import java.io.File;
+import java.net.URL;
+import java.util.List;
+import javax.swing.SwingUtilities;
 
 /**
  * Class for interfacing to the IRSIM simulator by reflection.
  */
 public class IRSIM
 {
+	/** initial size of simulation window: 10ns */		private static final double DEFIRSIMTIMERANGE = 10.0E-9f;
+    
 	private static boolean IRSIMAvailable;
 	private static boolean IRSIMChecked = false;
 
@@ -66,7 +81,102 @@ public class IRSIM
     {
         try
         {
-            Configuration.lookup(IAnalyzer.class).simulateCell(cell, context, fileName, ip, doNow);
+            URL parameterURL = null;
+            String parameterFile = ip.parameterFile.trim();
+            if (parameterFile.length() > 0)
+            {
+                File pf = new File(parameterFile);
+                if (pf != null && pf.exists())
+                {
+                    parameterURL = TextUtils.makeURLToFile(parameterFile);
+                } else
+                {
+                    parameterURL = LibFile.getLibFile(parameterFile);
+                }
+                if (parameterURL == null)
+                {
+                    System.out.println("Cannot find parameter file: " + parameterFile);
+                }
+            }
+            IAnalyzer ianalyzer = Configuration.lookup(IAnalyzer.class);
+            final IAnalyzer.EngineIRSIM analyzer = ianalyzer.createEngine(ip.steppingModel, parameterURL, ip.irDebug);
+            synchronized(analyzer)
+            {
+                // Load network
+                if (cell != null) {
+                    System.out.println("Loading netlist for " + cell.noLibDescribe() + "...");
+                } else {
+                    System.out.println("Loading netlist for file " + fileName + "...");
+                }
+                
+                // Load network
+                if (fileName == null)
+                {
+                    // generate the components directly
+                    List<Object>components = com.sun.electric.tool.io.output.IRSIM.getIRSIMComponents(cell, context, ip);
+                    Technology layoutTech = Schematics.getDefaultSchematicTechnology();
+                    double lengthOff = Schematics.getDefaultSchematicTechnology().getGateLengthSubtraction() / layoutTech.getScale();
+                    // load the circuit from memory
+                    for(Object obj : components)
+                    {
+                        ExtractedPBucket pb = (ExtractedPBucket)obj;
+
+                        if (pb instanceof TransistorPBucket)
+                        {
+                            TransistorPBucket tb = (TransistorPBucket)pb;
+                            analyzer.putTransistor(tb.gateName, tb.sourceName, tb.drainName,
+                                    tb.getTransistorLength(lengthOff), tb.getTransistorWidth(),
+                                    tb.getActiveArea(), tb.getActivePerim(),
+                                    tb.ni.getAnchorCenterX(), tb.ni.getAnchorCenterY(),
+                                    tb.getType() == 'n');
+                        }
+                        else if (pb instanceof RCPBucket)
+                        {
+                            RCPBucket rcb = (RCPBucket)pb;
+                            switch (rcb.getType())
+                            {
+                                case 'r':
+                                    analyzer.putResistor(rcb.net1, rcb.net2, rcb.rcValue);
+                                    break;
+                                case 'C':
+                                    analyzer.putCapacitor(rcb.net1, rcb.net2, rcb.rcValue);
+                                    break;
+                            }
+                        }
+                    }
+                } else
+                {
+                    // get a pointer to to the file with the network (.sim file)
+                    URL fileURL = TextUtils.makeURLToFile(fileName);
+                    if (analyzer.inputSim(fileURL)) return;
+                }
+    
+                analyzer.convertStimuli();
+                final Stimuli sd = analyzer.getStimuli();
+                sd.setCell(cell);
+
+                // make a waveform window
+                if (doNow)
+                {
+                    WaveformWindow.showSimulationDataInNewWindow(sd);
+                    WaveformWindow ww = sd.getWaveformWindow();
+                    ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
+                    ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
+                    ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+                    analyzer.init(ww);
+                } else
+                {
+                    SwingUtilities.invokeLater(new Runnable() { public void run()
+                    {
+                        WaveformWindow.showSimulationDataInNewWindow(sd);
+                        WaveformWindow ww = sd.getWaveformWindow();
+                        ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
+                        ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
+                        ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+                        analyzer.init(ww);
+                    }});
+                }
+            }
         } catch (Exception e)
         {
             System.out.println("Unable to run the IRSIM simulator");

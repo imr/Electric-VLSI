@@ -17,13 +17,6 @@
  */
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.tool.extract.ExtractedPBucket;
-import com.sun.electric.tool.extract.RCPBucket;
-import com.sun.electric.tool.extract.TransistorPBucket;
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.Signal;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,7 +43,7 @@ public class Sim
 		/** high logic threshold for node, normalized units */	float          vHigh;
 		/** low to high transition time in DELTA's */			short          tpLH;
 		/** high to low transition time in DELTA's */			short          tpHL;
-		/** signal in the waveform window (if displayed) */		Signal<DigitalSample>  sig;
+//		/** signal in the waveform window (if displayed) */		Signal<DigitalSample>  sig;
 		/** combines time, nindex, cap, and event */			private Object c;
 		/** combines cause, punts, and tranT */					private Object t;
 		/** combines thev, next, and tranN */					private Object n;
@@ -493,40 +486,24 @@ public class Sim
 	private Config   theConfig;
 	private Analyzer theAnalyzer;
 
-	public Sim(Analyzer analyzer)
+	public Sim(Analyzer analyzer, String steppingModel, URL parameterURL)
 	{
 		theAnalyzer = analyzer;
 
 		// initialize the model
-		if (theAnalyzer.localPrefs.steppingModel.equals("Linear")) theModel = new SStep(analyzer, this); else
+		if (steppingModel.equals("Linear")) theModel = new SStep(analyzer, this); else
 		{
-			if (!theAnalyzer.localPrefs.steppingModel.equals("RC"))
-				System.out.println("Unknown stepping model: " + theAnalyzer.localPrefs.steppingModel + " using RC");
+			if (!steppingModel.equals("RC"))
+				System.out.println("Unknown stepping model: " + steppingModel + " using RC");
 			theModel = new NewRStep(analyzer, this);
 		}
 
 		// read the configuration file
 		theConfig = new Config();
-		String parameterFile = theAnalyzer.localPrefs.parameterFile.trim();
-		if (parameterFile.length() > 0)
-		{
-			File pf = new File(parameterFile);
-			URL url;
-			if (pf != null && pf.exists())
-			{
-				url = Electric.makeURLToFile(parameterFile);
-			} else
-			{
-				url = Electric.getLibFile(parameterFile);
-			}
-			if (url == null)
-			{
-				System.out.println("Cannot find parameter file: " + parameterFile);
-			} else
-			{
-				theConfig.loadConfig(url);
-			}
-		}
+        if (parameterURL != null) {
+            theConfig.loadConfig(parameterURL);
+        }
+        initNetwork();
 	}
 
 	public Config getConfig() { return theConfig; }
@@ -998,6 +975,103 @@ public class Sim
 		}
 		return false;
 	}
+    
+    /**
+     * Put triansitor into the circuit
+     * @param gateName name of transistor gate network
+     * @param sourceName name of transistor gate network
+     * @param drainName drain name of transistor gate network
+     * @param gateLength gate length (lambda)
+     * @param gateWidth gate width (lambda)
+     * @param activeArea active area (lambda^2)
+     * @param activePerim active perim (lambda^2)
+     * @param centerX x-coordinate of center (lambda)
+     * @param centerY y coordinate of cneter (lambda)
+     * @param isNTypeTransistor true if this is N-type transistor
+     */
+    void putTransistor(String gateName, String sourceName, String drainName,
+            double gateLength, double gateWidth,
+            double activeArea, double activePerim,
+            double centerX, double centerY,
+            boolean isNTypeTransistor) {
+        Trans t = new Trans();
+
+        t.gate = getNode(gateName);
+        t.source = getNode(sourceName);
+        t.drain = getNode(drainName);
+        long length = (long) (gateLength * theConfig.lambdaCM);
+        long width = (long) (gateWidth * theConfig.lambdaCM);
+        if (width <= 0 || length <= 0) {
+            System.out.println("Bad transistor width=" + width + " or length=" + length);
+            return;
+        }
+        t.x = (int) centerX;
+        t.y = (int) centerY;
+
+        ((Node) t.gate).nCap += length * width * theConfig.CTGA;
+
+        if (isNTypeTransistor) {
+            t.tType = NCHAN;
+
+            t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA
+                    + activePerim * theConfig.lambda * theConfig.CDP;
+            t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA
+                    + activePerim * theConfig.lambda * theConfig.CDP;
+            t.r = theConfig.rEquiv(NCHAN, width, length);
+        } else {
+            t.tType = PCHAN;
+
+            t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA
+                    + activePerim * theConfig.lambda * theConfig.CPDP;
+            t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA
+                    + activePerim * theConfig.lambda * theConfig.CPDP;
+            t.r = theConfig.rEquiv(PCHAN, width, length);
+        }
+        readTransistorList.add(t);
+
+    }
+    
+    /**
+     * Put resistor into the circuit
+     * @param net1 name of first terminal network
+     * @param net2 name of second terminal network
+     * @param resistance resistance (ohm)
+     */
+    void putResistor(String net1, String net2, double resistance) {
+        Trans t = new Trans();
+        t.tType = RESIST;
+        t.gate = powerNode;
+        t.source = getNode(net1);
+        t.drain = getNode(net2);
+        t.r = theConfig.rEquiv(RESIST, 0, (long) (resistance * theConfig.lambdaCM));
+
+        // link it to the list
+        readTransistorList.add(t);
+    }
+
+    /**
+     * Put capacitor into the circuit
+     * @param net1 name of first terminal network
+     * @param net2 name of second terminal network
+     * @param capacitance capacitance (pf)
+     */
+    void putCapacitor(String net1, String net2, double capacitance) {
+        float cap = (float) (capacitance / 1000);		// ff to pf conversion
+        Node n = getNode(net1);
+        Node m = getNode(net2);
+        if (n != m) {
+            // add cap to both nodes
+            if (m != groundNode) {
+                m.nCap += cap;
+            }
+            if (n != groundNode) {
+                n.nCap += cap;
+            }
+        } else if (n == groundNode) {
+            // same node, only GND makes sense
+            n.nCap += cap;
+        }
+    }
 
 	/**
 	 * Load a .sim file into memory.
@@ -1050,98 +1124,8 @@ public class Sim
 	 *     The = construct allows the name node2 to be defined as an alias for the name node1.
 	 *     Aliases defined by means of this construct may not appear anywhere else in the .sim file.
 	 */
-	private void inputSim(URL simFileURL, List<Object> components)
+	boolean inputSim(URL simFileURL)
 	{
-		if (components != null)
-		{
-            double lengthOff = Electric.getLengthOff();
-			// load the circuit from memory
-			for(Object obj : components)
-			{
-				ExtractedPBucket pb = (ExtractedPBucket)obj;
-
-				if (pb instanceof TransistorPBucket)
-				{
-					TransistorPBucket tb = (TransistorPBucket)pb;
-					Trans t = new Trans();
-
-					t.gate = getNode(tb.gateName);
-					t.source = getNode(tb.sourceName);
-					t.drain = getNode(tb.drainName);
-					long length = (long)(tb.getTransistorLength(lengthOff) * theConfig.lambdaCM);
-					long width = (long)(tb.getTransistorWidth() * theConfig.lambdaCM);
-					if (width <= 0 || length <= 0)
-					{
-						System.out.println("Bad transistor width=" + width + " or length=" + length);
-						return;
-					}
-					double activeArea = tb.getActiveArea();
-					double activePerim = tb.getActivePerim();
-					t.x = (int)tb.ni.getAnchorCenterX();
-					t.y = (int)tb.ni.getAnchorCenterY();
-
-					((Node)t.gate).nCap += length * width * theConfig.CTGA;
-
-					switch (tb.getType())
-					{
-						case 'n':
-							t.tType = NCHAN;
-
-							t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
-								activePerim * theConfig.lambda * theConfig.CDP;
-							t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
-								activePerim * theConfig.lambda * theConfig.CDP;
-							t.r = theConfig.rEquiv(NCHAN, width, length);
-							break;
-						case 'p':
-							t.tType = PCHAN;
-
-							t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
-								activePerim * theConfig.lambda * theConfig.CPDP;
-							t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
-								activePerim * theConfig.lambda * theConfig.CPDP;
-							t.r = theConfig.rEquiv(PCHAN, width, length);
-							break;
-					}
-					readTransistorList.add(t);
-				}
-				else if (pb instanceof RCPBucket)
-				{
-					RCPBucket rcb = (RCPBucket)pb;
-					switch (rcb.getType())
-					{
-						case 'r':
-							Trans t = new Trans();
-							t.tType = RESIST;
-							t.gate = powerNode;
-							t.source = getNode(rcb.net1);
-							t.drain = getNode(rcb.net2);
-							t.r = theConfig.rEquiv(RESIST, 0, (long)(rcb.rcValue * theConfig.lambdaCM));
-
-							// link it to the list
-							readTransistorList.add(t);
-							break;
-						case 'C':
-							float cap = (float)(rcb.rcValue / 1000);		// ff to pf conversion
-							Node n = getNode(rcb.net1);
-							Node m = getNode(rcb.net2);
-							if (n != m)
-							{
-								// add cap to both nodes
-								if (m != groundNode)	m.nCap += cap;
-								if (n != groundNode)	n.nCap += cap;
-							} else if (n == groundNode)
-							{
-								// same node, only GND makes sense
-								n.nCap += cap;
-							}
-							break;
-					}
-				}
-			}
-			return;
-		}
-
 		// read the file
 		boolean rError = false;
 		boolean aError = false;
@@ -1238,7 +1222,7 @@ public class Sim
 						break;
 					default:
 						reportError(fileName, lineReader.getLineNumber(), "Unrecognized input line (" + targ[0] + ")");
-						if (checkErrs(fileName)) return;
+						if (checkErrs(fileName)) return true;
 				}
 			}
 			inputStream.close();
@@ -1248,9 +1232,10 @@ public class Sim
 		}
         Electric.stopProgressDialog();
 		System.out.println("Loaded circuit, lambda=" + theConfig.lambda + "u");
+        return numErrors > 0;
 	}
 
-	public boolean readNetwork(URL simFileURL, List<Object> components)
+	private void initNetwork()
 	{
 		readTransistorList = new ArrayList<Trans>();
 		nodeHash = new HashMap<String,Node>();
@@ -1300,8 +1285,9 @@ public class Sim
 		tCap.x = 0;
 
 		numErrors = 0;
-		inputSim(simFileURL, components);
-		if (numErrors > 0) return true;
+    }
+    
+    void finishNetwork() {
 
 		// connect all txtors to corresponding nodes
 		connectNetwork();
@@ -1310,7 +1296,6 @@ public class Sim
 		Collections.sort(getNodeList(), new NodesByName());
 
 		theModel.initEvent();
-		return false;
 	}
 
 	private static class NodesByName implements Comparator<Node>

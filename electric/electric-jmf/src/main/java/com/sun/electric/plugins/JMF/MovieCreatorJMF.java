@@ -38,7 +38,6 @@ public class MovieCreatorJMF implements MovieCreator {
     public MovieCreatorJMF() {
         // Check if JMF is available
         String version = javax.media.Manager.getVersion();
-        System.err.println("JMF version " + version);
     }
 
     /**

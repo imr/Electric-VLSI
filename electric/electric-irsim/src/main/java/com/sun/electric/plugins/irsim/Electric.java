@@ -24,39 +24,14 @@
 package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.util.TextUtils;
-import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.SimulationTool;
-import java.net.URL;
 
 /**
  * Collects Electric dependencies in IRSIM code.
  */
 class Electric {
 
-    // Technology, Schematics
-    
-    static double getLengthOff() {
-        Technology layoutTech = Schematics.getDefaultSchematicTechnology();
-        double lengthOff = Schematics.getDefaultSchematicTechnology().getGateLengthSubtraction() / layoutTech.getScale();
-        return lengthOff;
-    }
-    
-    // LibFile
-    
-	/**
-	 * Method to find a library file.
-	 * @param fileName the name of the file in the library area.
-	 * These files are typically readable dumps of essential files used by everyone.
-	 * @return the file path.
-	 */
-	static URL getLibFile(String fileName)
-	{
-        return LibFile.getLibFile(fileName);
-	}
-    
     // Job.getUserInterface()
 
     /**
@@ -132,6 +107,7 @@ class Electric {
          * Returns a printable version of this MutableDouble.
          * @return a printable version of this MutableDouble.
          */
+        @Override
         public String toString() { return Double.toString(value); }
     }
     
@@ -243,14 +219,5 @@ class Electric {
      */
     public static String formatDouble(double v) {
         return TextUtils.formatDouble(v);
-    }
-    
-    /**
-     * Method to convert a file path to a URL.
-     * @param fileName the path to the file.
-     * @return the URL to that file (null on error).
-     */
-    public static URL makeURLToFile(String fileName) {
-        return TextUtils.makeURLToFile(fileName);
     }
 }

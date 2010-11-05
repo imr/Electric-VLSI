@@ -17,14 +17,9 @@
  */
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.output.IRSIM;
-import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
 import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.SignalCollection;
@@ -51,8 +46,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import javax.swing.SwingUtilities;
 
 
 /**
@@ -62,7 +57,7 @@ import javax.swing.SwingUtilities;
  * Analyzers have Sim objects in them.
  * Sim objects have Config and Eval objects in them.
  */
-public class Analyzer implements Engine
+public class Analyzer implements IAnalyzer.EngineIRSIM
 {
 	private static final String simVersion = "9.5j";
 
@@ -106,7 +101,6 @@ public class Analyzer implements Engine
 	/** the "x" command (set signal undefined) */		private static final int VECTORX          = 37;
 
 	/** default simulation steps per screen */			private static final int    DEF_STEPS     = 4;
-	/** initial size of simulation window: 10ns */		private static final double DEFIRSIMTIMERANGE = 10.0E-9f;
 	/** number of buckets in histogram */				private static final int    NBUCKETS      = 20;
 	/** maximum width of print line */					private static final int	MAXCOL        = 80;
 
@@ -169,89 +163,147 @@ public class Analyzer implements Engine
 	/** list of nodes to be removed from input */	public List<Sim.Node>   xInputs = new ArrayList<Sim.Node>();
 
 	/** set when analyzer is running */				public boolean          analyzerON;
-	/** simulation preferences */					public IRSIMPreferences localPrefs;
+    /** irDebug preferneces */                      public int              irDebug;
 
 	/** the simulation engine */					private Sim             theSim;
 	/** the waveform window */						private WaveformWindow  ww;
 	/** the SignalCollection being displayed */		private SignalCollection sigCollection;
-	/** the cell being simulated */					private Cell            cell;
-	/** the context for the cell being simulated */	private VarContext      context;
-	/** the name of the file being simulated */		private String          fileName;
 	/** mapping from signals to nodes */			private HashMap<Signal<?>,Sim.Node> nodeMap;
+	/** mapping from nodes to signals */			private HashMap<Sim.Node,MutableSignal<DigitalSample>> signalMap = new HashMap<Sim.Node,MutableSignal<DigitalSample>>();
 
 	/************************** ELECTRIC INTERFACE **************************/
 
     private Stimuli sd;
-	Analyzer(IRSIMPreferences ip)
+	Analyzer(String steppingModel, URL parameterURL, int irDebug)
 	{
-		localPrefs = ip;
+        this.irDebug = irDebug;
         sd = new Stimuli();
-		theSim = new Sim(this);
+		theSim = new Sim(this, steppingModel, parameterURL);
 	}
     
     public static IAnalyzer getInstance() {
         return new IAnalyzer() {
-        	public void simulateCell(Cell cell, VarContext context, String fileName, IRSIMPreferences ip, boolean doNow) {
-                Analyzer.simulateCell(cell, context, fileName, ip, doNow);
+            /**
+             * Create IRSIM Simulation Engine to simulate a cell.
+             * @param ip IRSIM preferences
+             * @param parameterURL URL of IRSIM parameter file
+             */
+            public EngineIRSIM createEngine(String steppingModel, URL parameterURL, int irDebug) {
+                Analyzer theAnalyzer = new Analyzer(steppingModel, parameterURL, irDebug);
+                
+                System.out.println("IRSIM, version " + simVersion);
+                // now initialize the simulator
+                theAnalyzer.initRSim();
+                return theAnalyzer;
             }
         };
     }
+    
+    /**
+     * Put triansitor into the circuit
+     * @param gateName name of transistor gate network
+     * @param sourceName name of transistor gate network
+     * @param drainName drain name of transistor gate network
+     * @param gateLength gate length (lambda)
+     * @param gateWidth gate width (lambda)
+     * @param activeArea active area (lambda^2)
+     * @param activePerim active perim (lambda^2)
+     * @param centerX x-coordinate of center (lambda)
+     * @param centerY y coordinate of cneter (lambda)
+     * @param isNTypeTransistor true if this is N-type transistor
+     */
+    public void putTransistor(String gateName, String sourceName, String drainName,
+            double gateLength, double gateWidth,
+            double activeArea, double activePerim,
+            double centerX, double centerY,
+            boolean isNTypeTransistor) {
+        theSim.putTransistor(gateName, sourceName, drainName, gateLength, gateWidth, activeArea, activePerim, centerX, centerY, isNTypeTransistor);
+    }
+    
+    /**
+     * Put resistor into the circuit
+     * @param net1 name of first terminal network
+     * @param net2 name of second terminal network
+     * @param resistance resistance (ohm)
+     */
+    public void putResistor(String net1, String net2, double resistance) {
+        theSim.putResistor(net1, net2, resistance);
+    }
+
+    /**
+     * Put capacitor into the circuit
+     * @param net1 name of first terminal network
+     * @param net2 name of second terminal network
+     * @param capacitance capacitance (pf)
+     */
+    public void putCapacitor(String net1, String net2, double capacitance) {
+        theSim.putCapacitor(net1, net2, capacitance);
+    }
 
 	/**
-	 * Main entry point to start simulating a cell.
-	 * @param cell the cell to simulate.
-	 * @param fileName the file with the input deck (null to generate one)
-	 */
-	public static void simulateCell(Cell cell, VarContext context, String fileName, IRSIMPreferences ip, Boolean doNow)
+	 * Load a .sim file into memory.
+	 *
+	 * A .sim file consists of a series of lines, each of which begins with a key letter.
+	 * The key letter beginning a line determines how the remainder of the line is interpreted.
+	 * The following are the list of key letters understood.
+	 *
+	 *   | units: s tech: tech format: MIT|LBL|SU
+	 *     If present, this must be the first line in the .sim file.
+	 *     It identifies the technology of this circuit as tech and gives a scale factor for units of linear dimension as s.
+	 *     All linear dimensions appearing in the .sim file are multiplied by s to give centimicrons.
+	 *     The format field signifies the sim variant. Electric only recognizes SU format. 
+	 *   type g s d l w x y g=gattrs s=sattrs d=dattrs
+	 *     Defines a transistor of type type. Currently, type may be e or d for NMOS, or p or n for CMOS.
+	 *     The name of the node to which the gate, source, and drain of the transistor are connected are given by g, s, and d respectively.
+	 *     The length and width of the transistor are l and w. The next two tokens, x and y, are optional.
+	 *     If present, they give the location of a point inside the gate region of the transistor.
+	 *     The last three tokens are the attribute lists for the transistor gate, source, and drain.
+	 *     If no attributes are present for a particular terminal, the corresponding attribute list may be absent
+	 *     (i.e, there may be no g= field at all).
+	 *     The attribute lists gattrs, etc. are comma-separated lists of labels.
+	 *     The label names should not include any spaces, although some tools can accept label names with
+	 *     spaces if they are enclosed in double quotes. In version 6.4.5 and later the default format
+	 *     produced by ext2sim is SU. In this format the attribute of the gate starting with S_ is the substrate node of the fet.
+	 *     The attributes of the gate, and source and substrate starting with A_, P_ are the area and perimeter
+	 *     (summed for that node only once) of the source and drain respectively. This addition to the format is backwards compatible. 
+	 *   C n1 n2 cap
+	 *     Defines a capacitor between nodes n1 and n2. The value of the capacitor is cap femtofarads.
+	 *     NOTE: since many analysis tools compute transistor gate capacitance themselves from the
+	 *     transistor's area and perimeter, the capacitance between a node and substrate (GND!)
+	 *     normally does not include the capacitance from transistor gates connected to that node.
+	 *     If the .sim file was produced by ext2sim(1), check the technology file that was used to
+	 *     produce the original .ext files to see whether transistor gate capacitance is included or excluded;
+	 *     see "Magic Maintainer's Manual 2 - The Technology File for details. 
+	 *   R node res
+	 *     Defines the lumped resistance of node node to be res ohms.
+	 *   r node1 node2 res
+	 *     Defines an explicit resistor between nodes node1 and node2 of resistance res ohms.
+	 *   N node darea dperim parea pperim marea mperim
+	 *     As an alternative to computed capacitances, some tools expect the total perimeter and area
+	 *     of the polysilicon, diffusion, and metal in each node to be reported in the .sim file.
+	 *     The N construct associates diffusion area darea (in square centimicrons) and diffusion
+	 *     perimeter dperim (in centimicrons) with node node, polysilicon area parea and perimeter pperim,
+	 *     and metal area marea and perimeter mperim. This construct is technology dependent and obsolete. 
+	 *   = node1 node2
+	 *     Each node in a .sim file is named implicitly by having it appear in a transistor definition.
+	 *     All node names appearing in a .sim file are assumed to be distinct.
+	 *     Some tools, such as esim(1), recognize aliases for node names.
+	 *     The = construct allows the name node2 to be defined as an alias for the name node1.
+	 *     Aliases defined by means of this construct may not appear anywhere else in the .sim file.
+     * @param simFileURL URL of .sim fole
+     * @return
+     */
+    public boolean inputSim(URL simFileURL) {
+        return theSim.inputSim(simFileURL);
+    }
+
+    /**
+     * Finish initialization
+     * @param ww WaveformWindow to show
+     */
+	public void init(WaveformWindow ww)
 	{
-		Analyzer theAnalyzer = new Analyzer(ip);
-		theAnalyzer.cell = cell;
-		theAnalyzer.context = context;
-		theAnalyzer.fileName = fileName;
-		startIrsim(theAnalyzer, doNow.booleanValue());
-	}
-
-	private static void startIrsim(final Analyzer analyzer, boolean doNow)
-	{
-		synchronized(analyzer)
-		{
-			System.out.println("IRSIM, version " + simVersion);
-
-			// now initialize the simulator
-			analyzer.initRSim();
-
-			// Load network
-			if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell.noLibDescribe() + "..."); else
-				System.out.println("Loading netlist for file " + analyzer.fileName + "...");
-			analyzer.loadCircuit();
-			final Stimuli sd = analyzer.getStimuli();
-
-			// make a waveform window
-			if (doNow)
-			{
-				WaveformWindow.showSimulationDataInNewWindow(sd);
-				analyzer.ww = sd.getWaveformWindow();
-				analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
-				analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
-				analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
-				analyzer.init();
-			} else
-			{
-				SwingUtilities.invokeLater(new Runnable() { public void run()
-				{
-					WaveformWindow.showSimulationDataInNewWindow(sd);
-					analyzer.ww = sd.getWaveformWindow();
-					analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
-					analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
-					analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
-					analyzer.init();
-				}});
-			}
-		}
-	}
-
-	private void init()
-	{
+        this.ww = ww;
 		// tell the simulator to watch all signals
 		initTimes(0, 50000, theSim.curDelta);
 
@@ -272,27 +324,18 @@ public class Analyzer implements Engine
 		updateWindow(theSim.curDelta);
 	}
 
-	private void loadCircuit()
-	{
-		// Load network
-		List<Object> components = null;
-		URL fileURL = null;
-		if (fileName == null)
-		{
-			// generate the components directly
-			components = IRSIM.getIRSIMComponents(cell, context, localPrefs);
-		} else
-		{
-			// get a pointer to to the file with the network (.sim file)
-			fileURL = Electric.makeURLToFile(fileName);
-		}
-		if (theSim.readNetwork(fileURL, components)) return;
-
+    /**
+     * Finish initialization of the circuit and convert Stimuli.
+     */
+    public void convertStimuli() 
+    {
+        theSim.finishNetwork();
+        
 		// convert the stimuli
 		sd.setEngine(this);
 		sigCollection = Stimuli.newSignalCollection(sd, "SIGNALS");
 		sd.setSeparatorChar('/');
-		sd.setCell(cell);
+//		sd.setCell(cell);
 		nodeMap = new HashMap<Signal<?>,Sim.Node>();
 		List<Signal<?>> sigList = new ArrayList<Signal<?>>();
 		for(Sim.Node n : theSim.getNodeList())
@@ -305,7 +348,8 @@ public class Analyzer implements Engine
                 slashPos >= 0
                 ? DigitalSample.createSignal(sigCollection, sd, n.nName.substring(slashPos+1), n.nName.substring(0, slashPos))
                 : DigitalSample.createSignal(sigCollection, sd, n.nName, null);
-			n.sig = sig;
+            signalMap.put(n, sig);
+//			n.sig = sig;
 			sigList.add(sig);
 			nodeMap.put(sig, n);
 
@@ -1203,7 +1247,7 @@ public class Analyzer implements Engine
 				for(Sim.Trans t : n.nTermList)
 				{
 					infstr += "  ";
-					if (localPrefs.irDebug == 0)
+					if (irDebug == 0)
 					{
 						String drive = null;
 						Sim.Node rail = (t.drain.nFlags & Sim.POWER_RAIL) != 0 ? t.drain : t.source;
@@ -1418,47 +1462,47 @@ public class Analyzer implements Engine
 
 	private void doDebug(SimVector sv)
 	{
-		if (sv.parameters.length <= 0) localPrefs.irDebug = 0; else
+		if (sv.parameters.length <= 0) irDebug = 0; else
 		{
 			for(int i=0; i<sv.parameters.length; i++)
 			{
 				if (sv.parameters[i].equalsIgnoreCase("ev"))
 				{
-					localPrefs.irDebug |= Sim.DEBUG_EV;
+					irDebug |= Sim.DEBUG_EV;
 				} else if (sv.parameters[i].equalsIgnoreCase("dc"))
 				{
-					localPrefs.irDebug |= Sim.DEBUG_DC;
+					irDebug |= Sim.DEBUG_DC;
 				} else if (sv.parameters[i].equalsIgnoreCase("tau"))
 				{
-					localPrefs.irDebug |= Sim.DEBUG_TAU;
+					irDebug |= Sim.DEBUG_TAU;
 				} else if (sv.parameters[i].equalsIgnoreCase("taup"))
 				{
-					localPrefs.irDebug |= Sim.DEBUG_TAUP;
+					irDebug |= Sim.DEBUG_TAUP;
 				} else if (sv.parameters[i].equalsIgnoreCase("spk"))
 				{
-					localPrefs.irDebug |= Sim.DEBUG_SPK;
+					irDebug |= Sim.DEBUG_SPK;
 				} else if (sv.parameters[i].equalsIgnoreCase("tw"))
 				{
-					localPrefs.irDebug |= Sim.DEBUG_TW;
+					irDebug |= Sim.DEBUG_TW;
 				} else if (sv.parameters[i].equalsIgnoreCase("all"))
 				{
-					localPrefs.irDebug = Sim.DEBUG_EV | Sim.DEBUG_DC | Sim.DEBUG_TAU | Sim.DEBUG_TAUP | Sim.DEBUG_SPK | Sim.DEBUG_TW;
+					irDebug = Sim.DEBUG_EV | Sim.DEBUG_DC | Sim.DEBUG_TAU | Sim.DEBUG_TAUP | Sim.DEBUG_SPK | Sim.DEBUG_TW;
 				} else if (sv.parameters[i].equalsIgnoreCase("off"))
 				{
-					localPrefs.irDebug = 0;
+					irDebug = 0;
 				}
 			}
 		}
 
 		System.out.print("Debugging");
-		if (localPrefs.irDebug == 0) System.out.println(" OFF"); else
+		if (irDebug == 0) System.out.println(" OFF"); else
 		{
-			if ((localPrefs.irDebug&Sim.DEBUG_EV) != 0) System.out.print(" event-scheduling");
-			if ((localPrefs.irDebug&Sim.DEBUG_DC) != 0) System.out.print(" final-value-computation");
-			if ((localPrefs.irDebug&Sim.DEBUG_TAU) != 0) System.out.print(" tau/delay-computation");
-			if ((localPrefs.irDebug&Sim.DEBUG_TAUP) != 0) System.out.print(" tauP-computation");
-			if ((localPrefs.irDebug&Sim.DEBUG_SPK) != 0) System.out.print(" spike-analysis");
-			if ((localPrefs.irDebug&Sim.DEBUG_TW) != 0) System.out.print(" tree-walk");
+			if ((irDebug&Sim.DEBUG_EV) != 0) System.out.print(" event-scheduling");
+			if ((irDebug&Sim.DEBUG_DC) != 0) System.out.print(" final-value-computation");
+			if ((irDebug&Sim.DEBUG_TAU) != 0) System.out.print(" tau/delay-computation");
+			if ((irDebug&Sim.DEBUG_TAUP) != 0) System.out.print(" tauP-computation");
+			if ((irDebug&Sim.DEBUG_SPK) != 0) System.out.print(" spike-analysis");
+			if ((irDebug&Sim.DEBUG_TW) != 0) System.out.print(" tree-walk");
 			System.out.println();
 		}
 	}
@@ -2286,9 +2330,14 @@ public class Analyzer implements Engine
 			lastStart = startTime;
 		}
 
-		for(Sim.Node nd : theSim.getNodeList())
+		for(Map.Entry<Sim.Node,MutableSignal<DigitalSample>> e : signalMap.entrySet())
 		{
-			if (nd.sig == null) continue;
+            Sim.Node nd = e.getKey();
+            MutableSignal<DigitalSample> sig = e.getValue();
+			if (sig == null) continue;
+//		for(Sim.Node nd : theSim.getNodeList())
+//		{
+//			if (nd.sig == null) continue;
 
 			if (t1 >= lastTime) continue;
 			Sim.HistEnt h = nd.wind;
@@ -2346,8 +2395,10 @@ public class Analyzer implements Engine
 				count++;
 			}
 			for(int i=0; i<count; i++)
-                if (((MutableSignal<DigitalSample>)nd.sig).getSample(traceTime[i])==null)
-                    ((MutableSignal<DigitalSample>)nd.sig).addSample(traceTime[i], traceState[i]);
+                if (sig.getSample(traceTime[i])==null)
+                    sig.addSample(traceTime[i], traceState[i]);
+//                if (((MutableSignal<DigitalSample>)nd.sig).getSample(traceTime[i])==null)
+//                    ((MutableSignal<DigitalSample>)nd.sig).addSample(traceTime[i], traceState[i]);
 		}
 		ww.repaint();
 	}
@@ -2451,7 +2502,7 @@ public class Analyzer implements Engine
 	private String pGValue(Sim.Trans t)
 	{
 		String infstr = "";
-		if (localPrefs.irDebug != 0)
+		if (irDebug != 0)
 			infstr += "[" + Sim.states[t.state] + "] ";
 		if ((t.tType & Sim.GATELIST) != 0)
 		{
