@@ -401,7 +401,7 @@ APrerequisite|net@39|||FS0|pin@24||15.25|15.5|node@2|port4|11|15.5
 X
 
 # Cell tech-MOSISCMOS;1{lay}
-Ctech-MOSISCMOS;1{lay}||mocmos|901321855000|1289049506046|
+Ctech-MOSISCMOS;1{lay}||mocmos|901321855000|1289049568138|
 NMetal-1-P-Active-Con|contact@0||-190|50.5|||Y|
 NMetal-3-Metal-4-Con|contact@1||-141.5|52||||
 NMetal-1-P-Active-Con|contact@2||-190|27.5|||Y|
@@ -419,7 +419,6 @@ NMetal-3-Pin|pin@1||-129|39||||
 NMetal-4-Pin|pin@2||-129|52|3|3||
 NMetal-3-Pin|pin@3||-141.5|39||||
 NMetal-1-Pin|pin@4||-129|21.5||||
-NMetal-1-Pin|pin@5||-164|36.5||||
 NPolysilicon-1-Pin|pin@6||-210.5|43|||Y|
 NPolysilicon-1-Pin|pin@7||-210.5|34|||Y|
 NPolysilicon-1-Pin|pin@9||-182.5|43|||Y|
@@ -450,7 +449,6 @@ AMetal-3|net@6|||S900|contact@1||-141.5|51.5|pin@3||-141.5|39
 APolysilicon-1|net@7|||S0|contact@9||-135.5|-5|contact@6||-157.5|-5
 AMetal-3|net@8|||S0|pin@3||-141.5|39|contact@8||-152.5|39
 AMetal-1|net@9|||S1800|pin@19||-135|21.5|pin@4||-129|21.5
-AMetal-1|net@11|||S2700|pin@17||-164|28|pin@5||-164|36.5
 APolysilicon-1|net@12|||S0|pmos@0|poly-left|-193.5|43|pin@6||-210.5|43
 APolysilicon-1|net@13|||S0|pin@10||-197.5|34|pin@7||-210.5|34
 AP-Active|net@16|||S2700|contact@2||-190|28|pmos@1|diff-top|-190|30
