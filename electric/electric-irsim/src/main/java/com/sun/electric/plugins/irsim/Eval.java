@@ -18,14 +18,13 @@
 
 package com.sun.electric.plugins.irsim;
 
-import java.util.List;
+import java.util.Collection;
 
 public class Eval
 {
 //	private static final boolean DEBUG = false;
 
 	private boolean	firstCall;	    /* reset when calling init_vdd_gnd */
-	protected Analyzer theAnalyzer;
 	protected Sim theSim;
 	private  int      nPending;         /* number of pending events */
 
@@ -54,10 +53,9 @@ public class Eval
 		/** DEP */		new int[] {Sim.WEAK, Sim.WEAK,    Sim.WEAK,    Sim.WEAK}
 	};
 
-	public Eval(Analyzer analyzer, Sim sim)
+	public Eval(Sim sim)
 	{
 		firstCall = true;
-		theAnalyzer = analyzer;
 		theSim = sim;
 	}
 
@@ -71,18 +69,22 @@ public class Eval
 		firstCall = true;
 	}
 
-	public boolean step(long stopTime)
+	public boolean step(long stopTime,
+            Collection<SimAPI.Node> xInputs,
+            Collection<SimAPI.Node> hInputs,
+            Collection<SimAPI.Node> lInputs,
+            Collection<SimAPI.Node> uInputs)
 	{
 		boolean retCode = false;
 
 		// look through input lists updating any nodes which just become inputs
-		MarkNOinputs();			// nodes no longer inputs
-		SetInputs(theAnalyzer.hInputs, Sim.HIGH);		// HIGH inputs
-		theAnalyzer.hInputs.clear();
-		SetInputs(theAnalyzer.lIinputs, Sim.LOW);		// LOW inputs
-		theAnalyzer.lIinputs.clear();
-		SetInputs(theAnalyzer.uInputs, Sim.X);			// X inputs
-		theAnalyzer.uInputs.clear();
+		MarkNOinputs(xInputs);			// nodes no longer inputs
+		SetInputs(hInputs, Sim.HIGH);		// HIGH inputs
+		hInputs.clear();
+		SetInputs(lInputs, Sim.LOW);		// LOW inputs
+		lInputs.clear();
+		SetInputs(uInputs, Sim.X);			// X inputs
+		uInputs.clear();
 
 		/*
 		 * On the first call to step, make sure transistors with gates
@@ -107,7 +109,7 @@ public class Eval
 				Event evList = getNextEvent(stopTime);
 				if (evList == null) break;
 				MarkNodes(evList);
-				if (theAnalyzer.xInputs.size() > 0) EvalNOinputs();
+				if (xInputs.size() > 0) EvalNOinputs(xInputs);
 
 				long brkFlag = EvalNodes(evList);
 
@@ -117,30 +119,31 @@ public class Eval
 //						Analyzer.updateWindow(Sched.curDelta);
 //					return retCode;
 //				}
-				if ((brkFlag & (Sim.WATCHVECTOR | Sim.STOPONCHANGE | Sim.STOPVECCHANGE)) != 0)
+                SimAPI.Analyzer analyzer = theSim.theAnalyzer;
+				if ((brkFlag & (Sim.WATCHVECTOR | Sim.STOPONCHANGE | Sim.STOPVECCHANGE)) != 0 && analyzer != null)
 				{
 					if ((brkFlag & (Sim.WATCHVECTOR | Sim.STOPVECCHANGE)) != 0)
-						theAnalyzer.dispWatchVec(brkFlag);
+						analyzer.dispWatchVec(brkFlag);
 					if ((brkFlag & (Sim.STOPONCHANGE | Sim.STOPVECCHANGE)) != 0)
 					{
-						if (theAnalyzer.analyzerON)
-							theAnalyzer.updateWindow(theSim.curDelta);
+						analyzer.updateWindowIfAnalyzerOn(theSim.curDelta);
 						return true;
 					}
 				}
 			}
 
-			if (theAnalyzer.xInputs.size() > 0)
+			if (xInputs.size() > 0)
 			{
-				EvalNOinputs();
+				EvalNOinputs(xInputs);
 				continue;
 			}
 			break;
 		}
 
 		theSim.curDelta = stopTime;
-		if (theAnalyzer.analyzerON)
-			theAnalyzer.updateWindow(theSim.curDelta);
+        SimAPI.Analyzer analyzer = theSim.theAnalyzer;
+        if (analyzer != null)
+            analyzer.updateWindowIfAnalyzerOn(theSim.curDelta);
 		return retCode;
 	}
 
@@ -157,7 +160,7 @@ public class Eval
 		System.out.print(" @ " + Sim.deltaToNS(e.nTime) + "ns " + n.nName + ": " +
 			Sim.vChars.charAt(n.nPot) + " -> " + Sim.vChars.charAt(e.eval));
 
-		int tmp = (theAnalyzer.irDebug & Sim.DEBUG_EV) != 0 ? (Sim.REPORT_TAU | Sim.REPORT_DELAY) : theSim.tReport;
+		int tmp = (theSim.irDebug & Sim.DEBUG_EV) != 0 ? (Sim.REPORT_TAU | Sim.REPORT_DELAY) : theSim.tReport;
 		switch (tmp & (Sim.REPORT_TAU | Sim.REPORT_DELAY))
 		{
 			case Sim.REPORT_TAU:
@@ -199,8 +202,9 @@ public class Eval
 			if ((n.nFlags & Sim.INPUT) == 0 && (n.curr.val != n.nPot))
 				theSim.addHist(n, n.nPot, false, e.nTime, e.delay, e.rTime);
 
-			if (n.awPending != null && n.awPot == n.nPot)
-				theAnalyzer.evalAssertWhen(n);
+			if (n.awPending != null && n.awPot == n.nPot && n.awPending != null)
+                n.awPending.run();
+//				theAnalyzer.evalAssertWhen(n);
 
 			/* for each transistor controlled by event node, mark
 			 * source and drain nodes as needing recomputation.
@@ -298,10 +302,11 @@ public class Eval
 	 * Change the state of the nodes in the given input list to their new value,
 	 * setting their INPUT flag and enqueueing the event.
 	 */
-	private void SetInputs(List<Sim.Node> list, int val)
+	private void SetInputs(Collection<SimAPI.Node> list, int val)
 	{
-		for(Sim.Node n : list)
+		for(SimAPI.Node nn : list)
 		{
+            Sim.Node n = (Sim.Node)nn;
 			n.nPot = (short)val;
 			n.nFlags &= ~Sim.INPUT_MASK;
 			n.nFlags |= Sim.INPUT;
@@ -314,28 +319,29 @@ public class Eval
 		}
 	}
 
-	private void MarkNOinputs()
+	private void MarkNOinputs(Collection<SimAPI.Node> xInputs)
 	{
-		for(Sim.Node n : theAnalyzer.xInputs)
+		for(SimAPI.Node n : xInputs)
 		{
-			n.nFlags &= ~(Sim.INPUT_MASK | Sim.INPUT);
-			n.nFlags |= Sim.VISITED;
+			n.clearFlags(SimAPI.INPUT_MASK | SimAPI.INPUT);
+			n.setFlags(SimAPI.VISITED);
 		}
 	}
 
 	/**
 	 * nodes which are no longer inputs
 	 */
-	private void EvalNOinputs()
+	private void EvalNOinputs(Collection<SimAPI.Node> xInputs)
 	{
-		for(Sim.Node n : theAnalyzer.xInputs)
+		for(SimAPI.Node nn : xInputs)
 		{
+            Sim.Node n = (Sim.Node)nn;
 			theSim.curNode = n;
 			theSim.addHist(n, n.curr.val, false, theSim.curDelta, 0L, 0L);
 			if ((n.nFlags & Sim.VISITED) != 0)
 				modelEvaluate(n);
 		}
-		theAnalyzer.xInputs.clear();
+		xInputs.clear();
 	}
 
 	/**

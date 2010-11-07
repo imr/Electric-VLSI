@@ -23,9 +23,6 @@
  */
 package com.sun.electric.tool.simulation.irsim;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 import java.net.URL;

@@ -401,7 +401,7 @@ APrerequisite|net@39|||FS0|pin@24||15.25|15.5|node@2|port4|11|15.5
 X
 
 # Cell tech-MOSISCMOS;1{lay}
-Ctech-MOSISCMOS;1{lay}||mocmos|901321855000|1289049568138|
+Ctech-MOSISCMOS;1{lay}||mocmos|901321855000|1289149350633|
 NMetal-1-P-Active-Con|contact@0||-190|50.5|||Y|
 NMetal-3-Metal-4-Con|contact@1||-141.5|52||||
 NMetal-1-P-Active-Con|contact@2||-190|27.5|||Y|
@@ -486,7 +486,7 @@ Eout1||D5G3;|pin@4||O
 Eout2||D5G3;|pin@0||O
 Eout3||D5G3;|pin@1||O
 Eout4||D5G3;|pin@2||O
-Epwr||D6G3;X2;|substr@0||P
+Epwr|vdd|D6G3;X2;|substr@0||P
 X
 
 # Cell tech-PCB;1{lay}

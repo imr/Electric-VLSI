@@ -24,15 +24,16 @@ import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class Sim
+public class Sim implements SimAPI
 {
-	public static class Node
+	public static class Node implements SimAPI.Node
 	{
 		/** sundries list */									Node           nLink;
 		/** charge sharing event */								Eval.Event     events;
@@ -55,7 +56,7 @@ public class Sim
 		/** first entry in transition history */				HistEnt        head;
 		/** ptr. to current history entry */					HistEnt        curr;
 		/** potential for pending AssertWhen */					short          awPot;
-		/** pending asswertWhen list */							Analyzer.AssertWhen awPending;
+		/** pending asswertWhen list */							Runnable       awPending;
 		/** index of this node (a unique value) */				int            index;
 		/** Analyzer: window start */							HistEnt        wind;
 		/** Analyzer: cursor value */							HistEnt        cursor;
@@ -75,20 +76,75 @@ public class Sim
 		void setPunts(HistEnt punts) { t = punts; }
 
 		void setThev(Thev thev) { n = thev; }
-		void setNext(Node next) { n = next; }
+		public void setNext(SimAPI.Node next) { n = (Node)next; }
 		void setTrans(Trans trans) { n = trans; }
 
-		long getTime() { return ((Long)c).longValue(); }
+		public long getTime() { return ((Long)c).longValue(); }
 		long getNIndex() { return ((Long)c).longValue(); }
 		float getCap() { return ((Float)c).floatValue(); }
 		Eval.Event getEvent() { return (Eval.Event)c; }
 
-		Node getCause() { return (Node)t; }
+		public Node getCause() { return (Node)t; }
 		HistEnt getPunts() { return (HistEnt)t; }
 
 		Thev getThev() { return (Thev)n; }
-		Node getNext() { return (Node)n; }
+		public Node getNext() { return (Node)n; }
 		Trans getTrans() { return (Trans)n; }
+        
+        public String getName() { return nName; }
+        public Node getLink() { return nLink; }
+        public short getPot() { return nPot; }
+        public char getPotChar() {
+            return vChars.charAt(getPot());
+        }
+        public long getFlags() { return nFlags; }
+        public long getFlags(long mask) { return nFlags & mask; }
+        public void setFlags(long mask) { nFlags |= mask; }
+        public void clearFlags(long mask) { nFlags &= ~mask; }
+		/** first entry in transition history */
+        public HistEnt getHead() { return head; }
+		/** ptr. to current history entry */
+        public HistEnt getCurr() { return curr; }
+		/** Analyzer: window start */
+        public HistEnt getWind() { return wind; }
+		/** Analyzer: cursor value */
+        public HistEnt getCursor() { return cursor; }
+        public void setWind(SimAPI.HistEnt wind) { this.wind = (HistEnt)wind; }
+        public void setCursor(SimAPI.HistEnt cursor) { this.cursor = (HistEnt)cursor; }
+        
+        public Collection<SimAPI.Trans> getGates() {
+            return Collections.<SimAPI.Trans>unmodifiableCollection(nGateList);
+        }
+        public Collection<SimAPI.Trans> getTerms() {
+            return Collections.<SimAPI.Trans>unmodifiableCollection(nTermList);
+        }
+        public String describeDelay() {
+			String infstr = "";
+			if (getFlags(INPUT) != 0)
+				infstr += "[NOTE: node is an input] ";
+			infstr += "(vl=" + vLow + " vh=" + vHigh + ") ";
+			if (getFlags(USERDELAY) != 0)
+				infstr += "(tpLH=" + tpLH + ", tpHL=" + tpHL + ") ";
+			infstr += "(" + nCap + " pf) ";
+            return infstr;
+        }
+        public String[] describePendingEvents() {
+			if (events == null) return null;
+            List<String> list = new ArrayList<String>();
+            for(Eval.Event e = events; e != null; e = e.nLink) {
+                list.add("   transition to " + Sim.vChars.charAt(e.eval) + " at " + Sim.deltaToNS(e.nTime)+ "ns");
+			}
+            return list.toArray(new String[list.size()]);
+        }
+        public Runnable getAssertWhen() {
+            return awPending;
+        }
+        public void setAssertWhen(Runnable aw) {
+            awPending = aw;
+        }
+        public void setAssertWhenPot(short pot) {
+            awPot = pot;
+        }
 	};
 
 	/**
@@ -172,8 +228,34 @@ public class Sim
 	{
 		return nodeList;
 	}
+    
+    public List<SimAPI.Node> getNodes() {
+        return Collections.<SimAPI.Node>unmodifiableList(nodeList);
+    }
+    
+    public Node getGroundNode() { return groundNode; }
+    public Node getPowerNode() { return powerNode; }
+    public int getNumNodes() { return numNodes; }
+    public int getNumAliases() { return numAliases; }
+    public int getNumEdges() { return numEdges; }
+    public int getNumPunted() { return numPunted; }
+    public int getNumConsPunted() { return numConsPunted; }
+    public long getNumEvents() { return nEvent; }
+    
+    public List<SimAPI.Trans> getShortedTransistors() {
+        ArrayList<SimAPI.Trans> result = new ArrayList<SimAPI.Trans>();
+		for(Trans t = tCap.getSTrans(); t != tCap; t = t.getSTrans()) {
+            result.add(t);
+		}
+        return result;
+    }
+    
+    public int getReport() { return tReport; }
+    public void setReport(int mask) { tReport |= mask; }
+    public void clearReport() { tReport = 0; }
+    public long getMaxTime() { return maxTime; }
 
-	public static class Trans
+	public static class Trans implements SimAPI.Trans
 	{
 		/** nodes to which trans is connected */	Object   gate;
 		/** nodes to which trans is connected */	Node     source, drain;
@@ -195,13 +277,86 @@ public class Sim
 
 		Thev getSThev() { return (Thev)sCache; }
 		Thev getDThev() { return (Thev)dCache; }
-		Trans getSTrans() { return (Trans)sCache; }
+		public Trans getSTrans() { return (Trans)sCache; }
 		Trans getDTrans() { return (Trans)dCache; }
 		int getSI() { return ((Integer)sCache).intValue(); }
 		int getDI() { return ((Integer)dCache).intValue(); }
 
 		int hashTerms() { return source.index ^ drain.index; }
-	};
+        
+        public int getBaseType() { return tType & 0x07; }
+        public String describeBaseType() { return transistorType[getBaseType()]; }
+        public String describeState() { return states[state]; }
+        public Node getGate() { return (Node)gate; }
+        public Node getSource() { return source; }
+        public Node getDrain() { return drain; }
+        public int getX() { return x; }
+        public int getY() { return y; }
+        public double[] getResists() {
+            return new double[] { r.rStatic, r.dynRes[R_HIGH], r.dynRes[R_LOW] };
+        }
+        public long getLength() { return r.length; }
+        public long getWidth() { return r.width; }
+        /**
+         * figure what's on the *other* terminal node of a transistor
+         */
+        public Node getOtherNode(SimAPI.Node n) { return drain == n ? source : drain; }
+        public Trans getLink() { return tLink; }
+        public Collection<SimAPI.Trans> getGateList() {
+            Collection<SimAPI.Trans> result = null;
+    		if ((tType & GATELIST) != 0) {
+                result = new ArrayList<SimAPI.Trans>();
+    			for(Trans t = (Trans)gate; t != null; t = t.getSTrans())
+                    result.add(t);
+			}
+            return result;
+        }
+	}
+    
+    /**
+     * current simulated time
+     */
+    public long getCurDelta() { return curDelta; }
+    public void setCurDelta(long curDelta) { this.curDelta = curDelta; }
+    public void clearCurNode() { curNode = null; }
+    
+	/**
+	 * Set the firstCall flags.  Used when moving back to time 0.
+	 */
+	public void reInit() {
+        getModel().reInit();
+    }
+
+	/**
+	 * Back the event queues up to time 'bTime'.  This is the opposite of
+	 * advancing the simulation time.  Mark all pending events as PENDING,
+	 * and re-enqueue them according to their creation-time (nTime - delay).
+	 */
+	public void backSimTime(long bTime, int isInc) {
+        getModel().backSimTime(bTime, isInc);
+    }
+    
+    public void printPendingEvents() {
+        getModel().printPendingEvents();
+    }
+
+	public boolean step(long stopTime,
+            Collection<SimAPI.Node> xInputs,
+            Collection<SimAPI.Node> hInputs,
+            Collection<SimAPI.Node> lInputs,
+            Collection<SimAPI.Node> uInputs) {
+        return getModel().step(stopTime, xInputs, hInputs, lInputs, uInputs);
+    }
+    
+    public long getLambdaCM() {
+        return getConfig().lambdaCM;
+    }
+    
+    public long getDecay() { return tDecay; }
+    public void setDecay(long decay) { tDecay = decay; }
+    public int getUnitDelay() { return tUnitDelay; }
+    public void setUnitDelay(int unitDelay) { tUnitDelay = unitDelay; }
+    public void setDebug(int irDebug)  { this.irDebug = irDebug; }
 
 	private static class TranResist
 	{
@@ -216,7 +371,7 @@ public class Sim
 		/** transistor size in centimicrons */		long  width, length;
 	};
 
-	public static class HistEnt
+	public static class HistEnt implements SimAPI.HistEnt
 	{
 		/** next transition in history */			HistEnt  next;
 		/** delay from input */						short    delay;
@@ -234,6 +389,9 @@ public class Sim
 			for(h = p.next; h.punt; h = h.next) ;
 			return h;
 		}
+        
+        public long getTime() { return hTime; }
+        public byte getVal() { return val; }
 	};
 
 	/* resists are in ohms, caps in pf */
@@ -283,9 +441,9 @@ public class Sim
 			tIn			= Sim.SMALL;
 			tpLH		= 0;
 			tpHL		= 0;
-			finall		= Sim.X;
-			tauDone		= Sim.N_POTS;
-			tauPDone	= Sim.N_POTS;
+			finall		= X;
+			tauDone		= N_POTS;
+			tauPDone	= N_POTS;
 		}
 
 		Thev(Thev old)
@@ -341,89 +499,6 @@ public class Sim
 		}
 	};
 
-	// transistor types (tType)
-	/** n-channel enhancement */					public static final int	NCHAN       = 0;
-	/** p-channel enhancement */					public static final int	PCHAN       = 1;
-	/** depletion */								public static final int	DEP         = 2;
-	/** simple two-terminal resistor */				public static final int	RESIST      = 3;
-
-	/** transistors not affected by gate logic */	public static final int	ALWAYSON	= 0x02;
-
-	/** set if gate of xistor is a node list */		public static final int	GATELIST	= 0x08;
-	/** result of or'ing parallel transistors */	public static final int	ORED		= 0x20;
-	/** part of an or'ed transistor */				public static final int	ORLIST		= 0x40;
-	/** transistor capacitor (source == drain) */	public static final int	TCAP		= 0x80;
-
-	// transistor states (state
-	/** non-conducting */							public static final int	OFF         = 0;
-	/** conducting */								public static final int	ON          = 1;
-	/** unknown */									public static final int	UNKNOWN     = 2;
-	/** weak */										public static final int	WEAK        = 3;
-
-	// transistor temporary flags (tFlags)
-	/** Mark for crossing a transistor */			public static final int	CROSSED		= 0x01;
-	/** Mark a broken transistor to avoid loop */	public static final int BROKEN		= 0x02;
-	/** Mark as broken a parallel transistor */		public static final int	PBROKEN		= 0x04;
-	/** Mark as being a parallel transistor */		public static final int	PARALLEL	= 0x08;
-
-	// node potentials
-	/** low low */									public static final int	LOW         = 0;
-	/** unknown, intermediate, ... value */			public static final int	X           = 1;
-													public static final int	X_X         = 2;
-	/** logic high */								public static final int	HIGH        = 3;
-	/** number of potentials [LOW-HIGH] */			public static final int	N_POTS      = 4;
-
-	/** waiting to decay to X (only in events) */	public static final int	DECAY       = 4;
-
-	// possible values for nFlags
-	public static final int	POWER_RAIL     = 0x000002;
-	public static final int	ALIAS          = 0x000004;
-	public static final int	USERDELAY      = 0x000008;
-	public static final int	INPUT          = 0x000010;
-	public static final int	WATCHED        = 0x000020;
-	public static final int	WATCHVECTOR    = 0x000040;
-	public static final int	STOPONCHANGE   = 0x000080;
-	public static final int	STOPVECCHANGE  = 0x000100;
-	public static final int	VISITED        = 0x000200;
-
-	/** node is within a txtor stack */				public static final int	MERGED		= 0x000400;
-
-	/** node is in high input list */				public static final int	H_INPUT		= 0x001000;
-	/** node is in low input list */				public static final int	L_INPUT		= 0x002000;
-	/** node is in U input list */					public static final int	U_INPUT		= 0x003000;
-	/** node is in X input list */					public static final int	X_INPUT		= 0x004000;
-
-	public static final int INPUT_MASK	=	(H_INPUT | L_INPUT | X_INPUT | U_INPUT);
-
-	/** event scheduling */							public static final int	DEBUG_EV	= 0x01;
-	/** final value computation */					public static final int	DEBUG_DC	= 0x02;
-	/** tau/delay computation */					public static final int	DEBUG_TAU	= 0x04;
-	/** taup computation */							public static final int	DEBUG_TAUP	= 0x08;
-	/** spike analysis */							public static final int	DEBUG_SPK	= 0x10;
-	/** tree walk */								public static final int	DEBUG_TW	= 0x20;
-
-	public static final int	REPORT_DECAY	= 0x01;
-	public static final int	REPORT_DELAY	= 0x02;
-	public static final int	REPORT_TAU		= 0x04;
-	public static final int	REPORT_TCOORD	= 0x08;
-	public static final int REPORT_CAP      = 0x10;
-
-	// resistance types
-	/** static resistance */						public static final int	STATIC		= 0;
-	/** dynamic-high resistance */					public static final int	DYNHIGH 	= 1;
-	/** dynamic-low resistance */					public static final int	DYNLOW  	= 2;
-	/** resist. for power calculation (unused) */	public static final int	POWER		= 3;
-	/** number of resistance contexts */			public static final int	R_TYPES		= 3;
-
-	/** result of re-evaluation */					public static final int	REVAL		= 0x0;
-	/** node is decaying to X */					public static final int	DECAY_EV	= 0x1;
-
-	/** pending from last run */					public static final int	PENDING		= 0x4;
-
-	/** minimum node capacitance (in pf) */			public static final double MIN_CAP	= 0.00001;
-
-	/** dynamic low resistance index */				public static final int	R_LOW		= 0;
-	/** dynamic high resistance index */			public static final int	R_HIGH		= 1;
 
 	/** a huge time */								private static final long MAX_TIME	= 0x0FFFFFFFFFFFFFFFL;
 
@@ -484,18 +559,20 @@ public class Sim
 
 	private Eval     theModel;
 	private Config   theConfig;
-	private Analyzer theAnalyzer;
+    SimAPI.Analyzer theAnalyzer;
+    int irDebug;
 
-	public Sim(Analyzer analyzer, String steppingModel, URL parameterURL)
+
+	public Sim(int irDebug, String steppingModel, URL parameterURL)
 	{
-		theAnalyzer = analyzer;
+        this.irDebug = irDebug;
 
 		// initialize the model
-		if (steppingModel.equals("Linear")) theModel = new SStep(analyzer, this); else
+		if (steppingModel.equals("Linear")) theModel = new SStep(this); else
 		{
 			if (!steppingModel.equals("RC"))
 				System.out.println("Unknown stepping model: " + steppingModel + " using RC");
-			theModel = new NewRStep(analyzer, this);
+			theModel = new NewRStep(this);
 		}
 
 		// read the configuration file
@@ -505,6 +582,10 @@ public class Sim
         }
         initNetwork();
 	}
+    
+    public void setAnalyzer(SimAPI.Analyzer analyzer) {
+        theAnalyzer = analyzer;
+    }
 
 	public Config getConfig() { return theConfig; }
 
@@ -512,8 +593,8 @@ public class Sim
 
 	public void setModel(boolean rc)
 	{
-		if (rc) theModel = new NewRStep(theAnalyzer, this); else
-			theModel = new SStep(theAnalyzer, this);
+		if (rc) theModel = new NewRStep(this); else
+			theModel = new SStep(this);
 		theModel.initEvent();
 	}
 
@@ -547,22 +628,22 @@ public class Sim
 	/**
 	 * Convert deltas to ns.
 	 */
-	static double deltaToNS(long d) { return ((double)d / (double)Analyzer.getResolutionScale()); }
+	static double deltaToNS(long d) { return (double)d / (double)resolutionScale; }
 
 	/**
 	 * Convert deltas to ps.
 	 */
-	static double deltaToPS(long d) { return ((double)(d * 1000) / (double)Analyzer.getResolutionScale()); }
+	static double deltaToPS(long d) { return (double)(d * 1000) / resolutionScale; }
 
 	/**
 	 * Convert ns to deltas.
 	 */
-	static long nsToDelta(double d) { return (long)(d * Analyzer.getResolutionScale()); }
+	static long nsToDelta(double d) { return (long)(d * resolutionScale); }
 
 	/**
 	 * Convert ps to deltas.
 	 */
-	static long psToDelta(double d) { return (long)(d / 1000 * Analyzer.getResolutionScale()); }
+	static long psToDelta(double d) { return (long)(d / 1000 * resolutionScale); }
 	/**
 	 * Convert ps to ns
 	 */
@@ -897,6 +978,10 @@ public class Sim
 		}
 	}
 
+    public String[] parseLine(String line) {
+        return parseLine(line, false);
+    }
+    
 	/**
 	 * parse input line into tokens, filling up carg and setting targc
 	 * @param expand true to expand iterators.  For example, the
@@ -989,7 +1074,7 @@ public class Sim
      * @param centerY y coordinate of cneter (lambda)
      * @param isNTypeTransistor true if this is N-type transistor
      */
-    void putTransistor(String gateName, String sourceName, String drainName,
+    public void putTransistor(String gateName, String sourceName, String drainName,
             double gateLength, double gateWidth,
             double activeArea, double activePerim,
             double centerX, double centerY,
@@ -1037,7 +1122,7 @@ public class Sim
      * @param net2 name of second terminal network
      * @param resistance resistance (ohm)
      */
-    void putResistor(String net1, String net2, double resistance) {
+    public void putResistor(String net1, String net2, double resistance) {
         Trans t = new Trans();
         t.tType = RESIST;
         t.gate = powerNode;
@@ -1055,7 +1140,7 @@ public class Sim
      * @param net2 name of second terminal network
      * @param capacitance capacitance (pf)
      */
-    void putCapacitor(String net1, String net2, double capacitance) {
+    public void putCapacitor(String net1, String net2, double capacitance) {
         float cap = (float) (capacitance / 1000);		// ff to pf conversion
         Node n = getNode(net1);
         Node m = getNode(net2);
@@ -1124,7 +1209,7 @@ public class Sim
 	 *     The = construct allows the name node2 to be defined as an alias for the name node1.
 	 *     Aliases defined by means of this construct may not appear anywhere else in the .sim file.
 	 */
-	boolean inputSim(URL simFileURL)
+	public boolean inputSim(URL simFileURL)
 	{
 		// read the file
 		boolean rError = false;
@@ -1287,7 +1372,7 @@ public class Sim
 		numErrors = 0;
     }
     
-    void finishNetwork() {
+    public void finishNetwork() {
 
 		// connect all txtors to corresponding nodes
 		connectNetwork();
@@ -1488,8 +1573,9 @@ public class Sim
 		h.next = newP;
 	}
 
-	public void backToTime(Node nd)
+	public void backToTime(SimAPI.Node nd_)
 	{
+        Node nd = (Node)nd_;
 		if ((nd.nFlags & (ALIAS | MERGED)) != 0) return;
 
 		HistEnt h = nd.head;

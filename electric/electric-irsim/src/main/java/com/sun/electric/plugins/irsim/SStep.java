@@ -19,9 +19,9 @@ package com.sun.electric.plugins.irsim;
 
 public class SStep extends Eval
 {
-	SStep(Analyzer analyzer, Sim sim)
+	SStep(Sim sim)
 	{
-		super(analyzer, sim);
+		super(sim);
 	}
 
 	/* event-driven switch-level simulation step Chris Terman 7/84 */
@@ -645,7 +645,7 @@ public class SStep extends Eval
 					enqueueEvent(thisOne, newVal, delta, tau);
 				}
 
-				if ((thisOne.nFlags & Sim.WATCHED) != 0 && (theAnalyzer.irDebug & (Sim.DEBUG_DC | Sim.DEBUG_EV)) != 0)
+				if ((thisOne.nFlags & Sim.WATCHED) != 0 && (theSim.irDebug & (Sim.DEBUG_DC | Sim.DEBUG_EV)) != 0)
 				{
 					System.out.println(" [event " + theSim.curNode.nName + "->" +
 						Sim.vChars.charAt(theSim.curNode.nPot) + " @ " +
@@ -733,7 +733,7 @@ public class SStep extends Eval
 
 			n.nFlags &= ~Sim.VISITED;
 		}
-		if ((theAnalyzer.irDebug & (Sim.DEBUG_DC | Sim.DEBUG_TW)) != 0 && level > 0)
+		if ((theSim.irDebug & (Sim.DEBUG_DC | Sim.DEBUG_TW)) != 0 && level > 0)
 		{
 			System.out.print("  ");
 			for(int i = level; --i > 0; )
