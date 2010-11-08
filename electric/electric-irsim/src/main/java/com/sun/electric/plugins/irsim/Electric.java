@@ -58,15 +58,6 @@ class Electric {
         Job.getUserInterface().setProgressValue(pct);
     }
     
-    /**
-     * Method to show an error message.
-     * @param message the error message to show.
-     * @param title the title of a dialog with the error message.
-     */
-    static void showErrorMessage(String message, String title) {
-        Job.getUserInterface().showErrorMessage(message, title);
-    }
-    
     // SimulationTool
     
 	/**

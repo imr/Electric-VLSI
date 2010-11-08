@@ -23,9 +23,16 @@
  */
 package com.sun.electric.tool.simulation.irsim;
 
-import com.sun.electric.tool.simulation.Engine;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.tool.simulation.DigitalSample;
+import com.sun.electric.tool.simulation.MutableSignal;
+import com.sun.electric.tool.simulation.Signal;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
 import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * IRSIM simulator interface that is implemented by plugin
@@ -36,10 +43,9 @@ public interface IAnalyzer {
 	 * Create IRSIM Simulation Engine to simulate a cell.
      * @param ip IRSIM preferences
 	 */
-    public EngineIRSIM createEngine(String steppingModel, URL parameterURL, int irDebug);
+    public EngineIRSIM createEngine(GUI gui, String steppingModel, URL parameterURL, int irDebug, boolean showCommands);
     
-    public interface EngineIRSIM extends Engine {
-
+    public interface EngineIRSIM {
         /**
          * Put triansitor into the circuit
          * @param gateName name of transistor gate network
@@ -129,14 +135,66 @@ public interface IAnalyzer {
         public boolean inputSim(URL simFileURL);
         
         /**
+         * Finish initialization of the circuit.
+         */
+        public void finishNetwork();
+        
+        /**
          * Finish initialization of the circuit and convert Stimuli.
          */
         public void convertStimuli();
         
         /**
          * Finish initialization
-         * @param ww WaveformWindow to show
          */
-    	public void init(WaveformWindow ww);
+    	public void init();
+        
+        /**
+         * Method to play the simulation vectors into the simulator.
+         */
+        public void playVectors();
+        
+        public void newContolPoint(String signalName, double insertTime, DigitalSample.Value value);
+        /**
+         * Method to show information about the currently-selected signal.
+         */
+        public void showSignalInfo(Signal<?> sig);
+        /**
+         * Method to clear all simulation vectors.
+         */
+        public void clearAllVectors();
+       /**
+         * Method to remove all stimuli from the currently-selected signal.
+         * @param sig currently selected signal.
+         */
+        public void clearContolPoints(Signal<?> sig);
+        /**
+         * Method to remove the selected stimuli.
+         * @return true if stimuli were deleted.
+         */
+        public boolean clearControlPoint(Signal<?> sig, double insertTime);
+        /**
+         * Method to save the current stimuli information to disk.
+         * @param stimuliFile file to save stimuli information
+         */
+        public void saveStimuli(File stimuliFile) throws IOException;
+        /**
+         * Method to restore the current stimuli information from URL.
+         * @param reader Reader with stimuli information
+         */
+        public void restoreStimuli(Reader reader) throws IOException;
     }
+    
+    public interface GUI {
+        public MutableSignal<DigitalSample> makeSignal(String name);
+        public void makeBusSignals(List<Signal<?>> sigList);
+        public void createBus(String busName, Signal<DigitalSample> ... subsigs);
+        public Collection<Signal<?>> getSignals();
+        
+        public void setMainXPositionCursor(double curTime);
+        public void openPanel(Collection<Signal<DigitalSample>> sigs);
+        public void closePanels();
+        public double getMaxPanelTime();
+        public void repaint();
+   }
 }

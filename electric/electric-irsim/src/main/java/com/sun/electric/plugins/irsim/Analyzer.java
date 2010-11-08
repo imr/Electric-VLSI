@@ -17,37 +17,26 @@
  */
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.SignalCollection;
-import com.sun.electric.tool.simulation.SimulationTool;
-import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.DigitalSample.Strength;
 import com.sun.electric.tool.simulation.DigitalSample.Value;
 import com.sun.electric.tool.simulation.irsim.IAnalyzer;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.waveform.Panel;
-import com.sun.electric.tool.user.waveform.WaveSignal;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 
 
 /**
@@ -166,20 +155,20 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 
 	/** set when analyzer is running */				public boolean          analyzerON;
     /** irDebug preferneces */                      public int              irDebug;
+    /** show IRSIM commands */                      public boolean          showCommands;
 
-	/** the simulation engine */					private SimAPI             theSim;
-	/** the waveform window */						private WaveformWindow  ww;
-	/** the SignalCollection being displayed */		private SignalCollection sigCollection;
+	/** the simulation engine */					private final SimAPI    theSim;
+    /** the GUI interface */                        private final IAnalyzer.GUI gui;
 	/** mapping from signals to nodes */			private HashMap<Signal<?>,SimAPI.Node> nodeMap;
 	/** mapping from nodes to signals */			private HashMap<SimAPI.Node,MutableSignal<DigitalSample>> signalMap = new HashMap<SimAPI.Node,MutableSignal<DigitalSample>>();
 
 	/************************** ELECTRIC INTERFACE **************************/
 
-    private Stimuli sd;
-	Analyzer(SimAPI sim, int irDebug)
+	Analyzer(IAnalyzer.GUI gui, SimAPI sim, int irDebug, boolean showCommands)
 	{
+        this.gui = gui;
         this.irDebug = irDebug;
-        sd = new Stimuli();
+        this.showCommands = showCommands;
 		theSim = sim;
         theSim.setDebug(irDebug);
         theSim.setAnalyzer(this);
@@ -192,9 +181,9 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
              * @param ip IRSIM preferences
              * @param parameterURL URL of IRSIM parameter file
              */
-            public EngineIRSIM createEngine(String steppingModel, URL parameterURL, int irDebug) {
+            public EngineIRSIM createEngine(IAnalyzer.GUI gui, String steppingModel, URL parameterURL, int irDebug, boolean showCommands) {
                 SimAPI sim = new Sim(irDebug, steppingModel, parameterURL);
-                Analyzer theAnalyzer = new Analyzer(sim, irDebug);
+                Analyzer theAnalyzer = new Analyzer(gui, sim, irDebug, showCommands);
                 
                 System.out.println("IRSIM, version " + simVersion);
                 // now initialize the simulator
@@ -303,12 +292,17 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
     }
 
     /**
-     * Finish initialization
-     * @param ww WaveformWindow to show
+     * Finish initialization of the circuit.
      */
-	public void init(WaveformWindow ww)
+    public void finishNetwork() {
+        theSim.finishNetwork();
+    }
+    
+    /**
+     * Finish initialization
+     */
+	public void init()
 	{
-        this.ww = ww;
 		// tell the simulator to watch all signals
 		initTimes(0, 50000, theSim.getCurDelta());
 
@@ -335,13 +329,6 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
      */
     public void convertStimuli() 
     {
-        theSim.finishNetwork();
-        
-		// convert the stimuli
-		sd.setEngine(this);
-		sigCollection = Stimuli.newSignalCollection(sd, "SIGNALS");
-		sd.setSeparatorChar('/');
-//		sd.setCell(cell);
 		nodeMap = new HashMap<Signal<?>,SimAPI.Node>();
 		List<Signal<?>> sigList = new ArrayList<Signal<?>>();
 		for(SimAPI.Node n : theSim.getNodes())
@@ -349,11 +336,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			if (n.getName().equalsIgnoreCase("vdd") || n.getName().equalsIgnoreCase("gnd")) continue;
 
 			// make a signal for it
-			int slashPos = n.getName().lastIndexOf('/');
-			MutableSignal<DigitalSample> sig =
-                slashPos >= 0
-                ? DigitalSample.createSignal(sigCollection, sd, n.getName().substring(slashPos+1), n.getName().substring(0, slashPos))
-                : DigitalSample.createSignal(sigCollection, sd, n.getName(), null);
+			MutableSignal<DigitalSample> sig = gui.makeSignal(n.getName());
             signalMap.put(n, sig);
 //			n.sig = sig;
 			sigList.add(sig);
@@ -364,144 +347,43 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		}
 
 		// make bus signals from individual ones found in the list
-		sd.makeBusSignals(sigList, sigCollection);
+		gui.makeBusSignals(sigList);
 	}
 
+    public void newContolPoint(String signalName, double insertTime, DigitalSample.Value value) {
+        int command;
+        switch (value) {
+            case HIGH:
+                command = VECTORH;
+                break;
+            case LOW:
+                command = VECTORL;
+                break;
+            default:
+                command = VECTORX;
+        }
+        newVector(command, new String[] {signalName}, insertTime, false);
+    }
+    
     /**
-     * Returns FileType of vectors file.
+     * Method to show information about the currently-selected signal.
      */
-    public FileType getVectorsFileType() {
-        return FileType.IRSIMVECTOR;
+    public void showSignalInfo(Signal<?> sig) {
+        SimVector excl = new SimVector();
+        excl.command = VECTOREXCL;
+        excl.sigs = new ArrayList<Signal<DigitalSample>>();
+        excl.sigs.add((Signal<DigitalSample>) sig);
+        issueCommand(excl);
+
+        excl.command = VECTORQUESTION;
+        issueCommand(excl);
     }
     
 	/**
-	 * Method to reload the circuit data.
-	 */
-	public void refresh() {
-    }
-
-	/**
-	 * Method to update the simulation (because some stimuli have changed).
-	 */
-	public void update()
-	{
-		playVectors();
-	}
-
-	/**
-	 * Method to set the currently-selected signal high at the current time.
-	 */
-	public void setSignalHigh()
-	{
-		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
-		if (signals.size() == 0)
-		{
-			Electric.showErrorMessage("Must select a signal before setting it High",
-				"No Signals Selected");
-			return;
-		}
-		String [] parameters = new String[1];
-		for(Signal<?> sig : signals)
-		{
-			parameters[0] = sig.getFullName().replace('.', '/');
-			newVector(VECTORH, parameters, ww.getMainXPositionCursor(), false);
-		}
-		if (SimulationTool.isBuiltInResimulateEach())
-			playVectors();
-	}
-
-	/**
-	 * Method to set the currently-selected signal low at the current time.
-	 */
-	public void setSignalLow()
-	{
-		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
-		if (signals.size() == 0)
-		{
-			Electric.showErrorMessage("Must select a signal before setting it Low",
-				"No Signals Selected");
-			return;
-		}
-		String [] parameters = new String[1];
-		for(Signal<?> sig : signals)
-		{
-			parameters[0] = sig.getFullName().replace('.', '/');
-			newVector(VECTORL, parameters, ww.getMainXPositionCursor(), false);
-		}
-		if (SimulationTool.isBuiltInResimulateEach())
-			playVectors();
-	}
-
-	/**
-	 * Method to set the currently-selected signal to have a clock with a given period.
-	 */
-	public void setClock(double period)
-	{
-		System.out.println("IRSIM CANNOT HANDLE CLOCKS YET");
-	}
-
-	/**
-	 * Method to set the currently-selected signal undefined at the current time.
-	 */
-	public void setSignalX()
-	{
-		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
-		if (signals.size() == 0)
-		{
-			Electric.showErrorMessage("Must select a signal before setting it Undefined",
-				"No Signals Selected");
-			return;
-		}
-		String [] parameters = new String[1];
-		for(Signal<?> sig : signals)
-		{
-			parameters[0] = sig.getFullName().replace('.', '/');
-			newVector(VECTORX, parameters, ww.getMainXPositionCursor(), false);
-		}
-		if (SimulationTool.isBuiltInResimulateEach())
-			playVectors();
-	}
-
-	/**
-	 * Method to show information about the currently-selected signal.
-	 */
-	public void showSignalInfo()
-	{
-		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
-		if (signals.size() == 0)
-		{
-			Electric.showErrorMessage("Must select a signal before displaying it",
-				"No Signals Selected");
-			return;
-		}
-		for(Signal<?> sig : signals)
-		{
-			SimVector excl = new SimVector();
-			excl.command = VECTOREXCL;
-			excl.sigs = new ArrayList<Signal<DigitalSample>>();
-			excl.sigs.add((Signal<DigitalSample>)sig);
-			issueCommand(excl);
-
-			excl.command = VECTORQUESTION;
-			issueCommand(excl);
-		}
-	}
-
-	/**
 	 * Method to remove all stimuli from the currently-selected signal.
+     * @param sig currently selected signal.
 	 */
-	public void removeStimuliFromSignal()
-	{
-		List<Signal<?>> signals = ww.getHighlightedNetworkNames();
-		if (signals.size() != 1)
-		{
-			Electric.showErrorMessage("Must select a single signal on which to clear stimuli",
-				"No Signals Selected");
-			return;
-		}
-		Signal<?> sig = signals.get(0);
-		sig.clearControlPoints();
-
+    public void clearContolPoints(Signal<?> sig) {
 		SimVector lastSV = null;
 		for(SimVector sv = firstVector; sv != null; sv = sv.next)
 		{
@@ -519,62 +401,8 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			lastSV = sv;
 		}
 		lastVector = lastSV;
-		if (SimulationTool.isBuiltInResimulateEach())
-			playVectors();
-	}
-
-	/**
-	 * Method to remove the selected stimuli.
-	 * @return true if stimuli were deleted.
-	 */
-	public boolean removeSelectedStimuli()
-	{
-		boolean found = false;
-		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
-		{
-			Panel wp = it.next();
-			for(WaveSignal ws : wp.getSignals())
-			{
-				if (!ws.isHighlighted()) continue;
-				double [] selectedCPs = ws.getSelectedControlPoints();
-				if (selectedCPs == null) continue;
-				for(int i=0; i<selectedCPs.length; i++)
-				{
-					if (clearControlPoint(ws.getSignal(), selectedCPs[i]))
-						found = true;
-				}
-			}
-		}
-		if (!found)
-		{
-			System.out.println("There are no selected control points to remove");
-			return false;
-		}
-
-		// resimulate if requested
-		if (SimulationTool.isBuiltInResimulateEach())
-			playVectors();
-		return true;
-	}
-
-	/**
-	 * Method to remove all stimuli from the simulation.
-	 */
-	public void removeAllStimuli()
-	{
-		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
-		{
-			Panel wp = it.next();
-			for(WaveSignal ws : wp.getSignals())
-			{
-				ws.getSignal().clearControlPoints();
-			}
-		}
-
-		if (SimulationTool.isBuiltInResimulateEach())
-			clearAllVectors();
-	}
-
+    }
+    
 //	/**
 //	 * Method to reload the circuit data.
 //	 */
@@ -595,15 +423,13 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 //
 //		playVectors();
 //	}
-//    @Override
-    public Stimuli getStimuli() { return sd; }
 
 	/************************** SIMULATION VECTORS **************************/
 
 	/**
 	 * Method to play the simulation vectors into the simulator.
 	 */
-	private void playVectors()
+	public void playVectors()
 	{
 		SimVector back = new SimVector();
 		back.command = VECTORBACK;
@@ -626,176 +452,140 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		updateWindow(theSim.getCurDelta());
 
 		// update main cursor location if requested
-		if (SimulationTool.isBuiltInAutoAdvance())
-			ww.setMainXPositionCursor(curTime + 10.0/1000000000.0);
+        gui.setMainXPositionCursor(curTime);
 	}
 
 	/**
 	 * Method to clear all simulation vectors.
 	 */
-	private void clearAllVectors()
+	public void clearAllVectors()
 	{
 		firstVector = null;
 		lastVector = null;
-		playVectors();
 	}
 
 	/**
 	 * Method to restore the current stimuli information from URL.
-     * @param stimuliURL URL of stimuli information
+     * @param reader Reader with stimuli information
 	 */
-//    @Override
-	public void restoreStimuli(URL stimuliURL) throws IOException
+	public void restoreStimuli(Reader reader) throws IOException
 	{
-        if (stimuliURL == null)
-            throw new NullPointerException();
-		LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(stimuliURL.openStream()));
-		try
-		{
+		LineNumberReader lineReader = new LineNumberReader(reader);
+        // remove all vectors
+        double currentTime = 0;
+        boolean anyAnalyzerCommands = false;
+        for(;;)
+        {
+            String buf = lineReader.readLine();
+            if (buf == null) break;
 
-			// remove all vectors
-			firstVector = null;
-			lastVector = null;
-			for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
-			{
-				Panel wp = it.next();
-				for(WaveSignal ws : wp.getSignals())
-				{
-					ws.getSignal().clearControlPoints();
-				}
-			}
-			double currentTime = 0;
-			boolean anyAnalyzerCommands = false;
-			for(;;)
-			{
-				String buf = lineReader.readLine();
-				if (buf == null) break;
+            // ignore comments
+            if (buf.startsWith("|"))
+            {
+                String [] par = new String[1];
+                par[0] = buf.substring(1);
+                newVector(VECTORCOMMENT, par, currentTime, true);
+                continue;
+            }
 
-				// ignore comments
-				if (buf.startsWith("|"))
-				{
-					String [] par = new String[1];
-					par[0] = buf.substring(1);
-					newVector(VECTORCOMMENT, par, currentTime, true);
-					continue;
-				}
+            // get the first keyword
+            String [] targ = theSim.parseLine(buf);
+            if (targ == null || targ.length <= 0) continue;
 
-				// get the first keyword
-				String [] targ = theSim.parseLine(buf);
-				if (targ == null || targ.length <= 0) continue;
+            // handle commands
+            int command;
+            if (targ[0].equals("!")) command = VECTOREXCL; else
+            if (targ[0].equals("?")) command = VECTORQUESTION; else
+            if (targ[0].equals("activity")) command = VECTORACTIVITY; else
+            if (targ[0].equals("alias")) command = VECTORALIAS; else
+            if (targ[0].equals("ana") || targ[0].equals("analyzer")) command = VECTORANALYZER; else
+            if (targ[0].equals("assert")) command = VECTORASSERT; else
+            if (targ[0].equals("assertwhen")) command = VECTORASSERTWHEN; else
+            if (targ[0].equals("back")) command = VECTORBACK; else
+            if (targ[0].equals("c")) command = VECTORC; else
+            if (targ[0].equals("changes")) command = VECTORCHANGES; else
+            if (targ[0].equals("clock")) command = VECTORCLOCK; else
+            if (targ[0].equals("debug")) command = VECTORDEBUG; else
+            if (targ[0].equals("decay")) command = VECTORDECAY; else
+            if (targ[0].equals("h")) command = VECTORH; else
+            if (targ[0].equals("inputs")) command = VECTORINPUTS; else
+            if (targ[0].equals("l")) command = VECTORL; else
+            if (targ[0].equals("model")) command = VECTORMODEL; else
+            if (targ[0].equals("p")) command = VECTORP; else
+            if (targ[0].equals("path")) command = VECTORPATH; else
+            if (targ[0].equals("print")) command = VECTORPRINT; else
+            if (targ[0].equals("printx")) command = VECTORPRINTX; else
+            if (targ[0].equals("R")) command = VECTORR; else
+            if (targ[0].equals("report")) command = VECTORREPORT; else
+            if (targ[0].equals("s")) command = VECTORS; else
+            if (targ[0].equals("set")) command = VECTORSET; else
+            if (targ[0].equals("stats")) command = VECTORSTATS; else
+            if (targ[0].equals("stepsize")) command = VECTORSTEPSIZE; else
+            if (targ[0].equals("stop")) command = VECTORSTOP; else
+            if (targ[0].equals("t")) command = VECTORT; else
+            if (targ[0].equals("tcap")) command = VECTORTCAP; else
+            if (targ[0].equals("u")) command = VECTORU; else
+            if (targ[0].equals("unitdelay")) command = VECTORUNITDELAY; else
+            if (targ[0].equals("until")) command = VECTORUNTIL; else
+            if (targ[0].equals("V")) command = VECTORV; else
+            if (targ[0].equals("vector")) command = VECTORVECTOR; else
+            if (targ[0].equals("x")) command = VECTORX; else
+            {
+                System.out.println("Unknown command: " + targ[0]);
+                continue;
+            }
 
-				// handle commands
-				int command;
-				if (targ[0].equals("!")) command = VECTOREXCL; else
-				if (targ[0].equals("?")) command = VECTORQUESTION; else
-				if (targ[0].equals("activity")) command = VECTORACTIVITY; else
-				if (targ[0].equals("alias")) command = VECTORALIAS; else
-				if (targ[0].equals("ana") || targ[0].equals("analyzer")) command = VECTORANALYZER; else
-				if (targ[0].equals("assert")) command = VECTORASSERT; else
-				if (targ[0].equals("assertwhen")) command = VECTORASSERTWHEN; else
-				if (targ[0].equals("back")) command = VECTORBACK; else
-				if (targ[0].equals("c")) command = VECTORC; else
-				if (targ[0].equals("changes")) command = VECTORCHANGES; else
-				if (targ[0].equals("clock")) command = VECTORCLOCK; else
-				if (targ[0].equals("debug")) command = VECTORDEBUG; else
-				if (targ[0].equals("decay")) command = VECTORDECAY; else
-				if (targ[0].equals("h")) command = VECTORH; else
-				if (targ[0].equals("inputs")) command = VECTORINPUTS; else
-				if (targ[0].equals("l")) command = VECTORL; else
-				if (targ[0].equals("model")) command = VECTORMODEL; else
-				if (targ[0].equals("p")) command = VECTORP; else
-				if (targ[0].equals("path")) command = VECTORPATH; else
-				if (targ[0].equals("print")) command = VECTORPRINT; else
-				if (targ[0].equals("printx")) command = VECTORPRINTX; else
-				if (targ[0].equals("R")) command = VECTORR; else
-				if (targ[0].equals("report")) command = VECTORREPORT; else
-				if (targ[0].equals("s")) command = VECTORS; else
-				if (targ[0].equals("set")) command = VECTORSET; else
-				if (targ[0].equals("stats")) command = VECTORSTATS; else
-				if (targ[0].equals("stepsize")) command = VECTORSTEPSIZE; else
-				if (targ[0].equals("stop")) command = VECTORSTOP; else
-				if (targ[0].equals("t")) command = VECTORT; else
-				if (targ[0].equals("tcap")) command = VECTORTCAP; else
-				if (targ[0].equals("u")) command = VECTORU; else
-				if (targ[0].equals("unitdelay")) command = VECTORUNITDELAY; else
-				if (targ[0].equals("until")) command = VECTORUNTIL; else
-				if (targ[0].equals("V")) command = VECTORV; else
-				if (targ[0].equals("vector")) command = VECTORVECTOR; else
-				if (targ[0].equals("x")) command = VECTORX; else
-				{
-					System.out.println("Unknown command: " + targ[0]);
-					continue;
-				}
+            // store the vector
+            String [] params = new String[targ.length-1];
+            for(int i=1; i<targ.length; i++) params[i-1] = targ[i];
+            SimVector sv = newVector(command, params, currentTime, true);
 
-				// store the vector
-				String [] params = new String[targ.length-1];
-				for(int i=1; i<targ.length; i++) params[i-1] = targ[i];
-				SimVector sv = newVector(command, params, currentTime, true);
+            // keep track of time
+            if (command == VECTORS)
+            {
+                if (sv == null) continue;
+                currentTime += sv.value * cmdFileUnits;
+                continue;
+            }
 
-				// keep track of time
-				if (command == VECTORS)
-				{
-					if (sv == null) continue;
-					currentTime += sv.value * cmdFileUnits;
-					continue;
-				}
+            // handle changes to signals in the Waveform Window
+            if (command == VECTORANALYZER)
+            {
+                if (!anyAnalyzerCommands)
+                {
+                    // clear the stimuli on the first time
+                    anyAnalyzerCommands = true;
+                    gui.closePanels();
+                }
+                List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
+                getTargetNodes(targ, 1, sigs, null);
+                gui.openPanel(sigs);
+                continue;
+            }
 
-				// handle changes to signals in the Waveform Window
-				if (command == VECTORANALYZER)
-				{
-					if (!anyAnalyzerCommands)
-					{
-						// clear the stimuli on the first time
-						anyAnalyzerCommands = true;
-						ww.clearHighlighting();
-						List<Panel> allPanels = new ArrayList<Panel>();
-						for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
-							allPanels.add(it.next());
-						for(Panel wp : allPanels)
-						{
-							wp.closePanel();
-						}
-					}
-					List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
-					getTargetNodes(targ, 1, sigs, null);
-					for(Signal<?> sig : sigs)
-					{
-						int height = User.getWaveformDigitalPanelHeight();
-						Panel wp = new Panel(ww, height);
-						wp.makeSelectedPanel(-1, -1);
-						new WaveSignal(wp, sig);
-					}
-					continue;
-				}
-
-				// handle aggregation of signals into busses
-				if (command == VECTORVECTOR)
-				{
-					// find this vector name in the list of vectors
+            // handle aggregation of signals into busses
+            if (command == VECTORVECTOR)
+            {
+                // find this vector name in the list of vectors
 //					Signal<DigitalSample> busSig = null;
 //					if (busSig == null)
 //						busSig = DigitalSample.createSignal(sigCollection, sd, targ[1], null);
-					List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
-					getTargetNodes(targ, 2, sigs, null);
-					Signal<DigitalSample>[] subsigs = new Signal[sigs.size()];
-					for(int i=0; i<sigs.size(); i++) subsigs[i] = sigs.get(i);
-                    BusSample.createSignal(sigCollection, sd, targ[1], null, true, subsigs);
-					continue;
-				}
-			}
-			playVectors();
-			updateWindow(theSim.getCurDelta());
-		} finally
-		{
-			lineReader.close();
-		}
+                List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
+                getTargetNodes(targ, 2, sigs, null);
+                Signal<DigitalSample>[] subsigs = new Signal[sigs.size()];
+                for(int i=0; i<sigs.size(); i++) subsigs[i] = sigs.get(i);
+                gui.createBus(targ[1], subsigs);
+                continue;
+            }
+        }
+        playVectors();
+        updateWindow(theSim.getCurDelta());
 	}
 
 	/**
 	 * Method to save the current stimuli information to disk.
      * @param stimuliFile file to save stimuli information
 	 */
-//    @Override
 	public void saveStimuli(File stimuliFile) throws IOException 
 	{
 		if (stimuliFile == null)
@@ -819,7 +609,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 
 	private void issueCommand(SimVector sv)
 	{
-		if (SimulationTool.isIRSIMShowsCommands())
+		if (showCommands)
 		{
 			System.out.print("> " + commandName(sv.command));
 			if (sv.parameters != null)
@@ -1076,7 +866,11 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		return newsv;
     }
 
-	private boolean clearControlPoint(Signal<?> sig, double insertTime)
+	/**
+	 * Method to remove the selected stimuli.
+	 * @return true if stimuli were deleted.
+	 */
+	public boolean clearControlPoint(Signal<?> sig, double insertTime)
 	{
 		double defaultStepSize = 10.0 * cmdFileUnits;
 		double curTime = 0.0;
@@ -1152,7 +946,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			}
 			if (name.indexOf('*') >= 0)
 			{
-				for(Signal<?> sig : sigCollection.getSignals())
+				for(Signal<?> sig : gui.getSignals())
 				{
 					if (strMatch(name, sig.getFullName()))
 					{
@@ -2189,7 +1983,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		String temp = " @ " + deltaToNS(theSim.getCurDelta()) + "ns ";
 		System.out.println(temp);
 		column = temp.length();
-		Collection<Signal<?>> sigs = sigCollection.getSignals();
+		Collection<Signal<?>> sigs = gui.getSignals();
 		for(Signal<?> sig : sigs)
 		{
 			Signal<?>[] sigsOnBus = sig.getBusMembers();
@@ -2242,14 +2036,9 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 				endTime = startTime + stepsTime;
 
 				// make it conform to the displayed range
-				Iterator<Panel> it = ww.getPanels();
-				if (it.hasNext())
-				{
-					Panel wp = it.next();
-					double max = wp.getMaxXAxis();
-					long endtime = nsToDelta(max * 1e9);
-					if (endtime > endTime) endTime = endtime;
-				}
+                double maxTime = gui.getMaxPanelTime();
+				long endtime = nsToDelta(maxTime * 1e9);
+				if (endtime > endTime) endTime = endtime;
 				double max = getEndTime();
 				long endT = nsToDelta(max * 1e9);
 				if (endT > endTime) endTime = endT;
@@ -2414,7 +2203,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 //                if (((MutableSignal<DigitalSample>)nd.sig).getSample(traceTime[i])==null)
 //                    ((MutableSignal<DigitalSample>)nd.sig).addSample(traceTime[i], traceState[i]);
 		}
-		ww.repaint();
+		gui.repaint();
 	}
 
 	/**
@@ -2682,7 +2471,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	 */
 	private void setVecNodes(int flag)
 	{
-		Collection<Signal<?>> sigs = sigCollection.getSignals();
+		Collection<Signal<?>> sigs = gui.getSignals();
 		for(Signal<?> sig : sigs)
 		{
 			Signal<?>[] sigsOnBus = sig.getBusMembers();
@@ -2728,7 +2517,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 
 	private Signal<DigitalSample> findName(String name)
 	{
-		for(Signal<?> sig : sigCollection.getSignals())
+		for(Signal<?> sig : gui.getSignals())
 		{
 			if (sig.getFullName().equals(name)) return (Signal<DigitalSample>)sig;
 		}
