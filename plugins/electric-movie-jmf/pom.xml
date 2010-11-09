@@ -33,7 +33,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>electric-movie-jmf</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-alpha-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>electric-movie-jmf</name>
     
@@ -50,7 +50,16 @@
                 </configuration>
             </plugin>
             <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+            </plugin>
+            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2</version>
                 <configuration>
                     <finalName>electricJMF-${project.version}</finalName>
                     <descriptors>
