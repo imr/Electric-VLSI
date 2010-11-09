@@ -95,6 +95,30 @@
         </repository>
     </repositories-->
     
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>app</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>electric-${project.version}</finalName>
+                            <descriptors>
+                                <descriptor>src/main/assembly/app.xml</descriptor>
+                            </descriptors>
+                            <tarLongFileMode>gnu</tarLongFileMode>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    
     <profiles>
         <profile>
             <id>distro</id>
@@ -104,7 +128,7 @@
                         <artifactId>maven-assembly-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>bin</id>
+                                <id>distro</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>single</goal>
