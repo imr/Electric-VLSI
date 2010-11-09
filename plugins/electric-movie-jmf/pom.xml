@@ -23,8 +23,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
@@ -33,7 +32,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>electric-movie-jmf</artifactId>
-    <version>1.0-alpha-SNAPSHOT</version>
+    <version>1.0-alpha</version>
     <packaging>jar</packaging>
     <name>electric-movie-jmf</name>
     
@@ -85,9 +84,9 @@
     </dependencies>
     
     <scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-jmf</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-jmf</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/trunk/plugins/electric-movie-jmf</url>
+        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/tags/electric-movie-jmf-1.0-alpha</connection>
+        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/tags/electric-movie-jmf-1.0-alpha</developerConnection>
+        <url>https://electric.dev.java.net/source/browse/electric/tags/electric-movie-jmf-1.0-alpha</url>
     </scm>
     <repositories>
         <repository>
