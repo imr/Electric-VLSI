@@ -32,7 +32,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>electric-movie-jmf</artifactId>
-    <version>1.0-alpha</version>
+    <version>1.0-alpha-2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>electric-movie-jmf</name>
     
@@ -84,9 +84,9 @@
     </dependencies>
     
     <scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/tags/electric-movie-jmf-1.0-alpha</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/tags/electric-movie-jmf-1.0-alpha</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/tags/electric-movie-jmf-1.0-alpha</url>
+        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-jmf</connection>
+        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-jmf</developerConnection>
+        <url>https://electric.dev.java.net/source/browse/electric/trunk/plugins/electric-movie-jmf</url>
     </scm>
     <repositories>
         <repository>
