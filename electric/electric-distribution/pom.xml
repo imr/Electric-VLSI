@@ -40,14 +40,14 @@
     <packaging>pom</packaging>
     
     <dependencies>
-        <dependency>
+        <!--dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-concurrent</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-test</artifactId>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-core</artifactId>
@@ -64,9 +64,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-irsim</artifactId>
         </dependency>
+        
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-jmf</artifactId>
+            <groupId>com.sun.electric</groupId>
+            <artifactId>electric-movie-jmf</artifactId>
         </dependency>
 
         <dependency>

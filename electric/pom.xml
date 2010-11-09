@@ -66,7 +66,7 @@
         <specsVersion>1.6.5</specsVersion>
         
         <electricMovieAPIVersion>1.0</electricMovieAPIVersion>
-        <electricMovieJMFVersion>1.0-SNAPSHOT</electricMovieJMFVersion>
+        <electricMovieJMFVersion>1.0-alpha</electricMovieJMFVersion>
     </properties>
 
     <mailingLists>
@@ -133,7 +133,6 @@
         <module>electric-3d</module>
         <module>electric-merge</module>
         <module>electric-irsim</module>
-        <module>electric-jmf</module>
         <module>electric-distribution</module>
     </modules>
     
@@ -144,16 +143,16 @@
     </scm>
     <repositories>
         <repository>
-	    <id>maven2-repository.dev.java.net</id>
-	    <name>Java.net Repository for Maven</name>
-	    <url>http://download.java.net/maven/2/</url>
+            <id>maven2-repository.dev.java.net</id>
+            <name>Java.net Repository for Maven</name>
+            <url>http://download.java.net/maven/2/</url>
             <releases>
                 <checksumPolicy>fail</checksumPolicy>
             </releases>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-	</repository>
+        </repository>
     </repositories>
     <issueManagement>
         <system>bugzilla</system>
@@ -197,11 +196,6 @@
             <dependency>
                 <groupId>com.sun.electric</groupId>
                 <artifactId>electric-irsim</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.electric</groupId>
-                <artifactId>electric-jmf</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!--  Electric Plugin Modules -->
@@ -407,19 +401,18 @@
             </properties>
             <build>
                 <pluginManagement>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <verbose>true</verbose>
-                            <fork>true</fork>
-                            <maxmem>64m</maxmem>
-                        </configuration>
-                    </plugin>
-                </plugins>
+                    <plugins>
+                        <plugin>
+                            <artifactId>maven-compiler-plugin</artifactId>
+                            <configuration>
+                                <verbose>true</verbose>
+                                <fork>true</fork>
+                                <maxmem>64m</maxmem>
+                            </configuration>
+                        </plugin>
+                    </plugins>
                 </pluginManagement>
             </build>
         </profile>
     </profiles>
-
 </project>

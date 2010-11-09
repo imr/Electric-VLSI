@@ -1,11 +1,11 @@
 com/sun/electric/electric-concurrent/9.00-q-SNAPSHOT/electric-concurrent-9.00-q-SNAPSHOT.jar
 com/sun/electric/electric-test/9.00-q-SNAPSHOT/electric-test-9.00-q-SNAPSHOT.jar
 com/sun/electric/electric-3d/9.00-q-SNAPSHOT/electric-3d-9.00-q-SNAPSHOT.jar
-com/sun/electric/electric-jmf/9.00-q-SNAPSHOT/electric-jmf-9.00-q-SNAPSHOT.jar
 com/sun/electric/electric-irsim/9.00-q-SNAPSHOT/electric-irsim-9.00-q-SNAPSHOT.jar
 com/sun/electric/electric-merge/9.00-q-SNAPSHOT/electric-merge-9.00-q-SNAPSHOT.jar
 com/sun/electric/electric-sunlabs/9.00-q-SNAPSHOT/electric-sunlabs-9.00-q-SNAPSHOT.jar
 com/sun/electric/electric-movie-api/1.0/electric-movie-api-1.0.jar
+com/sun/electric/electric-movie-jmf/1.0-alpha/electric-movie-jmf-1.0-alpha.jar
 com/apple/AppleJavaExtensions/1.4/AppleJavaExtensions-1.4.jar
 org/beanshell/bsh/2.0b4/bsh-2.0b4.jar
 org/python/jython/2.5.0/jython-2.5.0.jar

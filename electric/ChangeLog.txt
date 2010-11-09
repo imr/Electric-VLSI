@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+IMP: (11/9/10, DN) Move electric-jmf to trunk/plugins/electric-movie-api and trunk/plugins/electric-movie-jmf .
+
 BUG: (11/6/10, DN) In samples:tech-MOSISMOS n-transistors are connected to vdd and p-transistors are connected to gnd (Bug #2952)
 FIX: Edit samples:tech-MOSISMOS - mirror transistors bottom<->up and rename exports.
 
