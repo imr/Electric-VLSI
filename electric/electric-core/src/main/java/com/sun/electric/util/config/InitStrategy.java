@@ -23,7 +23,6 @@
  */
 package com.sun.electric.util.config;
 
-import com.sun.electric.api.movie.MovieCreator;
 import java.util.logging.Level;
 
 import com.sun.electric.database.geometry.bool.LayoutMergerFactory;
@@ -54,8 +53,7 @@ public abstract class InitStrategy {
 
             // Scala implementation of LayoutMergerFactory
             try {
-                config.addConfigEntry(
-                        LayoutMergerFactory.class.getName(),
+                config.addConfigEntry(LayoutMergerFactory.class.getName(),
                         ConfigEntry.createForConstructor(
                                 Class.forName("com.sun.electric.scala.LayoutMergerFactoryImpl"), false));
             } catch (ClassNotFoundException e) {
@@ -73,8 +71,7 @@ public abstract class InitStrategy {
 
             // JMF plugin
             try {
-                config.addConfigEntry(
-                        MovieCreator.class.getName(),
+                config.addConfigEntry("com.sun.electric.api.movie.MovieCreator",
                         ConfigEntry.createForConstructor(
                                 Class.forName("com.sun.electric.plugins.JMF.MovieCreatorJMF"), false));
             } catch (ClassNotFoundException e) {
@@ -83,5 +80,4 @@ public abstract class InitStrategy {
 
         }
     }
-
 }

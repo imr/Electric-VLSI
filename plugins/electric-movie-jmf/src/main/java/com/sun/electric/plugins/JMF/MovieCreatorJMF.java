@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: MovieCreator.java
+ * File: MovieCreatorJMF.java
  *
  * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  *
@@ -21,16 +21,24 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.api.movie;
+package com.sun.electric.plugins.JMF;
+
+import com.sun.electric.api.movie.MovieCreator;
 
 import java.awt.Dimension;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * API to create a movie from a sequence of images.
+ * Implementation of MovieCreator API using Java Media Frame.
  */
-public interface MovieCreator {
+public class MovieCreatorJMF implements MovieCreator {
+    
+    public MovieCreatorJMF() {
+        // Check if JMF is available
+        String version = javax.media.Manager.getVersion();
+    }
 
     /**
      * Create a movie from a sequence of images
@@ -38,6 +46,12 @@ public interface MovieCreator {
      * @param dim size of the movie
      * @param inputFiles files wuth JPEG imaphes
      */
-    public void createFromImages(File outputFile, Dimension dim, List<File> inputFiles);
+    public void createFromImages(File outputFile, Dimension dim, List<File> inputFiles) {
+        List<String> inputFileNames = new ArrayList<String>();
+        for (File file: inputFiles) {
+            inputFileNames.add(file.getAbsolutePath());
+        }
+        JMFImageToMovie.createMovie(outputFile.getAbsolutePath(), dim, inputFileNames);
+    }
 
 }

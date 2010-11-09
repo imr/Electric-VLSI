@@ -50,13 +50,12 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>javax.media</groupId>
-            <artifactId>jmf</artifactId>
+            <groupId>com.sun.electric</groupId>
+            <artifactId>electric-movie-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-core</artifactId>
-            <version>${project.version}</version>
+            <groupId>javax.media</groupId>
+            <artifactId>jmf</artifactId>
         </dependency>
     </dependencies>
 </project>

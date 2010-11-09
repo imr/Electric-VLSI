@@ -45,5 +45,9 @@
             <groupId>java3d</groupId>
             <artifactId>j3d-core-utils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.sun.electric</groupId>
+            <artifactId>electric-movie-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

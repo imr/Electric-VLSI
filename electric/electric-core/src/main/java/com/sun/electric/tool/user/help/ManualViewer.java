@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.help;
 
 import com.sun.electric.Main;
-import com.sun.electric.api.movie.MovieCreator;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
@@ -340,35 +339,19 @@ public class ManualViewer extends EModelessDialog
 		}
 	}
 
-		private static boolean j3DAvailable;
-		private static boolean j3DChecked = false;
+    private static boolean j3DAvailable;
+    private static boolean j3DChecked = false;
 
-		public static boolean isJava3DAvailable()
+    public static boolean isJava3DAvailable()
+    {
+        // Checking first if j3d is installed
+        if (!j3DChecked)
         {
-            // Checking first if j3d is installed
-        	if (!j3DChecked)
-        	{
-        		j3DChecked = true;
-        		j3DAvailable = Resources.get3DClass("utils.J3DUtils") != null;
-        	}
-        	return j3DAvailable;
+            j3DChecked = true;
+            j3DAvailable = Resources.get3DClass("utils.J3DUtils") != null;
         }
-
-		private static boolean movieCreatorAvailable;
-		private static boolean movieCreatorChecked = false;
-
-		public static boolean isMovieCreatorAvailable()
-        {
-            // Checking first if Movie is installed()
-        	if (!movieCreatorChecked)
-        	{
-        		movieCreatorChecked = true;
-        		movieCreatorAvailable = Configuration.lookup(MovieCreator.class) != null;
-            	if (!movieCreatorAvailable) TextUtils.recordMissingComponent("Movie Creator");
-        	}
-        	return movieCreatorAvailable;
-        }
-
+        return j3DAvailable;
+    }
 
 	/**
 	 * Create a new user's manual dialog.
