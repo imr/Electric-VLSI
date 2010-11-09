@@ -140,11 +140,16 @@ $ mvn -DskipTests=true install
 
 4) Run the Electric launcher
 
-$ java -jar <work-directory>/electric/electric-core/target/electric-${project.version}.jar
+<work-directory>/electric/electric-distribution/target/electric-${project.version}.app/bin/electric
+or
+<work-directory>/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat
 
 You might execute Electric with larger heap size if your design is large.
 
-$ java -Xmx1024m -XX:MaxPermSize=128m -jar <work-directory>/electric/electric-core/target/electric-${project.version}.jar
+set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"; <work-directory>/electric/electric-distribution/target/electric-${project.version}.app/bin/electric
+or
+set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"
+<work-directory>/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat
 
 ---------------- Building distribution from latest Sources:
 
