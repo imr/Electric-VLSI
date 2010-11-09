@@ -4,7 +4,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: pom.xml
- * electric plugins aggregator
+ * electric movie API
  *
  * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
  *
@@ -34,31 +34,39 @@
         <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
         <version>1</version>
-        <!--relativePath>../pom/electric-parent/pom.xml</relativePath-->
+        <!--relativePath>../../pom/electric-parent/pom.xml</relativePath-->
     </parent>
     
-    <artifactId>electric-plugins</artifactId>
-    <version>0.1-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <artifactId>electric-movie-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <groupId>com.sun.electric</groupId>
     <name>electric-plugins</name>
     <description>
-        Aggregator of Electric plugins.
+        Electric Movie API.
     </description>
     <url>http://electric.dev.java.net</url>
 
-    <modules>
-        <module>electric-movie-api</module>
-        <!--module>electric-movie-jmf</module>
-        <module>electric-irsim-api</module>
-        <module>electric-irsim</module-->
-    </modules>
-    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                    <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+ 
     <scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/trunk/plugins</url>
+        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-api</connection>
+        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-api</developerConnection>
+        <url>https://electric.dev.java.net/source/browse/electric/trunk/plugins/electric-movie-api</url>
     </scm>
     <repositories>
         <repository>
