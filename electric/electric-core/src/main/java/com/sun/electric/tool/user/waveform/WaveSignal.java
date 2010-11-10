@@ -58,7 +58,7 @@ public class WaveSignal
 	/** the button on the left with this signal */	private JButton sigButton;
 	/** the edit control for the button */			private EditSignalName sigButtonEdit;
 	/** the index of this signal button */			private int sigButtonIndex;
-	/** for determining double-clicks */			private static long lastClick = 0;
+	/** for determining double-clicks */			private long lastClick = 0;
 
 	private static Color [] colorArray = new Color [] {
 		new Color(255,   0,   0),		// red

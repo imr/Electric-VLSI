@@ -139,12 +139,12 @@ public class Panel extends JPanel
 	/** the smallest nonzero X value (for log drawing) */	private double smallestXValue;
 	/** the smallest nonzero Y value (for log drawing) */	private double smallestYValue;
 
-	/** the background color of a button */					private static Color background = null;
-	/** The color of the grid (a gray) */					private static Color gridColor = new Color(0x808080);
-	/** for determining double-clicks */					private static long lastClick = 0;
-	/** current panel */									private static Panel curPanel;
-	/** current X coordinate in the panel */				private static int curXPos;
+	/** the background color of a button */					private Color background = null;
+	/** for determining double-clicks */					private long lastClick = 0;
+//	/** current panel */									private static Panel curPanel;
+//	/** current X coordinate in the panel */				private static int curXPos;
 
+	/** The color of the grid (a gray) */					private static final Color gridColor = new Color(0x808080);
 	/** for drawing far-dotted lines */						private static final BasicStroke farDottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {4,12}, 0);
 	/** the size of control point squares */				private static final int CONTROLPOINTSIZE = 6;
 	/** the width of the panel label on the left */			private static final int VERTLABELWIDTH = 60;
@@ -192,7 +192,7 @@ public class Panel extends JPanel
 		leftHalf.setPreferredSize(new Dimension(100, height));
 
 		// a drop target for the signal panel
-		new DropTarget(leftHalf, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
+		new DropTarget(leftHalf, DnDConstants.ACTION_LINK, waveWindow.waveformDropTarget, true);
 
 //		// a separator at the top
 //		JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
@@ -311,7 +311,7 @@ public class Panel extends JPanel
 		rightHalf.setPreferredSize(new Dimension(100, height));
 
 		// a drop target for the signal panel
-		new DropTarget(this, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
+		new DropTarget(this, DnDConstants.ACTION_LINK, waveWindow.waveformDropTarget, true);
 
 //		// a separator at the top
 //		sep = new JSeparator(SwingConstants.HORIZONTAL);
@@ -420,9 +420,9 @@ public class Panel extends JPanel
 
 	public void setVertAxisPos(int x) { vertAxisPos = x; }
 
-	public static Panel getCurrentPanel() { return curPanel; }
+//	public static Panel getCurrentPanel() { return curPanel; }
 
-	public static int getCurrentXPos() { return curXPos; }
+//	public static int getCurrentXPos() { return curXPos; }
 
 	public Dimension getSz() { return sz; }
 
@@ -1668,16 +1668,16 @@ public class Panel extends JPanel
 
 	public void mouseClicked(MouseEvent evt) {}
 
-	public void mouseEntered(MouseEvent evt) { curPanel = this;   curXPos = evt.getX(); }
+	public void mouseEntered(MouseEvent evt) { /*curPanel = this;   curXPos = evt.getX();*/ }
 
-	public void mouseExited(MouseEvent evt) { curPanel = null; }
+	public void mouseExited(MouseEvent evt) { /*curPanel = null;*/ }
 
 	/**
 	 * the MouseMotionListener events
 	 */
 	public void mouseMoved(MouseEvent evt)
 	{
-		curXPos = evt.getX();
+//		curXPos = evt.getX();
 		ToolBar.CursorMode mode = ToolBar.getCursorMode();
 		if (mode == ToolBar.CursorMode.ZOOM) mouseMovedZoom(evt);
         else if (mode == ToolBar.CursorMode.PAN) mouseMovedPan(evt);
@@ -1686,7 +1686,7 @@ public class Panel extends JPanel
 
 	public void mouseDragged(MouseEvent evt)
 	{
-		curXPos = evt.getX();
+//		curXPos = evt.getX();
 		ToolBar.CursorMode mode = ToolBar.getCursorMode();
 		if (ClickZoomWireListener.isRightMouse(evt) && (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
 			mode = ToolBar.CursorMode.ZOOM;
@@ -2270,8 +2270,8 @@ public class Panel extends JPanel
 			selected = true;
 			repaintContents();
 		}
-		curPanel = this;
-		curXPos = x;
+//		curPanel = this;
+//		curXPos = x;
 	}
 
 	public boolean isSelected() { return selected; }

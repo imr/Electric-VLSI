@@ -76,7 +76,7 @@ public class HorizRuler extends JPanel implements MouseListener, MouseMotionList
 		addMouseMotionListener(this);
 
 		// a drop target for the ruler panel
-		new DropTarget(this, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
+		new DropTarget(this, DnDConstants.ACTION_LINK, waveWindow.waveformDropTarget, true);
 	}
 
 	/**
@@ -146,7 +146,7 @@ public class HorizRuler extends JPanel implements MouseListener, MouseMotionList
 			int newWid = waveWindow.getScreenHighX() - waveWindow.getScreenLowX();
 
 			// clear the panel
-			g.setColor(WaveformWindow.getBackgroundColor());
+			g.setColor(waveWindow.getBackgroundColor());
 			g.fillRect(0, 0, wid, hei);
 
 			// the main horizontal ruler needs a Panel (won't work if there aren't any)

@@ -552,7 +552,7 @@ public class WindowFrame extends Observable
 //			content.getPanel().removePropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
 		}
 	}
-
+    
 	//******************************** WINDOW CONTROL ********************************
 
 	/**
@@ -986,6 +986,8 @@ public class WindowFrame extends Observable
         content.finished();
 		explorerTab.setModel(null);
         WindowMenu.setDynamicMenus();
+        layersTab.finished();
+        depopulateJFrame();
 
         if (!TopLevel.isMDIMode()) {
             // if SDI mode, TopLevel enclosing frame is closing, dispose of it

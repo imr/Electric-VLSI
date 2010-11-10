@@ -196,14 +196,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** The highlighter for this waveform window. */		private Highlighter highlighter;
 	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
 
-	/** lock for crossprobing */							private static boolean freezeWaveformHighlighting = false;
-	/** lock for crossprobing */							private static boolean freezeEditWindowHighlighting = false;
-	/** The global listener for all waveform windows. */	private static WaveformWindowHighlightListener waveHighlighter = new WaveformWindowHighlightListener();
-	/** Font for all text in the window */					private static Font waveWindowFont;
-	/** For rendering text */								private static FontRenderContext waveWindowFRC;
-	/** The colors of signal lines */						private static Color offStrengthColor, nodeStrengthColor, gateStrengthColor, powerStrengthColor;
-	/** The background color */								private static Color backgroundColor;
-	/** drop target (for drag and drop) */					public static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
+	/** lock for crossprobing */							private boolean freezeWaveformHighlighting = false;
+	/** lock for crossprobing */							private boolean freezeEditWindowHighlighting = false;
+	/** The global listener for all waveform windows. */	private WaveformWindowHighlightListener waveHighlighter = new WaveformWindowHighlightListener();
+	/** Font for all text in the window */					private Font waveWindowFont;
+	/** For rendering text */								private FontRenderContext waveWindowFRC;
+	/** The colors of signal lines */						private Color offStrengthColor, nodeStrengthColor, gateStrengthColor, powerStrengthColor;
+	/** The background color */								private Color backgroundColor;
+	/** drop target (for drag and drop) */					public WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
 	private static final ImageIcon iconAddPanel = Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif");
 	private static final ImageIcon iconLockXAxes = Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif");
@@ -246,7 +246,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		xAxisSignalAll = null;
 		mainHorizRulerPanelLogarithmic = false;
 
-		// compute static fields used in graphics
+		// compute fields used in graphics
 		waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
 		waveWindowFRC = new FontRenderContext(null, false, false);
 		offStrengthColor = new Color(User.getColor(User.ColorPrefType.WAVE_OFF_STRENGTH));
@@ -284,7 +284,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		scrollAll = new JScrollPane(table);
 
 		// a drop target for the table
-		new DropTarget(table, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
+		new DropTarget(table, DnDConstants.ACTION_LINK, waveformDropTarget, true);
 
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 2;
@@ -897,6 +897,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			wp.finished();
 		}
+		Highlighter.removeHighlightListener(waveHighlighter);
 		overall.removeComponentListener(wcl);
 		highlighter.delete();
 		if (sd != null)
@@ -1319,7 +1320,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public JTable getWaveformTable() { return table; }
 
-	public static Color getBackgroundColor() { return backgroundColor; }
+	public Color getBackgroundColor() { return backgroundColor; }
 
 	// ************************************* CONTROL OF PANELS IN THE WINDOW *************************************
 
@@ -2924,12 +2925,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (cell == null) continue;
 			Highlighter hl = wnd.getHighlighter();
 			Netlist netlist = cell.getNetlist();
-			if (netlist == null)
-			{
-				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
-				freezeWaveformHighlighting = false;
-				return;
-			}
+            assert netlist != null;
+//			if (netlist == null)
+//			{
+//				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+//				freezeWaveformHighlighting = false;
+//				return;
+//			}
 
 			hl.clear();
 			for(Panel wp : wavePanels)
@@ -4508,7 +4510,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	// ************************************* HIGHLIGHT LISTENER FOR ALL WAVEFORM WINDOWS *************************************
 
-	private static class WaveformWindowHighlightListener implements HighlightListener
+	private class WaveformWindowHighlightListener implements HighlightListener
 	{
 		/**
 		 * Method to highlight waveform signals corresponding to circuit networks that are highlighted.
@@ -4525,17 +4527,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (!(highWF.getContent() instanceof EditWindow)) return;
 			EditWindow wnd = (EditWindow)highWF.getContent();
 
-			// loop through all windows, looking for waveform windows
-			if (which == wnd.getHighlighter())
-			{
-				for(Iterator<WindowFrame> wIt = WindowFrame.getWindows(); wIt.hasNext(); )
-				{
-					WindowFrame wf = wIt.next();
-					if (!(wf.getContent() instanceof WaveformWindow)) continue;
-					WaveformWindow ww = (WaveformWindow)wf.getContent();
-					ww.crossProbeEditWindowToWaveform(wnd, which);
-				}
-			}
+			crossProbeEditWindowToWaveform(wnd, which);
+//			// loop through all windows, looking for waveform windows
+//			if (which == wnd.getHighlighter())
+//			{
+//				for(Iterator<WindowFrame> wIt = WindowFrame.getWindows(); wIt.hasNext(); )
+//				{
+//					WindowFrame wf = wIt.next();
+//					if (!(wf.getContent() instanceof WaveformWindow)) continue;
+//					WaveformWindow ww = (WaveformWindow)wf.getContent();
+//					ww.crossProbeEditWindowToWaveform(wnd, which);
+//				}
+//			}
 		}
 
 		/**
