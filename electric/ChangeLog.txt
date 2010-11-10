@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+IMP: (11/10/10, FS) Remove unnecessary system.out: electric-configuration (Bug #2947)
+
 BUG: (11/10/10, DN) Memory leak in IRSIM simulation (Bug #2953).
 FIX: Don't keep pointers to Panels, Signals, Listeners in static variables in com.sun.electric.tool.user.waveform .
 
