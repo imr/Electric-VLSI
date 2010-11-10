@@ -179,7 +179,7 @@ public interface IAnalyzer {
          * Method to remove all stimuli from the currently-selected signal.
          * @param sig currently selected signal.
          */
-        public void clearContolPoints(Signal<?> sig);
+        public void clearControlPoints(Signal<?> sig);
         /**
          * Method to remove the selected stimuli.
          * @return true if stimuli were deleted.

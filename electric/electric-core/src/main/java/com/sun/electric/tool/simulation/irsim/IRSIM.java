@@ -330,7 +330,7 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
         }
         Signal<?> sig = signals.get(0);
         sig.clearControlPoints();
-        a.clearContolPoints(sig);
+        a.clearControlPoints(sig);
         if (SimulationTool.isBuiltInResimulateEach()) {
             a.playVectors();
         }

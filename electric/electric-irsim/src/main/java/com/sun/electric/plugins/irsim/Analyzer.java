@@ -396,7 +396,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	 * Method to remove all stimuli from the currently-selected signal.
      * @param sig currently selected signal.
 	 */
-    public void clearContolPoints(Signal<?> sig) {
+    public void clearControlPoints(Signal<?> sig) {
 		SimVector lastSV = null;
 		for(SimVector sv = firstVector; sv != null; sv = sv.next)
 		{
