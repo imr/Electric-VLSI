@@ -62,7 +62,6 @@ public abstract class Configuration {
         Configuration result = null;
 
         result = new EConfigContainer(Configuration.configName);
-        logger.log(Level.INFO, "Use the standard electric configurator for dependency injection.");
 
         return result;
     }
