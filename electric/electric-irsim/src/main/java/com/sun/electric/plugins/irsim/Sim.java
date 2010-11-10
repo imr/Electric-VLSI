@@ -18,12 +18,9 @@
 package com.sun.electric.plugins.irsim;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.Reader;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1324,7 +1321,7 @@ public class Sim implements SimAPI
 //			System.out.println("Error reading file");
 //		}
 //        Electric.stopProgressDialog();
-		System.out.println("Loaded circuit, lambda=" + theConfig.lambda + "u");
+//		System.out.println("Loaded circuit, lambda=" + theConfig.lambda + "u");
         return numErrors;
 	}
 
