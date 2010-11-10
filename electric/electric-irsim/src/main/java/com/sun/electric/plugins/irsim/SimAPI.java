@@ -17,7 +17,8 @@
  */
 package com.sun.electric.plugins.irsim;
 
-import java.net.URL;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Collection;
 import java.util.List;
 
@@ -214,9 +215,18 @@ public interface SimAPI {
 	 *     Some tools, such as esim(1), recognize aliases for node names.
 	 *     The = construct allows the name node2 to be defined as an alias for the name node1.
 	 *     Aliases defined by means of this construct may not appear anywhere else in the .sim file.
-	 */
-	public boolean inputSim(URL simFileURL);
+     * @param simReader Reader of .sim file
+     * @param fileName file name for error messages
+     * @return number of errors
+     */
+    public int inputSim(Reader simReader, String fileName) throws IOException;
     public void finishNetwork();
+    /**
+     * Get lambda value in nanometers
+     * @return lambda in nanometers
+     */
+    public double getLambda();
+    
 
     // Explore Network
     public int getNumNodes();

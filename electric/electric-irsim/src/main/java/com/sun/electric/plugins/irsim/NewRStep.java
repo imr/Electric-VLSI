@@ -365,7 +365,7 @@ public class NewRStep extends Eval
 				{
 					if (r.finall == Sim.X)
 					{
-                        if (Electric.isIRSIMDelayedX()) {
+                        if (theSim.isDelayedX) {
                             // When fighting, instead of using the dominant time constant,
                             // use a value proportional to the difference in pull up and pull down
                             // strengths
@@ -964,7 +964,7 @@ public class NewRStep extends Eval
 		r.cD = n.nCap;
 		if (dom == Sim.X)			// assume X nodes are charged high
 		{
-            if (Electric.isIRSIMDelayedX()) {
+            if (theSim.isDelayedX) {
                 // X nodes are charged to X through Rup and Rdown fighting
                 r.cA = n.nCap;
             } else

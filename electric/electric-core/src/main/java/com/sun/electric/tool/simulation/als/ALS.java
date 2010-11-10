@@ -758,10 +758,10 @@ public class ALS implements Engine
     {
         if (stimuliURL == null)
             throw new NullPointerException();
+   		List<String> stimuliList = new ArrayList<String>();
 		LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(stimuliURL.openStream()));
 		try
 		{
-    		List<String> stimuliList = new ArrayList<String>();
 			for(;;)
 			{
 				String s1 = lineReader.readLine();

@@ -178,11 +178,15 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
         return new IAnalyzer() {
             /**
              * Create IRSIM Simulation Engine to simulate a cell.
-             * @param ip IRSIM preferences
+             * @param gui interface to GUI
+             * @param steppingModel stepping model either "RC" or "Linear"
              * @param parameterURL URL of IRSIM parameter file
+             * @param irDebug debug flags
+             * @param showCommands tru to print issued IRSIM commands
+             * @param isDelayedX true if using the delayed X model, false if using the old fast-propagating X model.
              */
-            public EngineIRSIM createEngine(IAnalyzer.GUI gui, String steppingModel, URL parameterURL, int irDebug, boolean showCommands) {
-                SimAPI sim = new Sim(irDebug, steppingModel, parameterURL);
+            public EngineIRSIM createEngine(IAnalyzer.GUI gui, String steppingModel, URL parameterURL, int irDebug, boolean showCommands, boolean isDelayedX) {
+                SimAPI sim = new Sim(irDebug, steppingModel, parameterURL, isDelayedX);
                 Analyzer theAnalyzer = new Analyzer(gui, sim, irDebug, showCommands);
                 
                 System.out.println("IRSIM, version " + simVersion);
@@ -284,11 +288,12 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	 *     Some tools, such as esim(1), recognize aliases for node names.
 	 *     The = construct allows the name node2 to be defined as an alias for the name node1.
 	 *     Aliases defined by means of this construct may not appear anywhere else in the .sim file.
-     * @param simFileURL URL of .sim fole
-     * @return
+     * @param simReader Reader of .sim file
+     * @param fileName file name for error messages
+     * @return number of errors
      */
-    public boolean inputSim(URL simFileURL) {
-        return theSim.inputSim(simFileURL);
+    public int inputSim(Reader simReader, String fileName) throws IOException {
+        return theSim.inputSim(simReader, fileName);
     }
 
     /**
@@ -296,6 +301,14 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
      */
     public void finishNetwork() {
         theSim.finishNetwork();
+    }
+    
+    /**
+     * Get lambda value in nanometers
+     * @return lambda in nanometers
+     */
+    public double getLambda() {
+        return theSim.getLambda();
     }
     
     /**

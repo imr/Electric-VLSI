@@ -24,51 +24,12 @@
 package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.util.TextUtils;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.simulation.SimulationTool;
 
 /**
  * Collects Electric dependencies in IRSIM code.
  */
 class Electric {
 
-    // Job.getUserInterface()
-
-    /**
-     * Method to start the display of a progress dialog.
-     * @param msg the message to show in the progress dialog.
-     * @param filePath the file being read (null if not reading a file).
-     */
-    static void startProgressDialog(String msg, String filePath) {
-        Job.getUserInterface().startProgressDialog(msg, filePath);
-    }
-
-    /**
-     * Method to stop the progress bar
-     */
-    static void stopProgressDialog() {
-        Job.getUserInterface().stopProgressDialog();
-    }
-
-    /**
-     * Method to update the progress bar
-     * @param pct the percentage done (from 0 to 100).
-     */
-    static void setProgressValue(int pct) {
-        Job.getUserInterface().setProgressValue(pct);
-    }
-    
-    // SimulationTool
-    
-	/**
-	 * Get whether or not IRSIM uses a delayed X model, versus the old fast-propagating X model.
-	 * @return true if using the delayed X model, false if using the old fast-propagating X model.
-	 */
-	static boolean isIRSIMDelayedX() {
-        return SimulationTool.isIRSIMDelayedX(); }
-    
-    // GenMath
-    
     /**
      * Class to define an Double-like object that can be modified.
      */

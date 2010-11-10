@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -561,11 +562,14 @@ public class Sim implements SimAPI
 	private Config   theConfig;
     SimAPI.Analyzer theAnalyzer;
     int irDebug;
+    /** true if using the delayed X model, false if using the old fast-propagating X model. */
+    boolean isDelayedX;
 
 
-	public Sim(int irDebug, String steppingModel, URL parameterURL)
+	public Sim(int irDebug, String steppingModel, URL parameterURL, boolean isDelayedX)
 	{
         this.irDebug = irDebug;
+        this.isDelayedX = isDelayedX;
 
 		// initialize the model
 		if (steppingModel.equals("Linear")) theModel = new SStep(this); else
@@ -1208,32 +1212,36 @@ public class Sim implements SimAPI
 	 *     Some tools, such as esim(1), recognize aliases for node names.
 	 *     The = construct allows the name node2 to be defined as an alias for the name node1.
 	 *     Aliases defined by means of this construct may not appear anywhere else in the .sim file.
-	 */
-	public boolean inputSim(URL simFileURL)
+     * @param simReader Reader of .sim file
+     * @param fileName file name for error messages
+     * @return number of errors
+     */
+    public int inputSim(Reader simReader, String fileName) throws IOException
 	{
 		// read the file
 		boolean rError = false;
 		boolean aError = false;
-		String fileName = simFileURL.getFile();
-		Electric.startProgressDialog("import", fileName);
-		try
-		{
-			URLConnection urlCon = simFileURL.openConnection();
-			String contentLength = urlCon.getHeaderField("content-length");
-			long fileLength = -1;
-			try {
-				fileLength = Long.parseLong(contentLength);
-			} catch (Exception e) {}
-			long readSoFar = 0;
-			InputStream inputStream = urlCon.getInputStream();
-			InputStreamReader is = new InputStreamReader(inputStream);
-			LineNumberReader lineReader = new LineNumberReader(is);
+//		String fileName = simFileURL.getFile();
+//		Electric.startProgressDialog("import", fileName);
+//		try
+//		{
+//			URLConnection urlCon = simFileURL.openConnection();
+//			String contentLength = urlCon.getHeaderField("content-length");
+//			long fileLength = -1;
+//			try {
+//				fileLength = Long.parseLong(contentLength);
+//			} catch (Exception e) {}
+//			long readSoFar = 0;
+//			InputStream inputStream = urlCon.getInputStream();
+//			InputStreamReader is = new InputStreamReader(inputStream);
+//			LineNumberReader lineReader = new LineNumberReader(is);
+            LineNumberReader lineReader = new LineNumberReader(simReader);
 			for(;;)
 			{
 				String line = lineReader.readLine();
 				if (line == null) break;
-				readSoFar += line.length() + 1;
-				Electric.setProgressValue((int)(readSoFar * 100 / fileLength));
+//				readSoFar += line.length() + 1;
+//				Electric.setProgressValue((int)(readSoFar * 100 / fileLength));
 				String [] targ = parseLine(line, false);
 				if (targ.length == 0) continue;
 				char firstCh = targ[0].charAt(0);
@@ -1307,17 +1315,17 @@ public class Sim implements SimAPI
 						break;
 					default:
 						reportError(fileName, lineReader.getLineNumber(), "Unrecognized input line (" + targ[0] + ")");
-						if (checkErrs(fileName)) return true;
+						if (checkErrs(fileName)) return numErrors;
 				}
 			}
-			inputStream.close();
-		} catch (IOException e)
-		{
-			System.out.println("Error reading file");
-		}
-        Electric.stopProgressDialog();
+//			inputStream.close();
+//		} catch (IOException e)
+//		{
+//			System.out.println("Error reading file");
+//		}
+//        Electric.stopProgressDialog();
 		System.out.println("Loaded circuit, lambda=" + theConfig.lambda + "u");
-        return numErrors > 0;
+        return numErrors;
 	}
 
 	private void initNetwork()
@@ -1383,6 +1391,14 @@ public class Sim implements SimAPI
 		theModel.initEvent();
 	}
 
+    /**
+     * Get lambda value in nanometers
+     * @return lambda in nanometers
+     */
+    public double getLambda() {
+        return theConfig.lambda;
+    }
+    
 	private static class NodesByName implements Comparator<Node>
 	{
 		public int compare(Node n1, Node n2)
