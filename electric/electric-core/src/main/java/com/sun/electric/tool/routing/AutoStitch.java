@@ -160,7 +160,7 @@ public class AutoStitch
 			hY = limitBound.getMaxY();
 		}
 
-		// find out the prefered routing arc
+		// find out the preferred routing arc
 		new AutoStitchJob(cell, nodesToStitch, arcsToStitch, lX, hX, lY, hY, forced);
 	}
 
@@ -215,7 +215,7 @@ public class AutoStitch
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
-	 * @param includePureLayerNodes true to route pure-layer nodes (normally ignorned).
+	 * @param includePureLayerNodes true to route pure-layer nodes (normally ignored).
 	 * @param prefs routing preferences.
 	 * @param showProgress true to show progress.
 	 * @param alignment grid alignment for edges of arcs (null if none).
@@ -379,7 +379,7 @@ public class AutoStitch
 			arcsToStitch = getArcsToStitch(cell, origArcsToStitch);
 		}
 
-		// next pre-compute bounds on all nodes in cell
+		// next precompute bounds on all nodes in cell
 		Map<NodeInst, ObjectQTree> nodePortBounds = new HashMap<NodeInst, ObjectQTree>();
 		for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 		{
@@ -758,8 +758,28 @@ name=null;
 	}
 
 	/****************************************** NORMAL STITCHING ******************************************/
+private void scanRTree(RTNode rTop)
+{
+	for(int i=0; i<rTop.getTotal(); i++)
+	{
+		Object obj = rTop.getChild(i);
+		if (obj instanceof RTNode) scanRTree((RTNode)obj); else
+		{
+			if (obj instanceof NodeInst)
+			{
+				NodeInst n = (NodeInst)obj;
+				if (n.getFunction() == PrimitiveNode.Function.NODE || n.getName().equals("plnode@29"))
+				{
+					Rectangle2D r = n.getBounds();
+					System.out.println("   R-TREE HAS NODE "+n.describe(false)+" AT "+r.getMinX()+"<=X<="+
+						r.getMaxX()+" AND "+r.getMinY()+"<=Y<="+r.getMaxY());
+				}
+			}
+		}
+	}
+}
 
-	/**
+/**
 	 * Method to check an object for possible stitching to neighboring objects.
 	 * @param geom the object to check for stitching.
 	 * @param nodePortBounds quad-tree bounds information for all nodes in the Cell.
@@ -769,6 +789,7 @@ name=null;
 	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param preferredArc preferred ArcProto to use.
 	 */
+private static final boolean DEBUGFORDIMA = false;
 	private void checkStitching(Geometric geom, Map<NodeInst, ObjectQTree> nodePortBounds, Map<ArcProto,Layer> arcLayers,
 		PolyMerge stayInside, StitchingTopology top, Rectangle2D limitBound, ArcProto preferredArc)
 	{
@@ -782,6 +803,25 @@ name=null;
 		double epsilon = DBMath.getEpsilon();
 		Rectangle2D searchBounds = new Rectangle2D.Double(geomBounds.getMinX()-epsilon, geomBounds.getMinY()-epsilon,
 			geomBounds.getWidth()+epsilon*2, geomBounds.getHeight()+epsilon*2);
+if (DEBUGFORDIMA)
+{
+	if (ni != null && ni.getName().equals("plnode@29"))
+	{
+		System.out.println("==== R-TREE TEST ====");
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst n = it.next();
+			if (n.getName().equals("plnode@29"))
+			{
+				Rectangle2D r = n.getBounds();
+				System.out.println("   CELL HAS NODE "+n.describe(false)+" AT "+r.getMinX()+"<=X<="+
+					r.getMaxX()+" AND "+r.getMinY()+"<=Y<="+r.getMaxY());
+			}
+		}
+		RTNode rTop = cell.getTopology().getRTree();
+		scanRTree(rTop);
+	}
+}
 		for(Iterator<RTBounds> it = cell.searchIterator(searchBounds); it.hasNext(); )
 		{
 			Geometric oGeom = (Geometric)it.next();
@@ -1884,9 +1924,9 @@ name=null;
 
     /**
      * Make an export if necessary to connect the two networks.
-     * Each pair of subpolys in the list represents the same two networks,
+     * Each pair of sub-polygons in the list represents the same two networks,
      * so being able to connect one pair means the others will also be connected.
-     * @param polys A list of poly connections (pairs of subpolygons)
+     * @param polys A list of poly connections (pairs of sub-polygons)
      */
     private void makeExport(List<PolyConnection> polys)
     {
@@ -1934,7 +1974,7 @@ name=null;
             sp2AtTop = makeExportDrill((NodeInst)p.sp2.theObj, p.sp2.poly.getPort(), p.sp2.context, preferredExportArea, ap);
         }
 
-        // make arc inst connections
+        // make arc instance connections
         if (sp1AtTop == null && (p.sp1.theObj instanceof ArcInst) && sp2AtTop != null) {
             makeExportDrillOnArc(sp2AtTop, p.sp1, preferredExportArea);
             //System.out.println("Making export on arc for netID "+p.sp1.netID);
@@ -1946,8 +1986,8 @@ name=null;
     }
 
     /**
-     * See if the subpolygon is exported all the way to the top level of the var context.
-     * @param sp the subpolygon
+     * See if the sub-polygon is exported all the way to the top level of the var context.
+     * @param sp the sub-polygon
      * @return true if exported to the top level, false otherwise
      */
     private Point2D isExportedToTop(SubPolygon sp)
@@ -1973,7 +2013,7 @@ name=null;
 
     /**
      * See if the portinst is exported all the way to the top level of the var context.
-     * @param pi the port inst
+     * @param pi the port instance
      * @param context context
      * @return true if exported to the top level, false otherwise
      */
@@ -2156,7 +2196,7 @@ name=null;
                 Cell cell = ni.getParent();
 
                 String exportName = getExportNameInCell(cell, pi);
-                // special case for primitive node (bottom most port) - export a pin at a different loc to make it
+                // special case for primitive node (bottom most port) - export a pin at a different location to make it
                 // easier to connect to at the top level
                 if (!ni.isCellInstance() && preferredExportArea != null && ap != null) // primitive node
                 {
@@ -2434,7 +2474,7 @@ name=null;
 	}
 
 	/**
-	 * HierarchyEnumerator subclass to check all geometry in a cell aganst polygons that may intersect.
+	 * HierarchyEnumerator subclass to check all geometry in a cell against polygons that may intersect.
 	 */
 	private class CheckPolygonVisitor extends HierarchyEnumerator.Visitor
 	{
@@ -2751,7 +2791,7 @@ name=null;
 
 	/**
 	 * Method to get the shape of a node as a list of Polys.
-	 * The autorouter uses this instead of Technology.getShapeOfNode()
+	 * The auto-router uses this instead of Technology.getShapeOfNode()
 	 * because this gets electrical layers and makes invisible pins be visible
 	 * if they have coverage from connecting arcs.
 	 * @param ni the node to inspect.  It must be primitive.

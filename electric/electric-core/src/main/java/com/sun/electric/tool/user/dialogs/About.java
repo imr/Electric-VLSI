@@ -233,6 +233,8 @@ public class About extends EDialog
         author2 = new javax.swing.JLabel();
         author3 = new javax.swing.JLabel();
         author1 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
         Bottom = new javax.swing.JPanel();
         jLabel9 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
@@ -325,9 +327,8 @@ public class About extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridheight = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         TopLeft.add(jLabel3, gridBagConstraints);
 
         castOfThousands.setText("C Team");
@@ -379,6 +380,22 @@ public class About extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         TopLeft.add(author1, gridBagConstraints);
 
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jLabel5.setText("(in random");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        TopLeft.add(jLabel5, gridBagConstraints);
+
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jLabel6.setText("order)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
+        TopLeft.add(jLabel6, gridBagConstraints);
+
         Top.add(TopLeft, java.awt.BorderLayout.WEST);
 
         getContentPane().add(Top, java.awt.BorderLayout.NORTH);
@@ -396,7 +413,7 @@ public class About extends EDialog
         Bottom.add(jLabel9, gridBagConstraints);
 
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel8.setText("Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.");
+        jLabel8.setText("Copyright (c) 2007 Sun Microsystems and Static Free Software");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -1153,6 +1170,8 @@ public class About extends EDialog
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JButton javaTeam;

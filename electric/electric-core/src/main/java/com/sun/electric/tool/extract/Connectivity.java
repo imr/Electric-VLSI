@@ -41,7 +41,13 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.*;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.HeadConnection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
@@ -80,8 +86,23 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.geom.*;
-import java.util.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -93,7 +114,7 @@ import javax.swing.JLabel;
 /**
  * This is the Connectivity extractor.
  *
- * Still need to handle nonmanhattan contacts
+ * Still need to handle non-Manhattan contacts
  */
 public class Connectivity
 {
@@ -116,7 +137,7 @@ public class Connectivity
 	/** map of cut layers to lists of polygons on that layer */	private Map<Layer,CutInfo> allCutLayers;
 	/** set of pure-layer nodes that are not processed */		private Set<PrimitiveNode> ignoreNodes;
 	/** set of contacts that are not used for extraction */		private Set<PrimitiveNode> bogusContacts;
-    /** PrimitiveNodes for pdiff and ndiff */                   private PrimitiveNode diffNode, pDiffNode, nDiffNode;
+    /** PrimitiveNodes for p-diffusion and n-diffusion */       private PrimitiveNode diffNode, pDiffNode, nDiffNode;
     /** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
 	/** auto-generated exports that may need better names */	private List<Export> generatedExports;
 	/** true if this is a P-well process (presume P-well) */	private boolean pSubstrateProcess;
@@ -193,15 +214,21 @@ public class Connectivity
 		public boolean doIt() throws JobException
 		{
 			// get pattern for matching cells to expand
-			Pattern pat = null;
+			List<Pattern> pats = new ArrayList<Pattern>();
 			if (expansionPattern.length() > 0)
 			{
-				try
+				String [] patParts = expansionPattern.split(",");
+				for(int i=0; i<patParts.length; i++)
 				{
-					pat = Pattern.compile(expansionPattern, Pattern.CASE_INSENSITIVE);
-				} catch(PatternSyntaxException e)
-				{
-					System.out.println("Pattern syntax error on '" + expansionPattern + "': " + e.getMessage());
+					String part = patParts[i].trim();
+					if (part.length() == 0) continue;
+					try
+					{
+						pats.add(Pattern.compile(part, Pattern.CASE_INSENSITIVE));
+					} catch(PatternSyntaxException e)
+					{
+						System.out.println("Pattern syntax error on '" + part + "': " + e.getMessage());
+					}
 				}
 			}
 
@@ -214,12 +241,12 @@ public class Connectivity
 			Job.getUserInterface().startProgressDialog("Extracting", null);
 
 			Connectivity c = new Connectivity(cell, this, errorLogger, smallestPolygonSize, activeHandling,
-				gridAlignExtraction, scaledResolution, approximateCuts, recursive, pat);
+				gridAlignExtraction, scaledResolution, approximateCuts, recursive, pats);
 
-			if (recursive) c.totalCells = c.countExtracted(cell, pat, flattenPcells);
+			if (recursive) c.totalCells = c.countExtracted(cell, pats, flattenPcells);
 			c.cellsExtracted = 0;
 
-			newCell = c.doExtract(cell, recursive, pat, flattenPcells, usePureLayerNodes,
+			newCell = c.doExtract(cell, recursive, pats, flattenPcells, usePureLayerNodes,
 				true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
 			if (newCell == null)
 				System.out.println("ERROR: Extraction of cell " + cell.describe(false) + " failed");
@@ -269,16 +296,20 @@ public class Connectivity
      * Constructor to initialize connectivity extraction.
      * @param cell the cell
      * @param j the job
-     * @param eLog the errorlongger
+     * @param eLog the error logger
      * @param smallestPolygonSize the smallest polygon size
-     * @param activeHandling ?
+     * @param activeHandling 
+	 * 0: Insist on two different active layers (N and P) and also proper select/well surrounds (the default).
+	 * 1: Ignore active distinctions and use select/well surrounds to distinguish N from P.
+	 * 2: Insist on two different active layers (N and P) but ignore select/well surrounds.
      * @param gridAlignExtraction true to align extraction to some the technology grid
      * @param approximateCuts approximate cuts
      * @param recursive run recursively
-     * @param pat ?
+     * @param pats a List of cell name patterns that will be flattened.
      */
 	private Connectivity(Cell cell, Job j, ErrorLogger eLog, double smallestPolygonSize, int activeHandling,
-		boolean gridAlignExtraction, double scaledResolution, boolean approximateCuts, boolean recursive, Pattern pat)
+		boolean gridAlignExtraction, double scaledResolution, boolean approximateCuts, boolean recursive,
+		List<Pattern> pats)
 	{
 	    this.approximateCuts = approximateCuts;
 		this.recursive = recursive;
@@ -324,7 +355,7 @@ public class Connectivity
         }
 
 		// determine if this is a "P-well" or "N-well" process
-		findMissingWells(cell, recursive, pat, activeHandling);
+		findMissingWells(cell, recursive, pats, activeHandling);
 
 		// find important layers
 		polyLayer = null;
@@ -344,12 +375,12 @@ public class Connectivity
 			if (realNActiveLayer == null && fun == Layer.Function.DIFFN) realNActiveLayer = layer;
             if (pSelectLayer == null && fun == Layer.Function.IMPLANTP) pSelectLayer = layer;
             if (nSelectLayer == null && fun == Layer.Function.IMPLANTN) nSelectLayer = layer;
-            if (pSubstrateProcess) // psubstrate
+            if (pSubstrateProcess) // p-substrate
             {
                 if (wellLayer == null && fun == Layer.Function.WELLN) wellLayer = layer;
                 if (substrateLayer == null && fun == Layer.Function.WELLP) substrateLayer = layer;
             }
-            if (nSubstrateProcess) // nsubstrate
+            if (nSubstrateProcess) // n-substrate
             {
                 if (wellLayer == null && fun == Layer.Function.WELLP) wellLayer = layer;
                 if (substrateLayer == null && fun == Layer.Function.WELLN) substrateLayer = layer;
@@ -358,14 +389,29 @@ public class Connectivity
 		polyLayer = polyLayer.getNonPseudoLayer();
 		if (polyLayer != null)
 			tempLayer1 = polyLayer.getPseudoLayer();
-        if (pActiveLayer == null || nActiveLayer == null && activeLayer != null) {
+		if (havePActive != haveNActive)
+		{
+			// only one active layer found: force ignorance of the distinction
+			if (activeHandling != 1)
+				System.out.println("Found only one type of active layer: ignoring N/P distinction.");
+			activeHandling = 1;
+            if (!haveNActive) nActiveLayer = pActiveLayer;
+            if (!havePActive) pActiveLayer = nActiveLayer;
+		}
+        unifyActive = false;
+        if (activeHandling == 1)
+        {
+        	// ignoring n/p distinction in active handling
+            unifyActive = true;
+        }
+        if ((pActiveLayer == null || nActiveLayer == null) && activeLayer != null)
+        {
+        	// technology has only one active layer: unify them
             unifyActive = true;
             pActiveLayer = nActiveLayer = activeLayer;
-        } else {
-            unifyActive = false;
-            pActiveLayer = pActiveLayer.getNonPseudoLayer();
-            nActiveLayer = nActiveLayer.getNonPseudoLayer();
         }
+        if (pActiveLayer != null) pActiveLayer = pActiveLayer.getNonPseudoLayer();
+        if (nActiveLayer != null) nActiveLayer = nActiveLayer.getNonPseudoLayer();
 
 		// figure out which arcs to use for a layer
 		arcsForLayer = new HashMap<Layer,ArcProto>();
@@ -417,7 +463,7 @@ public class Connectivity
 		System.out.println(msg);
 	}
 
-	private int countExtracted(Cell oldCell, Pattern pat, boolean flattenPcells)
+	private int countExtracted(Cell oldCell, List<Pattern> pats, boolean flattenPcells)
 	{
 		int numExtracted = 1;
 		for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
@@ -428,12 +474,12 @@ public class Connectivity
 				Cell subCell = (Cell)ni.getProto();
 
 				// do not recurse if this subcell will be expanded
-				if (isCellFlattened(subCell, pat, flattenPcells)) continue;
+				if (isCellFlattened(subCell, pats, flattenPcells)) continue;
 
 				Cell convertedCell = convertedCells.get(subCell);
 				if (convertedCell == null)
 				{
-					numExtracted += countExtracted(subCell, pat, flattenPcells);
+					numExtracted += countExtracted(subCell, pats, flattenPcells);
 				}
 			}
 		}
@@ -443,14 +489,14 @@ public class Connectivity
 	/**
 	 * Method to determine whether to flatten a cell.
 	 * @param cell the cell in question.
-	 * @param pat the pattern of cells to be flattened.
+	 * @param pats patterns of cells to be flattened.
 	 * @param flattenPcells true if Cadence Pcells are to be flattened.
 	 * @return true if the cell should be flattened.
 	 */
-	private boolean isCellFlattened(Cell cell, Pattern pat, boolean flattenPcells)
+	private boolean isCellFlattened(Cell cell, List<Pattern> pats, boolean flattenPcells)
 	{
 		// do not recurse if this subcell will be expanded
-		if (pat != null)
+		for(Pattern pat : pats)
 		{
 			Matcher mat = pat.matcher(cell.noLibDescribe());
 			if (mat.find()) return true;
@@ -480,7 +526,7 @@ public class Connectivity
 	 * A new version of the cell is created that has real nodes (transistors, contacts) and arcs.
 	 * This cell should have pure-layer nodes which will be converted.
 	 */
-	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean flattenPcells, boolean usePureLayerNodes,
+	private Cell doExtract(Cell oldCell, boolean recursive, List<Pattern> pats, boolean flattenPcells, boolean usePureLayerNodes,
 		boolean top, Job job, List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
 	{
 		if (recursive)
@@ -494,12 +540,12 @@ public class Connectivity
 					Cell subCell = (Cell)ni.getProto();
 
 					// do not recurse if this subcell will be expanded
-					if (isCellFlattened(subCell, pat, flattenPcells)) continue;
+					if (isCellFlattened(subCell, pats, flattenPcells)) continue;
 
 					Cell convertedCell = convertedCells.get(subCell);
 					if (convertedCell == null)
 					{
-						Cell result = doExtract(subCell, recursive, pat, flattenPcells, usePureLayerNodes,
+						Cell result = doExtract(subCell, recursive, pats, flattenPcells, usePureLayerNodes,
 							false, job, addedBatchRectangles, addedBatchLines, addedBatchNames);
 						if (result == null)
 							System.out.println("ERROR: Extraction of cell " + subCell.describe(false) + " failed");
@@ -530,7 +576,7 @@ public class Connectivity
 		generatedExports = new ArrayList<Export>();
 		pinsForLater = new ArrayList<ExportedPin>();
 		allCutLayers = new TreeMap<Layer,CutInfo>();
-		extractCell(oldCell, newCell, pat, flattenPcells, expandedCells, merge, selectMerge, GenMath.MATID, Orientation.IDENT);
+		extractCell(oldCell, newCell, pats, flattenPcells, expandedCells, merge, selectMerge, GenMath.MATID, Orientation.IDENT);
 		if (expandedCells.size() > 0)
 		{
 			System.out.print("These cells were expanded:");
@@ -610,7 +656,7 @@ public class Connectivity
         }
 
         // TODO: originalMerge passed to auto stitcher really needs to include subcell geometry too, in order
-        // for the auto-stitcher to know where it can place arcs. However, building and maintaining such a hashmap
+        // for the auto-stitcher to know where it can place arcs. However, building and maintaining such a hash map
         // might take up a lot of memory.
         AutoOptions prefs = new AutoOptions(true);
 		prefs.createExports = true;
@@ -721,13 +767,13 @@ public class Connectivity
 	 * Method to extract a cell's contents into the merge.
 	 * @param oldCell the cell being extracted.
 	 * @param newCell the new cell being created.
-	 * @param pat a pattern of subcell names that will be expanded.
+	 * @param pats patterns of subcell names that will be expanded.
 	 * @param flattenPcells true to expand Cadence Pcells (which end with $$number).
 	 * @param expandedCells a set of cells that matched the pattern and were expanded.
 	 * @param merge the merge to be filled.
 	 * @param prevTrans the transformation coming into this cell.
 	 */
-	private void extractCell(Cell oldCell, Cell newCell, Pattern pat, boolean flattenPcells, Set<Cell> expandedCells,
+	private void extractCell(Cell oldCell, Cell newCell, List<Pattern> pats, boolean flattenPcells, Set<Cell> expandedCells,
 		PolyMerge merge, PolyMerge selectMerge, AffineTransform prevTrans, Orientation orient)
 	{
 		Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
@@ -754,7 +800,7 @@ public class Connectivity
                     layer = geometricLayer(layer);
                     if (layer.getFunction() != Layer.Function.IMPLANTN && layer.getFunction() != Layer.Function.IMPLANTP) continue;
 
-                    // selectMerge has non-scaled-up coords, and has all geom coords relative to top level
+                    // selectMerge has non-scaled-up coordinates, and has all geometric coordinates relative to top level
                     AffineTransform trans = ni.rotateOut(prevTrans);
                     poly.transform(trans);
                     selectMerge.add(layer, poly);
@@ -777,14 +823,14 @@ public class Connectivity
 				Cell subCell = (Cell)ni.getProto();
 
 				// if subcell is expanded, do it now
-				boolean flatIt = isCellFlattened(subCell, pat, flattenPcells);
+				boolean flatIt = isCellFlattened(subCell, pats, flattenPcells);
 				if (flatIt)
 				{
 					// expanding the subcell
 					expandedCells.add(subCell);
 					AffineTransform subTrans = ni.translateOut(ni.rotateOut(prevTrans));
 					Orientation or = orient.concatenate(ni.getOrient());
-					extractCell(subCell, newCell, pat, flattenPcells, expandedCells, merge, selectMerge, subTrans, or);
+					extractCell(subCell, newCell, pats, flattenPcells, expandedCells, merge, selectMerge, subTrans, or);
 					continue;
 				}
 
@@ -902,14 +948,14 @@ public class Connectivity
                 if (layer.getFunction() == Layer.Function.DIFFN) {
                     // make sure n-diffusion is in n-select
                     if (selectMerge.contains(pSelectLayer, poly)) {
-                        // switch it pactive
+                        // switch it p-active
                         layer = pActiveLayer;
                     }
                 }
                 if (layer.getFunction() == Layer.Function.DIFFP) {
                     // make sure p-diffusion is in p-select
                     if (selectMerge.contains(nSelectLayer, poly)) {
-                        // switch it nactive
+                        // switch it n-active
                         layer = nActiveLayer;
                     }
                 }
@@ -992,13 +1038,17 @@ public class Connectivity
 	 * Examines the top-level cell to see which well layers are found.
 	 * @param cell the top-level Cell.
 	 * @param recursive true to examine recursively.
-	 * @param pat an exclusion pattern for cell names.
+	 * @param pats exclusion pattern for cell names.
+	 * @param activeHandling
+	 * 0: Insist on two different active layers (N and P) and also proper select/well surrounds (the default).
+	 * 1: Ignore active distinctions and use select/well surrounds to distinguish N from P.
+	 * 2: Insist on two different active layers (N and P) but ignore select/well surrounds.
 	 */
-	private void findMissingWells(Cell cell, boolean recursive, Pattern pat, int activeHandling)
+	private void findMissingWells(Cell cell, boolean recursive, List<Pattern> pats, int activeHandling)
 	{
 		hasWell = hasPWell = hasNWell = false;
 		haveNActive = havePActive = false;
-		recurseMissingWells(cell, recursive, pat);
+		recurseMissingWells(cell, recursive, pats);
 		if (!hasPWell)
 		{
 			pSubstrateProcess = true;
@@ -1017,9 +1067,9 @@ public class Connectivity
 	 * Method to recursively invoke "examineCellForMissingWells".
 	 * @param cell the top-level Cell.
 	 * @param recursive true to examine recursively.
-	 * @param pat an exclusion pattern for cell names.
+	 * @param pats exclusion patterns for cell names.
 	 */
-	private void recurseMissingWells(Cell cell, boolean recursive, Pattern pat)
+	private void recurseMissingWells(Cell cell, boolean recursive, List<Pattern> pats)
 	{
 		examineCellForMissingWells(cell);
 		if (recursive)
@@ -1033,16 +1083,18 @@ public class Connectivity
 					Cell subCell = (Cell)ni.getProto();
 
 					// do not recurse if this subcell will be expanded
-					if (pat != null)
+					boolean matches = false;
+					for(Pattern pat : pats)
 					{
 						Matcher mat = pat.matcher(subCell.noLibDescribe());
-						if (mat.find()) continue;
+						if (mat.find()) { matches = true;   break; }
 					}
+					if (matches) continue;
 
 					Cell convertedCell = convertedCells.get(subCell);
 					if (convertedCell == null)
 					{
-						recurseMissingWells(subCell, recursive, pat);
+						recurseMissingWells(subCell, recursive, pats);
 					}
 				}
 			}
@@ -1277,7 +1329,7 @@ public class Connectivity
 			}
 		}
 
-        // add in pure layer node for remaining geom
+        // add in pure layer node for remaining geometrics
         for (Layer layer : allLayers)
         {
             List<PolyBase> polyList = getMergePolys(merge, layer, null);
@@ -1426,7 +1478,7 @@ public class Connectivity
 				}
 */
 
-				// figure out which arc proto to use for the layer
+				// figure out which arc prototype to use for the layer
 				ArcProto ap = findArcProtoForPoly(layer, poly, originalMerge);
 				if (ap == null) continue;
 
@@ -1513,7 +1565,7 @@ public class Connectivity
                     Poly [] polys = tech.getShapeOfNode(ni);
                     for (Poly poly : polys) {
                         if (merge.contains(pSelectLayer, poly)) {
-                            // switch it pactive
+                            // switch it p-active
                             newType = pDiffNode;
                             break;
                         }
@@ -1524,7 +1576,7 @@ public class Connectivity
                     Poly [] polys = tech.getShapeOfNode(ni);
                     for (Poly poly : polys) {
                         if (merge.contains(nSelectLayer, poly)) {
-                            // switch it nactive
+                            // switch it n-active
                             newType = nDiffNode;
                             break;
                         }
@@ -1537,7 +1589,7 @@ public class Connectivity
                 {
                     EPoint [] origPoints = ni.getTrace();
                     Point2D [] points = new Point2D[origPoints.length];
-                    // for some reason getTrace returns points relative to center, but setTrace expects absolute coords
+                    // for some reason getTrace returns points relative to center, but setTrace expects absolute coordinates
                     for (int i=0; i<origPoints.length; i++) {
                         points[i] = new Point2D.Double(origPoints[i].getX()+ni.getAnchorCenterX(), origPoints[i].getY()+ni.getAnchorCenterY());
                     }
@@ -1551,7 +1603,7 @@ public class Connectivity
     /**
 	 * Method to figure out which ArcProto to use for a polygon on a layer.
 	 * In the case of Active layers, it examines the well and select layers to figure out
-	 * which arctive arc to use.
+	 * which active arc to use.
 	 * @param layer the layer of the polygon.
 	 * @param poly the polygon
 	 * @param originalMerge the merged data for the cell
@@ -1581,7 +1633,7 @@ public class Connectivity
 			neededFunction = ArcProto.Function.DIFFP;
 			if (wellP == null)
 			{
-				// a P-Well process: just look for the absense of N-Well surround
+				// a P-Well process: just look for the absence of N-Well surround
 				if (wellN == null || !originalMerge.intersects(wellN, poly)) neededFunction = ArcProto.Function.DIFFS;
 			} else
 			{
@@ -1593,7 +1645,7 @@ public class Connectivity
 			neededFunction = ArcProto.Function.DIFFN;
 			if (wellN == null)
 			{
-				// a N-Well process: just look for the absense of P-Well surround
+				// a N-Well process: just look for the absence of P-Well surround
 				if (wellP == null || !originalMerge.intersects(wellP, poly)) neededFunction = ArcProto.Function.DIFFW;
 			} else
 			{
@@ -1618,7 +1670,7 @@ public class Connectivity
         ArrayList<Layer> requiredAbsentLayers = new ArrayList<Layer>();
 
         // must further differentiate the active arcs...find implants
-        Layer wellP = null, wellN = null, selectP = null, selectN = null;
+        Layer wellP = null, wellN = null;
         for(Layer l : originalMerge.getKeySet())
         {
             if (l.getFunction() == Layer.Function.WELLP) wellP = l;
@@ -1811,7 +1863,7 @@ public class Connectivity
                 double maxX = start.getX() > end.getX() ? start.getX() : end.getX();
                 return new Rectangle2D.Double(minX, minY, maxX-minX, width);
             }
-            return null; // non-manhatten
+            return null; // non-Manhattan
         }
 
         public String toString()
@@ -1922,7 +1974,7 @@ public class Connectivity
 				{
 					//xOff = Math.floor(xOff / aliX) * aliX;
 					//yOff = Math.floor(yOff / aliY) * aliY;
-                    // if shortening to allow ends extend will put the arc offgrid, do not do it
+                    // if shortening to allow ends extend will put the arc off-grid, do not do it
                     if (xOff > 0 && (xOff % scaleUp(alignment.getWidth())) != 0) xOff = 0;
                     if (yOff > 0 && (yOff % scaleUp(alignment.getHeight())) != 0) yOff = 0;
                     cl.setStart(cl.start.getX() + xOff, cl.start.getY() + yOff);
@@ -1937,7 +1989,7 @@ public class Connectivity
 				{
 					//xOff = Math.ceil(xOff / aliX) * aliX;
 					//yOff = Math.ceil(yOff / aliY) * aliY;
-                    // if shortening to allow ends extend will put the arc offgrid, do not do it
+                    // if shortening to allow ends extend will put the arc off-grid, do not do it
                     if (xOff > 0 && (xOff % scaleUp(alignment.getWidth())) != 0) xOff = 0;
                     if (yOff > 0 && (yOff % scaleUp(alignment.getHeight())) != 0) yOff = 0;
 					cl.setEnd(cl.end.getX() - xOff, cl.end.getY() - yOff);
@@ -2067,7 +2119,7 @@ public class Connectivity
 				}
 			} else
 			{
-				// nonpins can have any touching and connecting layer
+				// non-pins can have any touching and connecting layer
 				Poly [] polys = tech.getShapeOfNode(ni, true, true, null);
 				AffineTransform trans = ni.rotateOut();
 				for(int i=0; i<polys.length; i++)
@@ -2869,9 +2921,9 @@ public class Connectivity
 				return poly;
 		}
 
-        // special case: some substrate contacts in some techs do not have the substrate layer (since often the original geom
-        // also does not have the substrate layer). To prevent these from being used as regular contacts,
-        // do an extra check here
+        // special case: some substrate contacts in some technologies do not have the substrate layer
+        // (since often the original geometric also does not have the substrate layer).
+        // To prevent these from being used as regular contacts, do an extra check here
         PrimitiveNode pn = (PrimitiveNode)ni.getProto();
         PolyBase testPoly = new PolyBase(new Point2D[]{
                 new Point2D.Double(scaleUp(ni.getAnchorCenterX())-1, scaleUp(ni.getAnchorCenterY())-1),
@@ -2882,7 +2934,7 @@ public class Connectivity
         testPoly.setLayer(wellLayer);
         if (pn.getFunction() == PrimitiveNode.Function.SUBSTRATE) // defines a substrate contact
         {
-            // make sure that substrate contact is not being placed on top of Well (Nwell for P-substrate process)
+            // make sure that substrate contact is not being placed on top of Well (N-well for P-substrate process)
             if (wellLayer != null)
             {
                 if (merge.contains(wellLayer, testPoly))
@@ -2893,8 +2945,9 @@ public class Connectivity
         // Make sure we are using the correct one.
         if (pn.getFunction() == PrimitiveNode.Function.CONTACT && hasActive)
         {
-            // active contact. If Psubstrate process, make sure Ndiff contact is not being placed on top of Nwell
-            // for Nsubstrate process, make sure Pdiff contact is not being placed on top of Pwell
+            // active contact.
+        	// If P-substrate process, make sure N-diffusion contact is not being placed on top of N-well.
+            // If N-substrate process, make sure P-diffusion contact is not being placed on top of P-well.
             if ((pSubstrateProcess && hasNplus) || (nSubstrateProcess && hasPplus))
             {
                 if (merge.contains(wellLayer, testPoly))
@@ -3093,7 +3146,7 @@ public class Connectivity
 			if (!fun.isContact() && fun != PrimitiveNode.Function.WELL &&
 				fun != PrimitiveNode.Function.SUBSTRATE) continue;
 
-			// TODO do we really need to vet each contact?
+			// TODO do we really need to check each contact?
 			// For some reason, the MOCMOS technology with MOCMOS foundry shows the "A-" nodes (A-Metal-1-Metal-2-Con)
 			// but these primitives are not fully in existence, and crash here
 			boolean bogus = false;
@@ -3378,9 +3431,9 @@ public class Connectivity
 				return l;
 			}
 		}
-        // special case: some substrate contacts in some techs do not have the substrate layer (since often the original geom
-        // also does not have the substrate layer). To prevent these from being used as regular contacts,
-        // do an extra check here
+        // special case: some substrate contacts in some technologies do not have the substrate layer
+		// (since often the original geometric also does not have the substrate layer).
+		// To prevent these from being used as regular contacts, do an extra check here
         PolyBase testPoly = new PolyBase(new Point2D[]{
                 new Point2D.Double(cutBox.getCenterX()-1, cutBox.getCenterY()-1),
                 new Point2D.Double(cutBox.getCenterX()-1, cutBox.getCenterY()+1),
@@ -3390,7 +3443,7 @@ public class Connectivity
         testPoly.setLayer(wellLayer);
         if (pv.pNp.getFunction() == PrimitiveNode.Function.SUBSTRATE) // defines a substrate contact
         {
-            // make sure that substrate contact is not being placed on top of Well (Nwell for psubstrate process)
+            // make sure that substrate contact is not being placed on top of Well (N-well for p-substrate process)
             if (wellLayer != null)
             {
                 if (originalMerge.contains(wellLayer, testPoly)) {
@@ -3404,8 +3457,9 @@ public class Connectivity
         // Make sure we are using the correct one.
         if (pv.pNp.getFunction() == PrimitiveNode.Function.CONTACT && hasActive)
         {
-            // active contact. If Psubstrate process, make sure Ndiff contact is not being placed on top of Nwell
-            // for Nsubstrate process, make sure Pdiff contact is not being placed on top of Pwell
+            // active contact.
+        	// If P-substrate process, make sure N-diffusion contact is not being placed on top of N-well.
+            // If N-substrate process, make sure P-diffusion contact is not being placed on top of P-well.
             if ((pSubstrateProcess && hasNplus) || (nSubstrateProcess && hasPplus))
             {
                 if (originalMerge.contains(wellLayer, testPoly)) {
@@ -3512,7 +3566,7 @@ public class Connectivity
 				double cX = poly.getCenterX(), cY = poly.getCenterY();
 				if (alignment != null)
 				{
-                    // centers can be offgrid by a factor of 2, because only the edges matter for offgrid
+                    // centers can be off-grid by a factor of 2, because only the edges matter for off-grid
                     if (alignment.getWidth() > 0)
 						cX = Math.round(cX / scaleUp(alignment.getWidth()/2)) * scaleUp(alignment.getWidth()/2);
 					if (alignment.getHeight() > 0)
@@ -3542,7 +3596,7 @@ public class Connectivity
 						}
 						boolean polyVertical = widestPoly < widestActive;
 
-						// found a manhattan transistor, determine orientation
+						// found a Manhattan transistor, determine orientation
 						Point2D left = new Point2D.Double(transBox.getMinX() - 1, transBox.getCenterY());
 						Point2D right = new Point2D.Double(transBox.getMaxX() + 1, transBox.getCenterY());
 						Point2D bottom = new Point2D.Double(transBox.getCenterX(), transBox.getMinY() - 1);
@@ -3643,7 +3697,7 @@ public class Connectivity
 	}
 
 	/**
-	 * Method to extract a transistor from a nonmanhattan polygon that defines the intersection of poly and active.
+	 * Method to extract a transistor from a non-Manhattan polygon that defines the intersection of poly and active.
 	 * @param poly the outline of poly/active to extract.
 	 * @param transistor the type of transistor to create.
 	 * @param merge the geometry collection to adjust when a transistor is extracted.
@@ -4336,7 +4390,7 @@ public class Connectivity
 						//if (cl.width > len) continue;
 					}
 
-					// for nonmanhattan centerlines, do extra work to ensure uniqueness
+					// for non-Manhattan centerlines, do extra work to ensure uniqueness
 					boolean isNonManhattan = false;
 					if (cl.startUnscaled.getX() != cl.endUnscaled.getX() &&
 						cl.startUnscaled.getY() != cl.endUnscaled.getY())
@@ -5201,7 +5255,7 @@ public class Connectivity
                     {
                         EPoint [] origPoints = ni.getTrace();
                         Point2D [] points = new Point2D[origPoints.length];
-                        // for some reason getTrace returns points relative to center, but setTrace expects absolute coords
+                        // for some reason getTrace returns points relative to center, but setTrace expects absolute coordinates
                         for (int i=0; i<origPoints.length; i++) {
                             points[i] = new Point2D.Double(origPoints[i].getX()+ni.getAnchorCenterX(), origPoints[i].getY()+ni.getAnchorCenterY());
                         }
@@ -5247,7 +5301,7 @@ public class Connectivity
                         if (newNi != null)
                             newNis.add(newNi);
                     }
-                    // substract out layers
+                    // subtract out layers
                     layer = pn.getLayerIterator().next();
                     for (NodeInst newNi : newNis) {
                         Poly [] polys = tech.getShapeOfNode(newNi);
@@ -5331,7 +5385,7 @@ public class Connectivity
                     }
                     if (connectionPoint != null)
                     {
-                        // check on ap, we need to decide if diff arc is really diff arc or well arc
+                        // check on arc, we need to decide if diffusion arc is really diffusion arc or well arc
                         // scale up poly so units match originalMerge units
                         PolyBase poly1Scaled = scaleUpPoly(poly1);
 
@@ -5376,14 +5430,14 @@ public class Connectivity
         if (activeLayer.getFunction() == Layer.Function.DIFFN) {
             // make sure n-diffusion is in n-select
             if (merge.contains(pSelectLayer, poly)) {
-                // switch it pactive
+                // switch it p-active
                 return pDiffNode;
             }
         }
         if (activeLayer.getFunction() == Layer.Function.DIFFP) {
             // make sure p-diffusion is in p-select
             if (merge.contains(nSelectLayer, poly)) {
-                // switch it nactive
+                // switch it n-active
                 return nDiffNode;
             }
         }
@@ -5503,7 +5557,7 @@ public class Connectivity
 //		double centerY = polyBounds.getCenterY() / SCALEFACTOR;
 //		Point2D center = new Point2D.Double(centerX, centerY);
 //
-//		// compute any trace information if the shape is nonmanhattan
+//		// compute any trace information if the shape is non-Manhattan
 //		EPoint [] newPoints = null;
 ////		if (poly.getBox() == null)
 ////		{
@@ -5529,7 +5583,7 @@ public class Connectivity
 		{
 			if (alignment.getWidth() > 0)
 			{
-                // centers can be offgrid, only edges matter
+                // centers can be off-grid, only edges matter
                 double aliX = Math.round(centerX / (alignment.getWidth()/2)) * (alignment.getWidth()/2);
 				if (aliX != centerX)
 				{
@@ -5549,7 +5603,7 @@ public class Connectivity
 			}
 			if (alignment.getHeight() > 0)
 			{
-                // centers can be offgrid, only edges matter
+                // centers can be off-grid, only edges matter
 				double aliY = Math.round(centerY / (alignment.getHeight()/2)) * (alignment.getHeight()/2);
 				if (aliY != centerY)
 				{
@@ -5607,7 +5661,7 @@ public class Connectivity
 			}
 			if (!found)
 			{
-				// did not reexport: create the pin and export...let it get autorouted in
+				// did not reexport: create the pin and export...let it get auto-routed in
 				PrimitiveNode pnUse = null;
 				for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 				{
@@ -5829,7 +5883,7 @@ public class Connectivity
      * @param noHeadExtend do not extend the head
      * @param noTailExtend do not extend the tail
      * @param merge the merge to subtract the new arc from
-     * @return the arc inst created
+     * @return the arc instance created
 	 */
 	private ArcInst realizeArc(ArcProto ap, PortInst pi1, PortInst pi2, Point2D pt1, Point2D pt2, double width,
 		boolean noHeadExtend, boolean noTailExtend, boolean usePureLayerNodes, PolyMerge merge)

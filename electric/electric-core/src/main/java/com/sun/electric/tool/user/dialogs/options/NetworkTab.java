@@ -239,7 +239,7 @@ public class NetworkTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         nodeExtractionPreferences.add(extractGridAlign, gridBagConstraints);
 
-        jLabel1.setText("Flatten cells whose names match this:");
+        jLabel1.setText("Flatten cells whose names match this (comma-separated):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
