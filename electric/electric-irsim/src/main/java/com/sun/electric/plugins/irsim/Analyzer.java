@@ -192,7 +192,8 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
                 System.out.println("IRSIM, version " + simVersion);
                 // now initialize the simulator
                 theAnalyzer.initRSim();
-                return theAnalyzer;
+                return new IAnalyzerLogger(theAnalyzer);
+//                return theAnalyzer;
             }
         };
     }
