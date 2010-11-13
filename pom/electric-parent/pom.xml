@@ -109,9 +109,9 @@
 
 
     <scm>
-        <connection>scm:svn:https://electric.dev.java.net/svn/electric/trunk/pom/electric-parent</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/pom/electric-parent</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/trunk/pom/electric-parent</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/pom/electric-parent</connection>
+        <developerConnection>scm:svn:svn+ssh://svn.java.net/electric~svn/trunk/pom/electric-parent</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/trunk/pom/electric-parent</url>
     </scm>
     
     <!-- Uploading to java.net maven2 repository -->

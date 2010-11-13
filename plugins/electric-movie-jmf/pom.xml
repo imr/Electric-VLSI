@@ -88,9 +88,9 @@
     </dependencies>
     
     <scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-jmf</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-jmf</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/trunk/plugins/electric-movie-jmf</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-movie-jmf</connection>
+        <developerConnection>scm:svn:svn+ssh://svn.java.net/electric~svn/trunk/plugins/electric-movie-jmf</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/trunk/plugins/electric-movie-jmf</url>
     </scm>
     <repositories>
         <repository>

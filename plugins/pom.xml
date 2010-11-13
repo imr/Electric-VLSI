@@ -56,9 +56,9 @@
     </modules>
     
     <scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/trunk/plugins</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins</connection>
+        <developerConnection>scm:svn:svn+ssh://svn.java.net/electric~svn/trunk/plugins</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/trunk/plugins</url>
     </scm>
     <repositories>
         <repository>

@@ -137,9 +137,9 @@
     </modules>
     
     <scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/electric</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/trunk/electric</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/electric</connection>
+        <developerConnection>scm:svn:svn+ssh://svn.java.net/electric~svn/trunk/electric</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/trunk/electric</url>
     </scm>
     <repositories>
         <repository>
@@ -323,8 +323,7 @@
                     <version>2.1</version>
                     <configuration>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
-                        <tagBase>https://svn.sunlabs.com/svn/electric/tags</tagBase>
-                        <!--tagBase>file:///export/home/dn146861/electric/playRelease/sunlabsMirror/tags</tagBase-->
+                        <tagBase>scm:svn:svn+ssh://svn.java.net/electric~svn/tags</tagBase>
                     </configuration>
                 </plugin>
                 <plugin>

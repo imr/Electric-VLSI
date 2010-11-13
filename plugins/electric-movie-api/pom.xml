@@ -73,9 +73,9 @@
     </build>
  
     <scm>
-        <connection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-api</connection>
-        <developerConnection>scm:svn:https://svn.sunlabs.com/svn/electric/trunk/plugins/electric-movie-api</developerConnection>
-        <url>https://electric.dev.java.net/source/browse/electric/trunk/plugins/electric-movie-api</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-movie-api</connection>
+        <developerConnection>scm:svn:svn+ssh://svn.java.net/electric~svn/trunk/plugins/electric-movie-api</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/trunk/plugins/electric-movie-api</url>
     </scm>
     <repositories>
         <repository>
