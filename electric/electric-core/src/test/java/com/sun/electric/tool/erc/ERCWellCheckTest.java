@@ -28,6 +28,7 @@ import org.junit.Test;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.erc.ERCWellCheck.WellCheckPreferences;
 import com.sun.electric.tool.util.test.AbstractJunitBaseClass;
+import com.sun.electric.util.config.Configuration;
 
 /**
  * @author Felix Schmidt
@@ -42,7 +43,8 @@ public class ERCWellCheckTest extends AbstractJunitBaseClass {
 		wellPrefs.drcCheck = false;
 		wellPrefs.pWellCheck = 1;
 		wellPrefs.nWellCheck = 1;
-		wellPrefs.maxProc = 2;
+		wellPrefs.maxProc = 1;
+//		wellPrefs.maxProc = 2;
 
 		ERCWellCheck.checkERCWell(cell, wellPrefs);
 	}
