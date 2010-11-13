@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+BUG: (11/13/10, DN) Version number must be updated in many places (Bug #2950)
+FIX: Request filtering for maven.dependencies .
+
 IMP: (11/10/10, FS) Remove unnecessary system.out: electric-configuration (Bug #2947)
 
 BUG: (11/10/10, DN) Memory leak in IRSIM simulation (Bug #2953).
