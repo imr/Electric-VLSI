@@ -220,7 +220,7 @@
                 <groupId>javax.media</groupId>
                 <artifactId>jmf</artifactId>
                 <version>${jmfVersion}</version>
-                <!--scope>provided</scope-->
+                <scope>provided</scope>
             </dependency>
             <dependency>
                     <!--

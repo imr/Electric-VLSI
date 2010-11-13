@@ -43,8 +43,7 @@ public class ERCWellCheckTest extends AbstractJunitBaseClass {
 		wellPrefs.drcCheck = false;
 		wellPrefs.pWellCheck = 1;
 		wellPrefs.nWellCheck = 1;
-		wellPrefs.maxProc = 1;
-//		wellPrefs.maxProc = 2;
+		wellPrefs.maxProc = 2;
 
 		ERCWellCheck.checkERCWell(cell, wellPrefs);
 	}
