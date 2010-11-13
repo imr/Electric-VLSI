@@ -284,7 +284,7 @@ public class ThreadPool implements IThreadPool {
 	 * @throws UnknownSchedulerException 
 	 */
 	public static ThreadPool initialize() throws PoolExistsException, UnknownSchedulerException {
-		IStructure<PTask> scheduler = Scheduler.createScheduler(SchedulingStrategy.workStealing, getNumOfThreads());
+		IStructure<PTask> scheduler = Scheduler.createScheduler(SchedulingStrategy.queue, getNumOfThreads());
 		return ThreadPool.initialize(scheduler);
 	}
 
