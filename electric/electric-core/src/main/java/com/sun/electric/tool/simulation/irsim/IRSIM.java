@@ -36,7 +36,6 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM.IRSIMPreferences;
 import com.sun.electric.tool.simulation.BusSample;
 import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.DigitalSample.Value;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.MutableSignal;
 import com.sun.electric.tool.simulation.Signal;
@@ -59,6 +58,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.ProgressMonitorInputStream;
@@ -209,6 +210,7 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
     private WaveformWindow ww;
     /** the SignalCollection being displayed */
     private SignalCollection sigCollection;
+    private Collection<GuiSignalImpl> guiSigCollection = new ArrayList<GuiSignalImpl>();
     private final Stimuli sd = new Stimuli();
 
     // Engine
@@ -251,7 +253,7 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
         }
         for (Signal<?> sig : signals) {
             String signalName = sig.getFullName().replace('.', '/');
-            a.newContolPoint(signalName, ww.getMainXPositionCursor(), Value.HIGH);
+            a.newContolPoint(signalName, ww.getMainXPositionCursor(), IAnalyzer.LogicState.LOGIC_1);
         }
         if (SimulationTool.isBuiltInResimulateEach()) {
             a.playVectors();
@@ -270,7 +272,7 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
         }
         for (Signal<?> sig : signals) {
             String signalName = sig.getFullName().replace('.', '/');
-            a.newContolPoint(signalName, ww.getMainXPositionCursor(), Value.LOW);
+            a.newContolPoint(signalName, ww.getMainXPositionCursor(), IAnalyzer.LogicState.LOGIC_0);
         }
         if (SimulationTool.isBuiltInResimulateEach()) {
             a.playVectors();
@@ -289,7 +291,7 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
         }
         for (Signal<?> sig : signals) {
             String signalName = sig.getFullName().replace('.', '/');
-            a.newContolPoint(signalName, ww.getMainXPositionCursor(), Value.X);
+            a.newContolPoint(signalName, ww.getMainXPositionCursor(), IAnalyzer.LogicState.LOGIC_X);
         }
         if (SimulationTool.isBuiltInResimulateEach()) {
             a.playVectors();
@@ -314,7 +316,7 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
             return;
         }
         for (Signal<?> sig : signals) {
-            a.showSignalInfo(sig);
+            a.showSignalInfo(findGuiSignal(sig));
         }
     }
 
@@ -330,7 +332,7 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
         }
         Signal<?> sig = signals.get(0);
         sig.clearControlPoints();
-        a.clearControlPoints(sig);
+        a.clearControlPoints(findGuiSignal(sig));
         if (SimulationTool.isBuiltInResimulateEach()) {
             a.playVectors();
         }
@@ -353,7 +355,7 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
                     continue;
                 }
                 for (int i = 0; i < selectedCPs.length; i++) {
-                    if (a.clearControlPoint(ws.getSignal(), selectedCPs[i])) {
+                    if (a.clearControlPoint(findGuiSignal(ws.getSignal()), selectedCPs[i])) {
                         found = true;
                     }
                 }
@@ -422,26 +424,56 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
     }
 
     // IAnalyzer.GUI
-    public MutableSignal<DigitalSample> makeSignal(String name) {
+    public IAnalyzer.GuiSignal makeSignal(String name) {
         // make a signal for it
         int slashPos = name.lastIndexOf('/');
         MutableSignal<DigitalSample> sig =
                 slashPos >= 0
                 ? DigitalSample.createSignal(sigCollection, sd, name.substring(slashPos + 1), name.substring(0, slashPos))
                 : DigitalSample.createSignal(sigCollection, sd, name, null);
-        return sig;
+        GuiSignalImpl sigImpl = new GuiSignalImpl(sig, null);
+        guiSigCollection.add(sigImpl);
+        return sigImpl;
     }
 
-    public void createBus(String busName, Signal<DigitalSample>... subsigs) {
-        BusSample.createSignal(sigCollection, sd, busName, null, true, subsigs);
+    public void createBus(String busName, IAnalyzer.GuiSignal ... subsigs) {
+        Signal<DigitalSample>[] sigArray = (Signal<DigitalSample>[])new Signal[subsigs.length];
+        for (int i = 0; i < subsigs.length; i++) {
+            IAnalyzer.GuiSignal guiSig = subsigs[i];
+            Signal<DigitalSample> sigImpl = (Signal<DigitalSample>)((GuiSignalImpl)guiSig).impl;
+            sigArray[i] = sigImpl;
+        }
+        Signal<BusSample<DigitalSample>> busSignal = BusSample.createSignal(sigCollection, sd, busName, null, true, sigArray);
+        GuiSignalImpl sigImpl = new GuiSignalImpl(busSignal, subsigs);
+        guiSigCollection.add(sigImpl);
     }
 
-    public void makeBusSignals(List<Signal<?>> sigList) {
-        sd.makeBusSignals(sigList, sigCollection);
+    public void makeBusSignals(List<IAnalyzer.GuiSignal> sigList) {
+        List<Signal<?>> sigListImpl = new ArrayList<Signal<?>>();
+        HashMap<Signal<?>,GuiSignalImpl> sigToGui = new HashMap<Signal<?>,GuiSignalImpl>();
+        for (IAnalyzer.GuiSignal sig: sigList) {
+            Signal<DigitalSample> sigImpl = (Signal<DigitalSample>)((GuiSignalImpl)sig).impl;
+            sigListImpl.add(sigImpl);
+            GuiSignalImpl old = sigToGui.put(sigImpl, (GuiSignalImpl)sig);
+            if (old != null)
+                throw new IllegalArgumentException("Duplicate " + old);
+        }
+        sd.makeBusSignals(sigListImpl, sigCollection);
+        for (Signal<?> sig: sigCollection.getSignals()) {
+            Signal<?>[] busMembers = sig.getBusMembers();
+            if (busMembers == null) continue;
+            IAnalyzer.GuiSignal[] memberArray = new IAnalyzer.GuiSignal[busMembers.length];
+            for (int i = 0; i < busMembers.length; i++) {
+                GuiSignalImpl ss = sigToGui.get(busMembers[i]);
+                if (ss == null) throw new IllegalArgumentException();
+                memberArray[i] = ss;
+            }
+            guiSigCollection.add(new GuiSignalImpl(sig, memberArray));
+        }
     }
 
-    public Collection<Signal<?>> getSignals() {
-        return sigCollection.getSignals();
+    public Collection<IAnalyzer.GuiSignal> getSignals() {
+        return Collections.<IAnalyzer.GuiSignal>unmodifiableCollection(guiSigCollection);
     }
 
     public void setMainXPositionCursor(double curTime) {
@@ -450,8 +482,9 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
         }
     }
 
-    public void openPanel(Collection<Signal<DigitalSample>> sigs) {
-        for (Signal<?> sig : sigs) {
+    public void openPanel(Collection<IAnalyzer.GuiSignal> sigs) {
+        for (IAnalyzer.GuiSignal guiSig : sigs) {
+            Signal<?> sig = ((GuiSignalImpl)guiSig).impl;
             int height = User.getWaveformDigitalPanelHeight();
             Panel wp = new Panel(ww, height);
             wp.makeSelectedPanel(-1, -1);
@@ -482,6 +515,74 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
 
     public void repaint() {
         ww.repaint();
+    }
+    
+    /**
+     * Returns canonic char for ignore-case comparison .
+     * This is the same as Character.toLowerCase(Character.toUpperCase(ch)).
+     * @param ch given char.
+     * @return canonic char for the given char.
+     */
+    public char canonicChar(char ch) {
+        return TextUtils.canonicChar(ch); 
+    }
+
+    /**
+     * Returns canonic string for ignore-case comparison .
+     * FORALL String s1, s2: s1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
+     * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
+     * @param s given String
+     * @return canonic String
+     * Simple "toLowerCase" is not sufficient.
+     * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
+     */
+    public String canonicString(String s) {
+        return TextUtils.canonicString(s);
+    }
+    
+    /**
+     * Method to parse the floating-point number in a string.
+     * There is one reason to use this method instead of Double.parseDouble:
+     * this method does not throw an exception if the number is invalid (or blank).
+     * @param text the string with a number in it.
+     * @return the numeric value.
+     */
+    public double atof(String text) {
+        return TextUtils.atof(text);
+    }
+    
+    /**
+     * Method to parse the number in a string.
+     * <P>
+     * There are many reasons to use this method instead of Integer.parseInt...
+     * <UL>
+     * <LI>This method can handle any radix.
+     *     If the number begins with "0", presume base 8.
+     *     If the number begins with "0b", presume base 2.
+     *     If the number begins with "0x", presume base 16.
+     *     Otherwise presume base 10.
+     * <LI>This method can handle numbers that affect the sign bit.
+     *     If you give 0xFFFFFFFF to Integer.parseInt, you get a numberFormatPostFix exception.
+     *     This method properly returns -1.
+     * <LI>This method does not require that the entire string be part of the number.
+     *     If there is extra text after the end, Integer.parseInt fails (for example "123xx").
+     * <LI>This method does not throw an exception if the number is invalid (or blank).
+     * </UL>
+     * @param s the string with a number in it.
+     * @return the numeric value.
+     */
+    public int atoi(String s) {
+        return TextUtils.atoi(s);
+    }
+    
+    /**
+     * Method to convert a double to a string.
+     * If the double has no precision past the decimal, none will be shown.
+     * @param v the double value to format.
+     * @return the string representation of the number.
+     */
+    public String formatDouble(double v) {
+        return TextUtils.formatDouble(v);
     }
     
 	/**
@@ -560,4 +661,62 @@ public class IRSIM implements Engine, IAnalyzer.GUI {
             return false;
 		}
 	}
+        
+    private IAnalyzer.GuiSignal findGuiSignal(Signal<?> sig) {
+        for (GuiSignalImpl guiSignal: guiSigCollection) {
+            if (guiSignal.impl == sig)
+                return guiSignal;
+        }
+        return null;
+    }
+    
+    static class GuiSignalImpl implements IAnalyzer.GuiSignal {
+        final Signal<?> impl;
+        private IAnalyzer.GuiSignal[] busMembers;
+        
+        private GuiSignalImpl(Signal<?> impl, IAnalyzer.GuiSignal[] busMembers) {
+            this.impl = impl;
+            this.busMembers = busMembers;
+        }
+                
+        public void updateHistory(double[] time, IAnalyzer.LogicState[] value) {
+            
+        }
+        public String getFullName() {
+            return impl.getFullName();
+        }
+        public String getSignalName() {
+            return impl.getSignalName();
+        }
+        public IAnalyzer.GuiSignal[] getBusMembers() {
+            return busMembers;
+        }
+        public void addControlPoint(double time) {
+            impl.addControlPoint(time);
+        }
+        public void removeControlPoint(double time) {
+            impl.removeControlPoint(time);
+        }
+        public void addSample(double t, IAnalyzer.LogicState v) {
+            DigitalSample.Value value;
+            switch (v) {
+                case LOGIC_1:
+                    value = DigitalSample.Value.HIGH;
+                    break;
+                case LOGIC_0:
+                    value = DigitalSample.Value.LOW;
+                    break;
+                case LOGIC_X:
+                    value = DigitalSample.Value.X;
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+            MutableSignal<DigitalSample> mutable = (MutableSignal<DigitalSample>)impl;
+            if (mutable.getSample(t)==null)
+                mutable.addSample(t, DigitalSample.getSample(value, DigitalSample.Strength.LARGE_CAPACITANCE));
+           
+        }
+    }
+    
 }

@@ -166,11 +166,11 @@ public interface IAnalyzer {
          */
         public void playVectors();
         
-        public void newContolPoint(String signalName, double insertTime, DigitalSample.Value value);
+        public void newContolPoint(String signalName, double insertTime, LogicState value);
         /**
          * Method to show information about the currently-selected signal.
          */
-        public void showSignalInfo(Signal<?> sig);
+        public void showSignalInfo(GuiSignal sig);
         /**
          * Method to clear all simulation vectors.
          */
@@ -179,12 +179,12 @@ public interface IAnalyzer {
          * Method to remove all stimuli from the currently-selected signal.
          * @param sig currently selected signal.
          */
-        public void clearControlPoints(Signal<?> sig);
+        public void clearControlPoints(GuiSignal sig);
         /**
          * Method to remove the selected stimuli.
          * @return true if stimuli were deleted.
          */
-        public boolean clearControlPoint(Signal<?> sig, double insertTime);
+        public boolean clearControlPoint(GuiSignal sig, double insertTime);
         /**
          * Method to save the current stimuli information to disk.
          * @param stimuliFile file to save stimuli information
@@ -198,15 +198,85 @@ public interface IAnalyzer {
     }
     
     public interface GUI {
-        public MutableSignal<DigitalSample> makeSignal(String name);
-        public void makeBusSignals(List<Signal<?>> sigList);
-        public void createBus(String busName, Signal<DigitalSample> ... subsigs);
-        public Collection<Signal<?>> getSignals();
+        public GuiSignal makeSignal(String name);
+        public void makeBusSignals(List<GuiSignal> sigList);
+        public void createBus(String busName, GuiSignal ... subsigs);
+        public Collection<GuiSignal> getSignals();
         
         public void setMainXPositionCursor(double curTime);
-        public void openPanel(Collection<Signal<DigitalSample>> sigs);
+        public void openPanel(Collection<GuiSignal> sigs);
         public void closePanels();
         public double getMaxPanelTime();
         public void repaint();
-   }
+
+        /**
+         * Returns canonic char for ignore-case comparison .
+         * This is the same as Character.toLowerCase(Character.toUpperCase(ch)).
+         * @param ch given char.
+         * @return canonic char for the given char.
+         */
+        public char canonicChar(char ch);
+
+        /**
+         * Returns canonic string for ignore-case comparison .
+         * FORALL String s1, s2: s1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
+         * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
+         * @param s given String
+         * @return canonic String
+         * Simple "toLowerCase" is not sufficient.
+         * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
+         */
+        public String canonicString(String s);
+
+        /**
+         * Method to parse the floating-point number in a string.
+         * There is one reason to use this method instead of Double.parseDouble:
+         * this method does not throw an exception if the number is invalid (or blank).
+         * @param text the string with a number in it.
+         * @return the numeric value.
+         */
+        public double atof(String text);
+
+        /**
+         * Method to parse the number in a string.
+         * <P>
+         * There are many reasons to use this method instead of Integer.parseInt...
+         * <UL>
+         * <LI>This method can handle any radix.
+         *     If the number begins with "0", presume base 8.
+         *     If the number begins with "0b", presume base 2.
+         *     If the number begins with "0x", presume base 16.
+         *     Otherwise presume base 10.
+         * <LI>This method can handle numbers that affect the sign bit.
+         *     If you give 0xFFFFFFFF to Integer.parseInt, you get a numberFormatPostFix exception.
+         *     This method properly returns -1.
+         * <LI>This method does not require that the entire string be part of the number.
+         *     If there is extra text after the end, Integer.parseInt fails (for example "123xx").
+         * <LI>This method does not throw an exception if the number is invalid (or blank).
+         * </UL>
+         * @param s the string with a number in it.
+         * @return the numeric value.
+         */
+        public int atoi(String s);
+
+        /**
+         * Method to convert a double to a string.
+         * If the double has no precision past the decimal, none will be shown.
+         * @param v the double value to format.
+         * @return the string representation of the number.
+         */
+        public String formatDouble(double v);
+    }
+    
+    public interface GuiSignal {
+        public String getFullName();
+        public String getSignalName();
+        public GuiSignal[] getBusMembers();
+        public void addControlPoint(double time);
+        public void removeControlPoint(double time);
+        public void addSample(double t, LogicState v);
+    }
+    
+    public enum LogicState { LOGIC_0, LOGIC_1, LOGIC_X };
+
 }

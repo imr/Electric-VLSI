@@ -67,9 +67,9 @@
                 <directory>src/main/filtered-resources</directory>
                 <!--targetPath>${basedir}</targetPath-->
             </resource>
-            <!--resource>
+            <resource>
                 <directory>${basedir}/src/main/resources</directory>
-            </resource-->
+            </resource>
         </resources>
     </build>
     <dependencies>
