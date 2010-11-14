@@ -150,7 +150,7 @@ public class Sim implements SimAPI
 	 */
 	public Node findNode(String name)
 	{
-		return nodeHash.get(Electric.canonicString(name));
+		return nodeHash.get(theAnalyzer.canonicString(name));
 	}
 
 	/**
@@ -187,7 +187,7 @@ public class Sim implements SimAPI
 		numNodes++;
 
 		// insert node into hash table and list
-		nodeHash.put(Electric.canonicString(name), n);
+		nodeHash.put(theAnalyzer.canonicString(name), n);
 		nodeList.add(n);
 
 		// initialize node entries
@@ -563,7 +563,7 @@ public class Sim implements SimAPI
     boolean isDelayedX;
 
 
-	public Sim(int irDebug, String steppingModel, URL parameterURL, boolean isDelayedX)
+	public Sim(int irDebug, String steppingModel, boolean isDelayedX)
 	{
         this.irDebug = irDebug;
         this.isDelayedX = isDelayedX;
@@ -575,14 +575,12 @@ public class Sim implements SimAPI
 				System.out.println("Unknown stepping model: " + steppingModel + " using RC");
 			theModel = new NewRStep(this);
 		}
-
-		// read the configuration file
-		theConfig = new Config();
-        if (parameterURL != null) {
-            theConfig.loadConfig(parameterURL);
-        }
-        initNetwork();
+        theConfig = new Config();
 	}
+    
+    public void loadConfig(URL parameterURL, SimAPI.Analyzer analyzer) {
+        theConfig.loadConfig(parameterURL, analyzer);
+    }
     
     public void setAnalyzer(SimAPI.Analyzer analyzer) {
         theAnalyzer = analyzer;
@@ -754,10 +752,10 @@ public class Sim implements SimAPI
 
 		Node n = getNode(targ[1]);
 
-		n.nCap += Electric.atof(targ[4]) * (theConfig.CMA * theConfig.lambdaSquared) +
-			Electric.atof(targ[5]) * (theConfig.CPA * theConfig.lambdaSquared) +
-			Electric.atof(targ[6]) * (theConfig.CDA * theConfig.lambdaSquared) +
-			Electric.atof(targ[7]) * 2.0f * (theConfig.CDP * theConfig.lambda);
+		n.nCap += theAnalyzer.atof(targ[4]) * (theConfig.CMA * theConfig.lambdaSquared) +
+			theAnalyzer.atof(targ[5]) * (theConfig.CPA * theConfig.lambdaSquared) +
+			theAnalyzer.atof(targ[6]) * (theConfig.CDA * theConfig.lambdaSquared) +
+			theAnalyzer.atof(targ[7]) * 2.0f * (theConfig.CDP * theConfig.lambda);
 	}
 
 	/**
@@ -773,16 +771,16 @@ public class Sim implements SimAPI
 
 		Node n = getNode(targ[1]);
 
-		n.nCap += Electric.atof(targ[4]) * (theConfig.CM2A * theConfig.lambdaSquared) +
-			Electric.atof(targ[5]) * 2.0 * (theConfig.CM2P * theConfig.lambda) +
-			Electric.atof(targ[6]) * (theConfig.CMA * theConfig.lambdaSquared) +
-			Electric.atof(targ[7]) * 2.0 * (theConfig.CMP * theConfig.lambda) +
-			Electric.atof(targ[8]) * (theConfig.CPA * theConfig.lambdaSquared) +
-			Electric.atof(targ[9]) * 2.0 * (theConfig.CPP * theConfig.lambda) +
-			Electric.atof(targ[10]) * (theConfig.CDA * theConfig.lambda) +
-			Electric.atof(targ[11]) * 2.0 * (theConfig.CDP * theConfig.lambda) +
-			Electric.atof(targ[12]) * (theConfig.CPDA * theConfig.lambdaSquared) +
-			Electric.atof(targ[13]) * 2.0 * (theConfig.CPDP * theConfig.lambda);
+		n.nCap += theAnalyzer.atof(targ[4]) * (theConfig.CM2A * theConfig.lambdaSquared) +
+			theAnalyzer.atof(targ[5]) * 2.0 * (theConfig.CM2P * theConfig.lambda) +
+			theAnalyzer.atof(targ[6]) * (theConfig.CMA * theConfig.lambdaSquared) +
+			theAnalyzer.atof(targ[7]) * 2.0 * (theConfig.CMP * theConfig.lambda) +
+			theAnalyzer.atof(targ[8]) * (theConfig.CPA * theConfig.lambdaSquared) +
+			theAnalyzer.atof(targ[9]) * 2.0 * (theConfig.CPP * theConfig.lambda) +
+			theAnalyzer.atof(targ[10]) * (theConfig.CDA * theConfig.lambda) +
+			theAnalyzer.atof(targ[11]) * 2.0 * (theConfig.CDP * theConfig.lambda) +
+			theAnalyzer.atof(targ[12]) * (theConfig.CPDA * theConfig.lambdaSquared) +
+			theAnalyzer.atof(targ[13]) * 2.0 * (theConfig.CPDP * theConfig.lambda);
 	}
 
 	/**
@@ -807,7 +805,7 @@ public class Sim implements SimAPI
 			t.source = getNode(targ[1]);
 			t.drain = getNode(targ[2]);
 
-			long length = (long)(Electric.atof(targ[3]) * theConfig.lambdaCM);
+			long length = (long)(theAnalyzer.atof(targ[3]) * theConfig.lambdaCM);
 			t.r = theConfig.rEquiv(implant, 0, length);
 
 		} else
@@ -822,8 +820,8 @@ public class Sim implements SimAPI
 			t.source = getNode(targ[2]);
 			t.drain = getNode(targ[3]);
 
-			long length = (long)(Electric.atof(targ[4]) * theConfig.lambdaCM);
-			long width = (long)(Electric.atof(targ[5]) * theConfig.lambdaCM);
+			long length = (long)(theAnalyzer.atof(targ[4]) * theConfig.lambdaCM);
+			long width = (long)(theAnalyzer.atof(targ[5]) * theConfig.lambdaCM);
 			if (width <= 0 || length <= 0)
 			{
 				reportError(fileName, lineReader.getLineNumber(),
@@ -833,8 +831,8 @@ public class Sim implements SimAPI
 			((Node)t.gate).nCap += length * width * theConfig.CTGA;
 			t.r = theConfig.rEquiv(implant, width, length);
 
-			t.x = Electric.atoi(targ[6]);
-			t.y = Electric.atoi(targ[7]);
+			t.x = theAnalyzer.atoi(targ[6]);
+			t.y = theAnalyzer.atoi(targ[7]);
 
 			// parse area and perimeter
 			for (int i = 8; i < targ.length; i++)
@@ -843,8 +841,8 @@ public class Sim implements SimAPI
 				int pIsPos = targ[i].indexOf("P_");
 				if (aIsPos >= 0 && pIsPos >= 0)
 				{
-					int a = Electric.atoi(targ[i].substring(aIsPos+2));
-					int p = Electric.atoi(targ[i].substring(pIsPos+2));
+					int a = theAnalyzer.atoi(targ[i].substring(aIsPos+2));
+					int p = theAnalyzer.atoi(targ[i].substring(pIsPos+2));
 					char type = targ[i].charAt(0);
 					int asrc = 0, adrn = 0, psrc = 0, pdrn = 0;
 					if (type == 's')
@@ -927,8 +925,8 @@ public class Sim implements SimAPI
 		}
 
 		Node n = getNode(targ[1]);
-		n.vLow = (float)Electric.atof(targ[2]);
-		n.vHigh = (float)Electric.atof(targ[3]);
+		n.vLow = (float)theAnalyzer.atof(targ[2]);
+		n.vHigh = (float)theAnalyzer.atof(targ[3]);
 	}
 
 	/**
@@ -944,8 +942,8 @@ public class Sim implements SimAPI
 
 		Node n = getNode(targ[1]);
 		n.nFlags |= USERDELAY;
-		n.tpLH = (short)nsToDelta(Electric.atof(targ[2]));
-		n.tpHL = (short)nsToDelta(Electric.atof(targ[3]));
+		n.tpLH = (short)nsToDelta(theAnalyzer.atof(targ[2]));
+		n.tpHL = (short)nsToDelta(theAnalyzer.atof(targ[3]));
 	}
 
 	/**
@@ -956,11 +954,11 @@ public class Sim implements SimAPI
 		if (targ.length == 3)
 		{
 			Node n = getNode(targ[1]);
-			n.nCap += (float)Electric.atof(targ[2]);
+			n.nCap += (float)theAnalyzer.atof(targ[2]);
 		} else if (targ.length == 4)
 		{
 			// two terminal caps
-			float cap = (float)(Electric.atof(targ[3]) / 1000);		// ff to pf conversion
+			float cap = (float)(theAnalyzer.atof(targ[3]) / 1000);		// ff to pf conversion
 			Node n = getNode(targ[1]);
 			Node m = getNode(targ[2]);
 			if (n != m)
@@ -980,7 +978,7 @@ public class Sim implements SimAPI
 	}
 
     public String[] parseLine(String line) {
-        return parseLine(line, false);
+        return parseLine(line, false, theAnalyzer);
     }
     
 	/**
@@ -990,7 +988,7 @@ public class Sim implements SimAPI
 	 * The string can contain multiple iterators which will be expanded
 	 * independently, e.g., "out{1:10}{1:20:2}" expands into 100 arguments.
 	 */
-	public static String [] parseLine(String line, boolean expand)
+	public static String [] parseLine(String line, boolean expand, SimAPI.Analyzer analyzer)
 	{
 		StringTokenizer st = new StringTokenizer(line, " \t");
 		int total = st.countTokens();
@@ -1009,7 +1007,7 @@ public class Sim implements SimAPI
 			List<String> listOfStrings = new ArrayList<String>();
 			for(int i=0; i<total; i++)
 			{
-				if (expand(strings[i], listOfStrings))
+				if (expand(strings[i], listOfStrings, analyzer))
 				{
 					System.out.println("Invalid iterator: " + strings[i]);
 					listOfStrings.add(strings[i]);
@@ -1023,7 +1021,7 @@ public class Sim implements SimAPI
 		return strings;
 	}
 
-	private static boolean expand(String arg, List<String> expanded)
+	private static boolean expand(String arg, List<String> expanded, SimAPI.Analyzer analyzer)
 	{
 		int itStart = arg.indexOf('{');
 		if (itStart < 0)
@@ -1040,10 +1038,10 @@ public class Sim implements SimAPI
 		int firstColon = iterator.indexOf(':');
 		if (firstColon < 0) return true;
 		int secondColon = iterator.indexOf(':', firstColon);
-		int start = Electric.atoi(iterator);
-		int stop = Electric.atoi(iterator.substring(firstColon+1));
+		int start = analyzer.atoi(iterator);
+		int stop = analyzer.atoi(iterator.substring(firstColon+1));
 		int step = 1;
-		if (secondColon >= 0) step = Electric.atoi(iterator.substring(secondColon+1));
+		if (secondColon >= 0) step = analyzer.atoi(iterator.substring(secondColon+1));
 
 		// figure out correct step size
 		if (step == 0) step = 1; else
@@ -1056,7 +1054,7 @@ public class Sim implements SimAPI
 		while ((step > 0 && start <= stop) || (step < 0 && start >= stop))
 		{
 			String full = prefix + start + suffix;
-			if (expand(full, expanded)) return true;
+			if (expand(full, expanded, analyzer)) return true;
 			start += step;
 		}
 		return false;
@@ -1239,7 +1237,7 @@ public class Sim implements SimAPI
 				if (line == null) break;
 //				readSoFar += line.length() + 1;
 //				Electric.setProgressValue((int)(readSoFar * 100 / fileLength));
-				String [] targ = parseLine(line, false);
+				String [] targ = parseLine(line, false, theAnalyzer);
 				if (targ.length == 0) continue;
 				char firstCh = targ[0].charAt(0);
 				switch (firstCh)
@@ -1248,7 +1246,7 @@ public class Sim implements SimAPI
 						if (lineReader.getLineNumber() > 1) break;
 						if (targ.length >= 2)
 						{
-							double lmbd = Electric.atof(targ[2]) / 100.0;
+							double lmbd = theAnalyzer.atof(targ[2]) / 100.0;
 							if (lmbd != theConfig.lambda)
 							{
 								System.out.println("WARNING: sim file lambda (" + lmbd + "u) != config lambda (" +
@@ -1325,7 +1323,7 @@ public class Sim implements SimAPI
         return numErrors;
 	}
 
-	private void initNetwork()
+	public void initNetwork()
 	{
 		readTransistorList = new ArrayList<Trans>();
 		nodeHash = new HashMap<String,Node>();

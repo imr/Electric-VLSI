@@ -19,6 +19,7 @@ package com.sun.electric.plugins.irsim;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
@@ -113,7 +114,9 @@ public interface SimAPI {
 	/** scale factor for resolution */              public static final long resolutionScale = 1000;
 	/** 1 -> 1ns, 100 -> 0.01ns resolution, etc */
 
-    // Set marameters
+    // Set parameters
+	public void initNetwork();
+    public void loadConfig(URL parameterURL, SimAPI.Analyzer analyzer);
 	public void setModel(boolean rc);
     public void setAnalyzer(SimAPI.Analyzer analyzer);
     public void setUnitDelay(int unitDelay);
@@ -343,5 +346,51 @@ public interface SimAPI {
         // Redisplay hooks
     	public void updateWindowIfAnalyzerOn(long endT);
         public void dispWatchVec(long which);
+        /**
+         * Returns canonic string for ignore-case comparison .
+         * FORALL String s1, s2: s1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
+         * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
+         * @param s given String
+         * @return canonic String
+         * Simple "toLowerCase" is not sufficient.
+         * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
+         */
+        public String canonicString(String s);
+        /**
+         * Method to parse the floating-point number in a string.
+         * There is one reason to use this method instead of Double.parseDouble:
+         * this method does not throw an exception if the number is invalid (or blank).
+         * @param text the string with a number in it.
+         * @return the numeric value.
+         */
+        public double atof(String text);
+        /**
+         * Method to parse the number in a string.
+         * <P>
+         * There are many reasons to use this method instead of Integer.parseInt...
+         * <UL>
+         * <LI>This method can handle any radix.
+         *     If the number begins with "0", presume base 8.
+         *     If the number begins with "0b", presume base 2.
+         *     If the number begins with "0x", presume base 16.
+         *     Otherwise presume base 10.
+         * <LI>This method can handle numbers that affect the sign bit.
+         *     If you give 0xFFFFFFFF to Integer.parseInt, you get a numberFormatPostFix exception.
+         *     This method properly returns -1.
+         * <LI>This method does not require that the entire string be part of the number.
+         *     If there is extra text after the end, Integer.parseInt fails (for example "123xx").
+         * <LI>This method does not throw an exception if the number is invalid (or blank).
+         * </UL>
+         * @param s the string with a number in it.
+         * @return the numeric value.
+         */
+        public int atoi(String s);
+        /**
+         * Method to convert a double to a string.
+         * If the double has no precision past the decimal, none will be shown.
+         * @param v the double value to format.
+         * @return the string representation of the number.
+         */
+        public String formatDouble(double v);
     }
 }

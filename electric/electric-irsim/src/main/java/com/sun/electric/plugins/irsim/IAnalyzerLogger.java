@@ -5,8 +5,6 @@
 
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.irsim.IAnalyzer;
 import java.io.File;
 import java.io.IOException;
@@ -169,7 +167,7 @@ public class IAnalyzerLogger implements IAnalyzer.EngineIRSIM {
         impl.playVectors();
     }
 
-    public void newContolPoint(String signalName, double insertTime, DigitalSample.Value value) {
+    public void newContolPoint(String signalName, double insertTime, IAnalyzer.LogicState value) {
         System.out.println("x.newControlPoint(\"" + signalName + "\", " + insertTime + ", Digita;Sample.Value." + value.name() + ");");
         impl.newContolPoint(signalName, insertTime, value);
     }
@@ -177,7 +175,7 @@ public class IAnalyzerLogger implements IAnalyzer.EngineIRSIM {
     /**
      * Method to show information about the currently-selected signal.
      */
-    public void showSignalInfo(Signal<?> sig) {
+    public void showSignalInfo(IAnalyzer.GuiSignal sig) {
         System.out.println("x.showSignalInfo(findSignal(\"" + sig.getFullName() + "\");");
         impl.showSignalInfo(sig);
     }
@@ -194,7 +192,7 @@ public class IAnalyzerLogger implements IAnalyzer.EngineIRSIM {
      * Method to remove all stimuli from the currently-selected signal.
      * @param sig currently selected signal.
      */
-    public void clearControlPoints(Signal<?> sig) {
+    public void clearControlPoints(IAnalyzer.GuiSignal sig) {
         System.out.println("x.clearControlPoints(findSignal(\"" + sig.getFullName() + "\");");
         impl.clearControlPoints(sig);
     }
@@ -203,7 +201,7 @@ public class IAnalyzerLogger implements IAnalyzer.EngineIRSIM {
      * Method to remove the selected stimuli.
      * @return true if stimuli were deleted.
      */
-    public boolean clearControlPoint(Signal<?> sig, double insertTime) {
+    public boolean clearControlPoint(IAnalyzer.GuiSignal sig, double insertTime) {
         System.out.println("x.clearControlPoint(findSignal(\"" + sig.getFullName() + "\", " + insertTime + ");");
         return impl.clearControlPoint(sig, insertTime);
     }

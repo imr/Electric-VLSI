@@ -111,7 +111,7 @@ public class Config
 	 * @param configURL a URL to the file with configuration information.
 	 * @return true on error
 	 */
-	public boolean loadConfig(URL configURL)
+	public boolean loadConfig(URL configURL, SimAPI.Analyzer analyzer)
 	{
 		tTypeDrop = new String[Sim.NTTYPES];
 		for(int i = 0; i < Sim.NTTYPES; i++)
@@ -131,45 +131,45 @@ public class Config
 				if (line == null) break;
 				if (line.startsWith(";")) continue;
 
-				String [] targ = Sim.parseLine(line, false);
+				String [] targ = Sim.parseLine(line, false, analyzer);
 				if (targ.length == 0) continue;
 				if (targ[0].equals("resistance"))
 				{
 					if (targ.length >= 6)
-						insert(fileName, lineReader.getLineNumber(), targ[1], targ[2], targ[3], targ[4], targ[5]); else
+						insert(fileName, lineReader.getLineNumber(), targ[1], targ[2], targ[3], targ[4], targ[5], analyzer); else
 					{
 						Sim.reportError(fileName, lineReader.getLineNumber(), "syntax error in resistance spec");
 					}
 				} else
 				{
-					if (targ[0].equals("capm2a")) CM2A = Electric.atof(targ[1]); else
-					if (targ[0].equals("capm2p")) CM2P = Electric.atof(targ[1]); else
-					if (targ[0].equals("capma")) CMA = Electric.atof(targ[1]); else
-					if (targ[0].equals("capmp")) CMP = Electric.atof(targ[1]); else
-					if (targ[0].equals("cappa")) CPA = Electric.atof(targ[1]); else
-					if (targ[0].equals("cappp")) CPP = Electric.atof(targ[1]); else
-					if (targ[0].equals("capda")) CDA = Electric.atof(targ[1]); else
-					if (targ[0].equals("capdp")) CDP = Electric.atof(targ[1]); else
-					if (targ[0].equals("cappda")) CPDA = Electric.atof(targ[1]); else
-					if (targ[0].equals("cappdp")) CPDP = Electric.atof(targ[1]); else
-					if (targ[0].equals("capga")) CGA = Electric.atof(targ[1]); else
-					if (targ[0].equals("lambda")) lambda = Electric.atof(targ[1]); else
-					if (targ[0].equals("lowthresh")) lowThresh = Electric.atof(targ[1]); else
-					if (targ[0].equals("highthresh")) highThresh = Electric.atof(targ[1]); else
+					if (targ[0].equals("capm2a")) CM2A = analyzer.atof(targ[1]); else
+					if (targ[0].equals("capm2p")) CM2P = analyzer.atof(targ[1]); else
+					if (targ[0].equals("capma")) CMA = analyzer.atof(targ[1]); else
+					if (targ[0].equals("capmp")) CMP = analyzer.atof(targ[1]); else
+					if (targ[0].equals("cappa")) CPA = analyzer.atof(targ[1]); else
+					if (targ[0].equals("cappp")) CPP = analyzer.atof(targ[1]); else
+					if (targ[0].equals("capda")) CDA = analyzer.atof(targ[1]); else
+					if (targ[0].equals("capdp")) CDP = analyzer.atof(targ[1]); else
+					if (targ[0].equals("cappda")) CPDA = analyzer.atof(targ[1]); else
+					if (targ[0].equals("cappdp")) CPDP = analyzer.atof(targ[1]); else
+					if (targ[0].equals("capga")) CGA = analyzer.atof(targ[1]); else
+					if (targ[0].equals("lambda")) lambda = analyzer.atof(targ[1]); else
+					if (targ[0].equals("lowthresh")) lowThresh = analyzer.atof(targ[1]); else
+					if (targ[0].equals("highthresh")) highThresh = analyzer.atof(targ[1]); else
 					if (targ[0].equals("diffperim"))
 					{
-						if (Electric.atof(targ[1]) != 0.0) configFlags |= DIFFPERIM;
+						if (analyzer.atof(targ[1]) != 0.0) configFlags |= DIFFPERIM;
 					} else if (targ[0].equals("cntpullup"))
 					{
-						if (Electric.atof(targ[1]) != 0.0) configFlags |= CNTPULLUP;
+						if (analyzer.atof(targ[1]) != 0.0) configFlags |= CNTPULLUP;
 					} else if (targ[0].equals("subparea"))
 					{
-						if (Electric.atof(targ[1]) != 0.0) configFlags |= SUBPAREA;
+						if (analyzer.atof(targ[1]) != 0.0) configFlags |= SUBPAREA;
 					} else if (targ[0].equals("diffext"))
 					{
-						if (Electric.atof(targ[1]) != 0.0)
+						if (analyzer.atof(targ[1]) != 0.0)
 						{
-//							DIFFEXT = Electric.atof(targ[1]);
+//							DIFFEXT = analyzer.atof(targ[1]);
 							configFlags |= DIFFEXTF;
 						}
 					} else
@@ -374,11 +374,11 @@ public class Config
 	/**
 	 * interpret resistance specification command
 	 */
-	private void insert(String fileName, int lineNo, String type, String context, String w, String l, String r)
+	private void insert(String fileName, int lineNo, String type, String context, String w, String l, String r, SimAPI.Analyzer analyzer)
 	{
-		long width = (long)(Electric.atof(w) * CM_M);
-		long length = (long)(Electric.atof(l) * CM_M);
-		double resist = Electric.atof(r);
+		long width = (long)(analyzer.atof(w) * CM_M);
+		long length = (long)(analyzer.atof(l) * CM_M);
+		double resist = analyzer.atof(r);
 		if (width <= 0 || length <= 0 || resist <= 0)
 		{
 			Sim.reportError(fileName, lineNo, "bad w, l, or r in config file");

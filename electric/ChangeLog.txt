@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+IMP: (11/14/10, DN) Irsim doesn't import electric classes.
+
 BUG: (11/13/10, DN) Version number must be updated in many places (Bug #2950)
 FIX: Request filtering for maven.dependencies .
 

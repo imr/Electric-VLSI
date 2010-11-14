@@ -23,8 +23,6 @@
  */
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.util.TextUtils;
-
 /**
  * Collects Electric dependencies in IRSIM code.
  */
@@ -102,74 +100,4 @@ class Electric {
 		if (a+DBL_EPSILON < b) return true;
 		return false;
 	}
-    
-    // TextUtils
-    
-    /**
-     * Returns canonic char for ignore-case comparison .
-     * This is the same as Character.toLowerCase(Character.toUpperCase(ch)).
-     * @param ch given char.
-     * @return canonic char for the given char.
-     */
-    static char canonicChar(char ch) {
-        return TextUtils.canonicChar(ch); 
-    }
-
-    /**
-     * Returns canonic string for ignore-case comparison .
-     * FORALL String s1, s2: s1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
-     * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
-     * @param s given String
-     * @return canonic String
-     * Simple "toLowerCase" is not sufficient.
-     * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
-     */
-    static String canonicString(String s) {
-        return TextUtils.canonicString(s);
-    }
-    
-    /**
-     * Method to parse the floating-point number in a string.
-     * There is one reason to use this method instead of Double.parseDouble:
-     * this method does not throw an exception if the number is invalid (or blank).
-     * @param text the string with a number in it.
-     * @return the numeric value.
-     */
-    static double atof(String text) {
-        return TextUtils.atof(text);
-    }
-    
-    /**
-     * Method to parse the number in a string.
-     * <P>
-     * There are many reasons to use this method instead of Integer.parseInt...
-     * <UL>
-     * <LI>This method can handle any radix.
-     *     If the number begins with "0", presume base 8.
-     *     If the number begins with "0b", presume base 2.
-     *     If the number begins with "0x", presume base 16.
-     *     Otherwise presume base 10.
-     * <LI>This method can handle numbers that affect the sign bit.
-     *     If you give 0xFFFFFFFF to Integer.parseInt, you get a numberFormatPostFix exception.
-     *     This method properly returns -1.
-     * <LI>This method does not require that the entire string be part of the number.
-     *     If there is extra text after the end, Integer.parseInt fails (for example "123xx").
-     * <LI>This method does not throw an exception if the number is invalid (or blank).
-     * </UL>
-     * @param s the string with a number in it.
-     * @return the numeric value.
-     */
-    public static int atoi(String s) {
-        return TextUtils.atoi(s);
-    }
-    
-    /**
-     * Method to convert a double to a string.
-     * If the double has no precision past the decimal, none will be shown.
-     * @param v the double value to format.
-     * @return the string representation of the number.
-     */
-    public static String formatDouble(double v) {
-        return TextUtils.formatDouble(v);
-    }
 }

@@ -1254,9 +1254,9 @@ public class NewRStep extends Eval
 		{
 			int exp = 0;
 			for( ; r >= 1000.0; exp++, r *= 0.001) ;
-			return Electric.formatDouble(r) + " KMG".charAt(exp);
+			return theSim.theAnalyzer.formatDouble(r) + " KMG".charAt(exp);
 		}
-		return Electric.formatDouble(r);
+		return theSim.theAnalyzer.formatDouble(r);
 	}
 
 

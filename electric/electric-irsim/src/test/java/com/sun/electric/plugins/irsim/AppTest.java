@@ -1,16 +1,12 @@
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.tool.simulation.BusSample;
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.MutableSignal;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.SignalCollection;
-import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.irsim.IAnalyzer;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -118,38 +114,34 @@ public class AppTest
 
     private class FakeGUI implements IAnalyzer.GUI {
 
-        private final Stimuli sd = new Stimuli();
-        private SignalCollection sigCollection = Stimuli.newSignalCollection(sd, "SIGNALS");
+        private List<TestSignal> signals = new ArrayList<TestSignal>();
 
-        public MutableSignal<DigitalSample> makeSignal(String name) {
+        public IAnalyzer.GuiSignal makeSignal(String name) {
             // make a signal for it
-            int slashPos = name.lastIndexOf('/');
-            MutableSignal<DigitalSample> sig =
-                    slashPos >= 0
-                    ? DigitalSample.createSignal(sigCollection, sd, name.substring(slashPos + 1), name.substring(0, slashPos))
-                    : DigitalSample.createSignal(sigCollection, sd, name, null);
+            TestSignal sig = new TestSignal(name, null);
+            signals.add(sig);
             return sig;
         }
 
-        public void makeBusSignals(List<Signal<?>> sigList) {
-            sd.makeBusSignals(sigList, sigCollection);
+        public void makeBusSignals(List<IAnalyzer.GuiSignal> sigList) {
         }
 
-        public void createBus(String busName, Signal<DigitalSample>... subsigs) {
-            BusSample.createSignal(sigCollection, sd, busName, null, true, subsigs);
+        public void createBus(String busName, IAnalyzer.GuiSignal... subsigs) {
+            TestSignal sig = new TestSignal(busName, subsigs);
+            signals.add(sig);
         }
 
-        public Collection<Signal<?>> getSignals() {
-            return sigCollection.getSignals();
+        public Collection<IAnalyzer.GuiSignal> getSignals() {
+            return Collections.<IAnalyzer.GuiSignal>unmodifiableCollection(signals);
         }
 
         public void setMainXPositionCursor(double curTime) {
             System.out.println("gui.setMainXPositionCursor(" + curTime + ");");
         }
 
-        public void openPanel(Collection<Signal<DigitalSample>> sigs) {
+        public void openPanel(Collection<IAnalyzer.GuiSignal> sigs) {
             System.out.print("gui.openPanel(");
-            for (Signal<DigitalSample> sig : sigs) {
+            for (IAnalyzer.GuiSignal sig : sigs) {
                 System.out.print(" " + sig.getFullName());
             }
             System.out.println(");");
@@ -165,6 +157,62 @@ public class AppTest
 
         public void repaint() {
             System.out.println("gui.repaint();");
+        }
+
+        public char canonicChar(char c) {
+            return Character.toLowerCase(c);
+        }
+        
+        public String canonicString(String s) {
+            return s.toLowerCase();
+        }
+
+        public double atof(String text) {
+            return Double.parseDouble(text);
+        }
+    
+        public int atoi(String text) {
+            text = text.trim();
+            int v = 0;
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                if (c < '0' || c > '9') break;
+                v = v*10 + (c - '0');
+            }
+            return v;
+        }
+    
+        public String formatDouble(double v) {
+            return Double.toString(v);
+        } 
+    }
+    
+    private class TestSignal implements IAnalyzer.GuiSignal {
+        private String fullName;
+        private IAnalyzer.GuiSignal[] busMembers;
+        
+        private TestSignal(String fullName, IAnalyzer.GuiSignal[] busMembers) {
+            this.fullName = fullName;
+            this.busMembers = busMembers;
+        }
+        
+        public String getFullName() {
+            return fullName;
+        }
+        public String getSignalName() {
+            return fullName;
+        }
+        public IAnalyzer.GuiSignal[] getBusMembers() {
+            return busMembers;
+        }
+        public void addControlPoint(double time) {
+           System.out.println("findSignal(\""+fullName+"\").addControlPoint("+time+");");
+        }
+        public void removeControlPoint(double time) {
+           System.out.println("findSignal(\""+fullName+"\").removeControlPoint("+time+");");
+        }
+        public void addSample(double t, IAnalyzer.LogicState v) {
+//           System.out.println("findSignal(\""+fullName+"\").addSample("+t+","+v+");");
         }
     }
 }

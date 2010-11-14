@@ -17,11 +17,6 @@
  */
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.tool.simulation.DigitalSample;
-import com.sun.electric.tool.simulation.MutableSignal;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.DigitalSample.Strength;
-import com.sun.electric.tool.simulation.DigitalSample.Value;
 import com.sun.electric.tool.simulation.irsim.IAnalyzer;
 
 import java.io.BufferedWriter;
@@ -103,8 +98,8 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	{
 		/** index of command */						int           command;
 		/** parameters to the command */			String []     parameters;
-		/** actual signals named in command */		List<Signal<DigitalSample>> sigs;
-		/** negated signals named in command */		List<Signal<DigitalSample>> sigsNegated;
+		/** actual signals named in command */		List<IAnalyzer.GuiSignal> sigs;
+		/** negated signals named in command */		List<IAnalyzer.GuiSignal> sigsNegated;
 		/** duration of step, where appropriate */	double        value;
 		/** next in list of vectors */				SimVector     next;
 	}
@@ -122,7 +117,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 
 	private static class Sequence
 	{
-		/** signal to control */					Signal<DigitalSample>  sig;
+		/** signal to control */					IAnalyzer.GuiSignal  sig;
 		/** array of values */						String  []     values;
 	}
 
@@ -138,7 +133,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	private long      lastStart;					/** last redisplay starting time */
 
 	private double [] traceTime;
-	private DigitalSample [] traceState;
+	private IAnalyzer.LogicState [] traceState;
 	private int       traceTotal = 0;
 
 	/** vectors which make up clock */				private List<Sequence> xClock;
@@ -159,8 +154,8 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 
 	/** the simulation engine */					private final SimAPI    theSim;
     /** the GUI interface */                        private final IAnalyzer.GUI gui;
-	/** mapping from signals to nodes */			private HashMap<Signal<?>,SimAPI.Node> nodeMap;
-	/** mapping from nodes to signals */			private HashMap<SimAPI.Node,MutableSignal<DigitalSample>> signalMap = new HashMap<SimAPI.Node,MutableSignal<DigitalSample>>();
+	/** mapping from signals to nodes */			private HashMap<IAnalyzer.GuiSignal,SimAPI.Node> nodeMap;
+	/** mapping from nodes to signals */			private HashMap<SimAPI.Node,IAnalyzer.GuiSignal> signalMap = new HashMap<SimAPI.Node,IAnalyzer.GuiSignal>();
 
 	/************************** ELECTRIC INTERFACE **************************/
 
@@ -186,8 +181,14 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
              * @param isDelayedX true if using the delayed X model, false if using the old fast-propagating X model.
              */
             public EngineIRSIM createEngine(IAnalyzer.GUI gui, String steppingModel, URL parameterURL, int irDebug, boolean showCommands, boolean isDelayedX) {
-                SimAPI sim = new Sim(irDebug, steppingModel, parameterURL, isDelayedX);
+                SimAPI sim = new Sim(irDebug, steppingModel, isDelayedX);
                 Analyzer theAnalyzer = new Analyzer(gui, sim, irDebug, showCommands);
+
+                // read the configuration file
+                if (parameterURL != null) {
+                    sim.loadConfig(parameterURL, theAnalyzer);
+                }
+                sim.initNetwork();
                 
                 System.out.println("IRSIM, version " + simVersion);
                 // now initialize the simulator
@@ -343,34 +344,34 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
      */
     public void convertStimuli() 
     {
-		nodeMap = new HashMap<Signal<?>,SimAPI.Node>();
-		List<Signal<?>> sigList = new ArrayList<Signal<?>>();
+		nodeMap = new HashMap<IAnalyzer.GuiSignal,SimAPI.Node>();
+		List<IAnalyzer.GuiSignal> sigList = new ArrayList<IAnalyzer.GuiSignal>();
 		for(SimAPI.Node n : theSim.getNodes())
 		{
 			if (n.getName().equalsIgnoreCase("vdd") || n.getName().equalsIgnoreCase("gnd")) continue;
 
 			// make a signal for it
-			MutableSignal<DigitalSample> sig = gui.makeSignal(n.getName());
+			IAnalyzer.GuiSignal sig = gui.makeSignal(n.getName());
             signalMap.put(n, sig);
 //			n.sig = sig;
 			sigList.add(sig);
 			nodeMap.put(sig, n);
 
-            sig.addSample(0, DigitalSample.LOGIC_0);
-            sig.addSample(0.00000001, DigitalSample.LOGIC_0);
+            sig.addSample(0, IAnalyzer.LogicState.LOGIC_0);
+            sig.addSample(0.00000001, IAnalyzer.LogicState.LOGIC_0);
 		}
 
 		// make bus signals from individual ones found in the list
 		gui.makeBusSignals(sigList);
 	}
 
-    public void newContolPoint(String signalName, double insertTime, DigitalSample.Value value) {
+    public void newContolPoint(String signalName, double insertTime, IAnalyzer.LogicState value) {
         int command;
         switch (value) {
-            case HIGH:
+            case LOGIC_1:
                 command = VECTORH;
                 break;
-            case LOW:
+            case LOGIC_0:
                 command = VECTORL;
                 break;
             default:
@@ -382,11 +383,11 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
     /**
      * Method to show information about the currently-selected signal.
      */
-    public void showSignalInfo(Signal<?> sig) {
+    public void showSignalInfo(IAnalyzer.GuiSignal sig) {
         SimVector excl = new SimVector();
         excl.command = VECTOREXCL;
-        excl.sigs = new ArrayList<Signal<DigitalSample>>();
-        excl.sigs.add((Signal<DigitalSample>) sig);
+        excl.sigs = new ArrayList<IAnalyzer.GuiSignal>();
+        excl.sigs.add(sig);
         issueCommand(excl);
 
         excl.command = VECTORQUESTION;
@@ -397,7 +398,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	 * Method to remove all stimuli from the currently-selected signal.
      * @param sig currently selected signal.
 	 */
-    public void clearControlPoints(Signal<?> sig) {
+    public void clearControlPoints(IAnalyzer.GuiSignal sig) {
 		SimVector lastSV = null;
 		for(SimVector sv = firstVector; sv != null; sv = sv.next)
 		{
@@ -571,7 +572,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
                     anyAnalyzerCommands = true;
                     gui.closePanels();
                 }
-                List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
+                List<IAnalyzer.GuiSignal> sigs = new ArrayList<IAnalyzer.GuiSignal>();
                 getTargetNodes(targ, 1, sigs, null);
                 gui.openPanel(sigs);
                 continue;
@@ -584,9 +585,9 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 //					Signal<DigitalSample> busSig = null;
 //					if (busSig == null)
 //						busSig = DigitalSample.createSignal(sigCollection, sd, targ[1], null);
-                List<Signal<DigitalSample>> sigs = new ArrayList<Signal<DigitalSample>>();
+                List<IAnalyzer.GuiSignal> sigs = new ArrayList<IAnalyzer.GuiSignal>();
                 getTargetNodes(targ, 2, sigs, null);
-                Signal<DigitalSample>[] subsigs = new Signal[sigs.size()];
+                IAnalyzer.GuiSignal[] subsigs = new IAnalyzer.GuiSignal[sigs.size()];
                 for(int i=0; i<sigs.size(); i++) subsigs[i] = sigs.get(i);
                 gui.createBus(targ[1], subsigs);
                 continue;
@@ -736,11 +737,11 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 				double newSize = deltaToNS(stepSize);
 				if (params.length > 0)
 				{
-					newSize = Electric.atof(params[0]);
+					newSize = atof(params[0]);
 					long lNewSize = nsToDelta(newSize);
 					if (lNewSize <= 0)
 					{
-						System.out.println("Bad step size: " + Electric.formatDouble(newSize*1000) + "psec (must be 10 psec or larger), ignoring");
+						System.out.println("Bad step size: " + formatDouble(newSize*1000) + "psec (must be 10 psec or larger), ignoring");
 						return null;
 					}
 				}
@@ -748,14 +749,14 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 				break;
 			case VECTORSTEPSIZE:
 				if (params.length > 0)
-					stepSize = nsToDelta(Electric.atof(params[0]));
+					stepSize = nsToDelta(atof(params[0]));
 				break;
 
 			case VECTORBACK:
 				newsv.value = 0;
 				if (params.length > 0)
 				{
-					newsv.value = Electric.atof(params[0]);
+					newsv.value = atof(params[0]);
 				}
 				break;
 
@@ -768,15 +769,15 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			case VECTORT:
 			case VECTORPATH:
 			case VECTORSTOP:
-				newsv.sigs = new ArrayList<Signal<DigitalSample>>();
+				newsv.sigs = new ArrayList<IAnalyzer.GuiSignal>();
 				newsv.sigsNegated = null;
-				if (command == VECTORT) newsv.sigsNegated = new ArrayList<Signal<DigitalSample>>();
+				if (command == VECTORT) newsv.sigsNegated = new ArrayList<IAnalyzer.GuiSignal>();
 				getTargetNodes(params, 0, newsv.sigs, newsv.sigsNegated);
 
 				if (command == VECTORL || command == VECTORH || command == VECTORX)
 				{
 					// add this moment in time to the control points for the signal
-					for(Signal<?> sig : newsv.sigs)
+					for(IAnalyzer.GuiSignal sig : newsv.sigs)
 					{
 						sig.addControlPoint(insertTime);
 					}
@@ -806,14 +807,14 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 							// splitting step at "insertTime"
 							sv.parameters = new String[1];
 							sv.value = (insertTime-curTime) / cmdFileUnits;
-							sv.parameters[0] = Electric.formatDouble(sv.value);
+							sv.parameters[0] = formatDouble(sv.value);
 
 							// create second step to advance after this signal
 							SimVector afterSV = new SimVector();
 							afterSV.command = VECTORS;
 							afterSV.parameters = new String[1];
 							afterSV.value = (curTime + stepSze - insertTime) / cmdFileUnits;
-							afterSV.parameters[0] = Electric.formatDouble(afterSV.value);
+							afterSV.parameters[0] = formatDouble(afterSV.value);
 							afterSV.next = sv.next;
 							sv.next = afterSV;
 						}
@@ -821,7 +822,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 						break;
 					case VECTORSTEPSIZE:
 						if (sv.parameters.length > 0)
-							defaultStepSize = Electric.atof(sv.parameters[0]) * cmdFileUnits;
+							defaultStepSize = atof(sv.parameters[0]) * cmdFileUnits;
 						break;
 					case VECTORCLOCK:
 						clockPhases = sv.parameters.length - 1;
@@ -829,7 +830,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 					case VECTORC:
 						int mult = 1;
 						if (sv.parameters.length > 0)
-							mult = Electric.atoi(sv.parameters[0]);
+							mult = atoi(sv.parameters[0]);
 						curTime += defaultStepSize * clockPhases * mult;
 						break;
 					case VECTORP:
@@ -848,7 +849,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 					SimVector afterSV = new SimVector();
 					afterSV.command = VECTORS;
 					afterSV.parameters = new String[1];
-					afterSV.parameters[0] = Electric.formatDouble(thisStep);
+					afterSV.parameters[0] = formatDouble(thisStep);
 //					afterSV.parameters[0] = Electric.formatDouble(thisStep / cmdFileUnits);
 					afterSV.value = thisStep;
 					if (lastSV == null)
@@ -884,7 +885,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	 * Method to remove the selected stimuli.
 	 * @return true if stimuli were deleted.
 	 */
-	public boolean clearControlPoint(Signal<?> sig, double insertTime)
+	public boolean clearControlPoint(IAnalyzer.GuiSignal sig, double insertTime)
 	{
 		double defaultStepSize = 10.0 * cmdFileUnits;
 		double curTime = 0.0;
@@ -902,7 +903,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 					break;
 				case VECTORSTEPSIZE:
 					if (sv.parameters.length > 0)
-						defaultStepSize = Electric.atof(sv.parameters[0]) * cmdFileUnits;
+						defaultStepSize = atof(sv.parameters[0]) * cmdFileUnits;
 					break;
 				case VECTORCLOCK:
 					clockPhases = sv.parameters.length - 1;
@@ -910,7 +911,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 				case VECTORC:
 					int mult = 1;
 					if (sv.parameters.length > 0)
-						mult = Electric.atoi(sv.parameters[0]);
+						mult = atoi(sv.parameters[0]);
 					curTime += defaultStepSize * clockPhases * mult;
 					break;
 				case VECTORP:
@@ -922,7 +923,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 					if (Electric.doublesEqual(insertTime, curTime))
 					{
 						boolean found = false;
-						for(Signal<?> s : sv.sigs)
+						for(IAnalyzer.GuiSignal s : sv.sigs)
 						{
 							if (s == sig)
 							{
@@ -946,7 +947,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		return cleared;
 	}
 
-	private void getTargetNodes(String [] params, int low, List<Signal<DigitalSample>> normalList, List<Signal<DigitalSample>> negatedList)
+	private void getTargetNodes(String [] params, int low, List<IAnalyzer.GuiSignal> normalList, List<IAnalyzer.GuiSignal> negatedList)
 	{
 		int size = params.length - low;
 		for(int i=0; i<size; i++)
@@ -960,18 +961,18 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			}
 			if (name.indexOf('*') >= 0)
 			{
-				for(Signal<?> sig : gui.getSignals())
+				for(IAnalyzer.GuiSignal sig : gui.getSignals())
 				{
 					if (strMatch(name, sig.getFullName()))
 					{
-						if (negated) negatedList.add((Signal<DigitalSample>)sig); else
-							normalList.add((Signal<DigitalSample>)sig);
+						if (negated) negatedList.add(sig); else
+							normalList.add(sig);
 					}
 				}
 			} else
 			{
 				// no wildcards: just find the name
-				Signal<DigitalSample> sig = this.findName(name);
+				IAnalyzer.GuiSignal sig = this.findName(name);
 				if (sig == null)
 				{
 					System.out.println("Cannot find node named '" + name + "'");
@@ -1002,7 +1003,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 					break;
 				case VECTORSTEPSIZE:
 					if (sv.parameters.length > 0)
-						defaultStepSize = Electric.atof(sv.parameters[0]) * cmdFileUnits;
+						defaultStepSize = atof(sv.parameters[0]) * cmdFileUnits;
 					break;
 				case VECTORCLOCK:
 					clockPhases = sv.parameters.length - 1;
@@ -1010,7 +1011,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 				case VECTORC:
 					int mult = 1;
 					if (sv.parameters.length > 0)
-						mult = Electric.atoi(sv.parameters[0]);
+						mult = atoi(sv.parameters[0]);
 					curTime += defaultStepSize * clockPhases * mult;
 					break;
 				case VECTORP:
@@ -1029,7 +1030,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	private void doInfo(SimVector sv)
 	{
 		if (sv.sigs == null) return;
-		for(Signal<?> sig : sv.sigs)
+		for(IAnalyzer.GuiSignal sig : sv.sigs)
 		{
 			SimAPI.Node n = nodeMap.get(sig);
 			if (n == null) continue;
@@ -1108,10 +1109,10 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	 */
 	private void doActivity(SimVector sv)
 	{
-		long begin = nsToDelta(Electric.atof(sv.parameters[0]));
+		long begin = nsToDelta(atof(sv.parameters[0]));
 		long end = theSim.getCurDelta();
 		if (sv.parameters.length > 1)
-			end = nsToDelta(Electric.atof(sv.parameters[1]));
+			end = nsToDelta(atof(sv.parameters[1]));
 		if (end < begin)
 		{
 			long swp = end;   end = begin;   begin = swp;
@@ -1214,7 +1215,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		int n = 1;
 		if (sv.parameters.length == 1)
 		{
-			n = Electric.atoi(sv.parameters[0]);
+			n = atoi(sv.parameters[0]);
 			if (n <= 0) n = 1;
 		}
 
@@ -1226,10 +1227,10 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	 */
 	private void doChanges(SimVector sv)
 	{
-		long begin = nsToDelta(Electric.atof(sv.parameters[0]));
+		long begin = nsToDelta(atof(sv.parameters[0]));
 		long end = theSim.getCurDelta();
 		if (sv.parameters.length > 1)
-			end = nsToDelta(Electric.atof(sv.parameters[1]));
+			end = nsToDelta(atof(sv.parameters[1]));
 
 		column = 0;
 		System.out.print("Nodes with last transition in interval " + deltaToNS(begin) + " . " + deltaToNS(end) + "ns:");
@@ -1331,7 +1332,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 				System.out.println("decay = " + deltaToNS(theSim.getDecay()) + "ns");
 		} else
 		{
-			theSim.setDecay(nsToDelta(Electric.atof(sv.parameters[0])));
+			theSim.setDecay(nsToDelta(atof(sv.parameters[0])));
 			if (theSim.getDecay() < 0)
 				theSim.setDecay(0);
 		}
@@ -1344,7 +1345,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	{
 		if (sv.sigs == null) return;
 
-		for(Signal<DigitalSample> sig : sv.sigs)
+		for(IAnalyzer.GuiSignal sig : sv.sigs)
 		{
 			SimAPI.Node n = nodeMap.get(sig);
 			setIn(n, commandName(sv.command).charAt(0));
@@ -1422,7 +1423,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	private void doPath(SimVector sv)
 	{
 		if (sv.sigs == null) return;
-		for(Signal<DigitalSample> sig : sv.sigs)
+		for(IAnalyzer.GuiSignal sig : sv.sigs)
 		{
 			SimAPI.Node n = nodeMap.get(sig);
 			System.out.println("Critical path for last transition of " + n.getName() + ":");
@@ -1479,7 +1480,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		int n = 1;
 		if (sv.parameters.length == 1)
 		{
-			n = Electric.atoi(sv.parameters[0]);
+			n = atoi(sv.parameters[0]);
 			if (n <= 0) n = 1;
 		}
 
@@ -1548,14 +1549,14 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	 */
 	private void doSet(SimVector sv)
 	{
-		Signal<DigitalSample> sig = findName(sv.parameters[0]);
+		IAnalyzer.GuiSignal sig = findName(sv.parameters[0]);
 		if (sig == null)
 		{
 			System.out.println("Cannot find signal: " + sv.parameters[0]);
 			return;
 		}
 
-		Signal<?>[] sigsOnBus = sig.getBusMembers();
+		IAnalyzer.GuiSignal[] sigsOnBus = sig.getBusMembers();
 		if (sigsOnBus == null)
 		{
 			System.out.println("Signal: " + sv.parameters[0] + " is not a bus");
@@ -1592,8 +1593,8 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 						tranCntNSD += n.getTerms().size();
 					}
 				}
-				System.out.println("avg: # gates/node = " + Electric.formatDouble(tranCntNG / theSim.getNumNodes()) +
-					",  # src-drn/node = " + Electric.formatDouble(tranCntNSD / theSim.getNumNodes()));
+				System.out.println("avg: # gates/node = " + formatDouble(tranCntNG / theSim.getNumNodes()) +
+					",  # src-drn/node = " + formatDouble(tranCntNSD / theSim.getNumNodes()));
 			}
 		}
 		System.out.println("changes = " + theSim.getNumEdges());
@@ -1602,8 +1603,8 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		String n2 = "0.0";
 		if (theSim.getNumPunted() != 0)
 		{
-			n1 = Electric.formatDouble(100.0 / (theSim.getNumEdges() / theSim.getNumPunted() + 1.0));
-			n2 = Electric.formatDouble(theSim.getNumConsPunted() * 100.0 / theSim.getNumPunted());
+			n1 = formatDouble(100.0 / (theSim.getNumEdges() / theSim.getNumPunted() + 1.0));
+			n2 = formatDouble(theSim.getNumConsPunted() * 100.0 / theSim.getNumPunted());
 		}
 		System.out.println("punts = " + n1 + "%, cons_punted = " + n2 + "%");
 
@@ -1621,11 +1622,11 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			return;
 		}
 
-		double timeNS = Electric.atof(sv.parameters[0]);
+		double timeNS = atof(sv.parameters[0]);
 		long newSize = nsToDelta(timeNS);
 		if (newSize <= 0)
 		{
-			System.out.println("Bad step size: " + Electric.formatDouble(timeNS*1000) + "psec (must be 10 psec or larger)");
+			System.out.println("Bad step size: " + formatDouble(timeNS*1000) + "psec (must be 10 psec or larger)");
 			return;
 		}
 		stepSize = newSize;
@@ -1638,7 +1639,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	{
 		if (sv.sigs != null)
 		{
-			for(Signal<DigitalSample> sig : sv.sigs)
+			for(IAnalyzer.GuiSignal sig : sv.sigs)
 			{
 				SimAPI.Node n = nodeMap.get(sig);
 				n = unAlias(n);
@@ -1661,7 +1662,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	{
 		if (sv.sigs != null)
 		{
-			for(Signal<DigitalSample> sig : sv.sigs)
+			for(IAnalyzer.GuiSignal sig : sv.sigs)
 			{
 				SimAPI.Node n = nodeMap.get(sig);
 				n = unAlias(n);
@@ -1677,7 +1678,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		}
 		if (sv.sigsNegated != null)
 		{
-			for(Signal<DigitalSample> sig : sv.sigsNegated)
+			for(IAnalyzer.GuiSignal sig : sv.sigsNegated)
 			{
 				SimAPI.Node n = nodeMap.get(sig);
 				n = unAlias(n);
@@ -1731,7 +1732,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			return;
 		}
 
-		theSim.setUnitDelay((int)nsToDelta(Electric.atof(sv.parameters[0])));
+		theSim.setUnitDelay((int)nsToDelta(atof(sv.parameters[0])));
 		if (theSim.getUnitDelay() < 0) theSim.setUnitDelay(0);
 	}
 
@@ -1744,15 +1745,15 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		{
 			mask = sv.parameters[1];
 			value = new StringBuffer(sv.parameters[2]);
-			cCount = Electric.atoi(sv.parameters[3]);
+			cCount = atoi(sv.parameters[3]);
 		} else
 		{
 			mask = null;
 			value = new StringBuffer(sv.parameters[1]);
-			cCount = Electric.atoi(sv.parameters[2]);
+			cCount = atoi(sv.parameters[2]);
 		}
 
-		Signal<DigitalSample> sig = findName(sv.parameters[0]);
+		IAnalyzer.GuiSignal sig = findName(sv.parameters[0]);
 		if (sig == null)
 		{
 			System.out.println("UNTIL statement cannot find signal: " + sv.parameters[0]);
@@ -1763,7 +1764,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		int comp = 0;
 		int nBits = 1;
 		SimAPI.Node [] nodes = null;
-		Signal<?>[] sigsOnBus = sig.getBusMembers();
+		IAnalyzer.GuiSignal[] sigsOnBus = sig.getBusMembers();
 		if (sigsOnBus == null)
 		{
 			SimAPI.Node n = nodeMap.get(sig);
@@ -1835,7 +1836,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			value = new StringBuffer(sv.parameters[1]);
 		}
 
-		Signal<DigitalSample> sig = findName(sv.parameters[0]);
+		IAnalyzer.GuiSignal sig = findName(sv.parameters[0]);
 		if (sig == null)
 		{
 			System.out.println("ASSERT statement cannot find signal: " + sv.parameters[0]);
@@ -1845,7 +1846,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		int comp = 0;
 		String name = null;
 		SimAPI.Node [] nodes = null;
-		Signal<?>[] sigsOnBus = sig.getBusMembers();
+		IAnalyzer.GuiSignal[] sigsOnBus = sig.getBusMembers();
 		if (sigsOnBus == null)
 		{
 			SimAPI.Node n = nodeMap.get(sig);
@@ -1887,7 +1888,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 
 	private void doAssertWhen(SimVector sv)
 	{
-		Signal<DigitalSample> sig = findName(sv.parameters[0]);
+		IAnalyzer.GuiSignal sig = findName(sv.parameters[0]);
 		if (sig == null)
 		{
 			System.out.println("ASSERTWHEN statement cannot find signal: " + sv.parameters[0]);
@@ -1901,7 +1902,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			awTrig = n;
 			awTrig.setAssertWhenPot((short)chToPot(sv.parameters[1].charAt(0)));
 
-			Signal<DigitalSample> oSig = findName(sv.parameters[2]);
+			IAnalyzer.GuiSignal oSig = findName(sv.parameters[2]);
 			if (oSig == null)
 			{
 				System.out.println("ASSERTWHEN statement cannot find other signal: " + sv.parameters[2]);
@@ -1997,15 +1998,15 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		String temp = " @ " + deltaToNS(theSim.getCurDelta()) + "ns ";
 		System.out.println(temp);
 		column = temp.length();
-		Collection<Signal<?>> sigs = gui.getSignals();
-		for(Signal<?> sig : sigs)
+		Collection<IAnalyzer.GuiSignal> sigs = gui.getSignals();
+		for(IAnalyzer.GuiSignal sig : sigs)
 		{
-			Signal<?>[] sigsOnBus = sig.getBusMembers();
+			IAnalyzer.GuiSignal[] sigsOnBus = sig.getBusMembers();
 			if (sigsOnBus == null) continue;
 			SimAPI.Node b = nodeMap.get(sig);
 			if (b.getFlags(which) == 0) continue;
 			boolean found = false;
-			for(Signal<?> bSig : sigsOnBus)
+			for(IAnalyzer.GuiSignal bSig : sigsOnBus)
 			{
 				SimAPI.Node bN = nodeMap.get(bSig);
 				if (bN.getTime() == theSim.getCurDelta())
@@ -2147,10 +2148,10 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			lastStart = startTime;
 		}
 
-		for(Map.Entry<SimAPI.Node,MutableSignal<DigitalSample>> e : signalMap.entrySet())
+		for(Map.Entry<SimAPI.Node,IAnalyzer.GuiSignal> e : signalMap.entrySet())
 		{
             SimAPI.Node nd = e.getKey();
-            MutableSignal<DigitalSample> sig = e.getValue();
+            IAnalyzer.GuiSignal sig = e.getValue();
 			if (sig == null) continue;
 //		for(SimConstants.Node nd : theSim.getNodeList())
 //		{
@@ -2184,7 +2185,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 					int newTotal = traceTotal * 2;
 					if (newTotal <= count) newTotal = count + 50;
 					double [] newTime = new double[newTotal];
-					DigitalSample [] newState = new DigitalSample[newTotal];
+					IAnalyzer.LogicState [] newState = new IAnalyzer.LogicState[newTotal];
 					for(int i=0; i<count; i++)
 					{
 						newTime[i] = traceTime[i];
@@ -2199,21 +2200,20 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 				switch (val)
 				{
 					case SimAPI.LOW:
-						traceState[count] = DigitalSample.getSample(Value.LOW, Strength.LARGE_CAPACITANCE);
+						traceState[count] = IAnalyzer.LogicState.LOGIC_0;
 						break;
 					case SimAPI.HIGH:
-						traceState[count] = DigitalSample.getSample(Value.HIGH, Strength.LARGE_CAPACITANCE);
+						traceState[count] = IAnalyzer.LogicState.LOGIC_1;
 						break;
 					default:
-						traceState[count] = DigitalSample.getSample(Value.X, Strength.LARGE_CAPACITANCE);
+						traceState[count] = IAnalyzer.LogicState.LOGIC_X;
 						break;
 				}
 				curT = nextT;
 				count++;
 			}
 			for(int i=0; i<count; i++)
-                if (sig.getSample(traceTime[i])==null)
-                    sig.addSample(traceTime[i], traceState[i]);
+                sig.addSample(traceTime[i], traceState[i]);
 //                if (((MutableSignal<DigitalSample>)nd.sig).getSample(traceTime[i])==null)
 //                    ((MutableSignal<DigitalSample>)nd.sig).addSample(traceTime[i], traceState[i]);
 		}
@@ -2346,7 +2346,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 
 	private String prOneRes(double r)
 	{
-		String ret = Electric.formatDouble(r);
+		String ret = formatDouble(r);
 		if (r < 1e-9 || r > 100e9)
 			return ret;
 
@@ -2448,7 +2448,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	private int getCh(String s, int index)
 	{
 		if (index >= s.length()) return 0;
-		return Electric.canonicChar(s.charAt(index));
+		return gui.canonicChar(s.charAt(index));
 	}
 
 	/**
@@ -2485,15 +2485,15 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	 */
 	private void setVecNodes(int flag)
 	{
-		Collection<Signal<?>> sigs = gui.getSignals();
-		for(Signal<?> sig : sigs)
+		Collection<IAnalyzer.GuiSignal> sigs = gui.getSignals();
+		for(IAnalyzer.GuiSignal sig : sigs)
 		{
-			Signal<?>[] sigsOnBus = sig.getBusMembers();
+			IAnalyzer.GuiSignal[] sigsOnBus = sig.getBusMembers();
 			if (sigsOnBus == null) continue;
 			SimAPI.Node b = nodeMap.get(sig);
 			if (b.getFlags(flag) != 0)
 			{
-				for(Signal<?> bSig : sigsOnBus)
+				for(IAnalyzer.GuiSignal bSig : sigsOnBus)
 				{
 					SimAPI.Node bN = nodeMap.get(bSig);
 					bN.setFlags(flag);
@@ -2529,11 +2529,11 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		return 0;
 	}
 
-	private Signal<DigitalSample> findName(String name)
+	private IAnalyzer.GuiSignal findName(String name)
 	{
-		for(Signal<?> sig : gui.getSignals())
+		for(IAnalyzer.GuiSignal sig : gui.getSignals())
 		{
-			if (sig.getFullName().equals(name)) return (Signal<DigitalSample>)sig;
+			if (sig.getFullName().equals(name)) return sig;
 		}
 		return null;
 	}
@@ -2541,9 +2541,9 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 	/**
 	 * display bit vector.
 	 */
-	private void dVec(Signal<?> sig)
+	private void dVec(IAnalyzer.GuiSignal sig)
 	{
-		Signal<?>[] sigsOnBus = sig.getBusMembers();
+		IAnalyzer.GuiSignal[] sigsOnBus = sig.getBusMembers();
 		int i = sig.getSignalName().length() + 2 + sigsOnBus.length;
 		if (column + i >= MAXCOL)
 		{
@@ -2551,7 +2551,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		}
 		column += i;
 		String bits = "";
-		for(Signal<?> bSig : sigsOnBus)
+		for(IAnalyzer.GuiSignal bSig : sigsOnBus)
 		{
 			SimAPI.Node n = nodeMap.get(bSig);
 			bits += n.getPotChar();
@@ -2584,7 +2584,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 		for(Sequence cs : xClock)
 		{
 			String v = cs.values[index % cs.values.length];
-			Signal<?>[] sigsOnBus = cs.sig.getBusMembers();
+			IAnalyzer.GuiSignal[] sigsOnBus = cs.sig.getBusMembers();
 			if (sigsOnBus == null)
 			{
 				SimAPI.Node n = nodeMap.get(cs.sig);
@@ -2614,14 +2614,14 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 			return;
 		}
 
-		Signal<DigitalSample> sig = findName(args[0]);
+		IAnalyzer.GuiSignal sig = findName(args[0]);
 		if (sig == null)
 		{
 			System.out.println(args[0] + ": No such node or vector");
 			return;
 		}
 		int len = 1;
-		Signal<?>[] sigsOnBus = sig.getBusMembers();
+		IAnalyzer.GuiSignal[] sigsOnBus = sig.getBusMembers();
 		if (sigsOnBus != null)
 			len = sigsOnBus.length;
 		SimAPI.Node n = nodeMap.get(sig);
@@ -2787,6 +2787,44 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 				n.clearFlags(SimAPI.INPUT);
 		}
 	}
+    
+    /**
+     * Returns canonic string for ignore-case comparison .
+     * FORALL String s1, s2: s1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
+     * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
+     * @param s given String
+     * @return canonic String
+     * Simple "toLowerCase" is not sufficient.
+     * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
+     */
+    public String canonicString(String s) {
+        return gui.canonicString(s);
+    }
+
+    /**
+     * Method to parse the floating-point number in a string.
+     * There is one reason to use this method instead of Double.parseDouble:
+     * this method does not throw an exception if the number is invalid (or blank).
+     * @param text the string with a number in it.
+     * @return the numeric value.
+     */
+    public double atof(String text) {
+        return gui.atof(text);
+    }
+    
+    public int atoi(String text) {
+        return gui.atoi(text);
+    }
+    
+    /**
+     * Method to convert a double to a string.
+     * If the double has no precision past the decimal, none will be shown.
+     * @param v the double value to format.
+     * @return the string representation of the number.
+     */
+    public String formatDouble(double v) {
+        return gui.formatDouble(v);
+    }
     
 	/**
 	 * Convert deltas to ns.
