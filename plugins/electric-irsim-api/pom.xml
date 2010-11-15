@@ -4,7 +4,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: pom.xml
- * electric plugins aggregator
+ * electric irsim API
  *
  * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
  *
@@ -24,38 +24,28 @@
  * Boston, Mass 02111-1307, USA.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
+    
     <parent>
         <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
         <version>2-alpha-1</version>
-        <relativePath>../pom/electric-parent/pom.xml</relativePath>
+        <relativePath>../../pom/electric-parent/pom.xml</relativePath>
     </parent>
-
-    <artifactId>electric-plugins</artifactId>
-    <version>0.1-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>electric-plugins</name>
+    
+    <artifactId>electric-irsim-api</artifactId>
+    <version>0.1-alpha-1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>electric-irsim-api</name>
     <description>
-        Aggregator of Electric plugins.
+        Electric IRSIM API.
     </description>
 
-    <modules>
-        <module>electric-movie-api</module>
-        <module>electric-movie-jmf</module>
-        <module>electric-irsim-api</module>
-        <!--module>electric-irsim</module-->
-    </modules>
-    
     <scm>
-        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins</connection>
-        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins</developerConnection>
-        <url>http://java.net/projects/electric/sources/svn/show/trunk/plugins</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-irsim-api</connection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-irsim-api</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/trunk/plugins/electric-irsim-api</url>
     </scm>
     <repositories>
         <repository>
