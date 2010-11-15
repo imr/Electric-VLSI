@@ -50,9 +50,9 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-core</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.sun.electric</groupId>
+            <artifactId>electric-irsim-api</artifactId>
+            <version>0.1-alpha-1</version>
         </dependency>
     </dependencies>
 </project>

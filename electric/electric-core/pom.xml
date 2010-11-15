@@ -76,12 +76,14 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-concurrent</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-test</artifactId>
-            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.electric</groupId>
+            <artifactId>electric-irsim-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.apple</groupId>

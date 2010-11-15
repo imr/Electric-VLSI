@@ -67,6 +67,7 @@
         
         <electricMovieAPIVersion>1.0</electricMovieAPIVersion>
         <electricMovieJMFVersion>1.0-alpha</electricMovieJMFVersion>
+        <electricIrsimAPIVersion>0.1-alpha-1</electricIrsimAPIVersion>
     </properties>
 
     <mailingLists>
@@ -208,6 +209,11 @@
                 <groupId>com.sun.electric</groupId>
                 <artifactId>electric-movie-jmf</artifactId>
                 <version>${electricMovieJMFVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.electric</groupId>
+                <artifactId>electric-irsim-api</artifactId>
+                <version>${electricIrsimAPIVersion}</version>
             </dependency>
             <!--  Compilation Stubs -->
             <dependency>
