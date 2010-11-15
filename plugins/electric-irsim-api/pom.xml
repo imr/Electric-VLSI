@@ -35,7 +35,7 @@
     </parent>
     
     <artifactId>electric-irsim-api</artifactId>
-    <version>0.1-alpha-1</version>
+    <version>0.1-alpha-2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>electric-irsim-api</name>
     <description>
@@ -43,9 +43,9 @@
     </description>
 
     <scm>
-        <connection>scm:svn:https://svn.java.net/svn/electric~svn/tags/electric-irsim-api-0.1-alpha-1</connection>
-        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/tags/electric-irsim-api-0.1-alpha-1</developerConnection>
-        <url>http://java.net/projects/electric/sources/svn/show/tags/electric-irsim-api-0.1-alpha-1</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-irsim-api</connection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-irsim-api</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/trunk/plugins/electric-irsim-api</url>
     </scm>
     <repositories>
         <repository>
