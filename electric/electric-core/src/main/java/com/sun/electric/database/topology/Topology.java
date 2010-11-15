@@ -416,6 +416,7 @@ public class Topology {
                 essenBounds.add(ni);
             }
         }
+        unfreshRTree();
     }
 
     /**
@@ -438,6 +439,8 @@ public class Topology {
         if (ni.getProto() == Generic.tech().essentialBoundsNode) {
             essenBounds.add(ni);
         }
+
+        unfreshRTree();
 
         return nodeId;
     }
@@ -537,6 +540,7 @@ public class Topology {
         assert chronNodes.get(nodeId) == ni;
         chronNodes.set(nodeId, null);
 //        setDirty();
+        unfreshRTree();
     }
 
     /**
