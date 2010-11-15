@@ -160,9 +160,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
                     <version>2.1</version>
-                    <configuration>
+                    <!--configuration>
                         <tagBase>scm:svn:svn+ssh://svn.java.net/electric~svn/tags</tagBase>
-                    </configuration>
+                    </configuration-->
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -224,7 +224,7 @@
 
     <scm>
         <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/pom/electric-parent</connection>
-        <developerConnection>scm:svn:svn+ssh://svn.java.net/electric~svn/trunk/pom/electric-parent</developerConnection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/pom/electric-parent</developerConnection>
         <url>http://java.net/projects/electric/sources/svn/show/trunk/pom/electric-parent</url>
     </scm>
     
