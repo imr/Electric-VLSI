@@ -6,6 +6,7 @@ com/sun/electric/electric-merge/${project.version}/electric-merge-${project.vers
 com/sun/electric/electric-sunlabs/${project.version}/electric-sunlabs-${project.version}.jar
 com/sun/electric/electric-movie-api/1.0/electric-movie-api-1.0.jar
 com/sun/electric/electric-movie-jmf/1.0-alpha/electric-movie-jmf-1.0-alpha.jar
+com/sun/electric/electric-irsim-api/0.1-alpha-1/electric-irsim-api-0.1-alpha-1.jar
 com/apple/AppleJavaExtensions/1.4/AppleJavaExtensions-1.4.jar
 org/beanshell/bsh/2.0b4/bsh-2.0b4.jar
 org/python/jython/2.5.0/jython-2.5.0.jar
