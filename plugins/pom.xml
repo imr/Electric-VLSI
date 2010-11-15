@@ -49,7 +49,7 @@
         <module>electric-movie-api</module>
         <module>electric-movie-jmf</module>
         <module>electric-irsim-api</module>
-        <!--module>electric-irsim</module-->
+        <module>electric-irsim</module>
     </modules>
     
     <scm>
