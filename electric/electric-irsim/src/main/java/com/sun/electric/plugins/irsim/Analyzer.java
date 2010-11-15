@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,7 +42,7 @@ import java.util.Map;
  */
 public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 {
-	private static final String simVersion = "9.5j";
+	static final String simVersion = "9.5j";
 
 	// the meaning of SimVector.command
 	/** a comment in the command file */				private static final int VECTORCOMMENT    =  1;
@@ -169,36 +168,6 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
         theSim.setAnalyzer(this);
 	}
  
-    public static IAnalyzer getInstance() {
-        return new IAnalyzer() {
-            /**
-             * Create IRSIM Simulation Engine to simulate a cell.
-             * @param gui interface to GUI
-             * @param steppingModel stepping model either "RC" or "Linear"
-             * @param parameterURL URL of IRSIM parameter file
-             * @param irDebug debug flags
-             * @param showCommands tru to print issued IRSIM commands
-             * @param isDelayedX true if using the delayed X model, false if using the old fast-propagating X model.
-             */
-            public EngineIRSIM createEngine(IAnalyzer.GUI gui, String steppingModel, URL parameterURL, int irDebug, boolean showCommands, boolean isDelayedX) {
-                SimAPI sim = new Sim(irDebug, steppingModel, isDelayedX);
-                Analyzer theAnalyzer = new Analyzer(gui, sim, irDebug, showCommands);
-
-                // read the configuration file
-                if (parameterURL != null) {
-                    sim.loadConfig(parameterURL, theAnalyzer);
-                }
-                sim.initNetwork();
-                
-                System.out.println("IRSIM, version " + simVersion);
-                // now initialize the simulator
-                theAnalyzer.initRSim();
-                return new IAnalyzerLogger(theAnalyzer);
-//                return theAnalyzer;
-            }
-        };
-    }
-    
     /**
      * Put triansitor into the circuit
      * @param gateName name of transistor gate network
@@ -2019,7 +1988,7 @@ public class Analyzer implements IAnalyzer.EngineIRSIM, SimAPI.Analyzer
 
 	/************************** SUPPORT **************************/
 
-	private void initRSim()
+	void initRSim()
 	{
 		xClock = new ArrayList<Sequence>();
 		maxClock = 0;

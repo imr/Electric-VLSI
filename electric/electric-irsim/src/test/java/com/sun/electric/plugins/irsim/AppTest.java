@@ -40,7 +40,7 @@ public class AppTest
         URL parameterURL = AppTest.class.getResource("scmos0.3.prm");
         boolean isDelayedX = true;
         boolean showCommands = true;
-        IAnalyzer.EngineIRSIM x = Analyzer.getInstance().createEngine(new FakeGUI(), steppingModel, parameterURL, irDebug, showCommands, isDelayedX);
+        IAnalyzer.EngineIRSIM x = new IAnalyzerImpl().createEngine(new FakeGUI(), steppingModel, parameterURL, irDebug, showCommands, isDelayedX);
 
         x.putTransistor("net@29", "gnd", "net@1", 2.0, 3.5, 10.5, 13.0, 14.0, -17.75, true);
         x.putTransistor("cc", "in", "net@29", 2.0, 5.0, 15.0, 16.0, 0.5, -18.5, true);
@@ -72,7 +72,7 @@ public class AppTest
         URL parameterURL = AppTest.class.getResource("scmos0.3.prm");
         boolean isDelayedX = true;
         boolean showCommands = true;
-        IAnalyzer.EngineIRSIM x = Analyzer.getInstance().createEngine(new FakeGUI(), steppingModel, parameterURL, irDebug, showCommands, isDelayedX);
+        IAnalyzer.EngineIRSIM x = new IAnalyzerImpl().createEngine(new FakeGUI(), steppingModel, parameterURL, irDebug, showCommands, isDelayedX);
 
         for (int i = 0; i < 12; i++) {
             x.putTransistor("a[" + i + "]", "out[" + i + "]", "vdd", 2.0, 3.0, 9.0, 12.0, -197.5, 44.5, true);
@@ -96,7 +96,7 @@ public class AppTest
         URL parameterURL = AppTest.class.getResource("scmos0.3.prm");
         boolean isDelayedX = true;
         boolean showCommands = true;
-        IAnalyzer.EngineIRSIM x = Analyzer.getInstance().createEngine(new FakeGUI(), steppingModel, parameterURL, irDebug, showCommands, isDelayedX);
+        IAnalyzer.EngineIRSIM x = new IAnalyzerImpl().createEngine(new FakeGUI(), steppingModel, parameterURL, irDebug, showCommands, isDelayedX);
 
         InputStreamReader simReader = new InputStreamReader(AppTest.class.getResourceAsStream("IRSIM-3.sim"));
         x.inputSim(simReader, "IRSIM-3.sim");

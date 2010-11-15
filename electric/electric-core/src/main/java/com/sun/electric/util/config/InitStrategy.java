@@ -63,8 +63,8 @@ public abstract class InitStrategy {
             // IRSIM plugin
             try {
                 config.addConfigEntry("com.sun.electric.api.irsim.IAnalyzer",
-                        ConfigEntry.createForFactoryMethod(
-                            Class.forName("com.sun.electric.plugins.irsim.Analyzer"), "getInstance", false));
+                        ConfigEntry.createForConstructor(
+                            Class.forName("com.sun.electric.plugins.irsim.IAnalyzerImpl"), false));
             } catch (ClassNotFoundException e) {
                 Configuration.logger.log(Level.INFO, "Didn't find IRSIM plugin");
             }
