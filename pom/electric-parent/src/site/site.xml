@@ -25,50 +25,12 @@
  -->
 <project>
 
-  <!--skin>
-    <groupId>org.apache.maven.skins</groupId>
-    <artifactId>maven-stylus-skin</artifactId>
-    <version>1.2</version>
-  </skin-->
-
   <publishDate format="yyyy-MM-dd" position="right" />
   <version position="right" />
 
   <body>
-    <head>
-      <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
-      </script>
-      <script type="text/javascript">
-        _uacct = "UA-140879-1";
-        urchinTracker();
-      </script>
-    </head>
-
-    <!-- Breadcrumbs that every project will inherit -->
-    <breadcrumbs>
-      <item name="Apache" href="http://www.apache.org/" />
-      <!-- TODO: This is not working well for maven site,
-                 needs to be investigated further before it can be enabled
-      <item name="Maven"  href="http://maven.apache.org/index.html" />
-      -->
-    </breadcrumbs>
-
     <!-- Menus that every project will inherit -->
     <menu ref="reports" inherit="bottom" />
 
-    <!--menu name="Electric Projects" inherit="bottom">
-      <item name="Ant Tasks"         href="http://maven.apache.org/ant-tasks/index.html" />
-      <item name="Archetype"         href="http://maven.apache.org/archetype/index.html" />
-      <item name="Doxia"             href="http://maven.apache.org/doxia/index.html" />
-      <item name="JXR"               href="http://maven.apache.org/jxr/index.html" />
-      <item name="Maven 1.x"         href="http://maven.apache.org/maven-1.x/index.html" />
-      <item name="Maven 2"           href="http://maven.apache.org/index.html" />
-      <item name="Mercury"           href="http://maven.apache.org/mercury/index.html" />
-      <item name="Plugins"           href="http://maven.apache.org/plugins/index.html" />
-      <item name="SCM"               href="http://maven.apache.org/scm/index.html" />
-      <item name="Shared Components" href="http://maven.apache.org/shared/index.html" />
-      <item name="Surefire"          href="http://maven.apache.org/surefire/index.html" />
-      <item name="Wagon"             href="http://maven.apache.org/wagon/index.html" />
-    </menu-->
   </body>
 </project>
