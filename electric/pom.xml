@@ -194,11 +194,6 @@
                 <artifactId>electric-merge</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.sun.electric</groupId>
-                <artifactId>electric-irsim</artifactId>
-                <version>${project.version}</version>
-            </dependency>
             <!--  Electric Plugin Modules -->
             <dependency>
                 <groupId>com.sun.electric</groupId>
