@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.sun.electric</groupId>
     <artifactId>electric-parent</artifactId>
-    <version>2-alpha-1-SNAPSHOT</version>
+    <version>2-alpha-1</version>
     <packaging>pom</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -223,9 +223,9 @@
     </build>
 
     <scm>
-        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/pom/electric-parent</connection>
-        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/pom/electric-parent</developerConnection>
-        <url>http://java.net/projects/electric/sources/svn/show/trunk/pom/electric-parent</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/tags/electric-parent-2-alpha-1</connection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/tags/electric-parent-2-alpha-1</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/tags/electric-parent-2-alpha-1</url>
     </scm>
     
     <distributionManagement>
