@@ -68,6 +68,7 @@
         <electricMovieAPIVersion>1.0</electricMovieAPIVersion>
         <electricMovieJMFVersion>1.0-alpha</electricMovieJMFVersion>
         <electricIrsimAPIVersion>0.1-alpha-1</electricIrsimAPIVersion>
+        <electricIrsimVersion>0.1-alpha-1</electricIrsimVersion>
     </properties>
 
     <mailingLists>
@@ -133,7 +134,6 @@
         <module>electric-core</module>
         <module>electric-3d</module>
         <module>electric-merge</module>
-        <module>electric-irsim</module>
         <module>electric-distribution</module>
     </modules>
     
@@ -214,6 +214,11 @@
                 <groupId>com.sun.electric</groupId>
                 <artifactId>electric-irsim-api</artifactId>
                 <version>${electricIrsimAPIVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.electric</groupId>
+                <artifactId>electric-irsim</artifactId>
+                <version>${electricIrsimVersion}</version>
             </dependency>
             <!--  Compilation Stubs -->
             <dependency>

@@ -60,14 +60,14 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-merge</artifactId>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>electric-irsim</artifactId>
-        </dependency>
         
         <dependency>
             <groupId>com.sun.electric</groupId>
             <artifactId>electric-movie-jmf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.electric</groupId>
+            <artifactId>electric-irsim</artifactId>
         </dependency>
 
         <dependency>
