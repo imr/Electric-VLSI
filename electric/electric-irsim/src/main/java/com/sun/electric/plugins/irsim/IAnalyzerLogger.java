@@ -5,7 +5,7 @@
 
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.tool.simulation.irsim.IAnalyzer;
+import com.sun.electric.api.irsim.IAnalyzer;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;

@@ -26,7 +26,6 @@ package com.sun.electric.util.config;
 import java.util.logging.Level;
 
 import com.sun.electric.database.geometry.bool.LayoutMergerFactory;
-import com.sun.electric.tool.simulation.irsim.IAnalyzer;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.util.config.model.ConfigEntry;
@@ -63,8 +62,9 @@ public abstract class InitStrategy {
 
             // IRSIM plugin
             try {
-                config.addConfigEntry(IAnalyzer.class.getName(), ConfigEntry.createForFactoryMethod(
-                        Class.forName("com.sun.electric.plugins.irsim.Analyzer"), "getInstance", false));
+                config.addConfigEntry("com.sun.electric.api.irsim.IAnalyzer",
+                        ConfigEntry.createForFactoryMethod(
+                            Class.forName("com.sun.electric.plugins.irsim.Analyzer"), "getInstance", false));
             } catch (ClassNotFoundException e) {
                 Configuration.logger.log(Level.INFO, "Didn't find IRSIM plugin");
             }

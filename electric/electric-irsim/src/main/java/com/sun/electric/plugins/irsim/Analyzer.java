@@ -17,7 +17,7 @@
  */
 package com.sun.electric.plugins.irsim;
 
-import com.sun.electric.tool.simulation.irsim.IAnalyzer;
+import com.sun.electric.api.irsim.IAnalyzer;
 
 import java.io.BufferedWriter;
 import java.io.File;

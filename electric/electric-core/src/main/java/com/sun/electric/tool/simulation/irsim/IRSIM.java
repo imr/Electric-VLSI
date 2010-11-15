@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.simulation.irsim;
 
+import com.sun.electric.api.irsim.IAnalyzer;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.lib.LibFile;

@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.simulation.irsim;
+package com.sun.electric.api.irsim;
 
 import com.sun.electric.tool.simulation.DigitalSample;
 import com.sun.electric.tool.simulation.MutableSignal;
