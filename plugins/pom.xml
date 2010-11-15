@@ -29,24 +29,21 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
-        <version>1</version>
-        <!--relativePath>../pom/electric-parent/pom.xml</relativePath-->
+        <version>2-alpha-1</version>
+        <relativePath>../pom/electric-parent/pom.xml</relativePath>
     </parent>
-    
+
     <artifactId>electric-plugins</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-
-    <groupId>com.sun.electric</groupId>
     <name>electric-plugins</name>
     <description>
         Aggregator of Electric plugins.
     </description>
-    <url>http://electric.dev.java.net</url>
 
     <modules>
         <module>electric-movie-api</module>
@@ -57,7 +54,7 @@
     
     <scm>
         <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins</connection>
-        <developerConnection>scm:svn:svn+ssh://svn.java.net/electric~svn/trunk/plugins</developerConnection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins</developerConnection>
         <url>http://java.net/projects/electric/sources/svn/show/trunk/plugins</url>
     </scm>
     <repositories>
@@ -73,15 +70,4 @@
             </snapshots>
         </repository>
     </repositories>
-    <issueManagement>
-        <system>bugzilla</system>
-        <url>http://bugs.sunlabs.com</url>
-    </issueManagement>
-    <distributionManagement>
-        <repository>
-            <id>java.net-m2-repository</id>
-            <url>java-net:/maven2-repository/trunk/repository/</url>
-        </repository>
-    </distributionManagement>
-
 </project>
