@@ -34,22 +34,22 @@
     </properties>
     <repositories>
         <repository>
-	    <id>maven2-repository.dev.java.net</id>
-	    <name>Java.net Repository for Maven</name>
-	    <url>http://download.java.net/maven/2/</url>
+            <id>maven2-repository.dev.java.net</id>
+            <name>Java.net Repository for Maven</name>
+            <url>http://download.java.net/maven/2/</url>
             <releases>
                 <checksumPolicy>fail</checksumPolicy>
             </releases>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-	</repository>
+        </repository>
     </repositories>
-    
+  
     <!-- More Project Information -->
     <name>electric-parent</name>
     <description>Electric VLSI Design System, a state-of-the-art computer-aided design system for VLSI circuit design.</description>
-    <url>http://www.gnu.org/software/electric</url>
+    <url>http://java.net/projects/electric</url>
     <inceptionYear>1982</inceptionYear>
     <mailingLists>
         <!-- Only Announcement List here. Others are in trunk/electric/pom.xml -->
@@ -116,6 +116,35 @@
     
     <!-- Uploading to java.net maven2 repository -->
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.0-beta-3</version>
+                <configuration>
+                    <reportPlugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-project-info-reports-plugin</artifactId>
+                            <version>2.2</version>
+                            <configuration>
+                                <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                                <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                            </configuration>
+                            <!--reports>
+                                <report>foo</report>
+                                <report>toto</report>
+                            </reports-->
+                        </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-javadoc-plugin</artifactId>
+                            <version>2.7</version>
+                        </plugin>
+                    </reportPlugins>
+                </configuration>
+            </plugin>
+        </plugins>
         <extensions>
             <extension>
                 <groupId>org.jvnet.wagon-svn</groupId>
@@ -124,6 +153,15 @@
             </extension>
         </extensions>
     </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.2</version>
+            </plugin>
+        </plugins>
+    </reporting>
+
     <distributionManagement>
         <repository>
             <id>java.net-m2-repository</id>
