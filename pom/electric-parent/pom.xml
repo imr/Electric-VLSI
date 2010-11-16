@@ -53,6 +53,10 @@
     <description>Electric VLSI Design System, a state-of-the-art computer-aided design system for VLSI circuit design.</description>
     <url>http://java.net/projects/electric</url>
     <inceptionYear>1982</inceptionYear>
+    <issueManagement>
+        <system>bugzilla</system>
+        <url>http://bugs.sunlabs.com</url>
+    </issueManagement>
     <mailingLists>
         <!-- Only Announcement List here. Others are in trunk/electric/pom.xml -->
         <mailingList>
