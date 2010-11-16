@@ -24,11 +24,9 @@
 package com.sun.electric.util.config.model;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 import com.sun.electric.util.config.InjectStrategy;
 import com.sun.electric.util.config.CreateBy;
-import com.sun.electric.util.config.SimpleEnumConstructor.TestEnum;
 import com.sun.electric.util.config.annotations.Inject;
 import com.sun.electric.util.config.annotations.InjectionMethod;
 import com.sun.electric.util.config.annotations.InjectionMethod.InjectionStrategy;

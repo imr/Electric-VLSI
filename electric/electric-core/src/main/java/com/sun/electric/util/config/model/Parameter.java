@@ -25,8 +25,6 @@ package com.sun.electric.util.config.model;
 
 import java.util.Map;
 
-import com.sun.electric.util.config.SimpleEnumConstructor.TestEnum;
-
 /**
  * @author Felix Schmidt
  */
