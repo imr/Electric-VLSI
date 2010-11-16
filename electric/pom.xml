@@ -34,7 +34,7 @@
         <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
         <version>2-alpha-1</version>
-        <!--relativePath>../pom/electric-parent/pom.xml</relativePath-->
+        <relativePath>../pom/electric-parent/pom.xml</relativePath>
     </parent>
     
     <artifactId>electric</artifactId>
@@ -52,17 +52,13 @@
         It even has a constraint system for managing chip layout.
         For more information about Electric, see www.staticfreesoft.com
     </description>
-    <url>http://electric.dev.java.net</url>
-    <inceptionYear>1982</inceptionYear>
 
     <properties>
-        <junitVersion>4.8.1</junitVersion>
         <appleJavaExtensionsVersion>1.4</appleJavaExtensionsVersion>
         <jmfVersion>2.1.1e</jmfVersion>
         <java3dVersion>1.3.1</java3dVersion>
         <beanshellVersion>2.0b4</beanshellVersion>
         <jythonVersion>2.5.0</jythonVersion>
-        <scala.version>2.8.0</scala.version>
         <specsVersion>1.6.5</specsVersion>
         
         <electricMovieAPIVersion>1.0</electricMovieAPIVersion>
@@ -70,63 +66,6 @@
         <electricIrsimAPIVersion>0.1-alpha-1</electricIrsimAPIVersion>
         <electricIrsimVersion>0.1-alpha-1</electricIrsimVersion>
     </properties>
-
-    <mailingLists>
-        <mailingList>
-            <name>Electric Developer List</name>
-            <post>dev@electric.dev.java.net</post>
-            <!--subscribe>dev-subscribe@electric.dev.java.net</subscribe-->
-            <!--unsubscribe>dev-unsubscribe@electric.dev.java.net</unsubscribe-->
-            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=dev</archive>
-            <!--otherArchives>
-                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=dev</otherArchive>
-            </otherArchives-->
-        </mailingList>
-        <mailingList>
-            <name>Electric User List</name>
-            <post>users@electric.dev.java.net</post>
-            <!--subscribe>users-subscribe@electric.dev.java.net</subscribe-->
-            <!--unsubscribe>users-unsubscribe@electric.dev.java.net</unsubscribe-->
-            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=users</archive>
-            <!--otherArchives>
-                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=users</otherArchive>
-            </otherArchives-->
-        </mailingList>
-        <mailingList>
-            <name>Electric Issues List</name>
-            <post>issues@electric.dev.java.net</post>
-            <!--subscribe>issues-subscribe@electric.dev.java.net</subscribe-->
-            <!--unsubscribe>issues-unsubscribe@electric.dev.java.net</unsubscribe-->
-            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=issues</archive>
-            <!--otherArchives>
-                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=issues</otherArchive>
-            </otherArchives-->
-        </mailingList>
-        <mailingList>
-            <name>Electric Commits List</name>
-            <post>commits@electric.dev.java.net</post>
-            <!--subscribe>commits-subscribe@electric.dev.java.net</subscribe-->
-            <!--unsubscribe>commits-unsubscribe@electric.dev.java.net</unsubscribe-->
-            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=commits</archive>
-            <!--otherArchives>
-                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=commits</otherArchive>
-            </otherArchives-->
-        </mailingList>
-        <!--
-            duplication from parent pom - temporary until they inherit
-            properly
-        -->
-        <mailingList>
-            <name>Electric Announcements List</name>
-            <post>announce@electric.dev.java.net</post>
-            <!--subscribe>announce-subscribe@electric.dev.java.net</subscribe-->
-            <!--unsubscribe>announce-unsubscribe@electric.dev.java.net</unsubscribe-->
-            <archive>https://electric.dev.java.net/servlets/SummarizeList?listName=announce</archive>
-            <!--otherArchives>
-                <otherArchive>https://electric.dev.java.net/servlets/SummarizeList?listName=announce</otherArchive>
-            </otherArchives-->
-        </mailingList>
-    </mailingLists>
 
     <modules>
         <module>electric-concurrent</module>
@@ -139,7 +78,7 @@
     
     <scm>
         <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/electric</connection>
-        <developerConnection>scm:svn:svn+ssh://svn.java.net/electric~svn/trunk/electric</developerConnection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/electric</developerConnection>
         <url>http://java.net/projects/electric/sources/svn/show/trunk/electric</url>
     </scm>
     <repositories>
@@ -155,16 +94,6 @@
             </snapshots>
         </repository>
     </repositories>
-    <issueManagement>
-        <system>bugzilla</system>
-        <url>http://bugs.sunlabs.com</url>
-    </issueManagement>
-    <distributionManagement>
-        <repository>
-            <id>java.net-m2-repository</id>
-            <url>java-net:/maven2-repository/trunk/repository/</url>
-        </repository>
-    </distributionManagement>
 
     <dependencyManagement>
         <dependencies>
@@ -263,58 +192,13 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junitVersion}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
     <build>
         <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>2.3.2</version>
-                    <configuration>
-                        <source>1.5</source>
-                        <target>1.5</target>
-                        <showDeprecation>true</showDeprecation>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.scala-tools</groupId>
-                    <artifactId>maven-scala-plugin</artifactId>
-                    <version>2.14.1</version>
-                    <configuration>
-                        <scalaVersion>${scala.version}</scalaVersion>
-                        <args>
-                            <arg>-target:jvm-1.5</arg>
-                        </args>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-eclipse-plugin</artifactId>
-                    <version>2.8</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-scm-plugin</artifactId>
-                    <version>1.4</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>2.3.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.2</version>
                     <configuration>
                         <archive>
                             <manifest>
@@ -326,10 +210,8 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.1</version>
                     <configuration>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
-                        <tagBase>scm:svn:svn+ssh://svn.java.net/electric~svn/tags</tagBase>
                     </configuration>
                 </plugin>
                 <plugin>
