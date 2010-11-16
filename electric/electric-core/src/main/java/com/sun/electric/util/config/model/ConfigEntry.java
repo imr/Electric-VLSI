@@ -24,9 +24,11 @@
 package com.sun.electric.util.config.model;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import com.sun.electric.util.config.InjectStrategy;
 import com.sun.electric.util.config.CreateBy;
+import com.sun.electric.util.config.SimpleEnumConstructor.TestEnum;
 import com.sun.electric.util.config.annotations.Inject;
 import com.sun.electric.util.config.annotations.InjectionMethod;
 import com.sun.electric.util.config.annotations.InjectionMethod.InjectionStrategy;
@@ -154,7 +156,6 @@ public abstract class ConfigEntry<T> {
     }
 
     public static class ConfigEntryPrimitive<T> extends ConfigEntry<T> {
-
         private T value;
 
         public ConfigEntryPrimitive(T value) {
@@ -166,7 +167,28 @@ public abstract class ConfigEntry<T> {
         public T getInstance() throws Exception {
             return value;
         }
+    }
+    
+    public static class ConfigEntryEnum<T extends Enum<T>> extends ConfigEntry<T> {
+    	
+    	private T value;
+    	
+    	public ConfigEntryEnum(Class<T> clazz, String value) {
+    		super(null, false);
 
+    		for(T tmp: clazz.getEnumConstants()) {
+    			if(tmp.name().equals(value)) {
+    				this.value = tmp;
+    				return;
+    			}
+    		}
+    	}
+
+		@Override
+		public T getInstance() throws Exception {
+			return value;
+		}
+    	
     }
 
     public static <T> ConfigEntry<T> createForConstructor(Class<T> clazz, boolean singleton,
@@ -177,6 +199,10 @@ public abstract class ConfigEntry<T> {
     public static <T> ConfigEntry<T> createForFactoryMethod(Class<T> clazz, String factoryMethod,
             boolean singleton, ParameterEntry... parameters) {
         return new ConfigEntryFactoryMethod<T>(clazz, factoryMethod, singleton, parameters);
+    }
+    
+    public static <T extends Enum<T>> ConfigEntry<T> createForEnum(Class<T> clazz, String value) {
+        return new ConfigEntryEnum<T>(clazz, value);
     }
 
 }

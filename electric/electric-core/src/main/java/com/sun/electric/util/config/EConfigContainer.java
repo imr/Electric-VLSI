@@ -73,7 +73,7 @@ public class EConfigContainer extends Configuration {
             try {
                 result = entry.getInstance();
             } catch (Throwable e) {
-//                e.printStackTrace();
+                e.printStackTrace();
             }
         }
         return result;

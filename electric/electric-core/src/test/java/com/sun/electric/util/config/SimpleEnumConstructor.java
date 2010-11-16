@@ -1,12 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+/* -*- tab-width: 4 -*-
  *
  * Electric(tm) VLSI Design System
  *
- * File: testConfigFactoryMethod.xml
- * electric core
+ * File: SimpleEnumConstructor.java
  *
- * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,13 +20,23 @@
  * along with Electric(tm); see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
- -->
-<electric:configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:electric="http://www.sun.com/Electric" xsi:schemaLocation="http://www.sun.com/Electric ../../../../../econfig.xsd">
-	<electric:injection
-		name="com.sun.electric.util.config.SimpleInterface"
-		implementation="com.sun.electric.util.config.SimpleInterfaceImpl"
-		factoryMethod="createInstance">
-	</electric:injection>
+ */
+package com.sun.electric.util.config;
 
-</electric:configuration>
+import com.sun.electric.util.config.annotations.Inject;
+import com.sun.electric.util.config.annotations.InjectionMethod;
+import com.sun.electric.util.config.annotations.InjectionMethod.InjectionStrategy;
+
+@InjectionMethod(injectionStrategy=InjectionStrategy.initialization)
+public class SimpleEnumConstructor {
+	
+	public enum TestEnum {
+		EnumValue1, EnumValue2
+	}
+	
+	@Inject
+	public SimpleEnumConstructor(TestEnum enumValue) {
+		System.out.println(enumValue.toString());
+	}
+
+}

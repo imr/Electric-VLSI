@@ -81,6 +81,15 @@ public class TestXmlInit {
         System.out.println(pt.getTest());
         pt.print();
     }
+    
+    @Test
+    public void testXmlInitEnumAsParameter() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigEnum.xml")));
+        SimpleEnumConstructor pt = (SimpleEnumConstructor) econfig.lookupImpl("simpleEnumConstructor");
+
+        Assert.assertNotNull(pt);
+    }
 
     @Test
     public void testXmlInitParameterViaFactory() {

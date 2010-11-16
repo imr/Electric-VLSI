@@ -25,105 +25,112 @@ package com.sun.electric.util.config.model;
 
 import java.util.Map;
 
+import com.sun.electric.util.config.SimpleEnumConstructor.TestEnum;
+
 /**
  * @author Felix Schmidt
  */
 public class Parameter {
 
-    public enum Attributes {
-        name, ref, value, type;
-    }
+	public enum Attributes {
+		name, ref, value, type;
+	}
 
-    public enum Type {
-        String, Integer, Double, Boolean, Reference
-    }
+	public enum Type {
+		String, Integer, Double, Boolean, Reference, Enum
+	}
 
-    private String name;
-    private String ref;
-    private String value;
-    private Type type;
+	private String name;
+	private String ref;
+	private String value;
+	private Type type;
 
-    /**
-     * @param name
-     * @param ref
-     * @param value
-     * @param type
-     */
-    public Parameter(String name, String ref, String value, Type type) {
-        super();
-        this.name = name;
-        this.ref = ref;
-        this.value = value;
-        this.type = type;
-    }
+	/**
+	 * @param name
+	 * @param ref
+	 * @param value
+	 * @param type
+	 */
+	public Parameter(String name, String ref, String value, Type type) {
+		super();
+		this.name = name;
+		this.ref = ref;
+		this.value = value;
+		this.type = type;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getRef() {
-        return ref;
-    }
+	public String getRef() {
+		return ref;
+	}
 
-    public void setRef(String ref) {
-        this.ref = ref;
-    }
+	public void setRef(String ref) {
+		this.ref = ref;
+	}
 
-    public String getValue() {
-        return value;
-    }
+	public String getValue() {
+		return value;
+	}
 
-    public void setValue(String value) {
-        this.value = value;
-    }
+	public void setValue(String value) {
+		this.value = value;
+	}
 
-    public Type getType() {
-        return type;
-    }
+	public Type getType() {
+		return type;
+	}
 
-    public void setType(Type type) {
-        this.type = type;
-    }
+	public void setType(Type type) {
+		this.type = type;
+	}
 
-    public ParameterEntry createParameter(Map<String, Injection> allInjections) throws ClassNotFoundException {
-        ParameterEntry entry = null;
+	public ParameterEntry createParameter(Map<String, Injection> allInjections) throws ClassNotFoundException {
+		ParameterEntry entry = null;
 
-        if (this.ref == null) {
-            entry = new ParameterEntry(this.name, createByType());
-        } else {
-            entry = new ParameterEntry(name, createByReference(allInjections));
-        }
+		if (this.ref == null) {
+			entry = new ParameterEntry(this.name, createByType());
+		} else {
+			entry = new ParameterEntry(name, createByReference(allInjections));
+		}
 
-        return entry;
-    }
+		return entry;
+	}
 
-    private ConfigEntry<?> createByType() {
+	private ConfigEntry<?> createByType() throws ClassNotFoundException {
 
-        if (type.equals(Type.Boolean)) {
-            return new ConfigEntry.ConfigEntryPrimitive<Boolean>(Boolean.parseBoolean(value));
-        } else if(type.equals(Type.Double)) {
-            return new ConfigEntry.ConfigEntryPrimitive<Double>(Double.parseDouble(value));
-        } else if(type.equals(Type.Integer)) {
-            return new ConfigEntry.ConfigEntryPrimitive<Integer>(Integer.parseInt(value));
-        } else if(type.equals(Type.String)) {
-            return new ConfigEntry.ConfigEntryPrimitive<String>(value);
-        }
+		if (type.equals(Type.Boolean)) {
+			return new ConfigEntry.ConfigEntryPrimitive<Boolean>(Boolean.parseBoolean(value));
+		} else if (type.equals(Type.Double)) {
+			return new ConfigEntry.ConfigEntryPrimitive<Double>(Double.parseDouble(value));
+		} else if (type.equals(Type.Integer)) {
+			return new ConfigEntry.ConfigEntryPrimitive<Integer>(Integer.parseInt(value));
+		} else if (type.equals(Type.String)) {
+			return new ConfigEntry.ConfigEntryPrimitive<String>(value);
+		} else if (type.equals(Type.Enum)) {
+			return ConfigEntry.createForEnum((Class<Enum>)(Class.forName(value.substring(0, value.lastIndexOf('.')))),
+					value.substring(value.lastIndexOf('.') + 1));
+			//return new ConfigEntry.ConfigEntryEnum<TestEnum>(TestEnum.class, "EnumValue1");
+		}
 
-        return null;
-    }
-    
-    private ConfigEntry<?> createByReference(Map<String, Injection> allInjections) throws ClassNotFoundException {
-        ConfigEntry<?> entry = ConfigEntries.getEntries().get(this.ref);
-        
-        if(entry != null) {
-            return entry;
-        } else {
-            return allInjections.get(this.ref).createConfigEntry(allInjections);
-        }
-    }
+		return null;
+	}
+
+	private ConfigEntry<?> createByReference(Map<String, Injection> allInjections)
+			throws ClassNotFoundException {
+		ConfigEntry<?> entry = ConfigEntries.getEntries().get(this.ref);
+
+		if (entry != null) {
+			return entry;
+		} else {
+			return allInjections.get(this.ref).createConfigEntry(allInjections);
+		}
+	}
 
 }

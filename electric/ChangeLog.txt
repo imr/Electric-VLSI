@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-q: ******************************
 
+IMP: (11/16/10, FS) Handle enums as parameters in the configuration framework
+
 BUG: (11/15/10, SMR) R-Tree is not marked "dirty" when nodes added/removed (Bug #2956).
 FIX: Fixed in Topology.java
 
