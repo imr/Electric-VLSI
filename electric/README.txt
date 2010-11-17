@@ -7,7 +7,7 @@ single ".jar" file.  There are two variations on the ".jar" file:
 Both of these files have the binary ".class" files needed to run Electric,
 but the one with source-code is larger because it also has all of the Java code.
 Latest source code can be downloaded from Electric Home Page:
-http://electric.dev.java.net .
+http://java.net/projects/electric .
 
 ---------------- Requirements:
 
@@ -112,7 +112,57 @@ When rebuilding Electric, there are some Macintosh vs. non-Macintosh issues to c
   can be downloaded from Apple at
     http://developer.apple.com/samplecode/AppleJavaExtensions/index.html.
 
----------------- Building from latest Sources:
+---------------- Building from Sources hosted on java.net in NetBeans IDE
+
+1) Register on java.net . Let USERNAME is your username on java.net . 
+2) Start NetBeans 6.9 or later.
+3) Register java.net Team Server in NetBeans IDE :
+   3.1) Choose Window > Services in the main menu to open the Services window.
+   3.2) Right-click the Team Servers node and choose Add Team Server.
+   3.3) Type the Name "java.net" and URL "https://java.net" of the Team Server. Click Add.
+   3.4) Choose Team > Team Server > Login from the main menu to log in to the server.
+        Alternatively, you can right-click the name of the server under the Team Servers node and choose Login.
+4) Download Electric Sources from java.net .
+   4.1) Choose File > Open Team Project... from the main menu.
+   4.2) Search for electric project
+   4.3) Select Electric: VLSI Design System and click Open From Team Server
+   4.4) Expand Electric: VLSI Design System node int the Team tab
+   4.5) Expand Sources subnode
+   4.6) Click on Source Code Repository (get)
+   4.6) Either enter "Folder To Get" in "Get Sources From Team Server" dialog or click "Browse" button near it.
+        The "Folder to Get" of Electric-9.00 is "tags/electric-9.00" .
+        The "Folder to Get" of latest Electric sources is "trunk/electric" .
+   4.7) Choose "Local Folder" in "Get Sources From Tram Server" where to download Electric Sources.
+        The default is "~/NetBeansProjects/electric~svn".
+   4.8) Click "Get From Team Server"
+   4.9) The "Checkout Completed" dialog will say that 7 projects were checkout.
+        It will suggest you to open a project.
+   4.10) Click "Open Project..."
+   4.11) Choose "electric" and click "Open".
+5) Build Electric
+   5.1) Right-click "electric" node in "Projects" tab.
+   5.2) Choose "Build".
+6) Open "electric-core" subproject and run Electric.
+   6.1) Expand "electric" node in "Projects" tab.
+   6.2) Expand "Modules" subnode.
+   6.3) Double-click "electric-core" subnode.
+   6.4) "electric-core" node will appear in "Projects" tab.
+        Right-click on it and choose "Set as Main Project"
+   6.5) Choose either "Run > Run Project (electric-core)" or "Debug > Debug Project (electric-core)" from the main menu.
+7) Create a shortcut to start Electric from Desktop
+   7.1) Create a shortcut to "Local Folder/electric/electric-distribution/electric-${project.version}-app/bin/electric" in Unux
+        or to "Local Folder/electric/electric-distribution/electric-${project.version}-app/bin/electric.bat" in Windows
+   7.2) Launch Electric by this shortcut.
+8) Create electric distribution for your organization(optional).
+   8.1) Open subproject "electric-distribution" by double-clicking node "electric|Modules|electric-distribution"
+   8.2) Set electric-distribution as Main Project.
+   8.3) Activate combo box in the tool bar that shows "<default-config>" and choose "distro" config.
+   8.4) Build an "electric-distribution" project.
+   8.5) Copy to a shared location in your file system any of 
+         directory "Local Folder/electric/electric-distribution/electric-${project.version}-distro"
+         jar file "Local Folder/electric/electric-distribution/electric-${project.version}-bin-jar"
+
+---------------- Building from latest Sources in command-line:
 
 1) Check that these tools are installed on your computer:
 JDK 1.5 or later
@@ -125,31 +175,31 @@ JAVA_PATH  -  path to JDK root directory
 2) Obtain latest sources by Subversion
 
 a) For the first time
-$ cd <work-directory>
-$ svn checkout https://electric.dev.java.net/svn/electric/trunk/electric
+$ cd WORK-DIRECTORY
+$ svn --username USERNAME checkout https://svn.java.net/svn/electric~svn/trunk/electric
 $ cd electric
 
 b) Next time
-$ cd <work-directory>/electric
+$ cd WORK-DIRECTORY/electric
 $ svn update
 
 3) Compile sources and install jars with Electric binary components into maven local repository.
-  The default location of maven local repository on unix systems is ~/.m2/repository
+  The default location of maven local repository on Unix systems is ~/.m2/repository
 
 $ mvn -DskipTests=true install
 
 4) Run the Electric launcher
 
-<work-directory>/electric/electric-distribution/target/electric-${project.version}.app/bin/electric
+WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric
 or
-<work-directory>/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat
+WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat
 
 You might execute Electric with larger heap size if your design is large.
 
-set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"; <work-directory>/electric/electric-distribution/target/electric-${project.version}.app/bin/electric
+set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"; WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric
 or
 set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"
-<work-directory>/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat
+WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat
 
 ---------------- Building distribution from latest Sources:
 
@@ -162,9 +212,9 @@ $ mvn -DskipTests=true -Pdistro install
 The resulting distribution is generated in three formats:
 
 a) directory
-<work-directory>/electric/electric-distribution/target/electric-${project.version}-distro/
+WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}-distro/
    Its subdirectory
-<work-directory>/electric/electric-distribution/target/electric-${project.version}-distro/bin
+WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}-distro/bin
  contains launch scripts
 electric.bar - for Windows systems
 electric     - for Unix systems
@@ -174,23 +224,10 @@ or link "electric" to your local bin directory
 or create a shortcut for "electric.bat"
 
 b) tarball with directory 
-<work-directory>/electric/electric-distribution/target/electric-${project.version}-distro.tar
+WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}-distro.tar
 
 c) jar archive with all dependencies
-<work-directory>/electric/electric-distribution/target/electric-${project.version}-bin.jar
-
----------------- Build Electric from NetBeans IDE
-
-1) Start NetBeans 6.7.1 or later.
-2) Click File|Open and choos <work-directory>/electric.
-  NetBeans will show in Projects tab a node with maven project "electric"
-3) Click on the "electric" with right mouse button and choose "Clean And Build" .
-  NetBeans will build electric and will run JUnit tests.
-3) Expand "electric" node.
-4) Expand "electric|Modules" node.
-5) Click on "electric|Modules|electric-core" node.
-  An "electric-core" project is opened.
-6) Right-click on "electric-core" node and choose "Run" or "Debug".
+WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}-bin.jar
 
 ---------------- Discussion:
 
