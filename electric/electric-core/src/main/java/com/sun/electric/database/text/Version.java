@@ -23,14 +23,12 @@
  */
 package com.sun.electric.database.text;
 
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.util.TextUtils;
-
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.StringTokenizer;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A Version is a text-parsing object for Electric's version number.
@@ -61,14 +59,15 @@ public class Version implements Comparable<Version>, Serializable {
     /**
      * This is the current version of Electric
      */
-    private static final String CURRENT = "9.00-q";
-    private static final String ROOTARNAME = "electric";
+    private static final String VERSION_PROPERTIES = "version.properties";
+//    private static final String ROOTARNAME = "electric";
     private final String version;
     private final String oldStyle;
     private final int major;
     private final int minor;
     private final int details;
-    private static final Version current = new Version(CURRENT);
+    private static String buildDate;
+    private static final Version current = loadVersionProperties();
 
     /**
      * Constructs a <CODE>Version</CODE> (cannot be called).
@@ -95,7 +94,7 @@ public class Version implements Comparable<Version>, Serializable {
 
             int letters;
             for (letters = 0; letters < restOfString.length(); letters++) {
-                if (!TextUtils.isDigit(restOfString.charAt(letters))) {
+                if (!Character.isDigit(restOfString.charAt(letters))) {
                     break;
                 }
             }
@@ -188,25 +187,26 @@ public class Version implements Comparable<Version>, Serializable {
      * @return string containing the date in short format
      */
     public static String getBuildDate() {
-        // Might need to adjust token delim depending on operating system
-        StringTokenizer parse = new StringTokenizer(System.getProperty("java.class.path"));
-        String delim = System.getProperty("path.separator");
-        try {
-            while (parse.hasMoreElements()) {
-                String val = parse.nextToken(delim);
-                // Find path for main jar
-                String filename = ROOTARNAME + ".jar";
-                if (val.lastIndexOf(filename) != -1) {
-                    File electricJar = new File(val);
-                    long date = electricJar.lastModified();
-                    Date d = new Date(date);
-                    return (DateFormat.getDateInstance().format(d));
-                }
-            }
-        } catch (Exception e) {
-            ActivityLogger.logException(e);
-        }
-        return (null);
+        return buildDate;
+//        // Might need to adjust token delim depending on operating system
+//        StringTokenizer parse = new StringTokenizer(System.getProperty("java.class.path"));
+//        String delim = System.getProperty("path.separator");
+//        try {
+//            while (parse.hasMoreElements()) {
+//                String val = parse.nextToken(delim);
+//                // Find path for main jar
+//                String filename = ROOTARNAME + ".jar";
+//                if (val.lastIndexOf(filename) != -1) {
+//                    File electricJar = new File(val);
+//                    long date = electricJar.lastModified();
+//                    Date d = new Date(date);
+//                    return (DateFormat.getDateInstance().format(d));
+//                }
+//            }
+//        } catch (Exception e) {
+//            ActivityLogger.logException(e);
+//        }
+//        return (null);
     }
 
     /**
@@ -302,7 +302,7 @@ public class Version implements Comparable<Version>, Serializable {
     /**
      * Returns a <code>String</code> object representing this Version in a style before 9.00-p.
      * The dash symbol is stripped, so that old Jelib readers could read it. 
-     * @return  a string representation of this Version
+     * @return  a string representation of this Versioa
      */
     public String toOldStyleString() {
         return oldStyle;
@@ -315,5 +315,22 @@ public class Version implements Comparable<Version>, Serializable {
      */
     public static Version parseVersion(String version) {
         return new Version(version);
+    }
+    
+    private static Version loadVersionProperties() {
+        Properties props = new Properties();
+        InputStream in = Version.class.getResourceAsStream(VERSION_PROPERTIES);
+        try {
+            props.load(in);
+            in.close();
+        } catch (IOException e) {
+            Logger.getLogger(Version.class.getName()).log(Level.SEVERE, VERSION_PROPERTIES + " not found");
+        }
+        buildDate = props.getProperty("buildDate");
+        String currentVersion = props.getProperty("version");
+        if (currentVersion.endsWith("-SNAPSHOT")) {
+            currentVersion = currentVersion.substring(0, currentVersion.length() - "-SNAPSHOT".length());
+        }
+        return Version.parseVersion(currentVersion);
     }
 }
