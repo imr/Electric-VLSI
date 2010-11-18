@@ -36,14 +36,13 @@ import java.util.Vector;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 
 /**
  * Parallel Placement
  */
-public class MSTMetricTask extends PReduceTask<Double> {
+public class MSTMetricTask extends PReduceTask<Double, BlockedRange1D> {
 
 	/*
 	 * Kruskal's algorithm finds a minimum spanning tree for a connected
@@ -238,7 +237,7 @@ public class MSTMetricTask extends PReduceTask<Double> {
 	 * (com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask)
 	 */
 	@Override
-	public synchronized Double reduce(PReduceTask<Double> other) {
+	public synchronized Double reduce(PReduceTask<Double, BlockedRange1D> other) {
 		MSTMetricTask mstOther = (MSTMetricTask) other;
 
 		if (!this.equals(other)) {
@@ -256,11 +255,9 @@ public class MSTMetricTask extends PReduceTask<Double> {
 	 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
 	 */
 	@Override
-	public void execute(BlockedRange range) {
+	public void execute() {
 
-		BlockedRange1D tmpRange = (BlockedRange1D) range;
-
-		for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
+		for (int i = range.start(); i < range.end(); i++) {
 			sum = sum + this.compute(allNetworks.get(i));
 		}
 

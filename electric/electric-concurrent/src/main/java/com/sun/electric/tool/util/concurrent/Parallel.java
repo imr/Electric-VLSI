@@ -25,7 +25,6 @@ package com.sun.electric.tool.util.concurrent;
 
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;
@@ -33,6 +32,7 @@ import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob;
 import com.sun.electric.tool.util.concurrent.patterns.PWhileJob.PWhileTask;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange;
 
 /**
  * This class simplifies the interface for the parallel base patterns
@@ -41,8 +41,8 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
  */
 public class Parallel {
     
-    public static void For(BlockedRange range, PForTask task, IThreadPool pool) {
-        (new PForJob(range, task, pool)).execute(); 
+    public static <T extends BlockedRange<T>> void For(T range, PForTask<T> task, IThreadPool pool) {
+        (new PForJob<T>(range, task, pool)).execute(); 
     }
 
 	/**
@@ -53,8 +53,8 @@ public class Parallel {
 	 * @param task
 	 *            task object (body of for loop)
 	 */
-	public static void For(BlockedRange range, PForTask task) {
-		(new PForJob(range, task)).execute();
+	public static <T extends BlockedRange<T>> void For(T range, PForTask<T> task) {
+		(new PForJob<T>(range, task)).execute();
 	}
 
 	/**
@@ -69,8 +69,8 @@ public class Parallel {
 	 *            body of reduce loop
 	 * @return aggregated result
 	 */
-	public static <T> T Reduce(BlockedRange range, PReduceTask<T> task) {
-		PReduceJob<T> pReduceJob = new PReduceJob<T>(range, task);
+	public static <T, K extends BlockedRange<K>> T Reduce(K range, PReduceTask<T, K> task) {
+		PReduceJob<T, K> pReduceJob = new PReduceJob<T, K>(range, task);
 		pReduceJob.execute();
 
 		return pReduceJob.getResult();

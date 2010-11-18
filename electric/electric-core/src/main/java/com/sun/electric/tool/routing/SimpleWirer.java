@@ -24,11 +24,11 @@
 
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.geometry.PolyMerge;
-import com.sun.electric.database.hierarchy.Cell;
-
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+
+import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.hierarchy.Cell;
 
 /**
  * A Simple wiring tool for the user to draw wires.

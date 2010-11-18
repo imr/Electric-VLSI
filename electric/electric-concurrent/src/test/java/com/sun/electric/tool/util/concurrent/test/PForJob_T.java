@@ -36,15 +36,14 @@ import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob;
-import com.sun.electric.tool.util.concurrent.patterns.PTask;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.utils.UniqueIDGenerator;
 
 public class PForJob_T {
@@ -54,24 +53,21 @@ public class PForJob_T {
 
 		ThreadPool pool = ThreadPool.initialize(SchedulingStrategy.multipleQueues, 2);
 
-		PForJob pforjob = new PForJob(new BlockedRange1D(0, 10, 2), new TestForTask());
+		PForJob<BlockedRange1D> pforjob = new PForJob<BlockedRange1D>(new BlockedRange1D(0, 10, 2), new TestForTask());
 		pforjob.execute();
 
 		pool.shutdown();
 
 	}
 
-	public static class TestForTask extends PForTask {
+	public static class TestForTask extends PForTask<BlockedRange1D> {
 
 		private static UniqueIDGenerator idGen = new UniqueIDGenerator(0);
 		private int id = idGen.getUniqueId();
 
 		@Override
-		public void execute(BlockedRange range) {
-
-			BlockedRange1D tmpRange = (BlockedRange1D) range;
-
-			for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
+		public void execute() {
+			for (int i = range.start(); i < range.end(); i++) {
 				System.out.println("task: " + id + ", " + i);
 			}
 
@@ -95,7 +91,7 @@ public class PForJob_T {
 		ThreadPool.initialize(new FCQueue<PTask>(), 8);
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, 10, 0, size, 10),
+		PForJob<BlockedRange2D> pforjob = new PForJob<BlockedRange2D>(new BlockedRange2D(0, size, 10, 0, size, 10),
 				new MatrixMultTask(size));
 		pforjob.execute();
 
@@ -133,7 +129,7 @@ public class PForJob_T {
 		ThreadPool pool = ThreadPool.initialize(8);
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
+		PForJob<BlockedRange2D> pforjob = new PForJob<BlockedRange2D>(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
 				new MatrixMultTask(sizePerf));
 		pforjob.execute();
 
@@ -145,7 +141,7 @@ public class PForJob_T {
 
 		start = System.currentTimeMillis();
 
-		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
+		pforjob = new PForJob<BlockedRange2D>(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
 				new MatrixMultTask(sizePerf));
 		pforjob.execute();
 
@@ -171,7 +167,7 @@ public class PForJob_T {
 		ThreadPool pool = ThreadPool.initialize(taskPool, 8);
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 10, 0, sizePerf, 10),
+		PForJob<BlockedRange2D> pforjob = new PForJob<BlockedRange2D>(new BlockedRange2D(0, sizePerf, 10, 0, sizePerf, 10),
 				new MatrixMultTask(sizePerf));
 		pforjob.execute();
 
@@ -184,7 +180,7 @@ public class PForJob_T {
 
 		start = System.currentTimeMillis();
 
-		pforjob = new PForJob(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
+		pforjob = new PForJob<BlockedRange2D>(new BlockedRange2D(0, sizePerf, 64, 0, sizePerf, 64),
 				new MatrixMultTask(sizePerf));
 		pforjob.execute();
 
@@ -206,7 +202,7 @@ public class PForJob_T {
 		}
 	}
 
-	public static class MatrixMultTask extends PForTask {
+	public static class MatrixMultTask extends PForTask<BlockedRange2D> {
 
 		private int size;
 
@@ -215,11 +211,9 @@ public class PForJob_T {
 		}
 
 		@Override
-		public void execute(BlockedRange range) {
-			BlockedRange2D tmpRange = (BlockedRange2D) range;
-
-			for (int i = tmpRange.row().start(); i < tmpRange.row().end(); i++) {
-				for (int j = tmpRange.col().start(); j < tmpRange.col().end(); j++) {
+		public void execute() {
+			for (int i = range.row().start(); i < range.row().end(); i++) {
+				for (int j = range.col().start(); j < range.col().end(); j++) {
 					int sum = 0;
 					for (int k = 0; k < this.size; k++) {
 						sum += matA[i][k] * matB[k][j];
@@ -284,7 +278,7 @@ public class PForJob_T {
 		BlockedRange1D range = new BlockedRange1D(0, 20000000, 128);
 
 		for (int i = 0; i < 8; i++) {
-			inst[i] = (BlockedRange1D) range.createInstance(i, 8);
+			inst[i] = range.createInstance(i, 8);
 		}
 
 		int splitSize = 20000000 / 8;
@@ -294,11 +288,11 @@ public class PForJob_T {
 			Assert.assertEquals(splitSize * (i + 1), tmp.end());
 			BlockedRange1D splitted;
 			while (true) {
-				List<BlockedRange> ranges = tmp.splitBlockedRange(1);
+				List<BlockedRange1D> ranges = tmp.splitBlockedRange(1);
 				if (ranges == null) {
 					break;
 				}
-				splitted = (BlockedRange1D) ranges.get(0);
+				splitted = ranges.get(0);
 				Assert.assertTrue(splitted.end() <= tmp.end());
 				System.out.println(splitted.end());
 			}
@@ -350,7 +344,7 @@ public class PForJob_T {
 		ThreadPool pool = ThreadPool.initialize(schedulingStrategy, numThreads);
 
 		long start = System.currentTimeMillis();
-		PForJob pforjob = new PForJob(new BlockedRange2D(0, size, grain, 0, size, grain),
+		PForJob<BlockedRange2D> pforjob = new PForJob<BlockedRange2D>(new BlockedRange2D(0, size, grain, 0, size, grain),
 				new MatrixMultTask(size));
 		pforjob.execute();
 

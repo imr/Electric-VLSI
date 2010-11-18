@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+IMP: (11/18/10, FS) New task structure in PI
+
 ************************* Version 9.00-q: ******************************
 
 IMP: (11/16/10, DN) Current version and buildDate in Version.java are obtaned by Maven filtering.

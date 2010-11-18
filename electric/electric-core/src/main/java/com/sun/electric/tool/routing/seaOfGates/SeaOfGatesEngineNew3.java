@@ -37,18 +37,16 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.SeaOfGates.SeaOfGatesOptions;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.util.concurrent.Parallel;
-import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolType;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 import com.sun.electric.util.CollectionFactory;
 import com.sun.electric.util.math.DBMath;
 
@@ -426,7 +424,7 @@ public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
         }
     }
 
-    public class ParallelListOfRoutes extends PForTask {
+    public class ParallelListOfRoutes extends PForTask<BlockedRange1D> {
 
         private RouteBatches[] routeBatches;
         private List<NeededRoute> allRoutes;
@@ -451,10 +449,9 @@ public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
          * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
          */
         @Override
-        public void execute(BlockedRange range) {
+        public void execute() {
             EditingPreferences.setThreadEditingPreferences(ep);
-            BlockedRange1D tmpRange = (BlockedRange1D) range;
-            doMakeListOfRoutes(tmpRange.start(), tmpRange.end(), routeBatches, allRoutes, arcsToRoute, prefs);
+            doMakeListOfRoutes(range.start(), range.end(), routeBatches, allRoutes, arcsToRoute, prefs);
 
         }
 

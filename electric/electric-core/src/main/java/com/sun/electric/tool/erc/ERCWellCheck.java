@@ -96,13 +96,11 @@ import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.util.concurrent.Parallel;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
-import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.CollectionFactory;
 import com.sun.electric.util.TextUtils;
@@ -740,7 +738,7 @@ public class ERCWellCheck {
             wellConIterator[i] = wellConLists[i].iterator();
     }
 
-    public class WorkDistributionTask extends PForTask {
+    public class WorkDistributionTask extends PForTask<BlockedRange1D> {
 
         private double sizeX;
         private double sizeY;
@@ -760,9 +758,8 @@ public class ERCWellCheck {
          * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
          */
         @Override
-        public void execute(BlockedRange range) {
-            BlockedRange1D range1D = (BlockedRange1D) range;
-            for (int i = range1D.start(); i < range1D.end(); i++) {
+        public void execute() {
+            for (int i = range.start(); i < range.end(); i++) {
                 WellCon con = wellCons.get(i);
                 GridDim tmpDim = calculateBucket(con, sizeX, sizeY);
                 int threadId = tmpDim.xDim + tmpDim.yDim * dim.xDim;

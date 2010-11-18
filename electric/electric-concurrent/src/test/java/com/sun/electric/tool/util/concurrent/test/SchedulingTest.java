@@ -34,12 +34,11 @@ import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructur
 import com.sun.electric.tool.util.concurrent.debug.Debug;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
@@ -56,9 +55,10 @@ public class SchedulingTest {
 	private static int size = 700;
 	private static final int numOfThreads = 8;
 
-        @Ignore
+	@Ignore
 	@Test
-	public void balancingTest() throws PoolExistsException, InterruptedException {
+	public void balancingTest() throws PoolExistsException,
+			InterruptedException {
 		Debug.setDebug(true);
 
 		Random rand = new Random(System.currentTimeMillis());
@@ -80,7 +80,8 @@ public class SchedulingTest {
 		System.out.println("==============================================");
 		System.out.println("==                  Queue                   ==");
 
-		IStructure<PTask> structure = ConcurrentCollectionFactory.createLockFreeQueue();
+		IStructure<PTask> structure = ConcurrentCollectionFactory
+				.createLockFreeQueue();
 		ElapseTimer tQueue = this.runMatrixMultiplication(structure);
 
 		System.out.println("==============================================");
@@ -96,7 +97,8 @@ public class SchedulingTest {
 
 		structure = WorkStealingStructure.createForThreadPool(numOfThreads);
 		ElapseTimer tSteal = this.runMatrixMultiplication(structure);
-		System.out.println("steals: " + StealTracker.getInstance().getStealCounter());
+		System.out.println("steals: "
+				+ StealTracker.getInstance().getStealCounter());
 
 		System.out.println("==============================================");
 
@@ -105,17 +107,19 @@ public class SchedulingTest {
 		System.out.println("Stealing: " + tSteal.toString());
 	}
 
-	private ElapseTimer runMatrixMultiplication(IStructure<PTask> structure) throws PoolExistsException, InterruptedException {
+	private ElapseTimer runMatrixMultiplication(IStructure<PTask> structure)
+			throws PoolExistsException, InterruptedException {
 		ElapseTimer timer = ElapseTimer.createInstance();
 		ThreadPool pool = ThreadPool.initialize(structure, numOfThreads);
 		timer.start();
-		Parallel.For(new BlockedRange2D(0, size, 64, 0, size, 64), new MatrixMultTask(size));
+		Parallel.For(new BlockedRange2D(0, size, 64, 0, size, 64),
+				new MatrixMultTask(size));
 		timer.end();
 		pool.shutdown();
 		return timer;
 	}
 
-	public static class MatrixMultTask extends PForTask {
+	public static class MatrixMultTask extends PForTask<BlockedRange2D> {
 
 		private int size;
 
@@ -124,15 +128,11 @@ public class SchedulingTest {
 		}
 
 		@Override
-		public void execute(BlockedRange range) {
-			BlockedRange2D tmpRange = (BlockedRange2D) range;
-
-			for (int i = tmpRange.row().start(); i < tmpRange.row().end(); i++) {
-				for (int j = tmpRange.col().start(); j < tmpRange.col().end(); j++) {
+		public void execute() {
+			for (int i = range.row().start(); i < range.row().end(); i++) {
+				for (int j = range.col().start(); j < range.col().end(); j++) {
 					for (int k = 0; k < this.size; k++) {
-						synchronized (matCPar[i][j]) {
-							matCPar[i][j] += matA[i][k] * matB[k][j];
-						}
+						matCPar[i][j] += matA[i][k] * matB[k][j];
 					}
 				}
 			}

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TestCSVWritter.java
+ * File: BlockedRange.java
  *
  * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  *
@@ -21,30 +21,19 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.test.output;
+package com.sun.electric.tool.util.concurrent.utils;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import java.util.List;
 
 /**
- * @author Schmidt
+ * 
+ * Base interface for ranges
+ * 
+ * @author Felix Schmidt
  * 
  */
-public class TestCSVWritter {
+public interface BlockedRange<T extends BlockedRange<T>> {
+	public List<T> splitBlockedRange(int step);
 
-    @Ignore
-    @Test
-    public void testCreateLineEntry() throws Exception {
-//        CSVWriter writer = new CSVWriter(new File("test.csv"), ',');
-//
-//        List<String> strings = new LinkedList<String>();
-//        strings.add("test1");
-//        strings.add("test2");
-//        strings.add("test3");
-//
-//        String result = (String) TestHelpers.invokePrivateMethod("createLineEntry", writer, strings);
-//
-//        Assert.assertEquals("test1,test2,test3", result);
-    }
-
+	public T createInstance(int number, int total);
 }

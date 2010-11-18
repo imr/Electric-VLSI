@@ -150,6 +150,12 @@ public class TestXmlInit {
     }
     
     @Test
+    public void testXmlInitRuntimeParamter() {
+        EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
+                ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigConstructorRuntimeParamter.xml")));
+    }
+    
+    @Test
     public void testXmlInitParameterViaFactoryInheritance() {
         EConfigContainer econfig = new EConfigContainer(new XmlInitSax(
                 ClassLoader.getSystemResource("com/sun/electric/util/config/testConfigParameters.xml")));

@@ -23,9 +23,6 @@
  */
 package com.sun.electric.tool.placement;
 
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-
 import java.util.List;
 
 /**

@@ -32,7 +32,7 @@ import com.sun.electric.util.config.model.ParameterEntry;
 public class TstHelper {
 
     public static <T> ParameterEntry convertToParameterEntry(String name, T value) {
-        return new ParameterEntry(name, new ConfigEntry.ConfigEntryPrimitive<T>(value));
+        return new ParameterEntry(name, new ConfigEntry.ConfigEntryPrimitive<T>(value, false));
     }
 
 }

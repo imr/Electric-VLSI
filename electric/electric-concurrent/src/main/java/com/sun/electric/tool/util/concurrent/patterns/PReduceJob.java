@@ -25,19 +25,21 @@ package com.sun.electric.tool.util.concurrent.patterns;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange;
+
 /**
  * Parallel Reduce Job. Parallel reduce is a parallel for loop with a result
  * aggregation at the end of the parallel execution.
  * 
  * @author Felix Schmidt
  */
-public class PReduceJob<T> extends PForJob {
+public class PReduceJob<T, K extends BlockedRange<K>> extends PForJob<K> {
 
 	// TODO use concurrent data structure
-	private AtomicReference<PReduceTask<T>> mainTask = new AtomicReference<PReduceTask<T>>(null);
+	private AtomicReference<PReduceTask<T, K>> mainTask = new AtomicReference<PReduceTask<T, K>>(null);
 	private T result;
 
-	public PReduceJob(BlockedRange range, PReduceTask<T> task) {
+	public PReduceJob(K range, PReduceTask<T, K> task) {
 		super(range, task);
 	}
 
@@ -54,7 +56,7 @@ public class PReduceJob<T> extends PForJob {
 	 * 
 	 * @author Felix Schmidt
 	 */
-	public abstract static class PReduceTask<T> extends PForTask implements Cloneable {
+	public abstract static class PReduceTask<T, K extends BlockedRange<K>> extends PForTask<K> implements Cloneable {
 
 		/**
 		 * reduce function. This function is called after the execution of the
@@ -63,7 +65,7 @@ public class PReduceJob<T> extends PForJob {
 		 * @param other
 		 * @return
 		 */
-		public abstract T reduce(PReduceTask<T> other);
+		public abstract T reduce(PReduceTask<T, K> other);
 
 		/*
 		 * (non-Javadoc)
@@ -74,7 +76,7 @@ public class PReduceJob<T> extends PForJob {
 		@Override
 		public void after() {
 
-			PReduceJob<T> rjob = (PReduceJob<T>) job;
+			PReduceJob<T, K> rjob = (PReduceJob<T, K>) job;
 
 			rjob.mainTask.compareAndSet(null, this);
 			rjob.result = rjob.mainTask.get().reduce(this);

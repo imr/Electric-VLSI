@@ -24,16 +24,17 @@
 
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.EditingPreferences;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.ArcInst;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.technology.PrimitiveNode;
-
-import java.util.*;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 
 /**
  * Specifies a route to be created.  Note that the order if items

@@ -25,6 +25,10 @@
 
 package com.sun.electric.tool.routing;
 
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.Set;
+
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
@@ -39,15 +43,10 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.util.math.GenMath;
 import com.sun.electric.util.math.GenMath.MutableBoolean;
-
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.Set;
 
 /**
  * Class for defining RouteElements that are arcs.

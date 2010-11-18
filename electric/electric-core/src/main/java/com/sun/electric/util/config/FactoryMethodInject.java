@@ -45,7 +45,8 @@ public class FactoryMethodInject<T> extends InjectStrategy<T> {
      * @see com.sun.electric.util.config.InjectStrategy#inject(java.lang.Object,
      * java.lang.Class, com.sun.electric.util.config.model.ParameterEntry[])
      */
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public T inject(Class<T> clazz, ParameterEntry... entries) throws Exception {
         T instance = null;
         if (entries == null || entries.length == 0) {

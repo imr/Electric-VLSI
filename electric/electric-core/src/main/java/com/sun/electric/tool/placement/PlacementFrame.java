@@ -23,12 +23,12 @@
  */
 package com.sun.electric.tool.placement;
 
-import com.sun.electric.util.math.Orientation;
-
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.sun.electric.util.math.Orientation;
 
 
 /**

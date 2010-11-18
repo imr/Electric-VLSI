@@ -23,6 +23,14 @@
  */
 package com.sun.electric.tool.placement;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.prefs.Preferences;
+
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -48,14 +56,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.CollectionFactory;
 import com.sun.electric.util.math.Orientation;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.prefs.Preferences;
 
 /**
  * Class to place cells for better routing.

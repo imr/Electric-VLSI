@@ -23,7 +23,6 @@
  */
 package com.sun.electric.util.config;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.sun.electric.util.config.annotations.Inject;
@@ -48,7 +47,8 @@ public class SetterInject<T> extends InjectStrategy<T> {
      * @see com.sun.electric.util.config.InjectStrategy#inject(java.lang.Object,
      * java.lang.Class, com.sun.electric.util.config.model.ParameterEntry[])
      */
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public T inject(Class<T> clazz, ParameterEntry... entries) throws Exception {
         T instance = null;
         if(createBy.equals(CreateBy.constructor)) {

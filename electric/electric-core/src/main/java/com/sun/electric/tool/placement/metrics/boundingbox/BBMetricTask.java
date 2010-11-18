@@ -28,22 +28,21 @@
  */
 package com.sun.electric.tool.placement.metrics.boundingbox;
 
+import java.awt.geom.Point2D;
+import java.util.List;
+
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
-
-import java.awt.geom.Point2D;
-import java.util.List;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 
 /**
  * Parallel Placement
  * 
  * Estimate wirelength using the bounding box metric
  */
-public class BBMetricTask extends PReduceTask<Double> {
+public class BBMetricTask extends PReduceTask<Double, BlockedRange1D> {
 
 	List<PlacementNode> nodesToPlace;
 	List<PlacementNetwork> allNetworks;
@@ -98,7 +97,7 @@ public class BBMetricTask extends PReduceTask<Double> {
 	 * (com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask)
 	 */
 	@Override
-	public synchronized Double reduce(PReduceTask<Double> other) {
+	public synchronized Double reduce(PReduceTask<Double, BlockedRange1D> other) {
 		BBMetricTask bbOther = (BBMetricTask) other;
 
 		if (!this.equals(other)) {
@@ -116,10 +115,8 @@ public class BBMetricTask extends PReduceTask<Double> {
 	 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
 	 */
 	@Override
-	public void execute(BlockedRange range) {
-		BlockedRange1D tmpRange = (BlockedRange1D) range;
-
-		for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
+	public void execute() {
+		for (int i = range.start(); i < range.end(); i++) {
 			sum = sum + this.compute(allNetworks.get(i));
 		}
 	}

@@ -28,18 +28,17 @@ import java.util.Random;
 
 import junit.framework.Assert;
 
-import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Test;
 
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 
 /**
  * @author Felix Schmidt
@@ -159,7 +158,7 @@ public class PerformanceTest {
 		return sum;
 	}
 
-	public class TransposeMatrix extends PForTask {
+	public class TransposeMatrix extends PForTask<BlockedRange1D> {
 
 		/*
 		 * (non-Javadoc)
@@ -169,10 +168,9 @@ public class PerformanceTest {
 		 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
 		 */
 		@Override
-		public void execute(BlockedRange range) {
+		public void execute() {
 
-			BlockedRange1D tmpRange = (BlockedRange1D) range;
-			for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
+			for (int i = range.start(); i < range.end(); i++) {
 				for (int j = 0; j < i - 1; j++) {
 					float tmp = matA[j][i];
 					matA[j][i] = matA[i][j];
@@ -184,7 +182,7 @@ public class PerformanceTest {
 
 	}
 
-	public class SumTask extends PReduceTask<Integer> {
+	public class SumTask extends PReduceTask<Integer, BlockedRange1D> {
 
 		private int localSum;
 
@@ -197,7 +195,7 @@ public class PerformanceTest {
 		 * PReduceTask)
 		 */
 		@Override
-		public synchronized Integer reduce(PReduceTask<Integer> other) {
+		public synchronized Integer reduce(PReduceTask<Integer, BlockedRange1D> other) {
 			SumTask tmpOther = (SumTask) other;
 			if (!this.equals(tmpOther)) {
 				localSum += tmpOther.localSum;
@@ -214,9 +212,8 @@ public class PerformanceTest {
 		 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
 		 */
 		@Override
-		public void execute(BlockedRange range) {
-			BlockedRange1D tmpRange = (BlockedRange1D) range;
-			for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
+		public void execute() {
+			for (int i = range.start(); i < range.end(); i++) {
 				localSum += data[i];
 			}
 		}

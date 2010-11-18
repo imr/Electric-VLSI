@@ -29,13 +29,12 @@ import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange2D;
 import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
@@ -135,7 +134,7 @@ public class FCQueueTest {
 
 	}
 
-	public static class MatrixMultTask extends PForTask {
+	public static class MatrixMultTask extends PForTask<BlockedRange2D> {
 
 		private int size;
 		private Integer[][] result;
@@ -146,11 +145,9 @@ public class FCQueueTest {
 		}
 
 		@Override
-		public void execute(BlockedRange range) {
-			BlockedRange2D tmpRange = (BlockedRange2D) range;
-
-			for (int i = tmpRange.row().start(); i < tmpRange.row().end(); i++) {
-				for (int j = tmpRange.col().start(); j < tmpRange.col().end(); j++) {
+		public void execute() {			
+			for (int i = range.row().start(); i < range.row().end(); i++) {
+				for (int j = range.col().start(); j < range.col().end(); j++) {
 					int sum = 0;
 					for (int k = 0; k < this.size; k++) {
 						sum += matA[i][k] * matB[k][j];

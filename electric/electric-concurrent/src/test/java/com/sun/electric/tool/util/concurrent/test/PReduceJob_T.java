@@ -29,11 +29,10 @@ import org.junit.Test;
 
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 
 /**
  * 
@@ -42,12 +41,13 @@ import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 public class PReduceJob_T {
 
 	@Test
-	public void testPReduce() throws PoolExistsException, InterruptedException, CloneNotSupportedException, UnknownSchedulerException {
+	public void testPReduce() throws PoolExistsException, InterruptedException,
+			CloneNotSupportedException, UnknownSchedulerException {
 		ThreadPool pool = ThreadPool.initialize();
 		int stepW = 1000000;
 		double step = 1.0 / stepW;
-		PReduceJob<Double> pReduceJob = new PReduceJob<Double>(new BlockedRange1D(0, stepW, 100), new PITask(
-				step));
+		PReduceJob<Double, BlockedRange1D> pReduceJob = new PReduceJob<Double, BlockedRange1D>(
+				new BlockedRange1D(0, stepW, 100), new PITask(step));
 		pReduceJob.execute();
 
 		System.out.println("calc pi = " + pReduceJob.getResult());
@@ -59,7 +59,8 @@ public class PReduceJob_T {
 	}
 
 	@Test
-	public void testPerformancePReduce() throws PoolExistsException, InterruptedException {
+	public void testPerformancePReduce() throws PoolExistsException,
+			InterruptedException {
 
 		int stepW = 100000000;
 		double step = 1.0 / stepW;
@@ -67,8 +68,8 @@ public class PReduceJob_T {
 		ThreadPool pool = ThreadPool.initialize(1);
 
 		long start = System.currentTimeMillis();
-		PReduceJob<Double> pReduceJobSer = new PReduceJob<Double>(new BlockedRange1D(0, stepW, 128),
-				new PITask(step));
+		PReduceJob<Double, BlockedRange1D> pReduceJobSer = new PReduceJob<Double, BlockedRange1D>(
+				new BlockedRange1D(0, stepW, 128), new PITask(step));
 
 		pReduceJobSer.execute();
 
@@ -80,22 +81,23 @@ public class PReduceJob_T {
 		System.out.println(ThreadPool.getThreadPool().getPoolSize());
 
 		start = System.currentTimeMillis();
-		PReduceJob<Double> pReduceJobPar = new PReduceJob<Double>(new BlockedRange1D(0, stepW, 128),
-				new PITask(step));
+		PReduceJob<Double, BlockedRange1D> pReduceJobPar = new PReduceJob<Double, BlockedRange1D>(
+				new BlockedRange1D(0, stepW, 128), new PITask(step));
 
 		pReduceJobPar.execute();
 		long endPar = System.currentTimeMillis() - start;
 
 		pool.shutdown();
 
-		Assert.assertEquals(pReduceJobPar.getResult(), pReduceJobSer.getResult(), 0.000000001);
+		Assert.assertEquals(pReduceJobPar.getResult(),
+				pReduceJobSer.getResult(), 0.000000001);
 		System.out.println("Ser:     " + endSer);
 		System.out.println("Par:     " + endPar);
 		System.out.println("Speedup: " + (double) endSer / (double) endPar);
 
 	}
 
-	public static class PITask extends PReduceTask<Double> {
+	public static class PITask extends PReduceTask<Double, BlockedRange1D> {
 
 		private double pi;
 		private double step;
@@ -105,7 +107,8 @@ public class PReduceJob_T {
 		}
 
 		@Override
-		public synchronized Double reduce(PReduceTask<Double> other) {
+		public synchronized Double reduce(
+				PReduceTask<Double, BlockedRange1D> other) {
 			PITask task = (PITask) other;
 
 			if (!this.equals(task)) {
@@ -123,11 +126,10 @@ public class PReduceJob_T {
 		 * .sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
 		 */
 		@Override
-		public void execute(BlockedRange range) {
-			BlockedRange1D tmpRange = (BlockedRange1D) range;
+		public void execute() {
 			this.pi = 0.0;
 
-			for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
+			for (int i = range.start(); i < range.end(); i++) {
 				double x = step * ((double) i - 0.5);
 				this.pi += 4.0 / (1.0 + x * x);
 			}

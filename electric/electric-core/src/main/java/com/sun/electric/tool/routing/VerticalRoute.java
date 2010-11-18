@@ -24,23 +24,23 @@
 
 package com.sun.electric.tool.routing;
 
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.awt.geom.Point2D;
 
 /**
  * Class to route vertically (in Z direction) between two RouteElements.

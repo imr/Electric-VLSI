@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: TestCSVWritter.java
+ * File: Range.java
  *
  * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  *
@@ -21,30 +21,36 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.util.test.output;
-
-import org.junit.Ignore;
-import org.junit.Test;
+package com.sun.electric.tool.util.concurrent.utils;
 
 /**
- * @author Schmidt
  * 
+ * This class provides a interface for parallel for parameters
+ * 
+ * @author Felix Schmidt
+ *
  */
-public class TestCSVWritter {
+public class Range {
+	private int start;
+	private int end;
+	private int step;
 
-    @Ignore
-    @Test
-    public void testCreateLineEntry() throws Exception {
-//        CSVWriter writer = new CSVWriter(new File("test.csv"), ',');
-//
-//        List<String> strings = new LinkedList<String>();
-//        strings.add("test1");
-//        strings.add("test2");
-//        strings.add("test3");
-//
-//        String result = (String) TestHelpers.invokePrivateMethod("createLineEntry", writer, strings);
-//
-//        Assert.assertEquals("test1,test2,test3", result);
-    }
+	public Range(int start, int end, int step) {
+		super();
+		this.start = start;
+		this.end = end;
+		this.step = step;
+	}
 
+	public int start() {
+		return start;
+	}
+
+	public int end() {
+		return end;
+	}
+
+	public int step() {
+		return step;
+	}
 }

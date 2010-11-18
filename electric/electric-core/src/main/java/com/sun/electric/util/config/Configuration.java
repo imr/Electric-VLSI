@@ -23,7 +23,6 @@
  */
 package com.sun.electric.util.config;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -50,12 +49,12 @@ public abstract class Configuration {
         Configuration.configName = configName;
     }
 
-    public static Object lookup(String name) {
-        return getInstance().lookupImpl(name);
+    public static Object lookup(String name, Object... runtimeParamters) {
+        return getInstance().lookupImpl(name, runtimeParamters);
     }
 
-    public static <T> T lookup(Class<T> clazz) {
-        return getInstance().lookupImpl(clazz);
+    public static <T> T lookup(Class<T> clazz, Object... runtimeParamters) {
+        return getInstance().lookupImpl(clazz, runtimeParamters);
     }
 
     private static Configuration extractConfigurationImplementation() {
@@ -66,8 +65,8 @@ public abstract class Configuration {
         return result;
     }
 
-    protected abstract Object lookupImpl(String name);
+    protected abstract Object lookupImpl(String name, Object... runtimeParamters);
 
-    protected abstract <T> T lookupImpl(Class<T> clazz);
+    protected abstract <T> T lookupImpl(Class<T> clazz, Object... runtimeParamters);
 
 }

@@ -23,10 +23,11 @@
  */
 package com.sun.electric.tool.routing;
 
+import java.io.Serializable;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.Highlighter;
-import java.io.Serializable;
 
 /**
  * A Route describes a new connection to be made.

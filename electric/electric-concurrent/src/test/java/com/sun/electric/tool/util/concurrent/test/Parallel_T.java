@@ -31,13 +31,13 @@ import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.test.PForJob_T.TestForTask;
 import com.sun.electric.tool.util.concurrent.test.PReduceJob_T.PITask;
 import com.sun.electric.tool.util.concurrent.test.PWhileJob_T.WhileTestTask;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 
 /**

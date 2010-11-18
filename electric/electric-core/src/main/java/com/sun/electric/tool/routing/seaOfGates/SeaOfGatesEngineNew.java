@@ -31,23 +31,19 @@ import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.SeaOfGates.SeaOfGatesOptions;
-import com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngine.NeededRoute;
-import com.sun.electric.tool.routing.seaOfGates.SeaOfGatesEngine.RouteBatches;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
+import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.UnknownSchedulerException;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.ThreadPoolType;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 import com.sun.electric.util.math.DBMath;
 
 /**
@@ -299,6 +295,7 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 			lineList.add(new EPoint(wf.fromX, wf.fromY));
 			errorLogger.logMessageWithLines(errorMsg, null, lineList, cell, 0, true);
 
+			/*
 			if (DEBUGFAILURE && firstFailure) {
 				firstFailure = false;
 				EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
@@ -306,6 +303,7 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 				showSearchVertices(nr.dir1.searchVertexPlanes, false, cell);
 				wnd.finishedHighlighting();
 			}
+			*/
 		}
 		nr.cleanSearchMemory();
 	}
@@ -313,7 +311,6 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 	class DijkstraInTask extends PTask {
 		private Wavefront wf;
 		private Wavefront otherWf;
-		private Environment env;
 		private EditingPreferences ep;
 
 		public DijkstraInTask(PJob job, Wavefront wf, Wavefront otherWf, EditingPreferences ep) {
@@ -378,7 +375,6 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 		try {
 			ThreadPool.initialize(WorkStealingStructure.createForThreadPool(8));
 		} catch (PoolExistsException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -388,12 +384,11 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 		try {
 			ThreadPool.getThreadPool().shutdown();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	public class ParallelListOfRoutes extends PForTask {
+	public class ParallelListOfRoutes extends PForTask<BlockedRange1D> {
 
 		private RouteBatches[] routeBatches;
 		private List<NeededRoute> allRoutes;
@@ -418,10 +413,9 @@ public class SeaOfGatesEngineNew extends SeaOfGatesEngine {
 		 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
 		 */
 		@Override
-		public void execute(BlockedRange range) {
+		public void execute() {
 			EditingPreferences.setThreadEditingPreferences(ep);
-			BlockedRange1D tmpRange = (BlockedRange1D) range;
-			doMakeListOfRoutes(tmpRange.start(), tmpRange.end(), routeBatches, allRoutes, arcsToRoute, prefs);
+			doMakeListOfRoutes(range.start(), range.end(), routeBatches, allRoutes, arcsToRoute, prefs);
 
 		}
 

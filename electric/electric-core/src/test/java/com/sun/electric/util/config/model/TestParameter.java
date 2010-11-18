@@ -41,7 +41,7 @@ public class TestParameter {
         Map<String, Injection> allInjections = CollectionFactory.createHashMap();
         allInjections.put("testObject", injection);
         
-        Parameter parameter = new Parameter("testParam", "testObject", null, null);
+        Parameter parameter = new Parameter("testParam", "testObject", null, null, false);
         
         ParameterEntry entry = parameter.createParameter(allInjections);
         

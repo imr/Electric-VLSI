@@ -42,6 +42,10 @@ public class SimpleConstructorType {
         this.simpleData = simpleData;
     }
     
+    public SimpleConstructorType(String runtimeParamter) {
+    	System.out.println(runtimeParamter);
+    }
+    
     public String getTest() {
         return test;
     }

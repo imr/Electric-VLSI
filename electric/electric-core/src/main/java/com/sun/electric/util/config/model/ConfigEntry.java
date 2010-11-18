@@ -35,172 +35,178 @@ import com.sun.electric.util.config.annotations.InjectionMethod.InjectionStrateg
  * @author Felix Schmidt
  */
 public abstract class ConfigEntry<T> {
-    protected boolean singleton = false;
-    protected T singletonInstance = null;
-    protected ParameterEntry[] parameters;
-    protected Class<T> clazz;
+	protected boolean singleton = false;
+	protected T singletonInstance = null;
+	protected ParameterEntry[] parameters;
+	protected Class<T> clazz;
 
-    public ConfigEntry(Class<T> clazz, boolean singleton, ParameterEntry... parameter) {
-        this.singleton = singleton;
-        this.parameters = parameter;
-        this.clazz = clazz;
-    }
+	public ConfigEntry(Class<T> clazz, boolean singleton, ParameterEntry... parameter) {
+		this.singleton = singleton;
+		this.parameters = parameter;
+		this.clazz = clazz;
+	}
 
-    public abstract T getInstance() throws Exception;
+	public abstract T getInstance() throws Exception;
 
-    protected void injectSetters(T instance) throws Exception {
-        Method[] methods = clazz.getMethods();
-        for (Method method : methods) {
-            Inject inject = method.getAnnotation(Inject.class);
-            if (inject != null) {
-                String name = inject.name();
-                String paramName = "";
-                if (name.equals("")) {
-                    if (method.getName().startsWith("set")) {
-                        paramName = method.getName().substring(3).toLowerCase();
-                    } else {
-                        paramName = name;
-                    }
-                } else {
-                    paramName = name;
-                }
+	protected void injectSetters(T instance) throws Exception {
+		Method[] methods = clazz.getMethods();
+		for (Method method : methods) {
+			Inject inject = method.getAnnotation(Inject.class);
+			if (inject != null) {
+				String name = inject.name();
+				String paramName = "";
+				if (name.equals("")) {
+					if (method.getName().startsWith("set")) {
+						paramName = method.getName().substring(3).toLowerCase();
+					} else {
+						paramName = name;
+					}
+				} else {
+					paramName = name;
+				}
 
-                for (ParameterEntry entry : parameters) {
-                    if (entry.getName().equals(paramName)) {
-                        method.invoke(instance, entry.getValue().getInstance());
-                        break;
-                    }
-                }
-            }
-        }
-    }
+				for (ParameterEntry entry : parameters) {
+					if (entry.getName().equals(paramName)) {
+						method.invoke(instance, entry.getValue().getInstance());
+						break;
+					}
+				}
+			}
+		}
+	}
 
-    public static class ConfigEntryConstructor<T> extends ConfigEntry<T> {
+	public static class ConfigEntryConstructor<T> extends ConfigEntry<T> {
 
-        public ConfigEntryConstructor(Class<T> clazz, boolean singleton, ParameterEntry... parameters) {
-            super(clazz, singleton, parameters);
-        }
+		public ConfigEntryConstructor(Class<T> clazz, boolean singleton, ParameterEntry... parameters) {
+			super(clazz, singleton, parameters);
+		}
 
-        @Override
-        public T getInstance() throws Exception {
-            T instance = null;
+		@Override
+		public T getInstance() throws Exception {
+			T instance = null;
 
-            if (!(singleton && singletonInstance != null)) {
+			if (!(singleton && singletonInstance != null)) {
 
-                InjectionMethod inWay = clazz.getAnnotation(InjectionMethod.class);
-                InjectStrategy<T> strategy = null;
-                if (inWay != null) {
-                    if (inWay.injectionStrategy().equals(InjectionStrategy.initialization))
-                        strategy = InjectStrategy.getForConstructor(clazz);
-                    else {
-                        strategy = InjectStrategy.getForSetter(clazz, CreateBy.constructor, null);
-                    }
-                } else {
-                    strategy = InjectStrategy.getDefault(clazz, CreateBy.constructor, null);
-                }
+				InjectionMethod inWay = clazz.getAnnotation(InjectionMethod.class);
+				InjectStrategy<T> strategy = null;
+				if (inWay != null) {
+					if (inWay.injectionStrategy().equals(InjectionStrategy.initialization))
+						strategy = InjectStrategy.getForConstructor(clazz);
+					else {
+						strategy = InjectStrategy.getForSetter(clazz, CreateBy.constructor, null);
+					}
+				} else {
+					strategy = InjectStrategy.getDefault(clazz, CreateBy.constructor, null);
+				}
 
-                instance = strategy.inject(clazz, parameters);
+				instance = strategy.inject(clazz, parameters);
 
-                if (singleton) {
-                    singletonInstance = instance;
-                }
-            } else {
-                instance = singletonInstance;
-            }
+				if (singleton) {
+					singletonInstance = instance;
+				}
+			} else {
+				instance = singletonInstance;
+			}
 
-            return instance;
-        }
+			return instance;
+		}
 
-    }
+	}
 
-    public static class ConfigEntryFactoryMethod<T> extends ConfigEntry<T> {
+	public static class ConfigEntryFactoryMethod<T> extends ConfigEntry<T> {
 
-        private String factoryMethod;
+		private String factoryMethod;
 
-        public ConfigEntryFactoryMethod(Class<T> clazz, String factoryMethod, boolean singleton,
-                ParameterEntry... parameters) {
-            super(clazz, singleton, parameters);
-            this.factoryMethod = factoryMethod;
+		public ConfigEntryFactoryMethod(Class<T> clazz, String factoryMethod, boolean singleton,
+				ParameterEntry... parameters) {
+			super(clazz, singleton, parameters);
+			this.factoryMethod = factoryMethod;
 
-        }
+		}
 
-        @Override
-        public T getInstance() throws Exception {
-            T instance = null;
-            if (!(singleton && singletonInstance != null)) {
+		@Override
+		public T getInstance() throws Exception {
+			T instance = null;
+			if (!(singleton && singletonInstance != null)) {
 
-                InjectionMethod inWay = clazz.getAnnotation(InjectionMethod.class);
-                InjectStrategy<T> strategy = null;
-                if (inWay != null) {
-                    if (inWay.injectionStrategy().equals(InjectionStrategy.initialization))
-                        strategy = InjectStrategy.getForFactoryMethod(clazz, factoryMethod);
-                    else
-                        strategy = InjectStrategy.getForSetter(clazz, CreateBy.factoryMethod, factoryMethod);
-                } else {
-                    strategy = InjectStrategy.getDefault(clazz, CreateBy.factoryMethod, factoryMethod);
-                }
+				InjectionMethod inWay = clazz.getAnnotation(InjectionMethod.class);
+				InjectStrategy<T> strategy = null;
+				if (inWay != null) {
+					if (inWay.injectionStrategy().equals(InjectionStrategy.initialization))
+						strategy = InjectStrategy.getForFactoryMethod(clazz, factoryMethod);
+					else
+						strategy = InjectStrategy.getForSetter(clazz, CreateBy.factoryMethod, factoryMethod);
+				} else {
+					strategy = InjectStrategy.getDefault(clazz, CreateBy.factoryMethod, factoryMethod);
+				}
 
-                instance = strategy.inject(clazz, parameters);
+				instance = strategy.inject(clazz, parameters);
 
-                if (singleton) {
-                    singletonInstance = instance;
-                }
-            } else {
-                instance = singletonInstance;
-            }
+				if (singleton) {
+					singletonInstance = instance;
+				}
+			} else {
+				instance = singletonInstance;
+			}
 
-            return instance;
-        }
-    }
+			return instance;
+		}
+	}
 
-    public static class ConfigEntryPrimitive<T> extends ConfigEntry<T> {
-        private T value;
+	public static class ConfigEntryPrimitive<T> extends ConfigEntry<T> {
+		private T value;
+		private boolean runtime;
 
-        public ConfigEntryPrimitive(T value) {
-            super(null, false);
-            this.value = value;
-        }
-
-        @Override
-        public T getInstance() throws Exception {
-            return value;
-        }
-    }
-    
-    public static class ConfigEntryEnum<T extends Enum<T>> extends ConfigEntry<T> {
-    	
-    	private T value;
-    	
-    	public ConfigEntryEnum(Class<T> clazz, String value) {
-    		super(null, false);
-
-    		for(T tmp: clazz.getEnumConstants()) {
-    			if(tmp.name().equals(value)) {
-    				this.value = tmp;
-    				return;
-    			}
-    		}
-    	}
+		public ConfigEntryPrimitive(T value, boolean runtime) {
+			super(null, false);
+			this.value = value;
+			this.runtime = runtime;
+		}
 
 		@Override
 		public T getInstance() throws Exception {
 			return value;
 		}
-    	
-    }
+		
+		public boolean getRuntime() {
+			return runtime;
+		}
+	}
 
-    public static <T> ConfigEntry<T> createForConstructor(Class<T> clazz, boolean singleton,
-            ParameterEntry... parameters) {
-        return new ConfigEntryConstructor<T>(clazz, singleton, parameters);
-    }
+	public static class ConfigEntryEnum<T extends Enum<T>> extends ConfigEntry<T> {
 
-    public static <T> ConfigEntry<T> createForFactoryMethod(Class<T> clazz, String factoryMethod,
-            boolean singleton, ParameterEntry... parameters) {
-        return new ConfigEntryFactoryMethod<T>(clazz, factoryMethod, singleton, parameters);
-    }
-    
-    public static <T extends Enum<T>> ConfigEntry<T> createForEnum(Class<T> clazz, String value) {
-        return new ConfigEntryEnum<T>(clazz, value);
-    }
+		private T value;
+
+		public ConfigEntryEnum(Class<T> clazz, String value) {
+			super(null, false);
+
+			for (T tmp : clazz.getEnumConstants()) {
+				if (tmp.name().equals(value)) {
+					this.value = tmp;
+					return;
+				}
+			}
+		}
+
+		@Override
+		public T getInstance() throws Exception {
+			return value;
+		}
+
+	}
+
+	public static <T> ConfigEntry<T> createForConstructor(Class<T> clazz, boolean singleton,
+			ParameterEntry... parameters) {
+		return new ConfigEntryConstructor<T>(clazz, singleton, parameters);
+	}
+
+	public static <T> ConfigEntry<T> createForFactoryMethod(Class<T> clazz, String factoryMethod,
+			boolean singleton, ParameterEntry... parameters) {
+		return new ConfigEntryFactoryMethod<T>(clazz, factoryMethod, singleton, parameters);
+	}
+
+	public static <T extends Enum<T>> ConfigEntry<T> createForEnum(Class<T> clazz, String value) {
+		return new ConfigEntryEnum<T>(clazz, value);
+	}
 
 }

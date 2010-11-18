@@ -34,7 +34,7 @@ import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.metrics.AbstractMetric;
 import com.sun.electric.tool.util.concurrent.Parallel;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 
 /**
  * Parallel Placement

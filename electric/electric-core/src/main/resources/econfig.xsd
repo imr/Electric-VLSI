@@ -44,12 +44,21 @@
 			<xsd:attribute name="type" type="typeList" use="optional" />
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:element name="initRuntimeParameter">
+		<xsd:complexType>
+			<xsd:attribute name="name" type="xsd:string" use="required" />
+			<xsd:attribute name="type" type="typeList" use="optional" />
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="parameters">
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element ref="parameter" maxOccurs="unbounded"
-					minOccurs="1" />
+					minOccurs="0" />
+				<xsd:element ref="initRuntimeParameter" maxOccurs="unbounded"
+					minOccurs="0" />
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>

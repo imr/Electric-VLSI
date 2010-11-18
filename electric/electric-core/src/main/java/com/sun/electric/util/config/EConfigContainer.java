@@ -24,7 +24,6 @@
 package com.sun.electric.util.config;
 
 import java.io.File;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
@@ -66,7 +65,7 @@ public class EConfigContainer extends Configuration {
      * @see com.sun.electric.util.config.Configuration#lookup(java.lang.String)
      */
     @Override
-    protected Object lookupImpl(String name) {
+    protected Object lookupImpl(String name, Object... runtimeParameters) {
         Object result = null;
         ConfigEntry<?> entry = (ConfigEntry<?>) lookupMapClass.get(name);
         if (entry != null) {
@@ -84,8 +83,9 @@ public class EConfigContainer extends Configuration {
      * 
      * @see com.sun.electric.util.config.Configuration#lookup(java.lang.Class)
      */
-    @Override
-    protected <T> T lookupImpl(Class<T> clazz) {
+    @SuppressWarnings("unchecked")
+	@Override
+    protected <T> T lookupImpl(Class<T> clazz, Object... runtimeParamters) {
         try {
             return (T) lookupImpl(clazz.getName());
         } catch (Exception ex) {

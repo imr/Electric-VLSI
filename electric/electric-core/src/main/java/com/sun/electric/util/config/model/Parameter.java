@@ -42,6 +42,7 @@ public class Parameter {
 	private String ref;
 	private String value;
 	private Type type;
+	private boolean runtimeParamter;
 
 	/**
 	 * @param name
@@ -49,12 +50,13 @@ public class Parameter {
 	 * @param value
 	 * @param type
 	 */
-	public Parameter(String name, String ref, String value, Type type) {
+	public Parameter(String name, String ref, String value, Type type, boolean runtimeParamter) {
 		super();
 		this.name = name;
 		this.ref = ref;
 		this.value = value;
 		this.type = type;
+		this.runtimeParamter = runtimeParamter;
 	}
 
 	public String getName() {
@@ -101,20 +103,21 @@ public class Parameter {
 		return entry;
 	}
 
+	@SuppressWarnings("unchecked")
 	private ConfigEntry<?> createByType() throws ClassNotFoundException {
-
+		
 		if (type.equals(Type.Boolean)) {
-			return new ConfigEntry.ConfigEntryPrimitive<Boolean>(Boolean.parseBoolean(value));
+			return new ConfigEntry.ConfigEntryPrimitive<Boolean>(Boolean.parseBoolean(value), this.runtimeParamter);
 		} else if (type.equals(Type.Double)) {
-			return new ConfigEntry.ConfigEntryPrimitive<Double>(Double.parseDouble(value));
+			return new ConfigEntry.ConfigEntryPrimitive<Double>(Double.parseDouble(value), this.runtimeParamter);
 		} else if (type.equals(Type.Integer)) {
-			return new ConfigEntry.ConfigEntryPrimitive<Integer>(Integer.parseInt(value));
+			return new ConfigEntry.ConfigEntryPrimitive<Integer>(Integer.parseInt(value), this.runtimeParamter);
 		} else if (type.equals(Type.String)) {
-			return new ConfigEntry.ConfigEntryPrimitive<String>(value);
+			return new ConfigEntry.ConfigEntryPrimitive<String>(value, this.runtimeParamter);
 		} else if (type.equals(Type.Enum)) {
-			return ConfigEntry.createForEnum((Class<Enum>)(Class.forName(value.substring(0, value.lastIndexOf('.')))),
+			return ConfigEntry.createForEnum(
+					(Class<Enum>) (Class.forName(value.substring(0, value.lastIndexOf('.')))),
 					value.substring(value.lastIndexOf('.') + 1));
-			//return new ConfigEntry.ConfigEntryEnum<TestEnum>(TestEnum.class, "EnumValue1");
 		}
 
 		return null;
@@ -129,6 +132,21 @@ public class Parameter {
 		} else {
 			return allInjections.get(this.ref).createConfigEntry(allInjections);
 		}
+	}
+
+	/**
+	 * @param runtimeParamter
+	 *            the runtimeParamter to set
+	 */
+	public void setRuntimeParamter(boolean runtimeParamter) {
+		this.runtimeParamter = runtimeParamter;
+	}
+
+	/**
+	 * @return the runtimeParamter
+	 */
+	public boolean isRuntimeParamter() {
+		return runtimeParamter;
 	}
 
 }

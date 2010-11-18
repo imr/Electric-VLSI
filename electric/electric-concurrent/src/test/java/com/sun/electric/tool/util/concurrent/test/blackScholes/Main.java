@@ -35,14 +35,13 @@ import java.util.List;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;
 import com.sun.electric.tool.util.concurrent.test.blackScholes.OptionData.OptionType;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange1D;
 import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
@@ -110,7 +109,7 @@ public class Main {
 		}
 	}
 
-	public static class BS_Task extends PForTask {
+	public static class BS_Task extends PForTask<BlockedRange1D> {
 
 		private final List<OptionData> options;
 		private final boolean debug;
@@ -128,13 +127,11 @@ public class Main {
 		 * (com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange)
 		 */
 		@Override
-		public void execute(BlockedRange range) {
-			BlockedRange1D tmpRange = (BlockedRange1D) range;
-
+		public void execute() {
 			double priceDelta = 0.0;
 
 			for (int j = 0; j < GlobalVars.NUM_RUNS; j++) {
-				for (int i = tmpRange.start(); i < tmpRange.end(); i++) {
+				for (int i = range.start(); i < range.end(); i++) {
 					OptionData data = options.get(i);
 					data.setPrice(BlkSchlsEqEuroNoDiv(data));
 

@@ -23,14 +23,12 @@
  */
 package com.sun.electric.tool.placement;
 
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
-import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
-import com.sun.electric.util.math.Orientation;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.util.math.Orientation;
 
 /**
  * Simple Placement algorithm to assign locations based on simple criteria.

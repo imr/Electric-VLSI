@@ -26,7 +26,9 @@ package com.sun.electric.tool.util.concurrent.patterns;
 import java.util.List;
 
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
+import com.sun.electric.tool.util.concurrent.utils.BlockedRange;
 import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
+import com.sun.electric.tool.util.concurrent.utils.Range;
 
 /**
  * 
@@ -35,7 +37,7 @@ import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
  * @author Felix Schmidt
  * 
  */
-public class PForJob extends PJob {
+public class PForJob<T extends BlockedRange<T>> extends PJob {
 
 	/**
 	 * Constructor for 1- and 2-dimensional parallel for loops
@@ -43,14 +45,14 @@ public class PForJob extends PJob {
 	 * @param range
 	 * @param task
 	 */
-	public PForJob(BlockedRange range, PForTask task) {
+	public PForJob(T range, PForTask<T> task) {
 		super();
-		this.add(new SplitIntoTasks(this, range, task), PJob.SERIAL);
+		this.add(new SplitIntoTasks<T>(this, range, task), PJob.SERIAL);
 	}
 
-	public PForJob(BlockedRange range, PForTask task, IThreadPool pool) {
+	public PForJob(T range, PForTask<T> task, IThreadPool pool) {
 		super(pool);
-		this.add(new SplitIntoTasks(this, range, task), PJob.SERIAL);
+		this.add(new SplitIntoTasks<T>(this, range, task), PJob.SERIAL);
 	}
 
 	/**
@@ -58,11 +60,11 @@ public class PForJob extends PJob {
 	 * Base task for parallel for
 	 * 
 	 */
-	public abstract static class PForTask extends PTask implements Cloneable {
+	public abstract static class PForTask<T extends BlockedRange<T>> extends PTask implements Cloneable {
 
-		protected BlockedRange range;
+		protected T range;
 
-		public PForTask(PJob job, BlockedRange1D range) {
+		public PForTask(PJob job, T range) {
 			super(job);
 			this.range = range;
 		}
@@ -71,23 +73,9 @@ public class PForJob extends PJob {
 			super(null);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#execute()
-		 */
-		@Override
-		public final void execute() {
-
+		protected void setRange(T range) {
+			this.range = range;
 		}
-
-		/**
-		 * Abstract method: this method should contain the body of the task. The
-		 * thread pool will call this function
-		 * 
-		 * @param range
-		 */
-		public abstract void execute(BlockedRange range);
 
 		/**
 		 * set current job
@@ -105,12 +93,12 @@ public class PForJob extends PJob {
 	 * Task to create parallel for tasks (internal)
 	 * 
 	 */
-	public final static class SplitIntoTasks extends PTask {
+	public final static class SplitIntoTasks<T extends BlockedRange<T>> extends PTask {
 
-		private BlockedRange range;
-		private PForTask task;
+		private T range;
+		private PForTask<T> task;
 
-		public SplitIntoTasks(PJob job, BlockedRange range, PForTask task) {
+		public SplitIntoTasks(PJob job, T range, PForTask<T> task) {
 			super(job);
 			this.range = range;
 			this.task = task;
@@ -124,16 +112,16 @@ public class PForJob extends PJob {
 		public void execute() {
 			int threadNum = job.getThreadPool().getPoolSize();
 			for (int i = 0; i < threadNum; i++) {
-				job.add(new SplitterTask(job, range, task, i, threadNum));
+				job.add(new SplitterTask<T>(job, range, task, i, threadNum));
 			}
 		}
 	}
 
-	public final static class SplitterTask extends PTask {
-		private BlockedRange range;
-		private PForTask task;
+	public final static class SplitterTask<T extends BlockedRange<T>> extends PTask {
+		private T range;
+		private PForTask<T> task;
 
-		public SplitterTask(PJob job, BlockedRange range, PForTask task, int number, int total) {
+		public SplitterTask(PJob job, T range, PForTask<T> task, int number, int total) {
 			super(job);
 			this.range = range.createInstance(number, total);
 			this.task = task;
@@ -143,15 +131,18 @@ public class PForJob extends PJob {
 		 * This is the executor method of SplitIntoTasks. New for tasks will be
 		 * created while a new range is available
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
 		public void execute() {
-			List<BlockedRange> tmpRange;
+			List<T> tmpRange;
 
 			int step = job.getThreadPool().getPoolSize();
 			while (((tmpRange = range.splitBlockedRange(step))) != null) {
-				for (BlockedRange tr : tmpRange) {
+				for (T tr : tmpRange) {
 					try {
-						PForTaskWrapper taskObj = new PForTaskWrapper(job, (PForTask) task.clone(), tr);
+						PForTask<T> taskObj = (PForTask<T>) task.clone();
+						taskObj.setRange(tr);
+						taskObj.setPJob(job);
 						job.add(taskObj, PJob.SERIAL);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -161,245 +152,4 @@ public class PForJob extends PJob {
 		}
 	}
 
-	/**
-	 * Wrapper object for PForTask objects. This wrapper provides a PTask
-	 * interface for PForTasks (internal)
-	 */
-	public final static class PForTaskWrapper extends PTask {
-
-		private PForTask task;
-		private BlockedRange range;
-
-		/**
-		 * @param job
-		 */
-		public PForTaskWrapper(PJob job, PForTask task, BlockedRange range) {
-			super(job);
-			this.task = task;
-			this.range = range;
-			task.job = job;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#execute()
-		 */
-		@Override
-		public void execute() {
-			task.execute(range);
-		}
-
-		public PForTask getTask() {
-			return task;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#before()
-		 */
-		@Override
-		public void before() {
-			task.before();
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see com.sun.electric.tool.util.concurrent.patterns.PTask#after()
-		 */
-		@Override
-		public void after() {
-			task.after();
-		}
-
-	}
-
-	/**
-	 * 
-	 * This class provides a interface for parallel for parameters
-	 * 
-	 */
-	public static class Range {
-		private int start;
-		private int end;
-		private int step;
-
-		public Range(int start, int end, int step) {
-			super();
-			this.start = start;
-			this.end = end;
-			this.step = step;
-		}
-
-		public int start() {
-			return start;
-		}
-
-		public int end() {
-			return end;
-		}
-
-		public int step() {
-			return step;
-		}
-
-	}
-
-	/**
-	 * 
-	 * Base interface for ranges
-	 * 
-	 */
-	public interface BlockedRange {
-		public List<BlockedRange> splitBlockedRange(int step);
-
-		public BlockedRange createInstance(int number, int total);
-	}
-
-	/**
-	 * 
-	 * 1 dimensional block range. Use this range for 1 dimensional for loops
-	 * 
-	 */
-	public static class BlockedRange1D implements BlockedRange {
-
-		private Range range;
-		private Integer current = null;
-
-		public BlockedRange1D(int start, int end, int step) {
-			this.range = new Range(start, end, step);
-		}
-
-		public int start() {
-			return range.start;
-		}
-
-		public int end() {
-			return range.end;
-		}
-
-		public int step() {
-			return range.end;
-		}
-
-		/**
-		 * split the current block range into smaller pieces according to step
-		 * width
-		 */
-		public List<BlockedRange> splitBlockedRange(int step) {
-
-			if (current != null && current >= range.end)
-				return null;
-
-			List<BlockedRange> result = ConcurrentCollectionFactory.createArrayList();
-			for (int i = 0; i < step; i++) {
-				if (current == null)
-					current = range.start;
-				if (current >= range.end)
-					return result;
-
-				result.add(new BlockedRange1D(current, Math.min(current + range.step, this.range.end),
-						range.step));
-				current += range.step;
-			}
-			return result;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange
-		 * #createInstance(int, int)
-		 */
-		public BlockedRange createInstance(int number, int total) {
-			int size = this.range.end - this.range.start;
-			int split = size / total;
-			BlockedRange1D result = new BlockedRange1D(number * split, (number + 1 == total) ? this.range.end
-					: (number + 1) * split, this.range.step);
-			return result;
-		}
-	}
-
-	/**
-	 * 
-	 * 2 dimensional range. Use this for 2 nested for loops.
-	 * 
-	 */
-	public static class BlockedRange2D implements BlockedRange {
-
-		private Range col;
-		private Range row;
-
-		private Integer currentCol = null;
-		private Integer currentRow = null;
-
-		public BlockedRange2D(int startRow, int endRow, int stepRow, int startCol, int endCol, int stepCol) {
-			this.col = new Range(startCol, endCol, stepCol);
-			this.row = new Range(startRow, endRow, stepRow);
-		}
-
-		public Range col() {
-			return col;
-		}
-
-		public Range row() {
-			return row;
-		}
-
-		/**
-		 * split current 2-dimensional blocked range into smaller pieces
-		 * according to both step widths
-		 */
-		public List<BlockedRange> splitBlockedRange(int step) {
-
-			if (currentRow != null && currentRow >= row.end) {
-				return null;
-			}
-
-			List<BlockedRange> result = ConcurrentCollectionFactory.createArrayList();
-			for (int i = 0; i < step; i++) {
-				if (currentRow == null) {
-					currentRow = row.start;
-				}
-
-				if (currentCol == null) {
-					currentCol = col.start;
-				}
-
-				if (currentCol >= col.end) {
-					currentCol = col.start;
-					currentRow += row.step;
-
-					if (currentRow >= row.end) {
-						return result;
-					}
-				}
-
-				result.add(new BlockedRange2D(currentRow, Math.min(currentRow + row.step, row.end), row.step,
-						currentCol, Math.min(currentCol + col.step, col.end), col.step));
-
-				currentCol += col.step;
-
-			}
-			return result;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * com.sun.electric.tool.util.concurrent.patterns.PForJob.BlockedRange
-		 * #createInstance(int, int)
-		 */
-		public BlockedRange createInstance(int number, int total) {
-			int size = this.row.end - this.row.start;
-			int split = size / total;
-			BlockedRange2D result = new BlockedRange2D(number * split, (number + 1 == total) ? this.row.end
-					: (number + 1) * split, this.row.step, this.col.start, this.col.end, this.col.step);
-			return result;
-		}
-	}
 }

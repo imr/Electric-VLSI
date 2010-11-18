@@ -56,7 +56,7 @@ public class TestXmlConfigVerification {
         Injection injection2 = new Injection("t3", "t4", null, false);
         Injection injection3 = new Injection("t5", "t6", null, false);
         
-        Parameter parameter = new Parameter("param1", "t3", null, null);
+        Parameter parameter = new Parameter("param1", "t3", null, null, false);
         List<Parameter> parameters = CollectionFactory.createArrayList();
         parameters.add(parameter);
         
@@ -76,12 +76,12 @@ public class TestXmlConfigVerification {
         Injection injection2 = new Injection("t3", "t4", null, false);
         Injection injection3 = new Injection("t5", "t6", null, false);
         
-        Parameter parameter1 = new Parameter("param1", "t3", null, null);
+        Parameter parameter1 = new Parameter("param1", "t3", null, null, false);
         List<Parameter> parameters1 = CollectionFactory.createArrayList();
         parameters1.add(parameter1);
         injection3.setParameters(parameters1);
         
-        Parameter parameter2 = new Parameter("param2", "t5", null, null);
+        Parameter parameter2 = new Parameter("param2", "t5", null, null, false);
         List<Parameter> parameters2 = CollectionFactory.createArrayList();
         parameters1.add(parameter2);
         injection2.setParameters(parameters2);
@@ -101,17 +101,17 @@ public class TestXmlConfigVerification {
         Injection injection3 = new Injection("t5", "t6", null, false);
         Injection injection4 = new Injection("t7", "t8", null, false);
         
-        Parameter p1 = new Parameter("param1", "t3", null, null);
+        Parameter p1 = new Parameter("param1", "t3", null, null, false);
         List<Parameter> parameters = CollectionFactory.createArrayList();
         parameters.add(p1);
         injection3.setParameters(parameters);
         
-        Parameter p2 = new Parameter("param1", "t3", null, null);
+        Parameter p2 = new Parameter("param1", "t3", null, null, false);
         parameters = CollectionFactory.createArrayList();
         parameters.add(p2);
         injection1.setParameters(parameters);
         
-        Parameter p3 = new Parameter("param1", "t7", null, null);
+        Parameter p3 = new Parameter("param1", "t7", null, null, false);
         parameters = CollectionFactory.createArrayList();
         parameters.add(p3);
         injection2.setParameters(parameters);
@@ -129,7 +129,7 @@ public class TestXmlConfigVerification {
     public void testSelfReference() throws LoopExistsException {
         Injection injection1 = new Injection("t1", "t2", null, false);
         
-        Parameter parameter = new Parameter("param1", "t1", null, null);
+        Parameter parameter = new Parameter("param1", "t1", null, null, false);
         List<Parameter> parameters = CollectionFactory.createArrayList();
         parameters.add(parameter);
         
