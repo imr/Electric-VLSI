@@ -28,7 +28,7 @@
     <parent>
         <artifactId>electric</artifactId>
         <groupId>com.sun.electric</groupId>
-        <version>9.00-q</version>
+        <version>9.00-r-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>electric-test</artifactId>
