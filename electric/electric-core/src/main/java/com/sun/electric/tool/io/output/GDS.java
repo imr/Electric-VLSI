@@ -75,7 +75,7 @@ public class GDS extends Geometry
 	private static final int GDSVERSION        =      3;
 	private static final int BYTEMASK          =   0xFF;
 	private static final int DSIZE             =    512;		/* data block */
-	private static final int EXPORTPRESENTATION=      0;		/* centered (was 8 for bottomleft) */
+	private static final int EXPORTPRESENTATION=      0;		/* centered (was 8 for bottom-left) */
 
 	// GDSII bit assignments in STRANS record
 	private static final int STRANS_REFLX      = 0x8000;
@@ -131,7 +131,7 @@ public class GDS extends Geometry
 	/** constant for GDS units */				private double scaleFactor;
 	/** cell naming map */						private Map<Cell,String> cellNames;
 	/** layer number map */						private Map<Layer,GDSLayers> layerNumbers;
-	/** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
+	/** separator string for lib + cell concatenated cell names */  public static final String concatStr = ".";
 	/** Name remapping if NCC annotation */		private Map<String,Set<String>> nameRemapping;
 	private GDSPreferences localPrefs;
 
@@ -526,7 +526,7 @@ public class GDS extends Geometry
 		Rectangle2D polyBounds = poly.getBox();
 		if (polyBounds != null)
 		{
-			// rectangular manhattan shape: make sure it has positive area
+			// rectangular Manhattan shape: make sure it has positive area
 			if (polyBounds.getWidth() == 0 || polyBounds.getHeight() == 0)
                 return;
 
@@ -534,7 +534,7 @@ public class GDS extends Geometry
 			return;
 		}
 
-		// non-manhattan or worse .. direct output
+		// non-Manhattan or worse .. direct output
 		if (points.length == 1)
 		{
 			reportWarning("WARNING: Single point cannot be written in GDS-II");
@@ -669,7 +669,7 @@ public class GDS extends Geometry
 		layerNumbers = new HashMap<Layer,GDSLayers>();
 		nameRemapping = new HashMap<String,Set<String>>();
 
-		// precache the layers in this technology
+		// cache the layers in this technology
 		boolean foundValid = false;
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
@@ -690,7 +690,7 @@ public class GDS extends Geometry
 	/**
 	 * Recursive method to add all cells in the hierarchy to the hashMap
 	 * with unique names.
-	 * @param cell the cell whose nodes and subnode cells will be given unique names.
+	 * @param cell the cell whose nodes and sub-node cells will be given unique names.
 	 * @param cellNames a hashmap, key: cell, value: unique name (String).
 	 */
 	public static void buildUniqueNames(Cell cell, Map<Cell,String> cellNames, int maxLen, boolean upperCase)
@@ -720,12 +720,12 @@ public class GDS extends Geometry
 
 		// see if the name is unique
 		String baseName = name;
-		Collection existing = cellNames.values();
+		Collection<String> existing = cellNames.values();
 
 		// try prepending the library name first
 		if (existing.contains(name))
 		{
-			int liblen = maxLen - (name.length() + concatStr.length());  // space for lib name
+			int liblen = maxLen - (name.length() + concatStr.length());  // space for library name
 			if (liblen > 0)
 			{
 				String lib = cell.getLibrary().getName();
@@ -758,7 +758,7 @@ public class GDS extends Geometry
 
 	/**
 	 * function to create proper GDSII names with restricted character set
-	 * from input string str.
+	 * from input string.
 	 * Uses only 'A'-'Z', '_', $, ?, and '0'-'9'
 	 */
 	private static String makeGDSName(String str, int maxLen, boolean upperCase)
@@ -989,22 +989,20 @@ public class GDS extends Geometry
 			for( ; sofar<count; sofar++)
 				if (reducedPoints.get(sofar).x == reducedPoints.get(start).x &&
 					reducedPoints.get(sofar).y == reducedPoints.get(start).y) break;
-			if (sofar < count) sofar++;
 			outputHeader(HDR_BOUNDARY, 0);
 			outputHeader(HDR_LAYER, layerNumber);
 			outputHeader(HDR_DATATYPE, layerType);
-			outputShort((short)(8 * (sofar+1) + 4));
+			outputShort((short)(8 * ((sofar-start)+1) + 4));
 			outputShort(HDR_XY);
 			for (int i = start; i <= sofar; i++)
 			{
 				int j = i;
-				if (i == sofar) j = 0;
+				if (i == sofar) j = start;
 				outputInt(reducedPoints.get(j).x);
 				outputInt(reducedPoints.get(j).y);
 			}
 			outputHeader(HDR_ENDEL, 0);
 			if (sofar >= count) break;
-			count -= sofar;
 			start = sofar;
 		}
 	}
@@ -1097,7 +1095,7 @@ public class GDS extends Geometry
 	}
 
 	/**
-	 * String of n bytes, starting at ptr
+	 * String of n bytes
 	 * Revised 90-11-23 to convert to upper case (SRP)
 	 */
 	private void outputString(String str, short header, int max)
