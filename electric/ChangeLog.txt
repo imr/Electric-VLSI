@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+BUG: (11/19/10, FS) Not possible to set thread number in ERC (Bug #2960)
+FIX: Use a preinitialize variable to set #threads
+
 BUG: (11/18/10, SMR) GDS output is bad for polygons with holes (Bug #2957).
 FIX: In GDS.outputBoundary() fixed point generation.
 

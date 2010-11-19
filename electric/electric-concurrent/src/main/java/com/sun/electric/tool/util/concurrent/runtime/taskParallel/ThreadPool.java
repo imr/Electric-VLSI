@@ -45,7 +45,7 @@ import com.sun.electric.tool.util.concurrent.utils.UniqueIDGenerator;
  * @author Felix Schmidt
  * 
  */
-public class ThreadPool implements IThreadPool {
+public class ThreadPool extends IThreadPool {
 
 	/**
 	 * states of the thread pool. This is very similar to states of processes or
@@ -281,7 +281,7 @@ public class ThreadPool implements IThreadPool {
 	 * 
 	 * @return initialized thread pool
 	 * @throws PoolExistsException
-	 * @throws UnknownSchedulerException 
+	 * @throws UnknownSchedulerException
 	 */
 	public static ThreadPool initialize() throws PoolExistsException, UnknownSchedulerException {
 		IStructure<PTask> scheduler = Scheduler.createScheduler(SchedulingStrategy.queue, getNumOfThreads());
@@ -319,8 +319,8 @@ public class ThreadPool implements IThreadPool {
 		return ThreadPool.initialize(scheduler, numOfThreads);
 	}
 
-	public static synchronized ThreadPool initialize(SchedulingStrategy taskPool, int numOfThreads, ThreadPoolType type)
-			throws UnknownSchedulerException, PoolExistsException {
+	public static synchronized ThreadPool initialize(SchedulingStrategy taskPool, int numOfThreads,
+			ThreadPoolType type) throws UnknownSchedulerException, PoolExistsException {
 		IStructure<PTask> scheduler = Scheduler.createScheduler(taskPool, numOfThreads);
 		return ThreadPool.initialize(scheduler, numOfThreads, type);
 	}
@@ -348,8 +348,8 @@ public class ThreadPool implements IThreadPool {
 	 * @return initialized thread pool
 	 * @throws PoolExistsException
 	 */
-	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads, ThreadPoolType type)
-			throws PoolExistsException {
+	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads,
+			ThreadPoolType type) throws PoolExistsException {
 		if (ThreadPool.instance == null || instance.state != ThreadPoolState.Started) {
 			instance = new ThreadPool(taskPool, numOfThreads, type);
 			instance.start();
@@ -396,10 +396,14 @@ public class ThreadPool implements IThreadPool {
 		} catch (InterruptedException e) {
 		}
 		ThreadPool.instance = null;
+		IThreadPool.NUM_THREADS = null;
 	}
 
 	private static int getNumOfThreads() {
-		return Runtime.getRuntime().availableProcessors();
+		if (IThreadPool.NUM_THREADS == null) {
+			return Runtime.getRuntime().availableProcessors();
+		}
+		return IThreadPool.NUM_THREADS;
 	}
 
 	/**

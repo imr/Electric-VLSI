@@ -527,7 +527,8 @@ public class ERCWellCheck {
 
         wcVisitor.clear();
         wcVisitor = null;
-
+        
+        IThreadPool.NUM_THREADS = numberOfThreads;
         threadPool = Configuration.lookup(IThreadPool.class);
 
         timer.start();
