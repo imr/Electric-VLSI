@@ -313,11 +313,9 @@ public final class Launcher {
             for (File file : files) {
                 try {
                     urls.add(file.toURI().toURL());
-                    // logger.log(Level.INFO, "Add {0} to classpath...",
-                    // file.getAbsoluteFile());
                     logger.info("Add " + file.getAbsoluteFile() + " to classpath...");
                 } catch (MalformedURLException e) {
-                    e.printStackTrace();
+                    logger.log(Level.SEVERE, "Add " + file.getAbsoluteFile() + " to classpath...", e);
                 }
             }
         }
@@ -340,8 +338,14 @@ public final class Launcher {
         if (homeDirProp != null) {
             File homeDir = new File(homeDirProp);
             File file = new File(homeDir, mavenRepository);
-            if (file.canRead())
+            if (file.canRead()) {
                 repositories.add(file);
+                logger.log(Level.FINE, "Found repository {0}", file);
+            } else if (file.exists()) {
+                logger.log(Level.FINE, "Can't read repository {0}", file);
+            } else {
+                logger.log(Level.FINE, "Not found repository {0}", file);
+            }
         }
 
         if (mavenDependencies.getProtocol().equals("jar")) {
@@ -354,6 +358,10 @@ public final class Launcher {
                 if (file.canRead()) {
                     repositories.add(file);
                     logger.log(Level.FINE, "Found repository {0}", file);
+                } else if (file.exists()) {
+                    logger.log(Level.FINE, "Can't read repository {0}", file);
+                } else {
+                    logger.log(Level.FINE, "Not found repository {0}", file);
                 }
             }
         }
@@ -367,6 +375,10 @@ public final class Launcher {
                         urls.add(url);
                         logger.log(Level.FINE, "Add {0} to class path", url);
                         break;
+                    } else if (file.exists()) {
+                        logger.log(Level.FINE, "Can't read {0}", file);
+                    } else {
+                        logger.log(Level.FINEST, "Not found {0}", file);
                     }
                 }
             }
