@@ -2,6 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 9.00-r: ******************************
+
+BUG: (11/21/10, FS) well check hangs (Bug #2965)
+FIX: handle if number of well areas is smaller then number of threads
+
 ************************* Version 9.00-q: ******************************
 
 BUG: (11/19/10, FS) Not possible to set thread number in ERC (Bug #2960)

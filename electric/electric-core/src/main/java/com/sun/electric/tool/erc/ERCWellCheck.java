@@ -528,6 +528,9 @@ public class ERCWellCheck {
         wcVisitor.clear();
         wcVisitor = null;
         
+        if(numberOfThreads == 0)
+        	numberOfThreads = Runtime.getRuntime().availableProcessors();
+        
         IThreadPool.NUM_THREADS = numberOfThreads;
         threadPool = Configuration.lookup(IThreadPool.class);
 
@@ -728,8 +731,9 @@ public class ERCWellCheck {
 
                 double sizeCellX = cell.getDefWidth() / (double) dim.xDim;
                 double sizeCellY = cell.getDefHeight() / (double) dim.yDim;
+                int stepWidth = (wellCons.size() < numberOfThreads) ? wellCons.size() : wellCons.size() / numberOfThreads;
 
-                Parallel.For(new BlockedRange1D(0, wellCons.size(), wellCons.size() / numberOfThreads),
+                Parallel.For(new BlockedRange1D(0, wellCons.size(), stepWidth),
                         new WorkDistributionTask(sizeCellX, sizeCellY, dim), threadPool);
             }
         }
