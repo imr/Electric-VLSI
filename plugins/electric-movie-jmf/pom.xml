@@ -72,7 +72,7 @@
     
     <scm>
         <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-movie-jmf</connection>
-        <developerConnection>scm:svn:https://svn.java.net/electric~svn/trunk/plugins/electric-movie-jmf</developerConnection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-movie-jmf</developerConnection>
         <url>http://java.net/projects/electric/sources/svn/show/trunk/plugins/electric-movie-jmf</url>
     </scm>
     <repositories>
