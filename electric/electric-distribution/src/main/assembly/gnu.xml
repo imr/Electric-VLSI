@@ -32,7 +32,7 @@
                 <exclude>org.scala-lang:scala-library</exclude>
                 <exclude>*:*:sources:</exclude>
             </excludes>
-            <!--unpack>true</unpack-->
+            <unpack>true</unpack>
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>
         <dependencySet>
@@ -41,48 +41,14 @@
             </includes>
             <unpack>true</unpack>
             <useProjectArtifact>false</useProjectArtifact>
-            <!--unpackOptions>
+            <unpackOptions>
                 <includes>
-                    <include>src/main/java/**</include>  
-                    <include>src/main/scala/**</include>  
-                    <include>src/main/javadoc/**</include>  
+                    <include>**/*.java</include>  
+                    <include>**/*.form</include>  
+                    <include>**/*.scala</include>  
                 </includes>
-            </unpackOptions-->
+            </unpackOptions>
         </dependencySet>
     </dependencySets>
-    <!--moduleSets>
-        <moduleSet>
-            <includes>
-                <include>com.sun.electric:electric-core</include>
-                <include>com.sun.electric:electric-concurrent</include>
-                <include>com.sun.electric:electric-test</include>
-                <include>com.sun.electric:electric-3d</include>
-                <include>com.sun.electric:electric-merge</include>
-            </includes>
-            <sources>
-                <includeModuleDirectory>false</includeModuleDirectory>
-                <fileSets>
-                    <fileSet>
-                        <directory>src/main/java</directory>
-                    </fileSet>
-                    <fileSet>
-                        <directory>src/main/scala</directory>
-                    </fileSet>
-                    <fileSet>
-                        <directory>src/main/javadoc</directory>
-                    </fileSet>
-                </fileSets>
-            </sources>
-            <binaries>
-                <includeDependencies>false</includeDependencies>
-                <unpackOptions>
-                    <excludes>
-                        <exclude>com/sun/electric/tool/simulation/interval/**</exclude>
-                    </excludes>
-                </unpackOptions>
-                <unpack>true</unpack>
-            </binaries>
-        </moduleSet>
-    </moduleSets-->
 </assembly>
 
