@@ -35,7 +35,7 @@
     </parent>
     
     <artifactId>electric-movie-api</artifactId>
-    <version>1.1-alpha-SNAPSHOT</version>
+    <version>1.1-alpha</version>
     <packaging>jar</packaging>
     <name>electric-movie-api</name>
     <description>
@@ -43,9 +43,9 @@
     </description>
 
     <scm>
-        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-movie-api</connection>
-        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/plugins/electric-movie-api</developerConnection>
-        <url>http://java.net/projects/electric/sources/svn/show/trunk/plugins/electric-movie-api</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/tags/electric-movie-api-1.1-alpha</connection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/tags/electric-movie-api-1.1-alpha</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/tags/electric-movie-api-1.1-alpha</url>
     </scm>
     <repositories>
         <repository>
