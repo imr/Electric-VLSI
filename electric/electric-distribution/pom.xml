@@ -147,6 +147,26 @@
         
         <profile>
             <id>gnu</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.sun.electric</groupId>
+                    <artifactId>electric-movie-api</artifactId>
+                    <version>${electricMovieAPIVersion}</version>
+                    <classifier>sources</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>com.sun.electric</groupId>
+                    <artifactId>electric-irsim-api</artifactId>
+                    <version>${electricIrsimAPIVersion}</version>
+                    <classifier>sources</classifier>
+                </dependency>
+                <!--dependency>
+                    <groupId>com.sun.electric</groupId>
+                    <artifactId>electric-concurrent</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>sources</classifier>
+                </dependency-->
+            </dependencies>
             <build>
                 <plugins>
                     <plugin>

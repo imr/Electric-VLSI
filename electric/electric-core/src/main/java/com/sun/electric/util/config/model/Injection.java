@@ -97,7 +97,7 @@ public class Injection {
     }
 
     public ConfigEntry<?> createConfigEntry(Map<String, Injection> allInjections)
-            throws ClassNotFoundException {
+            throws ClassNotFoundException, LinkageError {
         ConfigEntry<?> entry = null;
 
         List<ParameterEntry> paramEntries = null;

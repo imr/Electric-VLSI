@@ -91,7 +91,7 @@ public class Parameter {
 		this.type = type;
 	}
 
-	public ParameterEntry createParameter(Map<String, Injection> allInjections) throws ClassNotFoundException {
+	public ParameterEntry createParameter(Map<String, Injection> allInjections) throws ClassNotFoundException, LinkageError {
 		ParameterEntry entry = null;
 
 		if (this.ref == null) {
@@ -124,7 +124,7 @@ public class Parameter {
 	}
 
 	private ConfigEntry<?> createByReference(Map<String, Injection> allInjections)
-			throws ClassNotFoundException {
+			throws ClassNotFoundException, LinkageError {
 		ConfigEntry<?> entry = ConfigEntries.getEntries().get(this.ref);
 
 		if (entry != null) {

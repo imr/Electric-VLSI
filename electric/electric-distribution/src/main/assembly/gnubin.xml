@@ -16,7 +16,21 @@
             <source>../COPYING.txt</source>
         </file>
     </files>
-    <moduleSets>
+    <dependencySets>
+        <dependencySet>
+            <excludes>
+                <exclude>com.sun.electric:electric-movie-jmf</exclude>
+                <exclude>com.sun.electric:electric-irsim</exclude>
+                <exclude>org.beanshell:bsh</exclude>
+                <exclude>org.python:jython</exclude>
+                <exclude>org.scala-lang:scala-library</exclude>
+                <exclude>*:*:sources:</exclude>
+            </excludes>
+            <unpack>true</unpack>
+            <useProjectArtifact>false</useProjectArtifact>
+        </dependencySet>
+    </dependencySets>
+    <!--moduleSets>
         <moduleSet>
             <includes>
                 <include>com.sun.electric:electric-core</include>
@@ -35,6 +49,6 @@
                 <unpack>true</unpack>
             </binaries>
         </moduleSet>
-    </moduleSets>
+    </moduleSets-->
 </assembly>
 
