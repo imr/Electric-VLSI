@@ -61,8 +61,8 @@
         <jythonVersion>2.5.0</jythonVersion>
         <specsVersion>1.6.5</specsVersion>
         
-        <electricMovieAPIVersion>1.0</electricMovieAPIVersion>
-        <electricMovieJMFVersion>1.0-alpha</electricMovieJMFVersion>
+        <electricMovieAPIVersion>1.1-alpha</electricMovieAPIVersion>
+        <electricMovieJMFVersion>1.0-beta</electricMovieJMFVersion>
         <electricIrsimAPIVersion>0.1-alpha-1</electricIrsimAPIVersion>
         <electricIrsimVersion>0.1-alpha-1</electricIrsimVersion>
     </properties>
