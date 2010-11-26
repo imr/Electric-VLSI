@@ -4,13 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+************************* Version 9.00-q: ******************************
+
 BUG: Too verbose message when there no scala runtime.
 FIX: Handle LinkageError during parsing econfig.xml .
 
 BUG: (11/21/10, FS) well check hangs (Bug #2965)
 FIX: handle if number of well areas is smaller then number of threads
-
-************************* Version 9.00-q: ******************************
 
 BUG: (11/19/10, FS) Not possible to set thread number in ERC (Bug #2960)
 FIX: Use a preinitialize variable to set #threads
