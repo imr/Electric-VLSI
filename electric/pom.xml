@@ -35,7 +35,7 @@
     </parent>
     
     <artifactId>electric</artifactId>
-    <version>9.00-r-SNAPSHOT</version>
+    <version>9.00-q-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <groupId>com.sun.electric</groupId>
