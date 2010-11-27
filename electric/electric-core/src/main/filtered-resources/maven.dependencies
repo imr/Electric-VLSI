@@ -3,8 +3,8 @@ com/sun/electric/electric-test/${project.version}/electric-test-${project.versio
 com/sun/electric/electric-3d/${project.version}/electric-3d-${project.version}.jar
 com/sun/electric/electric-merge/${project.version}/electric-merge-${project.version}.jar
 com/sun/electric/electric-sunlabs/${project.version}/electric-sunlabs-${project.version}.jar
-com/sun/electric/electric-movie-api/1.0/electric-movie-api-1.0.jar
-com/sun/electric/electric-movie-jmf/1.0-alpha/electric-movie-jmf-1.0-alpha.jar
+com/sun/electric/electric-movie-api/1.1-alpha/electric-movie-api-1.1-alpha.jar
+com/sun/electric/electric-movie-jmf/1.0-beta/electric-movie-jmf-1.0-beta.jar
 com/sun/electric/electric-irsim-api/0.1-alpha-1/electric-irsim-api-0.1-alpha-1.jar
 com/sun/electric/electric-irsim/0.1-alpha-1/electric-irsim-0.1-alpha-1.jar
 com/apple/AppleJavaExtensions/1.4/AppleJavaExtensions-1.4.jar
