@@ -18,9 +18,9 @@
         <file>
             <source>../ChangeLog.txt</source>
         </file>
-        <file>
+        <!--file>
             <source>../OLDChangeLog.txt</source>
-        </file>
+        </file-->
     </files>
     <dependencySets>
         <dependencySet>
