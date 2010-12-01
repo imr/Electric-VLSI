@@ -413,7 +413,7 @@ public class About extends EDialog
         Bottom.add(jLabel9, gridBagConstraints);
 
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel8.setText("Copyright (c) 2007 Sun Microsystems and Static Free Software");
+        jLabel8.setText("Copyright (c) 2010 Oracle and/or its affiliates");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;

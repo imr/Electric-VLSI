@@ -1,7 +1,13 @@
 <!-- HEADER 1-4-2: Source Code in the JAR Files -->
 
-The first step in building the source code is to extract it from the ".jar" file.
-To do this, place the ".jar" file in its own directory, change to that directory, and run the following command:
+Two Electric downloads are available from the Free Software Foundation (GNU): with and without source code.
+Therefore it is possible to build Electric from the source code in the download.
+Note, however, that this is not the preferred way to access the source code because it does not
+include the various dependencies.
+The preferred way to access the source code is to use Maven and to access the code on java.net.
+<P>
+To extract the source code from the ".jar" file, place it in its own directory,
+change to that directory, and run the following command:
 <BR>
 <CODE>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jar xf electric-<I>version</I>.jar</CODE>
 <BR>
@@ -10,9 +16,7 @@ in order to more easily run "jar" and other commands.)
 The "jar" command will create a number of files and folders on your disk:
 <UL>
 <LI><B>com</B> is a folder with all of the source code.</LI>
-<LI><B>packaging</B> is a folder with support files for building Electric.</LI>
 <LI><B>META-INF</B> is a support folder used when running the ".jar" file and can be deleted.</LI>
-<LI><B>build.xml</B> is an Ant script for building Electric.</LI>
 <LI><B>ChangeLog.txt</B> is a detailed list of changes to Electric.</LI>
 <LI><B>COPYING.txt</B> is the GNU copyright document that applies to your use of Electric.</LI>
 <LI><B>README.txt</B> is a file of notes about Electric.</LI>
@@ -33,7 +37,7 @@ Here are some notes about building Electric under Eclipse:
 <LI><B>Setup Workspace.</B>  The Workspace is a point in the file system where all source code can be found.
 You can use the directory where you extracted the Electric source code, or any point above that.</LI>
 <LI><B>Create Project.</B> The Project defines a single program that is being built.
-Use <B>New Project</B> under the <B>File</B> menu and choose "Java Project".
+Use <B>File / New / Project</B> and choose "Java Project".
 Choose "Create project from existing source" and browse to the folder where the files were extracted.
 Give the project a name, for example, "Electric."</LI>
 <LI><B>Configure Source Code.</B> The "Source" tab of the Eclipse project settings shows the files that were discovered.

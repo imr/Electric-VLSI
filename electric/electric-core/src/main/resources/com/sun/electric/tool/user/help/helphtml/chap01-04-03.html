@@ -8,8 +8,8 @@ you must have these tools installed on your computer:
 <li>Apache Maven either version 3.0 or version 2.2.1 from <a href="http://maven.apache.org">maven.apache.org</a>.</li>
 </ol>
 <P>
-The following variable should be defined in environment:<br>
-&nbsp;&nbsp;&nbsp;JAVA_PATH - path to JDK root directory
+The following variable should be defined:<br>
+&nbsp;&nbsp;&nbsp;<b>JAVA_PATH</b> path to JDK root directory
 <P>
 Next, download the latest sources using Subversion.
 The first time you do this, issue these commands:<br>
@@ -29,11 +29,7 @@ Next run the Electric:<br>
 or<br>
 &nbsp;&nbsp;&nbsp;<code>WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat</code>
 <P>
-You might execute Electric with larger heap size if your design is large.<br>
-&nbsp;&nbsp;&nbsp;<code>set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"</code><br>
-&nbsp;&nbsp;&nbsp;<code>WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric</code><br>
-or<br>
-&nbsp;&nbsp;&nbsp;<code>set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"</code><br>
-&nbsp;&nbsp;&nbsp;<code>WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat</code>
+If your design is large and you need more memory, you can request a larger heap size with this command:<br>
+&nbsp;&nbsp;&nbsp;<code>set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"</code>
 
 <!-- TRAILER -->
