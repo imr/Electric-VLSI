@@ -1,0 +1,39 @@
+<!-- HEADER 1-4-3: Command-line Access to the java.net Repository -->
+
+Before attempting to build Electric from the java.net,
+you must have these tools installed on your computer:
+<ol>
+<li>JDK 1.5 or later (a JRE is sufficient for running Electric, but a JDK is necessary to build it).</li>
+<li>Subversion.  This is the source-code control system.</li>
+<li>Apache Maven either version 3.0 or version 2.2.1 from <a href="http://maven.apache.org">maven.apache.org</a>.</li>
+</ol>
+<P>
+The following variable should be defined in environment:<br>
+&nbsp;&nbsp;&nbsp;JAVA_PATH - path to JDK root directory
+<P>
+Next, download the latest sources using Subversion.
+The first time you do this, issue these commands:<br>
+&nbsp;&nbsp;&nbsp;<code>cd WORK-DIRECTORY</code><br>
+&nbsp;&nbsp;&nbsp;<code>svn --username USERNAME checkout https://svn.java.net/svn/electric~svn/trunk/electric</code><br>
+&nbsp;&nbsp;&nbsp;<code>cd electric</code><br>
+Once the code has been downloaded, it can be updated with these commands:<br>
+&nbsp;&nbsp;&nbsp;<code>cd WORK-DIRECTORY/electric</code><br>
+&nbsp;&nbsp;&nbsp;<code>svn update</code>
+<P>
+Next, compile the sources and install jars with Electric binary components into the Maven local repository.
+The default location of the Maven local repository on Unix systems is ~/.m2/repository<br>
+&nbsp;&nbsp;&nbsp;<code>mvn -DskipTests=true install</code>
+<P>
+Next run the Electric:<br>
+&nbsp;&nbsp;&nbsp;<code>WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric</code><br>
+or<br>
+&nbsp;&nbsp;&nbsp;<code>WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat</code>
+<P>
+You might execute Electric with larger heap size if your design is large.<br>
+&nbsp;&nbsp;&nbsp;<code>set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"</code><br>
+&nbsp;&nbsp;&nbsp;<code>WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric</code><br>
+or<br>
+&nbsp;&nbsp;&nbsp;<code>set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"</code><br>
+&nbsp;&nbsp;&nbsp;<code>WORK-DIRECTORY/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat</code>
+
+<!-- TRAILER -->
