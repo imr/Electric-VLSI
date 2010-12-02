@@ -32,7 +32,7 @@ import java.util.List;
  * @author Felix Schmidt
  * 
  */
-public class BlockedRange1D implements BlockedRange<BlockedRange1D> {
+public class BlockedRange1D extends BlockedRange<BlockedRange1D> {
 
 	private Range range;
 	private Integer current = null;

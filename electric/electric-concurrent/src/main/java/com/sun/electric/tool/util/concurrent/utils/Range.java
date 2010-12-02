@@ -31,9 +31,9 @@ package com.sun.electric.tool.util.concurrent.utils;
  *
  */
 public class Range {
-	private int start;
-	private int end;
-	private int step;
+	protected int start;
+	protected int end;
+	protected int step;
 
 	public Range(int start, int end, int step) {
 		super();

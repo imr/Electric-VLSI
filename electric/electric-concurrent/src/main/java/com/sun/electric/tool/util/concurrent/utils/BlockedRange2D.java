@@ -32,7 +32,7 @@ import java.util.List;
  * @author Felix Schmidt
  * 
  */
-public class BlockedRange2D implements BlockedRange<BlockedRange2D> {
+public class BlockedRange2D extends BlockedRange<BlockedRange2D> {
 
 	private Range col;
 	private Range row;

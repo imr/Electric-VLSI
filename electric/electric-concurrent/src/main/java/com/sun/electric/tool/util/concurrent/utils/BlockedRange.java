@@ -32,8 +32,15 @@ import java.util.List;
  * @author Felix Schmidt
  * 
  */
-public interface BlockedRange<T extends BlockedRange<T>> {
-	public List<T> splitBlockedRange(int step);
+public abstract class BlockedRange<T extends BlockedRange<T>> {
+	
+	protected int blockID;
+	
+	public abstract List<T> splitBlockedRange(int step);
 
-	public T createInstance(int number, int total);
+	public abstract T createInstance(int number, int total);
+	
+	public int getBlockID() {
+		return this.blockID;
+	}
 }
