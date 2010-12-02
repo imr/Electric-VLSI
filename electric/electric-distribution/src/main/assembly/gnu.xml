@@ -18,9 +18,9 @@
         <file>
             <source>../ChangeLog.txt</source>
         </file>
-        <!--file>
-            <source>../OLDChangeLog.txt</source>
-        </file-->
+        <file>
+            <source>src/main/assembly/build.xml</source>
+        </file>
     </files>
     <dependencySets>
         <dependencySet>
@@ -29,7 +29,6 @@
                 <exclude>com.sun.electric:electric-irsim</exclude>
                 <exclude>org.beanshell:bsh</exclude>
                 <exclude>org.python:jython</exclude>
-                <exclude>org.scala-lang:scala-library</exclude>
                 <exclude>*:*:sources:</exclude>
             </excludes>
             <unpack>true</unpack>
