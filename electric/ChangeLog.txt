@@ -4,12 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+IMP: (12/1/10, DN) Rename package com.sun.electric.scala to com.sun.electric.database.geometry.merge .
+
 BUG: (12/2/10, FS) Test errors in BlockedRangeTest (electric-concurrent)? (Bug #2967)
 FIX: fix heap size issue
 
+IMP: (12/1/10, DN) Add build.xml and scala runtime to the GNU distributions.
+
 ************************* Version 9.00-q: ******************************
 
-BUG: Too verbose message when there no scala runtime.
+BUG: (11/25/10, DN) Too verbose message when there no scala runtime.
 FIX: Handle LinkageError during parsing econfig.xml .
 
 BUG: (11/21/10, FS) well check hangs (Bug #2965)
