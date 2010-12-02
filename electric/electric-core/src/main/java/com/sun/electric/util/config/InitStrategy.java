@@ -54,7 +54,7 @@ public abstract class InitStrategy {
             try {
                 config.addConfigEntry(LayoutMergerFactory.class.getName(),
                         ConfigEntry.createForConstructor(
-                                Class.forName("com.sun.electric.scala.LayoutMergerFactoryImpl"), false));
+                                Class.forName("com.sun.electric.database.geometry.merge.LayoutMergerFactoryImpl"), false));
             } catch (ClassNotFoundException e) {
                 Configuration.logger.log(Level.INFO,
                         "Didn't find scala implementation of LayoutMergerFactory");

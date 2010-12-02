@@ -31,7 +31,7 @@
 		name="com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool"
 		factoryMethod="initialize" />
 
-	<electric:injection implementation="com.sun.electric.scala.LayoutMergerFactoryImpl"
+	<electric:injection implementation="com.sun.electric.database.geometry.merge.LayoutMergerFactoryImpl"
 		name="com.sun.electric.database.geometry.bool.LayoutMergerFactory" />
 
 	<electric:injection implementation="com.sun.electric.plugins.irsim.IAnalyzerImpl"
