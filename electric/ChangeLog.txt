@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+BUG: (12/2/10, FS) Test errors in BlockedRangeTest (electric-concurrent)? (Bug #2967)
+FIX: fix heap size issue
+
 ************************* Version 9.00-q: ******************************
 
 BUG: Too verbose message when there no scala runtime.
