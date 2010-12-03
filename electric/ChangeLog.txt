@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+IMP: (12/3/10, DN) Repair build in maven-2.3.1 in electric-parent.
+     Switch to version com.sun.electric:electric-parent:2 
+
 BUG: (12/2/10, GVG) java.lang.OutOfMemoryError while running "mvn install" (Bug #2969)
 FIX: Increased maxmem in pom.xml to 256m
 
