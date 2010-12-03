@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+BUG: (12/2/10, GVG) java.lang.OutOfMemoryError while running "mvn install" (Bug #2969)
+FIX: Increased maxmem in pom.xml to 256m
+
 IMP: (12/1/10, DN) Rename package com.sun.electric.scala to com.sun.electric.database.geometry.merge .
 
 BUG: (12/2/10, FS) Test errors in BlockedRangeTest (electric-concurrent)? (Bug #2967)
