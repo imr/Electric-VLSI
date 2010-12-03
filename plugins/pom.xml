@@ -33,7 +33,7 @@
     <parent>
         <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
-        <version>2-alpha-1</version>
+        <version>2</version>
         <relativePath>../pom/electric-parent/pom.xml</relativePath>
     </parent>
 
