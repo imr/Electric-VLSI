@@ -175,11 +175,6 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <version>3.0-beta-3</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
                     <version>2.1.2</version>
                 </plugin>
@@ -197,25 +192,6 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <configuration>
-                    <reportPlugins>
-                        <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-project-info-reports-plugin</artifactId>
-                            <version>2.2</version>
-                            <configuration>
-                                <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
-                                <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-                            </configuration>
-                        </plugin>
-                    </reportPlugins>
-                </configuration>
-            </plugin>
-        </plugins>
         <extensions>
             <extension>
                 <!-- Uploading to java.net maven2 repository -->
@@ -225,6 +201,48 @@
             </extension>
         </extensions>
     </build>
+
+    <profiles>
+        <profile>
+            <id>maven-3</id>
+            <activation>
+                <file>
+          <!--  This employs that the basedir expression is only recognized by Maven 3.x (see MNG-2363) -->
+                    <exists>${basedir}</exists>
+                </file>
+            </activation>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-site-plugin</artifactId>
+                            <version>3.0-beta-3</version>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-site-plugin</artifactId>
+                        <configuration>
+                            <reportPlugins>
+                                <plugin>
+                                    <groupId>org.apache.maven.plugins</groupId>
+                                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                                    <version>2.2</version>
+                                    <configuration>
+                                        <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                                        <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                                    </configuration>
+                                </plugin>
+                            </reportPlugins>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <scm>
         <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/pom/electric-parent</connection>
