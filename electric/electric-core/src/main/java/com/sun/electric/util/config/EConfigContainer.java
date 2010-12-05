@@ -72,7 +72,7 @@ public class EConfigContainer extends Configuration {
             try {
                 result = entry.getInstance();
             } catch (Throwable e) {
-                e.printStackTrace();
+                logger.log(Level.CONFIG, "Implementation of " + name + " not found", e);
             }
         }
         return result;
