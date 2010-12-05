@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+BUG: (12/5/10, DN) javax/media/Manager on MacOSX? No 3D Control dialog?
+FIX: Less print when JMF is absent.
+
 IMP: (12/3/10, DN) Repair build in maven-2.3.1 in electric-parent.
      Switch to version com.sun.electric:electric-parent:2 
 
