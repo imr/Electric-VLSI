@@ -5,7 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 9.00-r: ******************************
 
 BUG: (12/7/10, DN) maven.dependencies in electric-core includes electric-sunlabs (Bug #2975)
-FIX: Don't include maven.dependencies in huge-jar distribution (bin, gnu, gnubin).
+FIX: Exclude maven.dependencies in huge-jar distribution (bin, gnu, gnubin).
 
 BUG: (12/5/10, DN) javax/media/Manager on MacOSX? No 3D Control dialog?
 FIX: Less print when JMF is absent.
