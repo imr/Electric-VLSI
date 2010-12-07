@@ -35,8 +35,9 @@ import javax.swing.JMenuItem;
  * Generic Electric menu.
  */
 public class EMenu extends EMenuItem {
-    /** static menu items */                                                final List<EMenuItem> items;
-    
+	/** static menu items */
+	final List<EMenuItem> items;
+
     /**
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
