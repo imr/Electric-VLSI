@@ -26,6 +26,11 @@
                 <exclude>*:*:sources:</exclude>
             </excludes>
             <unpack>true</unpack>
+            <unpackOptions>
+                <excludes>
+                    <exclude>maven.dependencies</exclude>
+                </excludes>
+            </unpackOptions>
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>
     </dependencySets>

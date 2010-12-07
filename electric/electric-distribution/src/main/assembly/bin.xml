@@ -20,6 +20,11 @@
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
             <unpack>true</unpack>
+            <unpackOptions>
+                <excludes>
+                    <exclude>maven.dependencies</exclude>
+                </excludes>
+            </unpackOptions>
         </dependencySet>
     </dependencySets>
 </assembly>
