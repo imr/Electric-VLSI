@@ -41,7 +41,7 @@
                 <configuration>
                     <verbose>true</verbose>
                     <fork>true</fork>
-                    <maxmem>256m</maxmem>
+                    <maxmem>384m</maxmem>
                 </configuration>
             </plugin>
             <plugin>
