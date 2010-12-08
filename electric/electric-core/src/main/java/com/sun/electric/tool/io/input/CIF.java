@@ -62,7 +62,7 @@ import java.util.Set;
  */
 public class CIF extends Input<Object>
 {
-	/** max depth of minmax stack */		private static final int MAXMMSTACK = 50;
+	/** max depth of min/max stack */		private static final int MAXMMSTACK = 50;
 	/** max value that can add extra digit */private static final int BIGSIGNED = ((0X7FFFFFFF-9)/10);
 
 	//	specific syntax errors
@@ -87,7 +87,7 @@ public class CIF extends Input<Object>
 	private static final int NOSPACE    = 118;
 	private static final int NONAME     = 119;
 
-	// enumerated types for cif 2.0 parser
+	// enumerated types for CIF 2.0 parser
 //	private static final int SEMANTICERROR = 0;
 	private static final int SYNTAXERROR   = 1;
 	private static final int WIRECOM       = 2;
@@ -143,7 +143,7 @@ public class CIF extends Input<Object>
 	static class BackCIFCell
 	{
 		/** bounding box of cell */						int  l, r, t, b;
-		/** the address of the cif cell */				Cell addr;
+		/** the address of the CIF cell */				Cell addr;
 	};
 
 	static class BackCIFList
@@ -314,11 +314,11 @@ public class CIF extends Input<Object>
 	/** symbol call object */
 	static class FrontCall extends FrontObjBase
 	{
-		/** rest is noncritical */				int symNumber;
+		/** rest is non-critical */				int symNumber;
 		int lineNumber;
 		FrontSymbol unID;
 		FrontMatrix matrix;
-		/** trans list for this call */			FrontTransformList transList;
+		/** transformation list for this call */	FrontTransformList transList;
 	};
 
 	static class FrontGeomName extends FrontObjBase
@@ -448,10 +448,10 @@ public class CIF extends Input<Object>
 
 		if (initFind()) return null;
 
-		// parse the cif and create a listing
+		// parse the CIF and create a listing
 		if (interpret()) return null;
 
-		// instantiate the cif as nodes
+		// instantiate the CIF as nodes
         setProgressNote("Storing CIF in database...");
 		if (listToNodes(lib)) return null;
 
@@ -660,7 +660,7 @@ public class CIF extends Input<Object>
 	{
 		// trivial test to prevent atan2 domain errors
 		if (pt.x == 0 && pt.y == 0) return;
-		switch (deg)	// do the manhattan cases directly
+		switch (deg)	// do the Manhattan cases directly
 		{
 			case 0:
 			case 3600:	// just in case
@@ -744,7 +744,7 @@ public class CIF extends Input<Object>
 		initParser();
 		initInterpreter();
 		inFromFile();
-		parseFile();		// read in the cif
+		parseFile();		// read in the CIF
 		doneParser();
 
 		if (numFatalErrors > 0) return true;
@@ -1235,7 +1235,7 @@ public class CIF extends Input<Object>
 		int lim = wpath.pLength;
 		Point prev = removePoint(wpath);
 
-		// do not use roundflashes with zero-width wires
+		// do not use round-flashes with zero-width wires
 		if (width != 0 && !localPrefs.squareWires)
 		{
 			boundsFlash(width, prev);
@@ -1245,7 +1245,7 @@ public class CIF extends Input<Object>
 		{
 			Point curr = removePoint(wpath);
 
-			// do not use roundflashes with zero-width wires
+			// do not use round-flashes with zero-width wires
 			if (width != 0 && !localPrefs.squareWires)
 			{
 				boundsFlash(width, curr);
@@ -1285,7 +1285,7 @@ public class CIF extends Input<Object>
 		minMaxStackBottom = new int[MAXMMSTACK];
 		minMaxStackTop = new int[MAXMMSTACK];
 		symbolTable = new HashMap<Integer,FrontSymbol>();
-		minMaxStackPtr = -1;			// minmax stack pointer
+		minMaxStackPtr = -1;			// min/max stack pointer
 	}
 
 	private void initMatrices()
@@ -1645,7 +1645,7 @@ public class CIF extends Input<Object>
 				}
 		}
 
-		// by now we have a syntactically valid command although it might be missing a semi-colon
+		// by now we have a syntactically valid command although it might be missing a semicolon
 		switch (command)
 		{
 			case WIRECOM:
@@ -1714,8 +1714,8 @@ public class CIF extends Input<Object>
 		FrontLabel obj = new FrontLabel();
 		if (isInCellDefinition && cellScaleFactor != 1.0)
 		{
-			pt.x = (int)(cellScaleFactor * pt.x);
-			pt.y = (int)(cellScaleFactor * pt.y);
+			pt.x = (int)Math.round(cellScaleFactor * pt.x);
+			pt.y = (int)Math.round(cellScaleFactor * pt.y);
 		}
 		obj.pos = pt;
 		obj.name = name;
@@ -1749,8 +1749,8 @@ public class CIF extends Input<Object>
 		obj.layer = lay;
 		if (isInCellDefinition && cellScaleFactor != 1.0)
 		{
-			pt.x = (int)(cellScaleFactor * pt.x);
-			pt.y = (int)(cellScaleFactor * pt.y);
+			pt.x = (int)Math.round(cellScaleFactor * pt.x);
+			pt.y = (int)Math.round(cellScaleFactor * pt.y);
 		}
 
 		pushTransform();
@@ -1815,17 +1815,17 @@ public class CIF extends Input<Object>
 
 		if (isInCellDefinition && cellScaleFactor != 1.0)
 		{
-			length = (int) (cellScaleFactor * length);
-			width = (int) (cellScaleFactor * width);
-			center.x = (int) (cellScaleFactor * center.x);
-			center.y = (int) (cellScaleFactor * center.y);
+			length = (int)Math.round(cellScaleFactor * length);
+			width = (int)Math.round(cellScaleFactor * width);
+			center.x = (int)Math.round(cellScaleFactor * center.x);
+			center.y = (int)Math.round(cellScaleFactor * center.y);
 		}
 
 		Rectangle box = boundsBox(length, width, center, xr, yr);
 		int tl = box.x;   int tr = box.x + box.width;
 		int tb = box.y;   int tt = box.y + box.height;
 
-		// check for manhattan box
+		// check for Manhattan box
 		int halfW = width/2;
 		int halfL = length/2;
 		if (
@@ -1838,7 +1838,7 @@ public class CIF extends Input<Object>
 			(center.y-halfL) == tb && (center.y+halfL) == tt)
 		)
 		{
-			// a manhattan box
+			// a Manhattan box
 			FrontManBox obj = new FrontManBox();
 			obj.layer = currentLayer;
 			if (yr == 0)
@@ -1849,7 +1849,7 @@ public class CIF extends Input<Object>
 				obj.bb.t = tt;
 			} else
 			{
-				// this assumes that bb is unaffected by rotation
+				// this assumes that bounding box is unaffected by rotation
 				obj.bb.l = center.x-halfW;
 				obj.bb.r = center.x+halfW;
 				obj.bb.b = center.y-halfL;
@@ -1903,9 +1903,9 @@ public class CIF extends Input<Object>
 		obj.layer = currentLayer;
 		if (isInCellDefinition && cellScaleFactor != 1.0)
 		{
-			diameter = (int) (cellScaleFactor * diameter);
-			center.x = (int) (cellScaleFactor * center.x);
-			center.y = (int) (cellScaleFactor * center.y);
+			diameter = (int)Math.round(cellScaleFactor * diameter);
+			center.x = (int)Math.round(cellScaleFactor * center.x);
+			center.y = (int)Math.round(cellScaleFactor * center.y);
 		}
 		obj.diameter = diameter;
 		obj.center = center;
@@ -1934,7 +1934,7 @@ public class CIF extends Input<Object>
 		int dx = length/2;
 		int dy = width/2;
 
-		pushTransform();	// newtrans
+		pushTransform();	// new transformation
 		rotateMatrix(xr, yr);
 		translateMatrix(center.x, center.y);
 		Point temp = new Point(dx, dy);
@@ -1982,8 +1982,8 @@ public class CIF extends Input<Object>
 			{
 				if (isInCellDefinition && cellScaleFactor != 1.0)
 				{
-					temp.xt = (int)(cellScaleFactor * temp.xt);
-					temp.yt = (int)(cellScaleFactor * temp.yt);
+					temp.xt = (int)Math.round(cellScaleFactor * temp.xt);
+					temp.yt = (int)Math.round(cellScaleFactor * temp.yt);
 				}
 				translateMatrix(temp.xt, temp.yt);
 			} else if (temp.kind == ROTATE)
@@ -2189,12 +2189,12 @@ public class CIF extends Input<Object>
 		{
 			sPath = new FrontPath();
 			scalePath(a, sPath);		// scale all points
-			width = (int)(cellScaleFactor * width);
+			width = (int)Math.round(cellScaleFactor * width);
 			tPath = sPath;
 		}
 		obj.width = width;
 
-		FrontPath bbpath = new FrontPath();		// get a new path for bb use
+		FrontPath bbpath = new FrontPath();		// get a new path for bounding box use
 		copyPath(tPath, bbpath);
 		boundsWire(width, bbpath);
 		obj.points = new Point[length];
@@ -2213,7 +2213,7 @@ public class CIF extends Input<Object>
 		int half = (width+1)/2;
 		int limit = pPath.pLength;
 
-		pushTransform();	// newtrans
+		pushTransform();	// new transformation
 		initMinMax(transformPoint(removePoint(pPath)));
 		for (int i = 1; i < limit; i++)
 		{
@@ -2341,7 +2341,7 @@ public class CIF extends Input<Object>
 			tPath = sPath;
 		}
 
-		FrontPath bbpath = new FrontPath();		// get a new path for bb use
+		FrontPath bbpath = new FrontPath();		// get a new path for bounding box use
 		copyPath(tPath, bbpath);
 		Rectangle box = getPolyBounds(bbpath);
 		obj.bb.l = box.x;
@@ -2379,7 +2379,7 @@ public class CIF extends Input<Object>
 	}
 
 	/**
-	 * find the bb for this particular call
+	 * find the bounding box for this particular call
 	 */
 	private void findCallBounds(FrontCall object)
 	{
@@ -2398,19 +2398,19 @@ public class CIF extends Input<Object>
 		}
 		thisST.expanded = true;		// mark as under expansion
 
-		findBounds(thisST);		// get the bb of the symbol in its FrontSymbol
+		findBounds(thisST);		// get the bounding box of the symbol in its FrontSymbol
 		object.unID = thisST;	// get this symbol's id
 
 		pushTransform();			// set up a new frame of reference
 		applyLocal(object.matrix);
 		Point temp = new Point();
-		temp.x = thisST.bounds.l;   temp.y = thisST.bounds.b;	// ll
+		temp.x = thisST.bounds.l;   temp.y = thisST.bounds.b;	// lower-left
 		Point comperror = transformPoint(temp);
 		initMinMax(comperror);
 		temp.x = thisST.bounds.r;
 		comperror = transformPoint(temp);
 		minMax(comperror);
-		temp.y = thisST.bounds.t;	// ur
+		temp.y = thisST.bounds.t;	// upper-right
 		comperror = transformPoint(temp);
 		minMax(comperror);
 		temp.x = thisST.bounds.l;
@@ -2419,14 +2419,14 @@ public class CIF extends Input<Object>
 
 		object.bb.l = getMinMaxMinX();   object.bb.r = getMinMaxMaxX();
 		object.bb.b = getMinMaxMinY();   object.bb.t = getMinMaxMaxY();
-		doneMinMax();		// object now has transformed bb of the symbol
+		doneMinMax();		// object now has transformed bounding box of the symbol
 		popTransform();
 
 		thisST.expanded = false;
 	}
 
 	/**
-	 * find bb for sym
+	 * find bounding box for sym
 	 */
 	private void findBounds(FrontSymbol sym)
 	{
@@ -2446,7 +2446,7 @@ public class CIF extends Input<Object>
 
 		while (ob != null)
 		{
-			// find bb for symbol calls, all primitive are done already
+			// find bounding box for symbol calls, all primitive are done already
 			if (ob instanceof FrontCall) findCallBounds((FrontCall)ob);
 			Point temp = new Point();
 			temp.x = ob.bb.l;   temp.y = ob.bb.b;
@@ -2491,8 +2491,8 @@ public class CIF extends Input<Object>
 		{
 			Point temp = removePoint(src);
 
-			temp.x = (int)(cellScaleFactor * temp.x);
-			temp.y = (int)(cellScaleFactor * temp.y);
+			temp.x = (int)Math.round(cellScaleFactor * temp.x);
+			temp.y = (int)Math.round(cellScaleFactor * temp.y);
 			appendPoint(dest, temp);
 		}
 	}
@@ -2512,7 +2512,7 @@ public class CIF extends Input<Object>
 	{
 		int limit = pPath.pLength;
 
-		pushTransform();	// newtrans
+		pushTransform();	// new transformation
 		initMinMax(transformPoint(removePoint(pPath)));
 		for (int i = 1; i < limit; i++)
 		{

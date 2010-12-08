@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+BUG: (12/8/10, SMR) CIF input loses precision in scaled cells (Bug #2971)
+FIX: In CIF.java, round values after scaling them.
+
 BUG: (12/7/10, DN) maven.dependencies in electric-core includes electric-sunlabs (Bug #2975)
 FIX: Exclude maven.dependencies in huge-jar distribution (bin, gnu, gnubin).
 
