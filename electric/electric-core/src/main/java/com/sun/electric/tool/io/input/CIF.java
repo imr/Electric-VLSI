@@ -395,7 +395,7 @@ public class CIF extends Input<Object>
 	/** set of unknown layers */			private Set<String>      unknownLayerNames;
 	/** address of cell being defined */	private Cell             cellBeingBuilt;
 	/** name of the current cell */			private String           currentNodeProtoName;
-	/** the line being read */				private StringBuffer     inputBuffer;
+	/** the line being read */				private StringBuilder    inputBuffer;
 
 	private CIFPreferences localPrefs;
 
@@ -1322,7 +1322,7 @@ public class CIF extends Input<Object>
 		if (resetInputBuffer)
 		{
 			resetInputBuffer = false;
-			inputBuffer = new StringBuffer();
+			inputBuffer = new StringBuilder();
 			charactersRead = 0;
 		}
 
@@ -2856,7 +2856,7 @@ public class CIF extends Input<Object>
 	{
 		if (charactersRead > 0)
 		{
-			System.out.println("line " + (lineReader.getLineNumber()-(resetInputBuffer?1:0)) + ": " + inputBuffer.toString());
+			System.out.println("line " + (lineReader.getLineNumber()+(resetInputBuffer?0:1)) + ": " + inputBuffer.toString());
 		}
 		if (kind == FATALINTERNAL || kind == FATALINTERNAL ||
 			kind == FATALSEMANTIC || kind == FATALOUTPUT) numFatalErrors++;
