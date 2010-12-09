@@ -1,3 +1,5 @@
+<!-- NEED 5in -->
+
 <!-- HEADER 1-4-2: Source Code in the JAR Files -->
 
 Two Electric downloads are available from the Free Software Foundation (GNU): with and without source code.
@@ -9,7 +11,7 @@ The preferred way to access the source code is to use Maven and to access the co
 To extract the source code from the ".jar" file, place it in its own directory,
 change to that directory, and run the following command:
 <BR>
-<CODE>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jar xf electric-<I>version</I>.jar</CODE>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">jar xf electric-<I>version</I>.jar</FONT></CODE>
 <BR>
 (Windows users may want to install "cygwin," from <A HREF="http://www.cygwin.com">www.cygwin.com</A>,
 in order to more easily run "jar" and other commands.)
@@ -37,11 +39,9 @@ Here are some notes about building Electric under Eclipse:
 <LI><B>Setup Workspace.</B>  The Workspace is a point in the file system where all source code can be found.
 You can use the directory where you extracted the Electric source code, or any point above that.</LI>
 <LI><B>Create Project.</B> The Project defines a single program that is being built.
-Use <B>File / New / Project</B> and choose "Java Project".
-Choose "Create project from existing source" and browse to the folder where the files were extracted.
+Use <B>File / New / Project</B> and choose "Java Project from Existing Ant Buildfile".
+Choose the "build.xml" file in the folder where the files were extracted.
 Give the project a name, for example, "Electric."</LI>
-<LI><B>Configure Source Code.</B> The "Source" tab of the Eclipse project settings shows the files that were discovered.
-Make sure that the extracted directory is included (along with everything else under it).</LI>
 <LI><B>Configure Libraries.</B> The "Libraries" tab of the Eclipse project settings lets you add other packages that may be relevant to the build.
 There are no required libraries, but many optional ones
 (see <A HREF="chap01-05.html#chap01-05">Section 1-5</A> on plug-ins).

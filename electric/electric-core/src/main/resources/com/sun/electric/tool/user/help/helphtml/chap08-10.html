@@ -84,7 +84,8 @@ Here is a description of Xml technology file in Electric relreases 8.05 and 8.06
 </LI>
 </UL>
 Example:<BR>
-<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;technology name="mocmos" class="com.sun.electric.technology.technologies.MoCMOS"<BR>
+<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;technology name="mocmos"<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class="com.sun.electric.technology.technologies.MoCMOS"<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns="http://electric.sun.com/Technology"<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://electric.sun.com/Technology<BR>
@@ -147,7 +148,8 @@ Inside of the &lt;technology&gt; element are these subelements:
 <LI>
     <B>&lt;logicalEffort&gt;</B> defines default project preferences for the Logical Effort tool.<BR>
 	Example:<BR>
-	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;logicalEffort gateCapacitance="0.167" wireRatio="0.16" diffAlpha="0.7"/&gt;</FONT></CODE>
+	<CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&lt;logicalEffort gateCapacitance="0.167" wireRatio="0.16"<BR>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAlpha="0.7"/&gt;</FONT></CODE>
 </LI>
 <LI>
     <B>&lt;transparentLayer&gt;</B> defines the transparent layers in the technology.  All layers can be drawn
@@ -198,14 +200,12 @@ The &lt;layer&gt; elements define layers in the technology.  They contains these
 <LI>
     <B>"fun"</B> the function of this layer, taken from this list:
 	<BR>&nbsp;&nbsp;&nbsp;UNKNOWN
-	<BR>&nbsp;&nbsp;&nbsp;METAL1 METAL2 METAL3 METAL4 METAL5 METAL6 <I>(metal)</I>
-	<BR>&nbsp;&nbsp;&nbsp;METAL7 METAL8 METAL9 METAL10 METAL11 METAL12 <I>(metal)</I>
-	<BR>&nbsp;&nbsp;&nbsp;POLY1 POLY2 POLY3 <I>(polysilicon)</I>
+	<BR>&nbsp;&nbsp;&nbsp;METAL1 ... METAL12 <I>(metal)</I>
+	<BR>&nbsp;&nbsp;&nbsp;POLY1 ... POLY3 <I>(polysilicon)</I>
 	<BR>&nbsp;&nbsp;&nbsp;GATE <I>(gate polysilicon)</I>
 	<BR>&nbsp;&nbsp;&nbsp;DIFF DIFFP DIFFN <I>(active)</I>
 	<BR>&nbsp;&nbsp;&nbsp;IMPLANT IMPLANTP IMPLANTN SUBSTRATE WELL WELLP WELLN <I>(implants)</I>
-	<BR>&nbsp;&nbsp;&nbsp;CONTACT1 CONTACT2 CONTACT3 CONTACT4 CONTACT5 CONTACT6 <I>(cuts)</I>
-	<BR>&nbsp;&nbsp;&nbsp;CONTACT7 CONTACT8 CONTACT9 CONTACT10 CONTACT11 CONTACT12 <I>(cuts)</I>
+	<BR>&nbsp;&nbsp;&nbsp;CONTACT1 ... CONTACT12 <I>(cuts)</I>
 	<BR>&nbsp;&nbsp;&nbsp;RESISTOR CAP <I>(resistor/capacitor)</I>
 	<BR>&nbsp;&nbsp;&nbsp;TRANSISTOR <I>(transistor)</I>
 	<BR>&nbsp;&nbsp;&nbsp;EMITTER BASE COLLECTOR <I>(bipolar parts)</I>
@@ -322,9 +322,8 @@ Inside of the &lt;layer&gt; element are these subelements:
 <LI>
     <B>"fun"</B> describes the arc function:
     <BR>&nbsp;&nbsp;&nbsp;UNKNOWN
-    <BR>&nbsp;&nbsp;&nbsp;METAL1 METAL2 METAL3 METAL4 METAL5 METAL6 <I>(metal)</I>
-    <BR>&nbsp;&nbsp;&nbsp;METAL7 METAL8 METAL9 METAL10 METAL11 METAL12 <I>(metal)</I>
-    <BR>&nbsp;&nbsp;&nbsp;POLY1 POLY2 POLY3 <I>(polysilicon)</I>
+    <BR>&nbsp;&nbsp;&nbsp;METAL1 ... METAL12 <I>(metal)</I>
+    <BR>&nbsp;&nbsp;&nbsp;POLY1 ... POLY3 <I>(polysilicon)</I>
     <BR>&nbsp;&nbsp;&nbsp;DIFF DIFFP DIFFN DIFFS DIFFW <I>(active)</I>
     <BR>&nbsp;&nbsp;&nbsp;BUS <I>(busses)</I>
     <BR>&nbsp;&nbsp;&nbsp;UNROUTED <I>(unrouted, for routers)</I>
@@ -438,7 +437,8 @@ Example:<BR>
     <BR>&nbsp;&nbsp;&nbsp;PIN <I>(pins connect arcs)</I>
     <BR>&nbsp;&nbsp;&nbsp;NODE <I>(pure layer nodes)</I>
     <BR>&nbsp;&nbsp;&nbsp;CONTACT CONNECT <I>(nodes that connect all arcs)</I>
-    <BR>&nbsp;&nbsp;&nbsp;TRANMOS TRADMOS TRAPMOS TRA4NMOS TRA4DMOS TRA4PMOS <I>(MOS transistors)</I>
+    <BR>&nbsp;&nbsp;&nbsp;TRANMOS TRAPMOS TRA4NMOS TRA4PMOS <I>(CMOS transistors)</I>
+    <BR>&nbsp;&nbsp;&nbsp;TRADMOS TRA4DMOS <I>(nMOS transistors)</I>
     <BR>&nbsp;&nbsp;&nbsp;TRANPN TRAPNP TRA4NPN TRA4PNP <I>(Bipolar transistors)</I>
     <BR>&nbsp;&nbsp;&nbsp;TRANJFET TRAPJFET TRA4NJFET TRA4PJFET <I>(JFET transistors)</I>
     <BR>&nbsp;&nbsp;&nbsp;TRADMES TRAEMES TRA4DMES TRA4EMES <I>(MESFET transistors)</I>
@@ -797,8 +797,8 @@ Example:<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;box&gt;&lt;lambdaBox klx="-1.5" khx="1.5" kly="-1.0" khy="1.0"/&gt;&lt;/box&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/nodeBase&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="true"&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0"&gt;<BR>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;serpbox kly="1" lWidth="4" rWidth="0" tExtent="0" bExtent="0"&gt;<BR>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;lambdaBox klx="-1.5" khx="1.5" kly="1" khy="4"/&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/serpbox&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/nodeLayer&gt;<BR>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;nodeLayer layer="Thick-Active" style="FILLED" portNum="-1"&gt;<BR>

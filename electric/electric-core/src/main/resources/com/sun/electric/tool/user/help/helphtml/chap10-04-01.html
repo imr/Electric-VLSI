@@ -17,7 +17,8 @@ The syntax is:
 &lt;name&gt; and &lt;value&gt; fields may be enclosed in quotation marks.
 Backslash character can be used inside enclosed strings to denote special characters.
 <P>
-The &lt;type&gt; field can be one of these:<BR>
+The &lt;type&gt; field can be one of these:
+<BR>
 "B" Boolean ("T" or "F")<BR>
 "C" Cell (of the form &lt;library&gt; : &lt;cell&gt;)<BR>
 "D" Double<BR>
@@ -37,22 +38,22 @@ The &lt;type&gt; field can be one of these:<BR>
 <P>
 Examples:
 <P>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>ART_message(D5G8;)StxArray4x4B</CODE>
-<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">ART_message(D5G8;)StxArray4x4B</FONT></CODE>
+<BR>
 Adds a variable called "ART_message" with the string "txArray4x4B".
 The text descriptor indicates centered text ("D5") that is 8 units tall ("G8;").
 <P>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>ART_degrees()F[0.0,3.1415927]</CODE>
-<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">ART_degrees()F[0.0,3.1415927]</FONT></CODE>
+<BR>
 Adds a variable called "ART_degrees" with an array of 2 floating point values: 0.0 and 3.1415927.
 <P>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>EXPORTS()E[ccc:gate;1{sch}:a,"ccc:hate;1{sch}:b[0:4]"]</CODE>
-<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">EXPORTS()E[ccc:gate;1{sch}:a,"ccc:hate;1{sch}:b[0:4]"]</FONT></CODE>
+<BR>
 Adds a variable called "EXPORTS" with an array of 2 exports: export "a" of cell "ccc:gate{sch}"
 and export "b[0:4]" from the cell "ccc:hate{sch}".
 <P>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>ATTR_z0(D5G0.5;NPY1;)I50</CODE>
-<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">ATTR_z0(D5G0.5;NPY1;)I50</FONT></CODE>
+<BR>
 Adds an attribute called "z0" with the integer value 50.
 It is displayed anchored at the center ("D5"), 0.5 unit tall ("G0.5;"),
 written as "name=value" ("N"), is a parameter ("P"), and is offset by 1 in Y ("Y1;").

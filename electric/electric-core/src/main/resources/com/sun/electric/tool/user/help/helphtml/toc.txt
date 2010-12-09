@@ -24,7 +24,6 @@ Introduction
   Adding Contacts to a Transistor             =chap01-10-06
   Hierarchy                                   =chap01-10-07
   Exports                                     =chap01-10-08
-  Final Points                                =chap01-10-09
  Schematics Tutorial
   Make a Cell                                 =chap01-11-01
   Create a Node                               =chap01-11-02

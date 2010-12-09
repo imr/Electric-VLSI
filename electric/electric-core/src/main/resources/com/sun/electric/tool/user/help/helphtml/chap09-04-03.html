@@ -89,16 +89,16 @@ This is useful for Nanosim timing assertions, hierarchical measurements, etc.
 The <B>Add Flat Code</B> subcommand places a piece of text in the circuit that will be flattened
 and written to a separate file with the "flatcode" extension.
 Flattening adds global scope to these statements.
-For example, if you place a Nanosim timing assertion in a cell with the flat code
-<BR><CODE>&nbsp;&nbsp;&nbsp;tv_node_setuphold $(clk) rf $(in) rf 100p 100p</CODE><BR>
-and there are 3 instances of the cell, then there will be 3 flattened assertions in the flatcode file:
-<BR><CODE>&nbsp;&nbsp;&nbsp;tv_node_setuphold xtop.xflop1.clk rf xtop.flop1.in rf 100p 100p<BR>
-&nbsp;&nbsp;&nbsp;tv_node_setuphold xtop.xflop2.clk rf xtop.flop2.in rf 100p 100p<BR>
-&nbsp;&nbsp;&nbsp;tv_node_setuphold xtop.xflop3.clk rf xtop.flop3.in rf 100p 100p</CODE><BR>
-If <CODE>clk</CODE> is actually a single signal that comes from the top level, it is smart enough to recognize this:
-<BR><CODE>&nbsp;&nbsp;&nbsp;tv_node_setuphold clk rf xtop.flop1.in rf 100p 100p<BR>
-&nbsp;&nbsp;&nbsp;tv_node_setuphold clk rf xtop.flop2.in rf 100p 100p<BR>
-&nbsp;&nbsp;&nbsp;tv_node_setuphold clk rf xtop.flop3.in rf 100p 100p</CODE><BR>
+For example, if you place a Nanosim timing assertion in a cell with the flat code<BR>
+&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">tv_node_setuphold $(clk) rf $(in) rf 100p 100p</FONT></CODE><BR>
+and there are 3 instances of the cell, then there will be 3 flattened assertions in the flatcode file:<BR>
+&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">tv_node_setuphold xtop.xflop1.clk rf xtop.flop1.in rf 100p 100p</FONT></CODE><BR>
+&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">tv_node_setuphold xtop.xflop2.clk rf xtop.flop2.in rf 100p 100p</FONT></CODE><BR>
+&nbsp;&nbsp;&nbsp;tv_node_setuphold xtop.xflop3.clk rf xtop.flop3.in rf 100p 100p</FONT></CODE><BR>
+If <CODE>clk</CODE> is actually a single signal that comes from the top level, it is smart enough to recognize this:<BR>
+&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">tv_node_setuphold clk rf xtop.flop1.in rf 100p 100p</FONT></CODE><BR>
+&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">tv_node_setuphold clk rf xtop.flop2.in rf 100p 100p</FONT></CODE><BR>
+&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">tv_node_setuphold clk rf xtop.flop3.in rf 100p 100p</FONT></CODE><BR>
 <P>
 <!-- NEED 7in -->
 <H4>Spice Preferences</H4>

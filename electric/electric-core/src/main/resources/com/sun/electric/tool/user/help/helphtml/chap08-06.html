@@ -12,13 +12,14 @@ select it from the cell explorer or the <B>Edit Cell...</B> command (in menu <B>
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-26.png" ALT="Figure 8.26"></CENTER></TD><TD>
 To create a new node, use the context menu on the "TECHNOLOGY NODES" entry of the cell explorer
 and choose "Add New Node".
+</TD></TR></TABLE>
+<P>
 A node can be deleted simply by deleting its cell.
 A node can be renamed by renaming its cell,
 but remember to use the name "node-" in front
 (i.e. the old name is "node-metal" and the new name is "node-metal-1").
 Finally, you can rearrange the order in which the nodes will be listed with the "Reorder Nodes" command from the
 context menu.
-</TD></TR></TABLE>
 <P>
 <H4>Editing Special Node Information</H4>
 <P>
@@ -31,12 +32,12 @@ entry indicates that this is a MOS transistor and it can take arbitrary outline 
 (see <A HREF="chap07-04-01.html#chap07-04-01">Section 7-4-1</A>).
 <P>
 The "Square" entry forces the node to always have the same X and Y dimension when scaled.
+</TD><TD><CENTER><IMG SRC="fig08-11.png" ALT="Figure 8.11"></CENTER></TD></TR></TABLE>
 <P>
 The "Invisible with 1 or 2 arcs"
 entry indicates that the node will not be drawn if it is connected to exactly one or two arcs.
 This is useful in schematic pins,
 which are visible only when unconnected or forming a junction of 3 or more wires.
-</TD><TD><CENTER><IMG SRC="fig08-11.png" ALT="Figure 8.11"></CENTER></TD></TR></TABLE>
 <P>
 The "Lockable" entry indicates that this node can be made unchangeable along with other lockable primitives,
 when the lock is turned on during editing
@@ -79,12 +80,12 @@ you can specify the number of degrees of the circle with the <B>Object Propertie
 Each example must also contain a highlight layer to indicate the correct highlighting on the display.
 Select the "HIGH" entry from the component menu to create this special type of layer.
 <P>
-<TABLE><TR><TD>
 Each example must also contain port information.
 Select the "PORT" entry in the component menu to create this special type of layer.
 You will have to provide a name for each port,
 and the name must be the same on each example.
 <P>
+<TABLE><TR><TD>
 Ports on the main example must also have connectivity information (which arcs can connect to them)
 and range information (the permissible angle of connected arcs).
 Double-click on the port to set this.
@@ -95,6 +96,7 @@ For example,
 a port angle of 90 with a port angle range of 45 describes a port that points upward
 and can connect at angles up to 45 degrees off from this direction.
 The range will be graphically depicted.
+<br><br><br>
 </TD><TD><CENTER><IMG SRC="fig08-13.png" ALT="Figure 8.13"></CENTER></TD></TR></TABLE>
 <P>
 The ports on the main example must also indicate any internal electrical connectivity by actually connecting them together.
@@ -113,6 +115,7 @@ and so it is now recommended that all pin nodes have zero size ports.
 <P>
 As with arcs, use the <B>Identify Primitive Layers</B> command to label each piece of geometry in the main example.
 <P>
+<!-- NEED 4in -->
 <H4>Node Variations</H4>
 <P>
 It is sometimes the case that two or more primitive nodes are nearly the same and differ only by the shape of their layers.
@@ -129,13 +132,15 @@ Pick any piece of geometry that is centered in the example (contact cuts are goo
 This piece of geometry must be named (using the <B>Object Properties...</B> command in menu <B>Edit / Properties</B>).
 The name on the piece of geometry will be the name of the variation.
 </LI>
+</UL>
+</TD><TD><CENTER><IMG SRC="fig08-38.png" ALT="Figure 8.38"></CENTER></TD></TR></TABLE>
+<UL>
 <LI>The only rule used to compute layer size is the distance from the outer edge.
 It is not possible to use other stretching rules because only one example is being provided.
 </LI>
 </UL>
 The picture shown here illustrates a variation in which the polysilicon layer is inset.
 The text "Small-Poly" is the name of the cut node (moved up to make it readable).
-</TD><TD><CENTER><IMG SRC="fig08-38.png" ALT="Figure 8.38"></CENTER></TD></TR></TABLE>
 <P>
 <H4>Special Node Considerations</H4>
 <P>

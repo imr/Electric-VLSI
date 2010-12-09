@@ -76,13 +76,13 @@ Double-click on the wire between the two gates and give it a name like "yb" so y
 It is good practice to label every net in a design.
 When you are done, your "and2" schematic should look like this.
 <P>
-<TABLE><TR><TD>
 Next, create a new layout called "and2" (remember to select the "layout" view).
 Instantiate the "nand2{lay}" and "inv{lay}" layouts.
 ALWAYS use the <B>Place Cell Instance</B> command to create layout from pre-existing cells.
 NEVER build a cell by cutting and pasting entire existing cells.
 If you do, then make a correction to the original cell, your correction will not propagate to the new layout.
 <P>
+<TABLE><TR><TD>
 Initially the cell instances appear as black boxes with ports.
 Select both instances and use the <B>All the Way</B> command
 (in menu <B>Cell / Expand Cell Instances</B>) to view the contents of each layout.
@@ -94,9 +94,9 @@ Remember that connections may only occur between the ports of the two cells.
 Also connect the power and ground lines of the cells using Metal-2.
 Export the two inputs, the output, and power and ground.
 An easy way to do this is to use the <B>Re-Export Everything</B> command (in menu <B>Exports</B>) to bring exports to the surface level.
-The Messages window confirms how many ports were exported.
-The final and gate should resemble this.
 </TD><TD><CENTER><IMG SRC="fig01-42.png" ALT="Figure 1.42"></CENTER></TD></TR></TABLE>
 <P>
+The Messages window confirms how many ports were exported.
+The final and gate should resemble this.
 
 <!-- TRAILER -->

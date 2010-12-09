@@ -44,12 +44,13 @@ Because Electric is able to keep old versions of cells,
 deleting the latest version will cause an older version to become the "most recent".
 Old versions are those whose cell names include the ";VERSION"
 clause indicating that there is a newer version of this view of the cell.
+<br><br><br><br><br><br>
+</TD><TD><CENTER><IMG SRC="fig03-11.png" ALT="Figure 3.11"></CENTER></TD></TR></TABLE>
 <P>
 For example, if you have cell "Adder" and an older version "Adder;1",
 then deleting "Adder" will cause "Adder;1" to be renamed to "Adder".
 This might make you think that the deletion failed, because there is still a cell called "Adder",
 but this cell is actually the older (but now most recent) version.
-</TD><TD><CENTER><IMG SRC="fig03-11.png" ALT="Figure 3.11"></CENTER></TD></TR></TABLE>
 <P>
 To clean-up old and unused versions of cells,
 use the <B>Delete Unused Old Versions</B> command (in menu <B>Cell</B>).

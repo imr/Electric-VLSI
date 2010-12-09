@@ -50,10 +50,11 @@ Once a template has been created, double-click on the text to edit it.</LI>
 To explain the format of a template, a DC Voltage Source primitive is used as an example.
 Graphics is placed to describe the look of the symbol (a "battery" look).
 Exports are created at the top and bottom of the battery with the names "plus" and "minus".
-A single parameter is defined called "Voltage" with a default value of "0V".
-Finally, a Spice template is created that has the string:
 </TD><TD><CENTER><IMG SRC="fig09-23.png" ALT="Figure 9.23"></CENTER></TD></TR></TABLE>
-<BR><CODE>V$(node_name) $(plus) $(minus) DC $(Voltage)</CODE>
+<P>
+A single parameter is defined called "Voltage" with a default value of "0V".
+Finally, a Spice template is created that has the string:<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">V$(node_name) $(plus) $(minus) DC $(Voltage)</FONT></CODE>
 <P>
 This string contains substitution expressions of the form <CODE>$(SOMETHING)</CODE>
 where <CODE>SOMETHING</CODE> can be an export, a parameter, or "node_name".

@@ -309,9 +309,8 @@ typically has only one combined "gnd"
 wire. When NCC compares <CODE>A</CODE>'s
 schematic and layout, it finds that the ground wires mismatch. As a
 solution, the designer adds the following NCC annotation into <CODE>A</CODE>'s
-layout cell:</P>
-<P ALIGN=CENTER>
-exportsConnectedByParent gnd gnd_1</P>
+layout cell:<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">exportsConnectedByParent gnd gnd_1</FONT></CODE></P>
 <P>
 This annotation constitutes a promise
 that whenever <CODE>A</CODE> is
@@ -338,9 +337,9 @@ exports in all lists would be connected.</P>
 <P>
 <CENTER><IMG SRC="fig09-51.png" ALT="Figure 9.51"></CENTER>
 <p>
-All exports are individually highlightable. For example, if the designer clicks on the "vdd" 
-export then NCC will open up a window for cell "rectifier{lay}" and highlight the net connected
-to the export "vdd".</p>
+All exports are individually highlightable. For example, if the designer clicks on the "vdd_1" 
+export then NCC will open up a window for cell "scan3{lay}" and highlight the net connected
+to the export "vdd_1".</p>
 <p>
 Tip: If it the design includes multiple instances of cell "rectifier{lay}" then
 the designer can find out which particular instance failed to keep the promise by typing control-U

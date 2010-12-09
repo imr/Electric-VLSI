@@ -206,35 +206,38 @@ Here is an example of block definition code and its layout.
 &nbsp;&nbsp;&nbsp;&nbsp;(name testblock)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(size 80 150)<BR>
 &nbsp;&nbsp;)<BR>
-
 &nbsp;&nbsp;(components<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(instance (type sampleblock) (name block0)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position 30 80) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(instance (type sampleblock) (name block1)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position 30 10) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r0) (porta 10 120)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 120) (direction horizontal)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 120) (direction horizontal) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r1) (porta 10 100)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 100) (direction horizontal)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 100) (direction horizontal) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r2) (porta 10 50)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 50) (direction horizontal)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 50) (direction horizontal) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r3) (porta 10 30)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 30) (direction horizontal)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 30) (direction horizontal) )<BR>
 &nbsp;&nbsp;)<BR>
 <BR>
 &nbsp;&nbsp;(ports<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name top0)  (position 40 150) (direction bidir) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name top1)  (position 60 150) (direction bidir) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name left0) (position  0 120) (direction input) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name left1) (position  0 100) (direction input) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name left2) (position  0  50) (direction input) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name left3) (position  0  30) (direction input) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name bot0)  (position 40   0) (direction bidir) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name bot1)  (position 60   0) (direction bidir) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name top0) (position 40 150)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction bidir) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name top1) (position 60 150)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction bidir) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name left0) (position 0 120)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name left1) (position 0 100)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name left2) (position 0 50)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name left3) (position 0 30)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name bot0) (position 40 0)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction bidir) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name bot1) (position 60 0)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction bidir) )<BR>
 &nbsp;&nbsp;)</FONT></CODE>
 </TD><TD WIDTH="35%"><CENTER><IMG SRC="fig07-25.png" ALT="Figure 7.25"></CENTER></TD></TR></TABLE>
 <P>

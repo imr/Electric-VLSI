@@ -20,7 +20,6 @@ they may be considered to be in violation,
 even if their geometry looks right.
 This is because the checkers know what is connected and have a separate set of rules for such situations.
 <P>
-<TABLE><TR><TD>
 To help guide the design-rule checker,
 an "exclusion" layer can be placed over areas that are not to be examined.
 This exclusion layer is created by clicking the "Misc." entry of the component menu
@@ -33,7 +32,6 @@ To edit the design rules, use the Design Rules Preferences
 The dialog allows you to examine and modify the spacing limits for the current technology.
 Each rule has a numeric value (size or distance) as well as a textual description of the rule.
 The dialog is divided into two parts: "Node Rules" and "Layer Rules".
-</TD><TD><CENTER><IMG SRC="fig09-09.png" ALT="Figure 9.9"></CENTER></TD></TR></TABLE>
 <P>
 In the "Node Rules" section, you may set the minimum size of each node in the current technology.
 <P>
@@ -49,12 +47,15 @@ the unconnected rules apply to unconnected geometry;
 edge rules apply to unconnected layers
  and ignore overlap when considering spacing distance.
 <P>
+<TABLE><TR><TD>
 The wide rules apply to large geometry.
 Although some technologies may have many different rules for different definitions of "large",
 the MOSIS CMOS technology has only one such rule.
 Additional rules can be controlled with the "Add Wide Rule" and "Delete Wide Rule" buttons.
 <P>
 The bottom of the dialog has a "Min resolution" field, which is the minimum resolution that can be manufactured.
+</TD><TD><CENTER><IMG SRC="fig09-09.png" ALT="Figure 9.9"></CENTER></TD></TR></TABLE>
+<P>
 If zero, no resolution check is done.
 When checking resolution, all geometry of that size or less will be flagged as resolution errors.
 For example, current MOSIS rules require that no boundaries be quarter-unit or less,

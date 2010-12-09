@@ -49,26 +49,26 @@ Each pad that is placed with a <U><CODE>place</CODE></U>
 statement is aligned with the previous pad according to the alignment factor.
 A <U><CODE>gap</CODE></U> can be given in the placement that spreads the two pads by the specified distance.
 For example, the statement:
-<CENTER><CODE><FONT SIZE="-1">place padIn gap=100</FONT></CODE></CENTER>
+<BR><CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;place padIn gap=100</FONT></CODE><BR>
 requests that pad "padIn" be placed so that its input port is 100 units from the previous pad's output port.
 <P>
 If a core cell has been given, you can also indicate wiring between the pads and the core ports.
 This is done by having one or more <I>port associations</I> in the <U><CODE>place</CODE></U> statements.
 The format of a port association is simply <U><CODE>PADPORT = COREPORT</CODE></U>.
 For example, the statement:
-<CENTER><CODE><FONT SIZE="-1">place padOut tap=y</FONT></CODE></CENTER>
+<BR><CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;place padOut tap=y</FONT></CODE><BR>
 indicates that the "tap" port on the placed pad will connect to the "y" port on the core cell.
 <P>
 The port association can also create an export on the pad.
 The statement:
-<CENTER><CODE><FONT SIZE="-1">place padOut export io=o7 export tap=core_o7</FONT></CODE></CENTER>
+<BR><CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;place padOut export io=o7 export tap=core_o7</FONT></CODE><BR>
 creates two exports on the pad, "o7" on its "io" port, and "core_o7" on its "tap" port.
 For many instances of this pad type, this notation can be condensed
 with the use of the <U><CODE>name</CODE></U> keyword in conjunction
 with exports defined for the pad at the start of the file.  For example, defining the IO ports as
-<CENTER><CODE><FONT SIZE="-1">export padOut io tap</FONT></CODE></CENTER>
+<BR><CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;export padOut io tap</FONT></CODE><BR>
 and then changing the place statement to
-<CENTER><CODE><FONT SIZE="-1">place padOut name=o7</FONT></CODE></CENTER>
+<BR><CODE><FONT SIZE="-1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;place padOut name=o7</FONT></CODE><BR>
 results in the same ports being exported with the same names.  This shorted notation always
 prepends name with "core_" on the core port export.
 <P>

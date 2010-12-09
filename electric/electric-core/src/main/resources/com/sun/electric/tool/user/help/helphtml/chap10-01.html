@@ -19,14 +19,6 @@ Control characters (such as the identifying characters) must be upper case.
 In order to insert a '|' or '\n' or '\r' into a field, it must be enclosed in the quotation mark characters (").
 Backslash character can be used inside enclosed strings to denote special characters: 
 <P>
-<CENTER><TABLE BORDER=1 WIDTH="80%">
-<TR><TH WIDTH="20%">Characters</TH><TH WIDTH="80%">Meaning</TH></TR>
-<TR><TD ALIGN=CENTER>\n</TD><TD>line feed character (\n)</TD></TR>
-<TR><TD ALIGN=CENTER>\r</TD><TD>carriage return character (\r)</TD></TR>
-<TR><TD ALIGN=CENTER>\"</TD><TD>quotation mark character (")</TD></TR>
-<TR><TD ALIGN=CENTER>\\</TD><TD>backslash character (\)</TD></TR>
-</TABLE></CENTER>
-<P>
 Each of the different types of lines in the file has a fixed set of fields that must appear.
 Some line types also allow additional fields at the end to add variables
 (attribute/value pairs, see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>). 
@@ -86,8 +78,8 @@ The cell-files in a "delib" directory have no "V" (views), "T" (technologies), "
 (see above).
 Instead, these lines appear in a separate file called "header",
 which also has a copy of the "H" line.
-Where "C" (cell) lines should appear, the "header" file contains this text:
-<CENTER>C____SEARCH_FOR_CELL_FILES____</CENTER>
+Where "C" (cell) lines should appear, the "header" file contains this text:<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">C____SEARCH_FOR_CELL_FILES____</CODE></FONT>
 <P>
 For example, assume that library "X" has cells A{lay}, A{sch}, and two versions of cell B{lay}:
 B{lay} and B;1{lay}.

@@ -46,10 +46,9 @@ create this annotation which tells NCC which exports will be connected by the pa
 The keyword is followed by a list of strings and/or regular expressions
 (regular expressions must begin and end with a '/').
 For example:
-</p>
-<p style=padding-left:10px>
-exportsConnectedByParent vdd vdd_1 vdd_2<BR>
-exportsConnectedByParent vdd /vdd_[0-9]+/
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">exportsConnectedByParent vdd vdd_1 vdd_2</FONT></CODE><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">exportsConnectedByParent vdd /vdd_[0-9]+/</FONT></CODE>
 </p>
 <p>
 When NCC compares a cell with an <i>exportsConnectedByParent</i>
@@ -108,16 +107,12 @@ All the characters following the keyword to the end of the line serve as a comme
 This is useful for documenting why this annotation was necessary.
 When you ask NCC to compare every cell in the design,
 NCC will tell you which cells it is skipping and why.
-For example, if a cell includes the NCC annotation: 
-</p>
-<p style=padding-left:10px>
-skipNCC layout is missing ground connection
+For example, if a cell includes the NCC annotation:<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">skipNCC layout is missing ground connection</FONT></CODE><BR>
 </p>
 <p>
-then NCC will print:
-</p>
-<p style=padding-left:10px>
-Skipping NCC of A because layout is missing ground connection. 
+then NCC will print:<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE><FONT SIZE="-1">Skipping NCC of A because layout is missing ground connection.</FONT></CODE>
 </p>
 <p>
 The <i>skipNCC</i> annotation is created by the <B>Skip NCC</B> command and may be placed on any schematic
