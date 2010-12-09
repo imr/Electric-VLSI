@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
+BUG: (12/8/10, DN) Crash if Max Perm Space is set (Bug #2963).
+FIX: Launcher launches Launcher with -NOMINMEM instead of Main
+
 BUG: (12/8/10, DN) electric-core doesn't compile on 64-bit compiler.
 FIX: Increase compiler memory from 256m to 384m.
 

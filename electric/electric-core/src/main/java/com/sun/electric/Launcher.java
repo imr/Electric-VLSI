@@ -73,15 +73,15 @@ public final class Launcher {
      *            the arguments to the program.
      */
     public static void main(String[] args) {
-        args = Launcher.getAdditionalFolder(args);
-        args = Launcher.getConfig(args);
-
-        Configuration.setConfigName(configFile);
-
         // ignore launcher if specified to do so
         for (int i = 0; i < args.length; i++) {
             String str = args[i];
-            if (str.equals("-NOMINMEM") || str.equals("-help") || str.equals("-version") || str.equals("-v")) {
+            if (str.equals("-NOMINMEM")) {
+                // just start electric
+                loadAndRunMain(args, true);
+                return;
+            }
+            if (str.equals("-help") || str.equals("-version") || str.equals("-v")) {
                 // just start electric
                 loadAndRunMain(args, false);
                 return;
@@ -134,7 +134,8 @@ public final class Launcher {
                 procArgs.add("-D" + propertiesToCopy[i] + "=" + propValue);
             }
         }
-        procArgs.add("com.sun.electric.Main");
+        procArgs.add("com.sun.electric.Launcher");
+        procArgs.add("-NOMINMEM");
         for (int i = 0; i < args.length; i++)
             procArgs.add(args[i]);
 
@@ -273,6 +274,11 @@ public final class Launcher {
     }
 
     private static void loadAndRunMain(String[] args, boolean loadDependencies) {
+        args = Launcher.getAdditionalFolder(args);
+        args = Launcher.getConfig(args);
+
+        Configuration.setConfigName(configFile);
+
         initClasspath(loadDependencies);
         callByReflection(pluginClassLoader, "com.sun.electric.Main", "main", new Class[] { String[].class },
                 null, new Object[] { args });
