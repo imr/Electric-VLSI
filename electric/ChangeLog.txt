@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
-BUG: (12/8/10, DN) CIF reader stops at unknown user commands (like 4 ... ) (Bug #2982).
+BUG: (12/8/10, DN) CIF reader stops at unknown user commands (like 4 ... ) (Bug #2983).
 FIX: In io.input.CIF.parseStatement issue USERS command on unknown user commands.
 
 BUG: (12/8/10, DN) CIF reader numerate lines from 0 in error messages (Bug #2982).
