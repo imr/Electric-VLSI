@@ -4,8 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.00-r: ******************************
 
-BUG: (12/8/10, DN) CIF reader numerate lines from 0 in error messages (Bug #2980).
-FIX: In ion.input.CIF.errorReport use 1-base line numbers.
+BUG: (12/8/10, DN) CIF reader numerate lines from 0 in error messages (Bug #2982).
+FIX: In io.input.CIF.errorReport use 1-base line numbers.
 
 BUG: (12/8/10, DN) CIF reader truncates layer names to 4 characters (Bug #2979).
 FIX: In io.input.CIF.parseStatement() remove 4-characters restriction.
