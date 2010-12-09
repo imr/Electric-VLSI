@@ -1426,8 +1426,9 @@ public class CIF extends Input<Object>
 			case 'L':
 				command = LAYER;
 				skipBlanks();
-				StringBuffer layerName = new StringBuffer();
-				for (int i = 0; i<4; i++)
+				StringBuilder layerName = new StringBuilder();
+				for (;;)
+//				for (int i = 0; i<4; i++)
 				{
 					int chr = peekNextCharacter();
 					if (!Character.isUpperCase((char)chr) && !TextUtils.isDigit((char)chr)) break;
