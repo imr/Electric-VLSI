@@ -1637,7 +1637,15 @@ public class CIF extends Input<Object>
 								errorFound = true; errorType = BADUSER; return reportError();
 							}
 						}
-					}
+					} else
+                    {
+                        command = USERS;
+                        userText = getUserText();
+                        if (atEndOfFile())
+                        {
+                            errorFound = true; errorType = BADUSER; return reportError();
+                        }
+                    }
 				} else
 				{
 					errorFound = true;
