@@ -27,8 +27,6 @@ import java.util.List;
 
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.IThreadPool;
 import com.sun.electric.tool.util.concurrent.utils.BlockedRange;
-import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
-import com.sun.electric.tool.util.concurrent.utils.Range;
 
 /**
  * 
@@ -53,39 +51,6 @@ public class PForJob<T extends BlockedRange<T>> extends PJob {
 	public PForJob(T range, PForTask<T> task, IThreadPool pool) {
 		super(pool);
 		this.add(new SplitIntoTasks<T>(this, range, task), PJob.SERIAL);
-	}
-
-	/**
-	 * 
-	 * Base task for parallel for
-	 * 
-	 */
-	public abstract static class PForTask<T extends BlockedRange<T>> extends PTask implements Cloneable {
-
-		protected T range;
-
-		public PForTask(PJob job, T range) {
-			super(job);
-			this.range = range;
-		}
-
-		public PForTask() {
-			super(null);
-		}
-
-		protected void setRange(T range) {
-			this.range = range;
-		}
-
-		/**
-		 * set current job
-		 * 
-		 * @param job
-		 */
-		public void setPJob(PJob job) {
-			this.job = job;
-		}
-
 	}
 
 	/**

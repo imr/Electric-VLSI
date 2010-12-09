@@ -25,7 +25,6 @@ package com.sun.electric.tool.util.concurrent.test;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.util.List;
 
 import junit.framework.Assert;
 
@@ -36,7 +35,7 @@ import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructure;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.patterns.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler.SchedulingStrategy;

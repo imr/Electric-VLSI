@@ -34,7 +34,7 @@ import com.sun.electric.tool.util.concurrent.datastructures.WorkStealingStructur
 import com.sun.electric.tool.util.concurrent.debug.Debug;
 import com.sun.electric.tool.util.concurrent.debug.StealTracker;
 import com.sun.electric.tool.util.concurrent.exceptions.PoolExistsException;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.patterns.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
 import com.sun.electric.tool.util.concurrent.runtime.Scheduler;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool;

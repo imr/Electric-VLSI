@@ -25,7 +25,7 @@ package com.sun.electric.tool.util.concurrent;
 
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PForJob;
-import com.sun.electric.tool.util.concurrent.patterns.PForJob.PForTask;
+import com.sun.electric.tool.util.concurrent.patterns.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob;
 import com.sun.electric.tool.util.concurrent.patterns.PReduceJob.PReduceTask;
