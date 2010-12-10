@@ -35,7 +35,7 @@
     </parent>
     
     <artifactId>electric</artifactId>
-    <version>9.00</version>
+    <version>9.01-a-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <groupId>com.sun.electric</groupId>
@@ -77,9 +77,9 @@
     </modules>
     
     <scm>
-        <connection>scm:svn:https://svn.java.net/svn/electric~svn/tags/electric-9.00</connection>
-        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/tags/electric-9.00</developerConnection>
-        <url>http://java.net/projects/electric/sources/svn/show/tags/electric-9.00</url>
+        <connection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/electric</connection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/electric~svn/trunk/electric</developerConnection>
+        <url>http://java.net/projects/electric/sources/svn/show/trunk/electric</url>
     </scm>
     <repositories>
         <repository>
