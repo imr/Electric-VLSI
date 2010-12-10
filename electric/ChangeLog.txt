@@ -2,6 +2,9 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 9.01-a: ******************************
+
+************************* END OF Version 9.00, GNU RELEASE *************
 ************************* Version 9.00-r: ******************************
 
 BUG: (12/8/10, DN) CIF reader stops at unknown user commands (like 4 ... ) (Bug #2983).
