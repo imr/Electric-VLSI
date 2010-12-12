@@ -2063,7 +2063,7 @@ public class ToolMenu
 	}
 
     private static final int CONVERT_TO_VHDL     = 1;
-	private static final int COMPILE_VHDL_FOR_SC = 2;
+	public static final int COMPILE_VHDL_FOR_SC = 2;
 	private static final int PLACE_AND_ROUTE     = 4;
 	private static final int SHOW_CELL           = 8;
 
@@ -2179,7 +2179,7 @@ public class ToolMenu
             List<Cell> textCellsToRedraw = new ArrayList<Cell>();
             try
             {
-                DoSilCompActivity.performTaskNoJob(cell, textCellsToRedraw, activities, prefs, vp);
+                DoSilCompActivity.performTaskNoJob(cell, textCellsToRedraw, activities, prefs, vp, false);
             }
             catch (Exception e)
             {
@@ -2202,6 +2202,7 @@ public class ToolMenu
 		private List<Cell> textCellsToRedraw;
 		private SilComp.SilCompPrefs prefs;
         private GenerateVHDL.VHDLPreferences vp;
+        private boolean isIncludeDateAndVersionInOutput = User.isIncludeDateAndVersionInOutput();
 
 		private DoSilCompActivity(Cell cell, int activities, SilComp.SilCompPrefs prefs, GenerateVHDL.VHDLPreferences vp)
 		{
@@ -2218,7 +2219,7 @@ public class ToolMenu
 			fieldVariableChanged("cell");
 			textCellsToRedraw = new ArrayList<Cell>();
 			fieldVariableChanged("textCellsToRedraw");
-			cell = performTaskNoJob(cell, textCellsToRedraw, activities, prefs, vp);
+			cell = performTaskNoJob(cell, textCellsToRedraw, activities, prefs, vp, isIncludeDateAndVersionInOutput);
 			if (cell == null)
 			{
 				activities = 0;
@@ -2243,7 +2244,7 @@ public class ToolMenu
             }
         }
 
-        public static Cell performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities, SilComp.SilCompPrefs prefs, GenerateVHDL.VHDLPreferences vp)
+        public static Cell performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities, SilComp.SilCompPrefs prefs, GenerateVHDL.VHDLPreferences vp, boolean isIncludeVersionAndDateInOutput)
         	throws JobException
         {
             Library destLib = cell.getLibrary();
@@ -2285,7 +2286,7 @@ public class ToolMenu
 					System.out.println("ERRORS during compilation, no netlist produced");
 					return null;
 				}
-				List<String> netlistStrings = c.getQUISCNetlist(destLib);
+				List<String> netlistStrings = c.getQUISCNetlist(destLib, isIncludeVersionAndDateInOutput);
 				if (netlistStrings == null)
 				{
 					System.out.println("No netlist produced");

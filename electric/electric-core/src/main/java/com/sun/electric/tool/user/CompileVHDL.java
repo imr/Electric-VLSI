@@ -45,6 +45,7 @@ import java.util.List;
  */
 public class CompileVHDL
 {
+    private static final boolean BIT_VECTOR_HACK = true;
 	/********** Token Definitions ******************************************/
 
 	/********** Delimiters **********/
@@ -683,6 +684,12 @@ public class CompileVHDL
 	private static class ExprList
 	{
 		/** expression */				Expression		expression;
+        /** direction
+         * -1 downto
+         *  0 nothing
+         * +1 to
+         */                             int             direction;
+        /** range end expression */     Expression      expressionRangeEnd;
 		/** next in list */				ExprList		next;
 	};
 
@@ -967,13 +974,14 @@ public class CompileVHDL
 	/**
 	 * Method to generate a QUISC (silicon compiler) netlist.
 	 * @param destLib destination library.
+     * @param @isIncldeDateAndVersionInOutput include date and version in output
 	 * @return a List of strings with the netlist.
 	 */
-	public List<String> getQUISCNetlist(Library destLib)
+	public List<String> getQUISCNetlist(Library destLib, boolean isIncludeDateAndVersionInOutput)
 	{
 		// now produce the netlist
 		if (hasErrors) return null;
-		List<String> netlistStrings = genQuisc(destLib);
+		List<String> netlistStrings = genQuisc(destLib, isIncludeDateAndVersionInOutput);
 		return netlistStrings;
 	}
 
@@ -1233,6 +1241,7 @@ public class CompileVHDL
 	 */
 	public static VKeyword isKeyword(String tString)
 	{
+        tString = TextUtils.canonicString(tString);
 		int base = 0;
 		int num = theKeywords.length;
 		int aIndex = num >> 1;
@@ -2910,6 +2919,21 @@ public class CompileVHDL
 		ind.exprList.expression = parseExpression();
 		ind.exprList.next = null;
 		ExprList eList = ind.exprList;
+        if (BIT_VECTOR_HACK)
+        {
+            // Optional range
+            if (isKeySame(nextToken, KEY_TO))
+            {
+                getNextToken();
+                eList.direction = +1;
+                eList.expressionRangeEnd = parseExpression();
+            } else if (isKeySame(nextToken, KEY_DOWNTO))
+            {
+                getNextToken();
+                eList.direction = -1;
+                eList.expressionRangeEnd = parseExpression();
+            }
+        }
 
 		// continue while at a comma
 		while (nextToken.token == TOKEN_COMMA)
@@ -2920,6 +2944,21 @@ public class CompileVHDL
 			newEList.next = null;
 			eList.next = newEList;
 			eList = newEList;
+            if (BIT_VECTOR_HACK)
+            {
+                // Optional range
+                if (isKeySame(nextToken, KEY_TO))
+                {
+                    getNextToken();
+                    eList.direction = +1;
+                    eList.expressionRangeEnd = parseExpression();
+                } else if (isKeySame(nextToken, KEY_DOWNTO))
+                {
+                    getNextToken();
+                    eList.direction = +1;
+                    eList.expressionRangeEnd = parseExpression();
+                }
+            }
 		}
 
 		return ind;
@@ -3445,6 +3484,7 @@ public class CompileVHDL
 
 	private DBUnits			theUnits;
 	private SymbolList		localSymbols, globalSymbols;
+    private SymbolList      instanceSymbols;
 	private int             forLoopLevel = 0;
 	private int []          forLoopTags = new int[10];
 
@@ -3652,6 +3692,10 @@ public class CompileVHDL
 			endSymbol.last = ((DBInterface)(symbol.pointer)).symbols;
 		}
 		localSymbols = pushSymbols(localSymbols);
+        if (BIT_VECTOR_HACK)
+        {
+            instanceSymbols = pushSymbols(instanceSymbols);
+        }
 
 		// check body declaration
 		dbBody.declare = semBodyDeclare(body.bodyDeclare);
@@ -3661,6 +3705,10 @@ public class CompileVHDL
 
 		// delete current symbol table
 		localSymbols = tempSymbols;
+        if (BIT_VECTOR_HACK)
+        {
+            instanceSymbols = popSymbols(instanceSymbols);
+        }
 		endSymbol.last = null;
 
 		return dbBody;
@@ -3856,13 +3904,25 @@ public class CompileVHDL
 		dbInst.ports = null;
 		DBAPortList endDBAPort = null;
 		dbInst.next = null;
-		if (searchSymbol(dbInst.name, localSymbols) != null)
-		{
-			reportErrorMsg(inst.name, "Instance name previously defined");
-		} else
-		{
-			addSymbol(dbInst.name, SYMBOL_INSTANCE, dbInst, localSymbols);
-		}
+        if (BIT_VECTOR_HACK)
+        {
+            if (searchSymbol(dbInst.name, instanceSymbols) != null)
+            {
+                reportErrorMsg(inst.name, "Instance name previously defined");
+            } else
+            {
+                addSymbol(dbInst.name, SYMBOL_INSTANCE, dbInst, instanceSymbols);
+            }
+        } else
+        {
+            if (searchSymbol(dbInst.name, localSymbols) != null)
+            {
+                reportErrorMsg(inst.name, "Instance name previously defined");
+            } else
+            {
+                addSymbol(dbInst.name, SYMBOL_INSTANCE, dbInst, localSymbols);
+            }
+        }
 
 		// check that instance entity is among component list
 		DBComponents compo = null;
@@ -4853,7 +4913,35 @@ public class CompileVHDL
 		if (symbol == null || symbol.type != SYMBOL_TYPE)
 		{
 			reportErrorMsg(getNameToken(signal.subType.type), "Bad type");
-		}
+        } else if (BIT_VECTOR_HACK && type.equalsIgnoreCase("bit_vector") && signal.subType.type.type == NAME_SINGLE)
+        {
+            SingleName singleName = (SingleName)signal.subType.type.pointer;
+            if (singleName.type == SINGLENAME_INDEXED)
+            {
+                IndexedName indexedName = (IndexedName)singleName.pointer;
+                symbol = new SymbolTree();
+                DBLType dt = new DBLType();
+                symbol.pointer = dt;
+                dt.type = DBTYPE_ARRAY;
+                DBIndexRange endRange = null;
+                for (ExprList eList = indexedName.exprList; eList != null; eList = eList.next)
+                {
+                    DBIndexRange newRange = new DBIndexRange(); 
+                    newRange.dRange = new DBDiscreteRange();
+                    newRange.dRange.start = evalSimpleExpr(eList.expression.relation.simpleExpr);
+                    newRange.dRange.end = eList.expressionRangeEnd != null ? evalSimpleExpr(eList.expressionRangeEnd.relation.simpleExpr) : newRange.dRange.start;
+                    if (endRange == null)
+                    {
+                        endRange = newRange;
+                        dt.pointer = newRange;
+                    } else
+                    {
+                        endRange.next = newRange;
+                        endRange = newRange;
+                    }
+                }
+            }
+        }
 
 		// check each signal in signal list for uniqueness
 		for (IdentList sig = signal.names; sig != null; sig = sig.next)
@@ -4950,7 +5038,35 @@ public class CompileVHDL
 			if (symbol == null || symbol.type != SYMBOL_TYPE)
 			{
 				reportErrorMsg(getNameToken(port.type), "Unknown port name (" + symName + ")");
-			}
+			} else if (BIT_VECTOR_HACK && symName.equalsIgnoreCase("bit_vector") && port.type.type == NAME_SINGLE)
+            {
+                SingleName singleName = (SingleName)port.type.pointer;
+                if (singleName.type == SINGLENAME_INDEXED)
+                {
+                    IndexedName indexedName = (IndexedName)singleName.pointer;
+                    symbol = new SymbolTree();
+                    DBLType dt = new DBLType();
+                    symbol.pointer = dt;
+                    dt.type = DBTYPE_ARRAY;
+                    DBIndexRange endRange = null;
+                    for (ExprList eList = indexedName.exprList; eList != null; eList = eList.next)
+                    {
+                        DBIndexRange newRange = new DBIndexRange(); 
+                        newRange.dRange = new DBDiscreteRange();
+                        newRange.dRange.start = evalSimpleExpr(eList.expression.relation.simpleExpr);
+                        newRange.dRange.end = eList.expressionRangeEnd != null ? evalSimpleExpr(eList.expressionRangeEnd.relation.simpleExpr) : newRange.dRange.start;
+                        if (endRange == null)
+                        {
+                            endRange = newRange;
+                            dt.pointer = newRange;
+                        } else
+                        {
+                            endRange.next = newRange;
+                            endRange = newRange;
+                        }
+                    }
+                }
+            }
 
 			// check for uniqueness of port names
 			for (IdentList names = port.names; names != null; names = names.next)
@@ -5150,6 +5266,13 @@ public class CompileVHDL
 		// type "std_logic"
 		identTable.add("std_logic");
 		addSymbol("std_logic", SYMBOL_TYPE, null, symbols);
+        
+        if (BIT_VECTOR_HACK)
+        {
+            // type "bit_vector"
+            identTable.add("bit_vector");
+            addSymbol("bit_vector", SYMBOL_TYPE, null, symbols);
+        }
 	}
 
 	/**
@@ -5824,9 +5947,10 @@ public class CompileVHDL
 	 * Method to generate QUISC target output for the created parse tree.
 	 * Assume parse tree is semantically correct.
 	 * @param destLib destination library.
+     * @param isIncludeDateAndVersionInOutput include date and version in output
 	 * @return a list of strings that has the netlist.
 	 */
-	private List<String> genQuisc(Library destLib)
+	private List<String> genQuisc(Library destLib, boolean isIncludeDateAndVersionInOutput)
 	{
 		List<String> netlist = new ArrayList<String>();
 
@@ -5834,7 +5958,7 @@ public class CompileVHDL
 		netlist.add("!*************************************************");
 		netlist.add("!  QUISC Command file");
 		netlist.add("!");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (isIncludeDateAndVersionInOutput)
 			netlist.add("!  File Creation:    " + TextUtils.formatDate(new Date()));
 		netlist.add("!-------------------------------------------------");
 		netlist.add("");
