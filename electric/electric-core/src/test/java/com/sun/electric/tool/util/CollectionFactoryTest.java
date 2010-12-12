@@ -31,8 +31,8 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.sun.electric.tool.util.datastructures.ImmutableList;
 import com.sun.electric.util.CollectionFactory;
+import com.sun.electric.util.collections.ImmutableList;
 
 /**
  * @author Felix Schmidt
