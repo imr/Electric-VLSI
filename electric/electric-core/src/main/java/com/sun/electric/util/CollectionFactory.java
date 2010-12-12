@@ -26,24 +26,12 @@ package com.sun.electric.util;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.sun.electric.tool.util.concurrent.datastructures.BDEQueue;
-import com.sun.electric.tool.util.concurrent.datastructures.FCQueue;
-import com.sun.electric.tool.util.concurrent.datastructures.LockFreeQueue;
-import com.sun.electric.tool.util.concurrent.datastructures.LockFreeStack;
-import com.sun.electric.tool.util.concurrent.datastructures.UnboundedDEQueue;
 import com.sun.electric.tool.util.concurrent.utils.ConcurrentCollectionFactory;
-import com.sun.electric.tool.util.datastructures.ImmutableList;
+import com.sun.electric.util.collections.ImmutableList;
 
 /**
  * This class provides factory methods for creating data structures. The
