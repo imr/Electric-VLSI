@@ -416,6 +416,77 @@ public class ImmutableExport extends ImmutableElectricObject {
     }
 
     /**
+     * Method to determine whether this ImmutableExport is of type Power.
+     * This is determined by either having the proper Characteristic, or by
+     * having the proper name (starting with "vdd", "vcc", "pwr", or "power").
+     * @return true if this ImmutableExport is of type Power.
+     */
+    public boolean isPower() {
+        switch (characteristic) {
+            case PWR: return true;
+            case UNKNOWN: return isNamedPower(name.toString());
+            default: return false;
+        }
+    }
+
+    /**
+     * Method to determine whether this ImmutableExport is of type Ground.
+     * This is determined by either having the proper PortCharacteristic, or by
+     * having the proper name (starting with "vss", "gnd", or "ground").
+     * @return true if this ImmutableExport is of type Ground.
+     */
+    public boolean isGround() {
+        switch (characteristic) {
+            case GND: return true;
+            case UNKNOWN: return isNamedGround(name.toString());
+            default: return false;
+        }
+    }
+
+    /**
+     * Method to determine whether this name suggests Power.
+     * This is determined by having a name starting with "vdd", "vcc", "pwr", or "power".
+     * @param name name to test
+     * @return true if this name suggests Power.
+     */
+    public static boolean isNamedPower(String name) {
+        name = TextUtils.canonicString(name);
+        if (name.indexOf("vdd") >= 0) {
+            return true;
+        }
+        if (name.indexOf("vcc") >= 0) {
+            return true;
+        }
+        if (name.indexOf("pwr") >= 0) {
+            return true;
+        }
+        if (name.indexOf("power") >= 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Method to determine whether this name suggests Ground.
+     * This is determined by either having a name starting with "vss", "gnd", or "ground".
+     * @param name name to test
+     * @return true if this name that suggests Ground.
+     */
+    public static boolean isNamedGround(String name) {
+        name = TextUtils.canonicString(name);
+        if (name.indexOf("vss") >= 0) {
+            return true;
+        }
+        if (name.indexOf("gnd") >= 0) {
+            return true;
+        }
+        if (name.indexOf("ground") >= 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Checks invariant of this ImmutableExport.
      * @throws AssertionError if invariant is broken.
      */

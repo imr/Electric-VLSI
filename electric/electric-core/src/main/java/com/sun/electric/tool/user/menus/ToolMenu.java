@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.ImmutableExport;
 import static com.sun.electric.database.text.ArrayIterator.i2i;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
@@ -1513,9 +1514,12 @@ public class ToolMenu
                         // merge this Network with all Exports it touches
                         for(Export e : i2i(net.getExports())) {
                             instanceConnections.merge(net, e);
-                            if (e.isNamedGround() || e.isNamedPower() ||
-                                e.getCharacteristic()==PortCharacteristic.GND || e.getCharacteristic()==PortCharacteristic.PWR)
+                            if (e.isGround() || e.isPower())
                                 instanceConnections.merge(e, DRIVEN);
+                              // Commented by DN 13-Dec-2010: Let's respect a user that insists that port characteristic in not GND, PWR, UNKNOWN ...
+//                            if (e.isNamedGround() || e.isNamedPower() ||
+//                                e.getCharacteristic()==PortCharacteristic.GND || e.getCharacteristic()==PortCharacteristic.PWR)
+//                                instanceConnections.merge(e, DRIVEN);
                         }
 
             			PortInst[] portsOnNet = null;
@@ -1736,14 +1740,14 @@ public class ToolMenu
                 for(Iterator<PortProto> pIt = cell.getPorts(); pIt.hasNext(); )
                 {
                     Export pp = (Export)pIt.next();
-                    if (pp.isNamedGround() && pp.getCharacteristic() != PortCharacteristic.GND)
+                    if (ImmutableExport.isNamedGround(pp.getName()) && pp.getCharacteristic() != PortCharacteristic.GND)
                     {
                         System.out.println("Cell " + cell.describe(true) + ", export " + pp.getName() +
                             ": does not have 'GROUND' characteristic");
 						if (repair) pp.setCharacteristic(PortCharacteristic.GND);
                         total++;
                     }
-                    if (pp.isNamedPower() && pp.getCharacteristic() != PortCharacteristic.PWR)
+                    if (ImmutableExport.isNamedPower(pp.getName()) && pp.getCharacteristic() != PortCharacteristic.PWR)
                     {
                         System.out.println("Cell " + cell.describe(true) + ", export " + pp.getName() +
                             ": does not have 'POWER' characteristic");

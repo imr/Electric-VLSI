@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+BUG: (12/12/10, DN) Silicon Compiler can't handle Alliance structural VHDL because of vdd/vss names (Bug #2989).
+FIX: Enhance handling power/ground names in CompileVHDL .
+
 BUG: (12/13/10, FS) Eval<Languaga>.java in database package (Bug #2980)
 FIX: Java files moved to com.sun.electric.tool.lang and created a JUnit test case
 

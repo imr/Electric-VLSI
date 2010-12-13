@@ -967,36 +967,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return true if this Export is of type Power.
      */
     public boolean isPower() {
-        PortCharacteristic ch = getCharacteristic();
-        if (ch == PortCharacteristic.PWR) {
-            return true;
-        }
-        if (ch != PortCharacteristic.UNKNOWN) {
-            return false;
-        }
-        return isNamedPower();
-    }
-
-    /**
-     * Method to determine whether this Export has a name that suggests Power.
-     * This is determined by having a name starting with "vdd", "vcc", "pwr", or "power".
-     * @return true if this Export has a name that suggests Power.
-     */
-    public boolean isNamedPower() {
-        String name = TextUtils.canonicString(getName());
-        if (name.indexOf("vdd") >= 0) {
-            return true;
-        }
-        if (name.indexOf("vcc") >= 0) {
-            return true;
-        }
-        if (name.indexOf("pwr") >= 0) {
-            return true;
-        }
-        if (name.indexOf("power") >= 0) {
-            return true;
-        }
-        return false;
+        return getD().isPower();
     }
 
     /**
@@ -1006,33 +977,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return true if this Export is of type Ground.
      */
     public boolean isGround() {
-        PortCharacteristic ch = getCharacteristic();
-        if (ch == PortCharacteristic.GND) {
-            return true;
-        }
-        if (ch != PortCharacteristic.UNKNOWN) {
-            return false;
-        }
-        return isNamedGround();
-    }
-
-    /**
-     * Method to determine whether this Export has a name that suggests Ground.
-     * This is determined by either having a name starting with "vss", "gnd", or "ground".
-     * @return true if this Export has a name that suggests Ground.
-     */
-    public boolean isNamedGround() {
-        String name = TextUtils.canonicString(getName());
-        if (name.indexOf("vss") >= 0) {
-            return true;
-        }
-        if (name.indexOf("gnd") >= 0) {
-            return true;
-        }
-        if (name.indexOf("ground") >= 0) {
-            return true;
-        }
-        return false;
+        return getD().isGround();
     }
 
     /**

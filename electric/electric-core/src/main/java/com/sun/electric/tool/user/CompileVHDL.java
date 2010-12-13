@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -5818,15 +5819,15 @@ public class CompileVHDL
 							for (DBNameList cat = (DBNameList)aPort.name.pointer; cat != null; cat = cat.next)
 							{
 								String ident = cat.name.name;
-								if (ident.equalsIgnoreCase("power")) power_flag = true; else
-									if (ident.equalsIgnoreCase("ground")) ground_flag = true;
+								if (ImmutableExport.isNamedPower(ident)) power_flag = true; else
+									if (ImmutableExport.isNamedGround(ident)) ground_flag = true;
 								first = genAPort(infstr, first, cat.name);
 							}
 						} else
 						{
 							String ident = aPort.name.name;
-							if (ident.equalsIgnoreCase("power")) power_flag = true; else
-								if (ident.equalsIgnoreCase("ground")) ground_flag = true;
+							if (ImmutableExport.isNamedPower(ident)) power_flag = true; else
+								if (ImmutableExport.isNamedGround(ident)) ground_flag = true;
 							first = genAPort(infstr, first, aPort.name);
 						}
 					} else
@@ -6134,7 +6135,15 @@ public class CompileVHDL
 				newQNode.start = 0;
 				newQNode.end = 0;
 				newQNode.table = null;
-				newQNode.flags = QNODE_EXPORT;
+                if (ImmutableExport.isNamedPower(newQNode.name))
+                {
+                    newQNode.flags = QNODE_EXPORT|QNODE_POWER;
+                } else if (ImmutableExport.isNamedGround(newQNode.name))
+                {
+                    newQNode.flags = QNODE_EXPORT|QNODE_GROUND;
+                } else {
+                    newQNode.flags = QNODE_EXPORT;
+                }
 				newQNode.mode = fPort.mode;
 				newQNode.ports = null;
 				newQNode.next = null;
@@ -6189,10 +6198,10 @@ public class CompileVHDL
 					newQNode.start = 0;
 					newQNode.end = 0;
 					newQNode.table = null;
-					if (signal.name.equalsIgnoreCase("power"))
+					if (ImmutableExport.isNamedPower(signal.name))
 					{
 						newQNode.flags = QNODE_POWER;
-					} else if (signal.name.equalsIgnoreCase("ground"))
+					} else if (ImmutableExport.isNamedGround(signal.name))
 					{
 						newQNode.flags = QNODE_GROUND;
 					} else
@@ -6295,18 +6304,26 @@ public class CompileVHDL
 				QPORT qPort = newQNode.ports;
 				if (qPort != null)
 				{
-					for (QPORT qPort2 = qPort.next; qPort2 != null; qPort2 = qPort2.next)
-					{
-						netlist.add("connect " + qPort.instName + " " + qPort.portName + " " + qPort2.instName + " " + qPort2.portName);
-					}
-					if ((newQNode.flags & QNODE_POWER) != 0)
-					{
-						netlist.add("connect " + qPort.instName + " " + qPort.portName + " power");
-					}
-					if ((newQNode.flags & QNODE_GROUND) != 0)
-					{
-						netlist.add("connect " + qPort.instName + " " + qPort.portName + " ground");
-					}
+                    if ((newQNode.flags & QNODE_POWER) != 0)
+                    {
+                        for (QPORT qPort2 = qPort.next; qPort2 != null; qPort2 = qPort2.next)
+                        {
+                            if (ImmutableExport.isNamedPower(qPort2.portName)) continue;
+                            netlist.add("connect " + qPort2.instName + " " + qPort2.portName + " power");
+                        }
+                    } else if ((newQNode.flags & QNODE_GROUND) != 0)
+                    {
+                        for (QPORT qPort2 = qPort.next; qPort2 != null; qPort2 = qPort2.next)
+                        {
+                            if (ImmutableExport.isNamedGround(qPort2.portName)) continue;
+                            netlist.add("connect " + qPort2.instName + " " + qPort2.portName + " ground");
+                        }
+                    } else {
+                        for (QPORT qPort2 = qPort.next; qPort2 != null; qPort2 = qPort2.next)
+                        {
+                            netlist.add("connect " + qPort.instName + " " + qPort.portName + " " + qPort2.instName + " " + qPort2.portName);
+                        }
+                    }
 				}
 			} else
 			{
@@ -6327,7 +6344,7 @@ public class CompileVHDL
 		// print out exports
 		for (QNODE newQNode = qNodes; newQNode != null; newQNode = newQNode.next)
 		{
-			if ((newQNode.flags & QNODE_EXPORT) != 0)
+			if ((newQNode.flags & (QNODE_EXPORT|QNODE_POWER|QNODE_GROUND)) == QNODE_EXPORT)
 			{
 				if (newQNode.nameType == QNODE_SNAME)
 				{
