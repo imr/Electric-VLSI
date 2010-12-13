@@ -29,6 +29,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
@@ -62,6 +63,7 @@ import java.util.Set;
  */
 public class CIF extends Input<Object>
 {
+    private static final boolean MAKE_EXPORTS = false;
 	/** max depth of min/max stack */		private static final int MAXMMSTACK = 50;
 	/** max value that can add extra digit */private static final int BIGSIGNED = ((0X7FFFFFFF-9)/10);
 
@@ -178,6 +180,8 @@ public class CIF extends Input<Object>
 	static class BackCIFGeomName
 	{
 		/** the corresponding layer number */		Layer  lay;
+        /** the name */                             String name;
+        /** the central point */                    int cx, cy;
 	};
 
 	static class BackCIFLabel
@@ -323,6 +327,7 @@ public class CIF extends Input<Object>
 
 	static class FrontGeomName extends FrontObjBase
 	{
+        String name;
 	};
 
 	static class FrontLabel extends FrontObjBase
@@ -500,7 +505,10 @@ public class CIF extends Input<Object>
 			} else if (currentFrontElement.identity == CCALL)
 			{
 				if (nodesCall()) return true;
-			}
+			} else if (currentFrontElement.identity == CGNAME)
+            {
+                if (MAKE_EXPORTS && nodesGeoName()) return true;
+            }
 		}
 		return false;
 	}
@@ -656,6 +664,19 @@ public class CIF extends Input<Object>
 		return false;
 	}
 
+    private boolean nodesGeoName()
+    {
+		BackCIFGeomName gn = (BackCIFGeomName)currentFrontElement.member;
+        Layer lay = gn.lay;
+		NodeProto np = findPrototype(lay);
+        String name = gn.name;
+        double x = convertFromCentimicrons(gn.cx);
+        double y = convertFromCentimicrons(gn.cy);
+		NodeInst newni = NodeInst.makeInstance(np, new Point2D.Double(x, y), 0, 0, currentBackCell.addr);
+        Export.newInstance(currentBackCell.addr, newni.getOnlyPortInst(), name);
+        return false;
+    }
+    
 	private void rotateLayer(Point pt, int deg)
 	{
 		// trivial test to prevent atan2 domain errors
@@ -970,7 +991,7 @@ public class CIF extends Input<Object>
 		if (thing.what instanceof FrontGeomName)
 		{
 			FrontGeomName gn = (FrontGeomName)thing.what;
-			outputGeomName(gn.layer);
+			outputGeomName(gn.layer, gn.name, (gn.bb.l + gn.bb.r)/2, (gn.bb.b + gn.bb.t)/2);
 			return;
 		}
 		if (thing.what instanceof FrontLabel)
@@ -989,11 +1010,14 @@ public class CIF extends Input<Object>
 		cl.x = pt.x;   cl.y = pt.y;
 	}
 
-	private void outputGeomName(Layer lay)
+	private void outputGeomName(Layer lay, String name, int cX, int cY)
 	{
 		placeCIFList(CGNAME);
 		BackCIFGeomName cg = (BackCIFGeomName)currentFrontElement.member;
 		cg.lay = lay;
+        cg.name = name;
+        cg.cx = cX;
+        cg.cy = cY;
 	}
 
 	private void outputCall(int number, String name, FrontTransformList list, int lineNumber)
@@ -1103,7 +1127,7 @@ public class CIF extends Input<Object>
 			} else if (ro instanceof FrontGeomName)
 			{
 				FrontGeomName gn = (FrontGeomName)ro;
-				outputGeomName(gn.layer);
+				outputGeomName(gn.layer, gn.name, (gn.bb.l + gn.bb.r)/2, (gn.bb.b + gn.bb.t)/2);
 			} else if (ro instanceof FrontLabel)
 			{
 				FrontLabel la = (FrontLabel)ro;
@@ -1637,8 +1661,54 @@ public class CIF extends Input<Object>
 								errorFound = true; errorType = BADUSER; return reportError();
 							}
 						}
-					} else
+					} else if (userCommand == 4)
                     {
+						curChar = peekNextCharacter();
+						if (curChar == 'I' || curChar == 'X' || curChar == 'N')
+						{
+							switch (getNextCharacter())
+							{
+								case 'I':
+								case 'X':
+								case 'N':
+									if (!skipSpaces())
+									{
+										errorFound = true; errorType = NOSPACE;
+										return reportError();
+									}
+									nameText = parseName(); if (errorFound) return reportError();
+									switch (curChar)
+									{
+										case 'I':
+											command = INSTNAME;
+											break;
+										case 'X':
+										{
+											command = GEONAME;
+                                            getSignedInteger(); // skip Index
+											namePoint = getPoint(); if (errorFound) return reportError();
+                                            int w = getSignedInteger();
+                                            getUserText();
+											lName = currentLayer != null ? currentLayer.getCIFLayer() : null;
+											break;
+										}
+										case 'N':
+											command = LABELCOM;
+											namePoint = getPoint(); if (errorFound) return reportError();
+											break;
+									}
+									break;
+							}
+						} else
+						{
+							command = USERS;
+							userText = getUserText();
+							if (atEndOfFile())
+							{
+								errorFound = true; errorType = BADUSER; return reportError();
+							}
+						}
+                    } else {
                         command = USERS;
                         userText = getUserText();
                         if (atEndOfFile())
@@ -1646,8 +1716,7 @@ public class CIF extends Input<Object>
                             errorFound = true; errorType = BADUSER; return reportError();
                         }
                     }
-				} else
-				{
+                } else {
 					errorFound = true;
 					errorType = BADCOMMAND;
 					return reportError();
@@ -1696,7 +1765,7 @@ public class CIF extends Input<Object>
 				makeInstanceName(nameText);
 				break;
 			case GEONAME:
-				makeGeomName(nameText, namePoint, curTech.findLayer(lName));
+				makeGeomName(nameText, namePoint, cifLayerNames.get(lName));
 				break;
 			case LABELCOM:
 				makeLabel(nameText, namePoint);
@@ -1756,6 +1825,7 @@ public class CIF extends Input<Object>
 		}
 		FrontGeomName obj = new FrontGeomName();
 		obj.layer = lay;
+        obj.name = name;
 		if (isInCellDefinition && cellScaleFactor != 1.0)
 		{
 			pt.x = (int)Math.round(cellScaleFactor * pt.x);
