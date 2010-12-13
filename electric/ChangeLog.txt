@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+BUG: (12/13/10, FS) Eval<Languaga>.java in database package (Bug #2980)
+FIX: Java files moved to com.sun.electric.tool.lang and created a JUnit test case
+
 IMP: (12/12/10, DN) CIF reader can read Exports (disabled b io.input.CIF.MAKE_EXPORTS = false.
 
 BUG: (12/12/10, DN) Should the configurator messages be avoided by default (Bug #2978).
