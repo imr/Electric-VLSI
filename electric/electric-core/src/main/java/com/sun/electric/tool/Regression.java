@@ -35,12 +35,12 @@ import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.lang.EvalJavaBsh;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
 import java.io.BufferedInputStream;

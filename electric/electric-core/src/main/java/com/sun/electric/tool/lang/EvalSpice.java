@@ -21,17 +21,17 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database.variable;
-
-import com.sun.electric.util.TextUtils;
+package com.sun.electric.tool.lang;
 
 import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 
+import com.sun.electric.util.TextUtils;
+
 /**
  * Class to evaluate Spice expressions.
- * User: gainsley
+ * @author gainsley
  * Date: Aug 17, 2006
  */
 public class EvalSpice {
@@ -322,7 +322,8 @@ public class EvalSpice {
     }
 
     // ==================== Parsable Objects ========================
-    public static class ParseException extends Exception {
+    @SuppressWarnings("serial")
+	public static class ParseException extends Exception {
 
         public ParseException(String msg) {
             super(msg);
@@ -554,68 +555,5 @@ public class EvalSpice {
             return TextUtils.formatDoublePostFix(((Double) obj).doubleValue());
         }
         return obj.toString();
-    }
-
-    // ================================ Main Test ================================
-    public static void main(String args[]) {
-        testEval("1 + 2", 3);
-        testEval("1 + 2 * 3", 7);
-        testEval("1 * 2 + 3", 5);
-        testEval("(1 + 2) * 3", 9);
-        testEval("(1 + 2) * x", "3 * x");
-        testEval("300 / -1.5e2", -2);
-        testEval("1.5e-2", 0.015);
-        testEval("20 * 1.5e-2", 0.3);
-        testEval("20 * 1.5m", 0.03);
-        testEval("(1 + a) * 3 + b", "(1 + a) * 3 + b");
-        testEval("1 + 2 * 3 + - 4", 3);
-        testEval("-1", -1);
-        testEval("-1 + 2 * 3 + - 4", 1);
-        testEval("-(1 + 2) * 3 + -4", -13);
-        testEval("-(1 + 2) * 3 + -4 * -2 - -4 * -3", -13);
-        testEval("-sin(3)", -Math.sin(3));
-        testEval("-sin(x)", "-sin(x)");
-        testEval("1-min(1,-2)", 3);
-        testEval("1-min(1,x)", null);
-        testEval("1-min((a+b)*c,x)", null);
-        testEval("1-min((a+b)*c,(a+b))", null);
-        testEval("-a + 2 * 3 * -b + - 4", null);
-        testEval("1 ? -2 : 4", -2);
-        testEval("0 ? -2 : 4", 4);
-        testEval("8 == 1 ? -2 : 4", 4);
-        testEval("8 > 1 ? -2 : 4", -2);
-        testEval("1 - 7 <= 1 ? -2 : 4", -2);
-        testEval("layer == 1 ? two + 1 : eight * 4 / 2", "layer == 1 ? two + 1 : eight * 4 / 2");
-        testEval("0 * 1 ? 3 / 2 : -4 + 10", 6);
-        testEval("(3==0?0.00441:3<8?0.011:0.016)*1e-15", 1.1e-17);
-        testEval("(layer==0?0.00441:layer<8?0.011:0.016)*1e-15", null);
-        System.out.println("\nThese should flag as errors:\n---------------------------\n");
-        testEval("1 2 +", null);
-        testEval("1 + * 2", null);
-        testEval("1 + 2 * - -3", null);
-        testEval("300 / -1.5ee2 + 5", null);
-        testEval("1-min((a+b)*c,(a+b)", null);
-        testEval("1/0", null);
-        testEval("M1 - M3 : 10001", null);
-    }
-
-    private static void testEval(String eq, String expected) {
-        EvalSpice sp = new EvalSpice(eq);
-        String evald = sp.evaluate().toString();
-        if (expected == null) {
-            System.out.println(eq + " = " + evald);
-        } else {
-            System.out.println(eq + " = " + evald + " -- (" + expected + ")");
-            assert (expected.equals(evald));
-        }
-    }
-
-    private static void testEval(String eq, double expected) {
-        EvalSpice sp = new EvalSpice(eq);
-        Object evald = sp.evaluate();
-        System.out.println(eq + " = " + evald + " -- (" + expected + ")");
-        assert (evald instanceof Double);
-        double val = ((Double) evald).doubleValue();
-        assert (val == expected);
     }
 }

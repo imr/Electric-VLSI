@@ -21,16 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database.variable;
-
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.topology.Geometric;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.util.TextUtils;
+package com.sun.electric.tool.lang;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -39,6 +30,17 @@ import java.util.List;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.variable.CodeExpression;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.util.TextUtils;
 
 /**
  * Used for evaluating Java expressions in Variables
@@ -205,7 +207,7 @@ public class EvalJavaBsh {
      * @param info used to pass additional info from Electric to the interpreter, if needed.
      * @return the evaluated object.
      */
-    protected synchronized Object evalVarObject(CodeExpression ce, VarContext context, Object info) throws VarContext.EvalException {
+    public synchronized Object evalVarObject(CodeExpression ce, VarContext context, Object info) throws VarContext.EvalException {
         assert ce.isJava();
         String expr = replace(ce.getExpr());  // change @var calls to P(var)
         if (context == null) {
@@ -311,7 +313,8 @@ public class EvalJavaBsh {
         return new runScriptJob(script);
     }
 
-    private static class runScriptJob extends Job {
+    @SuppressWarnings("serial")
+	private static class runScriptJob extends Job {
 
         private String script;
         private Cell cell;

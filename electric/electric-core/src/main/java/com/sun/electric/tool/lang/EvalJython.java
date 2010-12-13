@@ -21,16 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database.variable;
-
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.util.TextUtils;
+package com.sun.electric.tool.lang;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,6 +30,17 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.id.CellId;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.util.TextUtils;
 
 public class EvalJython {
 
@@ -147,7 +149,8 @@ public class EvalJython {
         }
     }
 
-    private static class RunJythonScriptJob extends Job {
+    @SuppressWarnings("serial")
+	private static class RunJythonScriptJob extends Job {
 
         private String script;
         private Cell cellToDisplay;
@@ -197,6 +200,7 @@ public class EvalJython {
 	/**
 	 * Class for setting a variable in a new Job.
 	 */
+	@SuppressWarnings("serial")
 	private static class SetVarJob extends Job
 	{
 		private CellId cellId;

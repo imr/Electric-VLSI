@@ -29,6 +29,8 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.text.ArrayIterator;
+import com.sun.electric.tool.lang.EvalJavaBsh;
+import com.sun.electric.tool.lang.EvalSpice;
 import com.sun.electric.util.TextUtils;
 
 import java.io.IOException;

@@ -28,11 +28,11 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.lang.EvalJavaBsh;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;

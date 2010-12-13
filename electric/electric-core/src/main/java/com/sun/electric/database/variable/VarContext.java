@@ -29,6 +29,8 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.lang.EvalJavaBsh;
+import com.sun.electric.tool.lang.EvalSpice;
 import com.sun.electric.util.TextUtils;
 
 import java.io.Serializable;
@@ -598,7 +600,7 @@ public class VarContext implements Serializable {
      * @return an object representing the evaluated variable,
      * or null if no var or default var found.
      */
-    protected Object lookupVarEval(String name) throws EvalException {
+    public Object lookupVarEval(String name) throws EvalException {
         Nodable ni = getNodable();
         if (ni == null) {
             throwNotFound(name);
