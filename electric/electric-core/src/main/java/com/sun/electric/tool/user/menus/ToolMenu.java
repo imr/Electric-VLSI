@@ -144,6 +144,7 @@ import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.irsim.IRSIM;
 import com.sun.electric.tool.user.CompileVHDL;
+import com.sun.electric.tool.user.CompileVerilogStruct;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
@@ -648,13 +649,15 @@ public class ToolMenu
 
 		//------------------- Silicon Compiler
 
-			// mnemonic keys available: AB DEFGHIJKLM OPQRSTUVWXYZ
+			// mnemonic keys available: AB DEFGHIJKLM OPQRSTU WXYZ
             new EMenu("Silicon Co_mpiler",
 		        new EMenuItem("_Convert Current Cell to Layout") { public void run() {
                     doSiliconCompilation(WindowFrame.needCurCell(), false); }},
                 SEPARATOR,
 		        new EMenuItem("Compile VHDL to _Netlist View") { public void run() {
-                    compileVHDL(); }}),
+                    compileVHDL(); }},
+		        new EMenuItem("Compile _Verilog to Netlist View") { public void run() {
+		        	compileVerilog(); }}),
 
 		//------------------- Compaction
 
@@ -804,7 +807,7 @@ public class ToolMenu
 
             // update wire models
             for (Network schNet : networks) {
-                // find equivalent network in layouy
+                // find equivalent network in layout
                 Equivalence equiv = result.getEquivalence();
                 HierarchyEnumerator.NetNameProxy proxy = equiv.findEquivalentNet(VarContext.globalContext, schNet);
                 if (proxy == null) {
@@ -1208,7 +1211,7 @@ public class ToolMenu
     }
 
     /**
-     * helper method for "telltool network list-hierarchical-ports" to print all
+     * helper method to print all
      * ports connected to net "net" in cell "cell", and recurse up the hierarchy.
      * @return true if an error occurred.
      */
@@ -1257,7 +1260,7 @@ public class ToolMenu
     }
 
     /**
-     * helper method for "telltool network list-hierarchical-ports" to print all
+     * helper method to print all
      * ports connected to net "net" in cell "cell", and recurse down the hierarchy
      * @return true on error.
      */
@@ -1464,7 +1467,7 @@ public class ToolMenu
         new ListGeomsAllNetworksJob(cell);
     }
 
-    /*
+    /**
      * THE RULES:
      *
      * - The source and drain ports of a transistor are considered driven.
@@ -1541,7 +1544,7 @@ public class ToolMenu
                             if (ni.isCellInstance() && ((Cell)ni.getProto()).getView() == View.ICON)
                                 pp = ((Export)pp).findEquivalent(((Cell)ni.getProto()).contentsView());
 
-                            // merge instances based on proto connectivity
+                            // merge instances based on prototype connectivity
                             if (protoConnections.isEquivalent(pp, DRIVEN))
                                 instanceConnections.merge(pi, DRIVEN);
                             for(PortInst pi2 : i2i(ni.getPortInsts())) {
@@ -2065,10 +2068,12 @@ public class ToolMenu
 		}
 	}
 
-    private static final int CONVERT_TO_VHDL     = 1;
-	public static final int COMPILE_VHDL_FOR_SC = 2;
-	private static final int PLACE_AND_ROUTE     = 4;
-	private static final int SHOW_CELL           = 8;
+	public static final int CONVERT_TO_VHDL        =  1;
+	public static final int COMPILE_VHDL_FOR_SC    =  2;
+	public static final int PLACE_AND_ROUTE        =  4;
+	public static final int SHOW_CELL              =  8;
+	public static final int COMPILE_VERILOG_FOR_SC = 16;
+	public static final int GENERATE_CELL          = 32;
 
 	/**
 	 * Method to handle the menu command to convert a cell to layout.
@@ -2120,7 +2125,7 @@ public class ToolMenu
 
 	/**
 	 * Method to handle the menu command to compile a VHDL cell.
-	 * Compiles the VHDL in the current cell and displays the netlist.
+	 * Compiles the VHDL in the current cell and creates a netlist cell.
 	 */
 	public static void compileVHDL()
 	{
@@ -2134,6 +2139,24 @@ public class ToolMenu
 
 		// do the VHDL compilation task
 		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, new SilComp.SilCompPrefs(false), new GenerateVHDL.VHDLPreferences(false));
+	}
+
+	/**
+	 * Method to handle the menu command to compile a Verilog cell.
+	 * Compiles the Verilog in the current cell and creates a netlist cell.
+	 */
+	public static void compileVerilog()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		if (cell.getView() != View.VERILOG)
+		{
+			System.out.println("Must be editing a VERILOG cell before compiling it");
+			return;
+		}
+
+		// do the Verilog compilation task
+		new DoSilCompActivity(cell, COMPILE_VERILOG_FOR_SC | GENERATE_CELL | SHOW_CELL, new SilComp.SilCompPrefs(false), new GenerateVHDL.VHDLPreferences(false));
 	}
 
 	/**
@@ -2310,6 +2333,47 @@ public class ToolMenu
 				textCellsToRedraw.add(netlistCell);
 				System.out.println(" Done, created " + netlistCell);
 				cell = netlistCell;
+			}
+
+			if ((activities&COMPILE_VERILOG_FOR_SC) != 0)
+			{
+				// compile the VHDL to a netlist
+				System.out.print("Compiling Verilog in " + cell + " ...");
+				CompileVerilogStruct c = new CompileVerilogStruct(cell);
+				if (c.hasErrors())
+				{
+					System.out.println("ERRORS during compilation, no netlist produced");
+					return null;
+				}
+				if ((activities&GENERATE_CELL) != 0)
+				{
+					// just make the cell (randomly placed)
+					cell = c.genCell(destLib);
+				} else
+				{
+					// save the netlist in a view
+					List<String> netlistStrings = c.getQUISCNetlist(destLib);
+					if (netlistStrings == null)
+					{
+						System.out.println("No netlist produced");
+						return null;
+					}
+
+					// store the QUISC netlist
+					String cellName = cell.getName() + "{net.quisc}";
+					Cell netlistCell = cell.getLibrary().findNodeProto(cellName);
+					if (netlistCell == null)
+					{
+						netlistCell = Cell.makeInstance(cell.getLibrary(), cellName);
+						if (netlistCell == null) return null;
+					}
+					String [] array = new String[netlistStrings.size()];
+					for(int i=0; i<netlistStrings.size(); i++) array[i] = netlistStrings.get(i);
+					netlistCell.setTextViewContents(array);
+					textCellsToRedraw.add(netlistCell);
+					System.out.println(" Done, created " + netlistCell);
+					cell = netlistCell;
+				}
 			}
 
 			if ((activities&PLACE_AND_ROUTE) != 0)

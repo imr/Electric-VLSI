@@ -27,9 +27,11 @@ The default location of the Maven local repository on Unix systems is ~/.m2/repo
 &nbsp;&nbsp;&nbsp;<code><font size="-1">mvn -DskipTests=true install</font></code>
 <P>
 Next run the Electric:<br>
-&nbsp;&nbsp;&nbsp;<code><font size="-1">WORK-DIR/electric/electric-distribution/target/electric-${project.version}.app/bin/electric</font></code><br>
+&nbsp;&nbsp;&nbsp;<code><font size="-1">WORK-DIR/electric/electric-distribution/target/electric-${project.version}.app/<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bin/electric</font></code><br>
 or<br>
-&nbsp;&nbsp;&nbsp;<code><font size="-1">WORK-DIR/electric/electric-distribution/target/electric-${project.version}.app/bin/electric.bat</font></code>
+&nbsp;&nbsp;&nbsp;<code><font size="-1">WORK-DIR/electric/electric-distribution/target/electric-${project.version}.app/<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bin/electric.bat</font></code>
 <P>
 If your design is large and you need more memory, you can request a larger heap size with this command:<br>
 &nbsp;&nbsp;&nbsp;<code><font size="-1">set ELECTRIC_OPTS="-Xmx1024m -XX:MaxPermSize=128m"</font></code>
