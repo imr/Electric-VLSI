@@ -6306,17 +6306,17 @@ public class CompileVHDL
 				{
                     if ((newQNode.flags & QNODE_POWER) != 0)
                     {
-                        for (QPORT qPort2 = qPort.next; qPort2 != null; qPort2 = qPort2.next)
+                        for (; qPort != null; qPort = qPort.next)
                         {
-                            if (ImmutableExport.isNamedPower(qPort2.portName)) continue;
-                            netlist.add("connect " + qPort2.instName + " " + qPort2.portName + " power");
+                            if (ImmutableExport.isNamedPower(qPort.portName)) continue;
+                            netlist.add("connect " + qPort.instName + " " + qPort.portName + " power");
                         }
                     } else if ((newQNode.flags & QNODE_GROUND) != 0)
                     {
-                        for (QPORT qPort2 = qPort.next; qPort2 != null; qPort2 = qPort2.next)
+                        for (; qPort != null; qPort = qPort.next)
                         {
-                            if (ImmutableExport.isNamedGround(qPort2.portName)) continue;
-                            netlist.add("connect " + qPort2.instName + " " + qPort2.portName + " ground");
+                            if (ImmutableExport.isNamedGround(qPort.portName)) continue;
+                            netlist.add("connect " + qPort.instName + " " + qPort.portName + " ground");
                         }
                     } else {
                         for (QPORT qPort2 = qPort.next; qPort2 != null; qPort2 = qPort2.next)
@@ -6399,7 +6399,7 @@ public class CompileVHDL
 		// print out non-exported node name assignments
 		for (QNODE newQNode = qNodes; newQNode != null; newQNode = newQNode.next)
 		{
-			if ((newQNode.flags & QNODE_EXPORT) == 0)
+			if ((newQNode.flags & (QNODE_EXPORT|QNODE_POWER|QNODE_GROUND)) == 0)
 			{
 				if (newQNode.nameType == QNODE_SNAME)
 				{
