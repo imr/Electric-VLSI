@@ -31,7 +31,9 @@ package com.sun.electric.tool.placement.simulatedAnnealing2;
 import com.sun.electric.util.math.Orientation;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -48,9 +50,6 @@ public class PositionIndex {
 	 * This class holds all information that is needed to evaluate the area effects
 	 * of a perturbation. it will not be altered so the calculation is not affected
 	 * by other threads
-	 * 
-	 * @author Basti
-	 *
 	 */
 	public static class AreaSnapshot {
 		public double maxX = -Double.MAX_VALUE;
@@ -126,17 +125,17 @@ public class PositionIndex {
 			double bd = dummy.getPlacementY() + dummy.height/2;
 			
 			// Remove node
-			// Get new boundaries for when the node to be moved was an outmost node
-			if(node == node_maxX) lmaxX = sndMaxX;
-			if(node == node_minX) lminX = sndMinX;
-			if(node == node_minY) lminY = sndMinY;
-			if(node == node_maxY) lmaxY = sndMaxY;
+			// Get new boundaries for when the node to be moved was an outermost node
+			if (node == node_maxX) lmaxX = sndMaxX;
+			if (node == node_minX) lminX = sndMinX;
+			if (node == node_minY) lminY = sndMinY;
+			if (node == node_maxY) lmaxY = sndMaxY;
 			
 			// Add dummy node
-			if(ld < lminX) { lminX = ld; }
-			if(rd > lmaxX) { lmaxX = rd; }
-			if(td < lminY) { lminY = td; }
-			if(bd > lmaxY) { lmaxY = bd; }
+			if (ld < lminX) { lminX = ld; }
+			if (rd > lmaxX) { lmaxX = rd; }
+			if (td < lminY) { lminY = td; }
+			if (bd > lmaxY) { lmaxY = bd; }
 			
 			return (lmaxX-lminX) * (lmaxY-lminY);		
 		}
@@ -146,7 +145,7 @@ public class PositionIndex {
 		 * and two nodes have been placed
 		 * @return The area after <node1>, <node2> have been replaced by <dummy1>, <dummy2>
 		 */
-		public double areaForDummy(ProxyNode node1, ProxyNode node2, ProxyNode dummy1, ProxyNode dummy2 )
+		public double areaForDummy(ProxyNode node1, ProxyNode node2, ProxyNode dummy1, ProxyNode dummy2)
 		{
 			double lminX = minX;
 			double lmaxX = maxX;
@@ -164,22 +163,22 @@ public class PositionIndex {
 			double bd2 = dummy2.getPlacementY() + dummy2.height/2;
 			
 			// Remove nodes
-			// Get new boundaries for when one of the nodes to be moved was an outmost node
-			if(node1 == node_maxX || node2 == node_maxX) lmaxX = sndMaxX;
-			if(node1 == node_minX || node2 == node_minX) lminX = sndMinX;
-			if(node1 == node_minY || node2 == node_minY) lminY = sndMinY;
-			if(node1 == node_maxY || node2 == node_maxY) lmaxY = sndMaxY;
+			// Get new boundaries for when one of the nodes to be moved was an outermost node
+			if (node1 == node_maxX || node2 == node_maxX) lmaxX = sndMaxX;
+			if (node1 == node_minX || node2 == node_minX) lminX = sndMinX;
+			if (node1 == node_minY || node2 == node_minY) lminY = sndMinY;
+			if (node1 == node_maxY || node2 == node_maxY) lmaxY = sndMaxY;
 			
 			// Add dummy nodes
-			if(ld1 < lminX) { lminX = ld1; }
-			if(rd1 > lmaxX) { lmaxX = rd1; }
-			if(td1 < lminY) { lminY = td1; }
-			if(bd1 > lmaxY) { lmaxY = bd1; }
+			if (ld1 < lminX) { lminX = ld1; }
+			if (rd1 > lmaxX) { lmaxX = rd1; }
+			if (td1 < lminY) { lminY = td1; }
+			if (bd1 > lmaxY) { lmaxY = bd1; }
 			
-			if(ld2 < lminX) { lminX = ld2; }
-			if(rd2 > lmaxX) { lmaxX = rd2; }
-			if(td2 < lminY) { lminY = td2; }
-			if(bd2 > lmaxY) { lmaxY = bd2; }
+			if (ld2 < lminX) { lminX = ld2; }
+			if (rd2 > lmaxX) { lmaxX = rd2; }
+			if (td2 < lminY) { lminY = td2; }
+			if (bd2 > lmaxY) { lmaxY = bd2; }
 			
 			return (lmaxX-lminX) * (lmaxY-lminY);	
 		}
@@ -195,13 +194,13 @@ public class PositionIndex {
 		public void add(ProxyNode node, double l, double r, double t, double b)
 		{
 			// Left
-			if ( node == node_minX || node == node_minY || node == node_maxX || node == node_maxY )
+			if (node == node_minX || node == node_minY || node == node_maxX || node == node_maxY)
 				return;
 
-			if(l < sndMinX) {
+			if (l < sndMinX) {
 				sndMinX = l;
 				node_sndMinX = node;
-				if(l < minX) {
+				if (l < minX) {
 					sndMinX = minX;
 					minX = l;
 					node_sndMinX = node_minX;
@@ -210,10 +209,10 @@ public class PositionIndex {
 			}	
 			
 			// Right
-			if(r > sndMaxX) {
+			if (r > sndMaxX) {
 				sndMaxX = r;
 				node_sndMaxX = node;
-				if(r > maxX) {
+				if (r > maxX) {
 					sndMaxX = maxX;
 					maxX = r;
 					node_sndMaxX = node_maxX;
@@ -222,10 +221,10 @@ public class PositionIndex {
 			}	
 			
 			// Top
-			if(t < sndMinY) {
+			if (t < sndMinY) {
 				sndMinY = t;
 				node_sndMinY = node;
-				if(t < minY) {
+				if (t < minY) {
 					sndMinY = minY;
 					minY = t;
 					node_sndMinY = node_minY;
@@ -234,10 +233,10 @@ public class PositionIndex {
 			}	
 			
 			// Bottom
-			if(b > sndMaxY) {
+			if (b > sndMaxY) {
 				sndMaxY = b;
 				node_sndMaxY = node;
-				if(b > maxY) {
+				if (b > maxY) {
 					sndMaxY = maxY;
 					maxY = b;
 					node_sndMaxY = node_maxY;
@@ -250,7 +249,7 @@ public class PositionIndex {
 	public AreaSnapshot area = new AreaSnapshot();
 	private AreaSnapshot area_buffer = new AreaSnapshot();
 	
-	private ArrayList<ProxyNode>[][] buckets;
+	private List<ProxyNode>[][] buckets;
 	private double bucketSize;
 	private int bucketCount;
 
@@ -263,30 +262,27 @@ public class PositionIndex {
 	 * @param chipLength the maximum chip length
 	 * @param nodesToPlace the nodes to be sorted into the buckets
 	 */
-	PositionIndex( double chipLength, ArrayList<ProxyNode> nodesToPlace )
+	PositionIndex(double chipLength, List<ProxyNode> nodesToPlace)
 	{
 		// the bucket size is twice the size of the biggest node
 		// (so the area is four times the area of the biggest single node)
 		double totalWidth = 0, totalHeight = 0;
 		
 		for(ProxyNode p : nodesToPlace) {
-			//if(p.width > bucketSize) bucketSize = p.width;
-			//if(p.height > bucketSize) bucketSize = p.width;
 			totalWidth += p.width;
 			totalHeight += p.height;
 		}
-		//bucketSize *= 2;
 		bucketSize = (totalWidth + totalHeight) / (2 * nodesToPlace.size());
 		
 		// calculate how many buckets are needed and sort nodes into buckets
-		bucketCount = (int) Math.ceil(chipLength / bucketSize);
+		bucketCount = (int)Math.ceil(chipLength / bucketSize);
 		buckets = new ArrayList[bucketCount][bucketCount];
-		for ( int i = 0; i < bucketCount; i++ )
-			for ( int j = 0; j < bucketCount; j++ )
+		for (int i = 0; i < bucketCount; i++)
+			for (int j = 0; j < bucketCount; j++)
 				buckets[i][j] = new ArrayList<ProxyNode>();
 
-		for ( ProxyNode p : nodesToPlace ) {
-			put( p, p.getPlacementX(), p.getPlacementY() );
+		for (ProxyNode p : nodesToPlace) {
+			put(p, p.getPlacementX(), p.getPlacementY());
 		}
 		
 		swapAreaBuffer();
@@ -296,8 +292,8 @@ public class PositionIndex {
 	 * Adds a node to all buckets that it currently overlaps
 	 * @param node the node to add to the bucket
 	 */
-	private void put( ProxyNode node ) {
-		put( node, node.getPlacementX(), node.getPlacementY());
+	private void put(ProxyNode node) {
+		put(node, node.getPlacementX(), node.getPlacementY());
 	}
 	
 	/**
@@ -306,23 +302,23 @@ public class PositionIndex {
 	 * @param posX
 	 * @param posY
 	 */
-	private void put( ProxyNode node, double posX, double posY )
+	private void put(ProxyNode node, double posX, double posY)
 	{
 		double l = posX - node.width/2;
 		double r = posX + node.width/2;
 		double t = posY - node.height/2;
 		double b = posY + node.height/2;
 				
-		int minX = bucketNum( l );
-		int minY = bucketNum( t );
-		int maxX = bucketNum( r );
-		int maxY = bucketNum( b );
+		int minX = bucketNum(l);
+		int minY = bucketNum(t);
+		int maxX = bucketNum(r);
+		int maxY = bucketNum(b);
 
 		area_buffer.add(node, l, r, t, b);
 		
-		for ( int x = minX; x <= maxX; x++ ) {
-			for ( int y = minY; y <= maxY; y++ ) {
-				buckets[x][y].add( node );
+		for (int x = minX; x <= maxX; x++) {
+			for (int y = minY; y <= maxY; y++) {
+				buckets[x][y].add(node);
 			}
 		}
 	}
@@ -331,32 +327,31 @@ public class PositionIndex {
 	 * Removes a node from all buckets
 	 * @param node the node to remove
 	 */
-	private void remove( ProxyNode node )
+	private void remove(ProxyNode node)
 	{
 		double l = node.getPlacementX() - node.width/2;
 		double r = node.getPlacementX() + node.width/2;
 		double t = node.getPlacementY() - node.height/2;
 		double b = node.getPlacementY() + node.height/2;
 				
-		int minX = bucketNum( l );
-		int minY = bucketNum( t );
-		int maxX = bucketNum( r );
-		int maxY = bucketNum( b );
+		int minX = bucketNum(l);
+		int minY = bucketNum(t);
+		int maxX = bucketNum(r);
+		int maxY = bucketNum(b);
 		
-		for ( int x = minX; x <= maxX; x++ ) {
-			for ( int y = minY; y <= maxY; y++ ) {
-				buckets[x][y].remove( node );
+		for (int x = minX; x <= maxX; x++) {
+			for (int y = minY; y <= maxY; y++) {
+				buckets[x][y].remove(node);
 			}
 		}
-		if(node == area_buffer.node_minX || 
+		if (node == area_buffer.node_minX || 
 		   node == area_buffer.node_maxX ||
 		   node == area_buffer.node_minY ||
 		   node == area_buffer.node_maxY ||
 		   node == area_buffer.node_sndMaxX ||
 		   node == area_buffer.node_sndMinX ||
 		   node == area_buffer.node_sndMaxY ||
-		   node == area_buffer.node_sndMinY
-		) {
+		   node == area_buffer.node_sndMinY) {
 			// TODO: this is not always necessary because that node might be moved
 			// outwards an will therefore be added later
 			calcBoundaries();
@@ -364,18 +359,17 @@ public class PositionIndex {
 	}
 	
 	/**
-	 * Method that finds the outmost nodes and creates a new <AreaSnapshot>
+	 * Method that finds the outermost nodes and creates a new <AreaSnapshot>
 	 */
 	private void calcBoundaries() 
 	{
 		// only call this while holding the write lock
-		
 		area_buffer = new AreaSnapshot();
 		
 		// TODO PERFORMANCE to find the boundaries we could easily search from the outer buckets
 		// and stop after checking all nodes in the same row/column
-		for ( int i = 0; i < bucketCount; i++ )
-			for ( int j = 0; j < bucketCount; j++ )
+		for (int i = 0; i < bucketCount; i++)
+			for (int j = 0; j < bucketCount; j++)
 				for(ProxyNode node: buckets[i][j]) {
 					double l = node.getPlacementX() - node.width/2;
 					double r = node.getPlacementX() + node.width/2;
@@ -452,33 +446,25 @@ public class PositionIndex {
 	}
 
 	/**
-	 * Returns a list with nodes that possibly overlap with a given node
+	 * Returns a set with nodes that possibly overlap with a given node
 	 * @param node
-	 * @return List of all nodes which occupy the same buckets as /node/. Do not necessarily overlap.
+	 * @return a set of all nodes which occupy the same buckets as /node/. Do not necessarily overlap.
 	 */
-	public List<ProxyNode> getPossibleOverlaps( ProxyNode node )
+	public Set<ProxyNode> getPossibleOverlaps(ProxyNode node)
 	{
-		List<ProxyNode> result = new ArrayList<ProxyNode>();
+		Set<ProxyNode> result = new HashSet<ProxyNode>();
 
 		int minX, minY, maxX, maxY;
 
-		minX = bucketNum( node.getPlacementX() - node.width/2 );
-		minY = bucketNum( node.getPlacementY() - node.height/2 );
-		maxX = bucketNum( node.getPlacementX() + node.width/2 );
-		maxY = bucketNum( node.getPlacementY() + node.height/2 );
+		minX = bucketNum(node.getPlacementX() - node.width/2);
+		minY = bucketNum(node.getPlacementY() - node.height/2);
+		maxX = bucketNum(node.getPlacementX() + node.width/2);
+		maxY = bucketNum(node.getPlacementY() + node.height/2);
 
 		read.lock();
-		for ( int x = minX; x <= maxX; x++ ) {
-			for ( int y = minY; y <= maxY; y++ ) {
-			result.addAll( buckets[x][y] );
-			
-			// TODO Check for duplicates
-			/*
-				for ( ProxyNode p : buckets[x][y] ) {
-					if ( ! result.contains( p ) )
-						result.add( p );
-				}
-				*/
+		for (int x = minX; x <= maxX; x++) {
+			for (int y = minY; y <= maxY; y++) {
+				result.addAll( buckets[x][y]);
 			}
 		}
 		read.unlock();
@@ -491,13 +477,13 @@ public class PositionIndex {
 	 * @param coordinate along an axis
 	 * @return the bucketIndex for the given coordinate
 	 */
-	private final int bucketNum( double pos )
+	private final int bucketNum(double pos)
 	{
-		int bucket = (int) Math.floor( ( pos + bucketSize * bucketCount/2 ) / bucketSize );
+		int bucket = (int)Math.floor((pos + bucketSize * bucketCount/2) / bucketSize);
 
-		if ( bucket < 0 )
+		if (bucket < 0)
 			bucket = 0;
-		if ( bucket >= bucketCount )
+		if (bucket >= bucketCount)
 			bucket = bucketCount - 1;
 
 		return bucket;

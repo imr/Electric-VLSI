@@ -45,18 +45,18 @@ public final class BoundingBoxMetric extends Metric
 	 * @return bounding box metric of the net
 	 */
 	@Override
-	public double netLength( PlacementNetwork net )
+	public double netLength(PlacementNetwork net)
 	{
 		double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
 
-		for ( PlacementPort port : net.getPortsOnNet() ) {
+		for (PlacementPort port : net.getPortsOnNet()) {
 			double currX = port.getPlacementNode().getPlacementX() + port.getRotatedOffX();
 			double currY = port.getPlacementNode().getPlacementY() + port.getRotatedOffY();
 
-			if ( currX < minX ) minX = currX;
-			if ( currY < minY ) minY = currY;
-			if ( currX > maxX ) maxX = currX;
-			if ( currY > maxY ) maxY = currY;
+			if (currX < minX) minX = currX;
+			if (currY < minY) minY = currY;
+			if (currX > maxX) maxX = currX;
+			if (currY > maxY) maxY = currY;
 		}
 
 		return Math.abs(maxX - minX) + Math.abs(maxY - minY);
@@ -74,23 +74,24 @@ public final class BoundingBoxMetric extends Metric
 	 * @return bounding box metric of the proxied net with regards to the substitutions
 	 */
 	@Override
-	public double netLength( PlacementNetwork net, Map<PlacementNode, ProxyNode> proxyMap, ProxyNode[] originals, ProxyNode[] replacements )
+	public double netLength(PlacementNetwork net, Map<PlacementNode, ProxyNode> proxyMap, ProxyNode[] originals,
+		ProxyNode[] replacements)
 	{
 		double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
 
-		for ( PlacementPort port : net.getPortsOnNet() ) {
-			ProxyNode proxy = proxyMap.get( port.getPlacementNode() );
+		for (PlacementPort port : net.getPortsOnNet()) {
+			ProxyNode proxy = proxyMap.get(port.getPlacementNode());
 			
 			for(int i = 0; i < originals.length; i++)
-				if(proxy == originals[i]) proxy = replacements[i];
+				if (proxy == originals[i]) proxy = replacements[i];
 			
 			double currX = proxy.getPlacementX() + port.getRotatedOffX();
 			double currY = proxy.getPlacementY() + port.getRotatedOffY();
 
-			if ( currX < minX ) minX = currX;
-			if ( currY < minY ) minY = currY;
-			if ( currX > maxX ) maxX = currX;
-			if ( currY > maxY ) maxY = currY;
+			if (currX < minX) minX = currX;
+			if (currY < minY) minY = currY;
+			if (currX > maxX) maxX = currX;
+			if (currY > maxY) maxY = currY;
 		}
 
 		return Math.abs(maxX - minX) + Math.abs(maxY - minY);

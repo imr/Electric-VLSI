@@ -31,12 +31,16 @@ import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -44,7 +48,7 @@ import javax.swing.JTextField;
 public class PlacementTab extends PreferencePanel
 {
 	private PreferencesFrame parent;
-	private Map<PlacementParameter,JTextField> currentParameters;
+	private Map<PlacementParameter,JComponent> currentParameters;
     private Placement.PlacementPreferences placementOptions;
 
 	/** Creates new form PlacementTab */
@@ -90,7 +94,8 @@ public class PlacementTab extends PreferencePanel
 	public void term()
 	{
         placementOptions.placementAlgorithm = (String)placementAlgorithm.getSelectedItem();
-		// load values into temp parameters
+
+        // load values into temporary parameters
 		getAlgorithmParameters();
 
 		// set parameters in all algorithms
@@ -114,17 +119,26 @@ public class PlacementTab extends PreferencePanel
 		// get the parameters
 		for(PlacementParameter pp : currentParameters.keySet())
 		{
-			JTextField txt = currentParameters.get(pp);
+			JComponent comp = currentParameters.get(pp);
             Object value;
             switch (pp.getType()) {
                 case PlacementFrame.PlacementParameter.TYPEINTEGER:
-                    value = Integer.valueOf(TextUtils.atoi(((JTextField)txt).getText()));
+                	if (pp.getIntMeanings() == null)
+                	{
+                		value = Integer.valueOf(TextUtils.atoi(((JTextField)comp).getText()));
+                	} else
+                	{
+                		value = new Integer(((JComboBox)comp).getSelectedIndex());
+                	}
                     break;
                 case PlacementFrame.PlacementParameter.TYPESTRING:
-                    value = String.valueOf(((JTextField)txt).getText());
+                    value = String.valueOf(((JTextField)comp).getText());
                     break;
                 case PlacementFrame.PlacementParameter.TYPEDOUBLE:
-                    value = Double.valueOf(TextUtils.atof(((JTextField)txt).getText()));
+                    value = Double.valueOf(TextUtils.atof(((JTextField)comp).getText()));
+                    break;
+                case PlacementFrame.PlacementParameter.TYPEBOOLEAN:
+                    value = Boolean.valueOf(((JCheckBox)comp).isSelected());
                     break;
                 default:
                     throw new AssertionError();
@@ -137,7 +151,7 @@ public class PlacementTab extends PreferencePanel
 	{
 		parametersPanel.removeAll();
 		parametersPanel.updateUI();
-		currentParameters = new HashMap<PlacementParameter,JTextField>();
+		currentParameters = new HashMap<PlacementParameter,JComponent>();
 
 		String algName = (String)placementAlgorithm.getSelectedItem();
 		PlacementFrame [] algorithms = PlacementAdapter.getPlacementAlgorithms();
@@ -156,30 +170,66 @@ public class PlacementTab extends PreferencePanel
 				for(PlacementParameter pp : allParams)
 				{
                     Object value = placementOptions.getParameter(pp);
-					JLabel lab = new JLabel(pp.getName());
-					GridBagConstraints gbc = new GridBagConstraints();
-					gbc.gridx = 0;   gbc.gridy = yPos;
-					gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-					parametersPanel.add(lab, gbc);
+                    if (pp.getType() == PlacementParameter.TYPEBOOLEAN)
+					{
+                    	JCheckBox cb = new JCheckBox(pp.getName());
+    					GridBagConstraints gbc = new GridBagConstraints();
+    					gbc.gridx = 0;   gbc.gridy = yPos;
+    					gbc.gridwidth = 2;
+    					gbc.insets = new Insets(4, 4, 4, 4);
+    					parametersPanel.add(cb, gbc);
+    					currentParameters.put(pp, cb);
+    					cb.setSelected(((Boolean)value).booleanValue());
+					} else if (pp.getType() == PlacementParameter.TYPEINTEGER && pp.getIntMeanings() != null)
+					{
+						JLabel lab = new JLabel(pp.getName());
+						GridBagConstraints gbc = new GridBagConstraints();
+						gbc.gridx = 0;   gbc.gridy = yPos;
+						gbc.anchor = GridBagConstraints.EAST;
+						gbc.insets = new Insets(4, 4, 4, 4);
+						parametersPanel.add(lab, gbc);
 
-					String init = null;
-					if (pp.getType() == PlacementParameter.TYPEINTEGER)
+						JComboBox cb = new JComboBox();
+						String[] meanings = pp.getIntMeanings();
+						for(int i=0; i<meanings.length; i++) cb.addItem(meanings[i]);
+						cb.setSelectedIndex(((Integer)value).intValue());
+						gbc = new GridBagConstraints();
+						gbc.gridx = 1;   gbc.gridy = yPos;
+						gbc.anchor = GridBagConstraints.WEST;
+						gbc.fill = GridBagConstraints.HORIZONTAL;
+						gbc.insets = new Insets(4, 4, 4, 4);
+						parametersPanel.add(cb, gbc);
+						currentParameters.put(pp, cb);
+					} else
 					{
-                        init = value.toString();
-					} else if (pp.getType() == PlacementParameter.TYPESTRING)
-					{
-                        init = value.toString();
-					} else if (pp.getType() == PlacementParameter.TYPEDOUBLE)
-					{
-						init = TextUtils.formatDouble(((Double)value).doubleValue());
+						JLabel lab = new JLabel(pp.getName());
+						GridBagConstraints gbc = new GridBagConstraints();
+						gbc.gridx = 0;   gbc.gridy = yPos;
+						gbc.anchor = GridBagConstraints.EAST;
+						gbc.insets = new Insets(4, 4, 4, 4);
+						parametersPanel.add(lab, gbc);
+
+						String init = null;
+						if (pp.getType() == PlacementParameter.TYPEINTEGER)
+						{
+	                        init = value.toString();
+						} else if (pp.getType() == PlacementParameter.TYPESTRING)
+						{
+	                        init = value.toString();
+						} else if (pp.getType() == PlacementParameter.TYPEDOUBLE)
+						{
+							init = TextUtils.formatDouble(((Double)value).doubleValue());
+						}
+						JTextField txt = new JTextField(init);
+						txt.setColumns(init.length()*2);
+						gbc = new GridBagConstraints();
+						gbc.gridx = 1;   gbc.gridy = yPos;
+						gbc.anchor = GridBagConstraints.WEST;
+						gbc.fill = GridBagConstraints.HORIZONTAL;
+						gbc.insets = new Insets(4, 4, 4, 4);
+						parametersPanel.add(txt, gbc);
+						currentParameters.put(pp, txt);
 					}
-					JTextField txt = new JTextField(init);
-					txt.setColumns(init.length()*2);
-					gbc = new GridBagConstraints();
-					gbc.gridx = 1;   gbc.gridy = yPos;
-					gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-					parametersPanel.add(txt, gbc);
-					currentParameters.put(pp, txt);
 
 					yPos++;
 				}

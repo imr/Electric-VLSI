@@ -300,6 +300,9 @@ public class Placement extends Tool
                         case PlacementFrame.PlacementParameter.TYPEDOUBLE:
                             value = Double.valueOf(prefs.getDouble(key, ((Double)par.factoryValue).doubleValue()));
                             break;
+                        case PlacementFrame.PlacementParameter.TYPEBOOLEAN:
+                            value = Boolean.valueOf(prefs.getBoolean(key, ((Boolean)par.factoryValue).booleanValue()));
+                            break;
                         default:
                             throw new AssertionError();
                     }
@@ -339,6 +342,9 @@ public class Placement extends Tool
                                 break;
                             case PlacementFrame.PlacementParameter.TYPEDOUBLE:
                                 prefs.putDouble(key, ((Double)v).doubleValue());
+                                break;
+                            case PlacementFrame.PlacementParameter.TYPEBOOLEAN:
+                                prefs.putBoolean(key, ((Boolean)v).booleanValue());
                                 break;
                             default:
                                 throw new AssertionError();

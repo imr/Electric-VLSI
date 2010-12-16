@@ -102,19 +102,30 @@ public abstract class PlacementFrame {
 		public static final int TYPEINTEGER = 1;
 		public static final int TYPESTRING = 2;
 		public static final int TYPEDOUBLE = 3;
+		public static final int TYPEBOOLEAN = 4;
 
         final String key;
 		private final String title;
         final Object factoryValue;
         private Object cachedValue;
 		private final int type;
+		private String[] intMeanings;
 
 		public PlacementParameter(String name, String title, int factory) {
             key = getAlgorithmName() + "-" + name;
 			this.title = title;
             cachedValue = factoryValue = Integer.valueOf(factory);
 			type = TYPEINTEGER;
-//			pref = Pref.makeIntPref(getAlgorithmName() + "-" + name, Placement.getPlacementTool().prefs, factory);
+			intMeanings = null;
+            allParameters.add(this);
+		}
+
+		public PlacementParameter(String name, String title, int factory, String[] meanings) {
+            key = getAlgorithmName() + "-" + name;
+			this.title = title;
+            cachedValue = factoryValue = Integer.valueOf(factory);
+			type = TYPEINTEGER;
+			intMeanings = meanings;
             allParameters.add(this);
 		}
 
@@ -123,7 +134,7 @@ public abstract class PlacementFrame {
 			this.title = title;
             cachedValue = factoryValue = String.valueOf(factory);
 			type = TYPESTRING;
-//			pref = Pref.makeStringPref(getAlgorithmName() + "-" + name, Placement.getPlacementTool().prefs, factory);
+			intMeanings = null;
             allParameters.add(this);
 		}
 
@@ -132,7 +143,16 @@ public abstract class PlacementFrame {
 			this.title = title;
             cachedValue = factoryValue = Double.valueOf(factory);
 			type = TYPEDOUBLE;
-//			pref = Pref.makeDoublePref(getAlgorithmName() + "-" + name, Placement.getPlacementTool().prefs, factory);
+			intMeanings = null;
+            allParameters.add(this);
+		}
+
+		public PlacementParameter(String name, String title, boolean factory) {
+            key = getAlgorithmName() + "-" + name;
+			this.title = title;
+            cachedValue = factoryValue = Boolean.valueOf(factory);
+			type = TYPEBOOLEAN;
+			intMeanings = null;
             allParameters.add(this);
 		}
 
@@ -152,12 +172,20 @@ public abstract class PlacementFrame {
             return ((Integer)cachedValue).intValue();
 		}
 
+		public String[] getIntMeanings() {
+            return intMeanings;
+		}
+
 		public String getStringValue() {
             return (String)cachedValue;
 		}
 
 		public double getDoubleValue() {
             return ((Double)cachedValue).doubleValue();
+		}
+
+		public boolean getBooleanValue() {
+            return ((Boolean)cachedValue).booleanValue();
 		}
 
         void setValue(Object value) {

@@ -31,6 +31,7 @@ package com.sun.electric.tool.placement.simulatedAnnealing2;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -47,12 +48,12 @@ public abstract class Metric
 		// Check if both nodes are close enough in the x-dimension to overlap
 		double X1 = node1.getPlacementX();
 		double X2 = node2.getPlacementX();
-		double width1  = node1.width / 2;
-		double width2  = node2.width / 2;
+		double width1 = node1.width / 2;
+		double width2 = node2.width / 2;
 		double distX = Math.abs(X1 - X2);
 		double minDistX = width1 + width2;
 
-		if(distX < minDistX)
+		if (distX < minDistX)
 		{
 			// Check if both nodes are close enough in the y-dimension to overlap
 			double Y1 = node1.getPlacementY();
@@ -62,7 +63,7 @@ public abstract class Metric
 			double distY = Math.abs(Y1 - Y2);
 			double minDistY = height1 + height2;
 
-			if(distY < minDistY)
+			if (distY < minDistY)
 			{
 				double minX1 = X1 - width1;
 				double minX2 = X2 - width2;
@@ -86,53 +87,51 @@ public abstract class Metric
 	 * @param nodes
 	 * @return The sum of the individual overlaps of that node with every node in the set
 	 */
-	public double overlap( ProxyNode node, List<ProxyNode> nodes ) {
+	public double overlap(ProxyNode node, Collection<ProxyNode> nodes) {
 		double overlap = 0;
-
-		for ( ProxyNode n : nodes )
-			if(n != node)
-				overlap += overlap( node, n );
-
+		for (ProxyNode n : nodes)
+			if (n != node)
+				overlap += overlap(node, n);
 		return overlap;
 	}
 	
-	/**
-	 * Method that calculates how much nodes from a set of nodes overlap with each other
-	 * @param nodes
-	 * @return The sum of of the individual overlaps of that node with every node in the set
-	 */
-	public double overlap(List<ProxyNode> nodes)
-	{
-		double overlap = 0;
-		for(int i = 0; i < nodes.size(); i++)
-			for(int j = i + 1; j < nodes.size(); j++)
-				overlap += overlap( nodes.get(i), nodes.get(j) );
-		
-		return overlap;
-	}
+//	/**
+//	 * Method that calculates how much nodes from a set of nodes overlap with each other
+//	 * @param nodes
+//	 * @return The sum of the individual overlaps of that node with every node in the set
+//	 */
+//	public double overlap(List<ProxyNode> nodes)
+//	{
+//		double overlap = 0;
+//		for(int i = 0; i < nodes.size(); i++)
+//			for(int j = i + 1; j < nodes.size(); j++)
+//				overlap += overlap( nodes.get(i), nodes.get(j) );
+//		
+//		return overlap;
+//	}
 	
 	/**
-	 * Method that calculates the size of the area cover by a set of nodes.
+	 * Method that calculates the size of the area covered by a set of nodes.
 	 * (i.e. the size of the area of the bounding box of all cells)
 	 * @param nodes
 	 * @return The size of the used rectangular area
 	 */
-	public double area( List<ProxyNode> nodes ) {
+	public double area(List<ProxyNode> nodes) {
 		double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
 
-		for ( ProxyNode node : nodes ) {
+		for (ProxyNode node : nodes) {
 			double currMinX = node.getPlacementX() - node.width/2;
 			double currMinY = node.getPlacementY() - node.height/2;
 			double currMaxX = node.getPlacementX() + node.width/2;
 			double currMaxY = node.getPlacementY() + node.height/2;
 
-			if ( currMinX < minX ) minX = currMinX;
-			if ( currMinY < minY ) minY = currMinY;
-			if ( currMaxX > maxX ) maxX = currMaxX;
-			if ( currMaxY > maxY ) maxY = currMaxY;
+			if (currMinX < minX) minX = currMinX;
+			if (currMinY < minY) minY = currMinY;
+			if (currMaxX > maxX) maxX = currMaxX;
+			if (currMaxY > maxY) maxY = currMaxY;
 		}
 
-		return ( maxX - minX ) * ( maxY - minY );
+		return (maxX - minX) * (maxY - minY);
 	}
 
 	/**
