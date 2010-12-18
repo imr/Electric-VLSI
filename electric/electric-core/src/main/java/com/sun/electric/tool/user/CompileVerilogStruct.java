@@ -1038,6 +1038,13 @@ public class CompileVerilogStruct
 				{
 					LocalPort lp = ports.get(i);
 					NodeInst ni = placed.get(lp.in);
+                    if (ni == null)
+                    {
+                        hasErrors = true;
+                        System.out.println("NodeInst " + lp.in.instanceName + " not found.");
+                        System.out.println("Check errors reported.");
+                        return null; // stop here the execution.
+                    }
 					PortInst pi = ni.findPortInst(lp.portName);
 					Network net = nl.getNetwork(pi);
 					if (used.contains(net))
@@ -1122,7 +1129,7 @@ public class CompileVerilogStruct
 	/**
 	 * Method to recursively generate the QUISC description for the specified model.
 	 * Works by first generating the lowest interface instantiation and working back to the top (i.e. bottom up).
-	 * @param interfacef pointer to interface.
+	 * @param module module to analyze
 	 * @param netlist the List of strings to create.
 	 */
 	private void genQuiscInterface(VModule module, List<String> netlist)
