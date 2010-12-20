@@ -71,13 +71,21 @@ public class BookshelfWeights implements BookshelfInputParser<Void> {
 				int i = 0;
 				String node = null;
 				int weight = 1;
-				while (tokenizer.hasMoreElements()) {
+				while (tokenizer.hasMoreElements())
+                {
+                    String nt = tokenizer.nextToken();
 					if (i == 0) {
-						node = tokenizer.nextToken();
-					} else if (i == 1) {
-						weight = Integer.parseInt(tokenizer.nextToken());
+						node = nt;
+					} else if (i == 1)
+                    {
+                        try{
+						    weight = Integer.parseInt(nt);
+                        } catch (Exception e)
+                        {
+                            System.out.println("Invalid weight integer for node '" + node + "' : " + nt);
+                        }
 					} else {
-						tokenizer.nextToken();
+						; //tokenizer.nextToken(); // nothing to do
 					}
 					i++;
 				}
