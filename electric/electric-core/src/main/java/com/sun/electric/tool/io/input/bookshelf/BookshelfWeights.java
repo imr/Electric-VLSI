@@ -82,7 +82,10 @@ public class BookshelfWeights implements BookshelfInputParser<Void> {
 						    weight = Integer.parseInt(nt);
                         } catch (Exception e)
                         {
-                            System.out.println("Invalid weight integer for node '" + node + "' : " + nt);
+                            weight = Integer.MAX_VALUE;
+                            System.out.println("Invalid weight integer for node '" + node + "' : " + nt +
+                                    ". Assigning " + weight);
+
                         }
 					} else {
 						; //tokenizer.nextToken(); // nothing to do
