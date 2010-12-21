@@ -81,6 +81,8 @@ public class GlobalRouterPathFinder {
 			length = l;
 		}
 	}
+	
+	// XXX [fschmidt] could not find shortest path on small designs
 	private ArrayList<RegionDirection> FindShortestPathLeeMoore(int seg_id){
 		Vector2i start = glr.segments[seg_id].start;
 		Vector2i end = glr.segments[seg_id].end;
