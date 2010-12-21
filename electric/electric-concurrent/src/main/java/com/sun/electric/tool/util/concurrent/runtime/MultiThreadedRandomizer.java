@@ -39,7 +39,7 @@ import java.util.Random;
 public class MultiThreadedRandomizer {
 
 	private int numOfCores;
-	private Random[] randomizers;
+	private ThreadLocal<Random> randomizer;
 
 	/**
 	 * Constructor
@@ -48,13 +48,7 @@ public class MultiThreadedRandomizer {
 	 */
 	public MultiThreadedRandomizer(int numOfCores) {
 		this.numOfCores = numOfCores;
-
-		randomizers = new Random[this.numOfCores];
-
-		Random rand = new Random(System.currentTimeMillis());
-		for (int i = 0; i < this.numOfCores; i++) {
-			randomizers[i] = new Random(rand.nextLong());
-		}
+		randomizer = new ThreadLocal<Random>();
 	}
 
 	/**
@@ -64,21 +58,12 @@ public class MultiThreadedRandomizer {
 	 * @return a assigned randomizer or a new one if no available
 	 */
 	public Random getRandomizer() {
-		int threadId = ThreadID.get();
-		if (threadId < 0 || threadId >= numOfCores)
-			return new Random(System.currentTimeMillis());
-		return randomizers[ThreadID.get()];
+		if(randomizer.get() == null) {
+			randomizer.set(new Random(System.currentTimeMillis()));
+		}
+		
+		return randomizer.get();
 	}
 
-	/**
-	 * Get the randomizer for thread n
-	 * 
-	 * @param n
-	 *            thread number (range> 0 <= n < numberOfThreads)
-	 * @return randomizer for thread n
-	 */
-	public Random getRandomizer(int n) {
-		return randomizers[n];
-	}
 
 }
