@@ -292,6 +292,8 @@ public class GlobalRouterThreadV3 implements Runnable {
 			
 			/** create shortest path */
 			GlobalRouterPathFinder path_finder = new GlobalRouterPathFinder(rm);
+			
+			// XXX [fschmidt] router could not find shortest path on small designs 
 			List<RegionDirection> rd_path = path_finder.FindShortestPath(job.seg_id);
 			JobMessage best_job = null;
 			if(rd_path != null){	//could find shortest path
