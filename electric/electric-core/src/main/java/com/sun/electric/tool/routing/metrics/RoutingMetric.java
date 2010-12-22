@@ -25,9 +25,6 @@ package com.sun.electric.tool.routing.metrics;
 
 import java.util.Iterator;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
@@ -38,7 +35,7 @@ import com.sun.electric.database.topology.ArcInst;
  */
 public abstract class RoutingMetric<T> {
 	
-	private static Logger logger = LoggerFactory.getLogger(RoutingMetric.class);
+	
 	
 	public abstract T calculate(Cell cell);
 	
@@ -47,7 +44,6 @@ public abstract class RoutingMetric<T> {
 		
 		for(Iterator<Network> it = cell.getNetlist().getNetworks(); it.hasNext();) {
 			Network net = it.next();
-			logger.trace("process net: " + net.getName());
 			
 			for(Iterator<ArcInst> arcIt = net.getArcs(); arcIt.hasNext();) {
 				result = reduce(result, arcIt.next(), net);
