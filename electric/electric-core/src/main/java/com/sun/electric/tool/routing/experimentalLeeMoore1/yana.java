@@ -24,21 +24,19 @@
  */
 package com.sun.electric.tool.routing.experimentalLeeMoore1;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.Job;
-import com.sun.electric.database.variable.UserInterface;
-
 import java.util.HashMap;
 import java.util.List;
-
-import com.sun.electric.tool.routing.experimentalLeeMoore1.LeeMoore.RoutingArray;
-import com.sun.electric.tool.routing.experimentalLeeMoore1.LeeMoore.Tupel;
-import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.experimentalLeeMoore1.LeeMoore.RoutingArray;
+import com.sun.electric.tool.routing.experimentalLeeMoore1.LeeMoore.Tupel;
+import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 
 public class yana extends BenchmarkRouter {
 

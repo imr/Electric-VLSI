@@ -151,6 +151,8 @@ public class WorkerThread implements Runnable {
             rp = wp.routingParts.poll();
             
             while (rp != null) {
+            	
+            	// XXX [fschmidt] timeout handling is here
             	if(System.currentTimeMillis()>DEADLINE){
             		System.out.println("Timeout...");
             		return;
