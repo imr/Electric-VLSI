@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+IMP: (12/22/10) Add logging facade and logging environment
+
+Bug: (12/22/10, FS) AStar 2 doesn't care about timeouts
+FIX: Add some timeout information
+
+Bug: (12/22/10, FS) Lee Moore 1 doesn't terminate on small designs (Bug #3001)
+FIX: Accept small partitions on small designs
+
 BUG: (12/22/10, FS) Lee Moore 1 doesn't care about timeouts (Bug #2999)
 FIX: Timeout handling added
 
