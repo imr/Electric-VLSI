@@ -299,6 +299,7 @@ public class AStarRouter extends BenchmarkRouter
 
     // After initialising and submitting jobs (which took time, too), use the
     // rest of the maxRuntime for routing.
+    // XXX [fschmidt] check this calculation
     long restTime = (maxRuntime.getIntValue() * 1000) - (System.currentTimeMillis() - startTime);
     router.setMaxRuntimeMillis(restTime);
     try

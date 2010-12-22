@@ -336,6 +336,7 @@ public class AStarRouter extends BenchmarkRouter
 
     // After initialising and submitting jobs (which took time, too), use the
     // rest of the maxRuntime for routing.
+    // XXX [fschmidt] check timeout here
     long restTime = (this.maxRuntime.getIntValue() * 1000) - (System.currentTimeMillis() - startTime);
     this.router.setMaxRuntimeMillis(restTime);
     this.router.waitForCompletion();

@@ -26,7 +26,12 @@ package com.sun.electric.tool.routing.experimentalLeeMoore1;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sun.electric.tool.routing.RoutingFrame.RoutingSegment;
 
@@ -34,6 +39,8 @@ import com.sun.electric.tool.routing.RoutingFrame.RoutingSegment;
  * A workpool contains all the work partitions and manages them.
  */
 public class WorkPool {
+	
+	private static Logger logger = LoggerFactory.getLogger(WorkPool.class);
 
     private static ConcurrentLinkedQueue<RoutingSegment> inputList = new ConcurrentLinkedQueue<RoutingSegment>();
     private static BlockingQueue<RoutingPart> globalRoutingQueue;
@@ -92,7 +99,7 @@ public class WorkPool {
     * @param method there are currently three methods how the grid can be devided into numPartition regions.
     */
     private static void createThreadBorders(int method) {
-
+    	
         //be sure, that the regions are not toooooo small
         do  {
             switch (method) {
@@ -109,7 +116,10 @@ public class WorkPool {
                     regions_OneRegion();
             }
             numPartitions--;
-        }while (size_x / WorkDivideIn_X_Dir < minimumRegionBorderLength || size_y / WorkDivideIn_Y_Dir < minimumRegionBorderLength);
+            logger.debug("partitions: " + numPartitions);
+        } while ((numPartitions > 0) && (size_x / WorkDivideIn_X_Dir < minimumRegionBorderLength || size_y / WorkDivideIn_Y_Dir < minimumRegionBorderLength));
+        
+        
         //restore last usable numpartitions
         numPartitions++;
         if(output)
