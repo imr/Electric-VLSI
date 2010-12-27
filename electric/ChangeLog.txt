@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+BUG: (12/27/10, SMR) Crash when drawing arc (Bug #3006).
+FIX: Fixed Highlighter.findAllInArea() to calculate need for temp names only if necessary.
+
 IMP: (12/22/10) Add logging facade and logging environment
 
 Bug: (12/22/10, FS) AStar 2 doesn't care about timeouts

@@ -1460,10 +1460,11 @@ public class Highlighter implements DatabaseChangeListener {
             }
 
     		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
-            boolean showTempNames = wnd.getGraphicsPreferences().isShowTempNames();
+            boolean showTempNames = false;
             if (exclusively)
             {
                 // special case: only review what is already highlighted
+                showTempNames = wnd.getGraphicsPreferences().isShowTempNames();
                 for(Highlight h : highlighter.getHighlights())
                 {
                     if (!(h instanceof HighlightEOBJ)) continue;
