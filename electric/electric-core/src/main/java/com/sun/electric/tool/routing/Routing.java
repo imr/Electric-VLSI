@@ -23,19 +23,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import java.awt.geom.Point2D;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
@@ -70,6 +57,19 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.util.TextUtils;
+
+import java.awt.geom.Point2D;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This is the Routing tool.
@@ -332,7 +332,7 @@ public class Routing extends Listener {
 			cell.killArcs(deleteAllArcs);
 			cell.killNodes(deleteAllNodes);
 
-			// do the unrouting
+			// unroute the network
 			for (int j = 0; j < total; j++) {
 				if (makeUnroutedNet(netsToUnroute[j], netEnds.get(j), netList, highlightThese))
 					break;
@@ -369,8 +369,6 @@ public class Routing extends Listener {
 			long gridExtend = a.getGridExtendOverMin();
 
 			// now create the new unrouted wires
-			// double wid =
-			// Generic.tech().unrouted_arc.getDefaultLambdaBaseWidth();
 			int count = netEnds.length;
 			if (count >= 1000) {
 				// too much work to make the solution look pretty: just radiate
@@ -391,9 +389,6 @@ public class Routing extends Listener {
 					EPoint headP = netEnds[i].center;
 					ArcInst ai = ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null, head,
 							tail, headP, center, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
-					// ArcInst ai =
-					// ArcInst.makeInstanceBase(Generic.tech().unrouted_arc,
-					// wid, head, tail);
 					if (ai == null) {
 						System.out.println("Could not create unrouted arc");
 						return true;
@@ -436,9 +431,6 @@ public class Routing extends Listener {
 					EPoint tailP = netEnds[bestj].center;
 					ArcInst ai = ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null, head,
 							tail, headP, tailP, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
-					// ArcInst ai =
-					// ArcInst.makeInstanceBase(Generic.tech().unrouted_arc,
-					// wid, head, tail);
 					if (ai == null) {
 						System.out.println("Could not create unrouted arc");
 						return true;
@@ -506,16 +498,19 @@ public class Routing extends Listener {
 							&& (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT))
 						term = false;
 					else {
-						// see if this primitive connects to other unconnected
-						// nets
-						for (Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext();) {
-							Connection con = cIt.next();
-							ArcInst conAi = con.getArc();
-							if (mustBeUnrouted && conAi.getProto() != Generic.tech().unrouted_arc)
-								continue;
-							if (conAi != ai && netList.getNetwork(conAi, 0) == net) {
-								term = false;
-								break;
+						// allow well/substrate contacts
+						if (fun != PrimitiveNode.Function.SUBSTRATE && fun != PrimitiveNode.Function.WELL)
+						{
+							// see if this primitive connects to other unconnected nets
+							for (Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext();) {
+								Connection con = cIt.next();
+								ArcInst conAi = con.getArc();
+								if (mustBeUnrouted && conAi.getProto() != Generic.tech().unrouted_arc)
+									continue;
+								if (conAi != ai && netList.getNetwork(conAi, 0) == net) {
+									term = false;
+									break;
+								}
 							}
 						}
 					}
@@ -712,12 +707,10 @@ public class Routing extends Listener {
 
 	private static class NodeMatch {
 		NodeInst ni;
-		String name;
 		NodeInst otherNi;
 
-		NodeMatch(NodeInst ni, String name) {
+		NodeMatch(NodeInst ni) {
 			this.ni = ni;
-			this.name = name;
 		}
 
 		void findEquivalentByName(Cell other) {
@@ -789,7 +782,7 @@ public class Routing extends Listener {
 			for (Iterator<Nodable> noIt = nl.getNodables(); noIt.hasNext();) {
 				Nodable no = noIt.next();
 				if (no.getNodeInst() == ni) {
-					NodeMatch nm = new NodeMatch(ni, no.getName());
+					NodeMatch nm = new NodeMatch(ni);
 					nm.findEquivalentByName(toCell);
 					if (nm.otherNi == null)
 						unmatched.add(nm);

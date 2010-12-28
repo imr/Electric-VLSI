@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+BUG: (12/28/10, SMR) Unroute removes well/substrate contacts (Bug #3003).
+FIX: In Routing.findNetEnds() allow well/substrate primitives.
+
 BUG: (12/27/10, SMR) Crash when drawing arc (Bug #3006).
 FIX: Fixed Highlighter.findAllInArea() to calculate need for temp names only if necessary.
 
