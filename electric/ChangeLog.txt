@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+BUG: (12/18/10, DN) Failure in GDS reader when include text is enabled.
+FIX: In input.GDS makeText fix if condition to ulm != null.
+
 BUG: (12/28/10, SMR) Unroute removes well/substrate contacts (Bug #3003).
 FIX: In Routing.findNetEnds() allow well/substrate primitives.
 
