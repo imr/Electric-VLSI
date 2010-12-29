@@ -564,7 +564,7 @@ public class GDS extends Input<Object>
 			{
 				mi = new MakeInstance(this, proto, loc, Orientation.IDENT, 0, 0, null, null, Name.findName(text));
 				insts.add(mi);
-				if (ulm == null)
+				if (ulm != null)
 				{
                     List<MakeInstance> errorList = allErrorInsts.get(ulm);
                     if (errorList == null) allErrorInsts.put(ulm, errorList = new ArrayList<MakeInstance>());
