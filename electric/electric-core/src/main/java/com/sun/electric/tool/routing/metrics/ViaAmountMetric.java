@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: RoutingMetric.java
+ * File: ViaAmountMetric.java
  *
  * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  *
@@ -31,32 +31,45 @@ import org.slf4j.LoggerFactory;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 
 /**
  * @author Felix Schmidt
  *
+ * This metric is part of the routing quality metric
+ *
  */
-public abstract class RoutingMetric<T> {
+public class ViaAmountMetric extends RoutingMetric<Integer> {
 	
-	private static Logger logger = LoggerFactory.getLogger(RoutingMetric.class);
-	
-	public abstract T calculate(Cell cell);
-	
-	protected T processNets(Cell cell, T startValue) {
-		T result = startValue;
+	private static Logger logger = LoggerFactory.getLogger(ViaAmountMetric.class);
+
+	/* (non-Javadoc)
+	 * @see com.sun.electric.tool.routing.metrics.RoutingMetric#calculate(com.sun.electric.database.hierarchy.Cell)
+	 */
+	public Integer calculate(Cell cell) {
+		
+		int result = 0;
 		
 		for(Iterator<Network> it = cell.getNetlist().getNetworks(); it.hasNext();) {
 			Network net = it.next();
-			logger.trace("process net: " + net.getName());
-			
-			for(Iterator<ArcInst> arcIt = net.getArcs(); arcIt.hasNext();) {
-				result = reduce(result, arcIt.next(), net);
+			for(Iterator<NodeInst> nodes = net.getNodes(); nodes.hasNext();) {
+				NodeInst node = nodes.next();
+				if(node.getFunction().isContact())
+				{
+					result++;
+				}
 			}
 		}
 		
 		return result;
 	}
-	
-	protected abstract T reduce(T result, ArcInst instance, Network net);
+
+	/* (non-Javadoc)
+	 * @see com.sun.electric.tool.routing.metrics.RoutingMetric#reduce(java.lang.Object, com.sun.electric.database.topology.ArcInst)
+	 */
+	@Override
+	protected Integer reduce(Integer result, ArcInst instance, Network net) {
+		throw new UnsupportedOperationException();
+	}
 
 }

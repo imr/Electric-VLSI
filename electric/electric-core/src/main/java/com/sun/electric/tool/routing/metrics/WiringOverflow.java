@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: RoutingMetric.java
+ * File: WiringOverflow.java
  *
  * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  *
@@ -23,11 +23,6 @@
  */
 package com.sun.electric.tool.routing.metrics;
 
-import java.util.Iterator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
@@ -36,27 +31,24 @@ import com.sun.electric.database.topology.ArcInst;
  * @author Felix Schmidt
  *
  */
-public abstract class RoutingMetric<T> {
-	
-	private static Logger logger = LoggerFactory.getLogger(RoutingMetric.class);
-	
-	public abstract T calculate(Cell cell);
-	
-	protected T processNets(Cell cell, T startValue) {
-		T result = startValue;
-		
-		for(Iterator<Network> it = cell.getNetlist().getNetworks(); it.hasNext();) {
-			Network net = it.next();
-			logger.trace("process net: " + net.getName());
-			
-			for(Iterator<ArcInst> arcIt = net.getArcs(); arcIt.hasNext();) {
-				result = reduce(result, arcIt.next(), net);
-			}
-		}
-		
-		return result;
+public class WiringOverflow extends RoutingMetric<Double> {
+
+	/* (non-Javadoc)
+	 * @see com.sun.electric.tool.routing.metrics.RoutingMetric#calculate(com.sun.electric.database.hierarchy.Cell)
+	 */
+	@Override
+	public Double calculate(Cell cell) {
+		// TODO Auto-generated method stub
+		return null;
 	}
-	
-	protected abstract T reduce(T result, ArcInst instance, Network net);
+
+	/* (non-Javadoc)
+	 * @see com.sun.electric.tool.routing.metrics.RoutingMetric#reduce(java.lang.Object, com.sun.electric.database.topology.ArcInst)
+	 */
+	@Override
+	protected Double reduce(Double result, ArcInst instance, Network net) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }
