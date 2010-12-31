@@ -1,0 +1,54 @@
+# header information:
+HroutingMetrics|9.01a
+
+# Views:
+Vlayout|lay
+
+# Cell simpleRoutingTestLeeMoore2;1{lay}
+CsimpleRoutingTestLeeMoore2;1{lay}||mocmos|1292756856169|1292970337025||DRC_last_good_drc_area_date()G1292757002755|DRC_last_good_drc_bit()I18|DRC_last_good_drc_date()G1292757002755
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NMetal-1-Metal-2-Con|contact@0||-20|20||||
+NMetal-1-Metal-2-Con|contact@1||25|20||||
+NMetal-2-Metal-3-Con|contact@2||-15|-10||||
+NMetal-1-Metal-2-Con|contact@3||-25|-10||||
+NMetal-2-Metal-3-Con|contact@4||25|-10||||
+NMetal-2-Metal-3-Con|contact@5||-5|5||||
+NMetal-1-Metal-2-Con|contact@6||-5|20||||
+NMetal-1-Metal-2-Con|contact@7||0|-35||||
+NMetal-2-Metal-3-Con|contact@8||0|-35||||
+NMetal-3-Pin|pin@0||-10|-10||||
+NMetal-1-Pin|pin@1||-5|15||||
+NMetal-1-Pin|pin@2||-5|20||||
+NMetal-3-Pin|pin@3||-5|15||||
+NMetal-1-Pin|pin@5||-30|-35||||
+NMetal-1-Pin|pin@6||-30|-35||||
+NMetal-1-P-Well-Con|substr@0||-25|20||||
+NMetal-1-P-Well-Con|substr@1||25|15||||
+NMetal-1-P-Well-Con|substr@2||-30|-35||||
+AMetal-2|net@11|||S0|contact@1||25|20|contact@0||-20|20
+AMetal-1|net@12|||S1800|substr@0||-25|20|contact@0||-20|20
+AMetal-1|net@13|||S2700|substr@1||25|15|contact@1||25|20
+AMetal-2|net@14|||S0|contact@2||-15|-10|contact@3||-25|-10
+AMetal-3|net@15|||S0|pin@0||-10|-10|contact@2||-15|-10
+AMetal-1|net@16||1|S900|substr@0||-25|20|contact@3||-25|-10
+AMetal-3|net@17|||S1800|pin@0||-10|-10|contact@4||25|-10
+AMetal-2|net@18||1|S900|contact@1||25|20|contact@4||25|-10
+AMetal-1|net@19|||S2700|pin@1||-5|15|pin@2||-5|20
+AMetal-1|net@20||1|S0|contact@1||25|20|pin@2||-5|20
+AMetal-2|net@21|||S2700|contact@5||-5|5|contact@6||-5|20
+AMetal-3|net@22|||S900|pin@3||-5|15|contact@5||-5|5
+AMetal-1|net@23||1|S1800|substr@0||-25|20|contact@6||-5|20
+AMetal-1|net@24|||S|pin@5||-30|-35|pin@6||-30|-35
+AMetal-2|net@25|||S|contact@7||0|-35|contact@8||0|-35
+AMetal-1|net@26|||S1800|pin@6||-30|-35|contact@7||0|-35
+X
+
+# Cell test;1{lay}
+Ctest;1{lay}||mocmos|1292970150632|1292970198572|
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NMetal-1-Metal-2-Con|contact@0||0|10||||
+NMetal-2-Metal-3-Con|contact@1||0|10||||
+NMetal-1-P-Well-Con|substr@1||30|10||||
+AMetal-2|net@1|||S1800|contact@0||0|10|contact@1||0|10
+AMetal-1|net@2|||S0|substr@1||30|10|contact@0||0|10
+X
