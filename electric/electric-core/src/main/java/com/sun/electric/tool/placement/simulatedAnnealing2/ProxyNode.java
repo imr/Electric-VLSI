@@ -37,8 +37,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This class is a proxy for the actual placement node.
@@ -55,12 +53,15 @@ final class ProxyNode implements Comparable<ProxyNode>
 	
 	private PlacementNode node = null;
 
-	private List<PlacementNetwork> nets = new ArrayList<PlacementNetwork>();
-	private Map<PlacementNetwork, PlacementNetwork> netMap = null;
+	private ArrayList<PlacementNetwork> nets = new ArrayList<PlacementNetwork>();
+	private HashMap<PlacementNetwork, PlacementNetwork> netMap = null;
 	
 	/**
 	 * This class is a proxy for <PlacementPort>.
 	 * It calculates its position relative to a <ProxyNode> not to a <PlacementNode>
+	 * 
+	 * @author Basti
+	 *
 	 */
 	private final class ProxyPort extends PlacementPort
 	{
@@ -69,6 +70,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 		private double offX;
 		private double offY;
 		
+
 		/**
 		 * Constructor to create a PlacementPort.
 		 * @param x the X offset of this PlacementPort from the center of its PlacementNode.
@@ -117,7 +119,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 	 * @param node the PlacementNode that should be proxied
 	 * @param ignoredNets a list of nets that should be ignored
 	 */
-	public ProxyNode(PlacementNode node, List<PlacementNetwork> ignoredNets)
+	public ProxyNode(PlacementNode node, ArrayList<PlacementNetwork> ignoredNets)
 	{
 		this.node = node;
 		this.x = node.getPlacementX();
@@ -144,7 +146,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 	 * @param o orientation of the cloned node
 	 * @param nets the netlist of the cloned node
 	 */
-	private ProxyNode(PlacementNode node, double x, double y, double width, double height, Orientation o, List<PlacementNetwork> nets)
+	private ProxyNode(PlacementNode node, double x, double y, double width, double height, Orientation o, ArrayList<PlacementNetwork> nets)
 	{
 		this.node = node;
 		this.x = x;
@@ -196,7 +198,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 	 * they are too huge)
 	 * @return the list of nets this node belongs to
 	 */
-	public List<PlacementNetwork> getNets() {
+	public ArrayList<PlacementNetwork> getNets() {
 		return nets;
 	}
 		
@@ -227,7 +229,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 	/**
 	 * Method that returns the net, that was "cloned" when rotating this port.
 	 * When evaluating a rotation perturbation, the cloned proxy creates flat
-	 * copies of all nets it belongs to an replaces its ports in all the nets
+	 * copys of all nets it belongs to an replaces its ports in all the nets
 	 * with proxy ports that calculate their offset relative to the now rotated
 	 * proxy node (instead of the not rotated placement node)
 	 * 
@@ -238,7 +240,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 	 */
 	public PlacementNetwork getOriginalNet(PlacementNetwork alteredNet)
 	{
-		if (netMap == null) return alteredNet;
+		if(netMap == null) return alteredNet;
 		return netMap.get(alteredNet);
 	}
 	
@@ -252,10 +254,10 @@ final class ProxyNode implements Comparable<ProxyNode>
 		Orientation oldOrientation = orientation;
 		orientation = o;
 		
-		if (forDummy)
+		if(forDummy)
 		{
 			netMap = new HashMap<PlacementNetwork, PlacementNetwork>();
-			List<PlacementNetwork> newNets = new ArrayList<PlacementNetwork>(nets.size());
+			ArrayList<PlacementNetwork> newNets = new ArrayList<PlacementNetwork>(nets.size());
 			
 			/*
 			 * Replace the list of nets with a new list. Replace every
@@ -264,12 +266,12 @@ final class ProxyNode implements Comparable<ProxyNode>
 			 */
 			for(PlacementNetwork net : nets)
 			{
-				List<PlacementPort> newPortsOnNet = new ArrayList<PlacementPort>();
+				ArrayList<PlacementPort> newPortsOnNet = new ArrayList<PlacementPort>();
 
 				// Replace ports that belong to this node with proxies
 				for(PlacementPort port : net.getPortsOnNet())
 				{
-					if (port.getPlacementNode() == this.node)
+					if(port.getPlacementNode() == this.node)
 					{
 						// get the unrotated offsets (they are private in the framework...)
 						// by applying the inverse rotation to the rotated values
@@ -299,7 +301,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 			node.setOrientation(o);
 		}	
 		
-		// swap height and width for 90°, 270°, ...
+		// swap height and width for 90Â°, 270Â°, ...
 		if (o == Orientation.R || o == Orientation.RRR || o == Orientation.XR || o == Orientation.XRRR || o == Orientation.XYR || o == Orientation.XYRRR || o == Orientation.YR || o == Orientation.YRRR)
 		{
 			width = node.getHeight();
@@ -316,7 +318,7 @@ final class ProxyNode implements Comparable<ProxyNode>
 		double dist1 = x * x + y * y;
 		double dist2 = o.x * o.x + o.y * o.y;
 		
-		if (dist1 > dist2)
+		if(dist1 > dist2)
 			return 1;
 		else
 			return -1;
