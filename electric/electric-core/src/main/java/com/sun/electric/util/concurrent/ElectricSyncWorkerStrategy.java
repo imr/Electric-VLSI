@@ -23,26 +23,28 @@
  */
 package com.sun.electric.util.concurrent;
 
+import java.util.concurrent.Semaphore;
+
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.util.concurrent.datastructures.IStructure;
 import com.sun.electric.tool.util.concurrent.patterns.PTask;
-import com.sun.electric.tool.util.concurrent.runtime.taskParallel.SimpleWorker;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.SynchronizedWorker;
 
 /**
  * @author Felix Schmidt
  * 
  */
-public class ElectricWorkerStrategy extends SimpleWorker {
+public class ElectricSyncWorkerStrategy extends SynchronizedWorker {
 
 	private UserInterface ui;
 
 	/**
 	 * @param taskPool
 	 */
-	public ElectricWorkerStrategy(IStructure<PTask> taskPool) {
-		super(taskPool);
+	public ElectricSyncWorkerStrategy(IStructure<PTask> taskPool, Semaphore sem) {
+		super(taskPool, sem);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -57,7 +59,7 @@ public class ElectricWorkerStrategy extends SimpleWorker {
 
 		try {
 			Job.setUserInterface(this.getUi());
-			Environment.setThreadEnvironment(this.getUi().getDatabase().getEnvironment());
+			Environment.setThreadEnvironment(Job.getUserInterface().getDatabase().getEnvironment());
 		} catch (Exception ex) {
 
 		}

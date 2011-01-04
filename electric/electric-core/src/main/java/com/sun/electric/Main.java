@@ -286,6 +286,7 @@ public final class Main
         
         // initialize parallel stuff
         ElectricWorkerStrategy electricWorker = new ElectricWorkerStrategy(null);
+        electricWorker.setUi(ui);
         PoolWorkerStrategyFactory.userDefinedStrategy = electricWorker;
         
         ElapseTimer timer = ElapseTimer.createInstance().start();

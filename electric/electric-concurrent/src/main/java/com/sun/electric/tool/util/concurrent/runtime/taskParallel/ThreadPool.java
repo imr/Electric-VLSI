@@ -351,10 +351,9 @@ public class ThreadPool extends IThreadPool {
 	public static synchronized ThreadPool initialize(IStructure<PTask> taskPool, int numOfThreads,
 			ThreadPoolType type) throws PoolExistsException {
 		if (ThreadPool.instance == null || instance.state != ThreadPoolState.Started) {
+			System.out.println("ThreadPool: start thread pool");
 			instance = new ThreadPool(taskPool, numOfThreads, type);
 			instance.start();
-		} else {
-			return instance;
 		}
 
 		return instance;

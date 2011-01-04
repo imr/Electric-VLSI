@@ -74,8 +74,10 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.PoolWorkerStrategyFactory;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.concurrent.ElectricWorkerStrategy;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
 import com.sun.electric.util.math.Orientation;
@@ -651,6 +653,10 @@ public abstract class SeaOfGatesEngine {
 
     protected void startRouting(int numberOfThreads, List<NeededRoute> allRoutes,
             RouteBatches[] routeBatches, Environment env, EditingPreferences ep, Job job) {
+    	
+    	ElectricWorkerStrategy electricWorker = new ElectricWorkerStrategy(null);
+        electricWorker.setUi(Job.getUserInterface());
+        PoolWorkerStrategyFactory.userDefinedStrategy = electricWorker;
 
         if (numberOfThreads >= 1) {
             doRoutingParallel(numberOfThreads, allRoutes, routeBatches, env, ep);

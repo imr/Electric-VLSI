@@ -32,6 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
@@ -69,7 +72,8 @@ import com.sun.electric.util.math.Orientation;
  */
 public class PlacementAdapter {
 
-   	private static final boolean specialDebugFlag = false;
+	private static final boolean specialDebugFlag = false;
+	private static final Logger logger = LoggerFactory.getLogger(PlacementAdapter.class);
 
 	/**
 	 * Class to define a node that is being placed. This is a shadow class for
@@ -90,7 +94,7 @@ public class PlacementAdapter {
 
 		/**
 		 * Method to create a PlacementNode object.
-		 *
+		 * 
 		 * @param type
 		 *            the original Electric type of this PlacementNode.
 		 * @param name
@@ -108,21 +112,21 @@ public class PlacementAdapter {
 		 *            connection locations.
 		 * @param terminal
 		 */
-		public PlacementNode(NodeProto type, String name, int tBits, double wid, double hei, List<PlacementPort> pps,
-				boolean terminal) {
-            original = type;
+		public PlacementNode(NodeProto type, String name, int tBits, double wid, double hei,
+				List<PlacementPort> pps, boolean terminal) {
+			original = type;
 			nodeName = name;
-            techBits = tBits;
-            width = wid;
-            height = hei;
-            ports = new ArrayList<PlacementFrame.PlacementPort>(pps);
-            this.terminal = terminal;
-        }
+			techBits = tBits;
+			width = wid;
+			height = hei;
+			ports = new ArrayList<PlacementFrame.PlacementPort>(pps);
+			this.terminal = terminal;
+		}
 
 		/**
 		 * Method to add variables to this PlacementNode. Variables are extra
 		 * name/value pairs, for example a transistor width and length.
-		 *
+		 * 
 		 * @param name
 		 *            the name of the variable to add.
 		 * @param value
@@ -136,7 +140,7 @@ public class PlacementAdapter {
 
 		/**
 		 * Method to return the NodeProto of this PlacementNode.
-		 *
+		 * 
 		 * @return the NodeProto of this PlacementNode.
 		 */
 		public NodeProto getType() {
@@ -145,7 +149,7 @@ public class PlacementAdapter {
 
 		/**
 		 * Method to return the name of NodeProto of this PlacementNode.
-		 *
+		 * 
 		 * @return the name NodeProto of this PlacementNode.
 		 */
 		public String getTypeName() {
@@ -154,7 +158,7 @@ public class PlacementAdapter {
 
 		/**
 		 * Method to return a list of PlacementPorts on this PlacementNode.
-		 *
+		 * 
 		 * @return a list of PlacementPorts on this PlacementNode.
 		 */
 		public List<PlacementFrame.PlacementPort> getPorts() {
@@ -164,7 +168,7 @@ public class PlacementAdapter {
 		/**
 		 * Method to return the technology-specific information of this
 		 * PlacementNode.
-		 *
+		 * 
 		 * @return the technology-specific information of this PlacementNode
 		 *         (typically 0 except for specialized Schematics components).
 		 */
@@ -174,20 +178,20 @@ public class PlacementAdapter {
 
 		/**
 		 * Method to return the width of this PlacementNode.
-		 *
+		 * 
 		 * @return the width of this PlacementNode.
 		 */
-        @Override
+		@Override
 		public double getWidth() {
 			return width;
 		}
 
 		/**
 		 * Method to return the height of this PlacementNode.
-		 *
+		 * 
 		 * @return the height of this PlacementNode.
 		 */
-        @Override
+		@Override
 		public double getHeight() {
 			return height;
 		}
@@ -198,8 +202,8 @@ public class PlacementAdapter {
 		public boolean isTerminal() {
 			return terminal;
 		}
-        
-        @Override
+
+		@Override
 		public String toString() {
 			String name = original.describe(false);
 			if (nodeName != null)
@@ -208,7 +212,7 @@ public class PlacementAdapter {
 				name += "(" + getTechBits() + ")";
 			return name;
 		}
-    }
+	}
 
 	/**
 	 * Class to define ports on PlacementNode objects. This is a shadow class
@@ -219,7 +223,7 @@ public class PlacementAdapter {
 
 		/**
 		 * Constructor to create a PlacementPort.
-		 *
+		 * 
 		 * @param x
 		 *            the X offset of this PlacementPort from the center of its
 		 *            PlacementNode.
@@ -230,13 +234,13 @@ public class PlacementAdapter {
 		 *            the Electric PortProto of this PlacementPort.
 		 */
 		public PlacementPort(double x, double y, PortProto pp) {
-            super(x, y);
-            proto = pp;
+			super(x, y);
+			proto = pp;
 		}
 
 		/**
 		 * Method to return the Electric PortProto that this PlacementPort uses.
-		 *
+		 * 
 		 * @return the Electric PortProto that this PlacementPort uses.
 		 */
 		PortProto getPortProto() {
@@ -246,7 +250,7 @@ public class PlacementAdapter {
 		public String toString() {
 			return proto.getName();
 		}
-    }
+	}
 
 	/**
 	 * Class to define an Export that will be placed in the circuit.
@@ -259,7 +263,7 @@ public class PlacementAdapter {
 		/**
 		 * Constructor to create a PlacementExport with the information about an
 		 * Export to be created.
-		 *
+		 * 
 		 * @param port
 		 *            the PlacementPort that is being exported.
 		 * @param name
@@ -302,7 +306,7 @@ public class PlacementAdapter {
 
 	/**
 	 * Method to return a list of all Placement algorithms.
-	 *
+	 * 
 	 * @return a list of all Placement algorithms.
 	 */
 	public static PlacementFrame[] getPlacementAlgorithms() {
@@ -312,7 +316,7 @@ public class PlacementAdapter {
 	/**
 	 * Entry point for other tools that wish to describe a network to be placed.
 	 * Creates a cell with the placed network.
-	 *
+	 * 
 	 * @param lib
 	 *            the Library in which to create the placed Cell.
 	 * @param cellName
@@ -328,48 +332,35 @@ public class PlacementAdapter {
 	 *            Cell.
 	 * @return the newly created Cell.
 	 */
-	public static Cell doPlacement(PlacementFrame pla, Library lib, String cellName, List<PlacementNode> nodesToPlace,
-			List<PlacementNetwork> allNetworks, List<PlacementExport> exportsToPlace, NodeProto iconToPlace,
-            Placement.PlacementPreferences prefs) {
+	public static Cell doPlacement(PlacementFrame pla, Library lib, String cellName,
+			List<PlacementNode> nodesToPlace, List<PlacementNetwork> allNetworks,
+			List<PlacementExport> exportsToPlace, NodeProto iconToPlace, Placement.PlacementPreferences prefs) {
 		ElapseTimer timer = ElapseTimer.createInstance().start();
-		System.out.println("Running placement on cell '" + cellName + "' using the '" + pla.getAlgorithmName()
-				+ "' algorithm");
+		System.out.println("Running placement on cell '" + cellName + "' using the '"
+				+ pla.getAlgorithmName() + "' algorithm");
 
 		// do the real work of placement
-        for (PlacementFrame.PlacementParameter par: pla.getParameters()) {
-            par.setValue(prefs.getParameter(par));
-        }
-        List<PlacementFrame.PlacementNode> nodesToPlaceCopy = new ArrayList<PlacementFrame.PlacementNode>(nodesToPlace);
-        
+		for (PlacementFrame.PlacementParameter par : pla.getParameters()) {
+			par.setValue(prefs.getParameter(par));
+		}
+		List<PlacementFrame.PlacementNode> nodesToPlaceCopy = new ArrayList<PlacementFrame.PlacementNode>(
+				nodesToPlace);
+
 		pla.runPlacement(nodesToPlaceCopy, allNetworks, cellName);
 
-		if (Job.getDebug() && specialDebugFlag) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("====================================================");
+			logger.debug("algorithm: " + pla.getAlgorithmName());
+			logger.debug("#threads : " + pla.numOfThreads);
+			logger.debug("#runtime : " + pla.runtime);
+			
 			AbstractMetric bmetric = new BBMetric(nodesToPlaceCopy, allNetworks);
-			System.out.println("### BBMetric: " + bmetric.toString());
+			logger.debug("### BBMetric: " + bmetric.toString());
 
 			AbstractMetric mstMetric = new MSTMetric(nodesToPlaceCopy, allNetworks);
-			System.out.println("### MSTMetric: " + mstMetric.toString());
-
-			FileOutputStream out; // declare a file output object
-			PrintStream p; // declare a print stream object
-
-			try {
-				// Create a new file output stream
-				// connected to "myfile.txt"
-				out = new FileOutputStream("/home/Felix Schmidt/work/" + pla.getAlgorithmName() + "-" + cellName + "-"
-						+ pla.runtime + "-" + pla.numOfThreads + ".txt");
-
-				// Connect print stream to the output stream
-				p = new PrintStream(out);
-
-				p.println(bmetric.toString());
-				p.println(mstMetric.toString());
-
-				p.close();
-			} catch (Exception e) {
-				System.err.println("Error writing to file");
-			}
-
+			logger.debug("### MSTMetric: " + mstMetric.toString());
+			
+			logger.debug("====================================================");
 		}
 
 		// create a new cell for the placement results
@@ -395,26 +386,29 @@ public class PlacementAdapter {
 			if (ni == null)
 				System.out.println("Placement failed to create node");
 			else {
-				if(plNode.isTerminal())
+				if (plNode.isTerminal())
 					ni.setLocked();
 				placedNodes.put(plNode, ni);
 			}
 			if (plNode.addedVariables != null) {
 				for (String varName : plNode.addedVariables.keySet()) {
 					Object value = plNode.addedVariables.get(varName);
-                    Variable.Key key = Variable.newKey(varName);
+					Variable.Key key = Variable.newKey(varName);
 					Variable var = ni.newDisplayVar(key, value);
 					if (key == Schematics.SCHEM_RESISTANCE) {
-						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(0, 0.5).withDispPart(
-								TextDescriptor.DispPos.VALUE));
+						ni.setTextDescriptor(
+								key,
+								var.getTextDescriptor().withOff(0, 0.5)
+										.withDispPart(TextDescriptor.DispPos.VALUE));
 					} else if (key == Schematics.ATTR_WIDTH) {
-						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(0.5, -1).withRelSize(1).withDispPart(
-								TextDescriptor.DispPos.VALUE));
+						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(0.5, -1).withRelSize(1)
+								.withDispPart(TextDescriptor.DispPos.VALUE));
 					} else if (key == Schematics.ATTR_LENGTH) {
 						ni.setTextDescriptor(key, var.getTextDescriptor().withOff(-0.5, -1).withRelSize(0.5)
 								.withDispPart(TextDescriptor.DispPos.VALUE));
 					} else {
-						ni.setTextDescriptor(key, var.getTextDescriptor().withDispPart(TextDescriptor.DispPos.VALUE));
+						ni.setTextDescriptor(key,
+								var.getTextDescriptor().withDispPart(TextDescriptor.DispPos.VALUE));
 					}
 				}
 			}
@@ -425,14 +419,15 @@ public class PlacementAdapter {
 			ERectangle bounds = newCell.getBounds();
 			EPoint center = new EPoint(bounds.getMaxX() + iconToPlace.getDefWidth(), bounds.getMaxY()
 					+ iconToPlace.getDefHeight());
-			NodeInst.makeInstance(iconToPlace, center, iconToPlace.getDefWidth(), iconToPlace.getDefHeight(), newCell);
+			NodeInst.makeInstance(iconToPlace, center, iconToPlace.getDefWidth(), iconToPlace.getDefHeight(),
+					newCell);
 		}
 
 		// place exports in the new cell
 		for (PlacementExport plExport : exportsToPlace) {
 			PlacementPort plPort = plExport.getPort();
 			String exportName = plExport.getName();
-			PlacementNode plNode = (PlacementNode)plPort.getPlacementNode();
+			PlacementNode plNode = (PlacementNode) plPort.getPlacementNode();
 			NodeInst newNI = placedNodes.get(plNode);
 			if (newNI == null)
 				continue;
@@ -447,17 +442,17 @@ public class PlacementAdapter {
 			PortInst lastPi = null;
 			EPoint lastPt = null;
 			for (PlacementFrame.PlacementPort plPort : plNet.getPortsOnNet()) {
-				PlacementNode plNode = (PlacementNode)plPort.getPlacementNode();
+				PlacementNode plNode = (PlacementNode) plPort.getPlacementNode();
 				NodeInst newNi = placedNodes.get(plNode);
 				if (newNi != null) {
-					PlacementPort thisPp = (PlacementPort)plPort;
+					PlacementPort thisPp = (PlacementPort) plPort;
 					PortInst thisPi = newNi.findPortInstFromProto(thisPp.getPortProto());
-					EPoint thisPt = new EPoint(plNode.getPlacementX() + plPort.getRotatedOffX(), plNode.getPlacementY()
-							+ plPort.getRotatedOffY());
+					EPoint thisPt = new EPoint(plNode.getPlacementX() + plPort.getRotatedOffX(),
+							plNode.getPlacementY() + plPort.getRotatedOffY());
 					if (lastPp != null) {
 						// connect them
-						ArcInst.newInstance(newCell, Generic.tech().unrouted_arc, null, null, lastPi, thisPi, lastPt,
-								thisPt, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
+						ArcInst.newInstance(newCell, Generic.tech().unrouted_arc, null, null, lastPi, thisPi,
+								lastPt, thisPt, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
 					}
 					lastPp = thisPp;
 					lastPi = thisPi;

@@ -53,4 +53,40 @@ public class Range {
 	public int step() {
 		return step;
 	}
+	
+	/**
+	 * 
+	 * @param r1
+	 * @param r2
+	 * @return
+	 */
+	public static Range union(Range r1, Range r2) {
+		return null;
+	}
+	
+	/**
+	 * 
+	 * @param r1
+	 * @param r2
+	 * @return
+	 */
+	public static Range intersect(Range r1, Range r2) {
+		Range result = null;
+		
+		Range tmpLower = (r1.start < r2.start) ? r1 : r2;
+		Range tmpUpper = (r1.start < r2.start) ? r2 : r1;
+		
+		
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public boolean contains(int value) {
+		return false;
+	}
 }

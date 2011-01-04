@@ -76,7 +76,7 @@ public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
         try {
             // ThreadPool.initialize(WorkStealingStructure.createForThreadPool(2),
             // 2, true);
-            ThreadPool.initialize(SchedulingStrategy.workStealing, 2, ThreadPoolType.userDefined);
+            ThreadPool.initialize(SchedulingStrategy.stack, 2, ThreadPoolType.userDefined);
         } catch (Exception e1) {}
 
         super.doRouting(allRoutes, routeBatches, job, env, ep);
@@ -104,7 +104,7 @@ public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
             System.out.println("Do routing parallel with new parallel Infrastructure 3");
 
         try {
-            pools = ThreadPool.initialize(SchedulingStrategy.fcQueue, numberOfThreads * 2, ThreadPoolType.userDefined);
+            pools = ThreadPool.initialize(SchedulingStrategy.stack, numberOfThreads * 2, ThreadPoolType.userDefined);
         } catch (PoolExistsException e1) {} catch (UnknownSchedulerException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -153,22 +153,8 @@ public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
                 // if (threadAssign >= numberOfThreads)
                 // break;
             }
-
-            // String routes = "";
-            // for (int i = 0; i < threadAssign; i++) {
-            // String routeName = routesToDo[i].routeName;
-            // if (routeBatches[routesToDo[i].batchNumber].segsInBatch > 1)
-            // routeName += "(" + routesToDo[i].routeInBatch + "/"
-            // + routeBatches[routesToDo[i].batchNumber].segsInBatch + ")";
-            // if (routes.length() > 0)
-            // routes += ", ";
-            // routes += routeName;
-            // }
-            // System.out.println("Parallel routing " + routes + "...");
-            // Job.getUserInterface().setProgressNote(routes);
-
-            // now wait for routing threads to finish
-            // outSem.acquireUninterruptibly(threadAssign);
+            
+            System.out.println("process " + threadAssign + " routes in parallel");
             seaOfGatesJob.join();
 
             // all done, now handle the results
@@ -402,7 +388,7 @@ public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
      * java.util.List, java.util.List,
      * com.sun.electric.tool.routing.SeaOfGates.SeaOfGatesOptions)
      */
-    @Override
+    /*@Override
     protected void makeListOfRoutes(int numBatches, RouteBatches[] routeBatches, List<NeededRoute> allRoutes,
             List<ArcInst> arcsToRoute, SeaOfGatesOptions prefs, EditingPreferences ep) {
 
@@ -422,7 +408,7 @@ public class SeaOfGatesEngineNew3 extends SeaOfGatesEngine {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-    }
+    }*/
 
     public class ParallelListOfRoutes extends PForTask<BlockedRange1D> {
 
