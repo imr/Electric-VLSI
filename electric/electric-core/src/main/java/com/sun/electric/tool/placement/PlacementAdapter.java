@@ -353,6 +353,7 @@ public class PlacementAdapter {
 			logger.debug("algorithm: " + pla.getAlgorithmName());
 			logger.debug("#threads : " + pla.numOfThreads);
 			logger.debug("#runtime : " + pla.runtime);
+			logger.debug("cell     : " + cellName);
 			
 			AbstractMetric bmetric = new BBMetric(nodesToPlaceCopy, allNetworks);
 			logger.debug("### BBMetric: " + bmetric.toString());
