@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
-BUG: (01/04/11, FS) Exception in experimental SeaOfGates (Bug#2997)
+Bug: (01/06/11, FS) Unexpected assertion in Genetic Placement 1 (Bug #3010)
+FIX: remove assertion
+
+BUG: (01/04/11, FS) Exception in experimental SeaOfGates (Bug #2997)
 FIX: Use the electric worker strategy
 
 BUG: (12/18/10, DN) Failure in GDS reader when include text is enabled.
