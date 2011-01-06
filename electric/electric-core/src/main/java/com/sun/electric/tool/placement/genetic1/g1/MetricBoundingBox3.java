@@ -270,7 +270,7 @@ public class MetricBoundingBox3 implements Metric {
 			}
 		}
 
-		assert (right > left || top > bottom);
+		//assert (right >= left || top >= bottom);
 
 		return (right - left) + (top - bottom);
 	}
