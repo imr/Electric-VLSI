@@ -61,6 +61,7 @@ import com.sun.electric.tool.placement.metrics.boundingbox.BBMetric;
 import com.sun.electric.tool.placement.metrics.mst.MSTMetric;
 import com.sun.electric.tool.placement.simulatedAnnealing1.SimulatedAnnealing;
 import com.sun.electric.tool.placement.simulatedAnnealing2.PlacementSimulatedAnnealing;
+import com.sun.electric.tool.placement.simulatedAnnealing3.PlacementSimulatedAnnealingRowCol;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.math.Orientation;
 
@@ -294,9 +295,9 @@ public class PlacementAdapter {
 	 * Static list of all Placement algorithms. When you create a new algorithm,
 	 * add it to the following list.
 	 */
-	static PlacementFrame[] placementAlgorithms = { new SimulatedAnnealing(), // team
-			// 2
+	static PlacementFrame[] placementAlgorithms = { new SimulatedAnnealing(), // team 2
 			new PlacementSimulatedAnnealing(), // team 6
+			new PlacementSimulatedAnnealingRowCol(),	// team 6 modified for row/column placement
 			new GeneticPlacement(), // team 3
 			new PlacementGenetic(), // team 4
 			new PlacementForceDirectedTeam5(), // team 5

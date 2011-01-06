@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
-Bug: (01/06/11, FS) Unexpected assertion in Genetic Placement 1 (Bug #3010)
+IMP: (01/6/11, SMR) Added new Placement algorithm for row/column based
+     Simulated Annealing (Bug #2977).
+
+BUG: (01/06/11, FS) Unexpected assertion in Genetic Placement 1 (Bug #3010)
 FIX: remove assertion
 
 BUG: (01/04/11, FS) Exception in experimental SeaOfGates (Bug #2997)
