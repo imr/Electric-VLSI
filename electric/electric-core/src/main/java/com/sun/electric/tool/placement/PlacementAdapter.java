@@ -25,8 +25,8 @@ package com.sun.electric.tool.placement;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +51,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.forceDirected1.PlacementForceDirectedTeam5;
 import com.sun.electric.tool.placement.forceDirected2.PlacementForceDirectedStaged;
@@ -349,19 +348,29 @@ public class PlacementAdapter {
 		pla.runPlacement(nodesToPlaceCopy, allNetworks, cellName);
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("====================================================");
-			logger.debug("algorithm: " + pla.getAlgorithmName());
-			logger.debug("#threads : " + pla.numOfThreads);
-			logger.debug("#runtime : " + pla.runtime);
-			logger.debug("cell     : " + cellName);
-			
-			AbstractMetric bmetric = new BBMetric(nodesToPlaceCopy, allNetworks);
-			logger.debug("### BBMetric: " + bmetric.toString());
+			InetAddress addr;
+			try {
+				addr = InetAddress.getLocalHost();
+				String hostname = addr.getHostName();
 
-			AbstractMetric mstMetric = new MSTMetric(nodesToPlaceCopy, allNetworks);
-			logger.debug("### MSTMetric: " + mstMetric.toString());
-			
-			logger.debug("====================================================");
+				logger.debug("====================================================");
+				logger.debug("machine: " + hostname);
+				logger.debug("algorithm: " + pla.getAlgorithmName());
+				logger.debug("#threads : " + pla.numOfThreads);
+				logger.debug("#runtime : " + pla.runtime);
+				logger.debug("cell     : " + cellName);
+
+				AbstractMetric bmetric = new BBMetric(nodesToPlaceCopy, allNetworks);
+				logger.debug("### BBMetric: " + bmetric.toString());
+
+				AbstractMetric mstMetric = new MSTMetric(nodesToPlaceCopy, allNetworks);
+				logger.debug("### MSTMetric: " + mstMetric.toString());
+
+				logger.debug("====================================================");
+			} catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		// create a new cell for the placement results
