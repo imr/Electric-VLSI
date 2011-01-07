@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+BUG: (01/07/11, FS) Concurrent modification exception in ForceDirected2 (Bug #3011)
+FIX: Use Iterator instead of for-each loop
+
 IMP: (01/6/11, SMR) Added new Placement algorithm for row/column based
      Simulated Annealing (Bug #2977).
 
@@ -22,7 +25,7 @@ FIX: In Routing.findNetEnds() allow well/substrate primitives.
 BUG: (12/27/10, SMR) Crash when drawing arc (Bug #3006).
 FIX: Fixed Highlighter.findAllInArea() to calculate need for temp names only if necessary.
 
-IMP: (12/22/10) Add logging facade and logging environment
+IMP: (12/22/10, FS) Add logging facade and logging environment
 
 Bug: (12/22/10, FS) AStar 2 doesn't care about timeouts
 FIX: Add some timeout information
