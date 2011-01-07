@@ -28,6 +28,11 @@
  */
 package com.sun.electric.tool.placement.forceDirected2.forceDirected.staged;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNetwork;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementNode;
 import com.sun.electric.tool.placement.PlacementFrame.PlacementPort;
@@ -39,10 +44,6 @@ import com.sun.electric.tool.placement.forceDirected2.forceDirected.util.Force2D
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.EmptyException;
 import com.sun.electric.tool.placement.forceDirected2.utils.concurrent.StageWorker;
 import com.sun.electric.util.math.GenMath.MutableInteger;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Worker to calculate the forces
@@ -99,7 +100,8 @@ public class CalculateForcesStageWorker extends StageWorker {
 		}
 
 		result = new Force2D();
-		for (PlacementNetwork network : data.getNetworks().keySet()) {
+		for (Iterator<PlacementNetwork> itNetwork = data.getNetworks().keySet().iterator(); itNetwork.hasNext(); ) {
+			PlacementNetwork network = itNetwork.next();
 			for (PlacementPort port : network.getPortsOnNet()) {
 				if (node != port.getPlacementNode()) {
 					result = result.add(SpringForce.calculate(data.getNetworks().get(network), port, 1, 0));
