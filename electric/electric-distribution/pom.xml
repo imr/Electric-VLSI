@@ -45,10 +45,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-test</artifactId>
         </dependency>
-	<dependency>
-	    <groupId>com.sun.electric</groupId>
-	    <artifactId>electric-irsim-api</artifactId>
-	</dependency>
+        <dependency>
+            <groupId>com.sun.electric</groupId>
+            <artifactId>electric-irsim-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-core</artifactId>
@@ -84,13 +84,13 @@
             <artifactId>scala-library</artifactId>
         </dependency>
         <dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-		</dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
     </dependencies>
 
     <!--repositories>
