@@ -49,6 +49,8 @@ import java.util.Random;
  */
 public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 {
+	private static final boolean CENTEREDSTACKS = false;
+
 	// parameters
 	private PlacementParameter numThreadsParam = new PlacementParameter("threads",
 		"Number of threads:", Runtime.getRuntime().availableProcessors());
@@ -57,9 +59,11 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 	private static final int PLACEMENTSTYLE_COLUMNS = 0;
 //	private static final int PLACEMENTSTYLE_ROWS = 1;
 	private PlacementParameter placementStyleParam = new PlacementParameter("placementStyle",
-		"Placement Style:", 0, new String[] {"Column-based Placement", "Row-based Placement"});
+		"Placement style:", 0, new String[] {"Column-based Placement", "Row-based Placement"});
 	private PlacementParameter flipAlternateColsRows = new PlacementParameter("flipColRow",
-		"Column/Row Placement: flip alternate columns/rows", true);
+		"Column/row placement: flip alternate columns/rows", true);
+	private PlacementParameter makeStacksEven = new PlacementParameter("makeStacksEven",
+		"Force rows/columns to be equal length", true);
 
 	// Temperature control
 	private int iterationsPerTemperatureStep;	// if maximum runtime is > 0 this is calculated each temperature step
@@ -70,17 +74,16 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 	private int perturbationsTried;
 	private long stepStartTime;
 	private long timestampStart;
-	private double maxChipLength;
 	private int stepsPerUpdate = 50;
 
 	/** list of proxy nodes */										private List<ProxyNode> nodesToPlace;
 	/** map from original PlacementNodes to proxy nodes */			private Map<PlacementNode, ProxyNode> proxyMap;
-	/** true if doing column placement */							private static boolean columnPlacement;
-	/** number of stacks of cells */								private static int numStacks;
+	/** true if doing column placement */							private boolean columnPlacement;
+	/** number of stacks of cells */								private int numStacks;
 	/** the contents of the stacks */								private List<ProxyNode>[] stackContents;
 	/** the height (of columns) or width (of rows) */				private double[] stackSizes;
-	/** X coordinates (of columns) or Y coordinates (of rows) */	private static double[] stackCoords;
-	/** indicator of stack usage in a thread */						private static boolean[] stacksBusy;
+	/** X coordinates (of columns) or Y coordinates (of rows) */	private double[] stackCoords;
+	/** indicator of stack usage in a thread */						private boolean[] stacksBusy;
 	/** for statistics gathering */									private int better, worse, worseAccepted;
 	/** global random object */										private Random randNum = new Random();
 
@@ -123,12 +126,10 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 		setParamterValues(threadCount, maxRuntimeParam.getIntValue());
 
 		// Calculate the working area for the process.
-		// nodes will not be placed outside the working area
-		// This is because there is no use in moving nodes "miles" away.
 		double totalArea = 0;
 		for (ProxyNode node : nodesToPlace)
 			totalArea += node.getWidth() * node.getHeight();
-		maxChipLength = Math.sqrt(totalArea) * 4;
+		double maxChipLength = Math.sqrt(totalArea) * 4;
 
 		// calculate the starting temperature
 		temperatureStep = 0;
@@ -167,6 +168,12 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 			}
 		}
 
+		if (makeStacksEven.getBooleanValue())
+		{
+			// even the stacks as much as possible
+			evenAllStacks(allNetworks);
+		}
+
 		// apply the placement of the proxies to the actual nodes
 		for (PlacementNode pn : placementNodes)
 		{
@@ -182,6 +189,78 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 		String worseAcceptedStr = formater.format(worseAccepted);
 		System.out.println("Made " + betterStr + " moves that improve results, " +
 			worseStr + " moves that worsened it (and " + worseAcceptedStr + " were accepted)");
+	}
+
+	private void evenAllStacks(List<PlacementNetwork> allNetworks)
+	{
+		boolean [] stackConsidered = new boolean[numStacks];
+		for(;;)
+		{
+			// find initial network length
+			double initialLength = netLength(allNetworks);
+			int bestOtherStack = -1;
+			int placeInOtherStack = -1;
+			double bestGain = 0;
+			ProxyNode nodeToMove = null;
+			for(int i=0; i<numStacks; i++) stackConsidered[i] = false;
+
+			// now look at all tall stacks and find something that can be moved out of them
+			for(;;)
+			{
+				// find tallest stack that hasn't already been considered
+				int tallestStack = -1;
+				for(int i=0; i<numStacks; i++)
+				{
+					if (stackConsidered[i]) continue;
+					if (tallestStack < 0 || stackSizes[i] > stackSizes[tallestStack])
+						tallestStack = i;
+				}
+				if (tallestStack < 0) break;
+				stackConsidered[tallestStack] = true;
+//System.out.println("Examine stack "+tallestStack);
+
+				// look at all nodes in the tall stack
+				for(ProxyNode pn : stackContents[tallestStack])
+				{
+					double size = pn.getCellSize();
+
+					// find another stack in which this node could go to even the sizes
+					for(int i=0; i<numStacks; i++)
+					{
+						if (i == tallestStack) continue;
+						if (stackSizes[i] + size > stackSizes[tallestStack] - size) continue;
+
+						// could go in this stack: look for the best place for it
+						for(int j=0; j<stackContents[i].size(); j++)
+						{
+							proposeMove(pn, tallestStack, i, j);
+
+							double proposedLength = 0;
+							for(PlacementNetwork net : allNetworks)
+								proposedLength += netLength(net, tallestStack, i);
+							double gain = initialLength - proposedLength;
+							if (gain > bestGain)
+							{
+								bestOtherStack = i;
+								placeInOtherStack = j;
+								bestGain = gain;
+								nodeToMove = pn;
+							}
+						}
+					}
+				}
+				if (bestGain > 0)
+				{
+					// make the move
+					proposeMove(nodeToMove, tallestStack, bestOtherStack, placeInOtherStack);
+//System.out.println("  Move "+nodeToMove.getCellSize()+"-tall node in position "+stackContents[tallestStack].indexOf(nodeToMove)+
+//" of stack "+tallestStack+" (which is "+stackSizes[tallestStack]+" tall) to stack "+bestOtherStack+", position "+placeInOtherStack);
+					implementMove(nodeToMove, tallestStack, bestOtherStack, placeInOtherStack);
+					break;
+				}
+			}
+			if (bestGain == 0) break;
+		}
 	}
 
 	/**
@@ -437,8 +516,8 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 					// decide whether to work in two stacks or one
 					ProxyNode node = null;
 					int oldIndex, newIndex;
-					int r = rand.nextInt(100);
-					if (r < 5)
+					int r = rand.nextInt(numStacks);
+					if (r == 0)
 					{
 						// work within one stack
 						for(;;)
@@ -471,15 +550,21 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 						}
 					}
 
-					// add a random translation to the node's location but keep it inside the "working area"
-					Point2D newPosition = randomMove(node);
-					double newX = (node.getPlacementX() + newPosition.getX()
-						* (0.1 + 0.1 * temperature / startingTemperature)) % maxChipLength;
-					double newY = (node.getPlacementY() + newPosition.getY()
-						* (0.1 + 0.1 * temperature / startingTemperature)) % maxChipLength;
-					if (columnPlacement) newX = stackCoords[newIndex]; else
-						newY = stackCoords[newIndex];
-					Orientation newOrient = getOrientation(newIndex);
+					int newPlaceInStack = rand.nextInt(stackContents[newIndex].size()+1);
+					if (newIndex == oldIndex)
+					{
+						if (stackContents[newIndex].size() >= 2)
+						{
+							while(newPlaceInStack < stackContents[newIndex].size())
+							{
+								if (stackContents[newIndex].get(newPlaceInStack) != node &&
+									(newPlaceInStack == 0 || stackContents[newIndex].get(newPlaceInStack-1) != node)) break;
+								newPlaceInStack = rand.nextInt(stackContents[newIndex].size()+1);
+							}
+						}
+						int oldPlaceInStack = stackContents[oldIndex].indexOf(node);
+						if (oldPlaceInStack < newPlaceInStack) newPlaceInStack--;
+					}
 
 					// determine the network length before the move
 					double networkMetricBefore = 0;
@@ -487,89 +572,7 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 						networkMetricBefore += netLength(net, -1, -1);
 
 					// make the move (set in temporary "proposed" variables)
-					node.setProposed(newX, newY, newIndex, newOrient);
-					if (oldIndex != newIndex)
-					{
-						// redo the old stack without the moved node
-						double oldStackSize = stackSizes[oldIndex] - node.getCellSize();
-						double bottom = -oldStackSize/2;
-						List<ProxyNode> pnList = stackContents[oldIndex];
-						for(ProxyNode pn : pnList)
-						{
-							if (pn == node) continue;
-							double x = pn.getPlacementX();
-							double y = pn.getPlacementY();
-							double size = pn.getCellSize();
-							if (columnPlacement) y = bottom + size/2; else
-								x = bottom + size/2;
-							bottom += size;
-							pn.setProposed(x, y, pn.getColumnRowIndex(), pn.getPlacementOrientation());
-						}
-
-						// build new list for destination stack with moved node inserted
-						boolean notInserted = true;
-						List<ProxyNode> newList = new ArrayList<ProxyNode>();
-						for(ProxyNode pn : stackContents[newIndex])
-						{
-							if (notInserted)
-							{
-								if (pn.compareTo(node) <= 0)
-								{
-									newList.add(node);
-									notInserted = false;
-								}
-							}
-							newList.add(pn);
-						}
-						if (notInserted) newList.add(node);
-
-						// redo the new stack with the moved node
-						double newStackSize = stackSizes[newIndex] + node.getCellSize();
-						bottom = -newStackSize/2;
-						for(ProxyNode pn : newList)
-						{
-							double x = pn.getPlacementX();
-							double y = pn.getPlacementY();
-							double size = pn.getCellSize();
-							if (columnPlacement) y = bottom + size/2; else
-								x = bottom + size/2;
-							bottom += size;
-							if (pn != node)
-								pn.setProposed(x, y, pn.getColumnRowIndex(), pn.getPlacementOrientation());
-						}
-					} else
-					{
-						// rearrange the stack
-						boolean notInserted = true;
-						List<ProxyNode> newList = new ArrayList<ProxyNode>();
-						for(ProxyNode pn : stackContents[oldIndex])
-						{
-							if (pn == node) continue;
-							if (notInserted)
-							{
-								if (pn.compareTo(node) <= 0)
-								{
-									newList.add(node);
-									notInserted = false;
-								}
-							}
-							newList.add(pn);
-						}
-						if (notInserted) newList.add(node);
-
-						// redo the new stack with the moved node
-						double bottom = -stackSizes[oldIndex]/2;
-						for(ProxyNode pn : newList)
-						{
-							double x = pn.getPlacementX();
-							double y = pn.getPlacementY();
-							double size = pn.getCellSize();
-							if (columnPlacement) y = bottom + size/2; else
-								x = bottom + size/2;
-							bottom += size;
-							pn.setProposed(x, y, pn.getColumnRowIndex(), pn.getPlacementOrientation());
-						}
-					}
+					proposeMove(node, oldIndex, newIndex, newPlaceInStack);
 
 					// determine the network length after the move
 					double networkMetricAfter = 0;
@@ -583,12 +586,7 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 					if (Math.exp(gain / temperature) >= Math.random())
 					{
 						if (gain < 0) worseAccepted++;
-						remove(node);
-						node.setPlacement(node.getProposedX(), node.getProposedY(), node.getProposedIndex(),
-							getOrientation(node.getProposedIndex()), true);
-						put(node);
-						evenStack(oldIndex);
-						if (newIndex != oldIndex) evenStack(newIndex);
+						implementMove(node, oldIndex, newIndex, newPlaceInStack);
 					}
 					releaseStack(oldIndex);
 					if (newIndex != oldIndex) releaseStack(newIndex);
@@ -597,23 +595,112 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 				update(stepsPerUpdate);
 			}
 		}
+	}
 
-		/**
-		 * Method that generates a random translation vector for a given ProxyNode.
-		 * @param node ProxyNode to move.
-		 * @return a translation vector for the ProxyNode.
-		 */
-		private Point2D randomMove(ProxyNode node)
+	private void implementMove(ProxyNode node, int oldIndex, int newIndex, int newPlaceInStack)
+	{
+		remove(node);
+		node.setPlacement(node.getProposedX(), node.getProposedY(), node.getProposedIndex(),
+			getOrientation(node.getProposedIndex()), true);
+		put(node, newIndex, newPlaceInStack);
+		evenStack(oldIndex);
+		if (newIndex != oldIndex) evenStack(newIndex);
+	}
+
+	private void proposeMove(ProxyNode node, int oldIndex, int newIndex, int newPlaceInStack)
+	{
+		Orientation newOrient = getOrientation(newIndex);
+		if (oldIndex != newIndex)
 		{
-			// the length of the vector is a function of the maximum bounding box
-			// the further away connected nodes are, the further the node may move
-			double maxBoundingBox = maxChipLength;
+			// set proposed locations in the old stack without the moved node
+			double bottom = 0;
+			if (CENTEREDSTACKS)
+			{
+				double oldStackSize = stackSizes[oldIndex] - node.getCellSize();
+				bottom = -oldStackSize/2;
+			}
+			List<ProxyNode> pnList = stackContents[oldIndex];
+			for(ProxyNode pn : pnList)
+			{
+				if (pn == node) continue;
+				double x = pn.getPlacementX();
+				double y = pn.getPlacementY();
+				double size = pn.getCellSize();
+				if (columnPlacement) y = bottom + size/2; else
+					x = bottom + size/2;
+				bottom += size;
+				pn.setProposed(x, y, pn.getColumnRowIndex(), pn.getPlacementOrientation());
+			}
 
-			// shorter vectors are more likely
-			// don't move nodes too far away if they are already well positioned
-			double offsetX = Math.min(Math.max(rand.nextGaussian(), -1), 1) * maxBoundingBox;
-			double offsetY = Math.min(Math.max(rand.nextGaussian(), -1), 1) * maxBoundingBox;
-			return new Point2D.Double(offsetX, offsetY);
+			// set proposed locations in the new stack with the moved node
+			bottom = 0;
+			if (CENTEREDSTACKS)
+			{
+				double newStackSize = stackSizes[newIndex] + node.getCellSize();
+				bottom = -newStackSize/2;
+			}
+			boolean notInserted = true;
+			List<ProxyNode> newList = stackContents[newIndex];
+			for(int i=0; i<newList.size(); i++)
+			{
+				ProxyNode pn = newList.get(i);
+				Orientation o = pn.getPlacementOrientation();
+				double x = pn.getPlacementX();
+				double y = pn.getPlacementY();
+				if (notInserted && i == newPlaceInStack)
+				{
+					if (columnPlacement) x = stackCoords[newIndex]; else
+						y = stackCoords[newIndex];
+					pn = node;
+					o = newOrient;
+					i--;
+					notInserted = false;
+				}
+				double size = pn.getCellSize();
+				if (columnPlacement) y = bottom + size/2; else
+					x = bottom + size/2;
+				bottom += size;
+				pn.setProposed(x, y, newIndex, o);
+			}
+			if (notInserted)
+			{
+				double size = node.getCellSize();
+				if (columnPlacement)
+					node.setProposed(stackCoords[newIndex], bottom + size/2, newIndex, newOrient); else
+						node.setProposed(bottom + size/2, stackCoords[newIndex], newIndex, newOrient);
+			}
+		} else
+		{
+			// redo the new stack with the moved node
+			double bottom = 0;
+			if (CENTEREDSTACKS)
+				bottom = -stackSizes[oldIndex]/2;
+			boolean notInserted = true;
+			for(int i=0; i<stackContents[newIndex].size(); i++)
+			{
+				ProxyNode pn = stackContents[newIndex].get(i);
+				if (pn == node) continue;
+				if (notInserted && i == newPlaceInStack)
+				{
+					pn = node;
+					i--;
+					notInserted = false;
+				}
+				double x = pn.getPlacementX();
+				double y = pn.getPlacementY();
+				double size = pn.getCellSize();
+				if (columnPlacement) y = bottom + size/2; else
+					x = bottom + size/2;
+				bottom += size;
+				pn.setProposed(x, y, newIndex, pn.getPlacementOrientation());
+			}
+			if (notInserted)
+			{
+				double size = node.getCellSize();
+				if (columnPlacement)
+					node.setProposed(node.getPlacementX(), bottom + size/2, newIndex, newOrient); else
+						node.setProposed(bottom + size/2, node.getPlacementY(), newIndex, newOrient);
+			}
 		}
 	}
 
@@ -705,20 +792,10 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 	 * Adds a node to the stack lists.
 	 * @param node the ProxyNode to add to the stack lists.
 	 */
-	private void put(ProxyNode node)
+	private void put(ProxyNode node, int index, int position)
 	{
-		int index = node.getColumnRowIndex();
 		List<ProxyNode> pnList = stackContents[index];
-		boolean notInserted = true;
-		for(int i=0; i<pnList.size(); i++)
-		{
-			ProxyNode pn = pnList.get(i);
-			if (pn.compareTo(node) > 0) continue;
-			pnList.add(i, node);
-			notInserted = false;
-			break;
-		}
-		if (notInserted) pnList.add(node);
+		pnList.add(position, node);
 		stackSizes[index] += node.getCellSize();
 	}
 
@@ -743,7 +820,9 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 	 */
 	private void evenStack(int index)
 	{
-		double bottom = -stackSizes[index]/2;
+		double bottom = 0;
+		if (CENTEREDSTACKS)
+			bottom = -stackSizes[index]/2;
 		List<ProxyNode> pnList = stackContents[index];
 		for(ProxyNode pn : pnList)
 		{
@@ -763,7 +842,7 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 	 * This class is a proxy for the actual PlacementNode.
 	 * It can be moved around and rotated without touching the actual PlacementNode.
 	 */
-	static class ProxyNode implements Comparable<ProxyNode>
+	class ProxyNode implements Comparable<ProxyNode>
 	{
 		private double x, y;						// current location
 		private double newX, newY;					// proposed location when testing rearrangement
