@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+BUG: (1/12/11, SMR) Placement framework creates invalid arcs (Bug #3014).
+FIX: In PlacementAdapter.doPlacement(), compute arc end coordinates.
+
 BUG: (01/07/11, FS) Concurrent modification exception in ForceDirected2 (Bug #3011)
 FIX: Use Iterator instead of for-each loop
 

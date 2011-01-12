@@ -72,7 +72,6 @@ import com.sun.electric.util.math.Orientation;
  */
 public class PlacementAdapter {
 
-	private static final boolean specialDebugFlag = false;
 	private static final Logger logger = LoggerFactory.getLogger(PlacementAdapter.class);
 
 	/**
@@ -451,23 +450,21 @@ public class PlacementAdapter {
 		for (PlacementNetwork plNet : allNetworks) {
 			PlacementFrame.PlacementPort lastPp = null;
 			PortInst lastPi = null;
-			EPoint lastPt = null;
 			for (PlacementFrame.PlacementPort plPort : plNet.getPortsOnNet()) {
 				PlacementNode plNode = (PlacementNode) plPort.getPlacementNode();
 				NodeInst newNi = placedNodes.get(plNode);
 				if (newNi != null) {
 					PlacementPort thisPp = (PlacementPort) plPort;
 					PortInst thisPi = newNi.findPortInstFromProto(thisPp.getPortProto());
-					EPoint thisPt = new EPoint(plNode.getPlacementX() + plPort.getRotatedOffX(),
-							plNode.getPlacementY() + plPort.getRotatedOffY());
 					if (lastPp != null) {
 						// connect them
+						EPoint lastPtComp = lastPi.getCenter();
+						EPoint thisPtComp = thisPi.getCenter();
 						ArcInst.newInstance(newCell, Generic.tech().unrouted_arc, null, null, lastPi, thisPi,
-								lastPt, thisPt, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
+								lastPtComp, thisPtComp, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
 					}
 					lastPp = thisPp;
 					lastPi = thisPi;
-					lastPt = thisPt;
 				}
 			}
 		}

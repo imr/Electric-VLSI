@@ -367,6 +367,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
     /**
      * Method to create a new ArcInst connecting two PortInsts at specified locations.
      * This is more general than the version that does not take coordinates.
+     * WARNING: this method does not check endpoint coordinates so make sure they are correct
+     * to prevent database corruption
      * @param parent the parent Cell of this ArcInst
      * @param protoType the ArcProto of this ArcInst.
      * @param name the name of this ArcInst
@@ -407,8 +409,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         if (!headPrimPort.connectsTo(protoType)) {
             System.out.println("Cannot create " + protoType + " from (" + headPt.getX() + "," + headPt.getY()
                     + ") to (" + tailPt.getX() + "," + tailPt.getY() + ") in " + parent
-                    + " because it cannot connect to port " + headProto.getName()
-                    + " on node " + headPort.getNodeInst().describe(false));
+                    + " because the 'from' port (" + headProto.getName() + " on node "
+                    + headPort.getNodeInst().describe(false) + ") does not connect to " + protoType);
             return null;
         }
         PortProto tailProto = tailPort.getPortProto();
@@ -416,8 +418,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         if (!tailPrimPort.connectsTo(protoType)) {
             System.out.println("Cannot create " + protoType + " from (" + headPt.getX() + "," + headPt.getY()
                     + ") to (" + tailPt.getX() + "," + tailPt.getY() + ") in " + parent
-                    + " because it cannot connect to port " + tailProto.getName()
-                    + " on node " + tailPort.getNodeInst().describe(false));
+                    + " because the 'to' port (" + tailProto.getName() + " on node "
+                    + tailPort.getNodeInst().describe(false) + ") does not connect to " + protoType);
             return null;
         }
 
