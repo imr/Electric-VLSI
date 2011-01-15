@@ -65,6 +65,7 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>electric-core</artifactId>
             <version>9.00-q</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
