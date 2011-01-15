@@ -27,45 +27,66 @@ package com.sun.electric.api.minarea;
  * Data source for main area DRC
  */
 public interface LayoutCell {
-    
-    // name
-    
+
+    // cell name
     public String getName();
-    
+
     // rectangles
-    
     public int getNumRectangles();
-    
+
     public long getRectangleMinX(int rectangleIndex);
-    
+
     public long getRectangleMinY(int rectangleIndex);
-    
+
     public long getRectangleMaxX(int rectangleIndex);
-    
+
     public long getRectangleMaxY(int rectangleIndex);
-    
+
+    // traversal of rectangles
+    public interface RectangleHandler {
+
+        /**
+         * @param minX
+         * @param minY
+         * @param maxX
+         * @param maxY
+         */
+        public void apply(long minX, long minY, long maxX, long maxY);
+    }
+
+    public void traverseRectangles(RectangleHandler h);
+
     //  subcells
-    
     public int getNumSubcells();
-    
+
     public LayoutCell getSubcellCell(int subCellIndex);
-    
-    public ManhattanOrientation getSubcellOrientation(int subCellIndex);
-    
+
     public long getSubcellX(int subCellIndex);
-    
+
     public long getSubcellY(int subCellIndex);
-    
-    public String getSubcellInstanceName();
-    
+
+    public ManhattanOrientation getSubcellOrientation(int subCellIndex);
+
+    // traversal of subcells
+    public interface SubcellHandler {
+
+        /**
+         * @param cell
+         * @param x
+         * @param y
+         * @param orient
+         */
+        public void apply(LayoutCell cell, long x, long y, ManhattanOrientation orient);
+    }
+
+    public void traverseSubcellInstances(SubcellHandler h);
+
     // bounding box
-    
     public long getBoundingMinX();
-    
+
     public long getBoundingMinY();
-    
+
     public long getBoundingMaxX();
-    
+
     public long getBoundingMaxY();
-    
 }

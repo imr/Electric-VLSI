@@ -30,11 +30,33 @@ import java.util.Properties;
  */
 public interface MinAreaChecker {
 
+    /**
+     * 
+     * @return the algorithm name
+     */
+    public String getAlgorithmName();
+
+    /**
+     * 
+     * @return the names and default values of algorithm parameters
+     */
     public Properties getDefaultParameters();
-    
-    public void check(LayoutCell dataSource, long minArea, Properties parameters, ErrorLogger errorLogger);
-    
+
+    /**
+     * @param topCell top cell of the layout
+     * @param minArea minimal area of valid polygon
+     * @param parameters algorithm parameters
+     * @param errorLogger an API to report violations
+     */
+    public void check(LayoutCell topCell, long minArea, Properties parameters, ErrorLogger errorLogger);
+
     public interface ErrorLogger {
-        public void reportMinArea(long minArea, long x, long y);
+
+        /**
+         * @param min area of violating polygon
+         * @param x x-coordinate of some point of violating polygon
+         * @param y y-coordinate of some point of violating polygon
+         */
+        public void reportMinAreaViolation(long minArea, long x, long y);
     }
 }

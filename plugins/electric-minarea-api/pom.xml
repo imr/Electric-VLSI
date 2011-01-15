@@ -60,5 +60,12 @@
             </snapshots>
         </repository>
     </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>electric-core</artifactId>
+            <version>9.00-q</version>
+        </dependency>
+    </dependencies>
 </project>
 
