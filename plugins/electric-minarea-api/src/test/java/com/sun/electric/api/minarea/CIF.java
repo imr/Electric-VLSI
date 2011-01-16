@@ -27,45 +27,28 @@
  */
 package com.sun.electric.api.minarea;
 
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.io.input.Input.InputPreferences;
-import com.sun.electric.util.TextUtils;
-import com.sun.electric.util.math.GenMath;
-import com.sun.electric.util.math.Orientation;
-
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.PushbackInputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This class reads files in CIF files.
  */
-public class CIF extends Input<Object> {
+public class CIF {
 
-    private static final boolean MAKE_EXPORTS = false;
     /** max depth of min/max stack */
     private static final int MAXMMSTACK = 50;
     /** max value that can add extra digit */
@@ -130,114 +113,6 @@ public class CIF extends Input<Object> {
     private static final int TROTATE = 1;
     private static final int TTRANSLATE = 2;
     private static final int TMIRROR = 4;
-    // values for BackCIFList->identity
-    private static final int CSTART = 0;
-    private static final int CEND = 1;
-//	private static final int CWIRE =    2;
-//	private static final int CFLASH =   3;
-    private static final int CBOX = 4;
-    private static final int CPOLY = 5;
-//	private static final int CCOMMAND = 6;
-    private static final int CGNAME = 7;
-    private static final int CLABEL = 8;
-    private static final int CCALL = 9;
-
-    static class BackCIFCell {
-
-        /** bounding box of cell */
-        int l, r, t, b;
-        /** the address of the CIF cell */
-        Cell addr;
-    };
-
-    static class BackCIFList {
-
-        /** specifies the nature of the entry */
-        int identity;
-        /** the line number in the original CIF */
-        int lineNumber;
-        /** will point to member's structure */
-        Object member;
-    };
-
-    static class BackCIFStart {
-
-        /** cell index */
-        int cIndex;
-        /** cell name */
-        String name;
-        /** bounding box of cell */
-        int l, r, t, b;
-    };
-
-    static class BackCIFBox {
-
-        /** the corresponding layer number */
-        Layer lay;
-        /** dimensions of box */
-        int length, width;
-        /** center point of box */
-        int cenX, cenY;
-        /** box direction */
-        int xRot, yRot;
-    };
-
-    static class BackCIFPoly {
-
-        /** the corresponding layer number */
-        Layer lay;
-        /** list of points */
-        int[] x, y;
-        /** number of points in list */
-        int lim;
-    };
-
-    static class BackCIFGeomName {
-
-        /** the corresponding layer number */
-        Layer lay;
-        /** the name */
-        String name;
-        /** the central point */
-        int cx, cy;
-    };
-
-    static class BackCIFLabel {
-
-        /** location of label */
-        int x, y;
-        /** the label */
-        String label;
-    };
-
-    static class BackCIFCall {
-
-        /** index of cell called */
-        int cIndex;
-        /** name of cell called */
-        String name;
-        /** list of transformations */
-        BackCIFTransform list;
-    };
-    // values for the transformation type
-    /** mirror in x */
-    private static final int MIRX = 1;
-    /** mirror in y */
-    private static final int MIRY = 2;
-    /** translation */
-    private static final int TRANS = 3;
-    /** rotation */
-    private static final int ROT = 4;
-
-    static class BackCIFTransform {
-
-        /** type of transformation */
-        int type;
-        /** not required for the mirror types */
-        int x, y;
-        /** next element in list */
-        BackCIFTransform next;
-    };
 
     static class FrontTransformEntry {
 
@@ -344,7 +219,7 @@ public class CIF extends Input<Object> {
         /** for ll */
         FrontObjBase next;
         /** layer for this object */
-        Layer layer;
+        String layer;
 
         FrontObjBase() {
             bb = new FrontBBox();
@@ -403,12 +278,6 @@ public class CIF extends Input<Object> {
         /** array of points in wire */
         Point[] points;
     };
-    /** current transformation */
-    private BackCIFTransform currentCTrans;
-    /** list of front-end objects */
-    private List<BackCIFList> currentFrontList = null;
-    /** current object in list */
-    private BackCIFList currentFrontElement;
     /** item list */
     private List<FrontItem> currentItemList;
     /** A/B from DS */
@@ -416,7 +285,7 @@ public class CIF extends Input<Object> {
     /** current symbol being defined */
     private FrontSymbol currentFrontSymbol;
     /** place to save layer during def */
-    private Layer backupLayer;
+    private String backupLayer;
     /** symbol has been named */
     private boolean symbolNamed;
     /** flag for error encountered */
@@ -442,7 +311,7 @@ public class CIF extends Input<Object> {
     /** end command flag */
     private boolean endCommandFound;
     /** current layer */
-    private Layer currentLayer;
+    private String currentLayer;
     /** symbol table */
     private Map<Integer, FrontSymbol> symbolTable;
     /** the top of stack */
@@ -461,54 +330,13 @@ public class CIF extends Input<Object> {
     private int[] minMaxStackBottom;
     /** min/max stack: top edge */
     private int[] minMaxStackTop;
-    /** map from cell numbers to cells */
-    private Map<Integer, BackCIFCell> cifCellMap;
-    /** the current cell */
-    private BackCIFCell currentBackCell;
-    /** current technology for layers */
-    private Technology curTech;
-    /** map from layer names to layers */
-    private Map<String, Layer> cifLayerNames;
-    /** set of unknown layers */
-    private Set<String> unknownLayerNames;
-    /** address of cell being defined */
-    private Cell cellBeingBuilt;
-    /** name of the current cell */
-    private String currentNodeProtoName;
     /** the line being read */
     private StringBuilder inputBuffer;
-    private CIFPreferences localPrefs;
-
-    public static class CIFPreferences extends InputPreferences {
-
-        public boolean squareWires;
-
-        public CIFPreferences(boolean factory) {
-            super(factory);
-            if (factory) {
-                squareWires = IOTool.isFactoryCIFInSquaresWires();
-            } else {
-                squareWires = IOTool.isCIFInSquaresWires();
-            }
-        }
-
-        @Override
-        public Library doInput(URL fileURL, Library lib, Technology tech, Map<Library, Cell> currentCells, Map<CellId, BitSet> nodesToExpand, Job job) {
-            CIF in = new CIF(this);
-            if (in.openTextInput(fileURL)) {
-                return null;
-            }
-            lib = in.importALibrary(lib, tech, currentCells);
-            in.closeInput();
-            return lib;
-        }
-    }
 
     /**
      * Creates a new instance of CIF.
      */
-    CIF(CIFPreferences ap) {
-        localPrefs = ap;
+    CIF() {
     }
 
     /**
@@ -517,355 +345,22 @@ public class CIF extends Input<Object> {
      * @param currentCells this map will be filled with currentCells in Libraries found in library file
      * @return the created library (null on error).
      */
-    @Override
-    protected Library importALibrary(Library lib, Technology tech, Map<Library, Cell> currentCells) {
+    protected boolean importALibrary() {
         setProgressNote("Reading CIF file");
 
-        // initialize all lists and the searching routines
-        cifCellMap = new HashMap<Integer, BackCIFCell>();
-        curTech = tech;
-
         if (initFind()) {
-            return null;
+            return false;
         }
 
         // parse the CIF and create a listing
         if (interpret()) {
-            return null;
-        }
-
-        // instantiate the CIF as nodes
-        setProgressNote("Storing CIF in database...");
-        if (listToNodes(lib)) {
-            return null;
+            return false;
         }
 
         // clean up
         doneInterpreter();
 
-        return lib;
-    }
-
-    private boolean listToNodes(Library lib) {
-        cellBeingBuilt = null;
-        for (BackCIFList x : currentFrontList) {
-            currentFrontElement = x;
-            if (currentFrontElement.identity == CSTART) {
-                cellBeingBuilt = nodesStart(lib);
-                if (cellBeingBuilt == null) {
-                    return true;
-                }
-                continue;
-            }
-            if (currentFrontElement.identity == CEND) {
-//				lib.setCurCell(cellBeingBuilt);		// THIS TAKES WAY TOO LONG
-                cellBeingBuilt = null;
-                continue;
-            }
-            if (cellBeingBuilt == null) {
-                // circuitry found at the top level: create a fake cell for it
-                cellBeingBuilt = lib.findNodeProto("TOP_LEVEL_UNNAMED{lay}");
-                if (cellBeingBuilt == null) {
-                    cellBeingBuilt = Cell.newInstance(lib, "TOP_LEVEL_UNNAMED{lay}");
-                    if (cellBeingBuilt == null) {
-                        break;
-                    }
-                    currentBackCell = makeBackCIFCell(9999);
-                }
-                currentBackCell.addr = cellBeingBuilt;
-            }
-            if (currentFrontElement.identity == CBOX) {
-                if (nodesBox()) {
-                    return true;
-                }
-            } else if (currentFrontElement.identity == CPOLY) {
-                if (nodesPoly()) {
-                    return true;
-                }
-            } else if (currentFrontElement.identity == CCALL) {
-                if (nodesCall()) {
-                    return true;
-                }
-            } else if (currentFrontElement.identity == CGNAME) {
-                if (MAKE_EXPORTS && nodesGeoName()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private Cell nodesStart(Library lib) {
-        BackCIFStart cs = (BackCIFStart) currentFrontElement.member;
-        BackCIFCell cifCell = makeBackCIFCell(cs.cIndex);
-        cifCell.l = cs.l;
-        cifCell.r = cs.r;
-        cifCell.b = cs.b;
-        cifCell.t = cs.t;
-        currentNodeProtoName = cs.name;
-
-        // remove illegal characters
-        StringBuffer properName = new StringBuffer();
-        for (int i = 0; i < currentNodeProtoName.length(); i++) {
-            char chr = currentNodeProtoName.charAt(i);
-            if (Character.isWhitespace(chr) || chr == ':' || chr == ';') {
-                chr = 'X';
-            }
-            properName.append(chr);
-        }
-        currentNodeProtoName = properName.toString();
-        cifCell.addr = Cell.newInstance(lib, currentNodeProtoName + "{lay}");
-        if (cifCell.addr == null) {
-            System.out.println("Cannot create the cell " + currentNodeProtoName);
-            return null;
-        }
-        return cifCell.addr;
-    }
-
-    private boolean nodesCall() {
-        BackCIFCall cc = (BackCIFCall) currentFrontElement.member;
-        BackCIFCell cell = findBackCIFCell(cc.cIndex);
-        if (cell == null) {
-            System.out.println("Referencing an undefined cell");
-            return true;
-        }
-        int rot = 0;
-        boolean trans = false;
-        int l = cell.l;
-        int r = cell.r;
-        int b = cell.b;
-        int t = cell.t;
-        for (BackCIFTransform ctrans = cc.list; ctrans != null; ctrans = ctrans.next) {
-            switch (ctrans.type) {
-                case MIRX:
-                    int temp = l;
-                    l = -r;
-                    r = -temp;
-                    rot = (trans) ? ((rot + 2700) % 3600) : ((rot + 900) % 3600);
-                    trans = !trans;
-                    break;
-                case MIRY:
-                    temp = t;
-                    t = -b;
-                    b = -temp;
-                    rot = (trans) ? ((rot + 900) % 3600) : ((rot + 2700) % 3600);
-                    trans = !trans;
-                    break;
-                case TRANS:
-                    l += ctrans.x;
-                    r += ctrans.x;
-                    b += ctrans.y;
-                    t += ctrans.y;
-                    break;
-                case ROT:
-                    int deg = GenMath.figureAngle(new Point2D.Double(0, 0), new Point2D.Double(ctrans.x, ctrans.y));
-                    if (deg != 0) {
-                        int hlen = Math.abs(((l - r) / 2));
-                        int hwid = Math.abs(((b - t) / 2));
-                        int cenX = (l + r) / 2;
-                        int cenY = (b + t) / 2;
-                        Point pt = new Point(cenX, cenY);
-                        rotateLayer(pt, deg);
-                        cenX = pt.x;
-                        cenY = pt.y;
-                        l = cenX - hlen;
-                        r = cenX + hlen;
-                        b = cenY - hwid;
-                        t = cenY + hwid;
-                        rot += ((trans) ? -deg : deg);
-                    }
-            }
-        }
-        while (rot >= 3600) {
-            rot -= 3600;
-        }
-        while (rot < 0) {
-            rot += 3600;
-        }
-        double lX = convertFromCentimicrons(l);
-        double hX = convertFromCentimicrons(r);
-        double lY = convertFromCentimicrons(b);
-        double hY = convertFromCentimicrons(t);
-        double x = (lX + hX) / 2;
-        double y = (lY + hY) / 2;
-        double sX = hX - lX;
-        double sY = hY - lY;
-        Rectangle2D bounds = cell.addr.getBounds();
-        sX = bounds.getWidth();
-        sY = bounds.getHeight();
-
-        // transform is rotation and transpose: convert to rotation/MX/MY
-        Orientation or = Orientation.fromC(rot, trans);
-
-        // special code to account for rotation of cell centers
-        AffineTransform ctrTrans = or.rotateAbout(x, y);
-        Point2D spin = new Point2D.Double(x - bounds.getCenterX(), y - bounds.getCenterY());
-        ctrTrans.transform(spin, spin);
-        x = spin.getX();
-        y = spin.getY();
-
-        // create the node
-        NodeInst ni = NodeInst.makeInstance(cell.addr, new Point2D.Double(x, y), sX, sY, currentBackCell.addr, or, null);
-        if (ni == null) {
-            System.out.println("Problems creating an instance of " + cell.addr + " in " + currentBackCell.addr);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean nodesPoly() {
-        BackCIFPoly cp = (BackCIFPoly) currentFrontElement.member;
-        if (cp.lim == 0) {
-            return false;
-        }
-        NodeProto np = findPrototype(cp.lay);
-        int lx = cp.x[0];
-        int hx = cp.x[0];
-        int ly = cp.y[0];
-        int hy = cp.y[0];
-        for (int i = 1; i < cp.lim; i++) {
-            if (cp.x[i] < lx) {
-                lx = cp.x[i];
-            }
-            if (cp.x[i] > hx) {
-                hx = cp.x[i];
-            }
-            if (cp.y[i] < ly) {
-                ly = cp.y[i];
-            }
-            if (cp.y[i] > hy) {
-                hy = cp.y[i];
-            }
-        }
-
-        // convert from centimicrons
-        double lowX = convertFromCentimicrons(lx);
-        double highX = convertFromCentimicrons(hx);
-        double lowY = convertFromCentimicrons(ly);
-        double highY = convertFromCentimicrons(hy);
-        double x = (lowX + highX) / 2;
-        double y = (lowY + highY) / 2;
-        double sX = highX - lowX;
-        double sY = highY - lowY;
-        NodeInst newni = NodeInst.makeInstance(np, new Point2D.Double(x, y), sX, sY, currentBackCell.addr);
-        if (newni == null) {
-            System.out.println("Problems creating a polygon on layer " + cp.lay + " in " + currentBackCell.addr);
-            return true;
-        }
-
-        // store the trace information
-        EPoint[] points = new EPoint[cp.lim];
-        for (int i = 0; i < cp.lim; i++) {
-            points[i] = new EPoint(convertFromCentimicrons(cp.x[i]), convertFromCentimicrons(cp.y[i]));
-        }
-
-        // store the trace information
-        newni.setTrace(points);
-
-        return false;
-    }
-
-    private boolean nodesGeoName() {
-        BackCIFGeomName gn = (BackCIFGeomName) currentFrontElement.member;
-        Layer lay = gn.lay;
-        NodeProto np = findPrototype(lay);
-        String name = gn.name;
-        double x = convertFromCentimicrons(gn.cx);
-        double y = convertFromCentimicrons(gn.cy);
-        NodeInst newni = NodeInst.makeInstance(np, new Point2D.Double(x, y), 0, 0, currentBackCell.addr);
-        Export.newInstance(currentBackCell.addr, newni.getOnlyPortInst(), name);
-        return false;
-    }
-
-    private void rotateLayer(Point pt, int deg) {
-        // trivial test to prevent atan2 domain errors
-        if (pt.x == 0 && pt.y == 0) {
-            return;
-        }
-        switch (deg) // do the Manhattan cases directly
-        {
-            case 0:
-            case 3600:	// just in case
-                break;
-            case 900:
-                int temp = pt.x;
-                pt.x = -pt.y;
-                pt.y = temp;
-                break;
-            case 1800:
-                pt.x = -pt.x;
-                pt.y = -pt.y;
-                break;
-            case 2700:
-                temp = pt.x;
-                pt.x = pt.y;
-                pt.y = -temp;
-                break;
-            default: // this old code only permits rotation by integer angles
-                double factx = 1,
-                 facty = 1;
-                while (Math.abs(pt.x / factx) > 1000) {
-                    factx *= 10.0;
-                }
-                while (Math.abs(pt.y / facty) > 1000) {
-                    facty *= 10.0;
-                }
-                double fact = (factx > facty) ? facty : factx;
-                double fx = pt.x / fact;
-                double fy = pt.y / fact;
-                double vlen = fact * Math.hypot(fx, fy);
-                double vang = (deg + GenMath.figureAngle(new Point2D.Double(0, 0), new Point2D.Double(pt.x, pt.y))) / 10.0 / (45.0 / Math.atan(1.0));
-                pt.x = (int) (vlen * Math.cos(vang));
-                pt.y = (int) (vlen * Math.sin(vang));
-                break;
-        }
-    }
-
-    private void outputPolygon(Layer lay, FrontPath pPath) {
-        int lim = pPath.pLength;
-        if (lim < 3) {
-            return;
-        }
-
-        placeCIFList(CPOLY);
-        BackCIFPoly cp = (BackCIFPoly) currentFrontElement.member;
-        cp.lay = lay;
-        cp.x = new int[lim];
-        cp.y = new int[lim];
-
-        cp.lim = lim;
-        for (int i = 0; i < lim; i++) {
-            Point temp = removePoint(pPath);
-            cp.x[i] = temp.x;
-            cp.y[i] = temp.y;
-        }
-    }
-
-    private double convertFromCentimicrons(double v) {
-        return TextUtils.convertFromDistance(v / 100, curTech, TextUtils.UnitScale.MICRO);
-    }
-
-    private boolean nodesBox() {
-        BackCIFBox cb = (BackCIFBox) currentFrontElement.member;
-        NodeProto node = findPrototype(cb.lay);
-        if (node == null) {
-            String layname = cb.lay.getName();
-            System.out.println("Cannot find primitive to use for layer '" + layname + "' (number " + cb.lay + ")");
-            return true;
-        }
-        int r = GenMath.figureAngle(new Point2D.Double(0, 0), new Point2D.Double(cb.xRot, cb.yRot));
-        double x = convertFromCentimicrons(cb.cenX);
-        double y = convertFromCentimicrons(cb.cenY);
-        double len = convertFromCentimicrons(cb.length);
-        double wid = convertFromCentimicrons(cb.width);
-        Orientation orient = Orientation.fromAngle(r);
-        NodeInst ni = NodeInst.makeInstance(node, new Point2D.Double(x, y), len, wid, currentBackCell.addr, orient, null);
-        if (ni == null) {
-            String layname = cb.lay.getName();
-            System.out.println("Problems creating a box on layer " + layname + " in " + currentBackCell.addr);
-            return true;
-        }
-        return false;
+        return true;
     }
 
     private boolean interpret() {
@@ -878,12 +373,6 @@ public class CIF extends Input<Object> {
         if (numFatalErrors > 0) {
             return true;
         }
-        if (unknownLayerNames.size() > 0) {
-            System.out.println("Error: these layers appear in the CIF file but are not assigned to Electric layers:");
-            for (String str : unknownLayerNames) {
-                System.out.println("    " + str);
-            }
-        }
 
         getInterpreterBounds();
 
@@ -892,41 +381,7 @@ public class CIF extends Input<Object> {
         return false;
     }
 
-    private BackCIFCell findBackCIFCell(int cIndex) {
-        return cifCellMap.get(new Integer(cIndex));
-    }
-
-    private BackCIFCell makeBackCIFCell(int cIndex) {
-        BackCIFCell newCC = new BackCIFCell();
-        newCC.addr = null;
-        cifCellMap.put(new Integer(cIndex), newCC);
-
-        currentBackCell = newCC;
-        return newCC;
-    }
-
-    private NodeProto findPrototype(Layer lay) {
-        return lay.getNonPseudoLayer().getPureLayerNode();
-    }
-
     private boolean initFind() {
-        // get the array of CIF names
-        cifLayerNames = new HashMap<String, Layer>();
-        unknownLayerNames = new HashSet<String>();
-        boolean valid = false;
-        for (Iterator<Layer> it = curTech.getLayers(); it.hasNext();) {
-            Layer layer = it.next();
-            String cifName = layer.getCIFLayer();
-            if (cifName != null && cifName.length() > 0) {
-                cifLayerNames.put(cifName, layer);
-                valid = true;
-            }
-        }
-        if (!valid) {
-            System.out.println("There are no CIF layer names assigned in the " + curTech.getTechName() + " technology");
-            return true;
-        }
-
         return false;
     }
 
@@ -1041,341 +496,6 @@ public class CIF extends Input<Object> {
      * spit out an item
      */
     private void outItem(FrontItem thing) {
-        if (thing.what instanceof FrontPoly) {
-            FrontPoly po = (FrontPoly) thing.what;
-            FrontPath pPath = new FrontPath();
-            for (int i = 0; i < po.points.length; i++) {
-                appendPoint(pPath, po.points[i]);
-            }
-            outputPolygon(po.layer, pPath);
-            return;
-        }
-        if (thing.what instanceof FrontWire) {
-            FrontWire wi = (FrontWire) thing.what;
-            FrontPath pPath = new FrontPath();
-            for (int i = 0; i < wi.points.length; i++) {
-                appendPoint(pPath, wi.points[i]);
-            }
-            outputWire(wi.layer, wi.width, pPath);
-            return;
-        }
-        if (thing.what instanceof FrontFlash) {
-            FrontFlash fl = (FrontFlash) thing.what;
-            outputFlash(fl.layer, fl.diameter, fl.center);
-            return;
-        }
-        if (thing.what instanceof FrontBox) {
-            FrontBox bo = (FrontBox) thing.what;
-            outputBox(bo.layer, bo.length, bo.width, bo.center, bo.xRot, bo.yRot);
-            return;
-        }
-        if (thing.what instanceof FrontManBox) {
-            Point temp = new Point();
-            FrontManBox mb = (FrontManBox) thing.what;
-            temp.x = (mb.bb.r + mb.bb.l) / 2;
-            temp.y = (mb.bb.t + mb.bb.b) / 2;
-            outputBox(mb.layer, mb.bb.r - mb.bb.l, mb.bb.t - mb.bb.b, temp, 1, 0);
-            return;
-        }
-        if (thing.what instanceof FrontCall) {
-            pushTransform();
-            FrontCall sc = (FrontCall) thing.what;
-            applyLocal(sc.matrix);
-            FrontTransformList tList = new FrontTransformList();
-            dupTransformList(sc.transList, tList);
-            dumpDefinition(sc.unID);
-            outputCall(sc.symNumber, sc.unID.name, tList, sc.lineNumber);
-            popTransform();
-            return;
-        }
-        if (thing.what instanceof FrontGeomName) {
-            FrontGeomName gn = (FrontGeomName) thing.what;
-            outputGeomName(gn.layer, gn.name, (gn.bb.l + gn.bb.r) / 2, (gn.bb.b + gn.bb.t) / 2);
-            return;
-        }
-        if (thing.what instanceof FrontLabel) {
-            FrontLabel la = (FrontLabel) thing.what;
-            outputLabel(la.name, la.pos);
-            return;
-        }
-    }
-
-    private void outputLabel(String name, Point pt) {
-        placeCIFList(CLABEL);
-        BackCIFLabel cl = (BackCIFLabel) currentFrontElement.member;
-        cl.label = name;
-        cl.x = pt.x;
-        cl.y = pt.y;
-    }
-
-    private void outputGeomName(Layer lay, String name, int cX, int cY) {
-        placeCIFList(CGNAME);
-        BackCIFGeomName cg = (BackCIFGeomName) currentFrontElement.member;
-        cg.lay = lay;
-        cg.name = name;
-        cg.cx = cX;
-        cg.cy = cY;
-    }
-
-    private void outputCall(int number, String name, FrontTransformList list, int lineNumber) {
-        placeCIFList(CCALL);
-        currentFrontElement.lineNumber = lineNumber;
-        BackCIFCall cc = (BackCIFCall) currentFrontElement.member;
-        cc.cIndex = number;
-        cc.name = name;
-        cc.list = currentCTrans = null;
-        for (int i = getFrontTransformListLength(list); i > 0; i--) {
-            if (newBackCIFTransform() == null) {
-                return;
-            }
-            FrontTransformEntry temp = removeFrontTransformEntry(list);
-            if (temp.kind == MIRROR) {
-                if (temp.xCoord) {
-                    currentCTrans.type = MIRX;
-                } else {
-                    currentCTrans.type = MIRY;
-                }
-            } else if (temp.kind == TRANSLATE) {
-                currentCTrans.type = TRANS;
-                currentCTrans.x = temp.xt;
-                currentCTrans.y = temp.yt;
-            } else if (temp.kind == ROTATE) {
-                currentCTrans.type = ROT;
-                currentCTrans.x = temp.xRot;
-                currentCTrans.y = temp.yRot;
-            }
-        }
-    }
-
-    private BackCIFTransform newBackCIFTransform() {
-        BackCIFTransform newCT = new BackCIFTransform();
-        newCT.next = null;
-        BackCIFCall cc = (BackCIFCall) currentFrontElement.member;
-        if (cc.list == null) {
-            cc.list = newCT;
-        } else {
-            currentCTrans.next = newCT;
-        }
-        currentCTrans = newCT;
-        return newCT;
-    }
-
-    private void dumpDefinition(FrontSymbol sym) {
-        if (sym.dumped) {
-            return;		// already done
-        }
-        if (sym.numCalls > 0) // dump all children
-        {
-            int count = sym.numCalls;
-
-            FrontObjBase ro = sym.guts;
-            while (ro != null && count > 0) {
-                if (ro instanceof FrontCall) {
-                    dumpDefinition(((FrontCall) ro).unID);
-                    count--;
-                }
-                ro = ro.next;
-            }
-        }
-        shipContents(sym);
-        sym.dumped = true;
-    }
-
-    private void shipContents(FrontSymbol sym) {
-        FrontObjBase ro = sym.guts;
-        outputDefinitionStart(sym.symNumber, sym.name, sym.bounds.l, sym.bounds.r, sym.bounds.b, sym.bounds.t);
-        while (ro != null) {
-            if (ro instanceof FrontPoly) {
-                FrontPoly po = (FrontPoly) ro;
-                FrontPath pPath = new FrontPath();
-                for (int i = 0; i < po.points.length; i++) {
-                    appendPoint(pPath, po.points[i]);
-                }
-                outputPolygon(po.layer, pPath);
-            } else if (ro instanceof FrontWire) {
-                FrontWire wi = (FrontWire) ro;
-                FrontPath pPath = new FrontPath();
-                for (int i = 0; i < wi.points.length; i++) {
-                    appendPoint(pPath, wi.points[i]);
-                }
-                outputWire(wi.layer, wi.width, pPath);
-            } else if (ro instanceof FrontFlash) {
-                FrontFlash fl = (FrontFlash) ro;
-                outputFlash(fl.layer, fl.diameter, fl.center);
-            } else if (ro instanceof FrontBox) {
-                FrontBox bo = (FrontBox) ro;
-                outputBox(bo.layer, bo.length, bo.width, bo.center, bo.xRot, bo.yRot);
-            } else if (ro instanceof FrontManBox) {
-                FrontManBox mb = (FrontManBox) ro;
-                Point temp = new Point();
-                temp.x = (((FrontManBox) ro).bb.r + ((FrontManBox) ro).bb.l) / 2;
-                temp.y = (((FrontManBox) ro).bb.t + ((FrontManBox) ro).bb.b) / 2;
-                outputBox(mb.layer, mb.bb.r - mb.bb.l, mb.bb.t - mb.bb.b, temp, 1, 0);
-            } else if (ro instanceof FrontCall) {
-                FrontCall sc = (FrontCall) ro;
-                FrontTransformList tList = new FrontTransformList();
-                dupTransformList(sc.transList, tList);
-                outputCall(sc.symNumber, sc.unID.name, tList, sc.lineNumber);
-            } else if (ro instanceof FrontGeomName) {
-                FrontGeomName gn = (FrontGeomName) ro;
-                outputGeomName(gn.layer, gn.name, (gn.bb.l + gn.bb.r) / 2, (gn.bb.b + gn.bb.t) / 2);
-            } else if (ro instanceof FrontLabel) {
-                FrontLabel la = (FrontLabel) ro;
-                outputLabel(la.name, la.pos);
-            }
-            ro = ro.next;
-        }
-        outputDefinitionEnd();
-    }
-
-    private void outputDefinitionEnd() {
-        placeCIFList(CEND);
-    }
-
-    private void outputDefinitionStart(int number, String name, int l, int r, int b, int t) {
-        placeCIFList(CSTART);
-        BackCIFStart cs = (BackCIFStart) currentFrontElement.member;
-        cs.cIndex = number;
-        cs.name = name;
-        cs.l = l;
-        cs.r = r;
-        cs.b = b;
-        cs.t = t;
-    }
-
-    private void dupTransformList(FrontTransformList src, FrontTransformList dest) {
-        if (src == null || dest == null) {
-            return;
-        }
-        FrontLinkedTransform node = src.tFirst;
-        while (node != null) {
-            appendTransformEntry(dest, node.tValue);
-            node = node.tNext;
-        }
-    }
-
-    private void outputBox(Layer lay, int length, int width, Point center, int xRotation, int yRotation) {
-        if (length == 0 && width == 0) {
-            return;	// ignore null boxes
-        }
-        placeCIFList(CBOX);
-        BackCIFBox cb = (BackCIFBox) currentFrontElement.member;
-        cb.lay = lay;
-        cb.length = length;
-        cb.width = width;
-        cb.cenX = center.x;
-        cb.cenY = center.y;
-        cb.xRot = xRotation;
-        cb.yRot = yRotation;
-    }
-
-    private void placeCIFList(int id) {
-        BackCIFList cl = newBackCIFList(id);
-        if (cl == null) {
-            return;
-        }
-
-        if (currentFrontList == null) {
-            currentFrontList = new ArrayList<BackCIFList>();
-        }
-        currentFrontList.add(cl);
-        currentFrontElement = cl;
-    }
-
-    private BackCIFList newBackCIFList(int id) {
-        BackCIFList newCL = new BackCIFList();
-        newCL.identity = id;
-        switch (id) {
-            case CSTART:
-                BackCIFStart cs = new BackCIFStart();
-                newCL.member = cs;
-                cs.name = null;
-                break;
-            case CBOX:
-                newCL.member = new BackCIFBox();
-                break;
-            case CPOLY:
-                newCL.member = new BackCIFPoly();
-                break;
-            case CGNAME:
-                newCL.member = new BackCIFGeomName();
-                break;
-            case CLABEL:
-                newCL.member = new BackCIFLabel();
-                break;
-            case CCALL:
-                BackCIFCall cc = new BackCIFCall();
-                newCL.member = cc;
-                cc.name = null;
-                break;
-        }
-        return newCL;
-    }
-
-    private void outputFlash(Layer lay, int diameter, Point center) {
-        // flash approximated by an octagon
-        int radius = diameter / 2;
-        double fCX = center.x;
-        double fCY = center.y;
-        double offset = ((diameter) / 2.0f) * 0.414213f;
-        FrontPath fpath = new FrontPath();
-        Point temp = new Point();
-
-        temp.x = center.x - radius;
-        temp.y = (int) (fCY + offset);
-        appendPoint(fpath, temp);
-        temp.y = (int) (fCY - offset);
-        appendPoint(fpath, temp);
-        temp.x = (int) (fCX - offset);
-        temp.y = center.y - radius;
-        appendPoint(fpath, temp);
-        temp.x = (int) (fCX + offset);
-        appendPoint(fpath, temp);
-        temp.x = center.x + radius;
-        temp.y = (int) (fCY - offset);
-        appendPoint(fpath, temp);
-        temp.y = (int) (fCY + offset);
-        appendPoint(fpath, temp);
-        temp.x = (int) (fCX + offset);
-        temp.y = center.y + radius;
-        appendPoint(fpath, temp);
-        temp.x = (int) (fCX - offset);
-        appendPoint(fpath, temp);
-
-        outputPolygon(lay, fpath);
-    }
-
-    /**
-     * convert wires to boxes and flashes
-     */
-    private void outputWire(Layer lay, int width, FrontPath wpath) {
-        int lim = wpath.pLength;
-        Point prev = removePoint(wpath);
-
-        // do not use round-flashes with zero-width wires
-        if (width != 0 && !localPrefs.squareWires) {
-            boundsFlash(width, prev);
-            outputFlash(lay, width, prev);
-        }
-        for (int i = 1; i < lim; i++) {
-            Point curr = removePoint(wpath);
-
-            // do not use round-flashes with zero-width wires
-            if (width != 0 && !localPrefs.squareWires) {
-                boundsFlash(width, curr);
-                outputFlash(lay, width, curr);
-            }
-            int xr = curr.x - prev.x;
-            int yr = curr.y - prev.y;
-            int len = (int) new Point2D.Double(0, 0).distance(new Point2D.Double(xr, yr));
-            if (localPrefs.squareWires) {
-                len += width;
-            }
-            Point center = new Point((curr.x + prev.x) / 2, (curr.y + prev.y) / 2);
-            boundsBox(len, width, center, xr, yr);
-            outputBox(lay, len, width, center, xr, yr);
-            prev = curr;
-        }
     }
 
     private boolean isEndSeen() {
@@ -1476,7 +596,7 @@ public class CIF extends Input<Object> {
                 break;
             }
             int c = peekNextCharacter();
-            if (TextUtils.isDigit((char) c) || Character.isUpperCase((char) c)) {
+            if (isDigit((char) c) || Character.isUpperCase((char) c)) {
                 break;
             }
             if (c == '(' || c == ')' || c == ';' || c == '-') {
@@ -1571,7 +691,7 @@ public class CIF extends Input<Object> {
                 for (;;) //				for (int i = 0; i<4; i++)
                 {
                     int chr = peekNextCharacter();
-                    if (!Character.isUpperCase((char) chr) && !TextUtils.isDigit((char) chr)) {
+                    if (!Character.isUpperCase((char) chr) && !isDigit((char) chr)) {
                         break;
                     }
                     layerName.append(getNextCharacter());
@@ -1595,7 +715,7 @@ public class CIF extends Input<Object> {
                         }
                         skipSeparators();
                         multiplier = divisor = 1;
-                        if (TextUtils.isDigit(peekNextCharacter())) {
+                        if (isDigit(peekNextCharacter())) {
                             multiplier = getNumber();
                             if (errorFound) {
                                 return reportError();
@@ -1757,7 +877,7 @@ public class CIF extends Input<Object> {
                 return NULLCOMMAND;
 
             default:
-                if (TextUtils.isDigit((char) curChar)) {
+                if (isDigit((char) curChar)) {
                     userCommand = curChar - '0';
                     if (userCommand == 9) {
                         curChar = peekNextCharacter();
@@ -1798,7 +918,7 @@ public class CIF extends Input<Object> {
                                             StringBuffer layName = new StringBuffer();
                                             for (int i = 0; i < 4; i++) {
                                                 int chr = peekNextCharacter();
-                                                if (!Character.isUpperCase((char) chr) && !TextUtils.isDigit((char) chr)) {
+                                                if (!Character.isUpperCase((char) chr) && !isDigit((char) chr)) {
                                                     break;
                                                 }
                                                 layName.append(getNextCharacter());
@@ -1854,7 +974,7 @@ public class CIF extends Input<Object> {
                                             }
                                             int w = getSignedInteger();
                                             getUserText();
-                                            lName = currentLayer != null ? currentLayer.getCIFLayer() : null;
+                                            lName = currentLayer;
                                             break;
                                         }
                                         case 'N':
@@ -1933,7 +1053,7 @@ public class CIF extends Input<Object> {
                 makeInstanceName(nameText);
                 break;
             case GEONAME:
-                makeGeomName(nameText, namePoint, cifLayerNames.get(lName));
+                makeGeomName(nameText, namePoint, lName);
                 break;
             case LABELCOM:
                 makeLabel(nameText, namePoint);
@@ -1986,7 +1106,7 @@ public class CIF extends Input<Object> {
         }
     }
 
-    private void makeGeomName(String name, Point pt, Layer lay) {
+    private void makeGeomName(String name, Point pt, String lay) {
         statementsSince91 = true;
         if (ignoreStatements) {
             return;
@@ -2199,10 +1319,7 @@ public class CIF extends Input<Object> {
         if (ignoreStatements) {
             return;
         }
-        currentLayer = cifLayerNames.get(lName);
-        if (currentLayer == null) {
-            unknownLayerNames.add(lName);
-        }
+        currentLayer = lName;
     }
 
     private void makeCall(int symbol, FrontTransformList list) {
@@ -2514,7 +1631,7 @@ public class CIF extends Input<Object> {
         int ans = 0;
         skipSpaces();
 
-        while (ans < BIGSIGNED && TextUtils.isDigit(peekNextCharacter())) {
+        while (ans < BIGSIGNED && isDigit(peekNextCharacter())) {
             ans *= 10;
             ans += getNextCharacter() - '0';
             somedigit = true;
@@ -2524,7 +1641,7 @@ public class CIF extends Input<Object> {
             logIt(NOUNSIGNED);
             return 0;
         }
-        if (TextUtils.isDigit(peekNextCharacter())) {
+        if (isDigit(peekNextCharacter())) {
             logIt(NUMTOOBIG);
             return 0XFFFFFFFF;
         }
@@ -2991,7 +2108,7 @@ public class CIF extends Input<Object> {
         }
 
         boolean someDigit = false;
-        while (ans < BIGSIGNED && TextUtils.isDigit(peekNextCharacter())) {
+        while (ans < BIGSIGNED && isDigit(peekNextCharacter())) {
             ans *= 10;
             ans += getNextCharacter() - '0';
             someDigit = true;
@@ -3001,7 +2118,7 @@ public class CIF extends Input<Object> {
             logIt(NOSIGNED);
             return 0;
         }
-        if (TextUtils.isDigit(peekNextCharacter())) {
+        if (isDigit(peekNextCharacter())) {
             logIt(NUMTOOBIG);
             return sign ? -0X7FFFFFFF : 0X7FFFFFFF;
         }
@@ -3023,7 +2140,7 @@ public class CIF extends Input<Object> {
         skipSeparators();
         for (;;) {
             int c = peekNextCharacter();
-            if (!TextUtils.isDigit((char) c) && c != '-') {
+            if (!isDigit((char) c) && c != '-') {
                 break;
             }
             Point temp = getPoint();
@@ -3065,7 +2182,7 @@ public class CIF extends Input<Object> {
                 case -1:
                     return;
                 default:
-                    if (TextUtils.isDigit((char) c)) {
+                    if (isDigit((char) c)) {
                         return;
                     }
                     getNextCharacter();
@@ -3176,5 +2293,93 @@ public class CIF extends Input<Object> {
                 System.out.println(mess);
                 break;
         }
+    }
+
+    // From class com.sun.electric.tool.io.input.Input
+    protected static final int READ_BUFFER_SIZE = 65536;
+    /** Name of the file being input. */
+    protected String filePath;
+    /** The raw input stream. */
+    protected InputStream inputStream;
+    /** The line number reader (text only). */
+    protected LineNumberReader lineReader;
+    /** The input stream. */
+    protected PushbackInputStream pushbackInputStream;
+    /** The input stream. */
+    protected DataInputStream dataInputStream;
+    /** The length of the file. */
+    protected long fileLength;
+    /** the number of bytes of data read so far */
+    protected long byteCount;
+
+    protected boolean openTextInput(URL fileURL) {
+        if (openBinaryInput(fileURL)) {
+            return true;
+        }
+        InputStreamReader is = new InputStreamReader(inputStream);
+        lineReader = new LineNumberReader(is);
+        return false;
+    }
+
+    protected boolean openBinaryInput(URL fileURL) {
+        filePath = fileURL.getFile();
+
+        try {
+            URLConnection urlCon = fileURL.openConnection();
+            String contentLength = urlCon.getHeaderField("content-length");
+            fileLength = -1;
+            try {
+                fileLength = Long.parseLong(contentLength);
+            } catch (Exception e) {
+            }
+            inputStream = urlCon.getInputStream();
+        } catch (IOException e) {
+            System.out.println("Could not find file: " + filePath);
+            return true;
+        }
+        byteCount = 0;
+
+        BufferedInputStream bufStrm = new BufferedInputStream(inputStream, READ_BUFFER_SIZE);
+        pushbackInputStream = new PushbackInputStream(bufStrm);
+        dataInputStream = new DataInputStream(pushbackInputStream);
+        return false;
+    }
+
+    protected void closeInput() {
+        try {
+            dataInputStream = null;
+            if (lineReader != null) {
+                lineReader.close();
+                lineReader = null;
+            }
+            if (inputStream != null) {
+                inputStream.close();
+                inputStream = null;
+            }
+        } catch (IOException e) {
+        }
+    }
+
+    protected static void setProgressNote(String msg) {
+    }
+
+    protected void updateProgressDialog(int bytesRead) {
+    }
+    
+    // From TextUtils
+    /**
+     * Determines if the specified character is a ISO-LATIN-1 digit
+     * (<code>'0'</code> through <code>'9'</code>).
+     * <p>
+     * This can be method instead of Character, if we are not ready
+     * to handle Arabi-Indic, Devanagaru and other digits.
+     *
+     * @param   ch   the character to be tested.
+     * @return  <code>true</code> if the character is a ISO-LATIN-1 digit;
+     *          <code>false</code> otherwise.
+     * @see     java.lang.Character#isDigit(char)
+     */
+    public static boolean isDigit(char ch) {
+        return '0' <= ch && ch <= '9';
     }
 }
