@@ -23,8 +23,8 @@
  */
 package com.sun.electric.api.minarea;
 
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
+import java.awt.Point;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,22 +35,29 @@ import java.util.List;
 public class DebugLayoutCell {
     
     private final String name;
-    private final List<ERectangle> rects = new ArrayList<ERectangle>(); 
+    private int[] rectCoords = new int[4];
+    private int numRectangles = 0;
     
     private static class CellInst {
         private final LayoutCell subCell;
-        private final EPoint anchor;
+        private final int anchorX;
+        private final int anchorY;
         private final ManhattanOrientation orient;
         
-        private CellInst(LayoutCell subCell, EPoint anchor, ManhattanOrientation orient) {
+        private CellInst(LayoutCell subCell, int anchorX, int anchorY, ManhattanOrientation orient) {
             this.subCell = subCell;
-            this.anchor = anchor;
+            this.anchorX = anchorX;
+            this.anchorY = anchorY;
             this.orient = orient;
         }
     }
     
     private final List<CellInst> subCells = new ArrayList<CellInst>();
-    private ERectangle boundingBox; 
+    private int boundingMinX;
+    private int boundingMinY;
+    private int boundingMaxX;
+    private int boundingMaxY;
+    private boolean finished;
     
     DebugLayoutCell(String name) {
         this.name = name;
@@ -63,28 +70,28 @@ public class DebugLayoutCell {
 
     // rectangles
     public int getNumRectangles() {
-        return rects.size();
+        return numRectangles;
     }
 
-    public long getRectangleMinX(int rectangleIndex) {
-        return rects.get(rectangleIndex).getGridMinX();
+    public int getRectangleMinX(int rectangleIndex) {
+        return rectCoords[rectangleIndex*4 + 0];
     }
 
-    public long getRectangleMinY(int rectangleIndex) {
-        return rects.get(rectangleIndex).getGridMinY();
+    public int getRectangleMinY(int rectangleIndex) {
+        return rectCoords[rectangleIndex*4 + 1];
     }
 
-    public long getRectangleMaxX(int rectangleIndex) {
-        return rects.get(rectangleIndex).getGridMaxX();
+    public int getRectangleMaxX(int rectangleIndex) {
+        return rectCoords[rectangleIndex*4 + 2];
     }
 
-    public long getRectangleMaxY(int rectangleIndex) {
-        return rects.get(rectangleIndex).getGridMaxY();
+    public int getRectangleMaxY(int rectangleIndex) {
+        return rectCoords[rectangleIndex*4 + 3];
     }
 
     public void traverseRectangles(LayoutCell.RectangleHandler h) {
-        for (ERectangle r: rects) {
-            h.apply(r.getGridMinX(), r.getGridMinY(), r.getGridMaxX(), r.getGridMaxY());
+        for (int i = 0; i < numRectangles; i++) {
+            h.apply(getRectangleMinX(i), getRectangleMinY(i), getRectangleMaxX(i), getRectangleMaxY(i));
         }
     }
 
@@ -97,12 +104,12 @@ public class DebugLayoutCell {
         return subCells.get(subCellIndex).subCell;
     }
 
-    public long getSubcellX(int subCellIndex) {
-        return subCells.get(subCellIndex).anchor.getGridX();
+    public int getSubcellAnchorX(int subCellIndex) {
+        return subCells.get(subCellIndex).anchorX;
     }
 
-    public long getSubcellY(int subCellIndex) {
-        return subCells.get(subCellIndex).anchor.getGridY();
+    public int getSubcellAnchorY(int subCellIndex) {
+        return subCells.get(subCellIndex).anchorY;
     }
 
     public ManhattanOrientation getSubcellOrientation(int subCellIndex) {
@@ -111,71 +118,91 @@ public class DebugLayoutCell {
 
     public void traverseSubcellInstances(LayoutCell.SubcellHandler h) {
         for (CellInst ci: subCells) {
-            h.apply(ci.subCell, ci.anchor.getGridX(), ci.anchor.getGridY(), ci.orient);
+            h.apply(ci.subCell, new Point(ci.anchorX, ci.anchorY), ci.orient);
         }
     }
 
     // bounding box
-    public long getBoundingMinX() {
-        return boundingBox().getGridMinX();
+    public int getBoundingMinX() {
+        if (!finished)
+            computeBoundingBox();
+        return boundingMinX;
     }
 
-    public long getBoundingMinY() {
-        return boundingBox().getGridMinY();
+    public int getBoundingMinY() {
+        if (!finished)
+            computeBoundingBox();
+        return boundingMinY;
     }
 
-    public long getBoundingMaxX() {
-        return boundingBox().getGridMaxX();
+    public int getBoundingMaxX() {
+        if (!finished)
+            computeBoundingBox();
+        return boundingMaxX;
     }
 
-    public long getBoundingMaxY() {
-        return boundingBox().getGridMaxY();
+    public int getBoundingMaxY() {
+        if (!finished)
+            computeBoundingBox();
+        return boundingMaxY;
     }
     
-    private ERectangle boundingBox() {
-        if (boundingBox == null) {
-            long lx = Long.MAX_VALUE;
-            long ly = Long.MAX_VALUE;
-            long hx = Long.MIN_VALUE;
-            long hy = Long.MIN_VALUE;
-            for (ERectangle r: rects) {
-                lx = Math.min(lx, r.getGridMinX());
-                ly = Math.min(ly, r.getGridMinY());
-                hx = Math.max(hx, r.getGridMaxX());
-                hy = Math.max(hy, r.getGridMaxY());
-            }
-            long[] bounds = new long[4];
-            for (CellInst ci: subCells) {
-                long x = ci.anchor.getGridX();
-                long y = ci.anchor.getGridY();
-                bounds[0] = ci.subCell.getBoundingMinX();
-                bounds[1] = ci.subCell.getBoundingMinY();
-                bounds[2] = ci.subCell.getBoundingMaxX();
-                bounds[3] = ci.subCell.getBoundingMaxY();
-                ci.orient.transformRects(bounds, 0, 1);
-                lx = Math.min(lx, x + bounds[0]);
-                ly = Math.min(ly, y + bounds[1]);
-                hx = Math.max(hx, x + bounds[2]);
-                hy = Math.max(hy, y + bounds[3]);
-            }
-            if (lx <= hx && ly <= hy) {
-                boundingBox = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
-            } else {
-                boundingBox = ERectangle.ORIGIN;
-            }
+    private void computeBoundingBox() {
+        long lx = Long.MAX_VALUE;
+        long ly = Long.MAX_VALUE;
+        long hx = Long.MIN_VALUE;
+        long hy = Long.MIN_VALUE;
+        for (int i = 0; i < numRectangles; i++) {
+            lx = Math.min(lx, getRectangleMinX(i));
+            ly = Math.min(ly, getRectangleMinY(i));
+            hx = Math.max(hx, getRectangleMaxX(i));
+            hy = Math.max(hy, getRectangleMaxY(i));
         }
-        return boundingBox;
+        long[] bounds = new long[4];
+        for (CellInst ci: subCells) {
+            int x = ci.anchorX;
+            int y = ci.anchorY;
+            bounds[0] = ci.subCell.getBoundingMinX();
+            bounds[1] = ci.subCell.getBoundingMinY();
+            bounds[2] = ci.subCell.getBoundingMaxX();
+            bounds[3] = ci.subCell.getBoundingMaxY();
+            ci.orient.transformRects(bounds, 0, 1);
+            lx = Math.min(lx, x + bounds[0]);
+            ly = Math.min(ly, y + bounds[1]);
+            hx = Math.max(hx, x + bounds[2]);
+            hy = Math.max(hy, y + bounds[3]);
+        }
+        if (lx <= hx && ly <= hy) {
+            if (lx < Integer.MIN_VALUE || hx > Integer.MAX_VALUE || ly < Integer.MIN_VALUE || hy > Integer.MAX_VALUE)
+                throw new IllegalArgumentException("Too large bounding box");
+            boundingMinX = (int)lx;
+            boundingMinY = (int)ly;
+            boundingMaxX = (int)hx;
+            boundingMaxY = (int)hy;
+        }
+        finished = true;
     }
     
-    public void addRectangle(ERectangle r) {
-        if (boundingBox != null)
+    public void addRectangle(int minX, int minY, int maxX, int maxY) {
+        if (finished)
             throw new IllegalStateException();
-        rects.add(r);
+        if (minX >= maxX || minY >= maxY)
+            throw new IllegalArgumentException();
+        if (numRectangles*4 >= rectCoords.length) {
+            int[] newRectCoords = new int[rectCoords.length*2];
+            System.arraycopy(rectCoords, 0, newRectCoords, 0, rectCoords.length);
+            rectCoords = newRectCoords;
+        }
+        rectCoords[numRectangles*4 + 0] = minX;
+        rectCoords[numRectangles*4 + 1] = minY;
+        rectCoords[numRectangles*4 + 2] = maxX;
+        rectCoords[numRectangles*4 + 3] = maxY;
+        numRectangles++;
     }
     
-    public void addSubCell(LayoutCell subCell, EPoint anchor, ManhattanOrientation orient) {
-        if (boundingBox != null)
+    public void addSubCell(LayoutCell subCell, int anchorX, int anchorY, ManhattanOrientation orient) {
+        if (finished)
             throw new IllegalStateException();
-        subCells.add(new CellInst(subCell, anchor, orient));
+        subCells.add(new CellInst(subCell, anchorX, anchorY, orient));
     }
 }

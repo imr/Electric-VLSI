@@ -23,6 +23,8 @@
  */
 package com.sun.electric.api.minarea;
 
+import java.awt.Point;
+
 /**
  * Data source for main area DRC
  */
@@ -34,13 +36,13 @@ public interface LayoutCell {
     // rectangles
     public int getNumRectangles();
 
-    public long getRectangleMinX(int rectangleIndex);
+    public int getRectangleMinX(int rectangleIndex);
 
-    public long getRectangleMinY(int rectangleIndex);
+    public int getRectangleMinY(int rectangleIndex);
 
-    public long getRectangleMaxX(int rectangleIndex);
+    public int getRectangleMaxX(int rectangleIndex);
 
-    public long getRectangleMaxY(int rectangleIndex);
+    public int getRectangleMaxY(int rectangleIndex);
 
     // traversal of rectangles
     public interface RectangleHandler {
@@ -51,7 +53,7 @@ public interface LayoutCell {
          * @param maxX
          * @param maxY
          */
-        public void apply(long minX, long minY, long maxX, long maxY);
+        public void apply(int minX, int minY, int maxX, int maxY);
     }
 
     public void traverseRectangles(RectangleHandler h);
@@ -61,9 +63,9 @@ public interface LayoutCell {
 
     public LayoutCell getSubcellCell(int subCellIndex);
 
-    public long getSubcellX(int subCellIndex);
+    public int getSubcellAnchorX(int subCellIndex);
 
-    public long getSubcellY(int subCellIndex);
+    public int getSubcellAnchorY(int subCellIndex);
 
     public ManhattanOrientation getSubcellOrientation(int subCellIndex);
 
@@ -76,17 +78,17 @@ public interface LayoutCell {
          * @param y
          * @param orient
          */
-        public void apply(LayoutCell cell, long x, long y, ManhattanOrientation orient);
+        public void apply(LayoutCell cell, Point anchor, ManhattanOrientation orient);
     }
 
     public void traverseSubcellInstances(SubcellHandler h);
 
     // bounding box
-    public long getBoundingMinX();
+    public int getBoundingMinX();
 
-    public long getBoundingMinY();
+    public int getBoundingMinY();
 
-    public long getBoundingMaxX();
+    public int getBoundingMaxX();
 
-    public long getBoundingMaxY();
+    public int getBoundingMaxY();
 }
