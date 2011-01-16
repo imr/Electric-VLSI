@@ -74,8 +74,7 @@ public interface LayoutCell {
 
         /**
          * @param cell
-         * @param x
-         * @param y
+         * @param anchor
          * @param orient
          */
         public void apply(LayoutCell cell, Point anchor, ManhattanOrientation orient);
