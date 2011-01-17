@@ -33,7 +33,6 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author dn146861
  */
 public class ManhattanOrientationTest {
 

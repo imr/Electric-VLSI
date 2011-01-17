@@ -43,8 +43,6 @@ import java.net.URLConnection;
  */
 public class CIF {
 
-    /** max depth of min/max stack */
-    private static final int MAXMMSTACK = 50;
     /** max value that can add extra digit */
     private static final int BIGSIGNED = ((0X7FFFFFFF - 9) / 10);
     //	specific syntax errors
@@ -68,27 +66,6 @@ public class CIF {
     private static final int NESTEND = 117;
     private static final int NOSPACE = 118;
     private static final int NONAME = 119;
-    // enumerated types for CIF 2.0 parser
-//	private static final int SEMANTICERROR = 0;
-    private static final int SYNTAXERROR = 1;
-    private static final int WIRECOM = 2;
-    private static final int BOXCOM = 3;
-    private static final int POLYCOM = 4;
-    private static final int FLASHCOM = 5;
-    private static final int DEFSTART = 6;
-    private static final int DEFEND = 7;
-    private static final int DELETEDEF = 8;
-    private static final int LAYER = 9;
-    private static final int CALLCOM = 10;
-    private static final int COMMENT = 11;
-    private static final int NULLCOMMAND = 12;
-    private static final int USERS = 13;
-    private static final int END = 14;
-    private static final int ENDFILE = 15;
-    private static final int SYMNAME = 16;
-    private static final int INSTNAME = 17;
-    private static final int GEONAME = 18;
-    private static final int LABELCOM = 19;
 
     // error codes for reporting errors
     private static final int FATALINTERNAL = 0;
@@ -112,10 +89,6 @@ public class CIF {
     private boolean resetInputBuffer;
     /** number of "fatal" errors */
     private int numFatalErrors;
-    /** null layer errors encountered */
-    private boolean numNullLayerErrors;
-    /** current layer */
-    private String currentLayer;
     /** lookahead character */
     private int nextInputCharacter;
     /** the line being read */
@@ -126,7 +99,8 @@ public class CIF {
     /**
      * Creates a new instance of CIF.
      */
-    CIF() {
+    CIF(CIFActions c1) {
+        this.c1 = c1;
     }
 
     /**
@@ -148,7 +122,7 @@ public class CIF {
         }
 
         // clean up
-        doneInterpreter();
+        c1.doneInterpreter();
 
         return true;
     }
@@ -189,19 +163,13 @@ public class CIF {
     private int parseFile() {
         int comCount = 1;
         for (;;) {
-            int com = parseStatement();
-            if (com == END || com == ENDFILE) {
+            boolean end = parseStatement();
+            if (end) {
                 break;
             }
             comCount++;
         }
         return comCount;
-    }
-
-    private void doneInterpreter() {
-        if (numNullLayerErrors) {
-            System.out.println("Warning: some CIF objects were not read");
-        }
     }
 
     private void initInput() {
@@ -269,7 +237,7 @@ public class CIF {
                 break;
             }
             int c = peekNextCharacter();
-            if (isDigit((char) c) || Character.isUpperCase((char) c)) {
+            if (isAsciiDigit((char) c) || Character.isUpperCase((char) c)) {
                 break;
             }
             if (c == '(' || c == ')' || c == ';' || c == '-') {
@@ -279,9 +247,9 @@ public class CIF {
         }
     }
 
-    private int parseStatement() {
+    private boolean parseStatement() {
         if (atEndOfFile()) {
-            return ENDFILE;
+            return true;
         }
 
         skipBlanks();		// flush initial junk
@@ -293,15 +261,14 @@ public class CIF {
         String lName = null, nameText = null, userText = null;
         switch (curChar) {
             case 'P':
-                command = POLYCOM;
                 getPath();
                 if (errorFound) {
                     return reportError();
                 }
+                c1.makePolygon();
                 break;
 
             case 'B':
-                command = BOXCOM;
                 xRotate = 1;
                 yRotate = 0;
                 length = getNumber();
@@ -327,10 +294,10 @@ public class CIF {
                         return reportError();
                     }
                 }
+                c1.makeBox(length, width, center, xRotate, yRotate);
                 break;
 
             case 'R':
-                command = FLASHCOM;
                 diameter = getNumber();
                 if (errorFound) {
                     return reportError();
@@ -339,10 +306,10 @@ public class CIF {
                 if (errorFound) {
                     return reportError();
                 }
+                c1.makeFlash(diameter, center);
                 break;
 
             case 'W':
-                command = WIRECOM;
                 width = getNumber();
                 if (errorFound) {
                     return reportError();
@@ -351,16 +318,16 @@ public class CIF {
                 if (errorFound) {
                     return reportError();
                 }
+                c1.makeWire(width);
                 break;
 
             case 'L':
-                command = LAYER;
                 skipBlanks();
                 StringBuilder layerName = new StringBuilder();
                 for (;;) //				for (int i = 0; i<4; i++)
                 {
                     int chr = peekNextCharacter();
-                    if (!Character.isUpperCase((char) chr) && !isDigit((char) chr)) {
+                    if (!Character.isUpperCase((char) chr) && !isAsciiDigit((char) chr)) {
                         break;
                     }
                     layerName.append(getNextCharacter());
@@ -371,20 +338,20 @@ public class CIF {
                     return reportError();
                 }
                 lName = layerName.toString();
+                c1.makeLayer(lName);
                 break;
 
             case 'D':
                 skipBlanks();
                 switch (getNextCharacter()) {
                     case 'S':
-                        command = DEFSTART;
                         symbolNumber = getNumber();
                         if (errorFound) {
                             return reportError();
                         }
                         skipSeparators();
                         multiplier = divisor = 1;
-                        if (isDigit(peekNextCharacter())) {
+                        if (isAsciiDigit(peekNextCharacter())) {
                             multiplier = getNumber();
                             if (errorFound) {
                                 return reportError();
@@ -400,18 +367,18 @@ public class CIF {
                             return reportError();
                         }
                         isInCellDefinition = true;
+                        c1.makeStartDefinition(symbolNumber, multiplier, divisor);
                         break;
                     case 'F':
-                        command = DEFEND;
                         if (!isInCellDefinition) {
                             errorFound = true;
                             errorType = NODEFSTART;
                             return reportError();
                         }
                         isInCellDefinition = false;
+                        c1.makeEndDefinition();
                         break;
                     case 'D':
-                        command = DELETEDEF;
                         symbolNumber = getNumber();
                         if (errorFound) {
                             return reportError();
@@ -421,6 +388,7 @@ public class CIF {
                             errorType = NESTDD;
                             return reportError();
                         }
+                        c1.makeDeleteDefinition(symbolNumber);
                         break;
                     default:
                         errorFound = true;
@@ -430,7 +398,6 @@ public class CIF {
                 break;
 
             case 'C':
-                command = CALLCOM;
                 symbolNumber = getNumber();
                 if (errorFound) {
                     return reportError();
@@ -493,11 +460,11 @@ public class CIF {
                     }
                     skipBlanks();		// between transformation commands
                 }	// end of while (1) loop
+                c1.makeCall(symbolNumber, lineReader.getLineNumber());
                 break;
 
             case '(': {
                 int level = 1;
-                command = COMMENT;
                 StringBuffer comment = new StringBuffer();
                 while (level != 0) {
                     curChar = getNextCharacter();
@@ -521,6 +488,7 @@ public class CIF {
                     }
                 }
             }
+            // comment
             break;
 
             case 'E':
@@ -535,13 +503,13 @@ public class CIF {
                 }
                 endIsSeen = true;
                 c1.processEnd();
-                return END;
+                return true;
 
             case ';':
-                return NULLCOMMAND;
+                return false;
 
             default:
-                if (isDigit((char) curChar)) {
+                if (isAsciiDigit((char) curChar)) {
                     userCommand = curChar - '0';
                     if (userCommand == 9) {
                         curChar = peekNextCharacter();
@@ -554,7 +522,7 @@ public class CIF {
                                     if (errorFound) {
                                         return reportError();
                                     }
-                                    command = SYMNAME;
+                                    c1.makeSymbolName(nameText);
                                     break;
                                 case '1':
                                 case '2':
@@ -570,10 +538,9 @@ public class CIF {
                                     }
                                     switch (curChar) {
                                         case '1':
-                                            command = INSTNAME;
+                                            c1.makeInstanceName(nameText);
                                             break;
                                         case '2': {
-                                            command = GEONAME;
                                             namePoint = getPoint();
                                             if (errorFound) {
                                                 return reportError();
@@ -582,32 +549,33 @@ public class CIF {
                                             StringBuffer layName = new StringBuffer();
                                             for (int i = 0; i < 4; i++) {
                                                 int chr = peekNextCharacter();
-                                                if (!Character.isUpperCase((char) chr) && !isDigit((char) chr)) {
+                                                if (!Character.isUpperCase((char) chr) && !isAsciiDigit((char) chr)) {
                                                     break;
                                                 }
                                                 layName.append(getNextCharacter());
                                             }
                                             lName = layName.toString();
+                                            c1.makeGeomName(nameText, namePoint, lName);
                                             break;
                                         }
                                         case '3':
-                                            command = LABELCOM;
                                             namePoint = getPoint();
                                             if (errorFound) {
                                                 return reportError();
                                             }
+                                            c1.makeLabel(nameText, namePoint);
                                             break;
                                     }
                                     break;
                             }
                         } else {
-                            command = USERS;
                             userText = getUserText();
                             if (atEndOfFile()) {
                                 errorFound = true;
                                 errorType = BADUSER;
                                 return reportError();
                             }
+                            c1.makeUserComment(userCommand, userText);
                         }
                     } else if (userCommand == 4) {
                         curChar = peekNextCharacter();
@@ -627,10 +595,9 @@ public class CIF {
                                     }
                                     switch (curChar) {
                                         case 'I':
-                                            command = INSTNAME;
+                                            c1.makeInstanceName(nameText);
                                             break;
                                         case 'X': {
-                                            command = GEONAME;
                                             getSignedInteger(); // skip Index
                                             namePoint = getPoint();
                                             if (errorFound) {
@@ -638,36 +605,36 @@ public class CIF {
                                             }
                                             int w = getSignedInteger();
                                             getUserText();
-                                            lName = currentLayer;
+                                            c1.makeGeomName(nameText, namePoint, null);
                                             break;
                                         }
                                         case 'N':
-                                            command = LABELCOM;
                                             namePoint = getPoint();
                                             if (errorFound) {
                                                 return reportError();
                                             }
+                                            c1.makeLabel(nameText, namePoint);
                                             break;
                                     }
                                     break;
                             }
                         } else {
-                            command = USERS;
                             userText = getUserText();
                             if (atEndOfFile()) {
                                 errorFound = true;
                                 errorType = BADUSER;
                                 return reportError();
                             }
+                            c1.makeUserComment(userCommand, userText);
                         }
                     } else {
-                        command = USERS;
                         userText = getUserText();
                         if (atEndOfFile()) {
                             errorFound = true;
                             errorType = BADUSER;
                             return reportError();
                         }
+                        c1.makeUserComment(userCommand, userText);
                     }
                 } else {
                     errorFound = true;
@@ -677,67 +644,17 @@ public class CIF {
         }
 
         // by now we have a syntactically valid command although it might be missing a semicolon
-        switch (command) {
-            case WIRECOM:
-                c1.makeWire(width);
-                break;
-            case DEFSTART:
-                c1.makeStartDefinition(symbolNumber, multiplier, divisor);
-                break;
-            case DEFEND:
-                c1.makeEndDefinition();
-                break;
-            case DELETEDEF:
-                c1.makeDeleteDefinition(symbolNumber);
-                break;
-            case CALLCOM:
-                c1.makeCall(symbolNumber, lineReader.getLineNumber());
-                break;
-            case LAYER:
-                c1.makeLayer(lName);
-                break;
-            case FLASHCOM:
-                c1.makeFlash(diameter, center);
-                break;
-            case POLYCOM:
-                c1.makePolygon();
-                break;
-            case BOXCOM:
-                c1.makeBox(length, width, center, xRotate, yRotate);
-                break;
-            case COMMENT:
-                break;
-            case USERS:
-                c1.makeUserComment(userCommand, userText);
-                break;
-            case SYMNAME:
-                c1.makeSymbolName(nameText);
-                break;
-            case INSTNAME:
-                c1.makeInstanceName(nameText);
-                break;
-            case GEONAME:
-                c1.makeGeomName(nameText, namePoint, lName);
-                break;
-            case LABELCOM:
-                c1.makeLabel(nameText, namePoint);
-                break;
-            default:
-                errorFound = true;
-                errorType = INTERNAL;
-                return reportError();
-        }
         if (!skipSemicolon()) {
             errorFound = true;
             errorType = NOSEMI;
             return reportError();
         }
 
-        return command;
+        return false;
     }
 
     private String getUserText() {
-        StringBuffer user = new StringBuffer();
+        StringBuilder user = new StringBuilder();
         for (;;) {
             if (atEndOfFile()) {
                 break;
@@ -751,7 +668,7 @@ public class CIF {
     }
 
     private String parseName() {
-        StringBuffer nText = new StringBuffer();
+        StringBuilder nText = new StringBuilder();
         boolean noChar = true;
         for (;;) {
             if (atEndOfFile()) {
@@ -776,7 +693,7 @@ public class CIF {
         int ans = 0;
         skipSpaces();
 
-        while (ans < BIGSIGNED && isDigit(peekNextCharacter())) {
+        while (ans < BIGSIGNED && isAsciiDigit(peekNextCharacter())) {
             ans *= 10;
             ans += getNextCharacter() - '0';
             somedigit = true;
@@ -786,7 +703,7 @@ public class CIF {
             logIt(NOUNSIGNED);
             return 0;
         }
-        if (isDigit(peekNextCharacter())) {
+        if (isAsciiDigit(peekNextCharacter())) {
             logIt(NUMTOOBIG);
             return 0XFFFFFFFF;
         }
@@ -828,7 +745,7 @@ public class CIF {
         }
 
         boolean someDigit = false;
-        while (ans < BIGSIGNED && isDigit(peekNextCharacter())) {
+        while (ans < BIGSIGNED && isAsciiDigit(peekNextCharacter())) {
             ans *= 10;
             ans += getNextCharacter() - '0';
             someDigit = true;
@@ -838,7 +755,7 @@ public class CIF {
             logIt(NOSIGNED);
             return 0;
         }
-        if (isDigit(peekNextCharacter())) {
+        if (isAsciiDigit(peekNextCharacter())) {
             logIt(NUMTOOBIG);
             return sign ? -0X7FFFFFFF : 0X7FFFFFFF;
         }
@@ -862,7 +779,7 @@ public class CIF {
         boolean hasPoints = false;
         for (;;) {
             int c = peekNextCharacter();
-            if (!isDigit((char) c) && c != '-') {
+            if (!isAsciiDigit((char) c) && c != '-') {
                 break;
             }
             Point temp = getPoint();
@@ -889,7 +806,7 @@ public class CIF {
                 case -1:
                     return;
                 default:
-                    if (isDigit((char) c)) {
+                    if (isAsciiDigit((char) c)) {
                         return;
                     }
                     getNextCharacter();
@@ -897,7 +814,7 @@ public class CIF {
         }
     }
 
-    private int reportError() {
+    private boolean reportError() {
         switch (errorType) {
             case NUMTOOBIG:
                 errorReport("number too large", FATALSYNTAX);
@@ -969,7 +886,7 @@ public class CIF {
         }
         errorFound = false;
         errorType = NOERROR;
-        return SYNTAXERROR;
+        return false/*SYNTAXERROR*/;
     }
 
     private void errorReport(String mess, int kind) {
@@ -1073,25 +990,13 @@ public class CIF {
     protected void updateProgressDialog(int bytesRead) {
     }
     
-    // From TextUtils
-    /**
-     * Determines if the specified character is a ISO-LATIN-1 digit
-     * (<code>'0'</code> through <code>'9'</code>).
-     * <p>
-     * This can be method instead of Character, if we are not ready
-     * to handle Arabi-Indic, Devanagaru and other digits.
-     *
-     * @param   ch   the character to be tested.
-     * @return  <code>true</code> if the character is a ISO-LATIN-1 digit;
-     *          <code>false</code> otherwise.
-     * @see     java.lang.Character#isDigit(char)
-     */
-    public static boolean isDigit(char ch) {
+    private static boolean isAsciiDigit(char ch) {
         return '0' <= ch && ch <= '9';
     }
     
     static interface CIFActions {
         void initInterpreter();
+        
         void makeWire(int width/*, path*/);
         void makeStartDefinition(int symbol, int mtl, int div);
         void makeEndDefinition();
@@ -1117,5 +1022,7 @@ public class CIF {
         void makeGeomName(String name, Point pt, String lay);
         void makeLabel(String name, Point pt);
         void processEnd();
+        
+        void doneInterpreter();
     }
 }

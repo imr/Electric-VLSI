@@ -333,7 +333,7 @@ public class CIF1 implements CIF.CIFActions {
         isInCellDefinition = false;
     }
 
-    private void doneInterpreter() {
+    public void doneInterpreter() {
         if (numNullLayerErrors) {
             System.out.println("Warning: some CIF objects were not read");
         }
@@ -482,6 +482,9 @@ public class CIF1 implements CIF.CIFActions {
         if (name.length() == 0) {
             errorReport("null geometry name ignored", ADVISORY);
             return;
+        }
+        if (lay == null) {
+            lay = currentLayer;
         }
         FrontGeomName obj = new FrontGeomName();
         obj.layer = lay;
