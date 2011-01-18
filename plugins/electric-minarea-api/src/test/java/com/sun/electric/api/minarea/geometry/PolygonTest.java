@@ -70,7 +70,7 @@ public class PolygonTest {
 	@Test
 	public void testVertexExtraction() {		
 		Rectangle rect = new Rectangle(new Point(1,1), new Point(6, 3));
-		List<Edge> vertices = rect.extractVertices();
+		List<Edge> vertices = rect.extractEdges();
 		
 		Edge vert = new Edge(new Point(1,1), new Point(6,1));
 		Assert.assertTrue(vertices.contains(vert));

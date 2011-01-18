@@ -71,7 +71,7 @@ public class Polygon {
 		return new Rectangle(new Point(lx, ly), new Point(hx, hy));
 	}
 	
-	public List<Edge> extractVertices() {
+	public List<Edge> extractEdges() {
 		List<Edge> result = new ArrayList<Edge>();
 		
 		for(int i = 0; i < points.size(); i++) {
@@ -188,8 +188,9 @@ public class Polygon {
 			return Math.abs(points.get(1).getY() - points.get(0).getY());
 		}
 		
-		public List<Edge> extractVertices() {
-			return this.transformToPolygon().extractVertices();
+		@Override
+		public List<Edge> extractEdges() {
+			return this.transformToPolygon().extractEdges();
 		}
 
 		public Polygon transformToPolygon() {
