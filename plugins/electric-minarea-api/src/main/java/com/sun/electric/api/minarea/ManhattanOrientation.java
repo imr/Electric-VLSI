@@ -252,6 +252,7 @@ public enum ManhattanOrientation {
         }
     };
 
+    @Deprecated
     public abstract void transformPoints(long[] coords, int offset, int count);
 
     public abstract Point transformPoint(Point p);
