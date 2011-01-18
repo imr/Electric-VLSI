@@ -32,9 +32,15 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 import com.sun.electric.api.minarea.geometry.Point;
 import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  *
@@ -76,7 +82,20 @@ public class CIFParserTest {
         cif.importALibrary();
         cif.closeInput();
         
-        LayoutCell topCell = gcif.cells.get(Integer.valueOf(101));
+        LayoutCell topCell = gcif.cells.get(Integer.valueOf(102));
+        ByteArrayOutputStream ba = new ByteArrayOutputStream();
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(ba);
+            out.writeObject(topCell);
+            out.close();
+            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(ba.toByteArray()));
+            topCell = (LayoutCell)in.readObject();
+            in.close();
+        } catch (IOException e) {
+            assertTrue(false);
+        } catch (ClassNotFoundException e) {
+            assertTrue(false);
+        }
         long minArea = Long.MAX_VALUE;
         new SimpleChecker().check(topCell, minArea, null, new MyErrorLogger());
     }

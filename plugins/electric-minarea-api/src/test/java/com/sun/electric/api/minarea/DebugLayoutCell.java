@@ -28,17 +28,19 @@ import java.util.List;
 
 import com.sun.electric.api.minarea.geometry.Point;
 import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
+import java.io.IOException;
+import java.io.Serializable;
 
 /**
  *
  */
-public class DebugLayoutCell implements LayoutCell {
+public class DebugLayoutCell implements LayoutCell, Serializable {
 
     private String name;
-    private int[] rectCoords = new int[4];
+    private transient int[] rectCoords = new int[4];
     private int numRectangles = 0;
 
-    private static class CellInst {
+    private static class CellInst implements Serializable {
 
         private final LayoutCell subCell;
         private final Point anchor;
@@ -51,8 +53,8 @@ public class DebugLayoutCell implements LayoutCell {
         }
     }
     private final List<CellInst> subCells = new ArrayList<CellInst>();
-    private Rectangle boundingBox;
-    private boolean finished;
+    private transient Rectangle boundingBox;
+    private transient boolean finished;
 
     DebugLayoutCell(String name) {
         this.name = name;
@@ -259,5 +261,20 @@ public class DebugLayoutCell implements LayoutCell {
         }
 
         return this.boundingBox;
+    }
+    
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        rectCoords = new int[numRectangles*4];
+        for (int i = 0; i < rectCoords.length; i++) {
+            rectCoords[i] = in.readInt();
+        }
+        computeBoundingBox();
+    }
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        for (int i = 0; i < numRectangles*4; i++) {
+            out.writeInt(rectCoords[i]);
+        }
     }
 }

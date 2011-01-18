@@ -23,9 +23,7 @@
  */
 package com.sun.electric.api.minarea;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.AfterClass;

@@ -24,6 +24,7 @@
 package com.sun.electric.api.minarea.geometry;
 
 import com.sun.electric.api.minarea.LayoutCell;
+import java.io.Serializable;
 
 /**
  * Immutable point implementation
@@ -31,7 +32,7 @@ import com.sun.electric.api.minarea.LayoutCell;
  * @author Felix Schmidt
  * 
  */
-public class Point {
+public class Point implements Serializable {
 
 	protected final int xCoord;
 	protected final int yCoord;
