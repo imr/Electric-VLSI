@@ -33,18 +33,20 @@ import com.sun.electric.api.minarea.LayoutCell;
  */
 public class Point {
 
-	private final int xCoord;
-	private final int yCoord;
+	protected final int xCoord;
+	protected final int yCoord;
 
 	public Point(int x, int y) {
-		if(x < -LayoutCell.MAX_COORD || x > LayoutCell.MAX_COORD) {
-			throw new IllegalArgumentException("x has to be in range [-LayoutCell.MAX_COORD, LayoutCell.MAX_COORD]");
+		if (x < -LayoutCell.MAX_COORD || x > LayoutCell.MAX_COORD) {
+			throw new IllegalArgumentException(
+					"x has to be in range [-LayoutCell.MAX_COORD, LayoutCell.MAX_COORD]");
 		}
-		
-		if(y < -LayoutCell.MAX_COORD || y > LayoutCell.MAX_COORD) {
-			throw new IllegalArgumentException("y has to be in range [-LayoutCell.MAX_COORD, LayoutCell.MAX_COORD]");
+
+		if (y < -LayoutCell.MAX_COORD || y > LayoutCell.MAX_COORD) {
+			throw new IllegalArgumentException(
+					"y has to be in range [-LayoutCell.MAX_COORD, LayoutCell.MAX_COORD]");
 		}
-		
+
 		this.xCoord = x;
 		this.yCoord = y;
 	}
@@ -77,7 +79,7 @@ public class Point {
 	 * @param xCoord
 	 * @return
 	 */
-	public Point withY(int yCoord) {		
+	public Point withY(int yCoord) {
 		return new Point(xCoord, yCoord);
 	}
 
@@ -167,15 +169,6 @@ public class Point {
 		return new Point(this.xCoord * scaleFactorX, this.yCoord * scaleFactorY);
 	}
 
-	/**
-	 * 
-	 * @param other
-	 * @return
-	 */
-	public int determinant(Point other) {
-		return this.xCoord * other.yCoord - this.yCoord * other.yCoord;
-	}
-
 	public Point mirror() {
 		return new Point(this.yCoord, this.xCoord);
 	}
@@ -196,7 +189,7 @@ public class Point {
 		}
 
 	}
-	
+
 	public static final class Vector extends Point {
 
 		/**
@@ -207,6 +200,19 @@ public class Point {
 			super(x, y);
 			// TODO Auto-generated constructor stub
 		}
+
+		public Vector(Point head, Point tail) {
+			super(head.xCoord - tail.xCoord, head.yCoord - tail.yCoord);
+		}
 		
+		/**
+		 * 
+		 * @param other
+		 * @return
+		 */
+		public long determinant(Vector other) {
+			return (long)this.xCoord * (long)other.yCoord - (long)this.yCoord * (long)other.xCoord;
+		}
+
 	}
 }

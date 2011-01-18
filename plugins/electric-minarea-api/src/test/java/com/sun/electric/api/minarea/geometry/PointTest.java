@@ -27,6 +27,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.sun.electric.api.minarea.geometry.Point.Vector;
+
 /**
  * @author Felix Schmidt
  * 
@@ -68,9 +70,9 @@ public class PointTest {
 	
 	@Test
 	public void testDeterminant() {
-		int x1 = 2, y1 = 3, x2 = 4, y2 = 4;
-		int expected = x1 * y2 - x2 * y1;
-		int det = new Point(x1, y1).determinant(new Point(x2, y2));
+		int x1 = 2, y1 = 3, x2 = 4, y2 = 5;
+		long expected = x1 * y2 - x2 * y1;
+		long det = new Vector(x1, y1).determinant(new Vector(x2, y2));
 		Assert.assertEquals(expected, det);
 	}
 	
