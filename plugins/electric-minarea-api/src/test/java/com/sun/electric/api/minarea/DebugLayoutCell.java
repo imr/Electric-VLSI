@@ -23,7 +23,6 @@
  */
 package com.sun.electric.api.minarea;
 
-import com.sun.electric.database.geometry.ERectangle;
 import java.awt.Point;
 
 import java.util.ArrayList;
@@ -32,9 +31,9 @@ import java.util.List;
 /**
  *
  */
-public class DebugLayoutCell {
+public class DebugLayoutCell implements LayoutCell {
     
-    private final String name;
+    private String name;
     private int[] rectCoords = new int[4];
     private int numRectangles = 0;
     
@@ -66,6 +65,10 @@ public class DebugLayoutCell {
     // cell name
     public String getName() {
         return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
     }
 
     // rectangles
@@ -198,11 +201,13 @@ public class DebugLayoutCell {
         rectCoords[numRectangles*4 + 2] = maxX;
         rectCoords[numRectangles*4 + 3] = maxY;
         numRectangles++;
+        System.out.println("\""+name+"\".addRectangle("+minX+","+minY+","+maxX+","+maxY+")");
     }
     
     public void addSubCell(LayoutCell subCell, int anchorX, int anchorY, ManhattanOrientation orient) {
         if (finished)
             throw new IllegalStateException();
         subCells.add(new CellInst(subCell, anchorX, anchorY, orient));
+        System.out.println("\""+name+"\".addSubCell(\""+subCell.getName()+"\","+anchorY+","+anchorY+","+orient+");");
     }
 }

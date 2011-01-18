@@ -147,7 +147,6 @@ public class ManhattanOrientationTest {
                 Orientation or2 = electricOrientation[mor2.ordinal()];
                 assertSame(or1.concatenate(or2).canonic(), electricOrientation[mor1.concatenate(mor2).ordinal()]);
             }
-            System.out.println();
         }
     }
 
