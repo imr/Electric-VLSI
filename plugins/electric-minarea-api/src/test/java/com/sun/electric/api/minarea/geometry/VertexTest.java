@@ -35,16 +35,16 @@ public class VertexTest {
 	
 	@Test
 	public void testLength() {
-		Vertex vert = new Vertex(new Point(0, 0), new Point(2, 0));
+		Edge vert = new Edge(new Point(0, 0), new Point(2, 0));
 		Assert.assertEquals(2, vert.length());
 	}
 	
 	@Test
 	public void testEquals() {
-		Vertex vert1 = new Vertex(new Point(0, 0), new Point(2, 0));
-		Vertex vert2 = new Vertex(new Point(0, 0), new Point(2, 0));
-		Vertex vert3 = new Vertex(new Point(0, 0), new Point(2, 1));
-		Vertex vert4 = new Vertex(new Point(2, 0), new Point(0, 0));
+		Edge vert1 = new Edge(new Point(0, 0), new Point(2, 0));
+		Edge vert2 = new Edge(new Point(0, 0), new Point(2, 0));
+		Edge vert3 = new Edge(new Point(0, 0), new Point(2, 1));
+		Edge vert4 = new Edge(new Point(2, 0), new Point(0, 0));
 		
 		Assert.assertTrue(vert1.equals(vert1));
 		Assert.assertTrue(vert1.equals(vert2));

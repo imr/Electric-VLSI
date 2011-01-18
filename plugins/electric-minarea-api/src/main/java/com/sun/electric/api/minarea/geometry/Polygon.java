@@ -71,11 +71,11 @@ public class Polygon {
 		return new Rectangle(new Point(lx, ly), new Point(hx, hy));
 	}
 	
-	public List<Vertex> extractVertices() {
-		List<Vertex> result = new ArrayList<Vertex>();
+	public List<Edge> extractVertices() {
+		List<Edge> result = new ArrayList<Edge>();
 		
 		for(int i = 0; i < points.size(); i++) {
-			result.add(new Vertex(points.get(i), points.get((i+1) % points.size())));
+			result.add(new Edge(points.get(i), points.get((i+1) % points.size())));
 		}
 		
 		return result;
@@ -188,7 +188,7 @@ public class Polygon {
 			return Math.abs(points.get(1).getY() - points.get(0).getY());
 		}
 		
-		public List<Vertex> extractVertices() {
+		public List<Edge> extractVertices() {
 			return this.transformToPolygon().extractVertices();
 		}
 

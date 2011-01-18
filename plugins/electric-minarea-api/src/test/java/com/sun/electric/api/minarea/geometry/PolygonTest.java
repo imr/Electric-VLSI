@@ -70,15 +70,15 @@ public class PolygonTest {
 	@Test
 	public void testVertexExtraction() {		
 		Rectangle rect = new Rectangle(new Point(1,1), new Point(6, 3));
-		List<Vertex> vertices = rect.extractVertices();
+		List<Edge> vertices = rect.extractVertices();
 		
-		Vertex vert = new Vertex(new Point(1,1), new Point(6,1));
+		Edge vert = new Edge(new Point(1,1), new Point(6,1));
 		Assert.assertTrue(vertices.contains(vert));
-		vert = new Vertex(new Point(1,1), new Point(1,3));
+		vert = new Edge(new Point(1,1), new Point(1,3));
 		Assert.assertTrue(vertices.contains(vert));
-		vert = new Vertex(new Point(1,3), new Point(6,3));
+		vert = new Edge(new Point(1,3), new Point(6,3));
 		Assert.assertTrue(vertices.contains(vert));
-		vert = new Vertex(new Point(6,3), new Point(6,1));
+		vert = new Edge(new Point(6,3), new Point(6,1));
 		Assert.assertTrue(vertices.contains(vert));
 		
 	}

@@ -29,12 +29,12 @@ import com.sun.electric.api.minarea.geometry.Point.Vector;
  * @author Felix Schmidt
  * 
  */
-public class Vertex {
+public class Edge {
 
 	private final Point head;
 	private final Point tail;
 
-	public Vertex(Point tail, Point head) {
+	public Edge(Point tail, Point head) {
 		this.tail = tail;
 		this.head = head;
 	}
@@ -80,7 +80,7 @@ public class Vertex {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Vertex other = (Vertex) obj;
+		Edge other = (Edge) obj;
 		if (head == null) {
 			if (other.head != null)
 				return false;
