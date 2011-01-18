@@ -23,6 +23,8 @@
  */
 package com.sun.electric.api.minarea.geometry;
 
+import com.sun.electric.api.minarea.LayoutCell;
+
 /**
  * Immutable point implementation
  * 
@@ -35,6 +37,14 @@ public class Point {
 	private final int yCoord;
 
 	public Point(int x, int y) {
+		if(x < -LayoutCell.MAX_COORD || x > LayoutCell.MAX_COORD) {
+			throw new IllegalArgumentException("x has to be in range [-LayoutCell.MAX_COORD, LayoutCell.MAX_COORD]");
+		}
+		
+		if(y < -LayoutCell.MAX_COORD || y > LayoutCell.MAX_COORD) {
+			throw new IllegalArgumentException("y has to be in range [-LayoutCell.MAX_COORD, LayoutCell.MAX_COORD]");
+		}
+		
 		this.xCoord = x;
 		this.yCoord = y;
 	}
@@ -67,7 +77,7 @@ public class Point {
 	 * @param xCoord
 	 * @return
 	 */
-	public Point withY(int yCoord) {
+	public Point withY(int yCoord) {		
 		return new Point(xCoord, yCoord);
 	}
 
@@ -186,5 +196,17 @@ public class Point {
 		}
 
 	}
+	
+	public static final class Vector extends Point {
 
+		/**
+		 * @param x
+		 * @param y
+		 */
+		public Vector(int x, int y) {
+			super(x, y);
+			// TODO Auto-generated constructor stub
+		}
+		
+	}
 }

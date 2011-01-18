@@ -23,6 +23,7 @@
  */
 package com.sun.electric.api.minarea.geometry;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -175,6 +176,24 @@ public class Polygon {
 		 */
 		public int height() {
 			return points.get(1).getY() - points.get(0).getY();
+		}
+		
+		public List<Vertex> extractVertices() {
+			List<Vertex> result = new ArrayList<Vertex>();
+			
+			Polygon tmp = this.transformToPolygon();
+			
+			Vertex vertex1 = new Vertex(tmp.points.get(0), tmp.points.get(1));
+			Vertex vertex2 = new Vertex(tmp.points.get(0), tmp.points.get(3));
+			Vertex vertex3 = new Vertex(tmp.points.get(1), tmp.points.get(2));
+			Vertex vertex4 = new Vertex(tmp.points.get(2), tmp.points.get(3));
+			
+			result.add(vertex1);
+			result.add(vertex2);
+			result.add(vertex3);
+			result.add(vertex4);
+			
+			return result;
 		}
 
 		public Polygon transformToPolygon() {

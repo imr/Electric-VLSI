@@ -23,6 +23,8 @@
  */
 package com.sun.electric.api.minarea.geometry;
 
+import java.util.List;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -63,6 +65,22 @@ public class PolygonTest {
 		Polygon transformed = rect.transformToPolygon();
 		
 		Assert.assertEquals(expected, transformed);
+	}
+	
+	@Test
+	public void testVertexExtraction() {		
+		Rectangle rect = new Rectangle(new Point(1,1), new Point(6, 3));
+		List<Vertex> vertices = rect.extractVertices();
+		
+		Vertex vert = new Vertex(new Point(1,1), new Point(6,1));
+		Assert.assertTrue(vertices.contains(vert));
+		vert = new Vertex(new Point(1,1), new Point(1,3));
+		Assert.assertTrue(vertices.contains(vert));
+		vert = new Vertex(new Point(1,3), new Point(6,3));
+		Assert.assertTrue(vertices.contains(vert));
+		vert = new Vertex(new Point(6,3), new Point(6,1));
+		Assert.assertTrue(vertices.contains(vert));
+		
 	}
 	
 	@Test
