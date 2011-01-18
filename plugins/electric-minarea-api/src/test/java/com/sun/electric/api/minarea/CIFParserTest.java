@@ -75,6 +75,21 @@ public class CIFParserTest {
         cif.openTextInput(CIFParserTest.class.getResource("SimpleHierarchy.cif"));
         cif.importALibrary();
         cif.closeInput();
+        
+        LayoutCell topCell = gcif.cells.get(Integer.valueOf(101));
+        long minArea = Long.MAX_VALUE;
+        new SimpleChecker().check(topCell, minArea, null, new MyErrorLogger());
+    }
+    
+    private class MyErrorLogger implements MinAreaChecker.ErrorLogger {
+        /**
+         * @param min area of violating polygon
+         * @param x x-coordinate of some point of violating polygon
+         * @param y y-coordinate of some point of violating polygon
+         */
+        public void reportMinAreaViolation(long minArea, long x, long y) {
+            System.out.println("reportMinAreaViolation("+minArea+","+x+","+y+");");
+        }
     }
 
     public class GenCIFActions implements CIF.CIFActions {

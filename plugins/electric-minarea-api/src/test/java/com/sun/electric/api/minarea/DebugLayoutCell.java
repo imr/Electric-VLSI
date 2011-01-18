@@ -79,7 +79,7 @@ public class DebugLayoutCell implements LayoutCell {
      * @param count the number of rectangle
      */
     public void traverseRectangles(RectangleHandler h, int offset, int count) {
-        if (offset < 0 || count < 0 || offset + count >= numRectangles) {
+        if (offset < 0 || count < 0 || offset + count > numRectangles) {
             throw new IndexOutOfBoundsException();
         }
         for (int i = 0; i < numRectangles; i++) {
@@ -109,7 +109,7 @@ public class DebugLayoutCell implements LayoutCell {
      * @param result
      */
     public void readRectangleCoords(int offset, int count, int[] result) {
-        if (offset + count >= numRectangles) {
+        if (offset + count > numRectangles) {
             throw new IndexOutOfBoundsException();
         }
         System.arraycopy(rectCoords, offset * 4, result, 0, count * 4);

@@ -32,11 +32,10 @@ import java.io.IOException;
 import java.util.Properties;
 
 import com.sun.electric.api.minarea.geometry.Point;
-import com.sun.electric.api.minarea.geometry.Polygon;
-import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.bool.DeltaMerge;
 import com.sun.electric.database.geometry.bool.UnloadPolys;
+import com.sun.electric.util.math.DBMath;
 
 /**
  * Simple MinAreaChecker
@@ -128,9 +127,10 @@ public class SimpleChecker implements MinAreaChecker {
                 traversePolyTree(son, level + 1, minArea, errorLogger);
                 area -= son.getPoly().getArea();
             }
-            if (area < minArea) {
+            long larea = DBMath.lambdaToGrid(area*DBMath.GRID);
+            if (larea < minArea) {
                 Point2D p = poly.getPoints()[0];
-                errorLogger.reportMinAreaViolation((long) area, (long) p.getX(), (long) p.getY());
+                errorLogger.reportMinAreaViolation(larea, DBMath.lambdaToGrid(p.getX()), DBMath.lambdaToGrid(p.getY()));
             }
         } else {
             for (PolyBase.PolyBaseTree son : obj.getSons()) {
