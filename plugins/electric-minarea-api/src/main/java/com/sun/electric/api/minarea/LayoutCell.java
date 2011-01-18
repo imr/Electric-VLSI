@@ -23,7 +23,6 @@
  */
 package com.sun.electric.api.minarea;
 
-
 import com.sun.electric.api.minarea.geometry.Point;
 import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
 
@@ -32,12 +31,20 @@ import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
  */
 public interface LayoutCell {
 
+    /**
+     * The limit on coordinates.
+     * All coordinates of LayoutCell are in the range [-MAX_COORD,MAX_COORD].
+     * This includes coordinats of rectangles, anchors of subcells and coordinates
+     * the boundary box.
+     */
+    public static final int MAX_COORD = 0x3FFFFFFF;
+
     // cell name
     public String getName();
 
     // rectangles
     public int getNumRectangles();
-    
+
     public Rectangle getRectangle(int rectangleIndex);
 
     // traversal of rectangles
@@ -49,10 +56,10 @@ public interface LayoutCell {
          * @param maxX
          * @param maxY
          */
-    	@Deprecated
+        @Deprecated
         public void apply(int minX, int minY, int maxX, int maxY);
-    	
-    	public void apply(Rectangle r);
+
+        public void apply(Rectangle r);
     }
 
     public void traverseRectangles(RectangleHandler h);
@@ -67,7 +74,7 @@ public interface LayoutCell {
 
     @Deprecated
     public int getSubcellAnchorY(int subCellIndex);
-    
+
     public Point getSubcellAnchor(int subCellIndex);
 
     public ManhattanOrientation getSubcellOrientation(int subCellIndex);
@@ -97,6 +104,6 @@ public interface LayoutCell {
 
     @Deprecated
     public int getBoundingMaxY();
-    
+
     public Rectangle getBoundingBox();
 }
