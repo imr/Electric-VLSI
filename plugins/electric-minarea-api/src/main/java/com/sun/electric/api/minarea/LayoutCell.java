@@ -32,7 +32,7 @@ import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
 public interface LayoutCell {
 
     /**
-     * The limit on coordinates.
+     * The limit of coordinates.
      * All coordinates of LayoutCell are in the range [-MAX_COORD,MAX_COORD].
      * This includes coordinates of rectangles, polygons, anchors of subcells and coordinates of
      * bounding boxes.
