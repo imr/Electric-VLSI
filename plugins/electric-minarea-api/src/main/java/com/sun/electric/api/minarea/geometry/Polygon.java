@@ -141,6 +141,10 @@ public class Polygon {
 			this.points = Arrays.asList(min, max);
 		}
 
+		public Rectangle(int minX, int minY, int maxX, int maxY) {
+			this(new Point(minX, minY), new Point(maxX, maxY));
+		}
+
 		/**
 		 * 
 		 * @return
@@ -200,7 +204,7 @@ public class Polygon {
 				builder.append("x");
 			}
 
-			builder.replace(builder.length() - 3, builder.length(), "");
+			builder.replace(builder.length() - 2, builder.length(), "");
 
 			builder.append(")");
 			return builder.toString();
