@@ -34,7 +34,7 @@ public interface LayoutCell {
     /**
      * The limit on coordinates.
      * All coordinates of LayoutCell are in the range [-MAX_COORD,MAX_COORD].
-     * This includes coordinats of rectangles, anchors of subcells and coordinates
+     * This includes coordinates of rectangles, anchors of subcells and coordinates
      * the boundary box.
      */
     public static final int MAX_COORD = 0x3FFFFFFF;
