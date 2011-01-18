@@ -27,13 +27,13 @@ package com.sun.electric.api.minarea.geometry;
  * Immutable point implementation
  * 
  * @author Felix Schmidt
- *
+ * 
  */
 public class Point {
-	
+
 	private final int xCoord;
 	private final int yCoord;
-	
+
 	public Point(int x, int y) {
 		this.xCoord = x;
 		this.yCoord = y;
@@ -45,7 +45,7 @@ public class Point {
 	public int getX() {
 		return xCoord;
 	}
-	
+
 	/**
 	 * 
 	 * @param xCoord
@@ -61,7 +61,7 @@ public class Point {
 	public int getY() {
 		return yCoord;
 	}
-	
+
 	/**
 	 * 
 	 * @param xCoord
@@ -70,26 +70,34 @@ public class Point {
 	public Point withY(int yCoord) {
 		return new Point(xCoord, yCoord);
 	}
-	
-	/* (non-Javadoc)
+
+	public int[] toArray() {
+		return new int[] { xCoord, yCoord };
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		
+
 		builder.append("Point = (");
 		builder.append(xCoord);
 		builder.append(", ");
 		builder.append(yCoord);
 		builder.append(")");
-		
+
 		return builder.toString();
 	}
-	
+
 	// ********************* Some helper functions **********************
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -101,7 +109,9 @@ public class Point {
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -127,7 +137,7 @@ public class Point {
 	public Point add(Point other) {
 		return new Point(this.xCoord + other.xCoord, this.yCoord + other.yCoord);
 	}
-	
+
 	/**
 	 * 
 	 * @param scaleFactor
@@ -136,7 +146,7 @@ public class Point {
 	public Point scale(int scaleFactor) {
 		return scale(scaleFactor, scaleFactor);
 	}
-	
+
 	/**
 	 * 
 	 * @param scaleFactorX
@@ -146,7 +156,7 @@ public class Point {
 	public Point scale(int scaleFactorX, int scaleFactorY) {
 		return new Point(this.xCoord * scaleFactorX, this.yCoord * scaleFactorY);
 	}
-	
+
 	/**
 	 * 
 	 * @param other
@@ -155,13 +165,13 @@ public class Point {
 	public int determinant(Point other) {
 		return this.xCoord * other.yCoord - this.yCoord * other.yCoord;
 	}
-	
+
 	public Point mirror() {
-		return new Point(this.yCoord,this.xCoord);
+		return new Point(this.yCoord, this.xCoord);
 	}
-	
+
 	// ********************* Some helper classes **********************
-	
+
 	/**
 	 * Use objects of type NullPoint as a equivalent to null
 	 */
@@ -174,7 +184,7 @@ public class Point {
 		public NullPoint() {
 			super(0, 0);
 		}
-		
+
 	}
 
 }

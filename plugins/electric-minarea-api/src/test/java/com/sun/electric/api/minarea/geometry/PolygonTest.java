@@ -64,5 +64,14 @@ public class PolygonTest {
 		
 		Assert.assertEquals(expected, transformed);
 	}
+	
+	@Test
+	public void testToString() {
+		Polygon poly = new Polygon(new Point(1,1), new Point(1, 3), new Point(6, 3), new Point(6, 1));
+		System.out.println(poly.toString());
+		
+		Rectangle rect = new Rectangle(new Point(1,1), new Point(6, 3));
+		System.out.println(rect.toString());
+	}
 
 }

@@ -87,7 +87,9 @@ public class Polygon {
 		return builder.toString();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -98,7 +100,9 @@ public class Polygon {
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -173,6 +177,33 @@ public class Polygon {
 			Point top = new Point(getMax().getX(), getMin().getY());
 			Point bottom = new Point(getMin().getX(), getMax().getY());
 			return new Polygon(getMin(), bottom, getMax(), top);
+		}
+
+		public int[] toArray() {
+			return new int[] { getMin().getX(), getMin().getY(), getMax().getX(), getMax().getY() };
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.sun.electric.api.minarea.geometry.Polygon#toString()
+		 */
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("Rectangle = (\n");
+			builder.append("  ");
+			for (Point pt : points) {
+				builder.append(" ");
+				builder.append(pt.toString());
+				builder.append(" ");
+				builder.append("x");
+			}
+
+			builder.replace(builder.length() - 3, builder.length(), "");
+
+			builder.append(")");
+			return builder.toString();
 		}
 
 	}
