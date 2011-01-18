@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import com.sun.electric.api.minarea.geometry.Point;
+import com.sun.electric.api.minarea.geometry.Polygon;
 import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.bool.DeltaMerge;
@@ -42,92 +43,102 @@ import com.sun.electric.database.geometry.bool.UnloadPolys;
  */
 public class SimpleChecker implements MinAreaChecker {
 
-	/**
-	 * 
-	 * @return the algorithm name
-	 */
-	public String getAlgorithmName() {
-		return "SimpleChecker";
-	}
+    /**
+     * 
+     * @return the algorithm name
+     */
+    public String getAlgorithmName() {
+        return "SimpleChecker";
+    }
 
-	/**
-	 * 
-	 * @return the names and default values of algorithm parameters
-	 */
-	public Properties getDefaultParameters() {
-		return new Properties();
-	}
+    /**
+     * 
+     * @return the names and default values of algorithm parameters
+     */
+    public Properties getDefaultParameters() {
+        return new Properties();
+    }
 
-	/**
-	 * @param topCell
-	 *            top cell of the layout
-	 * @param minArea
-	 *            minimal area of valid polygon
-	 * @param parameters
-	 *            algorithm parameters
-	 * @param errorLogger
-	 *            an API to report violations
-	 */
-	public void check(LayoutCell topCell, long minArea, Properties parameters, ErrorLogger errorLogger) {
-		DeltaMerge dm = new DeltaMerge();
-		collect(dm, topCell, 0, 0, ManhattanOrientation.R0);
-		try {
-			ByteArrayOutputStream bout = new ByteArrayOutputStream();
-			DataOutputStream out = new DataOutputStream(bout);
-			dm.loop(out);
-			out.close();
-			byte[] ba = bout.toByteArray();
-			bout = null;
-			DataInputStream inpS = new DataInputStream(new ByteArrayInputStream(ba));
-			UnloadPolys up = new UnloadPolys();
-			Iterable<PolyBase.PolyBaseTree> trees = up.loop(inpS, false);
-			inpS.close();
-			for (PolyBase.PolyBaseTree tree : trees) {
-				traversePolyTree(tree, 0, minArea, errorLogger);
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    /**
+     * @param topCell
+     *            top cell of the layout
+     * @param minArea
+     *            minimal area of valid polygon
+     * @param parameters
+     *            algorithm parameters
+     * @param errorLogger
+     *            an API to report violations
+     */
+    public void check(LayoutCell topCell, long minArea, Properties parameters, ErrorLogger errorLogger) {
+        DeltaMerge dm = new DeltaMerge();
+        collect(dm, topCell, 0, 0, ManhattanOrientation.R0);
+        try {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            DataOutputStream out = new DataOutputStream(bout);
+            dm.loop(out);
+            out.close();
+            byte[] ba = bout.toByteArray();
+            bout = null;
+            DataInputStream inpS = new DataInputStream(new ByteArrayInputStream(ba));
+            UnloadPolys up = new UnloadPolys();
+            Iterable<PolyBase.PolyBaseTree> trees = up.loop(inpS, false);
+            inpS.close();
+            for (PolyBase.PolyBaseTree tree : trees) {
+                traversePolyTree(tree, 0, minArea, errorLogger);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private void collect(DeltaMerge dm, LayoutCell cell, int x, int y, ManhattanOrientation orient) {
-		for (int i = 0; i < cell.getNumRectangles(); i++) {
-			Rectangle[] tmp = new Rectangle[] { cell.getRectangle(i) };
+    private void collect(DeltaMerge dm, LayoutCell cell, int x, int y, ManhattanOrientation orient) {
+        long[] coords = new long[4];
+        for (int i = 0; i < cell.getNumRectangles(); i++) {
+            Polygon.Rectangle r = cell.getRectangle(i);
+            coords[0] = r.getMin().getX();
+            coords[1] = r.getMin().getY();
+            coords[2] = r.getMax().getX();
+            coords[3] = r.getMax().getY();
+            orient.transformRects(coords, 0, 1);
+            int lx = (int) (coords[0] + x);
+            int ly = (int) (coords[1] + y);
+            int hx = (int) (coords[2] + x);
+            int hy = (int) (coords[3] + y);
+            // The coordinates will fit into ints, because bounding box
+            // of LayoutCell is limited within [-MAX_Coord,+MAX_COORD]
+            assert lx == (int) (coords[0] + x);
+            assert ly == (int) (coords[1] + y);
+            assert hx == (int) (coords[2] + x);
+            assert hy == (int) (coords[3] + y);
+            dm.put(lx, ly, hx, hy);
+        }
 
-			orient.transformRects(tmp, 0, 1);
+        for (int i = 0; i < cell.getNumSubcells(); i++) {
+            LayoutCell subCell = cell.getSubcellCell(i);
+            Point[] anchor = {cell.getSubcellAnchor(i)};
 
-			Point low = tmp[0].getMin().add(new Point(x, y));
-			Point high = tmp[0].getMax().add(new Point(x, y));
+            orient.transformPoints(anchor, 0, 1);
+            ManhattanOrientation subOrient = cell.getSubcellOrientation(i);
+            collect(dm, subCell, anchor[0].getX() + x, anchor[0].getY() + y, orient.concatenate(subOrient));
+        }
+    }
 
-			dm.put(low.getX(), low.getY(), high.getX(), high.getY());
-		}
-
-		for (int i = 0; i < cell.getNumSubcells(); i++) {
-			LayoutCell subCell = cell.getSubcellCell(i);
-			Point[] anchor = { cell.getSubcellAnchor(i) };
-
-			orient.transformPoints(anchor, 0, 1);
-			ManhattanOrientation subOrient = cell.getSubcellOrientation(i);
-			collect(dm, subCell, anchor[0].getX() + x, anchor[0].getY() + y, orient.concatenate(subOrient));
-		}
-	}
-
-	private void traversePolyTree(PolyBase.PolyBaseTree obj, int level, long minArea, ErrorLogger errorLogger) {
-		if (level % 2 == 0) {
-			PolyBase poly = obj.getPoly();
-			double area = poly.getArea();
-			for (PolyBase.PolyBaseTree son : obj.getSons()) {
-				traversePolyTree(son, level + 1, minArea, errorLogger);
-				area -= son.getPoly().getArea();
-			}
-			if (area < minArea) {
-				Point2D p = poly.getPoints()[0];
-				errorLogger.reportMinAreaViolation((long) area, (long) p.getX(), (long) p.getY());
-			}
-		} else {
-			for (PolyBase.PolyBaseTree son : obj.getSons()) {
-				traversePolyTree(son, level + 1, minArea, errorLogger);
-			}
-		}
-	}
+    private void traversePolyTree(PolyBase.PolyBaseTree obj, int level, long minArea, ErrorLogger errorLogger) {
+        if (level % 2 == 0) {
+            PolyBase poly = obj.getPoly();
+            double area = poly.getArea();
+            for (PolyBase.PolyBaseTree son : obj.getSons()) {
+                traversePolyTree(son, level + 1, minArea, errorLogger);
+                area -= son.getPoly().getArea();
+            }
+            if (area < minArea) {
+                Point2D p = poly.getPoints()[0];
+                errorLogger.reportMinAreaViolation((long) area, (long) p.getX(), (long) p.getY());
+            }
+        } else {
+            for (PolyBase.PolyBaseTree son : obj.getSons()) {
+                traversePolyTree(son, level + 1, minArea, errorLogger);
+            }
+        }
+    }
 }
