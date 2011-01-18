@@ -27,7 +27,6 @@
  */
 package com.sun.electric.api.minarea;
 
-import java.awt.Point;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -37,6 +36,8 @@ import java.io.LineNumberReader;
 import java.io.PushbackInputStream;
 import java.net.URL;
 import java.net.URLConnection;
+
+import com.sun.electric.api.minarea.geometry.Point;
 
 /**
  * This class reads files in CIF files.
@@ -255,7 +256,6 @@ public class CIF {
         skipBlanks();		// flush initial junk
 
         int curChar = getNextCharacter();
-        int command = 0;
         int xRotate = 0, yRotate = 0, length = 0, width = 0, diameter = 0, symbolNumber = 0, multiplier = 0, divisor = 0, userCommand = 0;
         Point center = null, namePoint = null;
         String lName = null, nameText = null, userText = null;
@@ -603,7 +603,6 @@ public class CIF {
                                             if (errorFound) {
                                                 return reportError();
                                             }
-                                            int w = getSignedInteger();
                                             getUserText();
                                             c1.makeGeomName(nameText, namePoint, null);
                                             break;

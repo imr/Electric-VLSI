@@ -25,6 +25,9 @@ package com.sun.electric.api.minarea;
 
 import java.awt.geom.AffineTransform;
 
+import com.sun.electric.api.minarea.geometry.Point;
+import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
+
 /**
  * Enumeration to specify Manhattan orientation.
  * The constants are standard EDIF orientations.
@@ -60,6 +63,10 @@ public enum ManhattanOrientation {
 
         public void transformRects(long[] coords, int offset, int count) {
         }
+		public void transformRects(Rectangle[] coords, int offset, int count) {			
+		}
+		public void transformPoints(Point[] coords, int offset, int count) {		
+		}
     },
     R90 {
 
@@ -84,6 +91,18 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = hx;
             }
         }
+		public void transformRects(Rectangle[] coords, int offset, int count) {
+			for(int i = offset; i < offset + count; i++) {
+				Point min = coords[i].getMin().scale(1, -1);
+				Point max = coords[i].getMax().scale(1, -1);
+				coords[i] = new Rectangle(new Point(max.getY(), min.getX()), new Point(min.getY(), max.getX()));
+			}
+		}
+		public void transformPoints(Point[] coords, int offset, int count) {
+			for (int i = 0; i < count; i++) {
+				coords[offset + i] = coords[offset + i].scale(1, -1).mirror(); 
+			}
+		}
     },
     R180 {
 
@@ -108,6 +127,19 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = -ly;
             }
         }
+		@Override
+		public void transformRects(Rectangle[] coords, int offset, int count) {
+			for(int i = 0; i < count; i++) {
+				Point min = coords[offset + i].getMin().scale(-1, -1);
+				Point max = coords[offset + i].getMax().scale(-1, -1);
+				coords[offset + i] = new Rectangle(max, min);
+			}
+		}
+		public void transformPoints(Point[] coords, int offset, int count) {
+			for (int i = 0; i < count; i++) {
+				coords[offset + i] = coords[offset + i].scale(-1, -1); 
+			}
+		}
     },
     R270 {
 
@@ -132,6 +164,19 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = -lx;
             }
         }
+		@Override
+		public void transformRects(Rectangle[] coords, int offset, int count) {
+			for(int i = 0; i < count; i++) {
+				Point min = coords[offset + i].getMin().scale(-1, 1);
+				Point max = coords[offset + i].getMax().scale(-1, 1);
+				coords[offset + i] = new Rectangle(new Point(min.getY(), max.getX()), new Point(max.getY(), min.getX()));
+			}
+		}
+		public void transformPoints(Point[] coords, int offset, int count) {
+			for (int i = 0; i < count; i++) {
+				coords[offset + i] = coords[offset + i].scale(-1, 1).mirror(); 
+			}
+		}
     },
     MY {
 
@@ -150,6 +195,19 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 2] = -lx;
             }
         }
+		@Override
+		public void transformRects(Rectangle[] coords, int offset, int count) {
+			for(int i = 0; i < count; i++) {
+				Point min = coords[offset + i].getMin().scale(-1, 1);
+				Point max = coords[offset + i].getMax().scale(-1, 1);
+				coords[offset + i] = new Rectangle(new Point(max.getX(), min.getY()), new Point(min.getX(), max.getY()));
+			}
+		}
+		public void transformPoints(Point[] coords, int offset, int count) {
+			for (int i = 0; i < count; i++) {
+				coords[offset + i] = coords[offset + i].scale(-1, 1); 
+			}
+		}
     },
     MYR90 {
 
@@ -174,6 +232,19 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = -lx;
             }
         }
+		@Override
+		public void transformRects(Rectangle[] coords, int offset, int count) {
+			for(int i = 0; i < count; i++) {
+				Point min = coords[offset + i].getMin().scale(-1, -1).mirror();
+				Point max = coords[offset + i].getMax().scale(-1, -1).mirror();
+				coords[offset + i] = new Rectangle(max, min);
+			}
+		}
+		public void transformPoints(Point[] coords, int offset, int count) {
+			for (int i = 0; i < count; i++) {
+				coords[offset + i] = coords[offset + i].scale(-1, -1).mirror(); 
+			}
+		}
     },
     MX {
 
@@ -192,6 +263,19 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = -ly;
             }
         }
+		@Override
+		public void transformRects(Rectangle[] coords, int offset, int count) {
+			for(int i = 0; i < count; i++) {
+				Point min = coords[offset + i].getMin().scale(1, -1);
+				Point max = coords[offset + i].getMax().scale(1, -1);
+				coords[offset + i] = new Rectangle(new Point(min.getX(), max.getY()), new Point(max.getX(), min.getY()));
+			}
+		}
+		public void transformPoints(Point[] coords, int offset, int count) {
+			for (int i = 0; i < count; i++) {
+				coords[offset + i] = coords[offset + i].scale(1, -1); 
+			}
+		}
     },
     MXR90 {
 
@@ -216,11 +300,30 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = hx;
             }
         }
+		@Override
+		public void transformRects(Rectangle[] coords, int offset, int count) {
+			for(int i = 0; i < count; i++) {
+				Point min = coords[offset + i].getMin().mirror();
+				Point max = coords[offset + i].getMax().mirror();
+				coords[offset + i] = new Rectangle(min, max);
+			}
+		}
+		public void transformPoints(Point[] coords, int offset, int count) {
+			for (int i = 0; i < count; i++) {
+				coords[offset + i] = coords[offset + i].mirror(); 
+			}
+		}
     };
 
+    @Deprecated
     public abstract void transformPoints(long[] coords, int offset, int count);
+    
+    public abstract void transformPoints(Point[] coords, int offset, int count);
 
+    @Deprecated
     public abstract void transformRects(long[] coords, int offset, int count);
+    
+    public abstract void transformRects(Rectangle[] coords, int offset, int count);
 
     public ManhattanOrientation concatenate(ManhattanOrientation other) {
         return concatenate[ordinal() * 8 + other.ordinal()];

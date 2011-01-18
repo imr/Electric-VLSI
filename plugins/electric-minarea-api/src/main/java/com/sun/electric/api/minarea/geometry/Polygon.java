@@ -33,9 +33,15 @@ import java.util.List;
  * 
  */
 public class Polygon {
-	
+
 	public static interface PolygonUnionStrategy {
 		public Polygon union(Polygon poly1, Polygon poly2);
+	}
+
+	public static interface PolygonIntersectStrategy {
+		public Polygon intersect(Polygon poly1, Polygon poly2);
+
+		public boolean intersectionTest(Polygon poly1, Polygon poly2);
 	}
 
 	protected List<Point> points;
@@ -64,6 +70,54 @@ public class Polygon {
 		return new Rectangle(new Point(lx, ly), new Point(hx, hy));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Polygon = (\n");
+		for (Point pt : points) {
+			builder.append("   ");
+			builder.append(pt.toString());
+		}
+		builder.append(")");
+		return builder.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((points == null) ? 0 : points.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Polygon other = (Polygon) obj;
+		if (points == null) {
+			if (other.points != null)
+				return false;
+		} else if (!points.equals(other.points))
+			return false;
+		return true;
+	}
+
 	/**
 	 * 
 	 * @author Felix Schmidt
@@ -77,9 +131,9 @@ public class Polygon {
 		 * @param max
 		 */
 		public Rectangle(Point min, Point max) {
-			if(min.getX() >= max.getX() || min.getY() >= max.getY())
+			if (min.getX() >= max.getX() || min.getY() >= max.getY())
 				throw new IllegalArgumentException();
-			
+
 			this.points = Arrays.asList(min, max);
 		}
 
@@ -113,6 +167,12 @@ public class Polygon {
 		 */
 		public int height() {
 			return points.get(1).getY() - points.get(0).getY();
+		}
+
+		public Polygon transformToPolygon() {
+			Point top = new Point(getMax().getX(), getMin().getY());
+			Point bottom = new Point(getMin().getX(), getMax().getY());
+			return new Polygon(getMin(), bottom, getMax(), top);
 		}
 
 	}

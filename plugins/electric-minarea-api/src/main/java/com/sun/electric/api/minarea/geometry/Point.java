@@ -30,85 +30,151 @@ package com.sun.electric.api.minarea.geometry;
  *
  */
 public class Point {
+	
+	private final int xCoord;
+	private final int yCoord;
+	
+	public Point(int x, int y) {
+		this.xCoord = x;
+		this.yCoord = y;
+	}
 
-    private final int xCoord;
-    private final int yCoord;
+	/**
+	 * @return the xCoord
+	 */
+	public int getX() {
+		return xCoord;
+	}
+	
+	/**
+	 * 
+	 * @param xCoord
+	 * @return
+	 */
+	public Point withX(int xCoord) {
+		return new Point(xCoord, yCoord);
+	}
 
-    public Point(int x, int y) {
-        this.xCoord = x;
-        this.yCoord = y;
-    }
+	/**
+	 * @return the yCoord
+	 */
+	public int getY() {
+		return yCoord;
+	}
+	
+	/**
+	 * 
+	 * @param xCoord
+	 * @return
+	 */
+	public Point withY(int yCoord) {
+		return new Point(xCoord, yCoord);
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append("Point = (");
+		builder.append(xCoord);
+		builder.append(", ");
+		builder.append(yCoord);
+		builder.append(")");
+		
+		return builder.toString();
+	}
+	
+	// ********************* Some helper functions **********************
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + xCoord;
+		result = prime * result + yCoord;
+		return result;
+	}
 
-    /**
-     * @return the xCoord
-     */
-    public int getX() {
-        return xCoord;
-    }
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Point other = (Point) obj;
+		if (xCoord != other.xCoord)
+			return false;
+		if (yCoord != other.yCoord)
+			return false;
+		return true;
+	}
 
-    /**
-     * 
-     * @param xCoord
-     * @return
-     */
-    public Point withX(int xCoord) {
-        if (xCoord == this.xCoord) return this;
-        return new Point(xCoord, yCoord);
-    }
+	/**
+	 * @param other
+	 * @return
+	 */
+	public Point add(Point other) {
+		return new Point(this.xCoord + other.xCoord, this.yCoord + other.yCoord);
+	}
+	
+	/**
+	 * 
+	 * @param scaleFactor
+	 * @return
+	 */
+	public Point scale(int scaleFactor) {
+		return scale(scaleFactor, scaleFactor);
+	}
+	
+	/**
+	 * 
+	 * @param scaleFactorX
+	 * @param scaleFactorY
+	 * @return
+	 */
+	public Point scale(int scaleFactorX, int scaleFactorY) {
+		return new Point(this.xCoord * scaleFactorX, this.yCoord * scaleFactorY);
+	}
+	
+	/**
+	 * 
+	 * @param other
+	 * @return
+	 */
+	public int determinant(Point other) {
+		return this.xCoord * other.yCoord - this.yCoord * other.yCoord;
+	}
+	
+	public Point mirror() {
+		return new Point(this.yCoord,this.xCoord);
+	}
+	
+	// ********************* Some helper classes **********************
+	
+	/**
+	 * Use objects of type NullPoint as a equivalent to null
+	 */
+	public static final class NullPoint extends Point {
 
-    /**
-     * @return the yCoord
-     */
-    public int getY() {
-        return yCoord;
-    }
+		/**
+		 * @param x
+		 * @param y
+		 */
+		public NullPoint() {
+			super(0, 0);
+		}
+		
+	}
 
-    /**
-     * 
-     * @param xCoord
-     * @return
-     */
-    public Point withY(int yCoord) {
-        if (yCoord == this.yCoord) return this;
-        return new Point(xCoord, yCoord);
-    }
-
-    // ********************* Some helper functions **********************
-    /**
-     * 
-     */
-    public Point add(Point other) {
-        return new Point(this.xCoord + other.xCoord, this.yCoord + other.yCoord);
-    }
-
-    /**
-     * 
-     * @param scaleFactor
-     * @return
-     */
-    public Point scale(int scaleFactor) {
-        return scale(scaleFactor, scaleFactor);
-    }
-
-    /**
-     * 
-     * @param scaleFactorX
-     * @param scaleFactorY
-     * @return
-     */
-    public Point scale(int scaleFactorX, int scaleFactorY) {
-        return new Point(this.xCoord * scaleFactorX, this.yCoord * scaleFactorY);
-    }
-
-    // ********************* Some helper classes **********************
-    public static final class NullPoint extends Point {
-
-        /**
-         * @param x
-         * @param y
-         */
-        public NullPoint() {
-            super(0, 0);
-        }
-    }
 }

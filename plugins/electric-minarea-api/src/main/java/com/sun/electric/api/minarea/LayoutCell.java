@@ -37,18 +37,6 @@ public interface LayoutCell {
 
     // rectangles
     public int getNumRectangles();
-
-    @Deprecated
-    public int getRectangleMinX(int rectangleIndex);
-
-    @Deprecated
-    public int getRectangleMinY(int rectangleIndex);
-
-    @Deprecated
-    public int getRectangleMaxX(int rectangleIndex);
-
-    @Deprecated
-    public int getRectangleMaxY(int rectangleIndex);
     
     public Rectangle getRectangle(int rectangleIndex);
 
