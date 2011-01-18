@@ -30,87 +30,85 @@ package com.sun.electric.api.minarea.geometry;
  *
  */
 public class Point {
-	
-	private final int xCoord;
-	private final int yCoord;
-	
-	public Point(int x, int y) {
-		this.xCoord = x;
-		this.yCoord = y;
-	}
 
-	/**
-	 * @return the xCoord
-	 */
-	public int getX() {
-		return xCoord;
-	}
-	
-	/**
-	 * 
-	 * @param xCoord
-	 * @return
-	 */
-	public Point setX(int xCoord) {
-		return new Point(xCoord, yCoord);
-	}
+    private final int xCoord;
+    private final int yCoord;
 
-	/**
-	 * @return the yCoord
-	 */
-	public int getY() {
-		return yCoord;
-	}
-	
-	/**
-	 * 
-	 * @param xCoord
-	 * @return
-	 */
-	public Point setY(int yCoord) {
-		return new Point(xCoord, yCoord);
-	}
-	
-	// ********************* Some helper functions **********************
-	
-	/**
-	 * 
-	 */
-	public Point add(Point other) {
-		return new Point(this.xCoord + other.xCoord, this.yCoord + other.yCoord);
-	}
-	
-	/**
-	 * 
-	 * @param scaleFactor
-	 * @return
-	 */
-	public Point scale(int scaleFactor) {
-		return scale(scaleFactor, scaleFactor);
-	}
-	
-	/**
-	 * 
-	 * @param scaleFactorX
-	 * @param scaleFactorY
-	 * @return
-	 */
-	public Point scale(int scaleFactorX, int scaleFactorY) {
-		return new Point(this.xCoord * scaleFactorX, this.yCoord * scaleFactorY);
-	}
-	
-	// ********************* Some helper classes **********************
-	
-	public static final class NullPoint extends Point {
+    public Point(int x, int y) {
+        this.xCoord = x;
+        this.yCoord = y;
+    }
 
-		/**
-		 * @param x
-		 * @param y
-		 */
-		public NullPoint() {
-			super(0, 0);
-		}
-		
-	}
+    /**
+     * @return the xCoord
+     */
+    public int getX() {
+        return xCoord;
+    }
 
+    /**
+     * 
+     * @param xCoord
+     * @return
+     */
+    public Point withX(int xCoord) {
+        if (xCoord == this.xCoord) return this;
+        return new Point(xCoord, yCoord);
+    }
+
+    /**
+     * @return the yCoord
+     */
+    public int getY() {
+        return yCoord;
+    }
+
+    /**
+     * 
+     * @param xCoord
+     * @return
+     */
+    public Point withY(int yCoord) {
+        if (yCoord == this.yCoord) return this;
+        return new Point(xCoord, yCoord);
+    }
+
+    // ********************* Some helper functions **********************
+    /**
+     * 
+     */
+    public Point add(Point other) {
+        return new Point(this.xCoord + other.xCoord, this.yCoord + other.yCoord);
+    }
+
+    /**
+     * 
+     * @param scaleFactor
+     * @return
+     */
+    public Point scale(int scaleFactor) {
+        return scale(scaleFactor, scaleFactor);
+    }
+
+    /**
+     * 
+     * @param scaleFactorX
+     * @param scaleFactorY
+     * @return
+     */
+    public Point scale(int scaleFactorX, int scaleFactorY) {
+        return new Point(this.xCoord * scaleFactorX, this.yCoord * scaleFactorY);
+    }
+
+    // ********************* Some helper classes **********************
+    public static final class NullPoint extends Point {
+
+        /**
+         * @param x
+         * @param y
+         */
+        public NullPoint() {
+            super(0, 0);
+        }
+    }
 }
