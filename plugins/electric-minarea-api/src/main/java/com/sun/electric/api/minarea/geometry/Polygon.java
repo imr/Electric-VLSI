@@ -177,7 +177,7 @@ public class Polygon {
 		 * @return
 		 */
 		public int width() {
-			return points.get(1).getX() - points.get(0).getX();
+			return Math.abs(points.get(1).getX() - points.get(0).getX());
 		}
 
 		/**
@@ -185,7 +185,7 @@ public class Polygon {
 		 * @return
 		 */
 		public int height() {
-			return points.get(1).getY() - points.get(0).getY();
+			return Math.abs(points.get(1).getY() - points.get(0).getY());
 		}
 		
 		public List<Vertex> extractVertices() {
