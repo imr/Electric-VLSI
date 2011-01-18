@@ -105,6 +105,7 @@ public class SimpleChecker implements MinAreaChecker {
             LayoutCell subCell = cell.getSubcellCell(i);
             coords[0] = cell.getSubcellAnchorX(i);
             coords[1] = cell.getSubcellAnchorY(i);
+            
             orient.transformPoints(coords, 0, 1);
             ManhattanOrientation subOrient = cell.getSubcellOrientation(i);
             collect(dm, subCell, coords[0] + x,  coords[1] + y, orient.concatenate(subOrient));

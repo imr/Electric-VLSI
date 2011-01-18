@@ -23,7 +23,9 @@
  */
 package com.sun.electric.api.minarea;
 
-import java.awt.Point;
+
+import com.sun.electric.api.minarea.geometry.Point;
+import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
 
 /**
  * Data source for main area DRC
@@ -36,13 +38,19 @@ public interface LayoutCell {
     // rectangles
     public int getNumRectangles();
 
+    @Deprecated
     public int getRectangleMinX(int rectangleIndex);
 
+    @Deprecated
     public int getRectangleMinY(int rectangleIndex);
 
+    @Deprecated
     public int getRectangleMaxX(int rectangleIndex);
 
+    @Deprecated
     public int getRectangleMaxY(int rectangleIndex);
+    
+    public Rectangle getRectangle(int rectangleIndex);
 
     // traversal of rectangles
     public interface RectangleHandler {
@@ -53,7 +61,10 @@ public interface LayoutCell {
          * @param maxX
          * @param maxY
          */
+    	@Deprecated
         public void apply(int minX, int minY, int maxX, int maxY);
+    	
+    	public void apply(Rectangle r);
     }
 
     public void traverseRectangles(RectangleHandler h);
@@ -63,9 +74,13 @@ public interface LayoutCell {
 
     public LayoutCell getSubcellCell(int subCellIndex);
 
+    @Deprecated
     public int getSubcellAnchorX(int subCellIndex);
 
+    @Deprecated
     public int getSubcellAnchorY(int subCellIndex);
+    
+    public Point getSubcellAnchor(int subCellIndex);
 
     public ManhattanOrientation getSubcellOrientation(int subCellIndex);
 
@@ -83,11 +98,17 @@ public interface LayoutCell {
     public void traverseSubcellInstances(SubcellHandler h);
 
     // bounding box
+    @Deprecated
     public int getBoundingMinX();
 
+    @Deprecated
     public int getBoundingMinY();
 
+    @Deprecated
     public int getBoundingMaxX();
 
+    @Deprecated
     public int getBoundingMaxY();
+    
+    public Rectangle getBoundingBox();
 }
