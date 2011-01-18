@@ -92,34 +92,31 @@ public class SimpleChecker implements MinAreaChecker {
     }
 
     private void collect(DeltaMerge dm, LayoutCell cell, int x, int y, ManhattanOrientation orient) {
-        long[] coords = new long[4];
-        for (int i = 0; i < cell.getNumRectangles(); i++) {
-            Polygon.Rectangle r = cell.getRectangle(i);
-            coords[0] = r.getMin().getX();
-            coords[1] = r.getMin().getY();
-            coords[2] = r.getMax().getX();
-            coords[3] = r.getMax().getY();
+        int bufSize = Math.max(1, Math.min(16, cell.getNumRectangles()));
+        int[] coords = new int[4 * bufSize];
+        int ir = 0;
+        while (ir < cell.getNumRectangles()) {
+            int sz = Math.min(bufSize, cell.getNumRectangles() - ir);
+            cell.readRectangleCoords(ir, sz, coords);
             orient.transformRects(coords, 0, 1);
-            int lx = (int) (coords[0] + x);
-            int ly = (int) (coords[1] + y);
-            int hx = (int) (coords[2] + x);
-            int hy = (int) (coords[3] + y);
-            // The coordinates will fit into ints, because bounding box
-            // of LayoutCell is limited within [-MAX_Coord,+MAX_COORD]
-            assert lx == (int) (coords[0] + x);
-            assert ly == (int) (coords[1] + y);
-            assert hx == (int) (coords[2] + x);
-            assert hy == (int) (coords[3] + y);
-            dm.put(lx, ly, hx, hy);
+            for (int j = 0; j < sz; j++) {
+                // The coordinates will fit into ints, because bounding box
+                // of LayoutCell is limited within [-MAX_Coord,+MAX_COORD]
+                int lx = coords[j * 4 + 0] + x;
+                int ly = coords[j * 4 + 1] + y;
+                int hx = coords[j * 4 + 2] + x;
+                int hy = coords[j * 4 + 3] + y;
+                dm.put(lx, ly, hx, hy);
+            }
+            ir += sz;
         }
 
         for (int i = 0; i < cell.getNumSubcells(); i++) {
             LayoutCell subCell = cell.getSubcellCell(i);
-            Point[] anchor = {cell.getSubcellAnchor(i)};
 
-            orient.transformPoints(anchor, 0, 1);
+            Point p = orient.transformPoint(cell.getSubcellAnchor(i));
             ManhattanOrientation subOrient = cell.getSubcellOrientation(i);
-            collect(dm, subCell, anchor[0].getX() + x, anchor[0].getY() + y, orient.concatenate(subOrient));
+            collect(dm, subCell, p.getX() + x, p.getY() + y, orient.concatenate(subOrient));
         }
     }
 

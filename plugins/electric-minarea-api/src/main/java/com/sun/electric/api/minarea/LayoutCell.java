@@ -24,7 +24,6 @@
 package com.sun.electric.api.minarea;
 
 import com.sun.electric.api.minarea.geometry.Point;
-import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
 
 /**
  * Data source for main area DRC
@@ -45,8 +44,6 @@ public interface LayoutCell {
     // rectangles
     public int getNumRectangles();
 
-    public Rectangle getRectangle(int rectangleIndex);
-
     // traversal of rectangles
     public interface RectangleHandler {
 
@@ -56,24 +53,39 @@ public interface LayoutCell {
          * @param maxX
          * @param maxY
          */
-        @Deprecated
         public void apply(int minX, int minY, int maxX, int maxY);
-
-        public void apply(Rectangle r);
     }
 
+    /**
+     * Traverse part of rectangles by specified handler 
+     * @param h handler
+     * @param offset the first rectangle 
+     * @param count the number of rectanglea
+     */
+    public void traverseRectangles(RectangleHandler h, int offset, int count);
+
+    /**
+     * Traverse all rectangles by specified handler 
+     * @param h handler
+     */
     public void traverseRectangles(RectangleHandler h);
+
+    /**
+     * Read rectable coordinates into int array.
+     * The length of the result array must be at least 4*count .
+     * The coordinates are placed into the result array in such an order:
+     * (minX0, minY0, maxX0, maxY0, minX1, minY1, maxX1, maxY1, ...)
+     * This is the same layout as in ManhattanOrientation.transoformRects method.
+     * @param offset The first rectangle
+     * @param count The number of rectangles
+     * @param result
+     */
+    public void readRectangleCoords(int offset, int count, int[] result);
 
     //  subcells
     public int getNumSubcells();
 
     public LayoutCell getSubcellCell(int subCellIndex);
-
-    @Deprecated
-    public int getSubcellAnchorX(int subCellIndex);
-
-    @Deprecated
-    public int getSubcellAnchorY(int subCellIndex);
 
     public Point getSubcellAnchor(int subCellIndex);
 
@@ -93,17 +105,11 @@ public interface LayoutCell {
     public void traverseSubcellInstances(SubcellHandler h);
 
     // bounding box
-    @Deprecated
     public int getBoundingMinX();
 
-    @Deprecated
     public int getBoundingMinY();
 
-    @Deprecated
     public int getBoundingMaxX();
 
-    @Deprecated
     public int getBoundingMaxY();
-
-    public Rectangle getBoundingBox();
 }

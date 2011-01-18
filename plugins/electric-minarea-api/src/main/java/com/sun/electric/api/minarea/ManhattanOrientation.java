@@ -60,10 +60,11 @@ public enum ManhattanOrientation {
         public void transformPoints(long[] coords, int offset, int count) {
         }
 
-        public void transformRects(long[] coords, int offset, int count) {
+        public void transformRects(int[] coords, int offset, int count) {
         }
 
-        public void transformPoints(Point[] coords, int offset, int count) {
+        public Point transformPoint(Point p) {
+            return p;
         }
     },
     R90 {
@@ -77,12 +78,12 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformRects(long[] coords, int offset, int count) {
+        public void transformRects(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long lx = coords[offset + i * 4 + 0];
-                long ly = coords[offset + i * 4 + 1];
-                long hx = coords[offset + i * 4 + 2];
-                long hy = coords[offset + i * 4 + 3];
+                int lx = coords[offset + i * 4 + 0];
+                int ly = coords[offset + i * 4 + 1];
+                int hx = coords[offset + i * 4 + 2];
+                int hy = coords[offset + i * 4 + 3];
                 coords[offset + i * 4 + 0] = -hy;
                 coords[offset + i * 4 + 1] = lx;
                 coords[offset + i * 4 + 2] = -ly;
@@ -90,10 +91,8 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformPoints(Point[] coords, int offset, int count) {
-            for (int i = 0; i < count; i++) {
-                coords[offset + i] = coords[offset + i].scale(1, -1).mirror();
-            }
+        public Point transformPoint(Point p) {
+            return new Point(-p.getY(), p.getX());
         }
     },
     R180 {
@@ -107,12 +106,12 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformRects(long[] coords, int offset, int count) {
+        public void transformRects(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long lx = coords[offset + i * 4 + 0];
-                long ly = coords[offset + i * 4 + 1];
-                long hx = coords[offset + i * 4 + 2];
-                long hy = coords[offset + i * 4 + 3];
+                int lx = coords[offset + i * 4 + 0];
+                int ly = coords[offset + i * 4 + 1];
+                int hx = coords[offset + i * 4 + 2];
+                int hy = coords[offset + i * 4 + 3];
                 coords[offset + i * 4 + 0] = -hx;
                 coords[offset + i * 4 + 1] = -hy;
                 coords[offset + i * 4 + 2] = -lx;
@@ -120,10 +119,8 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformPoints(Point[] coords, int offset, int count) {
-            for (int i = 0; i < count; i++) {
-                coords[offset + i] = coords[offset + i].scale(-1, -1);
-            }
+        public Point transformPoint(Point p) {
+            return new Point(-p.getX(), -p.getY());
         }
     },
     R270 {
@@ -137,12 +134,12 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformRects(long[] coords, int offset, int count) {
+        public void transformRects(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long lx = coords[offset + i * 4 + 0];
-                long ly = coords[offset + i * 4 + 1];
-                long hx = coords[offset + i * 4 + 2];
-                long hy = coords[offset + i * 4 + 3];
+                int lx = coords[offset + i * 4 + 0];
+                int ly = coords[offset + i * 4 + 1];
+                int hx = coords[offset + i * 4 + 2];
+                int hy = coords[offset + i * 4 + 3];
                 coords[offset + i * 4 + 0] = ly;
                 coords[offset + i * 4 + 1] = -hx;
                 coords[offset + i * 4 + 2] = hy;
@@ -150,10 +147,8 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformPoints(Point[] coords, int offset, int count) {
-            for (int i = 0; i < count; i++) {
-                coords[offset + i] = coords[offset + i].scale(-1, 1).mirror();
-            }
+        public Point transformPoint(Point p) {
+            return new Point(p.getY(), -p.getX());
         }
     },
     MY {
@@ -165,19 +160,17 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformRects(long[] coords, int offset, int count) {
+        public void transformRects(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long lx = coords[offset + i * 4 + 0];
-                long hx = coords[offset + i * 4 + 2];
+                int lx = coords[offset + i * 4 + 0];
+                int hx = coords[offset + i * 4 + 2];
                 coords[offset + i * 4 + 0] = -hx;
                 coords[offset + i * 4 + 2] = -lx;
             }
         }
 
-        public void transformPoints(Point[] coords, int offset, int count) {
-            for (int i = 0; i < count; i++) {
-                coords[offset + i] = coords[offset + i].scale(-1, 1);
-            }
+        public Point transformPoint(Point p) {
+            return new Point(-p.getX(), p.getY());
         }
     },
     MYR90 {
@@ -191,12 +184,12 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformRects(long[] coords, int offset, int count) {
+        public void transformRects(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long lx = coords[offset + i * 4 + 0];
-                long ly = coords[offset + i * 4 + 1];
-                long hx = coords[offset + i * 4 + 2];
-                long hy = coords[offset + i * 4 + 3];
+                int lx = coords[offset + i * 4 + 0];
+                int ly = coords[offset + i * 4 + 1];
+                int hx = coords[offset + i * 4 + 2];
+                int hy = coords[offset + i * 4 + 3];
                 coords[offset + i * 4 + 0] = -hy;
                 coords[offset + i * 4 + 1] = -hx;
                 coords[offset + i * 4 + 2] = -ly;
@@ -204,10 +197,8 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformPoints(Point[] coords, int offset, int count) {
-            for (int i = 0; i < count; i++) {
-                coords[offset + i] = coords[offset + i].scale(-1, -1).mirror();
-            }
+        public Point transformPoint(Point p) {
+            return new Point(-p.getY(), -p.getX());
         }
     },
     MX {
@@ -219,19 +210,17 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformRects(long[] coords, int offset, int count) {
+        public void transformRects(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long ly = coords[offset + i * 4 + 1];
-                long hy = coords[offset + i * 4 + 3];
+                int ly = coords[offset + i * 4 + 1];
+                int hy = coords[offset + i * 4 + 3];
                 coords[offset + i * 4 + 1] = -hy;
                 coords[offset + i * 4 + 3] = -ly;
             }
         }
 
-        public void transformPoints(Point[] coords, int offset, int count) {
-            for (int i = 0; i < count; i++) {
-                coords[offset + i] = coords[offset + i].scale(1, -1);
-            }
+        public Point transformPoint(Point p) {
+            return new Point(p.getX(), -p.getY());
         }
     },
     MXR90 {
@@ -245,12 +234,12 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformRects(long[] coords, int offset, int count) {
+        public void transformRects(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long lx = coords[offset + i * 4 + 0];
-                long ly = coords[offset + i * 4 + 1];
-                long hx = coords[offset + i * 4 + 2];
-                long hy = coords[offset + i * 4 + 3];
+                int lx = coords[offset + i * 4 + 0];
+                int ly = coords[offset + i * 4 + 1];
+                int hx = coords[offset + i * 4 + 2];
+                int hy = coords[offset + i * 4 + 3];
                 coords[offset + i * 4 + 0] = ly;
                 coords[offset + i * 4 + 1] = lx;
                 coords[offset + i * 4 + 2] = hy;
@@ -258,18 +247,16 @@ public enum ManhattanOrientation {
             }
         }
 
-        public void transformPoints(Point[] coords, int offset, int count) {
-            for (int i = 0; i < count; i++) {
-                coords[offset + i] = coords[offset + i].mirror();
-            }
+        public Point transformPoint(Point p) {
+            return new Point(p.getY(), p.getX());
         }
     };
 
     public abstract void transformPoints(long[] coords, int offset, int count);
 
-    public abstract void transformPoints(Point[] coords, int offset, int count);
+    public abstract Point transformPoint(Point p);
 
-    public abstract void transformRects(long[] coords, int offset, int count);
+    public abstract void transformRects(int[] coords, int offset, int count);
 
     public ManhattanOrientation concatenate(ManhattanOrientation other) {
         return concatenate[ordinal() * 8 + other.ordinal()];

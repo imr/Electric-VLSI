@@ -101,19 +101,39 @@ public class ManhattanOrientationTest {
      * Test of transformPoints method, of class ManhattanOrientation.
      */
     @Test
-    public void testTransformPointsByPoint() {
+    public void testTransformPoints() {
         System.out.println("transformPoints");
         for (ManhattanOrientation mor : ManhattanOrientation.class.getEnumConstants()) {
             System.out.println("Test: " + mor.toString());
             Orientation eor = electricOrientation[mor.ordinal()];
-            Point[] mcoords = {new Point(1, 0), new Point(0, 1)};
+            long[] mcoords = {1, 0, 0, 1};
             int[] ecoords = {1, 0, 0, 1};
             mor.transformPoints(mcoords, 0, 2);
             eor.transformPoints(2, ecoords);
 
-            for (int i = 0; i < 2; i += 2) {
-                assertEquals(ecoords[i], mcoords[i].getX());
-                assertEquals(ecoords[i + 1], mcoords[i].getY());
+            for (int i = 0; i < 4; i++) {
+                assertEquals((long) ecoords[i], mcoords[i]);
+            }
+        }
+    }
+
+    /**
+     * Test of transformPoints method, of class ManhattanOrientation.
+     */
+    @Test
+    public void testTransformPoint() {
+        System.out.println("transformPoints");
+        for (ManhattanOrientation mor : ManhattanOrientation.class.getEnumConstants()) {
+            System.out.println("Test: " + mor.toString());
+            Orientation eor = electricOrientation[mor.ordinal()];
+            Point[] mpoints = {new Point(1, 0), new Point(0, 1)};
+            int[] ecoords = {1, 0, 0, 1};
+            eor.transformPoints(2, ecoords);
+
+            for (int i = 0; i < 2; i++) {
+                Point p = mor.transformPoint(mpoints[i]);
+                assertEquals(ecoords[i * 2 + 0], p.getX());
+                assertEquals(ecoords[i * 2 + 1], p.getY());
             }
         }
     }
@@ -126,34 +146,11 @@ public class ManhattanOrientationTest {
         System.out.println("transformRects");
         for (ManhattanOrientation mor : ManhattanOrientation.class.getEnumConstants()) {
             Orientation eor = electricOrientation[mor.ordinal()];
-            long[] mcoords = {1, 2, 3, 4};
+            int[] mcoords = {1, 2, 3, 4};
             int[] ecoords = {1, 2, 3, 4};
             mor.transformRects(mcoords, 0, 1);
             eor.rectangleBounds(ecoords);
-            for (int i = 0; i < 4; i++) {
-                assertEquals((long) ecoords[i], mcoords[i]);
-            }
-        }
-    }
-
-    /**
-     * Test of transformRects method, of class ManhattanOrientation.
-     */
-    @Test
-    public void testTransformRectsByRects() {
-        System.out.println("transformRects");
-        for (ManhattanOrientation mor : ManhattanOrientation.class.getEnumConstants()) {
-            System.out.println("Test: " + mor.toString());
-            Orientation eor = electricOrientation[mor.ordinal()];
-            long mcoords[] = new long[]{1, 2, 3, 4};
-            int[] ecoords = {1, 2, 3, 4};
-            mor.transformRects(mcoords, 0, 1);
-            eor.rectangleBounds(ecoords);
-
-            assertEquals((long) ecoords[0], mcoords[0]);
-            assertEquals((long) ecoords[1], mcoords[1]);
-            assertEquals((long) ecoords[2], mcoords[2]);
-            assertEquals((long) ecoords[3], mcoords[3]);
+            assertArrayEquals(ecoords, mcoords);
         }
     }
 

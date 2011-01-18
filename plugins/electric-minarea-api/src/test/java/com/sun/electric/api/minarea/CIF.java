@@ -67,7 +67,6 @@ public class CIF {
     private static final int NESTEND = 117;
     private static final int NOSPACE = 118;
     private static final int NONAME = 119;
-
     // error codes for reporting errors
     private static final int FATALINTERNAL = 0;
     private static final int FATALSYNTAX = 1;
@@ -75,7 +74,6 @@ public class CIF {
     private static final int FATALOUTPUT = 3;
     private static final int ADVISORY = 4;
 //	private static final int OTHER         = 5;			/* OTHER must be last */
-
     /** flag for error encountered */
     private boolean errorFound;
     /** what it was */
@@ -94,7 +92,6 @@ public class CIF {
     private int nextInputCharacter;
     /** the line being read */
     private StringBuilder inputBuffer;
-    
     private CIFActions c1;
 
     /**
@@ -917,7 +914,6 @@ public class CIF {
                 break;
         }
     }
-
     // From class com.sun.electric.tool.io.input.Input
     protected static final int READ_BUFFER_SIZE = 65536;
     /** Name of the file being input. */
@@ -988,40 +984,59 @@ public class CIF {
 
     protected void updateProgressDialog(int bytesRead) {
     }
-    
+
     private static boolean isAsciiDigit(char ch) {
         return '0' <= ch && ch <= '9';
     }
-    
+
     static interface CIFActions {
+
         void initInterpreter();
-        
+
         void makeWire(int width/*, path*/);
+
         void makeStartDefinition(int symbol, int mtl, int div);
+
         void makeEndDefinition();
+
         void makeDeleteDefinition(int n);
-        
+
         void initTransform();
+
         void appendTranslate(int xt, int yt);
+
         void appendMirrorX();
+
         void appendMirrorY();
+
         void appendRotate(int xRot, int yRot);
-        
+
         void initPath();
+
         void appendPoint(Point p);
-        
+
         void makeCall(int symbol, int lineNumber/*, transform*/);
+
         void makeLayer(String lName);
+
         void makeFlash(int diameter, Point center);
+
         void makePolygon(/*path*/);
+
         void makeBox(int length, int width, Point center, int xr, int yr);
+
         void makeUserComment(int command, String text);
+
         void makeSymbolName(String name);
+
         void makeInstanceName(String name);
+
         void makeGeomName(String name, Point pt, String lay);
+
         void makeLabel(String name, Point pt);
+
         void processEnd();
-        
+
         void doneInterpreter();
     }
 }

@@ -35,8 +35,7 @@ import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
 public class DebugLayoutCell implements LayoutCell {
 
     private String name;
-    // private int[] rectCoords = new int[4];
-    private List<Rectangle> rectangles = new ArrayList<Rectangle>();
+    private int[] rectCoords = new int[4];
     private int numRectangles = 0;
 
     private static class CellInst {
@@ -70,37 +69,50 @@ public class DebugLayoutCell implements LayoutCell {
 
     // rectangles
     public int getNumRectangles() {
-        return rectangles.size();
+        return numRectangles;
     }
 
-    @Deprecated
-    public int getRectangleMinX(int rectangleIndex) {
-        // return rectCoords[rectangleIndex * 4 + 0];
-        return this.getRectangle(rectangleIndex).getMin().getX();
-    }
-
-    @Deprecated
-    public int getRectangleMinY(int rectangleIndex) {
-        // return rectCoords[rectangleIndex * 4 + 1];
-        return this.getRectangle(rectangleIndex).getMin().getY();
-    }
-
-    @Deprecated
-    public int getRectangleMaxX(int rectangleIndex) {
-        // return rectCoords[rectangleIndex * 4 + 2];
-        return this.getRectangle(rectangleIndex).getMax().getX();
-    }
-
-    @Deprecated
-    public int getRectangleMaxY(int rectangleIndex) {
-        // return rectCoords[rectangleIndex * 4 + 3];
-        return this.getRectangle(rectangleIndex).getMax().getY();
-    }
-
-    public void traverseRectangles(LayoutCell.RectangleHandler h) {
-        for (int i = 0; i < numRectangles; i++) {
-            h.apply(this.rectangles.get(i));
+    /**
+     * Traverse part of rectangles by specified handler 
+     * @param h handler
+     * @param offset the first rectangle 
+     * @param count the number of rectangle
+     */
+    public void traverseRectangles(RectangleHandler h, int offset, int count) {
+        if (offset < 0 || count < 0 || offset + count >= numRectangles) {
+            throw new IndexOutOfBoundsException();
         }
+        for (int i = 0; i < numRectangles; i++) {
+            int minX = rectCoords[(i + offset) * 4 + 0];
+            int minY = rectCoords[(i + offset) * 4 + 1];
+            int maxX = rectCoords[(i + offset) * 4 + 2];
+            int maxY = rectCoords[(i + offset) * 4 + 3];
+            h.apply(minX, minY, maxX, maxY);
+        }
+    }
+
+    /**
+     * Traverse all rectangles by specified handler 
+     * @param h handler
+     */
+    public void traverseRectangles(RectangleHandler h) {
+        traverseRectangles(h, 0, numRectangles);
+    }
+
+    /**
+     * Read rectable corrdinates into int array.
+     * The length of the result array must be at least 4*count .
+     * The coordinates are placed into the result array in such an order:
+     * (minX0, minY0, maxX0, maxY0, minX1, minY1, maxX1, maxY1, ...)
+     * @param offset The first rectangle
+     * @param count The number of rectangles
+     * @param result
+     */
+    public void readRectangleCoords(int offset, int count, int[] result) {
+        if (offset + count >= numRectangles) {
+            throw new IndexOutOfBoundsException();
+        }
+        System.arraycopy(rectCoords, offset * 4, result, 0, count * 4);
     }
 
     // subcells
@@ -110,16 +122,6 @@ public class DebugLayoutCell implements LayoutCell {
 
     public LayoutCell getSubcellCell(int subCellIndex) {
         return subCells.get(subCellIndex).subCell;
-    }
-
-    public int getSubcellAnchorX(int subCellIndex) {
-        // return subCells.get(subCellIndex).anchorX;
-        return this.getSubcellAnchor(subCellIndex).getX();
-    }
-
-    public int getSubcellAnchorY(int subCellIndex) {
-        // return subCells.get(subCellIndex).anchorY;
-        return this.getSubcellAnchor(subCellIndex).getY();
     }
 
     public ManhattanOrientation getSubcellOrientation(int subCellIndex) {
@@ -167,16 +169,15 @@ public class DebugLayoutCell implements LayoutCell {
         long hx = Long.MIN_VALUE;
         long hy = Long.MIN_VALUE;
         for (int i = 0; i < numRectangles; i++) {
-            Rectangle rect = this.rectangles.get(i);
-            lx = Math.min(lx, rect.getMin().getX());
-            ly = Math.min(ly, rect.getMin().getY());
-            hx = Math.max(hx, rect.getMax().getX());
-            hy = Math.max(hy, rect.getMax().getY());
+            lx = Math.min(lx, rectCoords[i * 4 + 0]);
+            ly = Math.min(ly, rectCoords[i * 4 + 1]);
+            hx = Math.max(hx, rectCoords[i * 4 + 2]);
+            hy = Math.max(hy, rectCoords[i * 4 + 3]);
         }
-        long[] bounds = new long[4];
+        int[] bounds = new int[4];
         for (CellInst ci : subCells) {
-            int x = ci.anchor.getX();
-            int y = ci.anchor.getY();
+            long x = ci.anchor.getX();
+            long y = ci.anchor.getY();
             bounds[0] = ci.subCell.getBoundingMinX();
             bounds[1] = ci.subCell.getBoundingMinY();
             bounds[2] = ci.subCell.getBoundingMaxX();
@@ -188,7 +189,9 @@ public class DebugLayoutCell implements LayoutCell {
             hy = Math.max(hy, y + bounds[3]);
         }
         if (lx <= hx && ly <= hy) {
-            if (lx < -LayoutCell.MAX_COORD || hx > LayoutCell.MAX_COORD || ly < -LayoutCell.MAX_COORD
+            if (lx < -LayoutCell.MAX_COORD
+                    || hx > LayoutCell.MAX_COORD
+                    || ly < -LayoutCell.MAX_COORD
                     || hy > LayoutCell.MAX_COORD) {
                 throw new IllegalArgumentException("Too large bounding box");
             }
@@ -205,18 +208,16 @@ public class DebugLayoutCell implements LayoutCell {
         if (minX >= maxX || minY >= maxY) {
             throw new IllegalArgumentException();
         }
-//		if (numRectangles * 4 >= rectCoords.length) {
-//			int[] newRectCoords = new int[rectCoords.length * 2];
-//			System.arraycopy(rectCoords, 0, newRectCoords, 0, rectCoords.length);
-//			rectCoords = newRectCoords;
-//		}
-//		rectCoords[numRectangles * 4 + 0] = minX;
-//		rectCoords[numRectangles * 4 + 1] = minY;
-//		rectCoords[numRectangles * 4 + 2] = maxX;
-//		rectCoords[numRectangles * 4 + 3] = maxY;
-//		numRectangles++;
-
-        this.rectangles.add(new Rectangle(new Point(minX, minY), new Point(maxX, maxY)));
+        if (numRectangles * 4 >= rectCoords.length) {
+            int[] newRectCoords = new int[rectCoords.length * 2];
+            System.arraycopy(rectCoords, 0, newRectCoords, 0, rectCoords.length);
+            rectCoords = newRectCoords;
+        }
+        rectCoords[numRectangles * 4 + 0] = minX;
+        rectCoords[numRectangles * 4 + 1] = minY;
+        rectCoords[numRectangles * 4 + 2] = maxX;
+        rectCoords[numRectangles * 4 + 3] = maxY;
+        numRectangles++;
 
         System.out.println("\"" + name + "\".addRectangle(" + minX + "," + minY + "," + maxX + "," + maxY
                 + ")");
@@ -226,9 +227,7 @@ public class DebugLayoutCell implements LayoutCell {
         if (finished) {
             throw new IllegalStateException();
         }
-        this.rectangles.add(rect);
-        System.out.println("\"" + name + "\".addRectangle(" + rect.getMin().getX() + ","
-                + rect.getMin().getY() + "," + rect.getMax().getX() + "," + rect.getMax().getY() + ")");
+        addRectangle(rect.getMin().getX(), rect.getMin().getY(), rect.getMax().getX(), rect.getMax().getY());
     }
 
     public void addSubCell(LayoutCell subCell, Point anchor, ManhattanOrientation orient) {
@@ -238,15 +237,6 @@ public class DebugLayoutCell implements LayoutCell {
         subCells.add(new CellInst(subCell, anchor, orient));
         System.out.println("\"" + name + "\".addSubCell(\"" + subCell.getName() + "\"," + anchor.getX() + ","
                 + anchor.getY() + "," + orient + ");");
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.sun.electric.api.minarea.LayoutCell#getRectangle(int)
-     */
-    public Rectangle getRectangle(int rectangleIndex) {
-        return this.rectangles.get(rectangleIndex);
     }
 
     /*
