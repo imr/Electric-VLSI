@@ -66,7 +66,7 @@ public interface LayoutCell {
      * Traverse part of rectangles by specified handler 
      * @param h handler
      * @param offset the first rectangle 
-     * @param count the number of rectanglea
+     * @param count the number of rectangles
      */
     public void traverseRectangles(RectangleHandler h, int offset, int count);
 
@@ -85,10 +85,13 @@ public interface LayoutCell {
     //  subcells
     public int getNumSubcells();
 
+    @Deprecated
     public LayoutCell getSubcellCell(int subCellIndex);
 
+    @Deprecated
     public Point getSubcellAnchor(int subCellIndex);
 
+    @Deprecated
     public ManhattanOrientation getSubcellOrientation(int subCellIndex);
 
     // traversal of subcells
@@ -102,7 +105,19 @@ public interface LayoutCell {
         public void apply(LayoutCell cell, Point anchor, ManhattanOrientation orient);
     }
 
+    /**
+     * Traverse all subcell instances by specified handler 
+     * @param h handler
+     */
     public void traverseSubcellInstances(SubcellHandler h);
+
+    /**
+     * Traverse part of  subcell instances by specified handler 
+     * @param h handler
+     * @param offset the first subcell instance
+     * @param count the number of subcell instances
+     */
+    public void traverseSubcellInstances(SubcellHandler h, int offset, int count);
 
     // bounding box
     public int getBoundingMinX();

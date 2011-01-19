@@ -90,7 +90,7 @@ public class SimpleChecker implements MinAreaChecker {
         }
     }
 
-    private void collect(DeltaMerge dm, LayoutCell cell, int x, int y, ManhattanOrientation orient) {
+    private void collect(final DeltaMerge dm, LayoutCell cell, final int x, final int y, final ManhattanOrientation orient) {
         int bufSize = Math.max(1, Math.min(16, cell.getNumRectangles()));
         int[] coords = new int[4 * bufSize];
         int ir = 0;
@@ -110,15 +110,17 @@ public class SimpleChecker implements MinAreaChecker {
             ir += sz;
         }
 
-        for (int i = 0; i < cell.getNumSubcells(); i++) {
-            LayoutCell subCell = cell.getSubcellCell(i);
+        if (cell.getNumSubcells() > 0) {
+            cell.traverseSubcellInstances(new LayoutCell.SubcellHandler() {
 
-            Point p = cell.getSubcellAnchor(i).transform(orient);
-            ManhattanOrientation subOrient = cell.getSubcellOrientation(i);
-            collect(dm, subCell, p.getX() + x, p.getY() + y, orient.concatenate(subOrient));
+                public void apply(LayoutCell subCell, Point anchor, ManhattanOrientation subOrient) {
+                    Point p = anchor.transform(orient);
+                    collect(dm, subCell, p.getX() + x, p.getY() + y, orient.concatenate(subOrient));
+                }
+            });
         }
     }
-
+    
     private void traversePolyTree(PolyBase.PolyBaseTree obj, int level, long minArea, ErrorLogger errorLogger) {
         if (level % 2 == 0) {
             PolyBase poly = obj.getPoly();

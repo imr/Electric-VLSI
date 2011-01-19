@@ -21,15 +21,17 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.api.minarea;
+package com.sun.electric.api.minarea.launcher;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.sun.electric.api.minarea.LayoutCell;
+import com.sun.electric.api.minarea.ManhattanOrientation;
 import com.sun.electric.api.minarea.geometry.Point;
 import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
+
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -56,17 +58,13 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
     private transient Rectangle boundingBox;
     private transient boolean finished;
 
-    DefaultLayoutCell(String name) {
+    public DefaultLayoutCell(String name) {
         this.name = name;
     }
 
     // cell name
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     // rectangles
@@ -79,7 +77,13 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
      * @param h handler
      */
     public void traverseRectangles(RectangleHandler h) {
-        traverseRectangles(h, 0, numRectangles);
+        for (int i = 0; i < numRectangles; i++) {
+            int minX = rectCoords[i*4 + 0];
+            int minY = rectCoords[i*4 + 1];
+            int maxX = rectCoords[i*4 + 2];
+            int maxY = rectCoords[i*4 + 3];
+            h.apply(minX, minY, maxX, maxY);
+        }
     }
 
     /**
@@ -89,14 +93,14 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
      * @param count the number of rectangle
      */
     public void traverseRectangles(RectangleHandler h, int offset, int count) {
-        if (offset < 0 || count < 0 || offset + count > numRectangles) {
+        if (offset < 0 || count < 0 || count > numRectangles - offset) {
             throw new IndexOutOfBoundsException();
         }
-        for (int i = 0; i < numRectangles; i++) {
-            int minX = rectCoords[(i + offset) * 4 + 0];
-            int minY = rectCoords[(i + offset) * 4 + 1];
-            int maxX = rectCoords[(i + offset) * 4 + 2];
-            int maxY = rectCoords[(i + offset) * 4 + 3];
+        for (int i = 0; i < count; i++) {
+            int minX = rectCoords[(i + offset)*4 + 0];
+            int minY = rectCoords[(i + offset)*4 + 1];
+            int maxX = rectCoords[(i + offset)*4 + 2];
+            int maxY = rectCoords[(i + offset)*4 + 3];
             h.apply(minX, minY, maxX, maxY);
         }
     }
@@ -112,10 +116,10 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
      * @param count The number of rectangles
      */
     public void readRectangleCoords(int[] result, int offset, int count) {
-        if (offset + count > numRectangles) {
+        if (count > numRectangles - offset) {
             throw new IndexOutOfBoundsException();
         }
-        System.arraycopy(rectCoords, offset * 4, result, 0, count * 4);
+        System.arraycopy(rectCoords, offset*4, result, 0, count*4);
     }
 
     // subcells
@@ -123,20 +127,41 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
         return subCells.size();
     }
 
+    @Deprecated
     public LayoutCell getSubcellCell(int subCellIndex) {
         return subCells.get(subCellIndex).subCell;
     }
 
+    @Deprecated
     public ManhattanOrientation getSubcellOrientation(int subCellIndex) {
         return subCells.get(subCellIndex).orient;
     }
 
+    /**
+     * Traverse all subcell instances by specified handler 
+     * @param h handler
+     */
     public void traverseSubcellInstances(LayoutCell.SubcellHandler h) {
         for (CellInst ci : subCells) {
             h.apply(ci.subCell, ci.anchor, ci.orient);
         }
     }
 
+    /**
+     * Traverse part of  subcell instances by specified handler 
+     * @param h handler
+     * @param offset the first subcell instance
+     * @param count the number of subcell instances
+     */
+    public void traverseSubcellInstances(SubcellHandler h, int offset, int count) {
+        if (offset < 0 || count < 0 || count > subCells.size() - offset)
+            throw new IndexOutOfBoundsException();
+        for (int i = 0; i < count; i++) {
+            CellInst ci = subCells.get(offset + i);
+            h.apply(ci.subCell, ci.anchor, ci.orient);
+        }
+    }
+    
     // bounding box
     public int getBoundingMinX() {
         // if (!finished)
@@ -203,7 +228,13 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
         finished = true;
     }
 
-    @Deprecated
+    public void setName(String name) {
+        if (finished) {
+            throw new IllegalStateException();
+        }
+        this.name = name;
+    }
+
     public void addRectangle(int minX, int minY, int maxX, int maxY) {
         if (finished) {
             throw new IllegalStateException();
@@ -247,6 +278,7 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
      * 
      * @see com.sun.electric.api.minarea.LayoutCell#getSubcellAnchor(int)
      */
+    @Deprecated
     public Point getSubcellAnchor(int subCellIndex) {
         return subCells.get(subCellIndex).anchor;
     }
@@ -256,7 +288,7 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
      * 
      * @see com.sun.electric.api.minarea.LayoutCell#getBoundingBox()
      */
-    public Rectangle getBoundingBox() {
+    private Rectangle getBoundingBox() {
         if (!finished) {
             computeBoundingBox();
         }

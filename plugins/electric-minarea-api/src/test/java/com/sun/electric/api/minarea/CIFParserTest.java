@@ -23,6 +23,7 @@
  */
 package com.sun.electric.api.minarea;
 
+import com.sun.electric.api.minarea.launcher.DefaultLayoutCell;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
