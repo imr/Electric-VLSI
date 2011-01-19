@@ -127,23 +127,13 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
         return subCells.size();
     }
 
-    @Deprecated
-    public LayoutCell getSubcellCell(int subCellIndex) {
-        return subCells.get(subCellIndex).subCell;
-    }
-
-    @Deprecated
-    public ManhattanOrientation getSubcellOrientation(int subCellIndex) {
-        return subCells.get(subCellIndex).orient;
-    }
-
     /**
      * Traverse all subcell instances by specified handler 
      * @param h handler
      */
     public void traverseSubcellInstances(LayoutCell.SubcellHandler h) {
         for (CellInst ci : subCells) {
-            h.apply(ci.subCell, ci.anchor, ci.orient);
+            h.apply(ci.subCell, ci.anchor.getX(), ci.anchor.getY(), ci.orient);
         }
     }
 
@@ -158,7 +148,7 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
             throw new IndexOutOfBoundsException();
         for (int i = 0; i < count; i++) {
             CellInst ci = subCells.get(offset + i);
-            h.apply(ci.subCell, ci.anchor, ci.orient);
+            h.apply(ci.subCell, ci.anchor.getX(), ci.anchor.getY(), ci.orient);
         }
     }
     
@@ -271,16 +261,6 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
         subCells.add(new CellInst(subCell, anchor, orient));
         System.out.println("\"" + name + "\".addSubCell(\"" + subCell.getName() + "\"," + anchor.getX() + ","
                 + anchor.getY() + "," + orient + ");");
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.sun.electric.api.minarea.LayoutCell#getSubcellAnchor(int)
-     */
-    @Deprecated
-    public Point getSubcellAnchor(int subCellIndex) {
-        return subCells.get(subCellIndex).anchor;
     }
 
     /*

@@ -23,8 +23,6 @@
  */
 package com.sun.electric.api.minarea;
 
-import com.sun.electric.api.minarea.geometry.Point;
-
 /**
  * Data source for main area DRC
  */
@@ -85,24 +83,16 @@ public interface LayoutCell {
     //  subcells
     public int getNumSubcells();
 
-    @Deprecated
-    public LayoutCell getSubcellCell(int subCellIndex);
-
-    @Deprecated
-    public Point getSubcellAnchor(int subCellIndex);
-
-    @Deprecated
-    public ManhattanOrientation getSubcellOrientation(int subCellIndex);
-
     // traversal of subcells
     public interface SubcellHandler {
 
         /**
          * @param cell
-         * @param anchor
+         * @param anchorX
+         * @param anchorY
          * @param orient
          */
-        public void apply(LayoutCell cell, Point anchor, ManhattanOrientation orient);
+        public void apply(LayoutCell cell, int anchorX, int anchorY, ManhattanOrientation orient);
     }
 
     /**
