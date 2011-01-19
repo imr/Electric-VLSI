@@ -71,16 +71,16 @@ public class CIFParserTest {
 
     @Test
     public void writeSerializations() {
-       URL url = CIFParserTest.class.getResource("SimpleHierarchy.cif");
-       int scaleFactor = 10;
-       writeSerialization("BasicAreas_CPG.lay", url, scaleFactor, "CPG", 101); 
-       writeSerialization("BasicAreas_CMF.lay", url, scaleFactor, "CMF", 101); 
-       writeSerialization("BasicAreas_CSP.lay", url, scaleFactor, "CSP", 101); 
-       writeSerialization("SimpleHierarchy_CPG.lay", url, scaleFactor, "CPG", 102); 
-       writeSerialization("SimpleHierarchy_CMF.lay", url, scaleFactor, "CMF", 102); 
-       writeSerialization("SimpleHierarchy_CSP.lay", url, scaleFactor, "CSP", 102); 
+        URL url = CIFParserTest.class.getResource("SimpleHierarchy.cif");
+        int scaleFactor = 10;
+        writeSerialization("BasicAreas_CPG.lay", url, scaleFactor, "CPG", 101);
+        writeSerialization("BasicAreas_CMF.lay", url, scaleFactor, "CMF", 101);
+        writeSerialization("BasicAreas_CSP.lay", url, scaleFactor, "CSP", 101);
+        writeSerialization("SimpleHierarchy_CPG.lay", url, scaleFactor, "CPG", 102);
+        writeSerialization("SimpleHierarchy_CMF.lay", url, scaleFactor, "CMF", 102);
+        writeSerialization("SimpleHierarchy_CSP.lay", url, scaleFactor, "CSP", 102);
     }
-    
+
     private static void writeSerialization(String fileName, URL cifUrl, int scaleFactor, String layerSelector, int topCellId) {
         boolean COMPARE = true;
         try {
@@ -120,13 +120,13 @@ public class CIFParserTest {
         cif.openTextInput(cifUrl);
         cif.importALibrary();
         cif.closeInput();
-        
+
         LayoutCell topCell = gcif.cells.get(Integer.valueOf(topCellId));
         ObjectOutputStream out = new ObjectOutputStream(os);
         out.writeObject(topCell);
         out.close();
     }
-    
+
     public static class GenCIFActions implements CIF.CIFActions {
 
         private int scaleFactor;
@@ -226,12 +226,13 @@ public class CIFParserTest {
             if (subCell == curCell) {
                 throw new IllegalArgumentException("Recursive cell call");
             }
-            if (curTranslate.getX()%scaleFactor != 0 || curTranslate.getY()%scaleFactor != 0) {
+            if (curTranslate.getX() % scaleFactor != 0 || curTranslate.getY() % scaleFactor != 0) {
                 throw new IllegalArgumentException("Scale factor error");
             }
-            Point anchor = new Point(curTranslate.getX()/scaleFactor, curTranslate.getY()/scaleFactor);
+            int anchorX = curTranslate.getX() / scaleFactor;
+            int anchorY = curTranslate.getY() / scaleFactor;
             if (curCell != null) {
-                curCell.addSubCell(subCell, anchor, curOrient);
+                curCell.addSubCell(subCell, anchorX, anchorY, curOrient);
             }
         }
 
@@ -250,19 +251,19 @@ public class CIFParserTest {
             int yl = center.getY() - width / 2;
             int xh = center.getX() + length / 2;
             int yh = center.getY() + width / 2;
-            if (xl%scaleFactor != 0 || yl%scaleFactor != 0 || xh%scaleFactor != 0 || yh%scaleFactor != 0) {
+            if (xl % scaleFactor != 0 || yl % scaleFactor != 0 || xh % scaleFactor != 0 || yh % scaleFactor != 0) {
                 throw new IllegalArgumentException("Scale factor error");
             }
             xl /= scaleFactor;
             yl /= scaleFactor;
             xh /= scaleFactor;
             yh /= scaleFactor;
-            
+
             if (yr != 0 || xr <= 0) {
                 throw new UnsupportedOperationException("Rotated boxes are not supported");
             }
             if (curCell != null && isSelectedLayer) {
-                curCell.addRectangle(new Rectangle(new Point(xl, yl), new Point(xh, yh)));
+                curCell.addRectangle(xl, yl, xh, yh);
             }
         }
 

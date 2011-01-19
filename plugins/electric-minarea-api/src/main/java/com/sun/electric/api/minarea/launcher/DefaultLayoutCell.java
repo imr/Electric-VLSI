@@ -25,8 +25,6 @@ package com.sun.electric.api.minarea.launcher;
 
 import com.sun.electric.api.minarea.LayoutCell;
 import com.sun.electric.api.minarea.ManhattanOrientation;
-import com.sun.electric.api.minarea.geometry.Point;
-import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -45,17 +43,22 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
     private static class CellInst implements Serializable {
 
         private final LayoutCell subCell;
-        private final Point anchor;
+        private final int anchorX;
+        private final int anchorY;
         private final ManhattanOrientation orient;
 
-        private CellInst(LayoutCell subCell, Point anchor, ManhattanOrientation orient) {
+        private CellInst(LayoutCell subCell, int anchorX, int anchorY, ManhattanOrientation orient) {
             this.subCell = subCell;
-            this.anchor = anchor;
+            this.anchorX = anchorX;
+            this.anchorY = anchorY;
             this.orient = orient;
         }
     }
     private final List<CellInst> subCells = new ArrayList<CellInst>();
-    private transient Rectangle boundingBox;
+    private int boundingMinX;
+    private int boundingMinY;
+    private int boundingMaxX;
+    private int boundingMaxY;
     private transient boolean finished;
 
     public DefaultLayoutCell(String name) {
@@ -78,10 +81,10 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
      */
     public void traverseRectangles(RectangleHandler h) {
         for (int i = 0; i < numRectangles; i++) {
-            int minX = rectCoords[i*4 + 0];
-            int minY = rectCoords[i*4 + 1];
-            int maxX = rectCoords[i*4 + 2];
-            int maxY = rectCoords[i*4 + 3];
+            int minX = rectCoords[i * 4 + 0];
+            int minY = rectCoords[i * 4 + 1];
+            int maxX = rectCoords[i * 4 + 2];
+            int maxY = rectCoords[i * 4 + 3];
             h.apply(minX, minY, maxX, maxY);
         }
     }
@@ -97,10 +100,10 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
             throw new IndexOutOfBoundsException();
         }
         for (int i = 0; i < count; i++) {
-            int minX = rectCoords[(i + offset)*4 + 0];
-            int minY = rectCoords[(i + offset)*4 + 1];
-            int maxX = rectCoords[(i + offset)*4 + 2];
-            int maxY = rectCoords[(i + offset)*4 + 3];
+            int minX = rectCoords[(i + offset) * 4 + 0];
+            int minY = rectCoords[(i + offset) * 4 + 1];
+            int maxX = rectCoords[(i + offset) * 4 + 2];
+            int maxY = rectCoords[(i + offset) * 4 + 3];
             h.apply(minX, minY, maxX, maxY);
         }
     }
@@ -119,7 +122,7 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
         if (count > numRectangles - offset) {
             throw new IndexOutOfBoundsException();
         }
-        System.arraycopy(rectCoords, offset*4, result, 0, count*4);
+        System.arraycopy(rectCoords, offset * 4, result, 0, count * 4);
     }
 
     // subcells
@@ -133,7 +136,7 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
      */
     public void traverseSubcellInstances(LayoutCell.SubcellHandler h) {
         for (CellInst ci : subCells) {
-            h.apply(ci.subCell, ci.anchor.getX(), ci.anchor.getY(), ci.orient);
+            h.apply(ci.subCell, ci.anchorX, ci.anchorY, ci.orient);
         }
     }
 
@@ -144,41 +147,42 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
      * @param count the number of subcell instances
      */
     public void traverseSubcellInstances(SubcellHandler h, int offset, int count) {
-        if (offset < 0 || count < 0 || count > subCells.size() - offset)
+        if (offset < 0 || count < 0 || count > subCells.size() - offset) {
             throw new IndexOutOfBoundsException();
+        }
         for (int i = 0; i < count; i++) {
             CellInst ci = subCells.get(offset + i);
-            h.apply(ci.subCell, ci.anchor.getX(), ci.anchor.getY(), ci.orient);
+            h.apply(ci.subCell, ci.anchorX, ci.anchorY, ci.orient);
         }
     }
-    
+
     // bounding box
     public int getBoundingMinX() {
-        // if (!finished)
-        // computeBoundingBox();
-        // return boundingMinX;
-        return this.getBoundingBox().getMin().getX();
+        if (!finished) {
+            computeBoundingBox();
+        }
+        return boundingMinX;
     }
 
     public int getBoundingMinY() {
-        // if (!finished)
-        // computeBoundingBox();
-        // return boundingMinY;
-        return this.getBoundingBox().getMin().getY();
+        if (!finished) {
+            computeBoundingBox();
+        }
+        return boundingMinY;
     }
 
     public int getBoundingMaxX() {
-        // if (!finished)
-        // computeBoundingBox();
-        // return boundingMaxX;
-        return this.getBoundingBox().getMax().getX();
+        if (!finished) {
+            computeBoundingBox();
+        }
+        return boundingMaxX;
     }
 
     public int getBoundingMaxY() {
-        // if (!finished)
-        // computeBoundingBox();
-        // return boundingMaxY;
-        return this.getBoundingBox().getMax().getY();
+        if (!finished) {
+            computeBoundingBox();
+        }
+        return boundingMaxY;
     }
 
     private void computeBoundingBox() {
@@ -194,8 +198,8 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
         }
         int[] bounds = new int[4];
         for (CellInst ci : subCells) {
-            long x = ci.anchor.getX();
-            long y = ci.anchor.getY();
+            long x = ci.anchorX;
+            long y = ci.anchorY;
             bounds[0] = ci.subCell.getBoundingMinX();
             bounds[1] = ci.subCell.getBoundingMinY();
             bounds[2] = ci.subCell.getBoundingMaxX();
@@ -213,7 +217,10 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
                     || hy > LayoutCell.MAX_COORD) {
                 throw new IllegalArgumentException("Too large bounding box");
             }
-            boundingBox = new Rectangle(new Point((int) lx, (int) ly), new Point((int) hx, (int) hy));
+            boundingMinX = (int) lx;
+            boundingMinY = (int) ly;
+            boundingMaxX = (int) hx;
+            boundingMaxY = (int) hy;
         }
         finished = true;
     }
@@ -247,46 +254,26 @@ public class DefaultLayoutCell implements LayoutCell, Serializable {
                 + ")");
     }
 
-    public void addRectangle(Rectangle rect) {
+    public void addSubCell(LayoutCell subCell, int anchorX, int anchorY, ManhattanOrientation orient) {
         if (finished) {
             throw new IllegalStateException();
         }
-        addRectangle(rect.getMin().getX(), rect.getMin().getY(), rect.getMax().getX(), rect.getMax().getY());
+        subCells.add(new CellInst(subCell, anchorX, anchorY, orient));
+        System.out.println("\"" + name + "\".addSubCell(\"" + subCell.getName() + "\"," + anchorX + ","
+                + anchorY + "," + orient + ");");
     }
 
-    public void addSubCell(LayoutCell subCell, Point anchor, ManhattanOrientation orient) {
-        if (finished) {
-            throw new IllegalStateException();
-        }
-        subCells.add(new CellInst(subCell, anchor, orient));
-        System.out.println("\"" + name + "\".addSubCell(\"" + subCell.getName() + "\"," + anchor.getX() + ","
-                + anchor.getY() + "," + orient + ");");
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.sun.electric.api.minarea.LayoutCell#getBoundingBox()
-     */
-    private Rectangle getBoundingBox() {
-        if (!finished) {
-            computeBoundingBox();
-        }
-
-        return this.boundingBox;
-    }
-    
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        rectCoords = new int[numRectangles*4];
+        rectCoords = new int[numRectangles * 4];
         for (int i = 0; i < rectCoords.length; i++) {
             rectCoords[i] = in.readInt();
         }
-        computeBoundingBox();
     }
+
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        for (int i = 0; i < numRectangles*4; i++) {
+        for (int i = 0; i < numRectangles * 4; i++) {
             out.writeInt(rectCoords[i]);
         }
     }
