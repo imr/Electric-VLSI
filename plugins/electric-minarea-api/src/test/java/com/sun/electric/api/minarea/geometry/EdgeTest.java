@@ -31,7 +31,7 @@ import org.junit.Test;
  * @author Felix Schmidt
  *
  */
-public class VertexTest {
+public class EdgeTest {
 	
 	@Test
 	public void testLength() {
