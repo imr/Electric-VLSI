@@ -122,7 +122,7 @@ public class Launcher {
 		 * @see com.sun.electric.api.minarea.MinAreaChecker.ErrorLogger#
 		 * reportMinAreaViolation(long, long, long)
 		 */
-		public void reportMinAreaViolation(long minArea, long x, long y) {
+		public synchronized void reportMinAreaViolation(long minArea, long x, long y) {
 			violations.add(new MinAreaViolation(minArea, x, y));
 		}
 
