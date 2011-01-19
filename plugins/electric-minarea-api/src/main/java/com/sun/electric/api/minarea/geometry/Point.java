@@ -33,11 +33,17 @@ import java.io.Serializable;
  * @author Felix Schmidt
  * 
  */
+@SuppressWarnings("serial")
 public class Point implements Serializable {
 
 	protected final int xCoord;
 	protected final int yCoord;
 
+	/**
+	 * 
+	 * @param x [-LayoutCell.MAX_COORD, LayoutCell.MAX_COORD]
+	 * @param y [-LayoutCell.MAX_COORD, LayoutCell.MAX_COORD]
+	 */
 	public Point(int x, int y) {
 		if (x < -LayoutCell.MAX_COORD || x > LayoutCell.MAX_COORD) {
 			throw new IllegalArgumentException(
