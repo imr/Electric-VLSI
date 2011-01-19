@@ -39,9 +39,12 @@ import com.sun.electric.api.minarea.geometry.Point;
 import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.net.URL;
 
 /**
  *
@@ -73,48 +76,67 @@ public class CIFParserTest {
     @Test
     public void testParser() {
         System.out.println("parser");
-        GenCIFActions gcif = new GenCIFActions();
-        gcif.layerSelector = "CPG";
-        DebugCIFActions dcif = new DebugCIFActions();
-        dcif.out = System.out;
-        dcif.impl = gcif;
-        CIF cif = new CIF(dcif);
-        cif.openTextInput(CIFParserTest.class.getResource("SimpleHierarchy.cif"));
-        cif.importALibrary();
-        cif.closeInput();
+        URL url = CIFParserTest.class.getResource("SimpleHierarchy.cif");
+        int scaleFactor = 1;
+        String layerSelector = "CPG";
+        int topCellId = 102;
 
-        LayoutCell topCell = gcif.cells.get(Integer.valueOf(102));
         ByteArrayOutputStream ba = new ByteArrayOutputStream();
         try {
-            ObjectOutputStream out = new ObjectOutputStream(ba);
-            out.writeObject(topCell);
-            out.close();
+            writeSerialization(ba, url, scaleFactor, layerSelector, topCellId);
             ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(ba.toByteArray()));
-            topCell = (LayoutCell) in.readObject();
+            LayoutCell topCell = (LayoutCell) in.readObject();
             in.close();
         } catch (IOException e) {
             assertTrue(false);
         } catch (ClassNotFoundException e) {
             assertTrue(false);
         }
-        long minArea = Long.MAX_VALUE;
-        new SimpleChecker().check(topCell, minArea, null, new MyErrorLogger());
     }
-
-    private class MyErrorLogger implements MinAreaChecker.ErrorLogger {
-
-        /**
-         * @param min area of violating polygon
-         * @param x x-coordinate of some point of violating polygon
-         * @param y y-coordinate of some point of violating polygon
-         */
-        public void reportMinAreaViolation(long minArea, long x, long y) {
-            System.out.println("reportMinAreaViolation(" + minArea + "," + x + "," + y + ");");
+    
+    @Test
+    public void writeSerializations() {
+       URL url = CIFParserTest.class.getResource("SimpleHierarchy.cif");
+       int scaleFactor = 10;
+       writeSerialization("BasicAreas_CPG.lay", url, scaleFactor, "CPG", 101); 
+       writeSerialization("BasicAreas_CMF.lay", url, scaleFactor, "CMF", 101); 
+       writeSerialization("BasicAreas_CSP.lay", url, scaleFactor, "CSP", 101); 
+       writeSerialization("SimpleHierarchy_CPG.lay", url, scaleFactor, "CPG", 102); 
+       writeSerialization("SimpleHierarchy_CMF.lay", url, scaleFactor, "CMF", 102); 
+       writeSerialization("SimpleHierarchy_CSP.lay", url, scaleFactor, "CSP", 102); 
+    }
+    
+    private static void writeSerialization(String fileName, URL cifUrl, int scaleFactor, String layerSelector, int topCellId) {
+        try {
+            FileOutputStream os = new FileOutputStream(fileName);
+            writeSerialization(os, cifUrl, scaleFactor, layerSelector, topCellId);
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public class GenCIFActions implements CIF.CIFActions {
+    private static void writeSerialization(OutputStream os, URL cifUrl, int scaleFactor, String layerSelector, int topCellId) throws IOException {
+        GenCIFActions gcif = new GenCIFActions();
+        gcif.layerSelector = layerSelector;
+        gcif.scaleFactor = scaleFactor;
+        DebugCIFActions dcif = new DebugCIFActions();
+        dcif.out = System.out;
+        dcif.impl = gcif;
+        CIF cif = new CIF(dcif);
+        cif.openTextInput(cifUrl);
+        cif.importALibrary();
+        cif.closeInput();
+        
+        LayoutCell topCell = gcif.cells.get(Integer.valueOf(topCellId));
+        ObjectOutputStream out = new ObjectOutputStream(os);
+        out.writeObject(topCell);
+        out.close();
+    }
+    
+    public static class GenCIFActions implements CIF.CIFActions {
 
+        private int scaleFactor;
         private String layerSelector;
         private Map<Integer, DefaultLayoutCell> cells = new HashMap<Integer, DefaultLayoutCell>();
         private DefaultLayoutCell curCell;
@@ -157,7 +179,7 @@ public class CIFParserTest {
         }
 
         public void appendTranslate(int xt, int yt) {
-            curTranslate.add(new Point(xt, yt));
+            curTranslate = curTranslate.add(new Point(xt, yt));
         }
 
         public void appendMirrorX() {
@@ -211,8 +233,12 @@ public class CIFParserTest {
             if (subCell == curCell) {
                 throw new IllegalArgumentException("Recursive cell call");
             }
+            if (curTranslate.getX()%scaleFactor != 0 || curTranslate.getY()%scaleFactor != 0) {
+                throw new IllegalArgumentException("Scale factor error");
+            }
+            Point anchor = new Point(curTranslate.getX()/scaleFactor, curTranslate.getY()/scaleFactor);
             if (curCell != null) {
-                curCell.addSubCell(subCell, curTranslate, curOrient);
+                curCell.addSubCell(subCell, anchor, curOrient);
             }
         }
 
@@ -231,6 +257,14 @@ public class CIFParserTest {
             int yl = center.getY() - width / 2;
             int xh = center.getX() + length / 2;
             int yh = center.getY() + width / 2;
+            if (xl%scaleFactor != 0 || yl%scaleFactor != 0 || xh%scaleFactor != 0 || yh%scaleFactor != 0) {
+                throw new IllegalArgumentException("Scale factor error");
+            }
+            xl /= scaleFactor;
+            yl /= scaleFactor;
+            xh /= scaleFactor;
+            yh /= scaleFactor;
+            
             if (yr != 0 || xr <= 0) {
                 throw new UnsupportedOperationException("Rotated boxes are not supported");
             }
@@ -264,7 +298,7 @@ public class CIFParserTest {
         }
     }
 
-    public class DebugCIFActions implements CIF.CIFActions {
+    public static class DebugCIFActions implements CIF.CIFActions {
 
         private PrintStream out;
         private CIF.CIFActions impl;
@@ -392,7 +426,7 @@ public class CIFParserTest {
         }
     }
 
-    public class NullCIFActions implements CIF.CIFActions {
+    public static class NullCIFActions implements CIF.CIFActions {
 
         public void initInterpreter() {
         }

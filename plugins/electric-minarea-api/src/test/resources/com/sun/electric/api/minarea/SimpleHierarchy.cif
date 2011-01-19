@@ -1,5 +1,5 @@
 ( Electric VLSI Design System, version 9.01-a );
-( written on Пн янв 17, 2011 10:29:56 );
+( written on Mon Jan 17, 2011 10:29:56 );
 DS 101 1 1;
 9 BasicAreas;
 L CPG;

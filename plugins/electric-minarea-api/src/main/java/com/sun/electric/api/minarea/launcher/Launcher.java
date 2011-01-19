@@ -26,9 +26,11 @@ package com.sun.electric.api.minarea.launcher;
 import com.sun.electric.api.minarea.LayoutCell;
 import com.sun.electric.api.minarea.MinAreaChecker;
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.Reader;
 import java.util.Properties;
@@ -56,7 +58,16 @@ public class Launcher {
         String className = args[2];
         String algorithmPropertiesFileName = args.length > 3 ? args[3] : null;
         try {
-            ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(new FileInputStream(layoutFileName)));
+            File layoutFile = new File(layoutFileName);
+            InputStream is;
+            if (layoutFile.canRead()) {
+                is = new FileInputStream(layoutFileName);
+                System.out.println("file " + layoutFileName);
+            } else {
+                is = Launcher.class.getResourceAsStream(layoutFileName);
+                System.out.println("resource " + layoutFileName);
+            }
+            ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(is));
             LayoutCell topCell = (LayoutCell)in.readObject();
             in.close();
             Class algorithmClass = Class.forName(className);
