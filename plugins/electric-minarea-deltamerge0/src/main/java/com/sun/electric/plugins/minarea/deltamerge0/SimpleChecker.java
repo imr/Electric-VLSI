@@ -117,8 +117,8 @@ public class SimpleChecker implements MinAreaChecker {
         if (cell.getNumSubcells() > 0) {
             cell.traverseSubcellInstances(new LayoutCell.SubcellHandler() {
 
-                public void apply(LayoutCell subCell, Point anchor, ManhattanOrientation subOrient) {
-                    Point p = anchor.transform(orient);
+                public void apply(LayoutCell subCell, int anchorX, int anchorY, ManhattanOrientation subOrient) {
+                    Point p = new Point(anchorX, anchorY).transform(orient);
                     collect(dm, subCell, p.getX() + x, p.getY() + y, orient.concatenate(subOrient));
                 }
             });
