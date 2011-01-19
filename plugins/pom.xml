@@ -52,6 +52,7 @@
         <module>electric-irsim</module>
         <module>electric-minarea-api</module>
         <module>electric-minarea-deltamerge0</module>
+        <module>electric-minarea-bitmapscala</module>
     </modules>
     
     <scm>
