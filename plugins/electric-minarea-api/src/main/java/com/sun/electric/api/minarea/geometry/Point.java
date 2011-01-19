@@ -24,6 +24,7 @@
 package com.sun.electric.api.minarea.geometry;
 
 import com.sun.electric.api.minarea.LayoutCell;
+import com.sun.electric.api.minarea.ManhattanOrientation;
 import java.io.Serializable;
 
 /**
@@ -172,6 +173,34 @@ public class Point implements Serializable {
 
 	public Point mirror() {
 		return new Point(this.yCoord, this.xCoord);
+	}
+
+	/**
+	 * 
+	 * @param orientation
+	 * @return
+	 */
+	public Point transform(ManhattanOrientation orientation) {
+            switch (orientation) {
+                case R0:
+                    return this;
+                case R90:
+                    return new Point(-getY(), getX());
+                case R180:
+                    return new Point(-getX(), -getY());
+                case R270:
+                    return new Point(getY(), -getX());
+                case MY:
+                    return new Point(-getX(), getY());
+                case MYR90:
+                    return new Point(-getY(), -getX());
+                case MX:
+                    return new Point(getX(), -getY());
+                case MXR90:
+                    return new Point(getY(), getX());
+                default:
+                    throw new AssertionError();
+            }
 	}
 
 	// ********************* Some helper classes **********************

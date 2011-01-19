@@ -25,15 +25,17 @@ package com.sun.electric.api.minarea;
 
 import java.awt.geom.AffineTransform;
 
-import com.sun.electric.api.minarea.geometry.Point;
-
 /**
  * Enumeration to specify Manhattan orientation.
- * The constants are standard EDIF orientations.
+ * There are 8 Manhattan orientations.
+ * The names of the constants are standard EDIF orientations.
  */
 public enum ManhattanOrientation {
 
     /**
+     * This picture shows transformation of letter 'F' by
+     * all 8 manhattan transformations.
+     * 
      *     MY R0
      *  R90     MXR90
      * MYR90    R270
@@ -57,22 +59,26 @@ public enum ManhattanOrientation {
      */
     R0 {
 
-        public void transformPoints(long[] coords, int offset, int count) {
+        public AffineTransform affineTransform() {
+            return new AffineTransform(1, 0, 0, 1, 0, 0);
+        }
+
+        public void transformPoints(int[] coords, int offset, int count) {
         }
 
         public void transformRects(int[] coords, int offset, int count) {
-        }
-
-        public Point transformPoint(Point p) {
-            return p;
         }
     },
     R90 {
 
-        public void transformPoints(long[] coords, int offset, int count) {
+        public AffineTransform affineTransform() {
+            return new AffineTransform(0, 1, -1, 0, 0, 0);
+        }
+
+        public void transformPoints(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long x = coords[offset + i * 2 + 0];
-                long y = coords[offset + i * 2 + 1];
+                int x = coords[offset + i * 2 + 0];
+                int y = coords[offset + i * 2 + 1];
                 coords[offset + i * 2 + 0] = -y;
                 coords[offset + i * 2 + 1] = x;
             }
@@ -89,18 +95,18 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 2] = -ly;
                 coords[offset + i * 4 + 3] = hx;
             }
-        }
-
-        public Point transformPoint(Point p) {
-            return new Point(-p.getY(), p.getX());
         }
     },
     R180 {
 
-        public void transformPoints(long[] coords, int offset, int count) {
+        public AffineTransform affineTransform() {
+            return new AffineTransform(-1, 0, 0, -1, 0, 0);
+        }
+
+        public void transformPoints(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long x = coords[offset + i * 2 + 0];
-                long y = coords[offset + i * 2 + 1];
+                int x = coords[offset + i * 2 + 0];
+                int y = coords[offset + i * 2 + 1];
                 coords[offset + i * 2 + 0] = -x;
                 coords[offset + i * 2 + 1] = -y;
             }
@@ -118,17 +124,17 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = -ly;
             }
         }
-
-        public Point transformPoint(Point p) {
-            return new Point(-p.getX(), -p.getY());
-        }
     },
     R270 {
 
-        public void transformPoints(long[] coords, int offset, int count) {
+        public AffineTransform affineTransform() {
+            return new AffineTransform(0, -1, 1, 0, 0, 0);
+        }
+
+        public void transformPoints(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long x = coords[offset + i * 2 + 0];
-                long y = coords[offset + i * 2 + 1];
+                int x = coords[offset + i * 2 + 0];
+                int y = coords[offset + i * 2 + 1];
                 coords[offset + i * 2 + 0] = y;
                 coords[offset + i * 2 + 1] = -x;
             }
@@ -146,16 +152,16 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = -lx;
             }
         }
-
-        public Point transformPoint(Point p) {
-            return new Point(p.getY(), -p.getX());
-        }
     },
     MY {
 
-        public void transformPoints(long[] coords, int offset, int count) {
+        public AffineTransform affineTransform() {
+            return new AffineTransform(-1, 0, 0, 1, 0, 0);
+        }
+
+        public void transformPoints(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long x = coords[offset + i * 2 + 0];
+                int x = coords[offset + i * 2 + 0];
                 coords[offset + i * 2 + 0] = -x;
             }
         }
@@ -168,17 +174,17 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 2] = -lx;
             }
         }
-
-        public Point transformPoint(Point p) {
-            return new Point(-p.getX(), p.getY());
-        }
     },
     MYR90 {
 
-        public void transformPoints(long[] coords, int offset, int count) {
+        public AffineTransform affineTransform() {
+            return new AffineTransform(0, -1, -1, 0, 0, 0);
+        }
+
+        public void transformPoints(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long x = coords[offset + i * 2 + 0];
-                long y = coords[offset + i * 2 + 1];
+                int x = coords[offset + i * 2 + 0];
+                int y = coords[offset + i * 2 + 1];
                 coords[offset + i * 2 + 0] = -y;
                 coords[offset + i * 2 + 1] = -x;
             }
@@ -196,16 +202,16 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = -lx;
             }
         }
-
-        public Point transformPoint(Point p) {
-            return new Point(-p.getY(), -p.getX());
-        }
     },
     MX {
 
-        public void transformPoints(long[] coords, int offset, int count) {
+        public AffineTransform affineTransform() {
+            return new AffineTransform(1, 0, 0, -1, 0, 0);
+        }
+
+        public void transformPoints(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long y = coords[offset + i * 2 + 1];
+                int y = coords[offset + i * 2 + 1];
                 coords[offset + i * 2 + 1] = -y;
             }
         }
@@ -218,17 +224,17 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = -ly;
             }
         }
-
-        public Point transformPoint(Point p) {
-            return new Point(p.getX(), -p.getY());
-        }
     },
     MXR90 {
 
-        public void transformPoints(long[] coords, int offset, int count) {
+        public AffineTransform affineTransform() {
+            return new AffineTransform(0, 1, 1, 0, 0, 0);
+        }
+
+        public void transformPoints(int[] coords, int offset, int count) {
             for (int i = 0; i < count; i++) {
-                long x = coords[offset + i * 2 + 0];
-                long y = coords[offset + i * 2 + 1];
+                int x = coords[offset + i * 2 + 0];
+                int y = coords[offset + i * 2 + 1];
                 coords[offset + i * 2 + 0] = y;
                 coords[offset + i * 2 + 1] = x;
             }
@@ -246,36 +252,18 @@ public enum ManhattanOrientation {
                 coords[offset + i * 4 + 3] = hx;
             }
         }
-
-        public Point transformPoint(Point p) {
-            return new Point(p.getY(), p.getX());
-        }
     };
 
-    @Deprecated
-    public abstract void transformPoints(long[] coords, int offset, int count);
+    public abstract AffineTransform affineTransform();
 
-    public abstract Point transformPoint(Point p);
+    @Deprecated
+    public abstract void transformPoints(int[] coords, int offset, int count);
 
     public abstract void transformRects(int[] coords, int offset, int count);
 
     public ManhattanOrientation concatenate(ManhattanOrientation other) {
         return concatenate[ordinal() * 8 + other.ordinal()];
     }
-
-    public AffineTransform affineTransform() {
-        return transforms[ordinal()];
-    }
-    public static final AffineTransform[] transforms = {
-        /*R0*/new AffineTransform(1, 0, 0, 1, 0, 0),
-        /*R90*/ new AffineTransform(0, 1, -1, 0, 0, 0),
-        /*R180*/ new AffineTransform(-1, 0, 0, -1, 0, 0),
-        /*R270*/ new AffineTransform(0, -1, 1, 0, 0, 0),
-        /*MX*/ new AffineTransform(-1, 0, 0, 1, 0, 0),
-        /*MXR90*/ new AffineTransform(0, -1, -1, 0, 0, 0),
-        /*MY*/ new AffineTransform(1, 0, 0, -1, 0, 0),
-        /*MYR90*/ new AffineTransform(0, 1, 1, 0, 0, 0)
-    };
     private static final ManhattanOrientation[] concatenate = {
         /*R0*/R0, R90, R180, R270, MY, MYR90, MX, MXR90,
         /*R90*/ R90, R180, R270, R0, MYR90, MX, MXR90, MY,

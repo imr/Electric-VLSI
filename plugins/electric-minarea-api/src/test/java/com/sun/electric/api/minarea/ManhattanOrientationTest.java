@@ -23,23 +23,19 @@
  */
 package com.sun.electric.api.minarea;
 
-import static org.junit.Assert.*;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
-import com.sun.electric.api.minarea.geometry.Point;
-import com.sun.electric.util.math.Orientation;
+import java.awt.geom.AffineTransform;
 
 /**
  *
  */
 public class ManhattanOrientationTest {
-
-    private Orientation[] electricOrientation;
 
     public ManhattanOrientationTest() {
     }
@@ -54,16 +50,6 @@ public class ManhattanOrientationTest {
 
     @Before
     public void setUp() {
-        final Orientation OR0 = Orientation.fromC(0, false);
-        final Orientation OR90 = Orientation.fromC(900, false);
-        final Orientation OR180 = Orientation.fromC(1800, false);
-        final Orientation OR270 = Orientation.fromC(2700, false);
-        final Orientation OMX = Orientation.fromC(2700, true);
-        final Orientation OMY = Orientation.fromC(900, true);
-        final Orientation OMYR90 = Orientation.fromC(0, true);
-        final Orientation OMXR90 = Orientation.fromC(1800, true);
-
-        electricOrientation = new Orientation[]{OR0, OR90, OR180, OR270, OMY, OMYR90, OMX, OMXR90};
     }
 
     @After
@@ -103,35 +89,13 @@ public class ManhattanOrientationTest {
         System.out.println("transformPoints");
         for (ManhattanOrientation mor : ManhattanOrientation.class.getEnumConstants()) {
             System.out.println("Test: " + mor.toString());
-            Orientation eor = electricOrientation[mor.ordinal()];
-            long[] mcoords = {1, 0, 0, 1};
-            int[] ecoords = {1, 0, 0, 1};
+            int[] mcoords = {1, 0, 0, 1};
+            double[] acoords = {1, 0, 0, 1};
             mor.transformPoints(mcoords, 0, 2);
-            eor.transformPoints(2, ecoords);
+            mor.affineTransform().transform(acoords, 0, acoords, 0, 2);
 
             for (int i = 0; i < 4; i++) {
-                assertEquals((long) ecoords[i], mcoords[i]);
-            }
-        }
-    }
-
-    /**
-     * Test of transformPoints method, of class ManhattanOrientation.
-     */
-    @Test
-    public void testTransformPoint() {
-        System.out.println("transformPoints");
-        for (ManhattanOrientation mor : ManhattanOrientation.class.getEnumConstants()) {
-            System.out.println("Test: " + mor.toString());
-            Orientation eor = electricOrientation[mor.ordinal()];
-            Point[] mpoints = {new Point(1, 0), new Point(0, 1)};
-            int[] ecoords = {1, 0, 0, 1};
-            eor.transformPoints(2, ecoords);
-
-            for (int i = 0; i < 2; i++) {
-                Point p = mor.transformPoint(mpoints[i]);
-                assertEquals(ecoords[i * 2 + 0], p.getX());
-                assertEquals(ecoords[i * 2 + 1], p.getY());
+                assertEquals(acoords[i], mcoords[i], 0.0);
             }
         }
     }
@@ -143,12 +107,14 @@ public class ManhattanOrientationTest {
     public void testTransformRects() {
         System.out.println("transformRects");
         for (ManhattanOrientation mor : ManhattanOrientation.class.getEnumConstants()) {
-            Orientation eor = electricOrientation[mor.ordinal()];
             int[] mcoords = {1, 2, 3, 4};
-            int[] ecoords = {1, 2, 3, 4};
             mor.transformRects(mcoords, 0, 1);
-            eor.rectangleBounds(ecoords);
-            assertArrayEquals(ecoords, mcoords);
+            double[] acoords = {1, 2, 3, 4};
+            mor.affineTransform().transform(acoords, 0, acoords, 0, 2);
+            assertEquals(Math.min(acoords[0], acoords[2]), mcoords[0], 0.0);
+            assertEquals(Math.min(acoords[1], acoords[3]), mcoords[1], 0.0);
+            assertEquals(Math.max(acoords[0], acoords[2]), mcoords[2], 0.0);
+            assertEquals(Math.max(acoords[1], acoords[3]), mcoords[3], 0.0);
         }
     }
 
@@ -159,10 +125,10 @@ public class ManhattanOrientationTest {
     public void testConcatenate() {
         System.out.println("concatenate");
         for (ManhattanOrientation mor1 : ManhattanOrientation.class.getEnumConstants()) {
-            Orientation or1 = electricOrientation[mor1.ordinal()];
             for (ManhattanOrientation mor2 : ManhattanOrientation.class.getEnumConstants()) {
-                Orientation or2 = electricOrientation[mor2.ordinal()];
-                assertSame(or1.concatenate(or2).canonic(), electricOrientation[mor1.concatenate(mor2).ordinal()]);
+                AffineTransform expected = mor1.affineTransform();
+                expected.concatenate(mor2.affineTransform());
+                assertEquals(expected, mor1.concatenate(mor2).affineTransform());
             }
         }
     }
@@ -173,9 +139,34 @@ public class ManhattanOrientationTest {
     @Test
     public void testAffineTrasnform() {
         System.out.println("affineTrasnform");
-        for (ManhattanOrientation mor : ManhattanOrientation.class.getEnumConstants()) {
-            Orientation eor = electricOrientation[mor.ordinal()];
-            assertEquals(eor.pureRotate(), mor.affineTransform());
-        }
+        AffineTransform aR0 = new AffineTransform();
+        aR0.quadrantRotate(0);
+        AffineTransform aR90 = new AffineTransform();
+        aR90.quadrantRotate(1);
+        AffineTransform aR180 = new AffineTransform();
+        aR180.quadrantRotate(2);
+        AffineTransform aR270 = new AffineTransform();
+        aR270.quadrantRotate(3);
+        AffineTransform aMY = new AffineTransform();
+        aMY.quadrantRotate(0);
+        aMY.scale(-1, 1);
+        AffineTransform aMYR90 = new AffineTransform();
+        aMYR90.quadrantRotate(1);
+        aMYR90.scale(-1, 1);
+        AffineTransform aMX = new AffineTransform();
+        aMX.quadrantRotate(2);
+        aMX.scale(-1, 1);
+        AffineTransform aMXR90 = new AffineTransform();
+        aMXR90.quadrantRotate(3);
+        aMXR90.scale(-1, 1);
+
+        assertEquals(aR0, ManhattanOrientation.R0.affineTransform());
+        assertEquals(aR90, ManhattanOrientation.R90.affineTransform());
+        assertEquals(aR180, ManhattanOrientation.R180.affineTransform());
+        assertEquals(aR270, ManhattanOrientation.R270.affineTransform());
+        assertEquals(aMY, ManhattanOrientation.MY.affineTransform());
+        assertEquals(aMYR90, ManhattanOrientation.MYR90.affineTransform());
+        assertEquals(aMX, ManhattanOrientation.MX.affineTransform());
+        assertEquals(aMXR90, ManhattanOrientation.MXR90.affineTransform());
     }
 }

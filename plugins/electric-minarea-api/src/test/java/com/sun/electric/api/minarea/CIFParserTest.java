@@ -81,7 +81,7 @@ public class CIFParserTest {
         cif.openTextInput(CIFParserTest.class.getResource("SimpleHierarchy.cif"));
         cif.importALibrary();
         cif.closeInput();
-        
+
         LayoutCell topCell = gcif.cells.get(Integer.valueOf(102));
         ByteArrayOutputStream ba = new ByteArrayOutputStream();
         try {
@@ -89,7 +89,7 @@ public class CIFParserTest {
             out.writeObject(topCell);
             out.close();
             ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(ba.toByteArray()));
-            topCell = (LayoutCell)in.readObject();
+            topCell = (LayoutCell) in.readObject();
             in.close();
         } catch (IOException e) {
             assertTrue(false);
@@ -99,15 +99,16 @@ public class CIFParserTest {
         long minArea = Long.MAX_VALUE;
         new SimpleChecker().check(topCell, minArea, null, new MyErrorLogger());
     }
-    
+
     private class MyErrorLogger implements MinAreaChecker.ErrorLogger {
+
         /**
          * @param min area of violating polygon
          * @param x x-coordinate of some point of violating polygon
          * @param y y-coordinate of some point of violating polygon
          */
         public void reportMinAreaViolation(long minArea, long x, long y) {
-            System.out.println("reportMinAreaViolation("+minArea+","+x+","+y+");");
+            System.out.println("reportMinAreaViolation(" + minArea + "," + x + "," + y + ");");
         }
     }
 
@@ -191,7 +192,7 @@ public class CIFParserTest {
         }
 
         private void appendOrient(ManhattanOrientation orient) {
-            curTranslate = orient.transformPoint(curTranslate);
+            curTranslate = curTranslate.transform(orient);
             curOrient = orient.concatenate(curOrient);
         }
 

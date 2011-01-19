@@ -113,7 +113,7 @@ public class SimpleChecker implements MinAreaChecker {
         for (int i = 0; i < cell.getNumSubcells(); i++) {
             LayoutCell subCell = cell.getSubcellCell(i);
 
-            Point p = orient.transformPoint(cell.getSubcellAnchor(i));
+            Point p = cell.getSubcellAnchor(i).transform(orient);
             ManhattanOrientation subOrient = cell.getSubcellOrientation(i);
             collect(dm, subCell, p.getX() + x, p.getY() + y, orient.concatenate(subOrient));
         }
@@ -127,7 +127,7 @@ public class SimpleChecker implements MinAreaChecker {
                 traversePolyTree(son, level + 1, minArea, errorLogger);
                 area -= son.getPoly().getArea();
             }
-            long larea = DBMath.lambdaToGrid(area*DBMath.GRID);
+            long larea = DBMath.lambdaToGrid(area * DBMath.GRID);
             if (larea < minArea) {
                 Point2D p = poly.getPoints()[0];
                 errorLogger.reportMinAreaViolation(larea, DBMath.lambdaToGrid(p.getX()), DBMath.lambdaToGrid(p.getY()));

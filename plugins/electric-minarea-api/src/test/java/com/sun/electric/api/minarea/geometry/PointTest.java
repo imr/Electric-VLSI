@@ -23,11 +23,15 @@
  */
 package com.sun.electric.api.minarea.geometry;
 
+import com.sun.electric.api.minarea.ManhattanOrientation;
 import junit.framework.Assert;
 
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 import com.sun.electric.api.minarea.geometry.Point.Vector;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 
 /**
  * @author Felix Schmidt
@@ -59,6 +63,26 @@ public class PointTest {
 		Assert.assertEquals(y, pt.getX());
 		Assert.assertEquals(x, pt.getY());
 	}
+	
+    @Test
+    public void testTransform() {
+        System.out.println("transformPoints");
+        for (ManhattanOrientation mor : ManhattanOrientation.class.getEnumConstants()) {
+            System.out.println("Test: " + mor.toString());
+            AffineTransform at = mor.affineTransform();
+            Point2D ax = new Point2D.Double();
+            Point2D ay = new Point2D.Double();
+            at.transform(new Point2D.Double(1, 0), ax);
+            at.transform(new Point2D.Double(0, 1), ay);
+            Point px = new Point(1, 0).transform(mor);
+            Point py = new Point(0, 1).transform(mor);
+
+            assertEquals(ax.getX(), px.getX(), 0.0);
+            assertEquals(ax.getY(), px.getY(), 0.0);
+            assertEquals(ay.getX(), py.getX(), 0.0);
+            assertEquals(ay.getY(), py.getY(), 0.0);
+        }
+    }
 	
 	@Test
 	public void testAdd() {
