@@ -37,11 +37,10 @@ import static org.junit.Assert.*;
 
 import com.sun.electric.api.minarea.geometry.Point;
 import com.sun.electric.api.minarea.geometry.Polygon.Rectangle;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -70,30 +69,6 @@ public class CIFParserTest {
     public void tearDown() {
     }
 
-    /**
-     * Test of values method, of class ManhattanOrientation.
-     */
-    @Test
-    public void testParser() {
-        System.out.println("parser");
-        URL url = CIFParserTest.class.getResource("SimpleHierarchy.cif");
-        int scaleFactor = 1;
-        String layerSelector = "CPG";
-        int topCellId = 102;
-
-        ByteArrayOutputStream ba = new ByteArrayOutputStream();
-        try {
-            writeSerialization(ba, url, scaleFactor, layerSelector, topCellId);
-            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(ba.toByteArray()));
-            LayoutCell topCell = (LayoutCell) in.readObject();
-            in.close();
-        } catch (IOException e) {
-            assertTrue(false);
-        } catch (ClassNotFoundException e) {
-            assertTrue(false);
-        }
-    }
-    
     @Test
     public void writeSerializations() {
        URL url = CIFParserTest.class.getResource("SimpleHierarchy.cif");
@@ -107,23 +82,41 @@ public class CIFParserTest {
     }
     
     private static void writeSerialization(String fileName, URL cifUrl, int scaleFactor, String layerSelector, int topCellId) {
+        boolean COMPARE = true;
         try {
-            FileOutputStream os = new FileOutputStream(fileName);
-            writeSerialization(os, cifUrl, scaleFactor, layerSelector, topCellId);
-            os.close();
+            if (COMPARE) {
+                ByteArrayOutputStream ba = new ByteArrayOutputStream();
+                writeSerialization(ba, cifUrl, scaleFactor, layerSelector, topCellId);
+                ba.close();
+                byte[] result = ba.toByteArray();
+                InputStream in = CIFParserTest.class.getResourceAsStream("launcher/" + fileName);
+                byte[] expected = new byte[in.available()];
+                assertEquals(result.length, in.read(expected));
+                assertArrayEquals(expected, result);
+            } else {
+                FileOutputStream os = new FileOutputStream(fileName);
+                writeSerialization(os, cifUrl, scaleFactor, layerSelector, topCellId);
+                os.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private static void writeSerialization(OutputStream os, URL cifUrl, int scaleFactor, String layerSelector, int topCellId) throws IOException {
+        boolean DEBUG = false;
+        CIF cif;
         GenCIFActions gcif = new GenCIFActions();
         gcif.layerSelector = layerSelector;
         gcif.scaleFactor = scaleFactor;
-        DebugCIFActions dcif = new DebugCIFActions();
-        dcif.out = System.out;
-        dcif.impl = gcif;
-        CIF cif = new CIF(dcif);
+        if (DEBUG) {
+            DebugCIFActions dcif = new DebugCIFActions();
+            dcif.out = System.out;
+            dcif.impl = gcif;
+            cif = new CIF(dcif);
+        } else {
+            cif = new CIF(gcif);
+        }
         cif.openTextInput(cifUrl);
         cif.importALibrary();
         cif.closeInput();
