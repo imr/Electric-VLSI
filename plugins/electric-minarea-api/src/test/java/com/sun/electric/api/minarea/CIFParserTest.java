@@ -115,8 +115,8 @@ public class CIFParserTest {
     public class GenCIFActions implements CIF.CIFActions {
 
         private String layerSelector;
-        private Map<Integer, DebugLayoutCell> cells = new HashMap<Integer, DebugLayoutCell>();
-        private DebugLayoutCell curCell;
+        private Map<Integer, DefaultLayoutCell> cells = new HashMap<Integer, DefaultLayoutCell>();
+        private DefaultLayoutCell curCell;
         private ManhattanOrientation curOrient;
         // private long[] curTranslate = new long[2];
         private Point curTranslate;
@@ -136,7 +136,7 @@ public class CIFParserTest {
             if (cells.containsKey(symbolObj)) {
                 throw new IllegalStateException("attempt to redefine symbol " + symbol);
             }
-            curCell = new DebugLayoutCell(symbolObj.toString());
+            curCell = new DefaultLayoutCell(symbolObj.toString());
             cells.put(symbolObj, curCell);
             isSelectedLayer = false;
         }
@@ -203,7 +203,7 @@ public class CIFParserTest {
         }
 
         public void makeCall(int symbol, int lineNumber/* , transform */) {
-            DebugLayoutCell subCell = cells.get(Integer.valueOf(symbol));
+            DefaultLayoutCell subCell = cells.get(Integer.valueOf(symbol));
             if (subCell == null) {
                 throw new IllegalArgumentException("Subcell " + symbol + " not found");
             }

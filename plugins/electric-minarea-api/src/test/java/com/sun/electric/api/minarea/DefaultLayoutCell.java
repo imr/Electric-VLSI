@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: DebugLayoutCell.java
+ * File: DefaultLayoutCell.java
  *
  * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  *
@@ -34,7 +34,7 @@ import java.io.Serializable;
 /**
  *
  */
-public class DebugLayoutCell implements LayoutCell, Serializable {
+public class DefaultLayoutCell implements LayoutCell, Serializable {
 
     private String name;
     private transient int[] rectCoords = new int[4];
@@ -56,7 +56,7 @@ public class DebugLayoutCell implements LayoutCell, Serializable {
     private transient Rectangle boundingBox;
     private transient boolean finished;
 
-    DebugLayoutCell(String name) {
+    DefaultLayoutCell(String name) {
         this.name = name;
     }
 
@@ -72,6 +72,14 @@ public class DebugLayoutCell implements LayoutCell, Serializable {
     // rectangles
     public int getNumRectangles() {
         return numRectangles;
+    }
+
+    /**
+     * Traverse all rectangles by specified handler 
+     * @param h handler
+     */
+    public void traverseRectangles(RectangleHandler h) {
+        traverseRectangles(h, 0, numRectangles);
     }
 
     /**
@@ -94,23 +102,16 @@ public class DebugLayoutCell implements LayoutCell, Serializable {
     }
 
     /**
-     * Traverse all rectangles by specified handler 
-     * @param h handler
-     */
-    public void traverseRectangles(RectangleHandler h) {
-        traverseRectangles(h, 0, numRectangles);
-    }
-
-    /**
-     * Read rectable corrdinates into int array.
+     * Read coordinates of part of rectangles into int array.
      * The length of the result array must be at least 4*count .
      * The coordinates are placed into the result array in such an order:
      * (minX0, minY0, maxX0, maxY0, minX1, minY1, maxX1, maxY1, ...)
+     * This is the same layout as in ManhattanOrientation.transoformRects method.
+     * @param result
      * @param offset The first rectangle
      * @param count The number of rectangles
-     * @param result
      */
-    public void readRectangleCoords(int offset, int count, int[] result) {
+    public void readRectangleCoords(int[] result, int offset, int count) {
         if (offset + count > numRectangles) {
             throw new IndexOutOfBoundsException();
         }

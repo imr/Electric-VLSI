@@ -96,7 +96,7 @@ public class SimpleChecker implements MinAreaChecker {
         int ir = 0;
         while (ir < cell.getNumRectangles()) {
             int sz = Math.min(bufSize, cell.getNumRectangles() - ir);
-            cell.readRectangleCoords(ir, sz, coords);
+            cell.readRectangleCoords(coords, ir, sz);
             orient.transformRects(coords, 0, 1);
             for (int j = 0; j < sz; j++) {
                 // The coordinates will fit into ints, because bounding box

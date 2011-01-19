@@ -57,6 +57,12 @@ public interface LayoutCell {
     }
 
     /**
+     * Traverse all rectangles by specified handler 
+     * @param h handler
+     */
+    public void traverseRectangles(RectangleHandler h);
+
+    /**
      * Traverse part of rectangles by specified handler 
      * @param h handler
      * @param offset the first rectangle 
@@ -65,22 +71,16 @@ public interface LayoutCell {
     public void traverseRectangles(RectangleHandler h, int offset, int count);
 
     /**
-     * Traverse all rectangles by specified handler 
-     * @param h handler
-     */
-    public void traverseRectangles(RectangleHandler h);
-
-    /**
-     * Read rectable coordinates into int array.
+     * Read coordinates of part of rectangles into int array.
      * The length of the result array must be at least 4*count .
      * The coordinates are placed into the result array in such an order:
      * (minX0, minY0, maxX0, maxY0, minX1, minY1, maxX1, maxY1, ...)
      * This is the same layout as in ManhattanOrientation.transoformRects method.
+     * @param result
      * @param offset The first rectangle
      * @param count The number of rectangles
-     * @param result
      */
-    public void readRectangleCoords(int offset, int count, int[] result);
+    public void readRectangleCoords(int[] result, int offset, int count);
 
     //  subcells
     public int getNumSubcells();
