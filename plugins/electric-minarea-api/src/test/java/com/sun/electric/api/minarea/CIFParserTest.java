@@ -226,6 +226,10 @@ public class CIFParserTest {
             if (subCell == curCell) {
                 throw new IllegalArgumentException("Recursive cell call");
             }
+            if (subCell.getNumRectangles() == 0 && subCell.getNumSubcells() == 0) {
+                // skip empty subcells
+                return;
+            }
             if (curTranslate.getX() % scaleFactor != 0 || curTranslate.getY() % scaleFactor != 0) {
                 throw new IllegalArgumentException("Scale factor error");
             }
