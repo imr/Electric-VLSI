@@ -58,5 +58,10 @@ public interface MinAreaChecker {
          * @param y y-coordinate of some point of violating polygon
          */
         public void reportMinAreaViolation(long minArea, long x, long y);
+        
+        /**
+         * 
+         */
+        public void printReports();
     }
 }
