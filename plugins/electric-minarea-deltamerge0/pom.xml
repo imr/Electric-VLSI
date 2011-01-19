@@ -33,19 +33,50 @@
         <relativePath>../../pom/electric-parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>electric-inarea-deltamerge0</artifactId>
+    <artifactId>electric-minarea-deltamerge0</artifactId>
     <version>0.1-alpha-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>electric-minarea-deltamerge</name>
+    <name>electric-minarea-deltamerge0</name>
     <description>
         Implementation of Electric Min Area API by Java Delta Merge algorithm.
     </description>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.sun.electric.api.minarea.launcher.Launcher</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
             <groupId>com.sun.electric</groupId>
             <artifactId>electric-minarea-api</artifactId>
             <version>0.1-alpha-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>electric-core</artifactId>
+            <version>9.00-q</version>
         </dependency>
     </dependencies>
 

@@ -23,6 +23,15 @@
  */
 package com.sun.electric.plugins.minarea.deltamerge0;
 
+import com.sun.electric.api.minarea.LayoutCell;
+import com.sun.electric.api.minarea.ManhattanOrientation;
+import com.sun.electric.api.minarea.MinAreaChecker;
+import com.sun.electric.api.minarea.geometry.Point;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.bool.DeltaMerge;
+import com.sun.electric.database.geometry.bool.UnloadPolys;
+import com.sun.electric.util.math.DBMath;
+
 import java.awt.geom.Point2D;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,11 +40,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import com.sun.electric.api.minarea.geometry.Point;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.bool.DeltaMerge;
-import com.sun.electric.database.geometry.bool.UnloadPolys;
-import com.sun.electric.util.math.DBMath;
 
 /**
  * Simple MinAreaChecker
@@ -47,7 +51,7 @@ public class SimpleChecker implements MinAreaChecker {
      * @return the algorithm name
      */
     public String getAlgorithmName() {
-        return "SimpleChecker";
+        return "DeltaMerge0";
     }
 
     /**
