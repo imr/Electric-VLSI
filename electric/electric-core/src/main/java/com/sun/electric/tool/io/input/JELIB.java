@@ -418,7 +418,7 @@ public class JELIB extends LibraryFiles
 			PortInst tailPI = figureOutPortInst(cell, a.tailPort.externalId, a.tailNode, a.tailPoint, cc.fileName, line);
 			if (tailPI == null) continue;
 
-            ArcInst ai = ArcInst.newInstance(cell, ap, a.arcName, a.nameTextDescriptor,
+            ArcInst ai = ArcInst.newInstanceNoCheck(cell, ap, a.arcName, a.nameTextDescriptor,
                     headPI, tailPI, a.headPoint, a.tailPoint, gridExtendOverMin, a.angle, a.flags);
 			if (ai == null)
 			{

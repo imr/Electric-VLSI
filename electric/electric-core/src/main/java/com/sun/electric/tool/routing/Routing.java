@@ -387,7 +387,7 @@ public class Routing extends Listener {
 				for (int i = 0; i < count; i++) {
 					PortInst head = netEnds[i].pi;
 					EPoint headP = netEnds[i].center;
-					ArcInst ai = ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null, head,
+					ArcInst ai = ArcInst.newInstanceNoCheck(cell, Generic.tech().unrouted_arc, null, null, head,
 							tail, headP, center, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
 					if (ai == null) {
 						System.out.println("Could not create unrouted arc");
@@ -429,7 +429,7 @@ public class Routing extends Listener {
 					PortInst tail = netEnds[bestj].pi;
 					EPoint headP = netEnds[besti].center;
 					EPoint tailP = netEnds[bestj].center;
-					ArcInst ai = ArcInst.newInstance(cell, Generic.tech().unrouted_arc, null, null, head,
+					ArcInst ai = ArcInst.newInstanceNoCheck(cell, Generic.tech().unrouted_arc, null, null, head,
 							tail, headP, tailP, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
 					if (ai == null) {
 						System.out.println("Could not create unrouted arc");

@@ -272,7 +272,7 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 	public static void newInstance(Cell parent, ArcProto protoType, String name, PortInst headPort, PortInst tailPort,
 			EPoint headPt, EPoint tailPt, long gridExtendOverMin, int angle, int flags) {
 		if (true) {
-			ArcInst.newInstance(parent, protoType, name, null, headPort, tailPort, headPt, tailPt, gridExtendOverMin,
+			ArcInst.newInstanceNoCheck(parent, protoType, name, null, headPort, tailPort, headPt, tailPt, gridExtendOverMin,
 					angle, flags);
 		} //else {
 			//ArcInst.makeInstance(protoType, headPort, tailPort);

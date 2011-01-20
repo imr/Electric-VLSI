@@ -1194,7 +1194,7 @@ public class CellChangeJobs
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false, fromRight);
 
             ImmutableArcInst a = ai.getD();
-            ArcInst newAi = ArcInst.newInstance(destCell, ap, name, a.nameDescriptor,
+            ArcInst newAi = ArcInst.newInstanceNoCheck(destCell, ap, name, a.nameDescriptor,
                 newHeadPi, newTailPi, EPoint.snap(headLoc), EPoint.snap(tailLoc), a.getGridExtendOverMin(), a.getAngle(), a.flags);
 			if (newAi == null)
 			{

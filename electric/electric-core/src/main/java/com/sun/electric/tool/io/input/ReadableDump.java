@@ -870,7 +870,7 @@ public class ReadableDump extends LibraryFiles
 				System.out.println("Cell " + cell.describe(true) + ", " + ap + " tail at (" +
 					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
-            ArcInst ai = ArcInst.newInstance(cell, ap, name, ail.arcNameDescriptor[j],
+            ArcInst ai = ArcInst.newInstanceNoCheck(cell, ap, name, ail.arcNameDescriptor[j],
                     headPortInst, tailPortInst, headPt, tailPt, gridExtendOverMin,
                     ImmutableArcInst.angleFromElib(userBits), ImmutableArcInst.flagsFromElib(userBits));
 			ail.arcList[j] = ai;

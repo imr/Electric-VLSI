@@ -148,8 +148,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
 
     private static class ArcInstKey extends EObjectInputStream.Key<ArcInst> {
 
-        public ArcInstKey() {
-        }
+//        public ArcInstKey() {
+//        }
 
         private ArcInstKey(ArcInst ai) {
             super(ai);
@@ -324,15 +324,13 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
         // if points are null, create them as would newInstance
         EPoint headP;
         if (headPt == null) {
-//            Rectangle2D headBounds = head.getBounds();
-            headP = head.getCenter(); //new EPoint(headBounds.getCenterX(), headBounds.getCenterY());
+            headP = head.getCenter();
         } else {
             headP = EPoint.snap(headPt);
         }
         EPoint tailP;
         if (tailPt == null) {
-//            Rectangle2D tailBounds = tail.getBounds();
-            tailP = tail.getCenter(); // new EPoint(tailBounds.getCenterX(), tailBounds.getCenterY());
+            tailP = tail.getCenter();
         } else {
             tailP = EPoint.snap(tailPt);
         }
@@ -361,7 +359,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
             long gridBaseWidth = 2 * (gridExtendOverMin + type.getGridBaseExtend());
             nameDescriptor = getSmartTextDescriptor(defAngle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor, parent.getEditingPreferences());
         }
-        return newInstance(parent, type, name, nameDescriptor, head, tail, headP, tailP, gridExtendOverMin, defAngle, flags);
+        return newInstanceNoCheck(parent, type, name, nameDescriptor, head, tail, headP, tailP, gridExtendOverMin, defAngle, flags);
     }
 
     /**
@@ -382,7 +380,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst> {
      * @param flags flag bits.
      * @return the newly created ArcInst, or null if there is an error.
      */
-    public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, TextDescriptor nameDescriptor,
+    public static ArcInst newInstanceNoCheck(Cell parent, ArcProto protoType, String name, TextDescriptor nameDescriptor,
             PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, long gridExtendOverMin, int angle, int flags) {
         parent.checkChanging();
         Topology topology = parent.getTopology();

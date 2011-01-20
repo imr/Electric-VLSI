@@ -1657,7 +1657,7 @@ public class ELIB extends LibraryFiles
 					" because ends are unknown");
 				continue;
 			}
-            ArcInst ai = ArcInst.newInstance(cell, ap, name, arcNameDescriptorList[i], headPortInst, tailPortInst,
+            ArcInst ai = ArcInst.newInstanceNoCheck(cell, ap, name, arcNameDescriptorList[i], headPortInst, tailPortInst,
                     new EPoint(headX, headY), new EPoint(tailX, tailY), gridExtendOverMin,
                     ImmutableArcInst.angleFromElib(arcUserBits[i]), ImmutableArcInst.flagsFromElib(arcUserBits[i]));
             arcList[i] = ai;

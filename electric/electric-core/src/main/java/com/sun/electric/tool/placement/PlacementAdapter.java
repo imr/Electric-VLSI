@@ -460,7 +460,7 @@ public class PlacementAdapter {
 						// connect them
 						EPoint lastPtComp = lastPi.getCenter();
 						EPoint thisPtComp = thisPi.getCenter();
-						ArcInst.newInstance(newCell, Generic.tech().unrouted_arc, null, null, lastPi, thisPi,
+						ArcInst.newInstanceNoCheck(newCell, Generic.tech().unrouted_arc, null, null, lastPi, thisPi,
 								lastPtComp, thisPtComp, gridExtend, ArcInst.DEFAULTANGLE, a.flags);
 					}
 					lastPp = thisPp;
