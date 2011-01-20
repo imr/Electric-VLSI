@@ -45,6 +45,7 @@ import java.util.Properties;
  * Simple MinAreaChecker
  */
 public class SimpleChecker implements MinAreaChecker {
+    private final int DEBUG = 1;
     private long totalArea;
     
     /**
@@ -91,7 +92,9 @@ public class SimpleChecker implements MinAreaChecker {
             for (PolyBase.PolyBaseTree tree : trees) {
                 traversePolyTree(tree, 0, minArea, errorLogger);
             }
-            System.out.println("Total Area "+totalArea);
+            if (DEBUG >= 1) {
+                System.out.println("Total Area "+totalArea);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -131,21 +134,33 @@ public class SimpleChecker implements MinAreaChecker {
     private void traversePolyTree(PolyBase.PolyBaseTree obj, int level, long minArea, ErrorLogger errorLogger) {
         if (level % 2 == 0) {
             PolyBase poly = obj.getPoly();
+            if (DEBUG >= 4) {
+                for (Point2D p: poly.getPoints()) {
+                    System.out.print(" ("+DBMath.lambdaToGrid(p.getX())+","+DBMath.lambdaToGrid(p.getY())+")");
+                }
+                System.out.println();
+            }
             double area = poly.getArea();
             for (PolyBase.PolyBaseTree son : obj.getSons()) {
-                traversePolyTree(son, level + 1, minArea, errorLogger);
-                area -= son.getPoly().getArea();
+                PolyBase hole = son.getPoly();
+                if (DEBUG >= 4) {
+                    System.out.print(" hole");
+                    for (Point2D p: hole.getPoints()) {
+                        System.out.print(" ("+DBMath.lambdaToGrid(p.getX())+","+DBMath.lambdaToGrid(p.getY())+")");
+                    }
+                    System.out.println();
+                }
+                area -= hole.getArea();
             }
             long larea = DBMath.lambdaToGrid(area * DBMath.GRID);
             totalArea += larea;
             if (larea < minArea) {
-                Point2D p = poly.getPoints()[0];
+                Point2D p = poly.getPoints()[1];
                 errorLogger.reportMinAreaViolation(larea, DBMath.lambdaToGrid(p.getX()), DBMath.lambdaToGrid(p.getY()));
             }
-        } else {
-            for (PolyBase.PolyBaseTree son : obj.getSons()) {
-                traversePolyTree(son, level + 1, minArea, errorLogger);
-            }
+        }
+        for (PolyBase.PolyBaseTree son : obj.getSons()) {
+            traversePolyTree(son, level + 1, minArea, errorLogger);
         }
     }
 }
