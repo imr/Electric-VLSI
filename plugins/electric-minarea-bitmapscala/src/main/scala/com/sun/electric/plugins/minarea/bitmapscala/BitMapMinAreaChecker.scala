@@ -120,11 +120,11 @@ class BitMapMinAreaChecker extends MinAreaChecker {
       printBitMap(bitMap, xsize, ysize)
     }
     
-    // stack to propagate through polygons
+    // stack of tiles to fill polygon
     var stack = new Stack[Point]
     var polyArea: Long = 0
     
-    def pushPoint(x: Int, y: Int) = {
+    def pushTile(x: Int, y: Int) = {
       val w: Long = xa(x + 1) - xa(x)
       val h: Long = ya(y + 1) - ya(y)
       polyArea += w*h
@@ -140,18 +140,18 @@ class BitMapMinAreaChecker extends MinAreaChecker {
       while (y >= 0) {
         if (bitMap(x)(y)) {
           polyArea = 0
-          // find polygon and erase it from bit map
-          pushPoint(x, y)
+          // find polygon area and erase polygon from bit map
+          pushTile(x, y)
           while (!stack.isEmpty) {
             val p = stack.top
             if (p.x - 1 >= 0 && bitMap(p.x - 1)(p.y))
-              pushPoint(p.x - 1, p.y)
+              pushTile(p.x - 1, p.y)
             else if (p.x + 1 < xsize && bitMap(p.x + 1)(p.y))
-              pushPoint(p.x + 1, p.y)
+              pushTile(p.x + 1, p.y)
             else if (p.y - 1 >= 0 && bitMap(p.x)(p.y - 1))
-              pushPoint(p.x, p.y - 1)
-            else if (p.y  + 1 < ysize && bitMap(p.x)(p.y + 1))
-              pushPoint(p.x, p.y + 1)
+              pushTile(p.x, p.y - 1)
+            else if (p.y + 1 < ysize && bitMap(p.x)(p.y + 1))
+              pushTile(p.x, p.y + 1)
             else
               stack.pop
           }
