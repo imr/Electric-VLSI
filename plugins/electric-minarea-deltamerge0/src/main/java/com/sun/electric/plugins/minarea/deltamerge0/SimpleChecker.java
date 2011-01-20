@@ -45,7 +45,8 @@ import java.util.Properties;
  * Simple MinAreaChecker
  */
 public class SimpleChecker implements MinAreaChecker {
-
+    private long totalArea;
+    
     /**
      * 
      * @return the algorithm name
@@ -86,9 +87,11 @@ public class SimpleChecker implements MinAreaChecker {
             UnloadPolys up = new UnloadPolys();
             Iterable<PolyBase.PolyBaseTree> trees = up.loop(inpS, false);
             inpS.close();
+            totalArea = 0;
             for (PolyBase.PolyBaseTree tree : trees) {
                 traversePolyTree(tree, 0, minArea, errorLogger);
             }
+            System.out.println("Total Area "+totalArea);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -134,6 +137,7 @@ public class SimpleChecker implements MinAreaChecker {
                 area -= son.getPoly().getArea();
             }
             long larea = DBMath.lambdaToGrid(area * DBMath.GRID);
+            totalArea += larea;
             if (larea < minArea) {
                 Point2D p = poly.getPoints()[0];
                 errorLogger.reportMinAreaViolation(larea, DBMath.lambdaToGrid(p.getX()), DBMath.lambdaToGrid(p.getY()));
