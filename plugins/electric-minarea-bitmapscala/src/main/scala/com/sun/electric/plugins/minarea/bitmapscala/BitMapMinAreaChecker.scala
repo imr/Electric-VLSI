@@ -11,6 +11,7 @@ import com.sun.electric.api.minarea.MinAreaChecker
 
 import java.util.Properties
 
+import scala.collection.mutable.BitSet
 import scala.collection.mutable.SetBuilder
 import scala.collection.mutable.LinkedHashMap
 import scala.collection.mutable.LinkedHashSet
@@ -84,13 +85,77 @@ class BitMapMinAreaChecker extends MinAreaChecker {
           }
         })
       t.traverseSubcellInstances(new LayoutCell.SubcellHandler {
-            def apply(subCell: LayoutCell, anchorX: Int, anchorY: Int, subOrient: ManhattanOrientation) = {
-              println(" call "+subCell.getName+" ("+anchorX+","+anchorY+") "+subOrient)
-            }
+          def apply(subCell: LayoutCell, anchorX: Int, anchorY: Int, subOrient: ManhattanOrientation) = {
+            println(" call "+subCell.getName+" ("+anchorX+","+anchorY+") "+subOrient)
+          }
         })
     }
     
-    flattenRectangles(topCell, (minX: Int, minY: Int, maxX: Int, maxY: Int) => println(" flat ["+minX+".."+maxX+"]x["+minY+".."+maxY+"]"))
+    var xcoords = new TreeSet[Int]()
+    var ycoords = new TreeSet[Int]()
+    flattenRectangles(topCell, (minX: Int, minY: Int, maxX: Int, maxY: Int) => {
+        println(" flat ["+minX+".."+maxX+"]x["+minY+".."+maxY+"]")
+        xcoords = xcoords + minX + maxX
+        ycoords = ycoords + minY + maxY
+      })
+  
+    println("xcoords "+xcoords)
+    println("ycoords "+ycoords)
+    
+    val xcoorda = new Array[Int](xcoords.size)
+    val ycoorda = new Array[Int](ycoords.size)
+    
+    val xcoordm = new LinkedHashMap[Int,Int]()
+    val ycoordm = new LinkedHashMap[Int,Int]()
+    for (x <- xcoords) {
+      xcoorda(xcoordm.size) = x
+      xcoordm.put(x, xcoordm.size)
+    }
+    for (y <- ycoords) {
+      ycoorda(ycoordm.size) = y
+      ycoordm.put(y, ycoordm.size)
+    }
+    
+    println("xcoordm "+xcoordm)
+    println("ycoordm "+ycoordm)
+    
+    val bitMap = new Array[BitSet](ycoords.size - 1)
+    for (i <- 0 until bitMap.length) bitMap(i) = new BitSet
+    flattenRectangles(topCell, (minX: Int, minY: Int, maxX: Int, maxY: Int) => {
+        val minXI = xcoordm(minX)
+        val minYI = ycoordm(minY)
+        val maxXI = xcoordm(maxX)
+        val maxYI = ycoordm(maxY)
+        val xset = new BitSet()
+        var x = minXI
+        while (x < maxXI) {
+          xset.add(x)
+          x += 1
+        }
+        var y = minYI
+        while (y < maxYI) {
+          bitMap(y) |= xset
+          y += 1
+        }
+      })
+    
+    var totalArea = 0L
+    var y = ycoordm.size - 2
+    while (y >= 0) {
+      val xset = bitMap(y)
+      var xlen = 0
+      for (x <- 0 until xcoordm.size - 1) {
+        if (xset(x)) {
+          print('X')
+          xlen += xcoorda(x + 1) - xcoorda(x)
+        } else {
+          print(' ')
+        }
+      }
+      println
+      totalArea += (ycoorda(y + 1) - ycoorda(y)) * xlen.asInstanceOf[Long]
+      y -= 1
+    }
+    println("Total Area "+totalArea)
   }
-
 }
