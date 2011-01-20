@@ -145,9 +145,9 @@ public class SimulationTool extends Tool
                             compile = true;
                         }
 					}
-					if (cell.getView() == View.VHDL)
+					if (cell.getView() == View.VHDL || cell.getView() == View.VERILOG)
 					{
-						// current cell is VHDL.  See if there is a more recent netlist
+						// current cell is VHDL or Verilog.  See if there is a more recent netlist
 						Cell netListCell = cell.otherView(View.NETLISTQUISC);
 						if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate())) cell = netListCell; else
                             compile = true;

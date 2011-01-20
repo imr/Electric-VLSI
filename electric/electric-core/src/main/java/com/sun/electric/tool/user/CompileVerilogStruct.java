@@ -1090,7 +1090,81 @@ public class CompileVerilogStruct
 	{
 		// now produce the netlist
 		if (hasErrors) return null;
-		return null;
+		List<String> netlistStrings = genALS(destLib, null);
+		return netlistStrings;
+	}
+
+	/**
+	 * Method to generate ALS target output for the created parse tree.
+	 * Assume parse tree is semantically correct.
+	 * @param destLib destination library.
+	 * @param behaveLib behavior library.
+	 * @return a list of strings that has the netlist.
+	 */
+	private List<String> genALS(Library destLib, Library behaveLib)
+	{
+		// print file header
+		List<String> netlist = new ArrayList<String>();
+		netlist.add("#*************************************************");
+		netlist.add("#  ALS Netlist file");
+		netlist.add("#");
+		if (User.isIncludeDateAndVersionInOutput())
+			netlist.add("#  File Creation:    " + TextUtils.formatDate(new Date()));
+		netlist.add("#*************************************************");
+		netlist.add("");
+
+		// determine top level cell
+		for(VModule mod : allModules)
+		{
+			if (mod.defined)
+				genALSInterface(mod, netlist);
+		}
+
+		// print closing line of output file
+		netlist.add("#********* End of netlist *******************");
+		return netlist;
+	}
+
+	/**
+	 * Method to generate the ALS description for the specified model.
+	 * @param module module to analyze
+	 * @param netlist the List of strings to create.
+	 */
+	private void genALSInterface(VModule module, List<String> netlist)
+	{
+		// write this entity
+		String modLine = "model " + module.name + "(";
+		boolean first = true;
+		for(FormalPort fp : module.ports)
+		{
+			for(int i=fp.firstIndex; i<=fp.secondIndex; i++)
+			{
+				if (!first) modLine += ", ";
+				first = false;
+				modLine += fp.name;
+				if (i != -1) modLine += "_" + i + "_";
+			}
+		}
+		modLine += ")";
+		netlist.add(modLine);
+
+		// write instances
+		for(Instance in : module.instances)
+		{
+			first = true;
+			String inName = in.instanceName.replaceAll("/", "_").replaceAll("\\[", "_").replaceAll("\\]", "_");
+			String inLine = inName + ": " + in.module.name + "(";
+			for(LocalPort lp : in.ports.keySet())
+			{
+				if (!first) inLine += ", ";
+				first = false;
+				String name = in.ports.get(lp).replaceAll("/", "_").replaceAll("\\[", "_").replaceAll("\\]", "_");
+				inLine += name;
+			}
+			inLine += ")";
+			netlist.add(inLine);
+		}
+		netlist.add("");
 	}
 
 	/******************************** THE QUISC NETLIST GENERATOR ********************************/
@@ -1129,8 +1203,7 @@ public class CompileVerilogStruct
 	}
 
 	/**
-	 * Method to recursively generate the QUISC description for the specified model.
-	 * Works by first generating the lowest interface instantiation and working back to the top (i.e. bottom up).
+	 * Method to generate the QUISC description for the specified model.
 	 * @param module module to analyze
 	 * @param netlist the List of strings to create.
 	 */

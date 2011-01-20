@@ -28,6 +28,7 @@ package com.sun.electric.tool.simulation.als;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
@@ -40,6 +41,7 @@ import com.sun.electric.tool.simulation.SignalCollection;
 import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.CompileVHDL;
+import com.sun.electric.tool.user.CompileVerilogStruct;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveSignal;
@@ -2319,14 +2321,28 @@ public class ALS implements Engine
 
             if (compile)
 			{
-				// compile the VHDL to a netlist
-				System.out.print("Compiling VHDL in " + cell + " ...");
-				CompileVHDL c = new CompileVHDL(cell);
-				if (c.hasErrors())
+				// compile the VHDL/Verilog to a netlist
+            	boolean vhdl = true;
+            	if (cell.getView() == View.VERILOG) vhdl = false;
+				System.out.print("Compiling " + (vhdl ? "VHDL" : "Verilog") + " in " + cell + " ...");
+				List<String> netlistStrings;
+				if (vhdl)
 				{
-					throw new JobException("ERRORS during compilation, no netlist produced");
+					CompileVHDL c = new CompileVHDL(cell);
+					if (c.hasErrors())
+					{
+						throw new JobException("ERRORS during compilation, no netlist produced");
+					}
+					netlistStrings = c.getALSNetlist(destLib);
+				} else
+				{
+					CompileVerilogStruct c = new CompileVerilogStruct(cell);
+					if (c.hasErrors())
+					{
+						throw new JobException("ERRORS during compilation, no netlist produced");
+					}
+					netlistStrings = c.getALSNetlist(destLib);
 				}
-				List<String> netlistStrings = c.getALSNetlist(destLib);
 				if (netlistStrings == null)
 				{
 					throw new JobException("No netlist produced");
