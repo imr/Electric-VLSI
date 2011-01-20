@@ -975,7 +975,7 @@ public class CompileVHDL
 	/**
 	 * Method to generate a QUISC (silicon compiler) netlist.
 	 * @param destLib destination library.
-     * @param @isIncldeDateAndVersionInOutput include date and version in output
+     * @param isIncldeDateAndVersionInOutput include date and version in output
 	 * @return a List of strings with the netlist.
 	 */
 	public List<String> getQUISCNetlist(Library destLib, boolean isIncludeDateAndVersionInOutput)

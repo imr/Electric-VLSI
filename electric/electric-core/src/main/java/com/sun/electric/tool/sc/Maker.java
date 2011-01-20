@@ -40,6 +40,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.util.math.Orientation;
 
@@ -693,7 +694,8 @@ public class Maker
 							if (trackLayer1(inst.instance, (PortProto)via.chPort.port.port.port,
 								via.instance, null, localPrefs.horizArcWidth, bCell) == null)
 							{
-								return "SC maker cannot create layer2 track";
+								System.out.println("WARNING: SC maker cannot create layer2 track");
+//								return "SC maker cannot create layer2 track";
 							}
 							continue;
 						}
@@ -1121,18 +1123,23 @@ public class Maker
 		double yB = polyB.getCenterY();
 
 		// make sure the arc can connect
+		ArcProto ap = layer1Arc;
 		if (!portA.getBasePort().connectsTo(layer1Arc))
 		{
 			// must place a via
-			piA = createConnection(piA, xA, yA, layer1Arc);
+			PortInst pi = createConnection(piA, xA, yA, layer1Arc);
+			if (pi != null) piA = pi; else
+				ap = Generic.tech().universal_arc;
 		}
 		if (!portB.getBasePort().connectsTo(layer1Arc))
 		{
 			// must place a via
-			piB = createConnection(piB, xB, yB, layer1Arc);
+			PortInst pi = createConnection(piB, xB, yB, layer1Arc);
+			if (pi != null) piB = pi; else
+				ap = Generic.tech().universal_arc;
 		}
 
-		ArcInst inst = ArcInst.makeInstanceBase(layer1Arc, width, piA, piB);
+		ArcInst inst = ArcInst.makeInstanceBase(ap, width, piA, piB);
 		return inst;
 	}
 
@@ -1175,6 +1182,7 @@ public class Maker
 			piB = createConnection(piB, xB, yB, layer1Arc);
 		}
 
+		if (piA == null || piB == null) return null;
 		ArcInst inst = ArcInst.makeInstanceBase(layer2Arc, width, piA, piB);
 		return inst;
 	}
@@ -1198,6 +1206,8 @@ public class Maker
 			viaProto.getDefWidth(), viaProto.getDefHeight(), pi.getNodeInst().getParent());
 		if (viaNode == null) return null;
 		PortInst newPi = viaNode.getOnlyPortInst();
+		if (!pi.getPortProto().getBasePort().connectsTo(arc) ||
+			!newPi.getPortProto().getBasePort().connectsTo(arc)) arc = Generic.tech().universal_arc;
 		ArcInst zeroArc = ArcInst.makeInstance(arc, pi, newPi);
 		if (zeroArc == null) return null;
 		return newPi;

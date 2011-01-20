@@ -50,10 +50,12 @@ import java.util.Set;
  */
 public class CompileVerilogStruct
 {
-	private static List<VModule> allModules = new ArrayList<VModule>();
+	private List<VModule> allModules;
 	private int errorCount;
 	private boolean hasErrors;
 	private VModule curModule;
+	private List<TokenList> tList;
+	private int tokenIndex;
 
 	/********** Scanner Token Types ******************************************/
 
@@ -92,7 +94,7 @@ public class CompileVerilogStruct
 
 	/********** Scanner Tokens *****************************************/
 
-	public static class TokenList
+	public class TokenList
 	{
 		/** token number */								TokenType	type;
 		/** NULL if delimiter,
@@ -115,28 +117,10 @@ public class CompileVerilogStruct
 			tList.add(this);
 		}
 
-		private static List<TokenList> tList = new ArrayList<TokenList>();
-		private static int tokenIndex;
-
-		static void resetTokenListPointer() { tokenIndex = 0; }
-
-		static TokenList getNextToken()
+		public int makeErrorLine(StringBuffer buffer)
 		{
-			if (tokenIndex >= tList.size()) return null;
-			TokenList token = tList.get(tokenIndex++);
-			return token;
-		}
-
-		static TokenList peekNextToken()
-		{
-			if (tokenIndex >= tList.size()) return null;
-			return tList.get(tokenIndex);
-		}
-
-		static int makeErrorLine(TokenList token, StringBuffer buffer)
-		{
-			int index = tList.indexOf(token);
-			int lineNumber = token.lineNum;
+			int index = tList.indexOf(this);
+			int lineNumber = this.lineNum;
 
 			// back up to start of line
 			while (index > 0 && tList.get(index-1).lineNum == lineNumber) index--;
@@ -147,7 +131,7 @@ public class CompileVerilogStruct
 			{
 				TokenList tok = tList.get(i);
 				if (tok.lineNum != lineNumber) break;
-				if (tok == token) pointer = buffer.length();
+				if (tok == this) pointer = buffer.length();
 				buffer.append(tok.toString());
 				if (tok.space) buffer.append(" ");
 			}
@@ -169,15 +153,30 @@ public class CompileVerilogStruct
 		}
 	}
 
-	static TokenType getTokenType(TokenList token)
+	private void resetTokenListPointer() { tokenIndex = 0; }
+
+	private TokenList getNextToken()
+	{
+		if (tokenIndex >= tList.size()) return null;
+		TokenList token = tList.get(tokenIndex++);
+		return token;
+	}
+
+	private TokenList peekNextToken()
+	{
+		if (tokenIndex >= tList.size()) return null;
+		return tList.get(tokenIndex);
+	}
+
+	private TokenType getTokenType(TokenList token)
 	{
 		if (token == null) return TokenType.UNKNOWN;
 		return token.type;
 	}
 
-	TokenList needNextToken(TokenType type)
+	private TokenList needNextToken(TokenType type)
 	{
-		TokenList token = TokenList.getNextToken();
+		TokenList token = getNextToken();
 		if (token == null)
 		{
 			reportErrorMsg(null, "End of file encountered");
@@ -225,7 +224,7 @@ public class CompileVerilogStruct
 
 	/********** Modules *************************************************/
 
-	public static class VModule
+	public class VModule
 	{
 		/** name of entity */			String				name;
 		/** true if cell in Verilog */	boolean				defined;
@@ -276,14 +275,14 @@ public class CompileVerilogStruct
 			allNetworks = new HashMap<String,List<LocalPort>>();
 			allModules.add(this);
 		}
-
-		public static VModule findModule(String name)
-		{
-			for(VModule mod : allModules)
-				if (mod.name.equals(name)) return mod;
-			return null;
-		}
 	};
+
+	private VModule findModule(String name)
+	{
+		for(VModule mod : allModules)
+			if (mod.name.equals(name)) return mod;
+		return null;
+	}
 
 	/********** Ports on Modules **********************************/
 
@@ -298,7 +297,7 @@ public class CompileVerilogStruct
 		/** mode of port */				int			mode;
 		/** range of port */			int			firstIndex, secondIndex;
 
-		FormalPort(String name)
+		public FormalPort(String name)
 		{
 			this.name = name;
 			mode = MODE_UNKNOWN;
@@ -314,7 +313,7 @@ public class CompileVerilogStruct
 		String instanceName;
 		private Map<LocalPort,String> ports;
 
-		Instance(VModule module, String instanceName)
+		public Instance(VModule module, String instanceName)
 		{
 			this.module = module;
 			this.instanceName = instanceName;
@@ -334,7 +333,7 @@ public class CompileVerilogStruct
 		/** Instance */					Instance	in;
 		/** name of port */				String		portName;
 
-		LocalPort(Instance in, String portName)
+		public LocalPort(Instance in, String portName)
 		{
 			this.in = in;
 			this.portName = portName;
@@ -353,6 +352,8 @@ public class CompileVerilogStruct
 			return;
 		}
 
+		allModules = new ArrayList<VModule>();
+		tList = new ArrayList<TokenList>();
 		errorCount = 0;
 		hasErrors = false;
 		doScanner(strings);
@@ -372,60 +373,60 @@ public class CompileVerilogStruct
 				}
 			}
 		}
-		dumpData();
+//		dumpData();
 	}
 	
-	private void dumpData()
-	{
-		// write what was found
-		for(VModule vm : allModules)
-		{
-			System.out.println();
-			System.out.print("++++ MODULE "+vm.name+"(");
-			boolean first = true;
-			for(FormalPort fp : vm.ports)
-			{
-				if (!first) System.out.print(", ");
-				first = false;
-				System.out.print(fp.name);
-				if (fp.firstIndex != -1 && fp.secondIndex != -1)
-					System.out.print("[" + fp.firstIndex + ":" + fp.secondIndex + "]");
-				switch (fp.mode)
-				{
-					case MODE_IN:    System.out.print(" input");   break;
-					case MODE_OUT:   System.out.print(" output");  break;
-					case MODE_INOUT: System.out.print(" inout");   break;
-				}
-			}
-			System.out.println(")");
-			if (!vm.defined)
-			{
-				if (vm.cell == null) System.out.println("     CELL NOT FOUND"); else
-					System.out.println("     CELL IS "+vm.cell.describe(false));
-			}
-			for(Instance in : vm.instances)
-			{
-				System.out.print("     INSTANCE "+in.instanceName+" OF CELL "+in.module.name+"(");
-				first = true;
-				for(LocalPort lp : in.ports.keySet())
-				{
-					if (!first) System.out.print(", ");
-					first = false;
-					String netName = in.ports.get(lp);
-					System.out.print(lp.portName+"="+netName);
-				}
-				System.out.println(")");
-			}
-			for(String netName : vm.allNetworks.keySet())
-			{
-				System.out.print("     NETWORK " + netName + " ON");
-				List<LocalPort> ports = vm.allNetworks.get(netName);
-				for(LocalPort lp : ports)
-					System.out.print(" " + lp.in.instanceName+":"+lp.portName);
-				System.out.println();
-			}
-		}
-	}
+//	private void dumpData()
+//	{
+//		// write what was found
+//		for(VModule vm : allModules)
+//		{
+//			System.out.println();
+//			System.out.print("++++ MODULE "+vm.name+"(");
+//			boolean first = true;
+//			for(FormalPort fp : vm.ports)
+//			{
+//				if (!first) System.out.print(", ");
+//				first = false;
+//				System.out.print(fp.name);
+//				if (fp.firstIndex != -1 && fp.secondIndex != -1)
+//					System.out.print("[" + fp.firstIndex + ":" + fp.secondIndex + "]");
+//				switch (fp.mode)
+//				{
+//					case MODE_IN:    System.out.print(" input");   break;
+//					case MODE_OUT:   System.out.print(" output");  break;
+//					case MODE_INOUT: System.out.print(" inout");   break;
+//				}
+//			}
+//			System.out.println(")");
+//			if (!vm.defined)
+//			{
+//				if (vm.cell == null) System.out.println("     CELL NOT FOUND"); else
+//					System.out.println("     CELL IS "+vm.cell.describe(false));
+//			}
+//			for(Instance in : vm.instances)
+//			{
+//				System.out.print("     INSTANCE "+in.instanceName+" OF CELL "+in.module.name+"(");
+//				first = true;
+//				for(LocalPort lp : in.ports.keySet())
+//				{
+//					if (!first) System.out.print(", ");
+//					first = false;
+//					String netName = in.ports.get(lp);
+//					System.out.print(lp.portName+"="+netName);
+//				}
+//				System.out.println(")");
+//			}
+//			for(String netName : vm.allNetworks.keySet())
+//			{
+//				System.out.print("     NETWORK " + netName + " ON");
+//				List<LocalPort> ports = vm.allNetworks.get(netName);
+//				for(LocalPort lp : ports)
+//					System.out.print(" " + lp.in.instanceName+":"+lp.portName);
+//				System.out.println();
+//			}
+//		}
+//	}
 
 	/**
 	 * Method to report whether the Verilog compile was successful.
@@ -617,10 +618,10 @@ public class CompileVerilogStruct
 	private void doParser()
 	{
 		curModule = null;
-		TokenList.resetTokenListPointer();
+		resetTokenListPointer();
 		for(;;)
 		{
-			TokenList token = TokenList.getNextToken();
+			TokenList token = getNextToken();
 			if (token == null) break;
 			if (token.type == TokenType.KEYWORD)
 			{
@@ -665,7 +666,7 @@ public class CompileVerilogStruct
 			}
 		}
 
-		// fill in ports for ungenerated modules
+		// fill in ports for modules that were not generated
 		for(VModule module : allModules)
 		{
 			for(Instance in : module.instances)
@@ -698,7 +699,7 @@ public class CompileVerilogStruct
 		TokenList token = needNextToken(TokenType.IDENTIFIER);
 		if (token == null) return null;
 		String name = (String)token.pointer;
-		VModule module = VModule.findModule(name);
+		VModule module = findModule(name);
 		if (module != null)
 		{
 			reportErrorMsg(token, "Module already exists");
@@ -719,7 +720,7 @@ public class CompileVerilogStruct
 			FormalPort port = new FormalPort((String)token.pointer);
 			module.ports.add(port);
 
-			token = TokenList.getNextToken();
+			token = getNextToken();
 			if (getTokenType(token) != TokenType.COMMA) break;
 		}
 
@@ -756,23 +757,23 @@ public class CompileVerilogStruct
 		VKeyword vk = (VKeyword)declareToken.pointer;
 		if (vk == VKeyword.OUTPUT) mode = MODE_OUT; else 
 			if (vk == VKeyword.INOUT) mode = MODE_INOUT;
-		TokenList token = TokenList.getNextToken();
+		TokenList token = getNextToken();
 		int firstRange = -1, secondRange = -1;
 		if (getTokenType(token) == TokenType.LEFTBRACKET)
 		{
 			// a bus of bits
-			token = TokenList.getNextToken();
+			token = getNextToken();
 			firstRange = TextUtils.atoi((String)token.pointer);
 
 			token = needNextToken(TokenType.COLON);
 			if (token == null) return;
 
-			token = TokenList.getNextToken();
+			token = getNextToken();
 			secondRange = TextUtils.atoi((String)token.pointer);
 
 			token = needNextToken(TokenType.RIGHTBRACKET);
 			if (token == null) return;
-			token = TokenList.getNextToken();
+			token = getNextToken();
 		}
 
 		// now get the list of identifiers
@@ -834,10 +835,10 @@ public class CompileVerilogStruct
 			}
 
 			// look for comma
-			token = TokenList.getNextToken();
+			token = getNextToken();
 			if (getTokenType(token) == TokenType.COMMA)
 			{
-				token = TokenList.getNextToken();
+				token = getNextToken();
 				continue;
 			}
 			if (getTokenType(token) == TokenType.SEMICOLON) break;
@@ -861,7 +862,7 @@ public class CompileVerilogStruct
 		token = needNextToken(TokenType.LEFTPAREN);
 		if (token == null) return null;
 
-		VModule module = VModule.findModule(cellName);
+		VModule module = findModule(cellName);
 		if (module == null)
 			module = new VModule(cellName, false);
 		Instance inst = new Instance(module, instanceName);
@@ -870,7 +871,7 @@ public class CompileVerilogStruct
 		int argNum = 1;
 		for(;;)
 		{
-			token = TokenList.getNextToken();
+			token = getNextToken();
 			if (getTokenType(token) == TokenType.RIGHTPAREN) break;
 
 			// guess at the name of the next port
@@ -903,7 +904,7 @@ public class CompileVerilogStruct
 			}
 			LocalPort lp = new LocalPort(inst, portName);
 			inst.addPort(lp, signalName);
-			token = TokenList.getNextToken();
+			token = getNextToken();
 			if (getTokenType(token) == TokenType.RIGHTPAREN) break;
 			if (getTokenType(token) != TokenType.COMMA)
 			{
@@ -925,11 +926,11 @@ public class CompileVerilogStruct
 		String signalName = (String)token.pointer;
 
 		// see if it is indexed
-		TokenList next = TokenList.peekNextToken();
+		TokenList next = peekNextToken();
 		if (getTokenType(next) == TokenType.LEFTBRACKET)
 		{
 			// indexed signal
-			TokenList.getNextToken();
+			getNextToken();
 			TokenList index = needNextToken(TokenType.DECIMAL);
 			if (index == null) return null;
 			TokenList close = needNextToken(TokenType.RIGHTBRACKET);
@@ -946,7 +947,7 @@ public class CompileVerilogStruct
 	{
 		for(;;)
 		{
-			TokenList token = TokenList.getNextToken();
+			TokenList token = getNextToken();
 			if (token.type == TokenType.SEMICOLON) break;
 		}
 	}
@@ -967,7 +968,7 @@ public class CompileVerilogStruct
 
 		// back up to start of line
 		StringBuffer buffer = new StringBuffer();
-		int pointer = TokenList.makeErrorLine(tList, buffer);
+		int pointer = tList.makeErrorLine(buffer);
 
 		// print out line
 		System.out.println(buffer.toString());
@@ -1097,9 +1098,10 @@ public class CompileVerilogStruct
 	/**
 	 * Method to generate a QUISC (silicon compiler) netlist.
 	 * @param destLib destination library.
+     * @param isIncldeDateAndVersionInOutput include date and version in output
 	 * @return a List of strings with the netlist.
 	 */
-	public List<String> getQUISCNetlist(Library destLib)
+	public List<String> getQUISCNetlist(Library destLib, boolean isIncludeDateAndVersionInOutput)
 	{
 		// now produce the netlist
 		if (hasErrors) return null;
@@ -1109,7 +1111,7 @@ public class CompileVerilogStruct
 		netlist.add("!*************************************************");
 		netlist.add("!  QUISC Command file");
 		netlist.add("!");
-		if (User.isIncludeDateAndVersionInOutput())
+		if (isIncludeDateAndVersionInOutput)
 			netlist.add("!  File Creation:    " + TextUtils.formatDate(new Date()));
 		netlist.add("!-------------------------------------------------");
 		netlist.add("");
@@ -1137,22 +1139,57 @@ public class CompileVerilogStruct
 		// write this entity
 		netlist.add("create cell " + module.name);
 
-		// create export list
-		for(FormalPort port : module.ports)
-		{
-			String line = "export " + port.name + "_NODE NODEPORT " + port.name + " ";
-			switch (port.mode)
-			{
-				case MODE_UNKNOWN: line += "unknown";  break;
-				case MODE_IN:      line += "input";    break;
-				case MODE_OUT:     line += "output";   break;
-				case MODE_INOUT:   line += "inout";    break;
-			}
-			netlist.add(line);
-		}
+		// write instances
 		for(Instance in : module.instances)
 		{
 			netlist.add("create instance " + in.instanceName + " " + in.module.name);
+		}
+
+		for(String netName : module.allNetworks.keySet())
+		{
+			List<LocalPort> ports = module.allNetworks.get(netName);
+			LocalPort last = null;
+			for(LocalPort lp : ports)
+			{
+				if (last != null)
+					netlist.add("connect " + last.in.instanceName + " " + last.portName + " " + lp.in.instanceName + " " + lp.portName);
+				last = lp;
+			}
+		}
+
+		// create export list
+		for(FormalPort port : module.ports)
+		{
+			for(int i = port.firstIndex; i<=port.secondIndex; i++)
+			{
+				String name = port.name;
+				if (i != -1) name += "[" + i + "]";
+				boolean found = false;
+				for(Instance in : module.instances)
+				{
+					for(LocalPort lp : in.ports.keySet())
+					{
+						String lpName = in.ports.get(lp);
+						if (lpName.equals(name))
+						{
+							String line = "export " + in.instanceName + " " + lp.portName + " " + name + " ";
+							switch (port.mode)
+							{
+								case MODE_UNKNOWN: line += "unknown";  break;
+								case MODE_IN:      line += "input";    break;
+								case MODE_OUT:     line += "output";   break;
+								case MODE_INOUT:   line += "inout";    break;
+							}
+							netlist.add(line);
+							found = true;
+							break;
+						}
+					}
+					if (found) break;
+				}
+				if (!found)
+					netlist.add("! DID NOT FIND EXPORT "+name);
+			}
 		}
 	}
 }

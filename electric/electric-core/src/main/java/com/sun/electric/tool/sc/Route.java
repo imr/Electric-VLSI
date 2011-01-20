@@ -356,6 +356,7 @@ public class Route
 			{
 				for (GetNetlist.SCNiPort port = place.cell.ports; port != null; port = port.next)
 				{
+					if (port.extNode == null) continue;
 					RouteNode newNode = (RouteNode)port.extNode.ptr;
 					if (newNode != null)
 					{

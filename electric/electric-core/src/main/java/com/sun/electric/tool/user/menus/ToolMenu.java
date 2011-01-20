@@ -958,18 +958,19 @@ public class ToolMenu {
 				// ------------------- Silicon Compiler
 
 				// mnemonic keys available: AB DEFGHIJKLM OPQRSTU WXYZ
-				new EMenu("Silicon Co_mpiler", new EMenuItem("_Convert Current Cell to Layout") {
-					public void run() {
-						doSiliconCompilation(WindowFrame.needCurCell(), false);
-					}
-				}, SEPARATOR, new EMenuItem("Compile VHDL to _Netlist View") {
-					public void run() {
-						compileVHDL();
-					}
-				}, new EMenuItem("Compile _Verilog to Netlist View") {
-					public void run() {
-						compileVerilog();
-					}
+				new EMenu("Silicon Co_mpiler",
+					new EMenuItem("_Convert Current Cell to Layout") {
+						public void run() { doSiliconCompilation(WindowFrame.needCurCell(), false); }
+					},
+					new EMenuItem("_Convert Current Cell to Rats-Nest Structure") {
+						public void run() { doPlaceRatsNest(WindowFrame.needCurCell(), false); }
+					},
+					SEPARATOR,
+					new EMenuItem("Compile VHDL to _Netlist View") {
+						public void run() { compileVHDL(); }
+					},
+					new EMenuItem("Compile _Verilog to Netlist View") {
+						public void run() { compileVerilog(); }
 				}),
 
 				// ------------------- Compaction
@@ -2468,23 +2469,22 @@ public class ToolMenu {
 	/**
 	 * Method to handle the menu command to convert a cell to layout. Reads the
 	 * cell library if necessary; Converts a schematic to VHDL if necessary;
-	 * Compiles a VHDL cell to a netlist if necessary; Reads the netlist from
+	 * Compiles a VHDL or Verilog cell to a netlist if necessary; Reads the netlist from
 	 * the cell; does placement and routing; Generates Electric layout; Displays
 	 * the resulting layout.
-	 * 
-	 * @param cell
-	 *            the cell to compile.
-	 * @param doItNow
-	 *            if the job must executed now
+	 * @param cell the cell to compile.
+	 * @param doItNow if the job must executed now
 	 */
-	public static void doSiliconCompilation(Cell cell, boolean doItNow) {
-		if (cell == null)
-			return;
+	public static void doSiliconCompilation(Cell cell, boolean doItNow)
+	{
+		if (cell == null) return;
 		int activities = PLACE_AND_ROUTE | SHOW_CELL;
 
 		// see if the current cell needs to be compiled
-		if (cell.getView() != View.NETLISTQUISC) {
-			if (cell.isSchematic()) {
+		if (cell.getView() != View.NETLISTQUISC)
+		{
+			if (cell.isSchematic())
+			{
 				// current cell is Schematic. See if there is a more recent
 				// netlist or VHDL
 				Cell vhdlCell = cell.otherView(View.VHDL);
@@ -2493,7 +2493,8 @@ public class ToolMenu {
 				else
 					activities |= CONVERT_TO_VHDL | COMPILE_VHDL_FOR_SC;
 			}
-			if (cell.getView() == View.VHDL) {
+			if (cell.getView() == View.VHDL)
+			{
 				// current cell is VHDL. See if there is a more recent netlist
 				Cell netListCell = cell.otherView(View.NETLISTQUISC);
 				if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate()))
@@ -2501,9 +2502,19 @@ public class ToolMenu {
 				else
 					activities |= COMPILE_VHDL_FOR_SC;
 			}
+			if (cell.getView() == View.VERILOG)
+			{
+				// current cell is Verilog. See if there is a more recent netlist
+				Cell netListCell = cell.otherView(View.NETLISTQUISC);
+				if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate()))
+					cell = netListCell;
+				else
+					activities |= COMPILE_VERILOG_FOR_SC;
+			}
 		}
 
-		if (Library.findLibrary(SilComp.SCLIBNAME) == null) {
+		if (Library.findLibrary(SilComp.SCLIBNAME) == null)
+		{
 			if (doItNow)
 				ReadSCLibraryJob.performTaskNoJob();
 			else
@@ -2512,6 +2523,57 @@ public class ToolMenu {
 
 		// do the silicon compilation task
 		doSilCompActivityNoJob(cell, activities, doItNow);
+	}
+
+	/**
+	 * Method to handle the menu command to convert a cell to a rats-nest layout. Reads the
+	 * cell library if necessary; Converts a schematic to VHDL if necessary;
+	 * Compiles a VHDL or Verilog cell to a netlist if necessary; Reads the netlist from
+	 * the cell; creates a new cell with instances that are wired rats-nest style.
+	 * @param cell the cell to compile.
+	 * @param doItNow if the job must executed now
+	 */
+	public static void doPlaceRatsNest(Cell cell, boolean doItNow)
+	{
+		if (cell == null) return;
+		int activities = GENERATE_CELL | SHOW_CELL;
+
+		// see if the current cell needs to be compiled
+		if (cell.getView() != View.NETLISTQUISC)
+		{
+			if (cell.isSchematic())
+			{
+				// current cell is Schematic. See if there is a more recent
+				// netlist or VHDL
+				Cell vhdlCell = cell.otherView(View.VHDL);
+				if (vhdlCell != null && vhdlCell.getRevisionDate().after(cell.getRevisionDate()))
+					cell = vhdlCell;
+				else
+					activities |= CONVERT_TO_VHDL | COMPILE_VHDL_FOR_SC;
+			}
+			if (cell.getView() == View.VHDL)
+			{
+				// current cell is VHDL. See if there is a more recent netlist
+				Cell netListCell = cell.otherView(View.NETLISTQUISC);
+				if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate()))
+					cell = netListCell;
+				else
+					activities |= COMPILE_VHDL_FOR_SC;
+			}
+			if (cell.getView() == View.VERILOG)
+			{
+				// current cell is Verilog. See if there is a more recent netlist
+				Cell netListCell = cell.otherView(View.NETLISTQUISC);
+				if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate()))
+					cell = netListCell;
+				else
+					activities |= COMPILE_VERILOG_FOR_SC;
+			}
+		}
+
+		// do the assembly task
+		new DoSilCompActivity(cell, activities, new SilComp.SilCompPrefs(false),
+				new GenerateVHDL.VHDLPreferences(false));
 	}
 
 	/**
@@ -2529,7 +2591,7 @@ public class ToolMenu {
 
 		// do the VHDL compilation task
 		new DoSilCompActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, new SilComp.SilCompPrefs(false),
-				new GenerateVHDL.VHDLPreferences(false));
+			new GenerateVHDL.VHDLPreferences(false));
 	}
 
 	/**
@@ -2546,8 +2608,8 @@ public class ToolMenu {
 		}
 
 		// do the Verilog compilation task
-		new DoSilCompActivity(cell, COMPILE_VERILOG_FOR_SC | GENERATE_CELL | SHOW_CELL,
-				new SilComp.SilCompPrefs(false), new GenerateVHDL.VHDLPreferences(false));
+		new DoSilCompActivity(cell, COMPILE_VERILOG_FOR_SC | SHOW_CELL,
+			new SilComp.SilCompPrefs(false), new GenerateVHDL.VHDLPreferences(false));
 	}
 
 	/**
@@ -2721,12 +2783,14 @@ public class ToolMenu {
 					System.out.println("ERRORS during compilation, no netlist produced");
 					return null;
 				}
+
 				if ((activities & GENERATE_CELL) != 0) {
 					// just make the cell (randomly placed)
 					cell = c.genCell(destLib);
+					System.out.println(" Done, created " + cell.describe(false));
 				} else {
 					// save the netlist in a view
-					List<String> netlistStrings = c.getQUISCNetlist(destLib);
+					List<String> netlistStrings = c.getQUISCNetlist(destLib, isIncludeVersionAndDateInOutput);
 					if (netlistStrings == null) {
 						System.out.println("No netlist produced");
 						return null;

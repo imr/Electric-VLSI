@@ -416,7 +416,10 @@ public class Place
 		{
 			// check every port of member
 			for (GetNetlist.SCNiPort port = node.cluster.node.ports; port != null; port = port.next)
+			{
+				if (port.extNode == null) continue;
 				port.extNode.flags = marker;
+			}
 		}
 
 		setExtNodesByCTree(node.rPtr, marker);
@@ -440,6 +443,7 @@ public class Place
 			// check every port of member
 			for (GetNetlist.SCNiPort port = node.cluster.node.ports; port != null; port = port.next)
 			{
+				if (port.extNode == null) continue;
 				if (port.extNode.flags == marker) count++;
 			}
 		}
@@ -791,6 +795,7 @@ public class Place
 		{
 			for (GetNetlist.SCNiPort port = cTree.cluster.node.ports; port != null; port = port.next)
 			{
+				if (port.extNode == null) continue;
 				NBTrunk nTrunk = (NBTrunk)port.extNode.ptr;
 				if (nTrunk == null) continue;
 				if (nTrunk.minX < 0)

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+IMP/MAN: (1/20/11, SMR) More Verilog compilation features (Bug #2991).
+
 BUG: (1/12/11, SMR) Placement framework creates invalid arcs (Bug #3014).
 FIX: In PlacementAdapter.doPlacement(), compute arc end coordinates.
 
