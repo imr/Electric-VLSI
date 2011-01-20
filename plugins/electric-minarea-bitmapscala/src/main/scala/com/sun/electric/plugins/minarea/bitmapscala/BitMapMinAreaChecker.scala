@@ -12,12 +12,12 @@ import com.sun.electric.api.minarea.MinAreaChecker
 import java.util.Properties
 
 import scala.collection.mutable.BitSet
-import scala.collection.mutable.SetBuilder
 import scala.collection.mutable.LinkedHashMap
 import scala.collection.mutable.LinkedHashSet
 import scala.collection.immutable.TreeSet
 
 class BitMapMinAreaChecker extends MinAreaChecker {
+  val DEBUG = 1
 
   override def getAlgorithmName = "BitMap"
   
@@ -74,34 +74,34 @@ class BitMapMinAreaChecker extends MinAreaChecker {
    */
   override def check(topCell: LayoutCell, minArea: Long, parameters: Properties, errorLogger: MinAreaChecker.ErrorLogger) = {
     
-    val dt = downTop(topCell)
-    val coordSets = new LinkedHashMap[LayoutCell,(TreeSet[Int],TreeSet[Int])]()
-    for (val t <- dt) {
-      println
-      println(t.getName)
-      t.traverseRectangles(new LayoutCell.RectangleHandler {
-          def apply(minX: Int, minY: Int, maxX: Int, maxY: Int) = {
-            println(" box ["+minX+".."+maxX+"]x["+minY+".."+maxY+"]")
-          }
-        })
-      t.traverseSubcellInstances(new LayoutCell.SubcellHandler {
-          def apply(subCell: LayoutCell, anchorX: Int, anchorY: Int, subOrient: ManhattanOrientation) = {
-            println(" call "+subCell.getName+" ("+anchorX+","+anchorY+") "+subOrient)
-          }
-        })
+    if (DEBUG >= 4) {
+      val dt = downTop(topCell)
+      for (val t <- dt) {
+        println
+        println(t.getName)
+        t.traverseRectangles(new LayoutCell.RectangleHandler {
+            def apply(minX: Int, minY: Int, maxX: Int, maxY: Int) = {
+              println(" box ["+minX+".."+maxX+"]x["+minY+".."+maxY+"]")
+            }
+          })
+        t.traverseSubcellInstances(new LayoutCell.SubcellHandler {
+            def apply(subCell: LayoutCell, anchorX: Int, anchorY: Int, subOrient: ManhattanOrientation) = {
+              println(" call "+subCell.getName+" ("+anchorX+","+anchorY+") "+subOrient)
+            }
+          })
+      }
     }
     
     var xcoords = new TreeSet[Int]()
     var ycoords = new TreeSet[Int]()
     flattenRectangles(topCell, (minX: Int, minY: Int, maxX: Int, maxY: Int) => {
-        println(" flat ["+minX+".."+maxX+"]x["+minY+".."+maxY+"]")
+        if (DEBUG >= 4) {
+          println(" flat ["+minX+".."+maxX+"]x["+minY+".."+maxY+"]")
+        }
         xcoords = xcoords + minX + maxX
         ycoords = ycoords + minY + maxY
       })
   
-    println("xcoords "+xcoords)
-    println("ycoords "+ycoords)
-    
     val xcoorda = new Array[Int](xcoords.size)
     val ycoorda = new Array[Int](ycoords.size)
     
@@ -116,46 +116,132 @@ class BitMapMinAreaChecker extends MinAreaChecker {
       ycoordm.put(y, ycoordm.size)
     }
     
-    println("xcoordm "+xcoordm)
-    println("ycoordm "+ycoordm)
+    val xsize = xcoords.size - 1
+    val ysize = ycoords.size - 1
     
-    val bitMap = new Array[BitSet](ycoords.size - 1)
+    val bitMap = new Array[BitSet](xsize)
     for (i <- 0 until bitMap.length) bitMap(i) = new BitSet
     flattenRectangles(topCell, (minX: Int, minY: Int, maxX: Int, maxY: Int) => {
         val minXI = xcoordm(minX)
         val minYI = ycoordm(minY)
         val maxXI = xcoordm(maxX)
         val maxYI = ycoordm(maxY)
-        val xset = new BitSet()
-        var x = minXI
-        while (x < maxXI) {
-          xset.add(x)
-          x += 1
-        }
+        val yset = new BitSet()
         var y = minYI
         while (y < maxYI) {
-          bitMap(y) |= xset
+          yset.add(y)
           y += 1
         }
+        var x = minXI
+        while (x < maxXI) {
+          bitMap(x) |= yset
+          x += 1
+        }
       })
+
+    if (DEBUG >= 4) {
+      println("xcoords "+xcoords)
+      println("ycoords "+ycoords)
+    
+      println("xcoordm "+xcoordm)
+      println("ycoordm "+ycoordm)
+    
+      printBitMap(bitMap, xsize, ysize)
+    }
     
     var totalArea = 0L
-    var y = ycoordm.size - 2
-    while (y >= 0) {
-      val xset = bitMap(y)
-      var xlen = 0
-      for (x <- 0 until xcoordm.size - 1) {
-        if (xset(x)) {
-          print('X')
-          xlen += xcoorda(x + 1) - xcoorda(x)
-        } else {
-          print(' ')
-        }
+    for (x <- 0 until xsize) {
+      val yset = bitMap(x)
+      var ylen = 0
+      for (y <- 0 until ysize) {
+        if (yset(y)) ylen += ycoorda(y + 1) - ycoorda(y)
       }
+      totalArea += (xcoorda(x + 1) - xcoorda(x)) * ylen.asInstanceOf[Long]
+    }
+    if (DEBUG >= 1) {
+      println("Total Area "+totalArea)
+    }
+    
+    val prevX = new Array[Polygon](ysize)
+    val nextX = new Array[Polygon](ysize)
+    for (x <- 0 until xsize) {
+      val dx: Long = xcoorda(x + 1) - xcoorda(x)
+      val yset = bitMap(x)
+      var y = ysize
+      while (y > 0 && !yset(y-1)) y -= 1
+      while (y > 0) {
+        val ymax = y
+        var poly: Polygon = null
+        while (y > 0 && yset(y-1)) {
+          val prevP = prevX(y-1)
+          if (prevP != null && prevP.next != null) {
+            if (poly == null || poly.y < prevP.next.y)
+              poly = prevP.next
+          }
+          y -= 1
+        }
+        val ymin = y
+        if (poly == null) {
+          poly = new Polygon
+          poly.y = ymax
+        }
+        poly.area += dx * (ycoorda(ymax) - ycoorda(ymin))
+        var j = ymin
+        while (j < ymax) {
+          nextX(j) = poly
+          if (prevX(j) != null) prevX(j).next = poly
+          j += 1
+        }
+        
+        while (y > 0 && !yset(y-1)) y -= 1
+      }
+      
+      y = 0
+      while (y < ysize) {
+        val prevP = prevX(y)
+        if (prevP != null && prevP.y == y + 1) {
+          if (prevP.next != null) {
+            prevP.next.area += prevP.area
+          } else {
+            totalArea += prevP.area
+            errorLogger.reportMinAreaViolation(prevP.area, xcoorda(x), ycoorda(prevP.y))
+          }
+        }
+        y += 1
+      }
+      
+      y = 0
+      while (y < ysize) {
+        prevX(y) = nextX(y)
+        nextX(y) = null
+        y += 1
+      }
+    }
+    
+    var y = 0
+    while (y < ysize) {
+      val prevP = prevX(y)
+      if (prevP != null && prevP.y == y + 1) {
+        totalArea += prevP.area
+        errorLogger.reportMinAreaViolation(prevP.area, xcoorda(xsize), ycoorda(prevP.y))
+      }
+      y += 1
+    }
+  }
+  
+  def printBitMap(bitMap: Array[BitSet], xsize: Int, ysize: Int) = {
+    var y = ysize - 1
+    while (y >= 0) {
+      for (x <- 0 until xsize) print(if (bitMap(x)(y)) 'X' else ' ')
       println
-      totalArea += (ycoorda(y + 1) - ycoorda(y)) * xlen.asInstanceOf[Long]
       y -= 1
     }
-    println("Total Area "+totalArea)
   }
 }
+
+class Polygon {
+  var y: Int = 0
+  var area: Long = 0
+  var next: Polygon = null
+}
+
