@@ -4,7 +4,7 @@
  *
  * File: PlacementSimulatedAnnealingRowCol.java
  * Written by Team 6: Sebastian Roether, Jochen Lutz
- * Modified for column/row placement by Steven M. Rubin
+ * Rewritten for column/row placement by Steven M. Rubin
  *
  * This code has been developed at the Karlsruhe Institute of Technology (KIT), Germany,
  * as part of the course "Multicore Programming in Practice: Tools, Models, and Languages".
@@ -34,23 +34,22 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.tool.placement.PlacementFrame;
 import com.sun.electric.util.math.Orientation;
 
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Implementation of the simulated annealing placement algorithm for row/column placement.
  */
 public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 {
-	private static final boolean CENTEREDSTACKS = false;
-
 	// parameters
 	private PlacementParameter numThreadsParam = new PlacementParameter("threads",
 		"Number of threads:", Runtime.getRuntime().availableProcessors());
@@ -66,15 +65,11 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 		"Force rows/columns to be equal length", true);
 
 	// Temperature control
-	private int iterationsPerTemperatureStep;	// if maximum runtime is > 0 this is calculated each temperature step
-	private double startingTemperature;
-	private double temperature;
-	private int temperatureSteps;				// how often will the temperature be decreased
-	private int temperatureStep;
-	private int perturbationsTried;
-	private long stepStartTime;
-	private long timestampStart;
-	private int stepsPerUpdate = 50;
+	/** current "temperature" for allowing bad moves */				private double temperature;
+	/** starting time of run (for termination and temp changes) */	private long timestampStart;
+	/** number of moves per iteration of algorithm */				private int stepsPerUpdate;
+	/** number of temperature steps before completion */			private int numTemperatureSteps;
+	/** number of temperature steps completed so far */				private int numStepsDone;
 
 	/** list of proxy nodes */										private List<ProxyNode> nodesToPlace;
 	/** map from original PlacementNodes to proxy nodes */			private Map<PlacementNode, ProxyNode> proxyMap;
@@ -106,11 +101,23 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 		// create proxies for placement nodes and insert in lists and maps
 		nodesToPlace = new ArrayList<ProxyNode>(placementNodes.size());
 		proxyMap = new HashMap<PlacementNode, ProxyNode>();
+		Set<Double> girths = new HashSet<Double>();
 		for (PlacementNode p : placementNodes)
 		{
 			ProxyNode proxy = new ProxyNode(p);
+			double girth = proxy.getCellGirth();
+			girths.add(new Double(girth));
 			nodesToPlace.add(proxy);
 			proxyMap.put(p, proxy);
+		}
+
+		// warn if the girths are uneven
+		if (girths.size() != 1)
+		{
+			StringBuffer sb = new StringBuffer();
+			for(Double girth : girths)
+				sb.append(" " + girth);
+			System.out.println("WARNING: Stacks have uneven girth:" + sb.toString());
 		}
 
 		// create an initial layout to be improved by simulated annealing
@@ -125,28 +132,15 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 		}
 		setParamterValues(threadCount, maxRuntimeParam.getIntValue());
 
-		// Calculate the working area for the process.
-		double totalArea = 0;
-		for (ProxyNode node : nodesToPlace)
-			totalArea += node.getWidth() * node.getHeight();
-		double maxChipLength = Math.sqrt(totalArea) * 4;
-
-		// calculate the starting temperature
-		temperatureStep = 0;
-		perturbationsTried = 0;
-		iterationsPerTemperatureStep = runtime > 0 ? 100 : getDesiredMoves();
-		startingTemperature = getStartingTemperature(maxChipLength, runtime, allNetworks);
-		temperature = startingTemperature;
-		temperatureSteps = countTemperatureSteps(startingTemperature);
+		// initialize temperature
+		stepsPerUpdate = (int)Math.sqrt(nodesToPlace.size());
+		temperature = 2000.0;
+		numTemperatureSteps = countTemperatureSteps(temperature);
+		numStepsDone = 0;
+		timestampStart = System.currentTimeMillis();
 
 		// initialize statistics
 		better = worse = worseAccepted = 0;
-
-		// for stopping the algorithm in time
-		timestampStart = System.currentTimeMillis();
-
-		// for timing the steps
-		stepStartTime = System.nanoTime();
 
 		// start the Simulated Annealing threads
 		SimulatedAnnealing[] threads = new SimulatedAnnealing[numOfThreads];
@@ -217,7 +211,6 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 				}
 				if (tallestStack < 0) break;
 				stackConsidered[tallestStack] = true;
-//System.out.println("Examine stack "+tallestStack);
 
 				// look at all nodes in the tall stack
 				for(ProxyNode pn : stackContents[tallestStack])
@@ -253,8 +246,6 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 				{
 					// make the move
 					proposeMove(nodeToMove, tallestStack, bestOtherStack, placeInOtherStack);
-//System.out.println("  Move "+nodeToMove.getCellSize()+"-tall node in position "+stackContents[tallestStack].indexOf(nodeToMove)+
-//" of stack "+tallestStack+" (which is "+stackSizes[tallestStack]+" tall) to stack "+bestOtherStack+", position "+placeInOtherStack);
 					implementMove(nodeToMove, tallestStack, bestOtherStack, placeInOtherStack);
 					break;
 				}
@@ -326,78 +317,14 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 	 */
 	private int countTemperatureSteps(double startingTemperature)
 	{
-		double temperature = startingTemperature;
+		double temp = startingTemperature;
 		int steps = 0;
-		while (temperature > 1)
+		while (temp > 1)
 		{
 			steps++;
-			temperature = coolDown(temperature);
+			temp = coolDown(temp);
 		}
 		return steps;
-	}
-
-	/**
-	 * Method to calculate the initial temperature. It uses the standard deviation
-	 * of the net length for random placements to derive the starting temperature.
-	 * @param length maximum length of the chip
-	 * @return the initial temperature
-	 */
-	private double getStartingTemperature(double length, double runtime, List<PlacementNetwork> allNetworks)
-	{
-		double[] metrics = new double[1000]; // sample size
-		double sigma = 0;
-		double average = 0;
-
-		double width = length;
-		double height = length;
-
-		// collect samples of the cost function
-		Map<ProxyNode,Point2D> origCoords = new HashMap<ProxyNode,Point2D>();
-		for (ProxyNode p : nodesToPlace)
-			origCoords.put(p, new Point2D.Double(p.getPlacementX(), p.getPlacementY()));
-		for (int i = 0; i < metrics.length; i++)
-		{
-			for (ProxyNode p : nodesToPlace)
-				p.setPlacement(randNum.nextDouble() * width, randNum.nextDouble() * height, p.getColumnRowIndex(),
-					p.getPlacementOrientation(), false);
-			metrics[i] = netLength(allNetworks);
-		}
-		for (ProxyNode p : nodesToPlace)
-		{
-			Point2D origPt = origCoords.get(p);
-			p.setPlacement(origPt.getX(), origPt.getY(), p.getColumnRowIndex(),
-				p.getPlacementOrientation(), false);
-		}
-
-		// calculate average
-		for (int i = 0; i < metrics.length; i++)
-			average += metrics[i];
-		average /= metrics.length;
-
-		// calculate standard deviation
-		for (int i = 0; i < metrics.length; i++)
-			sigma += (metrics[i] - average) * (metrics[i] - average);
-		sigma = Math.sqrt(sigma / metrics.length);
-
-		// set starting temperature so that the acceptance function
-		// accepts worsening of -sigma with a probability of 0.3
-		// e^(-sigma /startingTemperature) = 0.3 # solve for startingTemperature
-		// THIS IS TWEAKING DATA
-		double startingTemperature = sigma * (-1 / (2 * Math.log(0.3)));
-
-		// If a maximum runtime is set, only the last temperature steps are done
-		if (runtime > 0)
-		{
-			double msPerMove = guessMillisecondsPerMove();
-			int desired_moves = getDesiredMoves();
-			int possibleSteps = Math.max((int) ((runtime * 1000) / (msPerMove * desired_moves)), 5);
-			int stepsUntilStop = countTemperatureSteps(startingTemperature);
-
-			for (int i = 0; i < stepsUntilStop - possibleSteps; i++)
-				startingTemperature = coolDown(startingTemperature);
-		}
-
-		return startingTemperature;
 	}
 
 	/**
@@ -408,65 +335,6 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 	private double coolDown(double temp)
 	{
 		return temp * 0.99 - 0.1;
-	}
-
-	/**
-	 * Method that calculates how many moves per temperature step are necessary.
-	 * @param nodes
-	 * @return
-	 */
-	private int getDesiredMoves()
-	{
-		// THIS IS TWEAKING DATA
-		return Math.max((int) (nodesToPlace.size() * Math.sqrt(nodesToPlace.size())), 8719);
-	}
-
-	private double guessMillisecondsPerMove()
-	{
-		double startTime = System.currentTimeMillis();
-		double sampleSize = 20000;
-		for (int i = 0; i < sampleSize; i++)
-		{
-			ProxyNode proxy = nodesToPlace.get(randNum.nextInt(nodesToPlace.size()));
-			netLength(proxy.getNets());
-		}
-
-		// a move actually takes more time than we measured
-		return (System.currentTimeMillis() - startTime) / sampleSize;
-	}
-
-	/**
-	 * Synchronized method that does temperature and time control. Threads
-	 * should call this periodically.
-	 * @param tries how many perturbation the thread tried since last calling update
-	 */
-	private synchronized void update(int tries)
-	{
-		perturbationsTried += tries;
-
-		// decrease temperature if enough iterations were done
-		if (perturbationsTried >= iterationsPerTemperatureStep)
-		{
-			long stepDuration = System.nanoTime() - stepStartTime;
-			stepStartTime = System.nanoTime();
-
-			// adjust how many moves to try before the next temperature decrease
-			if (runtime > 0)
-			{
-				// use the observed time from the last step to calculate how many moves to do
-				long elapsedTime = System.currentTimeMillis() - timestampStart;
-				long remainingTime = runtime * 1000 - elapsedTime;
-				long remainingSteps = temperatureSteps - temperatureStep;
-				double allowedTimePerStep = 1e6 * ((double) remainingTime / remainingSteps);
-
-				iterationsPerTemperatureStep *= allowedTimePerStep / stepDuration;
-				iterationsPerTemperatureStep = Math.max(stepsPerUpdate, iterationsPerTemperatureStep);
-			}
-
-			temperatureStep++;
-			temperature = coolDown(temperature);
-			perturbationsTried = 0;
-		}
 	}
 
 	private Orientation getOrientation(int index)
@@ -538,12 +406,29 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 							if (oldIndex < 0) continue;
 							newIndex = lockRandomStack();
 							if (newIndex < 0) { releaseStack(oldIndex);  continue; }
+
+							// cannot play with stacks that are nearly empty
+							if (stackContents[oldIndex].size() <= 1 && stackContents[newIndex].size() <= 1)
+							{
+								releaseStack(oldIndex);
+								releaseStack(newIndex);
+								continue;
+							}
 							break;
 						}
 						node = getRandomNode(oldIndex);
 
 						// swap stacks if it makes the lengths become more uniform
-						if (stackSizes[newIndex] > stackSizes[oldIndex])
+						boolean doSwap = stackSizes[newIndex] > stackSizes[oldIndex];
+
+//						// do not swap stacks during the first 75% of the time
+//						if (numStepsDone < numTemperatureSteps * 3 / 4) doSwap = false;
+//
+//						// do force swap to prevent zero-size stacks
+//						if (stackContents[oldIndex].size() <= 1) doSwap = true;
+
+						// swap if requested
+						if (doSwap)
 						{
 							int swap = oldIndex;   oldIndex = newIndex;   newIndex = swap;
 							node = getRandomNode(oldIndex);
@@ -583,7 +468,7 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 					// is actually applied (positive gains are always accepted)
 					double gain = networkMetricBefore - networkMetricAfter;
 					if (gain < 0) worse++; else better++;
-					if (Math.exp(gain / temperature) >= Math.random())
+					if (gain > 0 || Math.exp(gain / temperature) >= Math.random())
 					{
 						if (gain < 0) worseAccepted++;
 						implementMove(node, oldIndex, newIndex, newPlaceInStack);
@@ -592,8 +477,29 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 					if (newIndex != oldIndex) releaseStack(newIndex);
 				}
 
-				update(stepsPerUpdate);
+				update();
 			}
+		}
+	}
+
+	/**
+	 * Method that does temperature and time control. Threads
+	 * should call this periodically.
+	 */
+	private void update()
+	{
+		// adjust how many moves to try before the next temperature decrease
+		if (runtime > 0)
+		{
+			// use the time to calculate new temperature
+			long elapsedTime = System.currentTimeMillis() - timestampStart;
+			double fractionDone = elapsedTime / (runtime * 1000.0);
+			int stepsToDo = (int)(numTemperatureSteps * fractionDone);
+			for( ; numStepsDone < stepsToDo; numStepsDone++)
+				temperature = coolDown(temperature);
+		} else
+		{
+			temperature = coolDown(temperature);
 		}
 	}
 
@@ -614,11 +520,6 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 		{
 			// set proposed locations in the old stack without the moved node
 			double bottom = 0;
-			if (CENTEREDSTACKS)
-			{
-				double oldStackSize = stackSizes[oldIndex] - node.getCellSize();
-				bottom = -oldStackSize/2;
-			}
 			List<ProxyNode> pnList = stackContents[oldIndex];
 			for(ProxyNode pn : pnList)
 			{
@@ -634,11 +535,6 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 
 			// set proposed locations in the new stack with the moved node
 			bottom = 0;
-			if (CENTEREDSTACKS)
-			{
-				double newStackSize = stackSizes[newIndex] + node.getCellSize();
-				bottom = -newStackSize/2;
-			}
 			boolean notInserted = true;
 			List<ProxyNode> newList = stackContents[newIndex];
 			for(int i=0; i<newList.size(); i++)
@@ -673,8 +569,6 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 		{
 			// redo the new stack with the moved node
 			double bottom = 0;
-			if (CENTEREDSTACKS)
-				bottom = -stackSizes[oldIndex]/2;
 			boolean notInserted = true;
 			for(int i=0; i<stackContents[newIndex].size(); i++)
 			{
@@ -809,20 +703,18 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 		List<ProxyNode> pnList = stackContents[index];
 		if (!pnList.remove(node))
 		{
-			System.out.println("COULD NOT REMOVE NODE FROM STACK "+index);
+			System.out.println("ERROR: could not remove node from stack "+index);
 		}
 		stackSizes[index] -= node.getCellSize();
 	}
 
 	/**
-	 * Method to rearrange a stack so that all cells touch and are centered
+	 * Method to rearrange a stack so that all cells touch.
 	 * @param index the stack index.
 	 */
 	private void evenStack(int index)
 	{
 		double bottom = 0;
-		if (CENTEREDSTACKS)
-			bottom = -stackSizes[index]/2;
 		List<ProxyNode> pnList = stackContents[index];
 		for(ProxyNode pn : pnList)
 		{
@@ -931,13 +823,20 @@ public class PlacementSimulatedAnnealingRowCol extends PlacementFrame
 		{
 			if (check)
 			{
-				double xReq = stackCoords[ind];
-				if (x != xReq)
-					System.out.println("Moving node from ("+this.x+"["+this.index+"],"+this.y+") to ("+x+"["+ind+"],"+y+") BUT COLUMN "+ind+" IS AT "+xReq);
-				Orientation oReq = (ind%2) == 0 ? Orientation.IDENT : Orientation.X;
+				double req = stackCoords[ind];
+				if (columnPlacement)
+				{
+					if (x != req)
+						System.out.println("Moving node from ("+this.x+"["+this.index+"],"+this.y+") to ("+x+"["+ind+"],"+y+") BUT STACK "+ind+" IS AT "+req);
+				} else
+				{
+					if (y != req)
+						System.out.println("Moving node from ("+this.x+","+this.y+"["+this.index+"]) to ("+x+","+y+"["+ind+"]) BUT STACK "+ind+" IS AT "+req);
+				}
+				Orientation oReq = getOrientation(ind);
 				if (o != oReq)
-					System.out.println("Moving node from ("+this.x+"["+this.index+"],"+this.y+")"+this.orientation.toString()+
-						" to ("+x+"["+ind+"],"+y+")"+o.toString());
+					System.out.println("Rotating node from ("+this.x+","+this.y+")[S="+this.index+" O="+orientation.toString()+
+						"] to ("+x+","+y+")[S="+ind+" O="+o.toString()+"] BUT O SHOULD BE '"+oReq.toString()+"'");
 			}
 
 			this.x = x;
