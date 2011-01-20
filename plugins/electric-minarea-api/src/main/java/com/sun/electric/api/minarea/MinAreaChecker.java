@@ -50,14 +50,24 @@ public interface MinAreaChecker {
      */
     public void check(LayoutCell topCell, long minArea, Properties parameters, ErrorLogger errorLogger);
 
+    /**
+     * A class to report Min Area violations.
+     */
     public interface ErrorLogger {
 
         /**
-         * @param min area of violating polygon
-         * @param x x-coordinate of some point of violating polygon
-         * @param y y-coordinate of some point of violating polygon
+         * The algorithm uses this method to report about polygon that violates
+         * min area rule. The algorithm report actual area of the polygon and
+         * vertex with lexigraphically maximal coordinates (x,y).
+         * This means that rightmost vertical edges of polygon are choosen,
+         * and than the most upper vertex on these edges is choosen.
+         * Formally, such point (x,y) is reported that for any other point (x',y') of
+         * this polygin:  (x' < x || x' == x && y' < y)
+         * @param area the area of violating polygon
+         * @param x x-coordinate of lexigraphically largest point of violating polygon
+         * @param y y-coordinate of lexigraphically largest point of violating polygon
          */
-        public void reportMinAreaViolation(long minArea, long x, long y);
+        public void reportMinAreaViolation(long area, int x, int y);
         
         /**
          * 
