@@ -26,8 +26,8 @@ package com.sun.electric.plugins.minarea.bitmapscala
 import com.sun.electric.api.minarea.LayoutCell
 import com.sun.electric.api.minarea.ManhattanOrientation
 import com.sun.electric.api.minarea.MinAreaChecker
+import com.sun.electric.api.minarea.geometry.Point
 
-import java.awt.Point
 import java.util.Properties
 
 import scala.collection.immutable.TreeSet
@@ -144,14 +144,14 @@ class BitMapMinAreaChecker extends MinAreaChecker {
           pushTile(x, y)
           while (!stack.isEmpty) {
             val p = stack.top
-            if (p.x - 1 >= 0 && bitMap(p.x - 1)(p.y))
-              pushTile(p.x - 1, p.y)
-            else if (p.x + 1 < xsize && bitMap(p.x + 1)(p.y))
-              pushTile(p.x + 1, p.y)
-            else if (p.y - 1 >= 0 && bitMap(p.x)(p.y - 1))
-              pushTile(p.x, p.y - 1)
-            else if (p.y + 1 < ysize && bitMap(p.x)(p.y + 1))
-              pushTile(p.x, p.y + 1)
+            if (p.getX - 1 >= 0 && bitMap(p.getX - 1)(p.getY))
+              pushTile(p.getX - 1, p.getY)
+            else if (p.getX + 1 < xsize && bitMap(p.getX + 1)(p.getY))
+              pushTile(p.getX + 1, p.getY)
+            else if (p.getY - 1 >= 0 && bitMap(p.getX)(p.getY - 1))
+              pushTile(p.getX, p.getY - 1)
+            else if (p.getY + 1 < ysize && bitMap(p.getX)(p.getY + 1))
+              pushTile(p.getX, p.getY + 1)
             else
               stack.pop
           }
