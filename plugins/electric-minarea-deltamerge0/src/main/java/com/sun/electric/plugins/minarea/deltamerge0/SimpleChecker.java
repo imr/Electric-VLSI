@@ -156,7 +156,7 @@ public class SimpleChecker implements MinAreaChecker {
             totalArea += larea;
             if (larea < minArea) {
                 Point2D p = poly.getPoints()[1];
-                errorLogger.reportMinAreaViolation(larea, DBMath.lambdaToGrid(p.getX()), DBMath.lambdaToGrid(p.getY()));
+                errorLogger.reportMinAreaViolation(larea, (int)DBMath.lambdaToGrid(p.getX()), (int)DBMath.lambdaToGrid(p.getY()));
             }
         }
         for (PolyBase.PolyBaseTree son : obj.getSons()) {
