@@ -30,7 +30,7 @@
     <parent>
         <artifactId>electric-parent</artifactId>
         <groupId>com.sun.electric</groupId>
-        <version>2</version>
+        <version>3</version>
         <relativePath>../pom/electric-parent/pom.xml</relativePath>
     </parent>
 
@@ -59,7 +59,7 @@
         <java3dVersion>1.3.1</java3dVersion>
         <beanshellVersion>2.0b4</beanshellVersion>
         <jythonVersion>2.5.0</jythonVersion>
-        <specsVersion>1.6.5</specsVersion>
+        <specsVersion>1.6.6</specsVersion>
 
         <electricMovieAPIVersion>1.1-alpha</electricMovieAPIVersion>
         <electricMovieJMFVersion>1.0-beta</electricMovieJMFVersion>
