@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+BUG: (1/21/11, GVG) ImportBOOKSHELF test doesn't pass (Bug #2996)
+FIX: Just updating the data since nothing wrong with the latest generated library.
+
 IMP/MAN: (1/20/11, SMR) More Verilog compilation features (Bug #2991).
 
 BUG: (1/12/11, SMR) Placement framework creates invalid arcs (Bug #3014).
