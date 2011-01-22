@@ -35,6 +35,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.Variable.Key;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -95,6 +96,7 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 
 		// make a map of ports on each node
 		Map<BookshelfNode, Set<String>> nodePorts = new HashMap<BookshelfNode, Set<String>>();
+        Technology mocmos = Technology.getMocmosTechnology();
 
 		List<BookshelfNet> allNets = new ArrayList<BookshelfNet>();
 		String line;
@@ -161,6 +163,7 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 			double width = TextUtils.atof(size[0]);
 			double height = TextUtils.atof(size[1]);
 			Cell cell = Cell.makeInstance(lib, "Cell" + cellNumber + "{lay}");
+            cell.setTechnology(mocmos);
 			for (BookshelfNode bn : nodes)
 				bn.setPrototype(cell);
 			cellNumber++;
@@ -174,7 +177,7 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 				String[] xy = parts[i].split(",");
 				double x = TextUtils.atof(xy[0]);
 				double y = TextUtils.atof(xy[1]);
-				NodeProto pin = Artwork.tech().pinNode;
+				NodeProto pin = mocmos.findNodeProto("Metal-1-Pin"); //Artwork.tech().pinNode;
 				NodeInst ni = NodeInst.makeInstance(pin, new EPoint(x, y), 0, 0, cell);
 				PortInst pi = ni.getOnlyPortInst();
 				Export.newInstance(cell, pi, "P" + portNum);
@@ -185,6 +188,7 @@ public class BookshelfNets implements BookshelfInputParser<Void> {
 
 		// now create all the nodes
 		Cell mainCell = Cell.makeInstance(lib, lib.getName() + "{lay}");
+        mainCell.setTechnology(mocmos);
 		Collection<BookshelfNode> allNodes = BookshelfNode.getAllNodes();
 		for (BookshelfNode bn : allNodes) {
 			Cell np = bn.getPrototype();
