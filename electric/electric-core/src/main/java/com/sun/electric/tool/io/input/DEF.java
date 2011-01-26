@@ -45,8 +45,8 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.IconParameters;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.Orientation;
 
@@ -428,7 +428,7 @@ public class DEF extends LEFDEF
 		return null;
 	}
 
-	//RBR - temp method until I figure out
+	//RBR - temporary method until I figure out
 	//why in Java 6.0 my use of GetOrientation
 	//generates a compile error
 	private Orientation FetchOrientation() throws IOException
@@ -987,9 +987,9 @@ public class DEF extends LEFDEF
 		if (specialNetsHT == null) return;
 		if (normalNetsHT == null) return;
 		if (!localPrefs.logicalPlacement) return;
-		for (Enumeration enSpec = specialNetsHT.keys(); enSpec.hasMoreElements();)
+		for (Enumeration<String> enSpec = specialNetsHT.keys(); enSpec.hasMoreElements();)
 		{
-			String netName = (String)enSpec.nextElement();
+			String netName = enSpec.nextElement();
 			PortInst specPi = specialNetsHT.get(netName);
 			PortInst normalPi = null;
 			if (normalNetsHT.containsKey(netName))
@@ -1041,7 +1041,7 @@ public class DEF extends LEFDEF
 		// get the net name
 		String key = mustGetKeyword("NET");
 		if (key == null) return true;
-		String netName = translateDefName(key);    // save this so net can be placed in hashtable
+		String netName = translateDefName(key);    // save this so net can be placed in hash table
 
 		// get the next keyword
 		key = mustGetKeyword("NET");

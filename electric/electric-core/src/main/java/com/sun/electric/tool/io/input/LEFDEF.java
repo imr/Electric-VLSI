@@ -45,6 +45,7 @@ public class LEFDEF extends Input<Object>
 {
 	// special controls to ignore LEF/DEF data (set false to eliminate data)
 	protected static final boolean PLACELEFGEOMETRY = true;
+	protected static final boolean PLACELEFEXPORTS = true;
 	protected static final boolean PLACEDEFNETS = true;
 
 	protected static ViaDef firstViaDefFromLEF = null;
@@ -129,6 +130,7 @@ public class LEFDEF extends Input<Object>
 			arcFun = ArcProto.Function.UNKNOWN;
 			layerFun = Layer.Function.UNKNOWN;
 			viaArc1 = viaArc2 = null;
+			name = name.toUpperCase();
 
 			// first handle known layer names
 			if (name.startsWith("POLY"))
@@ -157,7 +159,7 @@ public class LEFDEF extends Input<Object>
 				pure = getPureLayerNode();
 				return;
 			}
-			if (name.equals("CONT"))
+			if (name.equals("CONT") || name.equals("CON"))
 			{
 				layerFun = Layer.Function.CONTACT1;
 				pure = getPureLayerNode();
@@ -166,7 +168,6 @@ public class LEFDEF extends Input<Object>
 
 			// handle via layers
 			int j = 0;
-			name = name.toUpperCase();
 			if (name.startsWith("VIA")) j = 3; else
 				if (name.startsWith("V")) j = 1;
 			if (j != 0)

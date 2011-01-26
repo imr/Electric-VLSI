@@ -704,7 +704,7 @@ public class LEF extends LEFDEF
 				if (ignoreToSemicolon("RECT")) return true;
 
 				// make the pin
-				if (PLACELEFGEOMETRY)
+				if (PLACELEFEXPORTS)
 				{
 					if (pureNp == null)
 					{
@@ -934,7 +934,12 @@ public class LEF extends LEFDEF
 	}
 
 	/**
-	 * Method to create a port called "thename" on port "pp" of node "ni" in cell "cell".
+	 * Method to create an Export.
+	 * @param cell the cell in which to create the export.
+	 * @param ni the NodeInst to export.
+	 * @param pp the PortProto on the NodeInst to export.
+	 * @param thename the name of the export.
+	 * @return the new Export.
 	 * The name is modified if it already exists.
 	 */
 	private Export newPort(Cell cell, NodeInst ni, PortProto pp, String thename)
@@ -947,11 +952,14 @@ public class LEF extends LEFDEF
 			if (e == null)
 			{
 				PortInst pi = ni.findPortInstFromProto(pp);
-				return Export.newInstance(cell, pi, portName);
+				Export ex = Export.newInstance(cell, pi, portName);
+				return ex;
 			}
 
 			// make space for modified name
-			newName = thename + "-" + i;
+			int sqPos = thename.indexOf('[');
+			if (sqPos < 0) newName = thename + "-" + i; else
+				newName = thename.substring(0, sqPos) + "-" + i + thename.substring(sqPos);
 			portName = newName;
 		}
 	}
