@@ -28,7 +28,6 @@ import com.sun.electric.database.text.WeakReferences;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
@@ -41,10 +40,8 @@ import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.beans.PropertyChangeListener;
@@ -62,7 +59,6 @@ import java.util.Set;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
@@ -409,20 +405,21 @@ public class TextWindow implements WindowContent
         final int READ_BUFFER_SIZE = 65536;
         char [] buf = new char[READ_BUFFER_SIZE];
         InputStreamReader is = new InputStreamReader(stream);
+        StringBuilder sb = new StringBuilder();
         try
         {
             for(;;)
             {
                 int amtRead = is.read(buf, 0, READ_BUFFER_SIZE);
                 if (amtRead <= 0) break;
-                String addString = new String(buf, 0, amtRead);
-                textArea.append(addString);
+                sb.append(buf, 0, amtRead);
             }
             stream.close();
         } catch (IOException e)
         {
             System.out.println("Error reading the file");
         }
+        textArea.append(sb.toString());
 	}
 
 	/**

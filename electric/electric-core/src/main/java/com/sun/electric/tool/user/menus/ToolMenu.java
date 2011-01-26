@@ -2777,7 +2777,7 @@ public class ToolMenu {
 
 			if ((activities & COMPILE_VERILOG_FOR_SC) != 0) {
 				// compile the VHDL to a netlist
-				System.out.print("Compiling Verilog in " + cell + " ...");
+				System.out.println("Compiling Verilog in " + cell + " ...");
 				CompileVerilogStruct c = new CompileVerilogStruct(cell);
 				if (c.hasErrors()) {
 					System.out.println("ERRORS during compilation, no netlist produced");
@@ -2787,7 +2787,7 @@ public class ToolMenu {
 				if ((activities & GENERATE_CELL) != 0) {
 					// just make the cell (randomly placed)
 					cell = c.genCell(destLib);
-					System.out.println(" Done, created " + cell.describe(false));
+					System.out.println("Done, created " + cell.describe(false));
 				} else {
 					// save the netlist in a view
 					List<String> netlistStrings = c.getQUISCNetlist(destLib, isIncludeVersionAndDateInOutput);
@@ -2809,7 +2809,7 @@ public class ToolMenu {
 						array[i] = netlistStrings.get(i);
 					netlistCell.setTextViewContents(array);
 					textCellsToRedraw.add(netlistCell);
-					System.out.println(" Done, created " + netlistCell);
+					System.out.println("Done, created " + netlistCell);
 					cell = netlistCell;
 				}
 			}

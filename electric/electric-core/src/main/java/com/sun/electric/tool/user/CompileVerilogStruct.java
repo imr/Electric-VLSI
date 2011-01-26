@@ -24,18 +24,28 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.EditingPreferences;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.util.TextUtils;
+import com.sun.electric.util.math.DBMath;
 
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -77,6 +87,9 @@ public class CompileVerilogStruct
 		public static final TokenType RIGHTPAREN = new TokenType("Right Parenthesis", ")");
 		public static final TokenType LEFTBRACKET = new TokenType("Left Bracket", "[");
 		public static final TokenType RIGHTBRACKET = new TokenType("Right Bracket", "]");
+		public static final TokenType LEFTBRACE = new TokenType("Left Brace", "{");
+		public static final TokenType RIGHTBRACE = new TokenType("Right Brace", "}");
+		public static final TokenType SLASH = new TokenType("Forward Slash", "/");
 		public static final TokenType COMMA = new TokenType("Comma", ",");
 		public static final TokenType MINUS = new TokenType("Minus", "-");
 		public static final TokenType PERIOD = new TokenType("Period", ".");
@@ -219,6 +232,8 @@ public class CompileVerilogStruct
 		public static final VKeyword INPUT     = new VKeyword("input");
 		public static final VKeyword MODULE    = new VKeyword("module");
 		public static final VKeyword OUTPUT    = new VKeyword("output");
+		public static final VKeyword SUPPLY    = new VKeyword("supply");
+		public static final VKeyword SUPPLY0   = new VKeyword("supply0");
 		public static final VKeyword WIRE      = new VKeyword("wire");
 	};
 
@@ -352,12 +367,17 @@ public class CompileVerilogStruct
 			return;
 		}
 
+		Job.getUserInterface().startProgressDialog("Compiling Verilog", null);
+		Job.getUserInterface().setProgressNote("Scanning...");
 		allModules = new ArrayList<VModule>();
 		tList = new ArrayList<TokenList>();
 		errorCount = 0;
 		hasErrors = false;
 		doScanner(strings);
+		Job.getUserInterface().setProgressNote("Parsing...");
+		Job.getUserInterface().setProgressValue(0);
 		doParser();
+		Job.getUserInterface().stopProgressDialog();
 
 		// make network list
 		for(VModule module : allModules)
@@ -451,6 +471,8 @@ public class CompileVerilogStruct
 			{
 				if (lineNum >= strings.length) return;
 				buf = strings[lineNum++];
+				if ((lineNum%100) == 0)
+					Job.getUserInterface().setProgressValue( lineNum * 100 / strings.length);
 				bufPos = 0;
 				space = true;
 			} else
@@ -512,6 +534,22 @@ public class CompileVerilogStruct
 						new TokenList(TokenType.IDENTIFIER, ident, lineNum, space);
 						bufPos = end;
 						break;
+					case '/':
+						// got a slash...look for "//" comment
+						end = bufPos + 1;
+						if (end >= buf.length() || buf.charAt(end) != '/')
+						{
+							new TokenList(TokenType.SLASH, null, lineNum, space);
+							bufPos++;
+							break;
+						}
+
+						// comment: skip to end of line
+						while (end < buf.length() && buf.charAt(end) != '\n')
+							end++;
+						if (end < buf.length() && buf.charAt(end) == '\n') end++;
+						bufPos = end;
+						break;
 					case '"':
 						// got a start of a string
 						end = bufPos + 1;
@@ -554,6 +592,14 @@ public class CompileVerilogStruct
 						break;
 					case ']':
 						new TokenList(TokenType.RIGHTBRACKET, null, lineNum, space);
+						bufPos++;
+						break;
+					case '{':
+						new TokenList(TokenType.LEFTBRACE, null, lineNum, space);
+						bufPos++;
+						break;
+					case '}':
+						new TokenList(TokenType.RIGHTBRACE, null, lineNum, space);
 						bufPos++;
 						break;
 					case ',':
@@ -619,10 +665,16 @@ public class CompileVerilogStruct
 	{
 		curModule = null;
 		resetTokenListPointer();
+		int tokenCount = 0;
 		for(;;)
 		{
 			TokenList token = getNextToken();
 			if (token == null) break;
+
+			tokenCount++;
+			if ((tokenCount%100) == 0)
+				Job.getUserInterface().setProgressValue( tokenIndex * 100 / tList.size());
+
 			if (token.type == TokenType.KEYWORD)
 			{
 				VKeyword vk = (VKeyword)token.pointer;
@@ -637,9 +689,10 @@ public class CompileVerilogStruct
 					continue;
 				}
 				if (vk == VKeyword.INPUT || vk == VKeyword.OUTPUT ||
-					vk == VKeyword.INOUT || vk == VKeyword.WIRE)
+					vk == VKeyword.INOUT || vk == VKeyword.WIRE ||
+					vk == VKeyword.SUPPLY || vk == VKeyword.SUPPLY0)
 				{
-						parseDeclare(token);
+					parseDeclare(token);
 					continue;
 				}
 				if (vk == VKeyword.ASSIGN)
@@ -787,7 +840,7 @@ public class CompileVerilogStruct
 			}
 			String idName = (String)token.pointer;
 			boolean found = false;
-			if (vk == VKeyword.WIRE)
+			if (vk == VKeyword.WIRE || vk == VKeyword.SUPPLY || vk == VKeyword.SUPPLY0)
 			{
 				if (firstRange != -1 && secondRange != -1)
 				{
@@ -887,23 +940,76 @@ public class CompileVerilogStruct
 				token = needNextToken(TokenType.LEFTPAREN);
 				if (token == null) return null;
 
-				token = needNextToken(TokenType.IDENTIFIER);
-				if (token == null) return null;
-				signalName = getSignalName(token);
+				// either an identifier or a group of identifiers enclosed in braces
+				token = getNextToken();
+				if (getTokenType(token) == TokenType.LEFTBRACE)
+				{
+					int index = 0;
+					if (inst.module.cell != null)
+					{
+						int lowestIndex = Integer.MAX_VALUE;
+						int portNameLen = portName.length();
+						for(Iterator<Export> it = inst.module.cell.getExports(); it.hasNext(); )
+						{
+							Export e = it.next();
+							if (e.getName().startsWith(portName) && e.getName().length() > portNameLen)
+							{
+								if (e.getName().charAt(portNameLen) == '[')
+								{
+									int thisIndex = TextUtils.atoi(e.getName().substring(portNameLen+1));
+									if (thisIndex < lowestIndex) lowestIndex = thisIndex;
+								}
+							}
+						}
+						index = lowestIndex;
+					}
+					for(;;)
+					{
+						token = getNextToken();
+						if (getTokenType(token) != TokenType.IDENTIFIER)
+						{
+							reportErrorMsg(token, "Expecting an identifier");
+							parseToSemicolon();
+							return null;
+						}
+						signalName = getSignalName(token);
+						inst.addPort(new LocalPort(inst, portName + "[" + index + "]"), signalName);
+						index++;
 
+						token = getNextToken();
+						if (getTokenType(token) == TokenType.RIGHTBRACE) break;
+						if (getTokenType(token) != TokenType.COMMA)
+						{
+							reportErrorMsg(token, "Expecting a comma");
+							parseToSemicolon();
+							return null;
+						}
+					}
+				} else
+				{
+					// single port
+					if (getTokenType(token) != TokenType.IDENTIFIER)
+					{
+						reportErrorMsg(token, "Expecting an identifier");
+						parseToSemicolon();
+						return null;
+					}
+
+					signalName = getSignalName(token);
+					inst.addPort(new LocalPort(inst, portName), signalName);
+				}
 				token = needNextToken(TokenType.RIGHTPAREN);
 				if (token == null) return null;
 			} else if (getTokenType(token) == TokenType.IDENTIFIER)
 			{
 				signalName = getSignalName(token);
+				inst.addPort(new LocalPort(inst, portName), signalName);
 			} else
 			{
 				reportErrorMsg(token, "Unknown separator between identifiers");
 				parseToSemicolon();
 				return null;
 			}
-			LocalPort lp = new LocalPort(inst, portName);
-			inst.addPort(lp, signalName);
 			token = getNextToken();
 			if (getTokenType(token) == TokenType.RIGHTPAREN) break;
 			if (getTokenType(token) != TokenType.COMMA)
@@ -979,7 +1085,7 @@ public class CompileVerilogStruct
 		System.out.println(buffer.toString() + "^");
 	}
 
-	/******************************** THE ALS NETLIST GENERATOR ********************************/
+	/******************************** THE RATS-NEST CELL GENERATOR ********************************/
 
 	/**
 	 * Method to generate a cell that represents this netlist.
@@ -988,11 +1094,23 @@ public class CompileVerilogStruct
 	public Cell genCell(Library destLib)
 	{
 		if (hasErrors) return null;
+		Map<NodeProto,Map<PortProto,Point2D>> portLocMap = new HashMap<NodeProto,Map<PortProto,Point2D>>();
+
+		Job.getUserInterface().startProgressDialog("Building Rats-Nest Cells", null);
+
 		for(VModule mod : allModules)
 		{
 			if (!mod.defined) continue;
-			Cell cell = Cell.makeInstance(destLib, mod.name + "{lay}");
-			if (cell == null) return null;
+			String cellName = mod.name + "{lay}";
+			System.out.println("Creating cell " + cellName);
+			Job.getUserInterface().setProgressNote("Creating Nodes in Cell " + cellName);
+			Job.getUserInterface().setProgressValue(0);
+			Cell cell = Cell.makeInstance(destLib, cellName);
+			if (cell == null)
+			{
+				Job.getUserInterface().stopProgressDialog();
+				return null;
+			}
 
 			// first place the instances
 			double GAP = 5;
@@ -1010,6 +1128,7 @@ public class CompileVerilogStruct
 			}
 			double cellSize = Math.sqrt(totalSize);
 			Map<Instance,NodeInst> placed = new HashMap<Instance,NodeInst>();
+			int instancesPlaced = 0;
 			for(Instance in : mod.instances)
 			{
 				Cell subCell = in.module.cell;
@@ -1019,6 +1138,27 @@ public class CompileVerilogStruct
 				NodeInst ni = NodeInst.makeInstance(subCell, new EPoint(x, y), width, height, cell);
 				if (ni == null) continue;
 				placed.put(in, ni);
+
+				// cache port locations on this instance
+				Map<PortProto,Point2D> portMap = portLocMap.get(subCell);
+				if (portMap == null)
+				{
+					portMap = new HashMap<PortProto,Point2D>();
+					portLocMap.put(subCell, portMap);
+					for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
+					{
+						PortInst pi = it.next();
+						PortProto pp = pi.getPortProto();
+						EPoint ept = pi.getCenter();
+						Point2D pt = new Point2D.Double(ept.getX() - ni.getAnchorCenterX(), ept.getY() - ni.getAnchorCenterY());
+						portMap.put(pp, pt);
+					}
+				}
+				instancesPlaced++;
+				if ((instancesPlaced%100) == 0)
+					Job.getUserInterface().setProgressValue(instancesPlaced * 100 / mod.instances.size());
+
+				// advance the placement
 				x += width + GAP;
 				highest = Math.max(highest, height);
 				if (x >= cellSize)
@@ -1028,6 +1168,7 @@ public class CompileVerilogStruct
 					highest = 0;
 				}
 			}
+			System.out.println("Placed " + mod.instances.size() + " cell instances");
 
 			// now remove wires that do not make useful connections
 			Netlist nl = cell.getNetlist();
@@ -1044,6 +1185,7 @@ public class CompileVerilogStruct
                         hasErrors = true;
                         System.out.println("NodeInst " + lp.in.instanceName + " not found.");
                         System.out.println("Check errors reported.");
+                		Job.getUserInterface().stopProgressDialog();
                         return null; // stop here the execution.
                     }
 					PortInst pi = ni.findPortInst(lp.portName);
@@ -1059,7 +1201,25 @@ public class CompileVerilogStruct
 			}
 
 			// now wire the instances
+			Job.getUserInterface().setProgressNote("Creating Arcs in Cell " + cellName);
+			Job.getUserInterface().setProgressValue(0);
+			int total = 0;
 			for(String netName : mod.allNetworks.keySet())
+			{
+				List<LocalPort> ports = mod.allNetworks.get(netName);
+				for(int i=1; i<ports.size(); i++)
+					total++;
+			}
+
+			// cache information for creating unrouted arcs
+			ArcProto ap = Generic.tech().unrouted_arc;
+	        EditingPreferences ep = cell.getEditingPreferences();
+	        ImmutableArcInst a = ap.getDefaultInst(ep);
+	        long gridExtendOverMin = DBMath.lambdaToGrid(0.5 * ap.getDefaultLambdaBaseWidth(ep)) - ap.getGridBaseExtend();
+	        TextDescriptor nameDescriptor = TextDescriptor.getArcTextDescriptor();
+
+			int count = 0;
+	        for(String netName : mod.allNetworks.keySet())
 			{
 				List<LocalPort> ports = mod.allNetworks.get(netName);
 				for(int i=1; i<ports.size(); i++)
@@ -1070,13 +1230,39 @@ public class CompileVerilogStruct
 					NodeInst toNi = placed.get(toPort.in);
 					PortInst fromPi = fromNi.findPortInst(fromPort.portName);
 					PortInst toPi = toNi.findPortInst(toPort.portName);
-					ArcInst.makeInstance(Generic.tech().unrouted_arc, fromPi, toPi, fromPi.getCenter(), toPi.getCenter(), netName);
+					EPoint fromCtr = getPortCenter(fromPi, portLocMap);
+					EPoint toCtr = getPortCenter(toPi, portLocMap);
+				    ArcInst.newInstanceNoCheck(cell, ap, netName, nameDescriptor, fromPi, toPi,
+				    	fromCtr, toCtr, gridExtendOverMin, ArcInst.DEFAULTANGLE, a.flags);
+//					ArcInst.makeInstance(ap, fromPi, toPi, fromCtr, toCtr, netName);
+					count++;
+					if ((count%100) == 0)
+						Job.getUserInterface().setProgressValue(count * 100 / total);
 					netName = null;
 				}
 			}
+			System.out.println("Created " + count + " wires");
+			Job.getUserInterface().stopProgressDialog();
 			return cell;
 		}
+		Job.getUserInterface().stopProgressDialog();
 		return null;
+	}
+
+	/**
+	 * Method to cache the center of ports.
+	 * This is necessary because the call to "PortInst.getCenter()" is expensive.
+	 * This method assumes that all nodes are unrotated.
+	 * @param pi the PortInst being requested.
+	 * @param portLocMap a caching map for port locations.
+	 * @return the center of the PortInst.
+	 */
+	private EPoint getPortCenter(PortInst pi, Map<NodeProto,Map<PortProto,Point2D>> portLocMap)
+	{
+		NodeInst ni = pi.getNodeInst();
+		Map<PortProto,Point2D> portMap = portLocMap.get(ni.getProto());
+		Point2D pt = portMap.get(pi.getPortProto());
+		return new EPoint(pt.getX() + ni.getAnchorCenterX(), pt.getY() + ni.getAnchorCenterY());
 	}
 
 	/******************************** THE ALS NETLIST GENERATOR ********************************/
