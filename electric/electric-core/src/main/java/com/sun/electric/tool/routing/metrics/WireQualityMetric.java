@@ -50,6 +50,14 @@ public class WireQualityMetric extends RoutingMetric<QualityResults> {
 	public QualityResults calculate(Cell cell) {
 		QualityResults result = new QualityResults();
 
+        logger.trace("calculate wire length");
+        result.wireLength = new WireLengthMetric().calculate(cell);
+        logger.debug("wire length metric: " + result.wireLength);
+
+        logger.trace("calculate unrouted segments");
+        result.unroutedSegments = new UnroutedArcsMetric().calculate(cell);
+        logger.debug("unrouted segments metric: " + result.unroutedSegments);
+
 		logger.trace("calculate via amount metric...");
 		result.vias = new ViaAmountMetric().calculate(cell);
 		logger.debug("via amount metric: " + result.vias);
@@ -74,6 +82,8 @@ public class WireQualityMetric extends RoutingMetric<QualityResults> {
 		public Integer stackedVias;
 		public Integer detourings;
 		public Double evenness;
+        public Double wireLength;
+        public Integer unroutedSegments;
 	}
 
 	/* (non-Javadoc)

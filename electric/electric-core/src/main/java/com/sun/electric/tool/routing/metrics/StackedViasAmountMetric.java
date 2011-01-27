@@ -33,7 +33,6 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.util.CollectionFactory;
 
 /**
  * @author Felix Schmidt
@@ -61,11 +60,13 @@ public class StackedViasAmountMetric extends RoutingMetric<Integer> {
 			for (Iterator<NodeInst> nodes = net.getNodes(); nodes.hasNext();) {
 				NodeInst node = nodes.next();
 				if (node.getFunction().isContact()) {
-					logger.trace("process contact: " + node.getName());
+					//logger.trace("process contact: " + node.getName());
 					for (Iterator<PortInst> portIt = node.getPortInsts(); portIt.hasNext();) {
 						PortInst port = portIt.next();
-						logger.info(node.getName() + ": (" + port.getBounds().getCenterX() + ","
+						/*
+                        logger.info(node.getName() + ": (" + port.getBounds().getCenterX() + ","
 								+ port.getBounds().getCenterY() + ")");
+								*/
 						
 						// TODO [fschmidt]
 					}

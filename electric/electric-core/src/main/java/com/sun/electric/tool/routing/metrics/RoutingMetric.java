@@ -39,15 +39,17 @@ import com.sun.electric.database.topology.ArcInst;
 public abstract class RoutingMetric<T> {
 	
 	private static Logger logger = LoggerFactory.getLogger(RoutingMetric.class);
-	
+
 	public abstract T calculate(Cell cell);
 	
 	protected T processNets(Cell cell, T startValue) {
 		T result = startValue;
+	    boolean debug = false;
 		
 		for(Iterator<Network> it = cell.getNetlist().getNetworks(); it.hasNext();) {
 			Network net = it.next();
-			logger.trace("process net: " + net.getName());
+            if (debug)
+			    logger.trace("process net: " + net.getName());
 			
 			for(Iterator<ArcInst> arcIt = net.getArcs(); arcIt.hasNext();) {
 				result = reduce(result, arcIt.next(), net);

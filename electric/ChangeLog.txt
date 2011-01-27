@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 9.01-a: ******************************
 
+IMP: (1/26/11, GVG) Metrics for routing tool (Bug #3013)
+
 IMP: (1/21/11. GVG) Cells created by Bookshell importer should use a layout tech (Bug #3005)
 Mocmos will be used as layout tech and m1 pins
 
