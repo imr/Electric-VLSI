@@ -23,16 +23,39 @@
  */
 package com.sun.electric;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+
+import javax.swing.Icon;
+import javax.swing.JApplet;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
@@ -61,12 +84,20 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.ui.MessagesWindow;
+import com.sun.electric.tool.user.ui.StatusBar;
+import com.sun.electric.tool.user.ui.ToolBar;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.PoolWorkerStrategyFactory;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
+import com.sun.electric.util.PropertiesUtils;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.concurrent.ElectricWorkerStrategy;
 import com.sun.electric.util.config.Configuration;
+import com.sun.electric.util.test.TestByReflection;
 
 /**
  * This class initializes Electric and starts the system. How to run Electric:
@@ -87,9 +118,11 @@ import com.sun.electric.util.config.Configuration;
  * <P> <P>
  * See manual for more instructions.
  */
-public final class Main
+public final class Main extends JApplet
 {
-    /**
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Mode of Job manager
      */
     private static enum Mode {
@@ -101,10 +134,20 @@ public final class Main
 
     private static final Mode DEFAULT_MODE = Mode.FULL_SCREEN_SAFE;
 
-	private Main() {}
-
     private static Mode runMode;
 
+    static Main toplevel = null;
+    public static JDesktopPane desktop = null;
+    StatusBar sb = null;
+    static Dimension scrnSize;
+    static Dimension appSize;
+    static MessagesWindow messagesWindow;
+    static EMenuBar.Instance menuBar;
+    static ToolBar toolBar;
+    int doubleClickDelay;
+    Cursor cursor;
+    boolean busyCursorOn = false;
+    
     /** JonG: "I think batch mode implies 'no GUI', and nothing more." */
     public static boolean isBatch() {
         return runMode == Mode.BATCH;
@@ -114,12 +157,25 @@ public final class Main
 	 * The main entry point of Electric.
 	 * @param args the arguments to the program.
 	 */
-	public static void main(String[] args)
+    public static void main(String[] args) {
+    	JFrame appframe = new JFrame("Christa");
+    	Main applet = new Main();
+    	
+    	appframe.getContentPane().add(applet, BorderLayout.CENTER);
+    	
+    	applet.init();
+    	applet.start();
+    	
+    	appframe.setSize(1024,800);
+    	appframe.setVisible(true);
+    }
+    
+	public void init()
 	{
 		// convert args to array list
         List<String> argsList = new ArrayList<String>();
-        for (int i=0; i<args.length; i++) argsList.add(args[i]);
-
+        //for (int i=0; i<args.length; i++) argsList.add(args[i]);
+/**
 		// -v (short version)
 		if (hasCommandLineOption(argsList, "-v"))
 		{
@@ -163,7 +219,12 @@ public final class Main
 
 			System.exit(0);
 		}
-
+**/
+        
+        appSize = getSize();
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        scrnSize = tk.getScreenSize();
+        
 		// -debug for debugging
         runMode = DEFAULT_MODE;
         List<String> pipeOptions = new ArrayList<String>();
@@ -226,29 +287,28 @@ public final class Main
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.CLIENT);
             runMode = Mode.CLIENT;
         }
-        boolean pipe = false;
-        boolean pipedebug = false;
         if (hasCommandLineOption(argsList, "-pipe")) {
             if (runMode != DEFAULT_MODE)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.CLIENT);
              runMode = Mode.CLIENT;
-           pipe = true;
         }
         if (hasCommandLineOption(argsList, "-pipedebug")) {
             if (runMode != DEFAULT_MODE)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Mode.CLIENT);
             runMode = Mode.CLIENT;
-            pipe = true;
-            pipedebug = true;
         }
 
         UserInterfaceMain.Mode mode = null;
         if (hasCommandLineOption(argsList, "-mdi")) mode = UserInterfaceMain.Mode.MDI;
         if (hasCommandLineOption(argsList, "-sdi")) mode = UserInterfaceMain.Mode.SDI;
 
+        desktop = new JDesktopPane();
+        desktop.setVisible(true);
+        getContentPane().add(desktop);
+        
         AbstractUserInterface ui;
         if (runMode == Mode.FULL_SCREEN_SAFE || runMode == Mode.CLIENT)
-            ui = new UserInterfaceMain(argsList, mode, true);
+            ui = new UserInterfaceMain(argsList, mode, this);
         else
             ui = new UserInterfaceDummy();
         MessagesStream.getMessagesStream();
@@ -261,40 +321,21 @@ public final class Main
         EDatabase.setClientDatabase(database);
         Job.setUserInterface(new UserInterfaceInitial(database));
         InitDatabase job = new InitDatabase(argsList);
-        if (runMode == Mode.CLIENT) {
-            // Client or pipe mode
-            IdManager.stdIdManager.setReadOnly();
-            if (pipe) {
-                try {
-                    Process process = invokePipeserver(pipeOptions, pipedebug);
-                    Job.pipeClient(process, ui, job, false/*pipedebug*/);
-                } catch (IOException e) {
-                    System.exit(1);
-                }
-            } else {
-                Job.socketClient(serverMachineName, socketPort, ui, new InitClient(argsList));
-            }
-        } else if (runMode == Mode.FULL_SCREEN_SAFE) {
-            EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "serverDB"));
-            EDatabase.setCheckExamine();
-            Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);
-        } else {
-            assert runMode == Mode.BATCH || runMode == Mode.SERVER;
-            EDatabase.setServerDatabase(database);
-            Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);
-        }
-        
-        // initialize parallel stuff
-        ElectricWorkerStrategy electricWorker = new ElectricWorkerStrategy(null);
-        electricWorker.setUi(ui);
-        PoolWorkerStrategyFactory.userDefinedStrategy = electricWorker;
-        
-        ElapseTimer timer = ElapseTimer.createInstance().start();
-        // load configuration and dependency injection
-        Configuration.getInstance();
-        
-        timer.end();
-        
+        EDatabase.setServerDatabase(new EDatabase(IdManager.stdIdManager.getInitialSnapshot(), "serverDB"));
+        EDatabase.setCheckExamine();
+        Job.initJobManager(numThreads, loggingFilePath, socketPort, ui, job);
+   	}
+	
+	public void start(){
+		
+	}
+	
+	public void stop(){
+		
+	}
+
+	public static void InitializeMessagesWindow() {
+        messagesWindow = new MessagesWindow(appSize);
 	}
 
     private static Process invokePipeserver(List<String> electricOptions, boolean withDebugger) throws IOException {
@@ -309,7 +350,7 @@ public final class Main
             javaOptions.add("-Xdebug");
             javaOptions.add("-Xrunjdwp:transport=dt_socket,server=n,address=localhost:35856");
         }
-        return Launcher.invokePipeserver(javaOptions, electricOptions);
+        return invokePipeserver(javaOptions, electricOptions);
     }
 
     public static class UserInterfaceDummy extends AbstractUserInterface
@@ -583,14 +624,6 @@ public final class Main
             if (mainLib == null) return false;
             fieldVariableChanged("mainLib");
             mainLib.clearChanged();
-
-            if (isBatch()) {
-                String beanShellScript = getCommandLineOption(argsList, "-s");
-                openCommandLineLibs(argsList);
-                EditingPreferences.setThreadEditingPreferences(new EditingPreferences(true, getTechPool()));
-                if (beanShellScript != null)
-                    EvalJavaBsh.runScript(beanShellScript);
-            }
             return true;
 		}
 
@@ -705,6 +738,356 @@ public final class Main
 		{
 			ex.printStackTrace();
 		}
+	}
+	
+	    private static final boolean enableAssertions = true;
+	    private static final Logger logger = Logger.getLogger(Main.class.getName());
+
+	    private static final String[] propertiesToCopy = { "user.home" };
+
+	    private static String additionalFolder = "additional";
+	    private static String configFile = "econfig.xml";
+
+	    private static String[] getConfig(String[] args) {
+	        for (String arg : args) {
+	            if (arg.startsWith("-config=")) {
+	                configFile = arg.replaceAll("-config=", "");
+	                args = removeArg(args, arg);
+	                return args;
+	            }
+	        }
+	        return args;
+	    }
+
+	    private static String[] removeArg(String[] args, String option) {
+	        List<String> tmp = new ArrayList<String>();
+	        Collections.addAll(tmp, args);
+	        tmp.remove(option);
+	        return tmp.toArray(new String[tmp.size()]);
+	    }
+
+	    @TestByReflection(testMethodName = "getAdditionalFolder")
+	    private static String[] getAdditionalFolder(String[] args) {
+	        for (String arg : args) {
+	            if (arg.startsWith("-additionalfolder=")) {
+	                additionalFolder = arg.replaceAll("-additionalfolder=", "");
+	                args = removeArg(args, arg);
+	                return args;
+	            }
+	        }
+	        return args;
+	    }
+
+	    /**
+	     * Method to return a String that gives the path to the Electric JAR file.
+	     * If the path has spaces in it, it is quoted.
+	     * 
+	     * @return the path to the Electric JAR file.
+	     */
+	public static String getJarLocation() {
+	    String jarPath = System.getProperty("java.class.path", ".");
+	    if (jarPath.indexOf(' ') >= 0)
+	        jarPath = "\"" + jarPath + "\"";
+	    return jarPath;
+	}
+
+	    private static int getUserInt(String key, int def) {
+	        return Preferences.userNodeForPackage(Main.class).node(StartupPrefs.USER_NODE).getInt(key, def);
+	    }
+
+	    private static boolean invokeRegression(String[] args) {
+	        List<String> javaOptions = new ArrayList<String>();
+	        List<String> electricOptions = new ArrayList<String>();
+	        electricOptions.add("-debug");
+	        int regressionPos = 0;
+	        if (args[0].equals("-threads")) {
+	            regressionPos = 2;
+	            electricOptions.add("-threads");
+	            electricOptions.add(args[1]);
+	        } else if (args[0].equals("-logging")) {
+	            regressionPos = 2;
+	            electricOptions.add("-logging");
+	            electricOptions.add(args[1]);
+	        } else if (args[0].equals("-debug")) {
+	            regressionPos = 1;
+	            // no need of adding the -debug flag
+	        }
+	        String script = args[regressionPos + 1];
+
+	        for (int i = regressionPos + 2; i < args.length; i++)
+	            javaOptions.add(args[i]);
+	        Process process = null;
+	        try {
+	            process = invokePipeserver(javaOptions, electricOptions);
+	        } catch (java.io.IOException e) {
+	            logger.log(Level.SEVERE, "Failure starting server subprocess", e);
+	            return false;
+	        }
+	        initClasspath(true);
+	        boolean result = ((Boolean) callByReflection(ClassLoader.getSystemClassLoader(),
+	                "com.sun.electric.tool.Regression", "runScript", new Class[] { Process.class, String.class },
+	                null, new Object[] { process, script })).booleanValue();
+	        return result;
+	    }
+
+	public static Process invokePipeserver(List<String> javaOptions, List<String> electricOptions)
+	        throws IOException {
+	    List<String> procArgs = new ArrayList<String>();
+	    String program = "java";
+	    String javaHome = System.getProperty("java.home");
+	    if (javaHome != null)
+	        program = javaHome + File.separator + "bin" + File.separator + program;
+
+	    procArgs.add(program);
+	    procArgs.add("-ea");
+	    procArgs.add("-Djava.util.prefs.PreferencesFactory=com.sun.electric.database.text.EmptyPreferencesFactory");
+	    procArgs.addAll(javaOptions);
+	    procArgs.add("-cp");
+	    procArgs.add(getJarLocation());
+	    procArgs.add("com.sun.electric.Launcher");
+	    procArgs.addAll(electricOptions);
+	    procArgs.add("-pipeserver");
+	    String command = "";
+	    for (String arg : procArgs)
+	        command += " " + arg;
+	    logger.log(Level.INFO, "exec: {0}", new Object[] { command });
+
+	    return new ProcessBuilder(procArgs).start();
+	}
+
+	    private static ClassLoader pluginClassLoader;
+
+//	    public static Class classFromPlugins(String className) throws ClassNotFoundException {
+//	        return pluginClassLoader.loadClass(className);
+//	    }
+
+//	    private static void loadAndRunMain(String[] args, boolean loadDependencies) {
+//	        args = getAdditionalFolder(args);
+//	        args = getConfig(args);
+//
+//	        Configuration.setConfigName(configFile);
+//
+//	        initClasspath(loadDependencies);
+//	        callByReflection(pluginClassLoader, "com.sun.electric.Main", "main", new Class[] { String[].class },
+//	                null, new Object[] { args });
+//	    }
+
+	    private static void initClasspath(boolean loadDependencies) {
+	        ClassLoader launcherLoader = Main.class.getClassLoader();
+	        pluginClassLoader = launcherLoader;
+	        if (loadDependencies) {
+	            initClasspath(readAdditionalFolder(), launcherLoader);
+	            initClasspath(readMavenDependencies(), launcherLoader);
+	            // pluginClassLoader = new EClassLoader(pluginJars, appLoader);
+	        }
+	        if (enableAssertions) {
+	            launcherLoader.setDefaultAssertionStatus(true);
+	            pluginClassLoader.setDefaultAssertionStatus(true);
+	        }
+	    }
+	    
+	    private static void initClasspath(URL[] urls, ClassLoader launcherLoader) {
+	        for (URL url : urls) {
+	            Object result = callByReflection(launcherLoader, "java.net.URLClassLoader", "addURL",
+	                    new Class[]{URL.class}, launcherLoader, new Object[]{url});
+	        }
+	    }
+
+	    private static URL[] readAdditionalFolder() {
+	        List<URL> urls = new ArrayList<URL>();
+
+	        File additionalFolder = new File("additional");
+	        if (additionalFolder.exists() && additionalFolder.isDirectory()) {
+	            File[] files = additionalFolder.listFiles(new FileFilter() {
+	                public boolean accept(File pathname) {
+	                    return pathname.getName().endsWith(".jar");
+	                }
+	            });
+
+	            for (File file : files) {
+	                try {
+	                    urls.add(file.toURI().toURL());
+	                    logger.info("Add " + file.getAbsoluteFile() + " to classpath...");
+	                } catch (MalformedURLException e) {
+	                    logger.log(Level.SEVERE, "Add " + file.getAbsoluteFile() + " to classpath...", e);
+	                }
+	            }
+	        }
+
+	        return urls.toArray(new URL[urls.size()]);
+	    }
+
+	    private static URL[] readMavenDependencies() {
+	        String mavenDependenciesResourceName = "maven.dependencies";
+	        URL mavenDependencies = ClassLoader.getSystemResource(mavenDependenciesResourceName);
+	        if (mavenDependencies == null) {
+	            return new URL[0];
+	        }
+
+	        List<URL> urls = new ArrayList<URL>();
+	        List<File> repositories = new ArrayList<File>();
+	        String mavenRepository = ".m2" + File.separator + "repository";
+
+	        String homeDirProp = System.getProperty("user.home");
+	        if (homeDirProp != null) {
+	            File homeDir = new File(homeDirProp);
+	            File file = new File(homeDir, mavenRepository);
+	            if (file.canRead()) {
+	                repositories.add(file);
+	                logger.log(Level.FINE, "Found repository {0}", file);
+	            } else if (file.exists()) {
+	                logger.log(Level.FINE, "Can't read repository {0}", file);
+	            } else {
+	                logger.log(Level.FINE, "Not found repository {0}", file);
+	            }
+	        }
+
+	        if (mavenDependencies.getProtocol().equals("jar")) {
+	            String path = mavenDependencies.getPath();
+	            if (path.startsWith("file:") && path.endsWith("!/" + mavenDependenciesResourceName)) {
+	                String jarPath = path.substring("file:".length(), path.length() - "!/".length()
+	                        - mavenDependenciesResourceName.length());
+	                File jarDir = new File(jarPath).getParentFile();
+	                File file = new File(jarDir, mavenRepository);
+	                if (file.canRead()) {
+	                    repositories.add(file);
+	                    logger.log(Level.FINE, "Found repository {0}", file);
+	                } else if (file.exists()) {
+	                    logger.log(Level.FINE, "Can't read repository {0}", file);
+	                } else {
+	                    logger.log(Level.FINE, "Not found repository {0}", file);
+	                }
+	            }
+	        }
+	        try {
+	            Properties properties = PropertiesUtils.load(mavenDependenciesResourceName);
+	            for (Object dependency : properties.keySet()) {
+	                for (File repository : repositories) {
+	                    File file = new File(repository, dependency.toString());
+	                    if (file.canRead()) {
+	                        URL url = file.toURI().toURL();
+	                        urls.add(url);
+	                        logger.log(Level.FINE, "Add {0} to class path", url);
+	                        break;
+	                    } else if (file.exists()) {
+	                        logger.log(Level.FINE, "Can't read {0}", file);
+	                    } else {
+	                        logger.log(Level.FINEST, "Not found {0}", file);
+	                    }
+	                }
+	            }
+	        } catch (Exception e) {
+	            logger.log(Level.SEVERE, "Error reading maven dependencies", e);
+	        }
+
+	        return urls.toArray(new URL[urls.size()]);
+	    }
+
+	    private static Object callByReflection(ClassLoader classLoader, String className, String methodName,
+	            Class[] argTypes, Object obj, Object[] argValues) {
+	        try {
+	            Class mainClass = classLoader.loadClass(className);
+	            Method method = mainClass.getDeclaredMethod(methodName, argTypes);
+	            method.setAccessible(true);
+	            return method.invoke(obj, argValues);
+	        } catch (ClassNotFoundException e) {
+	            logger.log(Level.SEVERE, "Can't invoke Electric", e);
+	        } catch (NoSuchMethodException e) {
+	            logger.log(Level.SEVERE, "Can't invoke Electric", e);
+	        } catch (IllegalAccessException e) {
+	            logger.log(Level.SEVERE, "Can't invoke Electric", e);
+	        } catch (InvocationTargetException e) {
+	            logger.log(Level.SEVERE, "Error in Electric invocation", e.getTargetException());
+	        }
+	        return null;
+	    }
+
+	    private static class EClassLoader extends URLClassLoader {
+	        private EClassLoader(URL[] urls, ClassLoader parent) {
+	            super(urls, parent);
+	        }
+
+	        @Override
+	        protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+	            if (name.startsWith("com.sun.electric.plugins.") || name.startsWith("com.sun.electric.scala.")) {
+	                Class c = findLoadedClass(name);
+	                if (c == null) {
+	                    String path = name.replace('.', '/').concat(".class");
+	                    URL url = getResource(path);
+	                    if (url != null) {
+	                        try {
+	                            DataInputStream in = new DataInputStream(url.openStream());
+	                            int len = in.available();
+	                            byte[] ba = new byte[len];
+	                            in.readFully(ba);
+	                            in.close();
+	                            c = defineClass(name, ba, 0, len);
+	                        } catch (IOException e) {
+	                            throw new ClassNotFoundException(name);
+	                        }
+	                    } else {
+	                        throw new ClassNotFoundException(name);
+	                    }
+	                }
+	                if (resolve) {
+	                    resolveClass(c);
+	                }
+	                return c;
+	            }
+	            return super.loadClass(name, resolve);
+	        }
+	    }
+/** Get the Menu Bar. Unfortunately named because getMenuBar() already exists */
+    public static EMenuBar getEMenuBar() { return menuBar.getMenuBarGroup(); }
+
+    public static synchronized List<EMenuBar.Instance> getMenuBars() {
+        ArrayList<EMenuBar.Instance> menuBars = new ArrayList<EMenuBar.Instance>();
+        for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+//        	WindowFrame wf = it.next();
+//        	menuBars.add(wf.getFrame().getTheMenuBar());
+        }
+        return menuBars;
+    }
+    
+	public static Icon getFrameIcon()
+	{
+		return null;
+	}
+
+	public static void InitializeWindows(Main thing) {
+		try{
+            menuBar = MenuCommands.menuBar().genInstance();
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        thing.setJMenuBar(menuBar);
+
+		// create the tool bar
+		Main.toolBar = new ToolBar();
+		thing.getContentPane().add(toolBar, BorderLayout.NORTH);
+		// create the status bar
+		thing.sb = new StatusBar(null, true);
+		thing.getContentPane().add(thing.sb, BorderLayout.SOUTH);
+		
+		WindowFrame.createEditWindow(null);
+		toplevel = thing;
+	}
+	
+	public static Dimension getScreenSize()
+	{
+		return new Dimension(scrnSize);
+	}
+
+	public static MessagesWindow getMessagesWindow() { return messagesWindow; }
+	
+	public static Point getCursorLocation() {
+		return toplevel.getLocationOnScreen();
+	}
+
+	public static Component getCurrentJFrame() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

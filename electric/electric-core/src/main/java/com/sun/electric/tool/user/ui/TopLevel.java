@@ -172,7 +172,7 @@ public class TopLevel extends JFrame
 		getContentPane().add(toolBar, BorderLayout.NORTH);
 
 		// create the status bar
-		sb = new StatusBar(frame);
+		//sb = new StatusBar(frame);
 		getContentPane().add(sb, BorderLayout.SOUTH);
     }
 
@@ -205,7 +205,7 @@ public class TopLevel extends JFrame
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
             topLevel.setVisible(true);
 		}
-        MessagesWindow.init();
+        //MessagesWindow.init();
     }
 
 	/**

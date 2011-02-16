@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.Launcher;
+import com.sun.electric.Main;
 import com.sun.electric.util.TextUtils;
 
 import java.net.URL;
@@ -77,16 +77,16 @@ public class Resources {
     private static Class<?> getClass(String name, String plugin)
     {
         Class<?> theClass = null;
-		try
-        {
-            theClass = Launcher.classFromPlugins(plugin + "." + name);
-        } catch (ClassNotFoundException e)
-        {
-        	TextUtils.recordMissingComponent(name);
-        } catch (Error e)
-        {
-            System.out.println("Error accessing plugin '" + plugin + "': " + e.getMessage());
-        }
+//		try
+//        {
+//            theClass = Main.classFromPlugins(plugin + "." + name);
+//        } catch (ClassNotFoundException e)
+//        {
+//        	TextUtils.recordMissingComponent(name);
+//        } catch (Error e)
+//        {
+//            System.out.println("Error accessing plugin '" + plugin + "': " + e.getMessage());
+//        }
 		return (theClass);
     }
 }

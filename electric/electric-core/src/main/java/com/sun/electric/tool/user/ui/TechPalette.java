@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
@@ -210,7 +211,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			}
 		}
 
-		Dimension size = TopLevel.getScreenSize();
+		Dimension size = Main.getScreenSize();
 		entrySize = (int)size.getWidth() / menuX;
 		int ysize = (int)(size.getHeight()*0.9) / menuY;
 		if (ysize < entrySize) entrySize = ysize;

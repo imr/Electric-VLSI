@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
@@ -85,18 +86,10 @@ public class MessagesWindow
 	private Container contentFrame;
 	private Container jf;
 
-    private static boolean initialized = false;
     private static Font currentFont = null;
     private static final HashSet<MessagesWindow> messagesWindows = new HashSet<MessagesWindow>();
 
     private static final StringBuffer text = new StringBuffer();
-
-    public static synchronized void init() {
-        if (initialized) return;
-        initialized = true;
-        if (!User.isDockMessagesWindow()) new MessagesWindow();
-        appendString(ActivityLogger.getLoggingInformation());
-    }
 
     public static Iterable<MessagesWindow> getMessagesWindows() {
         return messagesWindows;
@@ -104,33 +97,16 @@ public class MessagesWindow
 
     public Container getContent() { return contentFrame; }
 
-	public MessagesWindow()
+	public MessagesWindow(Dimension maxSize)
 	{
-		Dimension scrnSize = TopLevel.getScreenSize();
+		Dimension scrnSize = new Dimension(maxSize.width/3*2, maxSize.height/100*15);
 		Dimension msgSize = new Dimension(scrnSize.width/3*2, scrnSize.height/100*15);
 		Point msgPos = new Point(150, scrnSize.height/100*85);
-		if (TopLevel.isMDIMode())
-		{
-			JInternalFrame jInternalFrame = new JInternalFrame("Electric Messages", true, false, true, true);
-			jf = jInternalFrame;
-			contentFrame = jInternalFrame.getContentPane();
-			jInternalFrame.setFrameIcon(TopLevel.getFrameIcon());
-			jf.setLocation(msgPos);
-		} else if (!User.isDockMessagesWindow())
-		{
-			JFrame jFrame = new JFrame("Electric Messages");
-			jf = jFrame;
-			jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-			contentFrame = jFrame.getContentPane();
-			jFrame.setIconImage(TopLevel.getFrameIcon().getImage());
-			Point pt = User.getDefaultMessagesPos();
-			if (pt == null) pt = msgPos;
-			jf.setLocation(pt);
-			Dimension override = User.getDefaultMessagesSize();
-			if (override != null) jf.setPreferredSize(override);
-        } else {
-            contentFrame = new JPanel();
-        }
+		JInternalFrame jInternalFrame = new JInternalFrame("Electric Messages", true, false, true, true);
+		jf = jInternalFrame;
+		contentFrame = jInternalFrame.getContentPane();
+		jInternalFrame.setFrameIcon(Main.getFrameIcon());
+		jf.setLocation(msgPos);
 		contentFrame.setLayout(new BorderLayout());
 
 		info = new JTextArea(20, 110);
@@ -143,20 +119,13 @@ public class MessagesWindow
 		scrollPane.setPreferredSize(msgSize);
 		contentFrame.add(scrollPane, BorderLayout.CENTER);
 
-		if (TopLevel.isMDIMode())
-		{
-			((JInternalFrame)jf).pack();
-			TopLevel.addToDesktop((JInternalFrame)jf);
-		} else if (!User.isDockMessagesWindow())
-		{
-			((JFrame)jf).pack();
-			((JFrame)jf).setVisible(true);
-        }
+		((JInternalFrame)jf).pack();
+		jf.setVisible(true);
+		Main.desktop.add(jf);
 
         if (currentFont==null)
             currentFont = info.getFont();
         if (User.isDockMessagesWindow()) appendStr(text.toString());
-        messagesWindows.add(this);
 	}
 
 //	public Component getComponent()

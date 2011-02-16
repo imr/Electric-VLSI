@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
@@ -34,7 +35,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.AbstractUserInterface;
@@ -58,11 +58,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.AWTEvent;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.WindowEvent;
@@ -74,6 +70,7 @@ import java.beans.PropertyChangeEvent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -85,12 +82,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 
@@ -110,6 +103,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     static volatile boolean initializationFinished = false;
 
+    private static Main Contain;
     private static volatile boolean undoEnabled = false;
     private static volatile boolean redoEnabled = false;
 //    private static final EventListenerList undoRedoListenerList = new EventListenerList();
@@ -119,11 +113,11 @@ public class UserInterfaceMain extends AbstractUserInterface
 //    private static EDatabase database = EDatabase.clientDatabase();
 	/** The progress during input. */						protected static Progress progress = null;
 
-    private SplashWindow sw = null;
-//    private PrintStream stdout = System.out;
+    private PrintStream stdout = System.out;
 
-    public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
+    public UserInterfaceMain(List<String> argsList, Mode mode, Main thisContain) {
         new EventProcessor();
+        Contain = thisContain;
         try {
             EventQueue.invokeAndWait(new Runnable() {
                 public void run() {
@@ -140,7 +134,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             if (defMode == 1) mode = UserInterfaceMain.Mode.MDI; else
             if (defMode == 2) mode = UserInterfaceMain.Mode.SDI;
         }
-        SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
+        SwingUtilities.invokeLater(new InitializationRun(argsList));
     }
 
     @Override
@@ -255,12 +249,9 @@ public class UserInterfaceMain extends AbstractUserInterface
 //    }
     private class InitializationRun implements Runnable {
         List<String> argsList;
-        Mode mode;
-        boolean showSplash;
-        InitializationRun(List<String> argsList, Mode mode, boolean showSplash) {
+        
+        InitializationRun(List<String> argsList) {
             this.argsList = argsList;
-            this.mode = mode;
-            this.showSplash = showSplash;
         }
         public void run() {
             if (!Job.isClientThread())
@@ -291,12 +282,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             }
 
             //runThreadStatusTimer();
-
-            if (showSplash)
-                sw = new SplashWindow();
-
-            TopLevel.OSInitialize(mode);
-            TopLevel.InitializeMessagesWindow();
+            Main.InitializeMessagesWindow();
         }
     }
 
@@ -306,11 +292,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     public void finishInitialization() {
         initializationFinished = true;
 
-        if (sw != null) {
-            sw.removeNotify();
-            sw = null;
-        }
-        TopLevel.InitializeWindows();
+        Main.InitializeWindows(Contain);
         WindowFrame.wantToOpenCurrentLibrary(true, null);
 
         // report on missing components
@@ -627,7 +609,11 @@ public class UserInterfaceMain extends AbstractUserInterface
         else {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    MessagesWindow.appendString(s);
+                    MessagesWindow messagesWindow = Main.getMessagesWindow();
+                    if (messagesWindow != null)
+                        appendString(s);
+                    else
+                        stdout.print(s);
                 }
             });
         }
@@ -690,7 +676,12 @@ public class UserInterfaceMain extends AbstractUserInterface
             printWriter.print(str);
             printWriter.flush();
         }
-        MessagesWindow.appendString(str);
+        MessagesWindow mw = Main.getMessagesWindow();
+        if (mw != null)
+            Main.getMessagesWindow().appendString(str);
+        else
+            // Error before the message window is available. Sending error to std error output
+            System.err.println(str);
     }
 
     /**
@@ -700,7 +691,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public boolean confirmMessage(Object message)
     {
-		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), message);
+		int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(), message);
 		return response == JOptionPane.YES_OPTION;
     }
 
@@ -739,7 +730,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
         msg= newMsg;
         message = msg;
-	    int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), message, title,
+	    int val = JOptionPane.showOptionDialog(Main.getCurrentJFrame(), message, title,
 	    	JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, choices, defaultChoice);
 	    return val;
     }
@@ -753,7 +744,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public String askForInput(Object message, String title, String def)
     {
-    	Object ret = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.QUESTION_MESSAGE, null, null, def);
+    	Object ret = JOptionPane.showInputDialog(Main.getCurrentJFrame(), message, title, JOptionPane.QUESTION_MESSAGE, null, null, def);
     	if (ret == null) return null;
     	return ret.toString();
     }
@@ -771,7 +762,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
         // recache all preferences
         loadPreferences(env.techPool);
-        TopLevel.getCurrentJFrame().getEMenuBar().restoreSavedBindings(false); //trying to cache again
+        Main.getEMenuBar().restoreSavedBindings(false); //trying to cache again
         User.technologyChanged();
         WindowFrame.repaintAllWindows();
         System.out.println("...preferences imported from " + fileURL.getFile());
@@ -1053,59 +1044,10 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
 	/**
-	 * Class to display a Splash Screen at the start of the program.
-	 */
-	private static class SplashWindow extends JFrame
-	{
-		public SplashWindow()
-		{
-			super();
-			setUndecorated(true);
-			setTitle("Electric Splash");
-			setIconImage(TopLevel.getFrameIcon().getImage());
-
-			JPanel whole = new JPanel();
-			whole.setBorder(BorderFactory.createLineBorder(new Color(0, 170, 0), 5));
-			whole.setLayout(new BorderLayout());
-
-			ImageIcon splashImage = Resources.getResource(TopLevel.class, "SplashImage.gif");
-			JLabel l = new JLabel(splashImage);
-			whole.add(l, BorderLayout.CENTER);
-			JLabel v = new JLabel("Version " + Version.getVersion(), JLabel.CENTER);
-			whole.add(v, BorderLayout.SOUTH);
-            String fontName = User.getFactoryDefaultFont();
-            //String fontName = User.getDefaultFont();
-			Font font = new Font(fontName, Font.BOLD, 24);
-			v.setFont(font);
-			v.setForeground(Color.BLACK);
-			v.setBackground(Color.WHITE);
-
-			getContentPane().add(whole, BorderLayout.SOUTH);
-
-			pack();
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			Dimension labelSize = getPreferredSize();
-			setLocation(screenSize.width/2 - (labelSize.width/2),
-				screenSize.height/2 - (labelSize.height/2));
-			addWindowListener(new WindowsEvents(this));
-			setVisible(true);
-			toFront();
-			paint(getGraphics());
-		}
-	}
-
-	/**
 	 * This class handles deactivation of the splash screen and forces it back to the top.
 	 */
 	private static class WindowsEvents implements WindowListener
 	{
-		SplashWindow sw;
-
-		WindowsEvents(SplashWindow sw)
-		{
-			super();
-			this.sw = sw;
-		}
 
 		public void windowActivated(WindowEvent e) {}
 		public void windowClosed(WindowEvent e) {}
@@ -1118,7 +1060,6 @@ public class UserInterfaceMain extends AbstractUserInterface
 		{
 			TopLevel tl = TopLevel.getCurrentJFrame(false);
 			Window w = e.getOppositeWindow();
-			if (tl == w) sw.toFront();
 		}
 	}
 

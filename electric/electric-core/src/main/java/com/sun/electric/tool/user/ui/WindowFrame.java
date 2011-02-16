@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
@@ -410,7 +411,7 @@ public class WindowFrame extends Observable
         if (User.isDockMessagesWindow()) {
             JSplitPane js2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
             js2.setTopComponent(panel);
-            js2.setBottomComponent(new MessagesWindow().getContent());
+            js2.setBottomComponent(new MessagesWindow(null).getContent());
             js2.setDividerLocation(js2.getMaximumDividerLocation());
             panel = js2;
         }
@@ -443,9 +444,9 @@ public class WindowFrame extends Observable
 	 */
 	private Dimension createJFrame(String title, GraphicsConfiguration gc)
 	{
-		Dimension scrnSize = TopLevel.getScreenSize();
+		Dimension scrnSize = Main.getScreenSize();
 		Dimension frameSize = new Dimension(scrnSize.width * 4 / 5, scrnSize.height * 6 / 8);
-		if (TopLevel.isMDIMode())
+		if (true)
 		{
 			jif = new JInternalFrame(title, true, true, true, true);
 			jif.setSize(frameSize);

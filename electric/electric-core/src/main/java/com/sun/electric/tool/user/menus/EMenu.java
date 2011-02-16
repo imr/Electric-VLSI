@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class EMenu extends EMenuItem {
     /**
      */
     public void setDynamicItems(List<? extends EMenuItem> dynamicItems) {
-        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars()) {
+        for (EMenuBar.Instance menuBarInstance: Main.getMenuBars()) {
             JMenu menu = (JMenu)menuBarInstance.findMenuItem(path);
             while (menu.getMenuComponentCount() > items.size())
                 menu.remove(items.size());

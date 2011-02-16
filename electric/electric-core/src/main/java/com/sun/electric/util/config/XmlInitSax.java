@@ -24,8 +24,6 @@
 package com.sun.electric.util.config;
 
 import java.io.File;
-import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +83,7 @@ public class XmlInitSax extends InitStrategy {
 
 			saxParser = factory.newSAXParser();
 			saxParser.setProperty(SCHEMA_LANGUAGE, XML_SCHEMA);
-			saxParser.parse(xmlFile, new ParserHandler(injections, includes));
+//			saxParser.parse(xmlFile, new ParserHandler(injections, includes));
 
 			Include mainInclude = new Include(xmlFile, null);
 			visitedIncludes.add(mainInclude);

@@ -75,6 +75,7 @@ import javax.swing.*;
  */
 public class ToolBar extends JToolBar
 {
+	private static final long serialVersionUID = 1L;
 	private static ImageIcon unknownIcon = Resources.getResource(ToolBar.class, "ButtonUnknown.gif");
 	private static Pref toolbarOrderPref = Pref.makeStringPref("ToolbarOrder", User.getUserTool().prefs, "");
 	private static Pref toolbarFilesPref = Pref.makeStringPref("ToolbarIconFiles", User.getUserTool().prefs, "");
@@ -87,7 +88,7 @@ public class ToolBar extends JToolBar
 	 */
 	public static ToolBar createToolBar() { return new ToolBar(); }
 
-	private ToolBar()
+	public ToolBar()
 	{
 		setFloatable(true);
 		setRollover(true);

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
@@ -64,14 +65,16 @@ import javax.swing.border.BevelBorder;
  * This class manages the Electric status bar at the bottom of the edit window.
  */
 public class StatusBar extends JPanel implements HighlightListener, DatabaseChangeListener {
-    private WindowFrame frame;
+
+	private static final long serialVersionUID = 1L;
+	private WindowFrame frame;
     private String coords = null;
     private String hierCoords = null;
     private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords, fieldHierCoords, memoryUsage;
 
     private static String selectionOverride = null;
 
-    public StatusBar(WindowFrame frame) {
+    public StatusBar(WindowFrame frame, boolean browserDecide) {
         super(new GridBagLayout());
         setBorder(new BevelBorder(BevelBorder.LOWERED));
         this.frame = frame;
@@ -142,12 +145,6 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             addField(memoryUsage, 0, 2, 7, 0.0);
         }
 
-        // add myself as listener for highlight changes in SDI mode
-        if (TopLevel.isMDIMode()) {
-            // do nothing
-        } else if (frame.getContent().getHighlighter() != null) {
-            Highlighter.addHighlightListener(this);
-        }
         UserInterfaceMain.addDatabaseChangeListener(this);
     }
 
@@ -170,34 +167,23 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
      * @return the highlighter to use. May be null if none.
      */
     private Highlighter getHighlighter() {
-        if (TopLevel.isMDIMode()) {
-            // get current internal frame highlighter
-            EditWindow wnd = EditWindow.getCurrent();
-            if (wnd == null)
-                return null;
-            return wnd.getHighlighter();
-        }
-        return frame.getContent().getHighlighter();
+		// get current internal frame highlighter
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null)
+            return null;
+        return wnd.getHighlighter();
     }
 
     public static void setCoordinates(String coords, WindowFrame wf) {
         StatusBar sb = null;
-        if (TopLevel.isMDIMode()) {
-            sb = TopLevel.getCurrentJFrame().getStatusBar();
-        } else {
-            sb = wf.getFrame().getStatusBar();
-        }
+        sb = TopLevel.getCurrentJFrame().getStatusBar();
         sb.coords = coords;
         sb.redoStatusBar();
     }
 
     public static void setHierarchicalCoordinates(String hierCoords, WindowFrame wf) {
         StatusBar sb = null;
-        if (TopLevel.isMDIMode()) {
-            sb = TopLevel.getCurrentJFrame().getStatusBar();
-        } else {
-            sb = wf.getFrame().getStatusBar();
-        }
+        sb = TopLevel.getCurrentJFrame().getStatusBar();
         sb.hierCoords = hierCoords;
         sb.redoStatusBar();
     }
@@ -226,17 +212,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
      * of those values change.
      */
     public static void updateStatusBar() {
-        if (TopLevel.isMDIMode()) {
-            StatusBar sb = TopLevel.getCurrentJFrame().getStatusBar();
-            sb.redoStatusBar();
-        } else {
-            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext();) {
-                WindowFrame wf = it.next();
-                StatusBar sb = wf.getFrame().getStatusBar();
-                if (sb != null)
-                    sb.redoStatusBar();
-            }
-        }
+        //StatusBar sb = Main.getCurrentJFrame().getStatusBar();
+        //sb.redoStatusBar();
     }
 
     private void updateUsedMemory() {
@@ -480,7 +457,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
      * Call when done with this Object. Cleans up references to this object.
      */
     public void finished() {
-        if (!TopLevel.isMDIMode() && frame.getContent().getHighlighter() != null)
+        if (frame.getContent().getHighlighter() != null)
             Highlighter.removeHighlightListener(this);
         UserInterfaceMain.removeDatabaseChangeListener(this);
     }
