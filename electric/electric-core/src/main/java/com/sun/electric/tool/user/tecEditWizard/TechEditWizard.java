@@ -23,9 +23,8 @@
  */
 package com.sun.electric.tool.user.tecEditWizard;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.ui.TopLevel;
-
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -53,6 +52,7 @@ import javax.swing.tree.TreePath;
  */
 public class TechEditWizard extends EDialog
 {
+	private static final long serialVersionUID = 1L;
 	private JSplitPane splitPane;
 	private JTree optionTree;
     private TechEditWizardPanel currentOptionPanel;
@@ -65,7 +65,7 @@ public class TechEditWizard extends EDialog
 	 */
 	public static void techEditWizardCommand()
 	{
-		TechEditWizard dialog = new TechEditWizard(TopLevel.getCurrentJFrame());
+		TechEditWizard dialog = new TechEditWizard((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 

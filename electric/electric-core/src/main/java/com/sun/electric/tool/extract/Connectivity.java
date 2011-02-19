@@ -70,7 +70,6 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
@@ -270,7 +269,6 @@ public class Connectivity
 			{
 				// show results of each step
 				JFrame jf = null;
-				if (!TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
 				ShowExtraction theDialog = new ShowExtraction(jf, addedBatchRectangles, addedBatchLines, addedBatchNames);
 				theDialog.setVisible(true);
 			} else

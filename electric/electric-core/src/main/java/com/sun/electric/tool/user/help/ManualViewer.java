@@ -38,7 +38,6 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.EMenuItem;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.config.Configuration;
@@ -167,7 +166,7 @@ public class ManualViewer extends EModelessDialog
         if (theManual == null)
         {
             JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            jf = (JFrame) Main.getCurrentJFrame();
             try{
                 theManual = new ManualViewer(jf, preference, baseClass, htmlDir);
             }
@@ -330,7 +329,7 @@ public class ManualViewer extends EModelessDialog
 			try {
 				Method createMethod = plugin3D.getDeclaredMethod("create3DDemoDialog",
 					new Class[] {java.awt.Frame.class, URL.class});
-				createMethod.invoke(plugin3D, new Object[] {TopLevel.getCurrentJFrame(), url});
+				createMethod.invoke(plugin3D, new Object[] {Main.getCurrentJFrame(), url});
 			} catch (Exception e)
 			{
 				System.out.println("Can't open 3D demo dialog: " + e.getMessage());
@@ -502,7 +501,7 @@ public class ManualViewer extends EModelessDialog
 		JMenuBar helpMenuBar = new JMenuBar();
 
 		// convert menuBar to tree
-		TopLevel top = TopLevel.getCurrentJFrame();
+		Main top = (Main) Main.getCurrentJFrame();
 		EMenuBar menuBar = top.getEMenuBar();
 		for (EMenuItem menu: menuBar.getItems())
 		{
@@ -645,7 +644,7 @@ public class ManualViewer extends EModelessDialog
 		}
 		if (menuMapCheck != null)
 		{
-			TopLevel top = TopLevel.getCurrentJFrame();
+			Main top = (Main) Main.getCurrentJFrame();
 			EMenuBar menuBar = top.getEMenuBar();
 			for (EMenuItem menu: menuBar.getItems())
 			{
@@ -1333,13 +1332,14 @@ public class ManualViewer extends EModelessDialog
 	{
 		PageInfo pi = pageSequence.get(currentIndex);
 		JFrame jf = null;
-		if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+		jf = (JFrame) Main.getCurrentJFrame();
 		EditHTML dialog = new EditHTML(jf, pi.url, this);
 		dialog.setVisible(true);
 	}
 
 	public static class EditHTML extends EModelessDialog
 	{
+		private static final long serialVersionUID = 1L;
 		private JTextArea textArea;
 		private URL file;
 		private ManualViewer world;
@@ -1691,6 +1691,7 @@ public class ManualViewer extends EModelessDialog
 
 	private static class ManualTree extends JTree
 	{
+		private static final long serialVersionUID = 1L;
 		private ManualViewer dialog;
 
 		private ManualTree(DefaultTreeModel treeModel, ManualViewer dialog)

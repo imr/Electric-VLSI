@@ -23,9 +23,9 @@
  */
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 
 import java.awt.Toolkit;
@@ -246,7 +246,7 @@ public abstract class EMenuItem implements ActionListener {
         if (accelerators.length < 1)
             accelerators = new KeyStroke[1];
         this.accelerators[0] = accelerator;
-        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars()) {
+        for (EMenuBar.Instance menuBarInstance: Main.getMenuBars()) {
         	if (menuBarInstance == null) continue;
             JMenuItem item = menuBarInstance.findMenuItem(path);
             if (item == null) continue;
@@ -395,7 +395,7 @@ public abstract class EMenuItem implements ActionListener {
      * Updates GUI menu buttons after change of state of generic button.
      */
     void updateJMenuItems() {
-        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
+        for (EMenuBar.Instance menuBarInstance: Main.getMenuBars())
             updateMenuItem(menuBarInstance.findMenuItem(path));
     }
 

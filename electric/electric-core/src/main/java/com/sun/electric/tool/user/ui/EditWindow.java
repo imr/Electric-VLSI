@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
@@ -150,6 +151,7 @@ public class EditWindow extends JPanel
 	implements EditWindow_, WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener,
 		HighlightListener, DatabaseChangeListener
 {
+	private static final long serialVersionUID = 1L;
 	/** the window scale */									private double scale;
 	private double scale_, factorX, factorY;
 	/** the requested window scale */						private double scaleRequested;
@@ -3127,7 +3129,7 @@ public class EditWindow extends JPanel
 				int i = 0;
 				for(Nodable no : possibleNodables)
 					manyOptions[i++] = no.getName();
-				String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Descend into which node?",
+				String chosen = (String)JOptionPane.showInputDialog(Main.getCurrentJFrame(), "Descend into which node?",
 					"Choose a Node", JOptionPane.QUESTION_MESSAGE, null, manyOptions, manyOptions[0]);
 				if (chosen == null) return;
 				for(Nodable no : possibleNodables)

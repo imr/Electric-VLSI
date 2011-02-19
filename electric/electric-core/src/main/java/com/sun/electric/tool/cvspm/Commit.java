@@ -24,9 +24,9 @@
 
 package com.sun.electric.tool.cvspm;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -110,7 +110,7 @@ public class Commit {
         // get commit message
         String lastCommitMessage = CVS.getCVSLastCommitMessage();
         String commitMessage = JOptionPane.showInputDialog(
-                TopLevel.getCurrentJFrame(),
+                Main.getCurrentJFrame(),
                 "Commit message: ",
                 lastCommitMessage
         );
@@ -122,7 +122,8 @@ public class Commit {
     }
 
     private static class CommitJob extends Job {
-        private String message;
+		private static final long serialVersionUID = 1L;
+		private String message;
         private List<Library> libsToCommit;
         private List<Cell> cellsToCommit;
         private int exitVal;

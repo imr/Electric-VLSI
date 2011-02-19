@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EPoint;
@@ -95,12 +96,13 @@ import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.SizeListener;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.util.math.DBMath;
 
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -500,8 +502,8 @@ public class EditMenu {
 	public static void keyBindingsCommand()
 	{
 		// edit key bindings for current menu
-		TopLevel top = TopLevel.getCurrentJFrame();
-		EditKeyBindings dialog = new EditKeyBindings(top.getEMenuBar(), top, true);
+		Component top = Main.getCurrentJFrame();
+		EditKeyBindings dialog = new EditKeyBindings(((Main) top).getEMenuBar(), (Frame) top, true);
 		dialog.setVisible(true);
 	}
 
@@ -837,7 +839,7 @@ public class EditMenu {
 		if (!tw.writeTextCell(fileName))
 		{
 			// error with written file
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Could not save temporary file " + fileName, "Error saving temporary file", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -1888,7 +1890,7 @@ public class EditMenu {
                             break;
                         case 1:
                             String[] techNames = (String[])result;
-                    		String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+                    		String chosen = (String)JOptionPane.showInputDialog(Main.getCurrentJFrame(),
                                     "Technology to Write",
                                     "Choose a technology to write",
                                     JOptionPane.QUESTION_MESSAGE, null,

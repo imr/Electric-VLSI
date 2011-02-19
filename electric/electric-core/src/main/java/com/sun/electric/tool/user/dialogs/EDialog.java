@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -71,7 +71,7 @@ public class EDialog extends JDialog
 	{
 		// in multi-headed displays, display dialog on head with windowframe
 		super(parent, "", modal, (parent == null) ?
-			(TopLevel.getCurrentJFrame() == null ? null : TopLevel.getCurrentJFrame().getGraphicsConfiguration()) :
+			(Main.getCurrentJFrame() == null ? null : Main.getCurrentJFrame().getGraphicsConfiguration()) :
 				parent.getGraphicsConfiguration());
 
 		Point pt = getDialogLocation(getClass());
@@ -88,7 +88,7 @@ public class EDialog extends JDialog
 		});
 
 		// manage keeping dialog on top
-		if (!modal) TopLevel.addModelessDialog(this);
+		//if (!modal) Main.addModelessDialog(this); TODO add this back in
 
 //		// add a focus listener for SDI mode so dialogs are always on top
 //		if (parent == null && !TopLevel.isMDIMode())

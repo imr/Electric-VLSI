@@ -25,6 +25,7 @@
 
 package com.sun.electric.tool.cvspm;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -35,7 +36,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.dialogs.ModalCommandDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.io.FileType;
@@ -45,6 +45,7 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.util.TextUtils;
 
 import javax.swing.*;
+
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
@@ -110,7 +111,7 @@ public class CVS extends Listener {
             System.out.println("No modules in CVS!");
             return;
         }
-        Object ret = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Choose Module to Checkout",
+        Object ret = JOptionPane.showInputDialog(Main.getCurrentJFrame(), "Choose Module to Checkout",
                 "Checkout Module...", JOptionPane.QUESTION_MESSAGE, null, modules.toArray(), modules.toArray()[0]);
         if (ret == null) {
             // user cancelled
@@ -228,7 +229,7 @@ public class CVS extends Listener {
         Exec e = new Exec(run, null, new File(workingDir), out, out);
         // add a listener to get rid of the modal dialog when the command finishes
         String message = "Running: "+run;
-        JFrame frame = TopLevel.getCurrentJFrame();
+        JFrame frame = (JFrame) Main.getCurrentJFrame();
         ModalCommandDialog dialog = new ModalCommandDialog(frame, true, e, message, comment);
         dialog.setVisible(true);
     }

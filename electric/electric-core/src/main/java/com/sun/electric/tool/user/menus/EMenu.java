@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.Main;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.ArrayList;
 import java.util.Collections;

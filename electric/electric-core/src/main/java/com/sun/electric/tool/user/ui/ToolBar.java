@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
@@ -223,19 +224,8 @@ public class ToolBar extends JToolBar
 		}
 		toolbarOrderPref.setString(sb.toString());
 
-		if (TopLevel.isMDIMode())
-		{
-			ToolBar tb = TopLevel.getCurrentJFrame().getToolBar();
-			tb.redoToolbar();
-		} else
-		{
-			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = it.next();
-				ToolBar tb = wf.getFrame().getToolBar();
-				tb.redoToolbar();
-			}
-		}
+		ToolBar tb = ((Main) Main.getCurrentJFrame()).getToolBar();
+		tb.redoToolbar();
 	}
 
 	/**
@@ -494,23 +484,12 @@ public class ToolBar extends JToolBar
 		if (val.getWidth() != val.getHeight())
 			valStr += "/" + val.getHeight();
 		valStr += " ";
-		if (TopLevel.isMDIMode())
+		Main tl = (Main) Main.getCurrentJFrame();
+		if (tl != null)
 		{
-			TopLevel tl = TopLevel.getCurrentJFrame();
-			if (tl != null)
-			{
-				ToolBar tb = tl.getToolBar();
-                if (tb != null)
-                    tb.currentGridAmount.setText(valStr);
-			}
-		} else
-		{
-			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = it.next();
-				ToolBar tb = wf.getFrame().getToolBar();
-				tb.currentGridAmount.setText(valStr);
-			}
+			ToolBar tb = tl.getToolBar();
+            if (tb != null)
+                tb.currentGridAmount.setText(valStr);
 		}
 	}
 
@@ -784,7 +763,7 @@ public class ToolBar extends JToolBar
 			case CLICKZOOMWIRE:
 				checkLeavingOutlineMode();
 				WindowFrame.setListener(ClickZoomWireListener.theOne);
-				TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				Main.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 				curMode = CursorMode.CLICKZOOMWIRE;
 				lastListener = null;
 				break;
@@ -798,7 +777,7 @@ public class ToolBar extends JToolBar
 						WindowFrame.setListener(lastListener);
 						curMode = CursorMode.CLICKZOOMWIRE;
 						lastListener = null;
-						TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+						Main.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						return;
 					}
 
@@ -809,7 +788,7 @@ public class ToolBar extends JToolBar
 				lastListener = WindowFrame.getListener();
 				WindowFrame.setListener(ZoomAndPanListener.theOne);
 				//makeCursors();
-				TopLevel.setCurrentCursor(panCursor);
+				Main.setCurrentCursor(panCursor);
 				curMode = CursorMode.PAN;
 				break;
 			case ZOOM:
@@ -822,7 +801,7 @@ public class ToolBar extends JToolBar
 						WindowFrame.setListener(lastListener);
 						curMode = CursorMode.CLICKZOOMWIRE;
 						lastListener = null;
-						TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+						Main.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 						return;
 					}
 
@@ -833,7 +812,7 @@ public class ToolBar extends JToolBar
 				lastListener = WindowFrame.getListener();
 				checkLeavingOutlineMode();
 				WindowFrame.setListener(ZoomAndPanListener.theOne);
-				TopLevel.setCurrentCursor(zoomCursor);
+				Main.setCurrentCursor(zoomCursor);
 				curMode = CursorMode.ZOOM;
 				break;
 			case OUTLINE:
@@ -868,7 +847,7 @@ public class ToolBar extends JToolBar
 				if (WindowFrame.getListener() != OutlineListener.theOne)
 					OutlineListener.theOne.setNode(ni);
 				WindowFrame.setListener(OutlineListener.theOne);
-				TopLevel.setCurrentCursor(outlineCursor);
+				Main.setCurrentCursor(outlineCursor);
 				curMode = CursorMode.OUTLINE;
 				break;
 			case MEASURE:
@@ -882,7 +861,7 @@ public class ToolBar extends JToolBar
 				checkLeavingOutlineMode();
 //				MeasureListener.theOne.reset();
 				WindowFrame.setListener(MeasureListener.theOne);
-				TopLevel.setCurrentCursor(measureCursor);
+				Main.setCurrentCursor(measureCursor);
 				curMode = CursorMode.MEASURE;
 				break;
 		}
@@ -1163,7 +1142,7 @@ public class ToolBar extends JToolBar
                     String [] options = {"Cancel", "Undo"};
                     String msg = (readP) ? "Reading" : "Writing";
                     String extra = (!readP) ? ". Undo won't modify the file on disk." : "";
-                    int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+                    int ret = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
 						"Undo the " + msg + " process?" + extra, "Undo " + msg,
 						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "Cancel");
 					if (ret <= 0)
@@ -1341,7 +1320,7 @@ public class ToolBar extends JToolBar
 	 */
 	public static void updateToolBarButtons()
 	{
-		for (ToolBar toolBar: TopLevel.getToolBars())
+		for (ToolBar toolBar: Main.getToolBars())
 		{
             if (toolBar == null) continue;
 			for (Component c: toolBar.getComponents())

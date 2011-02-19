@@ -25,11 +25,13 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import java.awt.Frame;
+
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.dialogs.ManipulateExports;
 import com.sun.electric.tool.user.dialogs.ManipulatePorts;
 import com.sun.electric.tool.user.dialogs.NewExport;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 /**
  * Class to handle the commands in the "Export" pulldown menu.
@@ -43,7 +45,7 @@ public class ExportMenu {
 		return new EMenu("E_xport",
 
 			new EMenuItem("_Create Export...", 'E') { public void run() {
-				new NewExport(TopLevel.getCurrentJFrame()); }},
+				new NewExport((Frame) Main.getCurrentJFrame()); }},
 
 			SEPARATOR,
 

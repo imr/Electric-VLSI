@@ -24,13 +24,14 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.ToolMenu;
-import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -61,7 +62,7 @@ public class LanguageScripts extends EDialog
 	/** Creates new form Language Scripts */
 	public LanguageScripts()
 	{
-		super(TopLevel.getCurrentJFrame(), true);
+		super((Frame) Main.getCurrentJFrame(), true);
 		initComponents();
 
 		scriptsModel = new DefaultListModel();

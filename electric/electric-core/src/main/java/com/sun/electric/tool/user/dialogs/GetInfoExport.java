@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.Poly;
@@ -41,7 +42,6 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
@@ -82,7 +82,7 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 		if (theDialog == null)
 		{
 			JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            jf = (JFrame) Main.getCurrentJFrame();
             theDialog = new GetInfoExport(jf);
 		}
         theDialog.loadExportInfo();

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -53,10 +54,10 @@ import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -242,7 +243,7 @@ public class CellMenu {
 	 */
 	private static void cellControlCommand()
 	{
-		CellProperties dialog = new CellProperties(TopLevel.getCurrentJFrame());
+		CellProperties dialog = new CellProperties((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
@@ -251,13 +252,13 @@ public class CellMenu {
 	 */
 	private static void newCellCommand()
 	{
-		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), null);
+		NewCell dialog = new NewCell((Frame) Main.getCurrentJFrame(), null);
 		dialog.setVisible(true);
 	}
 
 	public static void cellBrowserCommand(CellBrowser.DoAction action)
 	{
-		CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), false, action);
+		CellBrowser dialog = new CellBrowser((Frame) Main.getCurrentJFrame(), false, action);
 		dialog.setVisible(true);
 	}
 
@@ -270,7 +271,7 @@ public class CellMenu {
 		if (cell == null) return;
 		if (!cell.isSchematic())
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Only Schematic cells can be made multi-page",
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(), "Only Schematic cells can be made multi-page",
 				"Cannot make multipage design", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -283,6 +284,7 @@ public class CellMenu {
 	 */
 	public static class SetMultiPageJob extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private Cell cell;
 		private int numPages;
 
@@ -315,6 +317,7 @@ public class CellMenu {
 	 */
 	public static class DeleteMultiPageJob extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private Cell cell;
 		private int page, numPages;
 
@@ -438,7 +441,7 @@ public class CellMenu {
 	 */
 	private static void crossLibraryCopyCommand()
 	{
-		CrossLibCopy dialog = new CrossLibCopy(TopLevel.getCurrentJFrame());
+		CrossLibCopy dialog = new CrossLibCopy((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
@@ -623,6 +626,7 @@ public class CellMenu {
 
 	public static class NewCellName extends EDialog
 	{
+		private static final long serialVersionUID = 1L;
 		private JTextField cellName;
 		private Cell cell;
 		private boolean allInGroup;
@@ -630,7 +634,7 @@ public class CellMenu {
 		/** Creates new form New Cell Name */
 		public NewCellName(boolean allInGroup, Cell cell)
 		{
-			super(TopLevel.getCurrentJFrame(), true);
+			super((Frame) Main.getCurrentJFrame(), true);
 			this.allInGroup = allInGroup;
 			this.cell = cell;
 
@@ -703,7 +707,7 @@ public class CellMenu {
 			Cell already = cell.getLibrary().findNodeProto(newName);
 			if (already != null && already.getView() == cell.getView())
 			{
-				int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+				int response = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
 					"Cell " + newName + " already exists.  Make this a new version?", "Confirm duplication",
 					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Yes", "Cancel"}, "Yes");
 				if (response != 0) return;

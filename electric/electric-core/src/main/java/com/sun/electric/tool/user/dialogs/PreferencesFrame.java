@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -96,7 +97,6 @@ import com.sun.electric.tool.user.dialogs.options.WellCheckTab;
 import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
@@ -159,7 +159,7 @@ public class PreferencesFrame extends EModelessDialog
 	{
 		if (currentOne == null)
 		{
-			currentOne = new PreferencesFrame(TopLevel.getCurrentJFrame());
+			currentOne = new PreferencesFrame((Frame) Main.getCurrentJFrame());
 		}
 		currentOne.setVisible(true);
 	}
@@ -218,7 +218,7 @@ public class PreferencesFrame extends EModelessDialog
 		rootNode.add(generalSet);
 		addTreeNode(new GeneralTab(parent, true), generalSet);
 		addTreeNode(new SelectionTab(parent, true), generalSet);
-		TopLevel top = TopLevel.getCurrentJFrame();
+		Main top = (Main) Main.getCurrentJFrame();
 		if (top != null && top.getEMenuBar() != null)
 			addTreeNode(new EditKeyBindings(top.getEMenuBar(), parent, true), generalSet);
 		addTreeNode(new NewNodesTab(this, true), generalSet);

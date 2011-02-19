@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
@@ -169,7 +170,7 @@ public class ErrorLoggerTree {
             System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
         }
         if (logger.getNumErrors() > 0) {
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
+            JOptionPane.showMessageDialog(Main.getCurrentJFrame(), msg,
                     logger.getSystem() + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
         }
     }

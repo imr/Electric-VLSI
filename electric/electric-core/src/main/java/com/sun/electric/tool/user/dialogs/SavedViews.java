@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -31,7 +32,6 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
@@ -50,6 +50,7 @@ import javax.swing.ListSelectionModel;
  */
 public class SavedViews extends EModelessDialog implements HighlightListener
 {
+	private static final long serialVersionUID = 1L;
 	private static SavedViews theDialog = null;
 	private JList viewList;
 	private DefaultListModel viewListModel;
@@ -59,7 +60,7 @@ public class SavedViews extends EModelessDialog implements HighlightListener
 		if (theDialog == null)
 		{
 			JFrame jf = null;
-			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			jf = (JFrame) Main.getCurrentJFrame();
 			theDialog = new SavedViews(jf);
 		}
 
@@ -258,6 +259,7 @@ public class SavedViews extends EModelessDialog implements HighlightListener
 	 */
 	private static class SaveViewJob extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private transient SavedViews dialog;
 		private Cell cell;
 		private String name;

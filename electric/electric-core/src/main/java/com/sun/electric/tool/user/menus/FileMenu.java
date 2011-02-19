@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.PolyBase;
@@ -80,7 +81,6 @@ import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -898,7 +898,7 @@ public class FileMenu {
             String [] techArray = new String[layoutTechnologies.size()];
             for(int i=0; i<layoutTechnologies.size(); i++)
                 techArray[i] = layoutTechnologies.get(i).getTechName();
-            String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+            String chosen = (String)JOptionPane.showInputDialog(Main.getCurrentJFrame(),
                 "Which layout technology should be used to import the file:", "Choose Technology",
                 JOptionPane.QUESTION_MESSAGE, null, techArray, curTech);
             if (chosen == null) return;
@@ -1106,7 +1106,7 @@ public class FileMenu {
         System.out.println("Saving libraries in oldJelib directory under " + currentDir); System.out.flush();
         File oldJelibDir = new File(currentDir, "oldJelib");
         if (!oldJelibDir.exists() && !oldJelibDir.mkdir()) {
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Could not create oldJelib directory",
+            JOptionPane.showMessageDialog(Main.getCurrentJFrame(), new String [] {"Could not create oldJelib directory",
                  oldJelibDir.getAbsolutePath()}, "Error creating oldJelib directory", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -1120,7 +1120,8 @@ public class FileMenu {
      */
     private static class SaveLibrary extends Job
     {
-        private RenameAndSaveLibraryTask task;
+		private static final long serialVersionUID = 1L;
+		private RenameAndSaveLibraryTask task;
         private IdMapper idMapper;
 
         public SaveLibrary(RenameAndSaveLibraryTask task)
@@ -1247,7 +1248,7 @@ public class FileMenu {
 				if (it.hasNext())
 				{
 					String [] options = {"Cancel", "Skip this Library"};
-					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+					int ret = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
 						"Cancel all library saving, or just skip saving this library?", "Save Cancelled",
 						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "Cancel");
 					if (ret == 1) { justSkip = true;   continue; }
@@ -1259,7 +1260,7 @@ public class FileMenu {
 
     public static void saveAllLibrariesInFormatCommand() {
         Object[] formats = {FileType.JELIB, FileType.ELIB, FileType.READABLEDUMP, FileType.DELIB};
-        Object format = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+        Object format = JOptionPane.showInputDialog(Main.getCurrentJFrame(),
                 "Output file format for all libraries:", "Save All Libraries In Format...",
                 JOptionPane.PLAIN_MESSAGE,
                 null, formats, FileType.DEFAULTLIB);
@@ -1384,7 +1385,7 @@ public class FileMenu {
             {
                 String msg = "Document cells can't be exported as postscript.\n";
                 System.out.print(msg);
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg +
+                JOptionPane.showMessageDialog(Main.getCurrentJFrame(), msg +
                         "Try \"Export -> Text Cell Contents\"",
                     "Exporting PS", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1393,7 +1394,7 @@ public class FileMenu {
             {
                 String msg = "This type of window can't be exported as postscript.\n";
                 System.out.print(msg);
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg +
+                JOptionPane.showMessageDialog(Main.getCurrentJFrame(), msg +
                         "Try \"Export -> PNG (Portable Network Graphcs)\"",
                     "Exporting PS", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1564,7 +1565,7 @@ public class FileMenu {
             {
                 String message = "Can't print from a non-EditWindow.";
                 System.out.println(message);
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message,
+                JOptionPane.showMessageDialog(Main.getCurrentJFrame(), message,
                     "Printing Cell", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -1584,7 +1585,7 @@ public class FileMenu {
             {
                 String message = "Problems initializing printers. Check printer setup.";
                 System.out.println(message);
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message,
+                JOptionPane.showMessageDialog(Main.getCurrentJFrame(), message,
                     "Printing Cell", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -1725,7 +1726,7 @@ public class FileMenu {
                 Pref.getPrefRoot().flush();
             } catch (BackingStoreException e)
             {
-                int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+                int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
 		            "Cannot save cell expand status. Do you still want to quit?", "Cell Status Error",
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                 if (response != JOptionPane.YES_OPTION)
@@ -1791,7 +1792,7 @@ public class FileMenu {
             {
                 options = new String[] {"Yes", "No", "Cancel", "No to All"};
             }
-            int ret = showFileMenuOptionDialog(TopLevel.getCurrentJFrame(),
+            int ret = showFileMenuOptionDialog(Main.getCurrentJFrame(),
                 "Library '" + lib.getName() + "' has changed.  " + theAction,
                 "Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
                 null, options, options[0], null);
@@ -1886,14 +1887,14 @@ public class FileMenu {
         }
         if (dirty) {
             String [] options = { "Force Save and Quit", "Cancel", "Quit without Saving"};
-            int i = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+            int i = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
                  new String [] {"Warning!  Libraries Changed!  Saving changes now may create bad libraries!"},
                     "Force Quit", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
                     options, options[1]);
             if (i == 0) {
                 // force save
                 if (!forceSave(false)) {
-                    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                    JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
                             "Error during forced library save, not quiting", "Saving Failed", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -1906,7 +1907,7 @@ public class FileMenu {
                 System.exit(1);
             }
         }
-        int i = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), new String [] {"Warning! You are about to kill Electric!",
+        int i = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(), new String [] {"Warning! You are about to kill Electric!",
             "Do you really want to force quit?"}, "Force Quit", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (i == JOptionPane.YES_OPTION) {
 			ActivityLogger.finished();
@@ -1923,7 +1924,7 @@ public class FileMenu {
     public static boolean forceSave(boolean confirm) {
         if (confirm) {
             String [] options = { "Cancel", "Force Save"};
-            int i = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+            int i = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
                  new String [] {"Warning! Saving changes now may create bad libraries!",
                                 "Libraries will be saved to \"Panic\" directory in current directory",
                                 "Do you really want to force save?"},
@@ -1936,7 +1937,7 @@ public class FileMenu {
         System.out.println("Saving libraries in panic directory under " + currentDir); System.out.flush();
         File panicDir = new File(currentDir, "panic");
         if (!panicDir.exists() && !panicDir.mkdir()) {
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Could not create panic directory",
+            JOptionPane.showMessageDialog(Main.getCurrentJFrame(), new String [] {"Could not create panic directory",
                  panicDir.getAbsolutePath()}, "Error creating panic directory", JOptionPane.ERROR_MESSAGE);
             return false;
         }
@@ -1944,7 +1945,7 @@ public class FileMenu {
         Snapshot panicSnapshot = Job.findValidSnapshot();
         boolean ok = !Output.writePanicSnapshot(panicSnapshot, panicDir, false);
         if (ok) {
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Libraries are saved to panic directory",
+            JOptionPane.showMessageDialog(Main.getCurrentJFrame(), new String [] {"Libraries are saved to panic directory",
                  panicDir.getAbsolutePath()}, "Libraries are saved", JOptionPane.INFORMATION_MESSAGE);
         }
         return ok;

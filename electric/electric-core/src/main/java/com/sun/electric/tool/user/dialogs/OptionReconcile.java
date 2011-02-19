@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Job;
@@ -30,7 +31,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.FileMenu.ReadLibrary;
 
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
@@ -56,6 +56,7 @@ import javax.swing.JSeparator;
  */
 public class OptionReconcile extends EDialog
 {
+	private static final long serialVersionUID = 1L;
 	private Map<Setting,Object> settingsThatChanged;
 	private Map<JRadioButton,Setting> changedSettings = new HashMap<JRadioButton,Setting>();
 	private List<AbstractButton> currentSettings = new ArrayList<AbstractButton>();
@@ -95,7 +96,7 @@ public class OptionReconcile extends EDialog
         }
         if (settingsToReconcile.isEmpty())
             return false;
-        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), originalSettings, settingsToReconcile, libName, job);
+        OptionReconcile dialog = new OptionReconcile((Frame) Main.getCurrentJFrame(), originalSettings, settingsToReconcile, libName, job);
         dialog.setVisible(true);
         return true;
     }
@@ -275,6 +276,7 @@ public class OptionReconcile extends EDialog
 	 */
 	private static class DoReconciliation extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private Map<String,Object> settingsToSerialize = new HashMap<String,Object>();
 		private transient ReadLibrary job;
 

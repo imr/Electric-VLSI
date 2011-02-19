@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.Resources;
@@ -31,7 +32,6 @@ import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ToolBar.EToolBarButton;
 import com.sun.electric.util.TextUtils;
 
@@ -344,7 +344,7 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
 		menuEntries = new HashMap<String,EMenuItem>();
 
-		TopLevel top = TopLevel.getCurrentJFrame();
+		Main top = (Main) Main.getCurrentJFrame();
 		if (top == null || top.getEMenuBar() == null) return;
 
 		// convert menuBar to tree

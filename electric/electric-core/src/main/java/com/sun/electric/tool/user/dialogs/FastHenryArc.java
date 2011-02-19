@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
@@ -33,7 +34,6 @@ import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
@@ -64,8 +64,7 @@ public class FastHenryArc extends EDialog
 	public static void showFastHenryArcDialog()
 	{
 		JFrame jf = null;
-		if (TopLevel.isMDIMode())
-			jf = TopLevel.getCurrentJFrame();
+		jf = (JFrame) Main.getCurrentJFrame();
 		FastHenryArc theDialog = new FastHenryArc(jf);
 		theDialog.setVisible(true);
 	}
@@ -196,7 +195,7 @@ public class FastHenryArc extends EDialog
 		if (groupName == null) return;
 		if (groupsList.contains(groupName))
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"That group name is already in the list");
 			return;
 		}

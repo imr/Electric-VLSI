@@ -24,12 +24,12 @@
 
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.event.InputEvent;
 import java.util.Iterator;
@@ -385,7 +385,7 @@ public class EditKeyBinding extends EDialog {
         // warn if an ALT key conflicts with a pulldown menu
         if ((key1.getModifiers() & InputEvent.ALT_MASK) != 0)
         {
-			TopLevel top = TopLevel.getCurrentJFrame();
+			Main top = (Main) Main.getCurrentJFrame();
 			EMenuBar menuBar = top.getEMenuBar();
 			for (EMenuItem menu: menuBar.getItems())
 			{

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.PrefPackage;
@@ -33,7 +34,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.tecEdit.Info;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Color;
@@ -89,7 +89,7 @@ public class ComponentMenu extends EDialog
 	public static void showComponentMenuDialog(String techName, Xml.MenuPalette xmp,
 		List<Xml.PrimitiveNodeGroup> nodeGroups, List<Xml.ArcProto> arcs)
 	{
-		ComponentMenu dialog = new ComponentMenu(TopLevel.getCurrentJFrame(), true);
+		ComponentMenu dialog = new ComponentMenu((Frame) Main.getCurrentJFrame(), true);
 		dialog.setTitle("Technology Edit: Component Menu Layout");
 		Xml.Technology xTech = new Xml.Technology();
         xTech.nodeGroups.addAll(nodeGroups);
@@ -329,7 +329,7 @@ public class ComponentMenu extends EDialog
                         techPrefs.put(key, menuXml);
                     else
                         // error. It can't be handled by Java preferences
-                        JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                        JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
                             "XML description is too long (" + menuXml.length() + ").\n Preferences can't be stored",
                             "Error saving XML preferences", JOptionPane.ERROR_MESSAGE);
                 }

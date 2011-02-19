@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Pref;
@@ -47,7 +48,6 @@ import com.sun.electric.tool.user.ui.LayerTab;
 import com.sun.electric.tool.user.ui.MeasureListener;
 import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
@@ -224,11 +224,6 @@ public class WindowMenu {
 //            new EMenuItem("Select Next Window") { public void run() {
 //                nextWindowCommand(); }},
 
-            !TopLevel.isMDIMode() ? SEPARATOR : null,
-            !TopLevel.isMDIMode() && getAllGraphicsDevices().length >= 2 ? new EMenuItem("Move to Ot_her Display") { public void run() {
-                moveToOtherDisplayCommand(); }} : null,
-			!TopLevel.isMDIMode() ? new EMenuItem("Remember Locatio_n of Display") { public void run() {
-				    rememberDisplayLocation(); }} : null,
 
 		    SEPARATOR,
 
@@ -443,7 +438,7 @@ public class WindowMenu {
             list.add(new DynamicLayerVisibilityMenuItem(cName));
         }
 
-        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
+        for (EMenuBar.Instance menuBarInstance: Main.getMenuBars())
         {
             JMenu menu = (JMenu)menuBarInstance.findMenuItem(visibleLayersMenu.getPath());
             while (menu.getMenuComponentCount() > InvisibleLayerConfiguration.NUM_CONFIGS)
@@ -690,11 +685,8 @@ public class WindowMenu {
 
         // find offset for multiscreen systems
         Point loc = new Point(0, 0);
-		if (TopLevel.isMDIMode())
-		{
-			TopLevel tl = TopLevel.getCurrentJFrame();
-			loc = tl.getContentPane().getLocationOnScreen();
-		}
+        Main tl = (Main) Main.getCurrentJFrame();
+		loc = tl.getContentPane().getLocationOnScreen();
 
 		// tile the windows in each area
         for (Rectangle area : areas)
@@ -741,11 +733,8 @@ public class WindowMenu {
 
         // find offset for multiscreen systems
         Point loc = new Point(0, 0);
-		if (TopLevel.isMDIMode())
-		{
-			TopLevel tl = TopLevel.getCurrentJFrame();
-			loc = tl.getContentPane().getLocationOnScreen();
-		}
+		Main tl = (Main) Main.getCurrentJFrame();
+		loc = tl.getContentPane().getLocationOnScreen();
 
 		// tile the windows in each area
         for (Rectangle area : areas)
@@ -792,11 +781,8 @@ public class WindowMenu {
 
         // find offset for multiscreen systems
         Point loc = new Point(0, 0);
-		if (TopLevel.isMDIMode())
-		{
-			TopLevel tl = TopLevel.getCurrentJFrame();
-			loc = tl.getContentPane().getLocationOnScreen();
-		}
+		Main tl = (Main) Main.getCurrentJFrame();
+		loc = tl.getContentPane().getLocationOnScreen();
 
 		// tile the windows in each area
 		for (Rectangle area : areas)
@@ -896,7 +882,7 @@ public class WindowMenu {
 	private static Rectangle [] getArrangementWindowAreas()
     {
 		// get list of possible window areas
-		Rectangle [] areas = TopLevel.getWindowAreas();
+		Rectangle [] areas = Main.getWindowAreas();
 
         // remove the messages window
         for (MessagesWindow mw : MessagesWindow.getMessagesWindows()) {
@@ -1041,49 +1027,49 @@ public class WindowMenu {
     public static void moveToOtherDisplayCommand()
     {
         // this only works in SDI mode
-        if (TopLevel.isMDIMode()) return;
+        return;
 
-        // find current screen
-        WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
-        WindowContent content = curWF.getContent();
-        GraphicsConfiguration curConfig = content.getPanel().getGraphicsConfiguration();
-        GraphicsDevice curDevice = curConfig.getDevice();
-
-        // get all screens
-        GraphicsDevice[] gs = getAllGraphicsDevices();
-//        for (int j=0; j<gs.length; j++) {
-//            //System.out.println("Found GraphicsDevice: "+gs[j]+", type: "+gs[j].getType());
+//        // find current screen
+//        WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
+//        WindowContent content = curWF.getContent();
+//        GraphicsConfiguration curConfig = content.getPanel().getGraphicsConfiguration();
+//        GraphicsDevice curDevice = curConfig.getDevice();
+//
+//        // get all screens
+//        GraphicsDevice[] gs = getAllGraphicsDevices();
+////        for (int j=0; j<gs.length; j++) {
+////            //System.out.println("Found GraphicsDevice: "+gs[j]+", type: "+gs[j].getType());
+////        }
+//        // find screen after current screen
+//        int i;
+//        for (i=0; i<gs.length; i++) {
+//            if (gs[i] == curDevice) break;
 //        }
-        // find screen after current screen
-        int i;
-        for (i=0; i<gs.length; i++) {
-            if (gs[i] == curDevice) break;
-        }
-        if (i == (gs.length - 1)) i = 0; else i++;      // go to next device
-
-        curWF.moveEditWindow(gs[i].getDefaultConfiguration());
+//        if (i == (gs.length - 1)) i = 0; else i++;      // go to next device
+//
+//        curWF.moveEditWindow(gs[i].getDefaultConfiguration());
     }
 
 	public static void rememberDisplayLocation()
     {
         // this only works in SDI mode
-        if (TopLevel.isMDIMode()) return;
+        return;
 
-        // remember main window information
-        WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
-		TopLevel tl = curWF.getFrame();
-		Point pt = tl.getLocation();
-		User.setDefaultWindowPos(pt);
-		Dimension sz = tl.getSize();
-		User.setDefaultWindowSize(sz);
-
-		// remember messages information; arbitrarily use only the first window if there exist more than one
-        for (MessagesWindow mw : MessagesWindow.getMessagesWindows()) {
-            Rectangle rect = mw.getMessagesLocation();
-            User.setDefaultMessagesPos(new Point(rect.x, rect.y));
-            User.setDefaultMessagesSize(new Dimension(rect.width, rect.height));
-            break;
-        }
+//        // remember main window information
+//        WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
+//		TopLevel tl = curWF.getFrame();
+//		Point pt = tl.getLocation();
+//		User.setDefaultWindowPos(pt);
+//		Dimension sz = tl.getSize();
+//		User.setDefaultWindowSize(sz);
+//
+//		// remember messages information; arbitrarily use only the first window if there exist more than one
+//        for (MessagesWindow mw : MessagesWindow.getMessagesWindows()) {
+//            Rectangle rect = mw.getMessagesLocation();
+//            User.setDefaultMessagesPos(new Point(rect.x, rect.y));
+//            User.setDefaultMessagesSize(new Dimension(rect.width, rect.height));
+//            break;
+//        }
     }
 
     /**
@@ -1125,7 +1111,7 @@ public class WindowMenu {
         if (response != 2) // cancel
         {
             String cadenceFileName = "CadencePrefs.xml";
-            URL fileURL = Resources.getURLResource(TopLevel.class, cadenceFileName);
+            URL fileURL = Resources.getURLResource(Main.class, cadenceFileName);
             if (fileURL != null)
                 UserInterfaceMain.importPrefs(fileURL);
             else

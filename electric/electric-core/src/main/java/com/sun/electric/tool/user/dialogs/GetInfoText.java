@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
@@ -45,7 +46,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Component;
@@ -222,7 +222,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		if (theDialog == null)
 		{
 			JFrame jf = null;
-			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			jf = (JFrame) Main.getCurrentJFrame();
 			theDialog = new GetInfoText(jf);
 		}
 		theDialog.loadTextInfo();
@@ -536,7 +536,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 			oldListener = WindowFrame.getListener();
 			WindowFrame.setListener(this);
 
-			TopLevel top = TopLevel.getCurrentJFrame();
+			Main top = (Main) Main.getCurrentJFrame();
 			mb = top.getTheMenuBar();
 			mb.setIgnoreTextEditKeys(true);
 		}

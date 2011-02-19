@@ -23,14 +23,16 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibDirs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.FileDialog;
+import java.awt.Frame;
+import java.awt.Image;
 import java.io.File;
 import java.util.Iterator;
 
@@ -250,7 +252,7 @@ public class OpenFile
 //			dialog.setLocation(location.x, location.y);
 //			dialog.addComponentListener(new MoveComponentListener());
 			JFrame chooseFrame = new JFrame();
-			chooseFrame.setIconImage(TopLevel.getFrameIcon().getImage());
+			chooseFrame.setIconImage((Image) Main.getFrameIcon());
 			int returnVal = dialog.showOpenDialog(chooseFrame);
 			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
@@ -261,7 +263,7 @@ public class OpenFile
 		}
 
 		// the AWT way
-		FileDialog dialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.LOAD);
+		FileDialog dialog = new FileDialog((Frame) Main.getCurrentJFrame(), title, FileDialog.LOAD);
 		dialog.setDirectory(User.getWorkingDirectory());
 		if (type != null) dialog.setFilenameFilter(type.getFileFilterAWT());
 		dialog.setVisible(true);
@@ -341,7 +343,7 @@ public class OpenFile
 				dialog.setSelectedFile(new File(defaultFile));
 			}
 			JFrame chooseFrame = new JFrame();
-			chooseFrame.setIconImage(TopLevel.getFrameIcon().getImage());
+			chooseFrame.setIconImage((Image) Main.getFrameIcon());
 			int returnVal = dialog.showSaveDialog(chooseFrame);
 			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
@@ -373,7 +375,7 @@ public class OpenFile
 		}
 
 		// the AWT way
-		FileDialog awtDialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.SAVE);
+		FileDialog awtDialog = new FileDialog((Frame) Main.getCurrentJFrame(), title, FileDialog.SAVE);
 		awtDialog.setDirectory(initialDir);
 		awtDialog.setFile(defaultFile);
 		awtDialog.setFilenameFilter(types[0].getFileFilterAWT());

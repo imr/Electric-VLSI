@@ -41,7 +41,6 @@ import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.WindowMenu;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.util.TextUtils;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -79,7 +78,6 @@ public class WindowFrame extends Observable
 	/** the nature of the main window part (from above) */	private WindowContent content;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
     /** the internal frame (if MDI). */					private JInternalFrame jif = null;
-    /** the top-level frame (if SDI). */				private TopLevel jf = null;
     /** the internalframe listener */                   private InternalWindowsEvents internalWindowsEvents;
     /** the window event listener */                    private WindowsEvents windowsEvents;
 	/** the side bar (explorer, components, etc) */		private JTabbedPane sideBar;
@@ -108,26 +106,16 @@ public class WindowFrame extends Observable
      * @param wf
      */
     public static void showFrame(WindowFrame wf) {
-        if (TopLevel.isMDIMode()) {
-            JInternalFrame jif = wf.getInternalFrame();
-            try {
-                jif.setIcon(false);
-                jif.setSelected(true);
-            } catch (PropertyVetoException e) {}
-            if (!jif.isVisible()) {
-                jif.toFront();
-                TopLevel.addToDesktop(jif);
-            } else
-                jif.toFront();
-        } else {
-            JFrame jf = wf.getFrame();
-            jf.setState(Frame.NORMAL);
-            if (!jf.isVisible()) {
-                jf.toFront();
-                jf.setVisible(true);
-            } else
-                jf.toFront();
-        }
+        JInternalFrame jif = wf.getInternalFrame();
+        try {
+            jif.setIcon(false);
+            jif.setSelected(true);
+        } catch (PropertyVetoException e) {}
+        if (!jif.isVisible()) {
+            jif.toFront();
+            Main.addToDesktop(jif);
+        } else
+            jif.toFront();
     }
 
     public static void repaintAllWindows()
@@ -446,22 +434,12 @@ public class WindowFrame extends Observable
 	{
 		Dimension scrnSize = Main.getScreenSize();
 		Dimension frameSize = new Dimension(scrnSize.width * 4 / 5, scrnSize.height * 6 / 8);
-		if (true)
-		{
-			jif = new JInternalFrame(title, true, true, true, true);
-			jif.setSize(frameSize);
-			jif.setLocation(windowOffset+WINDOW_OFFSET, windowOffset);
-			jif.setAutoscrolls(true);
-			jif.setFrameIcon(TopLevel.getFrameIcon());
-		} else
-		{
-			jf = new TopLevel("Electric - " + title, new Rectangle(frameSize), this, gc, true);
-			Dimension preferredSize = User.getDefaultWindowSize();
-			if (preferredSize != null) frameSize = preferredSize;
-			jf.setSize(frameSize);
-			Point preferredLoc = User.getDefaultWindowPos();
-			jf.setLocation(windowOffset+WINDOW_OFFSET+preferredLoc.x, windowOffset+preferredLoc.y);
-		}
+
+		jif = new JInternalFrame(title, true, true, true, true);
+		jif.setSize(frameSize);
+		jif.setLocation(windowOffset+WINDOW_OFFSET, windowOffset);
+		jif.setAutoscrolls(true);
+		jif.setFrameIcon(Main.getFrameIcon());
 		return frameSize;
 	}
 
@@ -486,35 +464,21 @@ public class WindowFrame extends Observable
 	 */
 	private void populateJFrame()
 	{
-		if (TopLevel.isMDIMode())
-		{
-			jif.getContentPane().add(js);
-			internalWindowsEvents = new InternalWindowsEvents(this);
-			jif.addInternalFrameListener(internalWindowsEvents);
+		jif.getContentPane().add(js);
+		internalWindowsEvents = new InternalWindowsEvents(this);
+		jif.addInternalFrameListener(internalWindowsEvents);
 			// add tool bar as listener so it can find out state of cell history in EditWindow
 //			jif.addInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
 			//content.getPanel().addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
 //			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, TopLevel.getCurrentJFrame().getToolBar());
 //			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, TopLevel.getCurrentJFrame().getToolBar());
 //			frame.jif.moveToFront();
-            TopLevel.addToDesktop(jif);
-		} else
-		{
-			jf.getContentPane().add(js);
-			windowsEvents = new WindowsEvents(this);
-			jf.addWindowListener(windowsEvents);
-			jf.addWindowFocusListener(windowsEvents);
-			// add tool bar as listener so it can find out state of cell history in EditWindow
-//			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
-//			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
-			/*if (!Job.BATCHMODE)*/ jf.setVisible(true);
-		}
+        Main.addToDesktop(jif);
 	}
 
 	public Component getComponent()
 	{
-		if (TopLevel.isMDIMode()) return jif;
-		return jf;
+		return jif;
 	}
 
 	/**
@@ -537,21 +501,13 @@ public class WindowFrame extends Observable
 	private void depopulateJFrame()
 	{
         assert SwingUtilities.isEventDispatchThread();
-		if (TopLevel.isMDIMode()) {
-			jif.getContentPane().remove(js);
-			jif.removeInternalFrameListener(internalWindowsEvents);
+		jif.getContentPane().remove(js);
+		jif.removeInternalFrameListener(internalWindowsEvents);
 //			jif.removeInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
 			// TopLevel.removeFromDesktop(jif);
 //			content.getPanel().removePropertyChangeListener(TopLevel.getCurrentJFrame().getToolBar());
 //			content.getPanel().removePropertyChangeListener(TopLevel.getCurrentJFrame().getToolBar());
-            TopLevel.removeFromDesktop(jif);
-		} else {
-			jf.getContentPane().remove(js);
-			jf.removeWindowListener(windowsEvents);
-			jf.removeWindowFocusListener(windowsEvents);
-//			content.getPanel().removePropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
-//			content.getPanel().removePropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
-		}
+        Main.removeFromDesktop(jif);
 	}
     
 	//******************************** WINDOW CONTROL ********************************
@@ -620,18 +576,7 @@ public class WindowFrame extends Observable
 
 	public void moveEditWindow(GraphicsConfiguration gc) {
 
-		if (TopLevel.isMDIMode()) return;           // only valid in SDI mode
-		jf.setVisible(false);                       // hide old Frame
-		//jf.getFocusOwner().setFocusable(false);
-		//System.out.println("Set unfocasable: "+jf.getFocusOwner());
-		depopulateJFrame();                         // remove all components from old Frame
-		TopLevel oldFrame = jf;
-		Cell cell = content.getCell();                  // get current cell
-		String cellDescription = (cell == null) ? "no cell" : cell.describe(false);  // new title
-		createJFrame(cellDescription, gc);          // create new Frame
-		populateJFrame();                           // populate new Frame
-		fireCellHistoryStatus();                // update tool bar history buttons
-		oldFrame.finished();                        // clear and garbage collect old Frame
+		return;           // only valid in SDI mode
 	}
 
 	//******************************** EXPLORER PART ********************************
@@ -837,9 +782,6 @@ public class WindowFrame extends Observable
 	 */
 	public void setCursor(Cursor cursor)
 	{
-        if (!TopLevel.isMDIMode()) {
-            jf.setCursor(cursor);
-        }
         js.setCursor(cursor);
         content.setCursor(cursor);
 	}
@@ -877,16 +819,11 @@ public class WindowFrame extends Observable
                 jif.setSelected(true);
             } catch (java.beans.PropertyVetoException e) {}
         }
-        if (jf != null) {
-            jf.toFront();
-            jf.requestFocus();
-        }
     }
 
     public boolean isFocusOwner()
     {
         if (jif != null) return jif.isSelected();
-        if (jf != null) return jf.isFocusOwner();
         return false;
     }
 
@@ -942,16 +879,9 @@ public class WindowFrame extends Observable
 	public void setWindowSize(Rectangle frameRect)
 	{
 		Dimension frameSize = new Dimension(frameRect.width, frameRect.height);
-		if (TopLevel.isMDIMode())
-		{
-			jif.setSize(frameSize);
-			jif.setLocation(frameRect.x, frameRect.y);
-		} else
-		{
-			jf.setSize(frameSize);
-			jf.setLocation(frameRect.x, frameRect.y);
-			jf.validate();
-		}
+
+		jif.setSize(frameSize);
+		jif.setLocation(frameRect.x, frameRect.y);
 	}
 
 	/**
@@ -963,21 +893,12 @@ public class WindowFrame extends Observable
         assert SwingUtilities.isEventDispatchThread();
         // if this was called from the code, instead of an event handler,
         // make sure we're not visible anymore
-        if (TopLevel.isMDIMode()) {
-            jif.setVisible(false);
-            jif.dispose();
-        }
+
+        jif.setVisible(false);
+        jif.dispose();
 
         // remove references to this
         synchronized(windowList) {
-            if (windowList.size() <= 1 && !TopLevel.isMDIMode() &&
-				!Client.isOSMac())
-            {
-                FileMenu.quitCommand();
-                //JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                //    "Cannot close the last window");
-                return;
-            }
             windowList.remove(this);
             finished = true;
 		    if (curWindowFrame == this) curWindowFrame = null;
@@ -989,11 +910,6 @@ public class WindowFrame extends Observable
         WindowMenu.setDynamicMenus();
         layersTab.finished();
         depopulateJFrame();
-
-        if (!TopLevel.isMDIMode()) {
-            // if SDI mode, TopLevel enclosing frame is closing, dispose of it
-            jf.finished();
-        }
     }
 
 	/**
@@ -1027,11 +943,8 @@ public class WindowFrame extends Observable
      * return that Frame.
 	 * @return the TopLevel associated with this WindowFrame.
 	 */
-	public TopLevel getFrame() {
-        if (TopLevel.isMDIMode()) {
-            return TopLevel.getCurrentJFrame();
-        }
-        return jf;
+	public Component getFrame() {
+        return Main.getCurrentJFrame();
     }
 
     /**
@@ -1040,10 +953,7 @@ public class WindowFrame extends Observable
      * @return the JInternalFrame associated with this WindowFrame.
      */
     public JInternalFrame getInternalFrame() {
-        if (TopLevel.isMDIMode()) {
-            return jif;
-        }
-        return null;
+        return jif;
     }
 
     /**
@@ -1120,11 +1030,7 @@ public class WindowFrame extends Observable
         String curTitle = getTitle();
         if (title.equals(curTitle)) return;
 
-        if (TopLevel.isMDIMode()) {
-            if (jif != null) jif.setTitle(title);
-        } else {
-            if (jf != null) jf.setTitle(title);
-        }
+        if (jif != null) jif.setTitle(title);
     }
 
     /**
@@ -1132,11 +1038,7 @@ public class WindowFrame extends Observable
      */
     public String getTitle()
     {
-        if (TopLevel.isMDIMode()) {
-            if (jif != null) return jif.getTitle();
-        } else {
-            if (jf != null) return jf.getTitle();
-        }
+        if (jif != null) return jif.getTitle();
         return "";
     }
 
@@ -1269,7 +1171,7 @@ public class WindowFrame extends Observable
 	 */
     private ToolBar getToolBar()
     {
-        TopLevel topLevel = getFrame();
+        Main topLevel = (Main) getFrame();
         return topLevel != null ? topLevel.getToolBar() : null;
     }
 

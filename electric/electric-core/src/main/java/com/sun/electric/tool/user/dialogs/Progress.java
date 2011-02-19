@@ -23,18 +23,17 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.user.ui.TopLevel;
-
 import java.awt.BorderLayout;
 import java.awt.Insets;
 import java.awt.Point;
 
-import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
+
+import com.sun.electric.Main;
 
 /**
  * This class displays a progress dialog.
@@ -43,7 +42,6 @@ public class Progress
 {
     private JProgressBar progressBar;
     private JTextArea taskOutput;
-	private JFrame jf;
 	private JInternalFrame jif;
 	private static int xPos = 300;
 	private static int yPos = 300;
@@ -54,18 +52,10 @@ public class Progress
 	 */
 	public Progress(String title)
 	{
-		if (TopLevel.isMDIMode())
-		{
-			jif = new JInternalFrame(title);
-			jif.setSize(300, 80);
-			jif.setLocation(xPos, yPos);
-			jif.setLayer(JLayeredPane.POPUP_LAYER);
-		} else
-		{
-			jf = new JFrame(title);
-			jf.setSize(300, 80);
-			jf.setLocation(xPos, yPos);
-		}
+		jif = new JInternalFrame(title);
+		jif.setSize(300, 80);
+		jif.setLocation(xPos, yPos);
+		jif.setLayer(JLayeredPane.POPUP_LAYER);
 
 		progressBar = new JProgressBar(0, 100);
 		progressBar.setValue(0);
@@ -81,15 +71,8 @@ public class Progress
 		panel.add(progressBar, BorderLayout.CENTER);
 		panel.add(taskOutput, BorderLayout.SOUTH);
 
-		if (TopLevel.isMDIMode())
-		{
-			jif.getContentPane().add(panel);
-            TopLevel.addToDesktop(jif);
-		} else
-		{
-			jf.getContentPane().add(panel);
-			jf.setVisible(true);
-		}
+		jif.getContentPane().add(panel);
+        Main.addToDesktop(jif);
 	}
 
 	/**
@@ -100,22 +83,12 @@ public class Progress
 		if (progressBar == null) return;
 		progressBar = null;
 
-		if (TopLevel.isMDIMode())
-		{
-			Point pt = jif.getLocation();
-			xPos = pt.x;
-			yPos = pt.y;
-            TopLevel.removeFromDesktop(jif);
-			jif.setVisible(false);
-			jif.dispose();
-		} else
-		{
-			Point pt = jf.getLocation();
-			xPos = pt.x;
-			yPos = pt.y;
-			jf.setVisible(false);
-			jf.dispose();
-		}	
+		Point pt = jif.getLocation();
+		xPos = pt.x;
+		yPos = pt.y;
+        Main.removeFromDesktop(jif);
+		jif.setVisible(false);
+		jif.dispose();
 	}
 
 	/**

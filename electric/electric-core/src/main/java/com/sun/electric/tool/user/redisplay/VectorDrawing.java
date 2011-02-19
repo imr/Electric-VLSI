@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.redisplay;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -36,7 +37,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.LayerVisibility;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
@@ -223,7 +223,7 @@ class VectorDrawing {
 		topVD = null;
 
 		if (takingLongTime) {
-			TopLevel.setBusyCursor(false);
+			Main.setBusyCursor(false);
 			System.out.println("Done");
 		}
 
@@ -1254,7 +1254,7 @@ class VectorDrawing {
 			long currentTime = System.currentTimeMillis();
 			if (timer.currentTimeLong() > 1000) {
 				System.out.print("Display caching, please wait...");
-				TopLevel.setBusyCursor(true);
+				Main.setBusyCursor(true);
 				takingLongTime = true;
 			}
 		}

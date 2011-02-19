@@ -27,8 +27,13 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.File;
@@ -44,10 +49,12 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -56,6 +63,8 @@ import javax.swing.Icon;
 import javax.swing.JApplet;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.SwingUtilities;
 
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
@@ -135,18 +144,18 @@ public final class Main extends JApplet
     private static final Mode DEFAULT_MODE = Mode.FULL_SCREEN_SAFE;
 
     private static Mode runMode;
-
+    private static Set<Window> modelessDialogs = new HashSet<Window>();
     static Main toplevel = null;
     public static JDesktopPane desktop = null;
-    StatusBar sb = null;
+    static StatusBar sb = null;
     static Dimension scrnSize;
     static Dimension appSize;
     static MessagesWindow messagesWindow;
     static EMenuBar.Instance menuBar;
     static ToolBar toolBar;
-    int doubleClickDelay;
-    Cursor cursor;
-    boolean busyCursorOn = false;
+    static int doubleClickDelay;
+    static Cursor cursor;
+    static boolean busyCursorOn = false;
     
     /** JonG: "I think batch mode implies 'no GUI', and nothing more." */
     public static boolean isBatch() {
@@ -1090,4 +1099,153 @@ public final class Main extends JApplet
 		return null;
 	}
 
+    /**
+     * The busy cursor overrides any other cursor.
+     * Call clearBusyCursor to reset to last set cursor
+     */
+    public static synchronized void setBusyCursor(boolean on) {
+        if (on) {
+            if (!busyCursorOn)
+                setCurrentCursorPrivate(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            busyCursorOn = true;
+        } else {
+            // if the current cursor is a busy cursor, set it to the last normal cursor
+            if (busyCursorOn)
+                setCurrentCursorPrivate(getCurrentCursor());
+            busyCursorOn = false;
+        }
+    }
+    
+	public static Cursor getCurrentCursor() { return cursor; }
+
+	public static synchronized void setCurrentCursor(Cursor newcursor)
+	{
+        cursor = newcursor;
+        setCurrentCursorPrivate(cursor);
+    }
+
+    private static synchronized void setCurrentCursorPrivate(Cursor cursor)
+    {
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+        {
+            WindowFrame wf = it.next();
+            wf.setCursor(cursor);
+        }
+	}
+    
+	/**
+	 * Method to add an internal frame to the desktop.
+	 * This only makes sense in MDI mode, where the desktop has multiple subframes.
+	 * @param jif the internal frame to add.
+	 */
+	public static void addToDesktop(JInternalFrame jif)
+	{
+        if (desktop.isVisible() && !Job.isClientThread())
+            SwingUtilities.invokeLater(new ModifyToDesktopSafe(jif, true)); else
+            	(new ModifyToDesktopSafe(jif, true)).run();
+    }
+	
+	/**
+	 * Method to remove an internal frame from the desktop.
+	 * This only makes sense in MDI mode, where the desktop has multiple subframes.
+	 * @param jif the internal frame to remove.
+	 */
+	public static void removeFromDesktop(JInternalFrame jif)
+	{
+        if (desktop.isVisible() && !Job.isClientThread())
+            SwingUtilities.invokeLater(new ModifyToDesktopSafe(jif, false)); else
+            	(new ModifyToDesktopSafe(jif, false)).run();
+    }
+
+    private static class ModifyToDesktopSafe implements Runnable
+    {
+        private JInternalFrame jif;
+        private boolean add;
+
+        private ModifyToDesktopSafe(JInternalFrame jif, boolean add) { this.jif = jif;  this.add = add; }
+
+        public void run()
+        {
+        	if (add)
+        	{
+	            desktop.add(jif);
+	            try
+	            {
+	            	jif.show();
+	            } catch (ClassCastException e)
+	            {
+	            	// Jake Baker keeps getting a ClassCastException here, so for now, let's catch it
+	            	System.out.println("ERROR: Could not show new window: " + e.getMessage());
+	            }
+        	} else
+        	{
+                desktop.remove(jif);
+        	}
+        }
+    }
+    
+    /** Get the Menu Bar. Unfortunately named because getMenuBar() already exists */
+    public static EMenuBar.Instance getTheMenuBar() { return menuBar; }
+
+    /**
+     * Get the tool bar associated with this TopLevel
+     * @return the ToolBar.
+     */
+    public static ToolBar getToolBar() { return toolBar; }
+    
+    public static synchronized List<ToolBar> getToolBars() {
+        ArrayList<ToolBar> toolBars = new ArrayList<ToolBar>();
+        for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+        	WindowFrame wf = it.next();
+//        	toolBars.add(wf.getFrame().getToolBar());
+        }
+        return toolBars;
+    }
+    
+    /**
+	 * Method to return status bar associated with this TopLevel.
+	 * @return the status bar associated with this TopLevel.
+	 */
+	public static StatusBar getStatusBar() { return sb; }
+	
+    /**
+     * Method to return the speed of double-clicks (in milliseconds).
+     * @return the speed of double-clicks (in milliseconds).
+     */
+    public static int getDoubleClickSpeed() { return doubleClickDelay; }
+    
+    /**
+     * Method to return a list of possible window areas.
+     * On MDI systems, there is just one window areas.
+     * On SDI systems, there is one window areas for each display head on the computer.
+     * @return an array of window areas.
+     */
+    public static Rectangle [] getWindowAreas()
+	{
+		Rectangle [] areas;
+		areas = getDisplays();
+		return areas;
+	}
+    
+    /**
+     * Method to return a list of display areas, one for each display head on the computer.
+     * @return an array of display areas.
+     */
+    public static Rectangle [] getDisplays()
+	{
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice [] gs = ge.getScreenDevices();
+		Rectangle [] areas = new Rectangle[gs.length];
+		for (int j = 0; j < gs.length; j++)
+		{
+			GraphicsDevice gd = gs[j];
+			GraphicsConfiguration gc = gd.getDefaultConfiguration();
+			areas[j] = gc.getBounds();
+		}
+		return areas;
+	}
+    
+    public static void addModelessDialog(Window dialog) { modelessDialogs.add(dialog); }
+    
+    public static void removeModelessDialog(JFrame dialog) { modelessDialogs.remove(dialog); }
 }

@@ -23,10 +23,10 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
@@ -42,12 +42,13 @@ import javax.swing.ListSelectionModel;
  */
 public class ChangeCurrentLib extends EDialog
 {
+	private static final long serialVersionUID = 1L;
 	private JList changeList;
 	private DefaultListModel changeListModel;
 
 	public static void showDialog()
 	{
-		ChangeCurrentLib dialog = new ChangeCurrentLib(TopLevel.getCurrentJFrame());
+		ChangeCurrentLib dialog = new ChangeCurrentLib((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 

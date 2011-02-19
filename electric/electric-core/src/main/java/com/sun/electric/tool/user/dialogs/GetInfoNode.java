@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
@@ -57,7 +58,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
@@ -128,7 +128,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (theDialog == null)
 		{
 			JFrame jf = null;
-			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			jf = (JFrame) Main.getCurrentJFrame();
 			theDialog = new GetInfoNode(jf);
 		}
 

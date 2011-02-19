@@ -24,11 +24,13 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableExport;
 import static com.sun.electric.database.text.ArrayIterator.i2i;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.net.URL;
@@ -161,7 +163,6 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ncc.HighlightEquivalent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 
@@ -2355,7 +2356,7 @@ public class ToolMenu {
 	 * Method to change the Languages menu to include preassigned scripts.
 	 */
 	public static void setDynamicLanguageMenu() {
-		for (EMenuBar.Instance menuBarInstance : TopLevel.getMenuBars()) {
+		for (EMenuBar.Instance menuBarInstance : Main.getMenuBars()) {
 			JMenu menu = (JMenu) menuBarInstance.findMenuItem(languageMenu.getPath());
 			while (menu.getMenuComponentCount() > 3)
 				menu.remove(menu.getMenuComponentCount() - 1);
@@ -2936,7 +2937,7 @@ public class ToolMenu {
 
 		message += (parser.isParseOK()) ? "without errors." : " with errors. No rules loaded.";
 
-		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, "Import DRC Deck",
+		JOptionPane.showMessageDialog(Main.getCurrentJFrame(), message, "Import DRC Deck",
 				(parser.isParseOK()) ? JOptionPane.WARNING_MESSAGE : JOptionPane.ERROR_MESSAGE);
 
 		if (!parser.isParseOK())
@@ -3018,7 +3019,7 @@ public class ToolMenu {
 		Library curLib = Library.getCurrent();
 		Cell cell = curLib.findNodeProto(cellName);
 		if (cell == null) {
-			CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true,
+			CellBrowser dialog = new CellBrowser((Frame) Main.getCurrentJFrame(), true,
 					CellBrowser.DoAction.selectCellToAssoc);
 			dialog.setVisible(true);
 			cell = dialog.getSelectedCell();

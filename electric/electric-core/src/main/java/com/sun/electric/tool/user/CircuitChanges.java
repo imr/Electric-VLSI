@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -58,7 +59,6 @@ import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -570,7 +570,7 @@ public class CircuitChanges
 		// make sure the user really wants to delete the cell
 		if (confirm)
 		{
-			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+			int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
 				"Are you sure you want to delete " + cell + "?", "Delete Cell Dialog", JOptionPane.YES_NO_OPTION);
 			if (response != JOptionPane.YES_OPTION) return false;
 		}
@@ -629,7 +629,7 @@ public class CircuitChanges
             // Case when the new cell name defines a group already
             if (oCell.getName().equalsIgnoreCase(newName) && oCell.getCellGroup() != cell.getCellGroup())
 			{
-				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+				int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
 					"Also place the cell into the \"" + oCell.getCellGroup().getName() + "\" group?");
 				if (response == JOptionPane.YES_OPTION) newGroupCell = oCell.getName();
 				break;
@@ -638,7 +638,7 @@ public class CircuitChanges
         set.add(cell);
         if (cell.getNumVersions() > 1) // more than 1 version
         {
-            int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+            int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
                 "Also rename previous versions of the cell \"" + cell.getName() + "\" ?");
             if (response == JOptionPane.YES_OPTION)
             {
@@ -1317,7 +1317,7 @@ public class CircuitChanges
 		int status = Project.getCellStatus(cell);
 		if (status != Project.NOTMANAGED)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"This cell is part of a project.  To get a new version of it, check it out.", "Cannot Make New Version",
 				JOptionPane.ERROR_MESSAGE);
 			return;

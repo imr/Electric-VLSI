@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.Point;
@@ -88,10 +89,10 @@ public class ZoomAndPanListener
 		{
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0)
 			{
-				TopLevel.setCurrentCursor(ToolBar.zoomOutCursor);
+				Main.setCurrentCursor(ToolBar.zoomOutCursor);
 			} else
 			{
-				TopLevel.setCurrentCursor(ToolBar.zoomCursor);
+				Main.setCurrentCursor(ToolBar.zoomCursor);
 			}
 		}
 	}
@@ -163,7 +164,7 @@ public class ZoomAndPanListener
 				wnd.setOffset(offset);
                 wnd.getSavedFocusBrowser().updateCurrentFocus();
 				wnd.fullRepaint();
-				TopLevel.setCurrentCursor(ToolBar.zoomCursor);
+				Main.setCurrentCursor(ToolBar.zoomCursor);
 			} else
 			{
                 // determine if the user clicked on a single point to prevent unintended zoom-in

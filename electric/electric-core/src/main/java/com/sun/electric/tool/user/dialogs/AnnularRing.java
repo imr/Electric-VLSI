@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
@@ -35,7 +36,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
@@ -93,7 +93,7 @@ public class AnnularRing extends EDialog
 			System.out.println("The " + Technology.getCurrent().getTechName() + " technology has no pure-layer nodes");
 			return;
 		}
-		AnnularRing dialog = new AnnularRing(TopLevel.getCurrentJFrame(), cell);
+		AnnularRing dialog = new AnnularRing((Frame) Main.getCurrentJFrame(), cell);
 		dialog.setVisible(true);
 	}
 

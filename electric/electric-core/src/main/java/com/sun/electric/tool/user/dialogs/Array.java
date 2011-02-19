@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -49,7 +50,6 @@ import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MeasureListener;
 import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.Orientation;
@@ -162,18 +162,18 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		Highlighter highlighter = wnd.getHighlighter();
 		if (highlighter == null)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Cannot array: nothing is highlighted in this window.");
 			return;
 		}
 		List<Geometric> highs = highlighter.getHighlightedEObjs(true, true);
 		if (highs.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Select some objects before arraying them.");
 			return;
 		}
-		Array dialog = new Array(TopLevel.getCurrentJFrame());
+		Array dialog = new Array((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
@@ -482,13 +482,13 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		int yRepeat = Math.abs(prefYRepeat.getInt());
 		if (xRepeat <= 1 && yRepeat <= 1)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"One dimension of the array must be greater than 1");
 			return;
 		}
 		if (prefLinearDiagonal.getBoolean() && xRepeat != 1 && yRepeat != 1)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Diagonal arrays need one dimension to be 1");
 			return;
 		}
@@ -865,7 +865,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		{
 			// restore the listener to the former state
 			WindowFrame.setListener(oldListener);
-			TopLevel.setCurrentCursor(oldCursor);
+			Main.setCurrentCursor(oldCursor);
 		}
 
 		private void determineArrayAmount(MouseEvent evt)
@@ -1319,7 +1319,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
     private void drawActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawActionPerformed
 		rememberFields();
 		EventListener oldListener = WindowFrame.getListener();
-		Cursor oldCursor = TopLevel.getCurrentCursor();
+		Cursor oldCursor = Main.getCurrentCursor();
 		if (oldListener == null || !(oldListener instanceof DrawArrayListener))
 		{
 			DrawArrayListener newListener = new DrawArrayListener();
@@ -1327,7 +1327,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			newListener.oldListener = oldListener;
 			newListener.oldCursor = oldCursor;
 		}
-		TopLevel.setCurrentCursor(drawArrayCursor);
+		Main.setCurrentCursor(drawArrayCursor);
 		System.out.println("Click to draw the array");
     }//GEN-LAST:event_drawActionPerformed
 

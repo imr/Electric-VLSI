@@ -23,11 +23,12 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -49,8 +50,8 @@ public class EModelessDialog extends JFrame
 	/** Creates new form */
 	public EModelessDialog(Frame parent)
 	{
-		super("Title", (parent == null) ? (TopLevel.getCurrentJFrame() == null ? null :
-			TopLevel.getCurrentJFrame().getGraphicsConfiguration()) : parent.getGraphicsConfiguration());
+		super("Title", (parent == null) ? (Main.getCurrentJFrame() == null ? null :
+			Main.getCurrentJFrame().getGraphicsConfiguration()) : parent.getGraphicsConfiguration());
 
         final String CANCEL_DIALOG = "cancel-dialog";
 		KeyStroke accel = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
@@ -63,11 +64,11 @@ public class EModelessDialog extends JFrame
 		Point pt = EDialog.getDialogLocation(getClass());
 		setLocation(pt.x, pt.y);
 
-		setIconImage(TopLevel.getFrameIcon().getImage());
+		setIconImage((Image) Main.getFrameIcon());
 		addComponentListener(new EDialog.MoveComponentListener());
 
 		// manage keeping dialog on top
-		TopLevel.addModelessDialog(this);
+		Main.addModelessDialog(this);
 	}
 
 	/**
@@ -99,7 +100,7 @@ public class EModelessDialog extends JFrame
 
 		// get the overall area in which to work
 		Point p = getLocation();
-		Rectangle [] areas = TopLevel.getDisplays();
+		Rectangle [] areas = Main.getDisplays();
 		for(int i=0; i<areas.length; i++)
 		{
 			if (areas[i].contains(p))

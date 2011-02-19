@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.Foundry;
@@ -35,7 +36,6 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
@@ -70,6 +70,7 @@ import javax.swing.JScrollPane;
  */
 public class GDSMap extends EDialog
 {
+	private static final long serialVersionUID = 1L;
 	private HashMap<String,JComboBox> assocCombos;
 	private List<MapLine> drawingEntries;
 	private List<MapLine> pinEntries;
@@ -141,7 +142,7 @@ public class GDSMap extends EDialog
 			System.out.println("Error reading " + fileName);
 			return;
 		}
-		new GDSMap(TopLevel.getCurrentJFrame(), allNames, drawingEntries, pinEntries);
+		new GDSMap((Frame) Main.getCurrentJFrame(), allNames, drawingEntries, pinEntries);
 	}
 
 	/** Creates new form Layer Map Association */
@@ -332,6 +333,7 @@ public class GDSMap extends EDialog
 	 */
 	private static class OKUpdate extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private Setting.SettingChangeBatch changeBatch;
 
 		private OKUpdate(Setting.SettingChangeBatch changeBatch)

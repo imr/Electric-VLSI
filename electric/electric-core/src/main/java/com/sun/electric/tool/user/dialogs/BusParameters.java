@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -36,7 +37,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
@@ -60,6 +60,7 @@ import javax.swing.event.DocumentListener;
  */
 public class BusParameters extends EDialog
 {
+	private static final long serialVersionUID = 1L;
 	/** key for library's bus variables. */	public static final Variable.Key BUS_VARIABLES = Variable.newKey("LIB_Bus_Variables");
 	/** key for node's bus template. */		public static final Variable.Key NODE_BUS_TEMPLATE = Variable.newKey("NODE_Bus_Template");
 	/** key for arc's bus template. */		public static final Variable.Key ARC_BUS_TEMPLATE = Variable.newKey("ARC_Bus_Template");
@@ -71,7 +72,7 @@ public class BusParameters extends EDialog
 	
 	public static void showBusParametersDialog()
 	{
-		BusParameters dialog = new BusParameters(TopLevel.getCurrentJFrame());
+		BusParameters dialog = new BusParameters((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
@@ -308,6 +309,7 @@ public class BusParameters extends EDialog
 	 */
 	private static class UpdateLibrary extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private Library lib;
 		private String [] parameterList;
 
@@ -332,6 +334,7 @@ public class BusParameters extends EDialog
 	 */
 	private static class UpdateAllParameters extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private Map<Library,String[]> libParameters;
 
 		private UpdateAllParameters(Map<Library,String[]> libParameters)
@@ -530,6 +533,7 @@ public class BusParameters extends EDialog
 	 */
 	private static class AddTemplate extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private ElectricObject owner;
 		private String templateString;
 

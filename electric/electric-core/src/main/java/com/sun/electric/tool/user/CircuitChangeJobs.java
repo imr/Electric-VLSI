@@ -25,6 +25,7 @@ package com.sun.electric.tool.user;
 
 import static com.sun.electric.database.text.ArrayIterator.i2i;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -69,7 +70,6 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.SizeListener;
 import com.sun.electric.tool.user.ui.StatusBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
@@ -3296,7 +3296,7 @@ public class CircuitChangeJobs
 			if (item.isLocked())
 			{
 				if (!giveError) return 1;
-				int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+				int ret = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
 					"Changes to locked " + item + " are disallowed.  Change anyway?",
 					"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 					null, options, options[1]);
@@ -3316,7 +3316,7 @@ public class CircuitChangeJobs
 					User.isDisallowModificationLockedPrims())
 				{
 					if (!giveError) return 1;
-					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+					int ret = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
 						"Changes to locked primitives (such as " + item + ") are disallowed.  Change anyway?",
 						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 						null, options, options[1]);
@@ -3335,7 +3335,7 @@ public class CircuitChangeJobs
 				if (!allowInstanceChange && cell.isInstancesLocked())
 				{
 					if (!giveError) return 1;
-					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+					int ret = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
 						"Modification of instances in " + cell + " is disallowed.  You cannot move " + item +
 						".  Change anyway?",
 						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
@@ -3354,7 +3354,7 @@ public class CircuitChangeJobs
 				if (User.isDisallowModificationComplexNodes())
 				{
 					if (!giveError) return 1;
-					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+					int ret = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
 						"Changes to complex nodes (such as " + item + ") are disallowed.  Change anyway?",
 						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 						null, options, options[1]);
@@ -3375,7 +3375,7 @@ public class CircuitChangeJobs
 		if (cell.isAllLocked())
 		{
 			if (!giveError) return 1;
-			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+			int ret = JOptionPane.showOptionDialog(Main.getCurrentJFrame(),
 				"Modification of " + cell + " is disallowed.  Change "+((item == null)? "" : item.toString())+" anyway?",
 				"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 				null, options, options[1]);
@@ -3416,6 +3416,7 @@ public class CircuitChangeJobs
 	 */
 	public static class ClearCellLocked extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private Cell cell;
 		private boolean all;
 

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -33,7 +34,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.*;
 
 import java.awt.Frame;
@@ -274,7 +274,7 @@ public class NewExport extends EDialog
 		boolean body = bodyOnly.isSelected();
 		if (name.length() <= 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must enter an export name");
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(), "Must enter an export name");
 			return;
 		}
 
@@ -359,7 +359,7 @@ public class NewExport extends EDialog
 					int currentPage = ni.whichMultiPage();
 					if (currentPage != exportPage)
 					{
-						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+						JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 							"That export name already exists on page " + (exportPage+1), "Duplicate Export", JOptionPane.WARNING_MESSAGE);
 					}
 				}

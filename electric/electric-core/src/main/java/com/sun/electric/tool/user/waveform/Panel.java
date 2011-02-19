@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.waveform;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -40,7 +41,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.GenMath;
@@ -50,6 +50,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -1619,7 +1620,7 @@ public class Panel extends JPanel
 
 		if (evt.getClickCount() == 2 && evt.getX() < vertAxisPos)
 		{
-			new WaveformZoom(TopLevel.getCurrentJFrame(), analogLowValue, analogHighValue, minXPosition, maxXPosition, waveWindow, this);
+			new WaveformZoom((Frame) Main.getCurrentJFrame(), analogLowValue, analogHighValue, minXPosition, maxXPosition, waveWindow, this);
 			return;
 		}
 		ToolBar.CursorMode mode = ToolBar.getCursorMode();
@@ -1714,7 +1715,7 @@ public class Panel extends JPanel
 	{
 		long delay = evt.getWhen() - lastClick;
 		lastClick = evt.getWhen();
-		if (delay < TopLevel.getDoubleClickSpeed())
+		if (delay < Main.getDoubleClickSpeed())
 		{
 			toggleBusContents();
 			return;

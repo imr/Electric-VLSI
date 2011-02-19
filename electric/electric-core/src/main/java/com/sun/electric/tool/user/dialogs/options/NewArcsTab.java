@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.id.ArcProtoId;
@@ -33,7 +34,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
 
@@ -51,6 +51,8 @@ import javax.swing.event.DocumentListener;
  */
 public class NewArcsTab extends PreferencePanel
 {
+	private static final long serialVersionUID = 1L;
+
 	/** Creates new form NewArcsTab */
 	public NewArcsTab(PreferencesFrame parent, boolean modal)
 	{
@@ -239,7 +241,7 @@ public class NewArcsTab extends PreferencePanel
 		PortProto pp = pin.getPorts().next();
 		if (!pp.connectsTo(ap))
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Cannot use " + pin.getName() + " as a pin because it does not connect to " + ap.getName() + " arcs");
 			pin = ap.findOverridablePinProto(ep);
 			arcPin.setSelectedItem(pin.getName());

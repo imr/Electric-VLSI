@@ -26,14 +26,15 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.help.ManualViewer;
-import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
 import java.net.URL;
 
 /**
@@ -81,7 +82,7 @@ public class HelpMenu {
 	 */
 	public static void aboutCommand()
     {
-		About dialog = new About(TopLevel.getCurrentJFrame());
+		About dialog = new About((Frame) Main.getCurrentJFrame());
         dialog.setVisible(true);
     }
 

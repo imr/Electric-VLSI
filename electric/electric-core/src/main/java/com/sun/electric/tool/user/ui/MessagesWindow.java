@@ -140,9 +140,7 @@ public class MessagesWindow
 	public boolean isFocusOwner()
 	{
         if (jf==null) return false;
-		if (TopLevel.isMDIMode())
-			return ((JInternalFrame)jf).isSelected();
-		return jf.isFocusOwner();
+		return ((JInternalFrame)jf).isSelected();
 	}
 
     /**
@@ -173,17 +171,10 @@ public class MessagesWindow
 	private void requestFocusUnsafe()
 	{
         if (jf==null) return;
-		if (TopLevel.isMDIMode())
-		{
-			((JInternalFrame)jf).toFront();
-			try {
-				((JInternalFrame)jf).setSelected(true);
-			} catch (java.beans.PropertyVetoException e) {}
-		} else
-		{
-			((JFrame)jf).toFront();
-			jf.requestFocus();
-		}
+		((JInternalFrame)jf).toFront();
+		try {
+			((JInternalFrame)jf).setSelected(true);
+		} catch (java.beans.PropertyVetoException e) {}
 	}
 
 	/**
@@ -219,8 +210,7 @@ public class MessagesWindow
             WindowFrame wf = WindowFrame.getCurrentWindowFrame();
             if (wf == null) return;
             Rectangle eb;
-            if (TopLevel.isMDIMode()) eb = wf.getInternalFrame().getBounds(); else
-                eb = wf.getFrame().getBounds();
+            eb = wf.getInternalFrame().getBounds();
             
             // get the location of the messages window
             Rectangle mb = mw.getMessagesLocation();
@@ -412,14 +402,8 @@ public class MessagesWindow
 	 */
 	public static void selectFont()
 	{
-		if (TopLevel.isMDIMode())
-		{
-			JFrame jf = TopLevel.getCurrentJFrame();
-			new FontSelectDialog(jf);
-		} else
-		{
-			new FontSelectDialog(null);
-		}
+		JFrame jf = (JFrame) Main.getCurrentJFrame();
+		new FontSelectDialog(jf);
 	}
 
 	private static class FontSelectDialog extends EDialog

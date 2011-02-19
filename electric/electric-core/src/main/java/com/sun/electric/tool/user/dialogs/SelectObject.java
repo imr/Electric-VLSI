@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
@@ -35,7 +36,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
@@ -84,7 +84,7 @@ public class SelectObject extends EModelessDialog implements DatabaseChangeListe
         {
             if (updateOnlyIfVisible) return; // it is not previously open
             JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            jf = (JFrame) Main.getCurrentJFrame();
             theDialog = new SelectObject(jf);
         }
         if (updateOnlyIfVisible && !theDialog.isVisible()) return; // it is not previously visible
@@ -143,7 +143,7 @@ public class SelectObject extends EModelessDialog implements DatabaseChangeListe
 		searchText.getDocument().addDocumentListener(new SelecdtObjectDocumentListener(this));
 
 		// special case for this dialog: allow Electric quick-keys to pass-through
-        TopLevel top = TopLevel.getCurrentJFrame();
+        Main top = (Main) Main.getCurrentJFrame();
         if (top != null && top.getTheMenuBar() != null)
         {
         	KeyBindingManager.KeyMaps km = top.getEMenuBar().getKeyMaps();

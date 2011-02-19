@@ -70,6 +70,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -676,9 +677,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
     	private LongListPopup(TechPalette panel, int x, int y, boolean pures)
         {
-    		super(TopLevel.getCurrentJFrame(), false);
+    		super((Frame) Main.getCurrentJFrame(), false);
     		this.panel = panel;
-    		Point los = TopLevel.getCurrentJFrame().getLocationOnScreen();
+    		Point los = Main.getCurrentJFrame().getLocationOnScreen();
     		setLocation(los.x+x, los.y+y);
     		setUndecorated(true);
             getContentPane().setLayout(new GridBagLayout());
@@ -832,13 +833,13 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
 	public void makeLayoutTextCommand()
 	{
-		LayoutText dialog = new LayoutText(TopLevel.getCurrentJFrame());
+		LayoutText dialog = new LayoutText((Frame) Main.getCurrentJFrame());
         dialog.setVisible(true);
 	}
 
 	public void makeLayoutImageCommand()
 	{
-		LayoutImage dialog = new LayoutImage(TopLevel.getCurrentJFrame());
+		LayoutImage dialog = new LayoutImage((Frame) Main.getCurrentJFrame());
         dialog.setVisible(true);
 	}
 

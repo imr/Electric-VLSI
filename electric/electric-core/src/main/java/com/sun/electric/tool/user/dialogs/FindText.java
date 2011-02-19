@@ -23,12 +23,12 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
@@ -86,7 +86,7 @@ public class FindText extends EModelessDialog
 		if (theDialog == null)
 		{
 			JFrame jf = null;
-			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			jf = (JFrame) Main.getCurrentJFrame();
 			theDialog = new FindText(jf);
 		}
 

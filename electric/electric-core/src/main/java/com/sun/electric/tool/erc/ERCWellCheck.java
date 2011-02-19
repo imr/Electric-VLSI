@@ -24,6 +24,7 @@
 package com.sun.electric.tool.erc;
 
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -53,6 +54,7 @@ import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
@@ -94,7 +96,6 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.util.concurrent.Parallel;
 import com.sun.electric.tool.util.concurrent.patterns.PForTask;
 import com.sun.electric.tool.util.concurrent.patterns.PJob;
@@ -1227,7 +1228,8 @@ public class ERCWellCheck {
     }
 
     private class ShowWellBoundOrder extends EModelessDialog {
-        private Timer vcrTimer;
+		private static final long serialVersionUID = 1L;
+		private Timer vcrTimer;
         private long vcrLastAdvance;
         private int wbIndex;
         private int speed;
@@ -1236,7 +1238,7 @@ public class ERCWellCheck {
         private Color[] hColors = new Color[] { Color.WHITE, Color.RED, Color.GREEN, Color.BLUE };
 
         public ShowWellBoundOrder() {
-            super(TopLevel.isMDIMode() ? TopLevel.getCurrentJFrame() : null);
+            super((Frame) Main.getCurrentJFrame());
             initComponents();
             finishInitialization();
             setVisible(true);

@@ -23,10 +23,10 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 
@@ -44,7 +44,7 @@ public class MoveBy extends EDialog
 
 	public static void showMoveByDialog()
 	{
-		MoveBy dialog = new MoveBy(TopLevel.getCurrentJFrame());
+		MoveBy dialog = new MoveBy((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.network.Netlist;
@@ -44,7 +45,6 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
 
@@ -100,7 +100,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 		if (theDialog == null)
 		{
 			JFrame jf = null;
-			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			jf = (JFrame) Main.getCurrentJFrame();
 			theDialog = new GetInfoArc(jf);
 		}
 		theDialog.loadInfo();

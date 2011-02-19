@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -36,7 +37,6 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
 import java.awt.Frame;
@@ -81,7 +81,7 @@ public class ArtworkLook extends EModelessDialog implements HighlightListener
 		if (theDialog == null)
 		{
             JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            jf = (JFrame) Main.getCurrentJFrame();
 			theDialog = new ArtworkLook(jf, artObjects);
 		} else
 		{

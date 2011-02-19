@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.user.tecEdit;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
@@ -54,7 +55,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.GraphicsPreferences;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
 
@@ -92,14 +92,14 @@ public class TechToLib
 		String [] techChoices = new String[techs.size()];
 		for(int i=0; i<techs.size(); i++)
 			techChoices[i] = techs.get(i).getTechName();
-		String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Technology to Edit",
+		String chosen = (String)JOptionPane.showInputDialog(Main.getCurrentJFrame(), "Technology to Edit",
 			"Choose a technology to edit", JOptionPane.QUESTION_MESSAGE, null, techChoices, Technology.getCurrent().getTechName());
 		if (chosen == null) return;
 		Technology tech = Technology.findTechnology(chosen);
 		Library already = Library.findLibrary(tech.getTechName());
 		if (already != null)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"There is already a library called '" + tech.getTechName() + "'.  Delete it first.",
 				"Cannot Convert Technology", JOptionPane.ERROR_MESSAGE);
 			System.out.println();

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.WeakReferences;
 import com.sun.electric.database.variable.CodeExpression;
@@ -229,13 +230,13 @@ public class TextWindow implements WindowContent
 
 		public void focusGained(FocusEvent e)
 		{
-			TopLevel top = TopLevel.getCurrentJFrame();
+			Main top = (Main) Main.getCurrentJFrame();
 			top.getTheMenuBar().setIgnoreTextEditKeys(true);
 		}
 
 		public void focusLost(FocusEvent e)
 		{
-			TopLevel top = TopLevel.getCurrentJFrame();
+			Main top = (Main) Main.getCurrentJFrame();
 			top.getTheMenuBar().setIgnoreTextEditKeys(false);
 		}
 	}

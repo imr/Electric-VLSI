@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
@@ -34,7 +35,6 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.ui.PaletteFrame;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 
@@ -71,8 +71,9 @@ import javax.swing.ListSelectionModel;
  * <p>- If the Cell List is multi- or single-select.
  */
 public class CellBrowser extends EDialog implements DatabaseChangeListener {
+	private static final long serialVersionUID = 1L;
 
-    private static Preferences prefs = Preferences.userNodeForPackage(CellBrowser.class);
+	private static Preferences prefs = Preferences.userNodeForPackage(CellBrowser.class);
 
     private static final String prefFilter = "CellBrowser-Filter";
     private static final String prefSelectedLib = "CellBrowser-SelectedLib";
@@ -608,7 +609,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 	    		// make sure the user really wants to delete the cell
 	    		if (confirmDelete)
 	    		{
-	    			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+	    			int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
 	    				"Are you sure you want to delete " + cell + "?", "Confirm Cell Deletion", JOptionPane.YES_NO_OPTION);
 	    			if (response != JOptionPane.YES_OPTION) return;
 	    		}

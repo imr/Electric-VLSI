@@ -176,14 +176,14 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 
     public static void setCoordinates(String coords, WindowFrame wf) {
         StatusBar sb = null;
-        sb = TopLevel.getCurrentJFrame().getStatusBar();
+        sb = Main.getStatusBar();
         sb.coords = coords;
         sb.redoStatusBar();
     }
 
     public static void setHierarchicalCoordinates(String hierCoords, WindowFrame wf) {
         StatusBar sb = null;
-        sb = TopLevel.getCurrentJFrame().getStatusBar();
+        sb = Main.getStatusBar();
         sb.hierCoords = hierCoords;
         sb.redoStatusBar();
     }

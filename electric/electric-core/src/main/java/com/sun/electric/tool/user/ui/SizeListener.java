@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -123,7 +124,7 @@ public class SizeListener
 
 		// remember the listener that was there before
 		EventListener oldListener = WindowFrame.getListener();
-		Cursor oldCursor = TopLevel.getCurrentCursor();
+		Cursor oldCursor = Main.getCurrentCursor();
 
 		System.out.println("Click to stretch");
 		EventListener newListener = oldListener;
@@ -144,7 +145,7 @@ public class SizeListener
 		}
 
 		// change the cursor
-		TopLevel.setCurrentCursor(sizeCursor);
+		Main.setCurrentCursor(sizeCursor);
 		((SizeListener)newListener).selectedNode = null;
 		((SizeListener)newListener).selectedArc = null;
 		((SizeListener)newListener).showHighlight(null, wnd);
@@ -162,7 +163,7 @@ public class SizeListener
 	 */
 	public static void sizeAllNodes()
 	{
-		new SizeObjects(TopLevel.getCurrentJFrame(), true, true);
+		new SizeObjects((Frame) Main.getCurrentJFrame(), true, true);
 	}
 
 	/**
@@ -170,7 +171,7 @@ public class SizeListener
 	 */
 	public static void sizeAllArcs()
 	{
-		new SizeObjects(TopLevel.getCurrentJFrame(), true, false);
+		new SizeObjects((Frame) Main.getCurrentJFrame(), true, false);
 	}
 
 	/**
@@ -500,7 +501,7 @@ public class SizeListener
 	{
 		// restore the listener to the former state
 		WindowFrame.setListener(oldListener);
-		TopLevel.setCurrentCursor(oldCursor);
+		Main.setCurrentCursor(oldCursor);
 		if (wnd != null)
 		{
 			Highlighter highlighter = wnd.getHighlighter();

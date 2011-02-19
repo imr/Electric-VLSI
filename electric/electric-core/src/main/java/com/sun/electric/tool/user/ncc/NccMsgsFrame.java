@@ -30,8 +30,8 @@ import java.util.List;
 
 import javax.swing.*;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.menus.WindowMenu;
 
 /**
@@ -50,22 +50,14 @@ public class NccMsgsFrame {
     /** NCC options                 */ private NccOptions nccOptions;
 
     public NccMsgsFrame() {
-        Dimension scrnSize = TopLevel.getScreenSize();
+        Dimension scrnSize = Main.getScreenSize();
         Container contentPane;
 
-        if (TopLevel.isMDIMode()) {
-            JInternalFrame jInternalFrame = new JInternalFrame("NCC Messages", true, true, true, true);
-            jInternalFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-            frame = jInternalFrame;
-            contentPane = jInternalFrame.getContentPane();
-            jInternalFrame.setFrameIcon(TopLevel.getFrameIcon());
-        } else {
-            JFrame jFrame = new JFrame("NCC Messages");
-            jFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-            frame = jFrame;
-            contentPane = jFrame.getContentPane();
-            jFrame.setIconImage(TopLevel.getFrameIcon().getImage());
-        }
+        JInternalFrame jInternalFrame = new JInternalFrame("NCC Messages", true, true, true, true);
+        jInternalFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        frame = jInternalFrame;
+        contentPane = jInternalFrame.getContentPane();
+        jInternalFrame.setFrameIcon(Main.getFrameIcon());
 
         comparPane = new ComparisonsPane();
         contentPane.add(comparPane);
@@ -125,36 +117,21 @@ public class NccMsgsFrame {
         }
 
         comparPane.setMismatches(mismatches);
-        if (TopLevel.isMDIMode()) {
-            JInternalFrame jif = (JInternalFrame)frame;
-            if (!placed) {
-                placed = true;
-                jif.pack();
-                TopLevel.addToDesktop(jif);
-            }
-            try {
-                jif.setIcon(false);
-                jif.setSelected(true);
-            } catch (PropertyVetoException e) {}
-            if (!jif.isVisible()) {
-                jif.setVisible(true);
-                jif.show();
-            }
-            jif.toFront();
-            jif.requestFocusInWindow();
-        } else {
-            JFrame jf = (JFrame)frame;
-            jf.setState(Frame.NORMAL);
-            if (!jf.isVisible()) {
-                jf.setVisible(true);
-                if (!placed) {
-                    placed = true;
-                    jf.pack();
-                }
-                jf.setVisible(true);
-            }
-            jf.toFront();
-            jf.requestFocus();
+        JInternalFrame jif = (JInternalFrame)frame;
+        if (!placed) {
+            placed = true;
+            jif.pack();
+            Main.addToDesktop(jif);
         }
+        try {
+            jif.setIcon(false);
+            jif.setSelected(true);
+        } catch (PropertyVetoException e) {}
+        if (!jif.isVisible()) {
+            jif.setVisible(true);
+            jif.show();
+        }
+        jif.toFront();
+        jif.requestFocusInWindow();
     }
 }

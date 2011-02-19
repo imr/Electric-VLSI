@@ -50,12 +50,14 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
@@ -89,7 +91,6 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
@@ -246,6 +247,7 @@ public class ERCWellCheckOld {
 	}
 
 	private static class WellCheckJob extends Job {
+		private static final long serialVersionUID = 1L;
 		private Cell cell;
 		private GeometryHandler.GHMode newAlgorithm;
 		private double worstPWellDist, worstNWellDist;
@@ -1884,6 +1886,7 @@ public class ERCWellCheckOld {
 	}
 
 	private class ShowWellBoundOrder extends EModelessDialog {
+		private static final long serialVersionUID = 1L;
 		private Timer vcrTimer;
 		private long vcrLastAdvance;
 		private int wbIndex;
@@ -1893,7 +1896,7 @@ public class ERCWellCheckOld {
 		private Color[] hColors = new Color[] { Color.WHITE, Color.RED, Color.GREEN, Color.BLUE };
 
 		public ShowWellBoundOrder() {
-			super(TopLevel.isMDIMode() ? TopLevel.getCurrentJFrame() : null);
+			super((JFrame) Main.getCurrentJFrame());
 			initComponents();
 			finishInitialization();
 			setVisible(true);

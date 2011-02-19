@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -53,7 +54,6 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ExplorerTree;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.math.GenMath.MutableInteger;
 
@@ -124,7 +124,7 @@ public class Change extends EModelessDialog implements HighlightListener
 		if (theDialog == null)
 		{
 			JFrame jf = null;
-			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			jf = (JFrame) Main.getCurrentJFrame();
 			theDialog = new Change(jf);
 		}
 		theDialog.loadInfo(true);
@@ -1386,7 +1386,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			}
 			if (nodeFailures.intValue() > 0)
 			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 					"There were " + nodeFailures.intValue() + " nodes that could not be replaced with " + np,
 					"Change failed", JOptionPane.ERROR_MESSAGE);
 				

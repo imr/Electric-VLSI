@@ -23,10 +23,10 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Dimension;
@@ -38,6 +38,7 @@ import java.awt.geom.Point2D;
  */
 public class SetFocus extends EDialog
 {
+	private static final long serialVersionUID = 1L;
 	private EditWindow wnd;
 
 	public static void showSetFocusDialog()
@@ -49,7 +50,7 @@ public class SetFocus extends EDialog
 			System.out.println("Must be editing a cell in order to manipulate focus.");
 			return;
 		}
-		SetFocus dialog = new SetFocus(TopLevel.getCurrentJFrame(), wnd);
+		SetFocus dialog = new SetFocus((Frame) Main.getCurrentJFrame(), wnd);
 		dialog.setVisible(true);
 	}
 

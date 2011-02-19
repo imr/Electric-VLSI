@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.Connection;
@@ -37,7 +38,6 @@ import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
@@ -408,7 +408,7 @@ public class ManipulatePorts extends EDialog
 		Highlighter h = wnd.getHighlighter();
 		NodeInst ni = (NodeInst)h.getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
-		ManipulatePorts dialog = new ManipulatePorts(TopLevel.getCurrentJFrame(), ni);
+		ManipulatePorts dialog = new ManipulatePorts((Frame) Main.getCurrentJFrame(), ni);
 		dialog.setVisible(true);
 	}
 

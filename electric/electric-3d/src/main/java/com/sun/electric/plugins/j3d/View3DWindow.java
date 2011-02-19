@@ -24,6 +24,7 @@
  */
 package com.sun.electric.plugins.j3d;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.change.DatabaseChangeEvent;
@@ -99,6 +100,7 @@ import java.util.Observer;
 import java.util.Set;
 
 import javax.media.j3d.*;
+import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.tree.MutableTreeNode;
@@ -174,11 +176,8 @@ public class View3DWindow extends JPanel
         {
             View3DWindow window = new View3DWindow(cell, windowFrame, view2D, transPerNode, this);
             windowFrame.finishWindowFrameInformation(window, cell);
-            if (!TopLevel.isMDIMode())
-            {
-                for (Component comp : windowFrame.getFrame().getToolBar().getComponents())
-                    comp.setVisible(false);
-            }
+            for (Component comp : (Main.getToolBar().getComponents())
+                comp.setVisible(false);
         }
     }
 

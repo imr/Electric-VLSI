@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.Main;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.extract.LayerCoverageTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
@@ -52,6 +52,8 @@ import javax.swing.event.DocumentListener;
  */
 public class CoverageTab extends PreferencePanel
 {
+	private static final long serialVersionUID = 1L;
+
 	/** Creates new form CoverageTab */
 	public CoverageTab(Frame parent, boolean modal)
 	{
@@ -205,7 +207,7 @@ public class CoverageTab extends PreferencePanel
 			if (foundError)
 			{
 				// set back to original value
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 					text + " is out of range area value xfor layer '" + layer.getName() + "' (valid range 0 -> 100).");
 				SwingUtilities.invokeLater(new SetOriginalValue(layerAreaField, origValue));
 				return;

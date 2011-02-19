@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -42,7 +43,6 @@ import com.sun.electric.tool.extract.TransistorSearch;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.GenMath;
@@ -75,7 +75,8 @@ import javax.swing.JFrame;
  */
 public class CellLists extends EDialog
 {
-       Cell curCell;
+	private static final long serialVersionUID = 1L;
+	Cell curCell;
        private static int whichSwitch = 0;
        private static boolean onlyViewSwitch = false;
        private static View viewSwitch = View.SCHEMATIC;
@@ -91,7 +92,7 @@ public class CellLists extends EDialog
         */
        public static void generalCellListsCommand()
        {
-               JFrame jf = TopLevel.getCurrentJFrame();
+               JFrame jf = (JFrame) Main.getCurrentJFrame();
                CellLists dialog = new CellLists(jf, true);
                dialog.setVisible(true);
                dialog.toFront();
@@ -703,7 +704,8 @@ public class CellLists extends EDialog
        }
 
    private static class DescribeThisCellJob extends Job {
-       private Cell cell;
+	private static final long serialVersionUID = 1L;
+	private Cell cell;
        private DRC.DRCPreferences dp = new DRC.DRCPreferences(false);
 
        public DescribeThisCellJob(Cell cell) {
@@ -1080,7 +1082,8 @@ public class CellLists extends EDialog
    }
 
    private static class GeneralCellListsJob extends Job {
-       private final Cell curCell;
+	   private static final long serialVersionUID = 1L;
+	   private final Cell curCell;
        private final boolean allCells;
        private final boolean onlyCellsUnderCurrent;
        private final boolean onlyCellsUsedElsewhere;

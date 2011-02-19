@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.EModelessDialog;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
@@ -32,7 +33,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
@@ -58,6 +58,7 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
@@ -417,7 +418,7 @@ public class KeyBindingManager implements KeyEventDispatcher
         {
             if (c instanceof EditWindow) { valid = true;   break; }
             if (c instanceof WaveformWindow.OnePanel) { valid = true;   break; }
-            if (c instanceof TopLevel) { valid = true;   break; }
+            if (c instanceof Main) { valid = true;   break; }
         	if (c instanceof EDialog) { lastPrefix = null;  return false; }
         	if (c instanceof EModelessDialog) { lastPrefix = null;  return false; }
         	if (c instanceof JOptionPane) { lastPrefix = null;  return false; }
@@ -435,7 +436,7 @@ public class KeyBindingManager implements KeyEventDispatcher
 
 		// see if any popup menus are visible
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		JMenuBar mb =  wf.getFrame().getJMenuBar();
+		JMenuBar mb =  ((Main) wf.getFrame()).getJMenuBar();
 		for(int i=0; i<mb.getMenuCount(); i++)
 		{
 			JMenu m = mb.getMenu(i);

@@ -22,8 +22,9 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.waveform;
+
+import com.sun.electric.Main;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
 import java.awt.GridBagConstraints;
@@ -319,7 +320,7 @@ public class WaveSignal
 		// handle double-clicks
 		long delay = evt.getWhen() - lastClick;
 		lastClick = evt.getWhen();
-		if (delay < TopLevel.getDoubleClickSpeed())
+		if (delay < Main.getDoubleClickSpeed())
 		{
 			ws.wavePanel.toggleBusContents();
 			return;

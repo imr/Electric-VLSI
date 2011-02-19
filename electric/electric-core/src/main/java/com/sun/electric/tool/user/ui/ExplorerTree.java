@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -2487,7 +2488,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
             // one last confirmation with the user before deleting
 			String confirmMsg = "Are you sure you want to delete cell group " + cellGroup.getName() + "?";
-			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+			int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
 				confirmMsg, "Confirm Cell Group Deletion", JOptionPane.YES_NO_OPTION);
 			if (response != JOptionPane.YES_OPTION) return;
 
@@ -2561,7 +2562,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			if (obj instanceof Cell) lib = ((Cell)obj).getLibrary(); else
 	        if (obj instanceof ExplorerTreeModel.CellAndCount) lib = ((ExplorerTreeModel.CellAndCount)obj).getCell().getLibrary();
 
-			JFrame jf = TopLevel.getCurrentJFrame();
+			JFrame jf = (JFrame) Main.getCurrentJFrame();
 			NewCell dialog = new NewCell(jf, lib);
 			dialog.setVisible(true);
 		}
@@ -2700,7 +2701,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			{
 				String confirmMsg = "Are you sure you want to delete cells";
 				for(Cell cell : cellsToDelete) confirmMsg += " " + cell.describe(false);
-				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+				int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
 					confirmMsg + "?", "Confirm Cell Deletion", JOptionPane.YES_NO_OPTION);
 				if (response != JOptionPane.YES_OPTION) return;
 				confirm = false;
@@ -2803,7 +2804,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				cellsToChange.add(cell);
 			}
 			if (cellsToChange.size() == 0) return;
-            ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cellsToChange, lib);
+            ChangeCellGroup dialog = new ChangeCellGroup((Frame) Main.getCurrentJFrame(), true, cellsToChange, lib);
             dialog.setVisible(true);
         }
 
@@ -2841,7 +2842,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             if (theCellSearchDialog == null)
             {
                 JFrame jf = null;
-                if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+                jf = (JFrame) Main.getCurrentJFrame();
                 theCellSearchDialog = new FindCellDialog(jf);
             }
             theCellSearchDialog.init();

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
@@ -33,7 +34,6 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ExportChanges;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 
@@ -504,7 +504,7 @@ public class ManipulateExports extends EDialog
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new ManipulateExports(TopLevel.getCurrentJFrame(), cell);
+		new ManipulateExports((Frame) Main.getCurrentJFrame(), cell);
 	}
 
 	/** Creates new form Manipulate Exports */

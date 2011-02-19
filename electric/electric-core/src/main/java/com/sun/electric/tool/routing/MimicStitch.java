@@ -48,6 +48,7 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.Poly;
@@ -70,7 +71,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.math.DBMath;
 
 /**
@@ -343,6 +343,7 @@ public class MimicStitch
 	 */
 	private static class MimicStitchJob extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private ArcInst ai1, ai2;
 		private int end1, end2;
 		private double oWidth;
@@ -837,6 +838,7 @@ public class MimicStitch
 	 */
 	private static class MimicWireJob extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private List<Route> allRoutes;
 		private List<ArcInst> allKills;
 		private boolean redisplay;
@@ -1016,7 +1018,7 @@ public class MimicStitch
 			wnd.finishedHighlighting();
 
 			// ask if the user wants to do it
-			new MimicDialog(TopLevel.getCurrentJFrame(), count, allRoutes, allKills, saveHighlights, wnd, j+1, possibleArcs, cell, prefX, prefY);
+			new MimicDialog((Frame) Main.getCurrentJFrame(), count, allRoutes, allKills, saveHighlights, wnd, j+1, possibleArcs, cell, prefX, prefY);
 			return;
 		}
 
@@ -1030,6 +1032,7 @@ public class MimicStitch
 	 */
 	private static class MimicDialog extends EDialog
 	{
+		private static final long serialVersionUID = 1L;
 		private int count;
 		private List<Route> allRoutes;
 		private List<ArcInst> allKills;
@@ -1174,6 +1177,7 @@ public class MimicStitch
 	 */
 	public static class MimicOptions implements Serializable
 	{
+		private static final long serialVersionUID = 1L;
 		public boolean mimicPinsKept;
 		public boolean mimicInteractive;
 		public boolean matchPorts;

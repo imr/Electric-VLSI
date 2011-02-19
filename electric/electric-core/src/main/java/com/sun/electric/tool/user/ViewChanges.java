@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -65,13 +66,13 @@ import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
 import com.sun.electric.util.math.GenMath;
 import com.sun.electric.util.math.Orientation;
 
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -238,13 +239,13 @@ public class ViewChanges
 
 		// database can't change icon/schematic views
 		if (cell.isIcon() || cell.isSchematic()) {
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Cannot change view of icon/schematic",
 					"Change cell view failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		if (newView == View.ICON || newView == View.SCHEMATIC) {
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Cannot change " + cell.getView() + " to icon/schematic " + newView,
 					"Change cell view failed", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -258,7 +259,7 @@ public class ViewChanges
 			if (!other.getName().equalsIgnoreCase(cell.getName())) continue;
 
 			// there is another cell with this name and view: warn that it will become old
-			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+			int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
 				"There is already a cell with that view.  Is it okay to make it an older version, and make this the newest version?");
 			if (response != JOptionPane.YES_OPTION) return;
 			break;
@@ -312,7 +313,7 @@ public class ViewChanges
 		// cannot skeletonize text-only views
 		if (curCell.getView().isTextView())
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Cannot skeletonize textual views: only layout",
 					"Skeleton creation failed", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -498,7 +499,7 @@ public class ViewChanges
 		if (curCell == null) return;
 		if (!curCell.isSchematic())
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"The current cell must be a schematic in order to generate an icon",
 					"Icon creation failed", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -508,7 +509,7 @@ public class ViewChanges
 		Cell iconCell = curCell.iconView();
 		if (iconCell != null)
 		{
-			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+			int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
 				"Warning: Icon " + iconCell.describe(true) + " already exists.  Create a new version?");
 			if (response != JOptionPane.YES_OPTION) return;
 		}
@@ -975,7 +976,7 @@ public class ViewChanges
 		/** Creates new form */
 		private MakeNewViewDialog(Cell oldCell, EditWindow wnd)
 		{
-			super(TopLevel.getCurrentJFrame(), true);
+			super((Frame) Main.getCurrentJFrame(), true);
 			this.oldCell = oldCell;
 			initComponents();
 

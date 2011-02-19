@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -41,7 +42,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 
@@ -58,6 +58,7 @@ import java.util.Iterator;
  */
 public class ChangeText extends EDialog
 {
+	private static final long serialVersionUID = 1L;
 	private static boolean lastNodesSelected = false;
 	private static boolean lastArcsSelected = false;
 	private static boolean lastExportsSelected = false;
@@ -70,7 +71,8 @@ public class ChangeText extends EDialog
 
     private static class ChangeParameters implements Serializable
     {
-    	// which types of text are to be changed
+		private static final long serialVersionUID = 1L;
+		// which types of text are to be changed
     	private boolean nodesSelected;
     	private boolean arcsSelected;
     	private boolean exportsSelected;
@@ -131,7 +133,7 @@ public class ChangeText extends EDialog
 
     public static void changeTextDialog()
 	{
-		ChangeText dialog = new ChangeText(TopLevel.getCurrentJFrame());
+		ChangeText dialog = new ChangeText((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
@@ -567,6 +569,7 @@ public class ChangeText extends EDialog
 
 	private static class ChangeTextSizes extends Job
 	{
+		private static final long serialVersionUID = 1L;
 		private Cell cell;
 		private ChangeParameters cp;
 

@@ -1317,7 +1317,7 @@ public class ClickZoomWireListener
 	    {
             EditWindow wnd = (EditWindow)e.getSource();
             Highlighter highlighter = wnd.getHighlighter();
-            wnd.getWindowFrame().getFrame().getStatusBar().highlightChanged(highlighter);
+//            wnd.getWindowFrame().getFrame().getStatusBar().highlightChanged(highlighter);
 	        WindowFrame.show3DHighlight();
 	    }
     }

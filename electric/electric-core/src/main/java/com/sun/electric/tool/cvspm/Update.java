@@ -24,13 +24,13 @@
 
 package com.sun.electric.tool.cvspm;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 
@@ -392,7 +392,7 @@ public class Update {
     // -------------------- Rollback ----------------------------
 
     public static void rollback(Cell cell) {
-        int ret = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+        int ret = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
                 "WARNING! Disk file for Cell "+cell.libDescribe()+" will revert to latest CVS version!\n"+
                 "All uncommited changes will be lost!!!  Continue anyway?", "Rollback Cell", JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
@@ -402,7 +402,7 @@ public class Update {
     }
 
     public static void rollback(Library lib) {
-        int ret = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+        int ret = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
                 "WARNING! Disk file(s) for Library"+lib.getName()+" will revert to latest CVS version!\n"+
                 "All uncommited changes will be lost!!!  Continue anyway?", "Rollback Library", JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);

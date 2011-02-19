@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.PrimitiveNode;
@@ -33,7 +34,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.MouseAdapter;
@@ -56,6 +56,7 @@ import javax.swing.event.DocumentListener;
  */
 public class TechnologyTab extends PreferencePanel
 {
+	private static final long serialVersionUID = 1L;
 	/** Value for standard SCMOS rules. */		public static final int MOCMOS_SCMOSRULES = 0; // = MoCMOS.SCMOSRULES
 	/** Value for submicron rules. */			public static final int MOCMOS_SUBMRULES  = 1; // = MoCMOS.SUBMRULES
 	/** Value for deep rules. */				public static final int MOCMOS_DEEPRULES  = 2; // = MoCMOS.DEEPRULES
@@ -214,7 +215,7 @@ public class TechnologyTab extends PreferencePanel
 			if (/*currentNumMetals != 2 || currentRules != MOCMOS_SCMOSRULES ||*/
                 currentRules == MOCMOS_DEEPRULES || !secondPoly || alternateContactRules)
 			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 					"The Analog setting requires 2 polys, SCM or SUB rules and no alternate contact rules..." +
                         " making these changes with SUB rules");
 //				techMetalLayers.setSelectedIndex(0);
@@ -235,7 +236,7 @@ public class TechnologyTab extends PreferencePanel
 			case 4:
 				if (currentRules == MOCMOS_DEEPRULES)
 				{
-					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 						"Cannot use Deep rules if there are less than 5 layers of metal...using SubMicron rules.");
 					currentRules = MOCMOS_SUBMRULES;
 				}
@@ -246,7 +247,7 @@ public class TechnologyTab extends PreferencePanel
 			case 6:
 				if (currentRules == MOCMOS_SCMOSRULES)
 				{
-					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 						"Cannot use SCMOS rules if there are more than 4 layers of metal...using SubMicron rules.");
 					currentRules = MOCMOS_SUBMRULES;
 				}
@@ -430,7 +431,7 @@ public class TechnologyTab extends PreferencePanel
 				"If you cancel the operation, the foundry will not be changed.",
 				"Do you want to resize the database?"};
 			Object [] options = {"Yes", "No", "Cancel"};
-			int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
+			int val = JOptionPane.showOptionDialog(Main.getCurrentJFrame(), messages,
 				"Resize primitive Nodes and Arcs", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.WARNING_MESSAGE, null, options, options[0]);
 			if (val != 2)

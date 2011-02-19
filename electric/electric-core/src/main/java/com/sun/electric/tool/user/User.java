@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
@@ -54,7 +55,6 @@ import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.user.redisplay.VectorCache;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TechPalette;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
@@ -538,7 +538,7 @@ public class User extends Listener
 			}
 
 			// initialize the click sound
-			URL url = Resources.getURLResource(TopLevel.class, "Click.wav");
+			URL url = Resources.getURLResource(Main.class, "Click.wav");
 			if (url == null) { hasSound = false;   return; }
 			clickSound = Applet.newAudioClip(url);
 		}

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.simulation;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -49,7 +50,6 @@ import com.sun.electric.tool.simulation.als.ALS;
 import com.sun.electric.tool.simulation.irsim.IRSIM;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.util.TextUtils;
@@ -526,7 +526,7 @@ public class SimulationTool extends Tool
 
 		public static double getClockSpec()
 		{
-			ClockSpec dialog = new ClockSpec(TopLevel.getCurrentJFrame(), true);
+			ClockSpec dialog = new ClockSpec((Frame) Main.getCurrentJFrame(), true);
 			dialog.setVisible(true);
 			return dialog.period;
 		}

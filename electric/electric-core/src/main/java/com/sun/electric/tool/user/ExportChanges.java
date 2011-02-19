@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -48,7 +49,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 import com.sun.electric.util.math.DBMath;
@@ -611,7 +611,7 @@ public final class ExportChanges
 
 		List<Geometric> nodeInsts = MenuCommands.getSelectedObjects(true, false);
 		if (nodeInsts.size() == 0) {
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Please select one or objects to re-export",
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -840,7 +840,7 @@ public final class ExportChanges
 		Rectangle2D bounds = wnd.getHighlighter().getHighlightedArea(null);
 		if (bounds == null)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Must select area before re-exporting the highlighted area",
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -1165,7 +1165,7 @@ public final class ExportChanges
 		}
 		if (exportsToDelete.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"There are no exports on the highlighted objects",
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -1187,7 +1187,7 @@ public final class ExportChanges
 		Rectangle2D bounds = wnd.getHighlighter().getHighlightedArea(null);
 		if (bounds == null)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"Must select something before deleting the highlighted exports",
 					"Export delete failed", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -1206,7 +1206,7 @@ public final class ExportChanges
 		}
 		if (exportsToDelete.size() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 				"There are no exports in the highlighted area",
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -1338,7 +1338,7 @@ public final class ExportChanges
 			return;
 		}
 		Export pp = (Export)h.getElectricObject();
-		String response = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Rename export", pp.getName());
+		String response = JOptionPane.showInputDialog(Main.getCurrentJFrame(), "Rename export", pp.getName());
 		if (response == null) return;
 		new RenameExport(pp, response);
 	}
@@ -1755,7 +1755,7 @@ public final class ExportChanges
 			if (oLib == curLib) continue;
 			libNames[i++] = oLib.getName();
 		}
-		String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+		String chosen = (String)JOptionPane.showInputDialog(Main.getCurrentJFrame(),
 			"Choose another library from which to copy exports", "Choose a Library",
 			JOptionPane.QUESTION_MESSAGE, null, libNames, libNames[0]);
 		if (chosen == null) return;
@@ -1860,7 +1860,7 @@ public final class ExportChanges
 			if (oLib == curLib) continue;
 			libNames[i++] = oLib.getName();
 		}
-		String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+		String chosen = (String)JOptionPane.showInputDialog(Main.getCurrentJFrame(),
 			"Choose another library from which to replace cell instances", "Choose a Library",
 			JOptionPane.QUESTION_MESSAGE, null, libNames, libNames[0]);
 		if (chosen == null) return;

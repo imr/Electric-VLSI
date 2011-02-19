@@ -23,13 +23,13 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Frame;
@@ -40,7 +40,9 @@ import java.awt.geom.Rectangle2D;
  */
 public class Spread extends EDialog
 {
-    private NodeInst currentNode;
+	private static final long serialVersionUID = 1L;
+
+	private NodeInst currentNode;
 
     private static char defDirection = 'u';
     private static double defAmount = 1;
@@ -51,7 +53,7 @@ public class Spread extends EDialog
 		NodeInst ni = (NodeInst)wnd.getHighlighter().getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
 
-		Spread dialog = new Spread(TopLevel.getCurrentJFrame(), ni);
+		Spread dialog = new Spread((Frame) Main.getCurrentJFrame(), ni);
 		dialog.setVisible(true);
 	}
 

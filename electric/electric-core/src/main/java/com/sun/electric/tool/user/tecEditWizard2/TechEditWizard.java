@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user.tecEditWizard2;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -67,7 +67,7 @@ public class TechEditWizard extends EDialog
 	 */
 	public static void techEditWizardCommand()
 	{
-		TechEditWizard dialog = new TechEditWizard(TopLevel.getCurrentJFrame());
+		TechEditWizard dialog = new TechEditWizard((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 

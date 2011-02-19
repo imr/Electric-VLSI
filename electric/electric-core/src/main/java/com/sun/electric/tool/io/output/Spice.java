@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
@@ -69,9 +70,9 @@ import com.sun.electric.tool.simulation.SimulationTool;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
+import java.awt.Frame;
 import java.awt.geom.AffineTransform;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -346,7 +347,7 @@ public class Spice extends Topology
                 }
                 if (runSpice.equals(SimulationTool.spiceRunChoiceRunReportOutput))
                 {
-                    ExecDialog dialog = new ExecDialog(TopLevel.getCurrentJFrame(), false);
+                    ExecDialog dialog = new ExecDialog((Frame) Main.getCurrentJFrame(), false);
                     if (runProbe) dialog.addFinishedListener(l);
                     dialog.startProcess(command, null, dir);
                 }

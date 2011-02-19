@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -47,6 +48,7 @@ import com.sun.electric.util.math.Orientation;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -260,7 +262,7 @@ public class PaletteFrame implements MouseListener
 				Cell iconCell = cell.iconView();
 				if (iconCell != null && iconCell != cell)
 				{
-					int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+					int response = JOptionPane.showConfirmDialog(Main.getCurrentJFrame(),
 						"Don't you really want to place the icon " + iconCell.describe(true) + "?");
 					if (response == JOptionPane.CANCEL_OPTION) return null;
 					if (response == JOptionPane.YES_OPTION) obj = np = iconCell;
@@ -276,7 +278,7 @@ public class PaletteFrame implements MouseListener
 		{
 			// remember the listener that was there before
 			EventListener oldListener = WindowFrame.getListener();
-			Cursor oldCursor = TopLevel.getCurrentCursor();
+			Cursor oldCursor = Main.getCurrentCursor();
 
 			if (whatToCreate != null)
                 System.out.println("Click to create " + whatToCreate);
@@ -304,7 +306,7 @@ public class PaletteFrame implements MouseListener
 				palette.placeNodeStarted(obj);
 
 			// change the cursor
-			TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			Main.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 			// zoom the window to fit the placed node (if appropriate)
 			EditWindow wnd = EditWindow.getCurrent();
@@ -368,7 +370,7 @@ public class PaletteFrame implements MouseListener
 			Cell cell = wnd.getCell();
 			if (cell == null)
 			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				JOptionPane.showMessageDialog(Main.getCurrentJFrame(),
 					"Cannot create node: this window has no cell in it");
 				return;
 			}
@@ -421,7 +423,7 @@ public class PaletteFrame implements MouseListener
                 highlighter.finished();
             }
             WindowFrame.setListener(oldListener);
-            TopLevel.setCurrentCursor(oldCursor);
+            Main.setCurrentCursor(oldCursor);
             if (palette != null)
                 palette.placeNodeFinished(cancelled);
         }
@@ -675,7 +677,7 @@ public class PaletteFrame implements MouseListener
 			}
 			if (export)
 			{
-				new NewExport(TopLevel.getCurrentJFrame());
+				new NewExport((Frame) Main.getCurrentJFrame());
 			}
         }
 	}

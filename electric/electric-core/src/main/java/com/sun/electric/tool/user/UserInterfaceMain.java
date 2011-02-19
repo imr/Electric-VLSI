@@ -52,7 +52,6 @@ import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.LayerVisibility;
 import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
@@ -207,7 +206,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                 busyCursor = true;
         }
         JobTree.update(Arrays.asList(jobQueue));
-        TopLevel.setBusyCursor(busyCursor);
+        Main.setBusyCursor(busyCursor);
     }
 
     public void addEvent(Client.ServerEvent serverEvent) { SwingUtilities.invokeLater(serverEvent); }
@@ -564,12 +563,8 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public void showErrorMessage(final String message, final String title)
     {
-        JFrame wf = null;
         if (Job.isClientThread()) {
-            wf = TopLevel.getCurrentJFrame(false);
-        }
-        if (wf != null) {
-            JOptionPane.showMessageDialog(wf, message, title, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(Main.getCurrentJFrame(), message, title, JOptionPane.ERROR_MESSAGE);
         } else {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
@@ -587,7 +582,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     public void showInformationMessage(final String message, final String title)
     {
          if (Job.isClientThread())
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(Main.getCurrentJFrame(), message, title, JOptionPane.INFORMATION_MESSAGE);
         else {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
@@ -1058,7 +1053,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
 		public void windowDeactivated(WindowEvent e)
 		{
-			TopLevel tl = TopLevel.getCurrentJFrame(false);
+//			TopLevel tl = TopLevel.getCurrentJFrame(false);
 			Window w = e.getOppositeWindow();
 		}
 	}

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
@@ -34,7 +35,6 @@ import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.fill.FillGenConfig;
 import com.sun.electric.tool.generator.layout.fill.FillGenJob;
 import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.util.TextUtils;
 
 import java.awt.Component;
@@ -770,7 +770,7 @@ public class FillGenDialog extends EDialog {
 
     public static void openFillGeneratorDialog(Technology tech)
     {
-        new FillGenDialog(tech, TopLevel.getCurrentJFrame());
+        new FillGenDialog(tech, (Frame) Main.getCurrentJFrame());
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

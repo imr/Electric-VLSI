@@ -25,15 +25,16 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ViewControl;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -90,7 +91,7 @@ public class ViewMenu {
 	 */
 	public static void viewControlCommand()
 	{
-		 ViewControl dialog = new ViewControl(TopLevel.getCurrentJFrame());
+		 ViewControl dialog = new ViewControl((Frame) Main.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
 
@@ -114,7 +115,7 @@ public class ViewMenu {
 			viewNames[j++] = views.get(i).getFullName();
 		}
 		viewNames[j] = "Icon (cannot change into Icon view)";
-		Object newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "New view for this cell",
+		Object newName = JOptionPane.showInputDialog(Main.getCurrentJFrame(), "New view for this cell",
 			"Choose alternate view", JOptionPane.QUESTION_MESSAGE, null, viewNames, cell.getView().getFullName());
 		if (newName == null) return;
 		String newViewName = (String)newName;
@@ -164,7 +165,7 @@ public class ViewMenu {
 		String [] viewNames = new String[views.size()];
 		for(int i=0; i<views.size(); i++)
 			viewNames[i] = views.get(i).getFullName();
-		Object newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Which associated view do you want to see?",
+		Object newName = JOptionPane.showInputDialog(Main.getCurrentJFrame(), "Which associated view do you want to see?",
 			"Choose alternate view", JOptionPane.QUESTION_MESSAGE, null, viewNames, curCell.getView().getFullName());
 		if (newName == null) return;
 		String newViewName = (String)newName;

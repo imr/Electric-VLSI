@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
@@ -44,7 +45,6 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.util.TextUtils;
 
@@ -107,7 +107,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         if (theDialog == null)
         {
         	JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            jf = (JFrame) Main.getCurrentJFrame();
             theDialog = new Attributes(jf);
         }
         theDialog.loadAttributesInfo(false);
@@ -1182,7 +1182,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
     }// </editor-fold>//GEN-END:initComponents
 
     private void copyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyButtonActionPerformed
-		CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCellToCopy);
+		CellBrowser dialog = new CellBrowser((Frame) Main.getCurrentJFrame(), true, CellBrowser.DoAction.selectCellToCopy);
 		dialog.setVisible(true);
 		Cell cell = dialog.getSelectedCell();
 		if (cell == null) return;

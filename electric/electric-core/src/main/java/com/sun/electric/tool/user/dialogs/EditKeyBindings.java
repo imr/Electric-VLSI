@@ -24,14 +24,15 @@
 
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.dialogs.options.PreferencePanel;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
-import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -49,7 +50,8 @@ import javax.swing.tree.TreeSelectionModel;
  */
 public class EditKeyBindings extends PreferencePanel implements TreeSelectionListener {
     
-    /** MenuBarGroup for building dialog tree */            EMenuBar menuBar;
+	private static final long serialVersionUID = 1L;
+	/** MenuBarGroup for building dialog tree */            EMenuBar menuBar;
     
     /** class to encapsulate a tree node for displaying key bindings.
      * The toString() method is overridden to show the key binding next to the
@@ -325,7 +327,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
     private void addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addActionPerformed
         EMenuItem item = getSelectedMenuItem();
         if (item == null || item == EMenuItem.SEPARATOR || item instanceof EMenu) return;
-        EditKeyBinding dialog = new EditKeyBinding(item, menuBar, TopLevel.getCurrentJFrame(), true);
+        EditKeyBinding dialog = new EditKeyBinding(item, menuBar, (Frame) Main.getCurrentJFrame(), true);
 		dialog.setVisible(true);
 
         // update tree view
