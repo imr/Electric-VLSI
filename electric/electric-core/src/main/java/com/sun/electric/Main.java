@@ -66,7 +66,6 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.SwingUtilities;
 
-import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -74,7 +73,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
@@ -100,12 +98,8 @@ import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.util.concurrent.runtime.taskParallel.ThreadPool.PoolWorkerStrategyFactory;
-import com.sun.electric.tool.util.concurrent.utils.ElapseTimer;
 import com.sun.electric.util.PropertiesUtils;
 import com.sun.electric.util.TextUtils;
-import com.sun.electric.util.concurrent.ElectricWorkerStrategy;
-import com.sun.electric.util.config.Configuration;
 import com.sun.electric.util.test.TestByReflection;
 
 /**
@@ -307,19 +301,12 @@ public final class Main extends JApplet
             runMode = Mode.CLIENT;
         }
 
-        UserInterfaceMain.Mode mode = null;
-        if (hasCommandLineOption(argsList, "-mdi")) mode = UserInterfaceMain.Mode.MDI;
-        if (hasCommandLineOption(argsList, "-sdi")) mode = UserInterfaceMain.Mode.SDI;
-
         desktop = new JDesktopPane();
         desktop.setVisible(true);
         getContentPane().add(desktop);
         
         AbstractUserInterface ui;
-        if (runMode == Mode.FULL_SCREEN_SAFE || runMode == Mode.CLIENT)
-            ui = new UserInterfaceMain(argsList, mode, this);
-        else
-            ui = new UserInterfaceDummy();
+        ui = new UserInterfaceMain(argsList, this);
         MessagesStream.getMessagesStream();
 
 		// initialize database

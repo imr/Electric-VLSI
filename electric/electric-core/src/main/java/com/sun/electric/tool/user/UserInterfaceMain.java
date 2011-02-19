@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.Main;
-import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.EditingPreferences;
 import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
@@ -81,7 +80,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
@@ -92,10 +90,6 @@ import javax.swing.event.EventListenerList;
 public class UserInterfaceMain extends AbstractUserInterface
 {
     static final Logger logger = Logger.getLogger("com.sun.electric.tool.user");
-    /**
-     * Describe the windowing mode.  The current modes are MDI and SDI.
-     */
-    public static enum Mode { MDI, SDI }
 
 //	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
 //	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
@@ -114,7 +108,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     private PrintStream stdout = System.out;
 
-    public UserInterfaceMain(List<String> argsList, Mode mode, Main thisContain) {
+    public UserInterfaceMain(List<String> argsList, Main thisContain) {
         new EventProcessor();
         Contain = thisContain;
         try {
@@ -127,11 +121,6 @@ public class UserInterfaceMain extends AbstractUserInterface
             });
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        if (mode == null) {
-            int defMode = StartupPrefs.getDisplayStyle();
-            if (defMode == 1) mode = UserInterfaceMain.Mode.MDI; else
-            if (defMode == 2) mode = UserInterfaceMain.Mode.SDI;
         }
         SwingUtilities.invokeLater(new InitializationRun(argsList));
     }
